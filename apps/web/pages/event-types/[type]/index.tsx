@@ -17,7 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingInputs, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc, RouterOutputs } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
@@ -86,6 +86,7 @@ export type FormValues = {
   bookingLimits?: BookingLimit;
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
+  bookingInputs: z.infer<typeof eventTypeBookingInputs>;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -192,6 +193,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      bookingInputs: eventType.bookingInputs,
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,

@@ -12,9 +12,13 @@ import {
 
 import { Button as CalButton, Icon, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
 
-// import { mapListValues } from "../../../../utils/stuff";
+export type ComponentProps = {
+  value: string;
+  setValue: (value: string) => void;
+  placeholder?: string;
+};
 
-const TextAreaWidget = (props: TextWidgetProps) => {
+const TextAreaWidget = (props: ComponentProps) => {
   const { value, setValue, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
 
   const onChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -37,7 +41,7 @@ const TextAreaWidget = (props: TextWidgetProps) => {
   );
 };
 
-const TextWidget = (props: TextWidgetProps & { type?: string }) => {
+const TextWidget = (props: ComponentProps & { type?: string }) => {
   const { value, setValue, readonly, placeholder, customProps, ...remainingProps } = props;
   let { type } = props;
   type = type || "text";
@@ -61,7 +65,7 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
+function NumberWidget({ value, setValue, ...remainingProps }: ComponentProps) {
   return (
     <TextField
       type="number"
@@ -81,9 +85,8 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: Omit<SelectWidgetProps, "value"> & {
+}: ComponentProps & {
   listValues: { title: string; value: string }[];
-  value?: string[];
 }) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
@@ -118,7 +121,7 @@ function SelectWidget({
   setValue,
   value,
   ...remainingProps
-}: SelectWidgetProps & {
+}: ComponentProps & {
   listValues: { title: string; value: string }[];
 }) {
   if (!listValues) {

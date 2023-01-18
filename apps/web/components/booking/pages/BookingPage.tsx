@@ -5,6 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -17,7 +18,6 @@ import {
   EventLocationType,
   getEventLocationType,
   getEventLocationValue,
-  getHumanReadableLocationValue,
   locationKeyToString,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
@@ -30,6 +30,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -39,7 +40,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
+import { AddressInput, Button, EmailInput, Form, Icon, Input, Label, PhoneInput, Tooltip } from "@calcom/ui";
 import { Group, RadioField } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -53,6 +54,7 @@ import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
+import { FormBuilderField } from "@components/eventtype/EventAdvancedTab";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -75,6 +77,46 @@ type BookingFormValues = {
   };
   rescheduleReason?: string;
   smsReminderNumber?: string;
+};
+
+const BookingFields = ({
+  fields,
+  hookForm,
+  guestToggle,
+  locations,
+  selectedLocation,
+  rescheduleUid,
+}: {
+  fields: unknown;
+}) => {
+  const { t } = useLocale();
+  return fields.map((bookingInput, index) => {
+    const actionHappened = bookingInput.name === "guests" && guestToggle;
+    if (bookingInput.hidden) return null;
+    if (bookingInput.showOnAction && !actionHappened) return null;
+    if (bookingInput.name === "location") {
+      bookingInput.options = locations
+        .map((location) => {
+          const locationString = locationKeyToString(location);
+          if (typeof locationString !== "string") {
+            // It's possible that location app got uninstalled
+            return null;
+          }
+          return {
+            label: t(locationString),
+            value: location.type,
+          };
+        })
+        .filter(Boolean);
+      bookingInput.optionsInputs.attendeeInPerson.placeholder = t(
+        selectedLocation?.attendeeInputPlaceholder || ""
+      );
+    }
+
+    return (
+      <FormBuilderField field={bookingInput} hookForm={hookForm} rescheduleUid={rescheduleUid} key={index} />
+    );
+  });
 };
 
 const BookingPage = ({
@@ -243,19 +285,20 @@ const BookingPage = ({
 
   const bookingFormSchema = z
     .object({
-      name: z.string().min(1),
-      email: z.string().trim().email(),
-      phone: z
-        .string()
-        .refine((val) => isValidPhoneNumber(val))
-        .optional()
-        .nullable(),
-      attendeeAddress: z.string().optional().nullable(),
-      smsReminderNumber: z
-        .string()
-        .refine((val) => isValidPhoneNumber(val))
-        .optional()
-        .nullable(),
+      // name: z.string().min(1),
+      // email: z.string().trim().email(),
+      // phone: z
+      //   .string()
+      //   .refine((val) => isValidPhoneNumber(val))
+      //   .optional()
+      //   .nullable(),
+      // attendeeAddress: z.string().optional().nullable(),
+      inputs: getBookingResponsesSchema(eventType),
+      // smsReminderNumber: z
+      //   .string()
+      //   .refine((val) => isValidPhoneNumber(val))
+      //   .optional()
+      //   .nullable(),
     })
     .passthrough();
 
@@ -263,7 +306,9 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-
+  useEffect(() => {
+    window.bookingForm = bookingForm;
+  });
   const selectedLocationType = useWatch({
     control: bookingForm.control,
     name: "locationType",
@@ -278,12 +323,6 @@ const BookingPage = ({
   });
 
   const selectedLocation = getEventLocationType(selectedLocationType);
-  const AttendeeInput =
-    selectedLocation?.attendeeInputType === "phone"
-      ? PhoneInput
-      : selectedLocation?.attendeeInputType === "attendeeAddress"
-      ? AddressInput
-      : null;
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
@@ -413,7 +452,7 @@ const BookingPage = ({
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         location: getEventLocationValue(locations, {
-          type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
+          type: (booking.inputs.location.value ? booking.inputs.location.value : selectedLocationType) || "",
           phone: booking.phone,
           attendeeAddress: booking.attendeeAddress,
         }),
@@ -588,7 +627,15 @@ const BookingPage = ({
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} handleSubmit={bookEvent}>
-                <div className="mb-4">
+                <BookingFields
+                  fields={eventType.bookingInputs}
+                  hookForm={bookingForm}
+                  guestToggle={guestToggle}
+                  locations={locations}
+                  selectedLocation={selectedLocation}
+                  rescheduleUid={rescheduleUid}
+                />
+                {/* <div className="mb-4">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
                     {t("your_name")}
                   </label>
@@ -629,99 +676,8 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                <>
-                  {rescheduleUid ? (
-                    <div className="mb-4">
-                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("location")}
-                      </span>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {getHumanReadableLocationValue(booking?.location, t)}
-                      </p>
-                    </div>
-                  ) : (
-                    locations.length > 1 && (
-                      <div className="mb-4">
-                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                          {t("location")}
-                        </span>
-                        {locations.map((location, i) => {
-                          const locationString = locationKeyToString(location);
-                          if (!selectedLocationType) {
-                            bookingForm.setValue("locationType", locations[0].type);
-                          }
-                          if (typeof locationString !== "string") {
-                            // It's possible that location app got uninstalled
-                            return null;
-                          }
-                          return (
-                            <label key={i} className="block">
-                              <input
-                                type="radio"
-                                disabled={!!disableLocations}
-                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                                {...bookingForm.register("locationType", { required: true })}
-                                value={location.type}
-                                defaultChecked={i === 0}
-                              />
-                              <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
-                                {t(locationKeyToString(location) ?? "")}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )
-                  )}
-                </>
-                {/* TODO: Change name and id ="phone" to something generic */}
-                {AttendeeInput && !disableInput && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor={
-                        selectedLocationType === LocationType.Phone
-                          ? "phone"
-                          : selectedLocationType === LocationType.AttendeeInPerson
-                          ? "attendeeAddress"
-                          : ""
-                      }
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {selectedLocationType === LocationType.Phone
-                        ? t("phone_number")
-                        : selectedLocationType === LocationType.AttendeeInPerson
-                        ? t("address")
-                        : ""}
-                    </label>
-                    <div className="mt-1">
-                      <AttendeeInput<BookingFormValues>
-                        control={bookingForm.control}
-                        bookingForm={bookingForm}
-                        name={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        required
-                      />
-                    </div>
-                    {bookingForm.formState.errors.phone && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                
+
                 {eventType.customInputs.map((input) => (
                   <div className="mb-4" key={input.id}>
                     {input.type !== EventTypeCustomInputType.BOOL && (
@@ -878,10 +834,10 @@ const BookingPage = ({
                           )}
                         />
                       )}
-                      {/* Custom code when guest emails should not be editable */}
+                      {/* Custom code when guest emails should not be editable }
                       {disableInput && guestListEmails && guestListEmails.length > 0 && (
                         <div data-tag className="react-multi-email">
-                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                          {/* // @TODO: user owners are appearing as guest here when should be only user input }
                           {guestListEmails.map((email, index) => {
                             return (
                               <div key={index} className="cursor-pointer">
@@ -945,7 +901,7 @@ const BookingPage = ({
                       disabled={disabledExceptForOwner}
                     />
                   )}
-                </div>
+                </div> */}
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                   {!eventType.disableGuests && !guestToggle && (

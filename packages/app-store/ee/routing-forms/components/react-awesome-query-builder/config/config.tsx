@@ -4,6 +4,8 @@ import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builde
 //@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
+import { PhoneInput, AddressInput } from "@calcom/ui";
+
 import widgetsComponents from "../widgets";
 
 const {
@@ -80,7 +82,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      return <TextWidget type="tel" {...props} />;
+      return <PhoneInput {...props} />;
     },
     valuePlaceholder: "Enter Phone Number",
   },
@@ -90,7 +92,23 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
+      // FIXME: type=email is removed so that RHF validations can work
+      // But, RHF errors are not integrated in Routing Forms form
+      return <TextWidget {...props} />;
+    },
+  },
+  multiemail: {
+    ...BasicConfig.widgets.text,
+    factory: (props) => {
+      //TODO: ManageBookings: Make it use multiemail
       return <TextWidget type="email" {...props} />;
+    },
+    valuePlaceholder: "Enter Email Addresses",
+  },
+  address: {
+    ...BasicConfig.widgets.text,
+    factory: (props) => {
+      return <AddressInput {...props} />;
     },
   },
 };

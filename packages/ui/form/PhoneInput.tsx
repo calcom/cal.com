@@ -1,29 +1,19 @@
-import BasePhoneInput, { Props } from "react-phone-number-input/react-hook-form";
+import BasePhoneInput, { Props } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-export type PhoneInputProps<FormValues> = Props<
-  {
-    value: string;
-    id: string;
-    placeholder: string;
-    required: boolean;
-  },
-  FormValues
-> & { onChange?: (e: any) => void };
+export type PhoneInputProps = {
+  value: string;
+  id?: string;
+  placeholder?: string;
+  required?: boolean;
+} & { onChange?: (e: any) => void };
 
-function PhoneInput<FormValues>({
-  control,
-  name,
-  className,
-  onChange,
-  ...rest
-}: PhoneInputProps<FormValues>) {
+function PhoneInput({ control, name, className, onChange, ...rest }: PhoneInputProps) {
   return (
     <BasePhoneInput
       {...rest}
       international
       name={name}
-      control={control}
       onChange={onChange}
       countrySelectProps={{ className: "text-black" }}
       numberInputProps={{

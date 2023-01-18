@@ -1,30 +1,44 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+//TODO: ManageBookings: Don't import from ReactAwesomeQueryBuilder instead make ReactAwesomeQueryBuilder use a common config that would be imported here as well
+import config from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/config/config";
+import Widgets, {
+  ComponentProps,
+} from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
+  BooleanToggleGroupField,
   Button,
   Checkbox,
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
+  DialogHeader,
+  Form,
   Icon,
+  Input,
+  InputField,
   Label,
+  PhoneInput,
+  SelectField,
   SettingsToggle,
   showToast,
   TextField,
   Tooltip,
 } from "@calcom/ui";
+import { AddressInput } from "@calcom/ui";
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
@@ -46,6 +60,599 @@ const getRandomId = (length = 8) => {
         .toString()
         .replace(".", "")
     )
+  );
+};
+
+// TODO: ManageBookings: Move widgets along with it.
+const Components = {
+  text: {
+    propsType: "text",
+    factory: (props: ComponentProps) => <Widgets.TextWidget {...props} />,
+  },
+  textarea: {
+    propsType: "text",
+    factory: (props: ComponentProps) => <Widgets.TextAreaWidget {...props} />,
+  },
+  number: {
+    propsType: "text",
+    factory: (props: ComponentProps) => <Widgets.NumberWidget {...props} />,
+  },
+  multiselect: {
+    propsType: "select",
+    factory: (
+      props: ComponentProps & {
+        listValues: { title: string; value: string }[];
+      }
+    ) => <Widgets.MultiSelectWidget {...props} />,
+  },
+  select: {
+    propsType: "select",
+    factory: (
+      props: ComponentProps & {
+        listValues: { title: string; value: string }[];
+      }
+    ) => <Widgets.SelectWidget {...props} />,
+  },
+  phone: {
+    propsType: "text",
+    factory: (props: ComponentProps) => {
+      if (!props) {
+        return <div />;
+      }
+
+      return (
+        <PhoneInput
+          onChange={(val: string) => {
+            props.setValue(val);
+          }}
+          {...props}
+        />
+      );
+    },
+    valuePlaceholder: "Enter Phone Number",
+  },
+  email: {
+    propsType: "text",
+    factory: (props: ComponentProps) => {
+      if (!props) {
+        return <div />;
+      }
+      // FIXME: type=email is removed so that RHF validations can work
+      // But, RHF errors are not integrated in Routing Forms form
+      return <Widgets.TextWidget {...props} />;
+    },
+  },
+  multiemail: {
+    propsType: "text",
+    factory: (props: ComponentProps) => {
+      //TODO: ManageBookings: Make it use multiemail
+      return <Widgets.TextWidget type="email" {...props} />;
+    },
+    valuePlaceholder: "Enter Email Addresses",
+  },
+  address: {
+    propsType: "text",
+    factory: (props: ComponentProps) => {
+      return (
+        <AddressInput
+          onChange={(val) => {
+            props.setValue(val);
+          }}
+          {...props}
+        />
+      );
+    },
+  },
+  radioInput: {
+    propsType: "objectiveWithInput",
+    factory: function RadioInputWithLabel({
+      name,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+    }: {
+      options: { label: string; value: string }[];
+      optionsInputs: FormValues["bookingInputs"][number]["optionsInputs"];
+      value: { value: string; optionValue: string };
+      setValue: (val: { value: string; optionValue: string }) => void;
+      name?: string;
+    }) {
+      useEffect(() => {
+        setValue({
+          value: options[0].value,
+          optionValue: "",
+        });
+      }, []);
+      // const getLocationInputField = () => {
+      //   return (
+      //     <div className="mb-4">
+      //       {/* <Label>
+      //       </Label> */}
+      //       {Field ? (
+      //         <div>
+      //           <div className="mt-1">{Field}</div>
+      //           {bookingForm.formState.errors.phone && (
+      //             <div className="mt-2 flex items-center text-sm text-red-700 ">
+      //               <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      //               <p>{t("invalid_number")}</p>
+      //             </div>
+      //           )}
+      //         </div>
+      //       ) : null}
+      //     </div>
+      //   );
+      // };
+
+      return (
+        <div>
+          {/* <div className={classNames(locations.length <= 1 && "hidden")}> */}
+          <div>
+            {
+              /*isRescheduleView*/ false ? (
+                <div>
+                  {/* <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                  {bookingInput.label}
+                </span>
+                <p className="mt-1 text-sm text-gray-500">
+                  {getHumanReadableLocationValue(booking?.location, t)}
+                </p> */}
+                  <div>Show READONLY location</div>
+                </div>
+              ) : (
+                <div
+                  className="mb-4"
+                  onChange={(e) => {
+                    setValue({
+                      // TODO: ManageBookings: onChange fires on parent of radio inputs but onChange isn't allowed to have a value for div in TS
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      value: e.target.value || "",
+                      optionValue: "",
+                    });
+                  }}>
+                  {options.map((option, i) => {
+                    return (
+                      <label key={i} className="block">
+                        <input
+                          type="radio"
+                          name={name}
+                          // disabled={!!disableLocations}
+                          //TODO: ManageBookings: What does this location class do?
+                          className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                          value={option.value}
+                          defaultChecked={option.value === value?.value}
+                        />
+                        <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
+                          {option.label ?? ""}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )
+            }
+          </div>
+          {(() => {
+            const optionField = optionsInputs[value?.value];
+            if (!optionField) {
+              return null;
+            }
+            return (
+              <div>
+                <ComponentForField
+                  field={optionField}
+                  value={value?.optionValue}
+                  setValue={(val) => {
+                    setValue({
+                      value: value?.value,
+                      optionValue: val,
+                    });
+                  }}
+                />
+              </div>
+            );
+          })()}
+        </div>
+      );
+    },
+  },
+} as const;
+
+//TODO: ManageBookings: Extract to a reusable component
+function FormBuilder({
+  title,
+  description,
+  addFieldLabel,
+}: {
+  title: string;
+  description: string;
+  addFieldLabel: string;
+}) {
+  const FieldTypes: {
+    value: FormValues["bookingInputs"][number]["type"];
+    label: string;
+    needsOptions?: boolean;
+    systemOnly?: boolean;
+  }[] = [
+    {
+      label: "Short Text",
+      value: "text",
+    },
+    {
+      label: "Number",
+      value: "number",
+    },
+    {
+      label: "Long Text",
+      value: "textarea",
+    },
+    {
+      label: "Select",
+      value: "select",
+      needsOptions: true,
+    },
+    {
+      label: "MultiSelect",
+      value: "multiselect",
+      needsOptions: true,
+    },
+    {
+      label: "Phone",
+      value: "phone",
+    },
+    {
+      label: "Email",
+      value: "email",
+    },
+    {
+      label: "Multiple Emails",
+      value: "multiemail",
+    },
+    {
+      label: "Location",
+      value: "radioInput",
+      systemOnly: true,
+    },
+  ];
+  const fieldsForm = useFormContext<FormValues>();
+
+  const fieldForm = useForm<FormValues["bookingInputs"][0]>();
+  const { fields, swap, remove } = useFieldArray({
+    control: fieldsForm.control,
+    // TODO: Make it configurable
+    name: "bookingInputs",
+  });
+
+  function OptionsField({
+    label = "Options",
+    value,
+    onChange,
+    className = "",
+    readOnly = false,
+  }: {
+    label?: string;
+    value: { label: string; value: string }[];
+    onChange: (value: { label: string; value: string }[]) => void;
+    className?: string;
+    readOnly?: boolean;
+  }) {
+    const [animationRef] = useAutoAnimate<HTMLUListElement>();
+    value = value || [
+      {
+        label: "Option 1",
+        value: "1",
+      },
+      {
+        label: "Option 2",
+        value: "2",
+      },
+    ];
+    // const [optionsState, setOptionsState] = useState(options);
+    return (
+      <div className={className}>
+        <Label>{label}</Label>
+        <div className="rounded-md bg-gray-50 p-4">
+          <ul ref={animationRef}>
+            {value?.map((option, index) => (
+              <li key={index}>
+                <div className="flex items-center">
+                  <Input value={option.label} readOnly={readOnly} placeholder={`Enter Option ${index + 1}`} />
+                  {value.length > 2 && !readOnly && (
+                    <Button
+                      type="button"
+                      className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      size="icon"
+                      color="minimal"
+                      StartIcon={Icon.FiX}
+                      onClick={() => {
+                        if (!value) {
+                          return;
+                        }
+                        const newOptions = [...value];
+                        newOptions.splice(index, 1);
+                        onChange(newOptions);
+                      }}
+                    />
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {!readOnly && (
+            <Button
+              color="minimal"
+              onClick={() => {
+                value.push({ label: "", value: `${value.length + 1}` });
+                onChange(value);
+              }}
+              StartIcon={Icon.FiPlus}>
+              Add an Option
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+  const [isAddQuestionFormOpen, setIsAddFieldFormOpen] = useState(false);
+  const fieldType = FieldTypes.find((f) => f.value === fieldForm.watch("type"));
+  return (
+    <div>
+      <div>
+        <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{title}</div>
+        <p className=" max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+          {description}
+        </p>
+        <ul className="mt-2 rounded-md border">
+          {fields.map((input, index) => {
+            const fieldType = FieldTypes.find((f) => f.value === input.type);
+            if (!fieldType) {
+              throw new Error(`Invalid field type - ${input.type}`);
+            }
+            return (
+              <li key={index} className="group relative flex justify-between border-b p-4 last:border-b-0">
+                <button
+                  type="button"
+                  className="invisible absolute -left-[12px] ml-0 flex  h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
+                  onClick={() => swap(index, index - 1)}>
+                  <Icon.FiArrowUp className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  className="invisible absolute -left-[12px] mt-8 ml-0 flex  h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
+                  onClick={() => swap(index, index + 1)}>
+                  <Icon.FiArrowDown className="h-5 w-5" />
+                </button>
+                <div className="flex">
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{input.label}</div>
+                    <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+                      {fieldType.label}
+                    </p>
+                  </div>
+                  <div className="space-x-2">
+                    <Badge variant="gray">{input.required ? "Required" : "Optional"}</Badge>
+                    {input.readOnly && <Badge variant="gray">Readonly</Badge>}
+                  </div>
+                </div>
+                {!input.readOnly && (
+                  <div className="flex items-center">
+                    <Button color="secondary">Edit</Button>
+                    {!input.mustHave && (
+                      <Button
+                        color="minimal"
+                        onClick={() => {
+                          remove(index);
+                        }}
+                        StartIcon={Icon.FiTrash2}
+                      />
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        <Button
+          color="minimal"
+          onClick={() => setIsAddFieldFormOpen(true)}
+          className="mt-4"
+          StartIcon={Icon.FiPlus}>
+          {addFieldLabel}
+        </Button>
+      </div>
+      <Dialog open={isAddQuestionFormOpen} onOpenChange={setIsAddFieldFormOpen}>
+        <DialogContent>
+          <DialogHeader title="Add a question" subtitle="Customize the questions asked on the booking page" />
+          <div>
+            <Form
+              form={fieldForm}
+              handleSubmit={(data) => {
+                fieldsForm.setValue("bookingInputs", [...fieldsForm.getValues("bookingInputs"), data]);
+                setIsAddFieldFormOpen(false);
+              }}>
+              <SelectField
+                onChange={(e) => {
+                  const value = e?.value;
+                  if (!value) {
+                    return;
+                  }
+                  fieldForm.setValue("type", value);
+                }}
+                options={FieldTypes.filter((f) => !f.systemOnly)}
+                label="Input Type"
+              />
+              <InputField {...fieldForm.register("label")} containerClassName="mt-6" label="Label" />
+              <InputField {...fieldForm.register("name")} containerClassName="mt-6" label="Name" />
+              {fieldType?.needsOptions ? (
+                <Controller
+                  name="options"
+                  render={({ field: { value, onChange } }) => {
+                    return <OptionsField onChange={onChange} value={value} className="mt-6" />;
+                  }}
+                />
+              ) : null}
+              <Controller
+                name="required"
+                control={fieldForm.control}
+                render={({ field: { value, onChange } }) => {
+                  return (
+                    <BooleanToggleGroupField
+                      value={value}
+                      onValueChange={(val) => {
+                        onChange(val);
+                      }}
+                      label="Required"
+                    />
+                  );
+                }}
+              />
+              <DialogFooter>
+                <DialogClose color="secondary">Cancel</DialogClose>
+                <Button type="submit">Add</Button>
+              </DialogFooter>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+const ComponentForField = ({
+  field,
+  value,
+  setValue,
+}: {
+  field: {
+    name?: string;
+    options?: FormValues["bookingInputs"][number]["options"];
+    optionsInputs?: FormValues["bookingInputs"][number]["optionsInputs"];
+    type: FormValues["bookingInputs"][number]["type"];
+  };
+  value:
+    | string
+    | {
+        value: string;
+        optionValue: string;
+      };
+  setValue: ((value: string) => void) | ((value: { value: string; optionValue: string }) => void);
+}) => {
+  const componentConfig = Components[field.type];
+
+  const isObjectiveWithInputValue = (value: any): value is { value: string } => {
+    if (typeof value === "undefined") {
+      return true;
+    }
+    return typeof value === "object" && "value" in value;
+  };
+
+  if (componentConfig.propsType === "text") {
+    value = value || "";
+    if (isObjectiveWithInputValue(value)) {
+      throw new Error(`${value}: Value is not of type string for field type ${field.type}`);
+    }
+    return <componentConfig.factory value={value} setValue={setValue as (value: string) => void} />;
+  }
+
+  if (componentConfig.propsType === "select") {
+    value = value || "";
+    if (isObjectiveWithInputValue(value)) {
+      throw new Error(`${value}: Value is not of type string for field type ${field.type}`);
+    }
+    if (!field.options) {
+      throw new Error("Field options is not defined");
+    }
+
+    return (
+      <componentConfig.factory
+        value={value}
+        setValue={setValue as (value: string) => void}
+        listValues={field.options.map((o) => ({ ...o, title: o.label }))}
+      />
+    );
+  }
+
+  if (componentConfig.propsType === "objectiveWithInput") {
+    if (!isObjectiveWithInputValue(value)) {
+      throw new Error("Value is not of type {value: string}");
+    }
+    if (!field.options) {
+      throw new Error("Field options is not defined");
+    }
+    if (!field.optionsInputs) {
+      throw new Error("Field optionsInputs is not defined");
+    }
+    return (
+      <componentConfig.factory
+        name={field.name}
+        value={value}
+        setValue={setValue as (value: { value: string; optionValue: string }) => void}
+        optionsInputs={field.optionsInputs}
+        options={field.options}
+      />
+    );
+  }
+  return null;
+};
+
+//TODO: ManageBookings: Move it along FormBuilder - Also create a story for it.
+//TODO: Move rescheduleUid to a variant of FormBuilderField maybe?
+export const FormBuilderField = ({
+  field,
+  hookForm,
+  rescheduleUid,
+}: {
+  field: FormValues["bookingInputs"][number];
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="reloading mb-4">
+      <Controller
+        control={hookForm.control}
+        name={`inputs.${field.name}`}
+        render={({ field: { value, onChange } }) => {
+          return (
+            <div>
+              <Label>{field.label}</Label>
+              <ComponentForField
+                // className={
+                //   hookForm.formState.errors[`inputs.${field.name}`] && "!focus:ring-red-700 !border-red-700"
+                // }
+                field={field}
+                value={value}
+                setValue={(val: any) => {
+                  if (!val) {
+                    return;
+                  }
+                  onChange(val);
+                }}
+              />
+              <ErrorMessage
+                name="inputs"
+                errors={hookForm.formState.errors}
+                render={({ message }) => {
+                  const name = message?.replace(/\{([^}]+)\}.*/, "$1");
+                  // Use the message targeted for it.
+                  if (name !== field.name) {
+                    return null;
+                  }
+                  console.log(name, field.name, message, "ErrorMesg");
+
+                  message = message.replace(/\{[^}]+\}(.*)/, "$1");
+                  return (
+                    <div data-field-name={field.name} className="flex items-center text-sm text-red-700 ">
+                      <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <p>{t(message)}</p>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          );
+        }}
+      />
+    </div>
   );
 };
 
@@ -138,7 +745,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         />
       </div>
       <hr />
-      <div className="">
+      {/* <div className="">
         <SettingsToggle
           title={t("additional_inputs")}
           description={t("additional_input_description")}
@@ -179,7 +786,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             </Button>
           )}
         </SettingsToggle>
-      </div>
+      </div> */}
+      <FormBuilder
+        title="Booking questions"
+        description="Customize the questions asked on the booking page"
+        addFieldLabel="Add a question"
+      />
       <hr />
       <RequiresConfirmationController
         seatsEnabled={seatsEnabled}

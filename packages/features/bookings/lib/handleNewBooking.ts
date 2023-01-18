@@ -15,7 +15,7 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { getEventLocationValue, getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
@@ -37,6 +37,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { ensureBookingInputsHaveMustHaveItems } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -56,6 +57,7 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { WorkingHours } from "@calcom/types/schedule";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -158,6 +160,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           name: true,
         },
       },
+      bookingInputs: true,
       title: true,
       length: true,
       eventName: true,
@@ -298,30 +301,44 @@ async function ensureAvailableUsers(
 async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
+  // handle dynamic user
+  // TODO: ManageBookings: Test with dynamic bookings
+  let eventType =
+    !req.body.eventTypeId && !!req.body.eventTypeSlug
+      ? getDefaultEvent(req.body.eventTypeSlug)
+      : await getEventTypesFromDB(req.body.eventTypeId);
+
+  eventType = {
+    ...eventType,
+    // TODO: ManageBookings: Use getEventTypeById which would avoid having to do it again
+    // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingInputs fixed.
+    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventType.bookingInputs),
+  };
   const {
     recurringCount,
     allRecurringDates,
     currentRecurringIndex,
     noEmail,
-    eventTypeSlug,
     eventTypeId,
+    eventTypeSlug,
     hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
     ...reqBody
-  } = extendedBookingCreateBody.parse(req.body);
+  } = extendedBookingCreateBody
+    .merge(
+      z.object({
+        inputs: getBookingResponsesSchema(eventType),
+      })
+    )
+    .parse(req.body);
 
-  // handle dynamic user
-  const dynamicUserList = Array.isArray(reqBody.user)
-    ? getGroupName(reqBody.user)
-    : getUsernameList(reqBody.user);
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
-
-  const eventType =
-    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
-
+  const dynamicUserList = Array.isArray(reqBody.user)
+    ? getGroupName(reqBody.user)
+    : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const stripeAppData = getStripeAppData(eventType);
@@ -471,13 +488,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const invitee = [
     {
-      email: reqBody.email,
-      name: reqBody.name,
+      // TODO: ManageBookings: Ensure that email is there in TS as well as runtime. Right now I can save an attendee without email
+      email: reqBody.inputs.email,
+      //TODO: ManageBookings: Ensure that name is there in TS as well as runtime
+      name: reqBody.inputs.name,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.guests || []).map((guest) => ({
+  const guests = (reqBody.inputs.guests || []).map((guest) => ({
     email: guest,
     name: "",
     timeZone: reqBody.timeZone,
@@ -486,8 +505,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
+  const location = reqBody.inputs?.location?.optionValue || reqBody.inputs.location.value;
+  const bookingLocation = getLocationValueForDB(location, eventType.locations);
 
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
@@ -731,7 +750,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
-      smsReminderNumber: reqBody.smsReminderNumber,
+      smsReminderNumber:
+        reqBody.inputs.location?.value === "phone" ? reqBody.inputs.location.optionValue : null,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {

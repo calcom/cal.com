@@ -52,6 +52,43 @@ export const EventTypeMetaDataSchema = z
   })
   .nullable();
 
+export const eventTypeBookingInputs = z.array(
+  z.object({
+    name: z.string(),
+    label: z.string(),
+    type: z.enum([
+      "text",
+      "textarea",
+      "select",
+      "multiselect",
+      "multiemail",
+      "email",
+      "phone",
+      "number",
+      "radioInput",
+      "address",
+    ]),
+    required: z.boolean(),
+    options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+    optionsInputs: z.record(
+      z.object({
+        //TODO: Support all as needed
+        type: z.enum(["address", "phone"]),
+        required: z.boolean().optional(),
+        placeholder: z.string().optional(),
+      })
+    ),
+    placeholder: z.string().optional(),
+    //TODO: mustHave is system field and should not be exposed to the user
+    mustHave: z.boolean().optional(),
+    // TODO: readOnly is not supposed to be saved, it would be just a view value
+    readOnly: z.boolean().optional(),
+  })
+);
+
+// Real validation happens using getBookingResponsesSchema which requires eventType. Is there a better way to do it?
+export const bookingInputs = z.record(z.any().optional());
+
 export const eventTypeLocations = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
@@ -120,14 +157,14 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  email: z.string(),
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  location: z.string(),
-  name: z.string(),
-  notes: z.string().optional(),
+  // email: z.string(),
+  // guests: z.array(z.string()).optional(),
+  // name: z.string(),
+  // location: z.string(),
+  // notes: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),

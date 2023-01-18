@@ -12,6 +12,62 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
+export const ensureBookingInputsHaveMustHaveItems = (bookingInputs) => {
+  return [
+    // FIXME: ManageBookings: Ensure that if Name and Email are not present the request is rejected
+    // TODO: ManageBookings: Make sure that default labels for name, email, location, additionalNotes, guests are translatable
+    {
+      label: "Your name",
+      type: "text",
+      name: "name",
+      required: true,
+      mustHave: true,
+    },
+    {
+      label: "Your email",
+      type: "email",
+      name: "email",
+      required: true,
+      mustHave: true,
+    },
+    {
+      label: "Location",
+      type: "radioInput",
+      name: "location",
+      // Even though it should be required it is optional in production
+      required: false,
+      mustHave: true,
+      // options: Populated on the fly from locations. HACK: It is a special handling
+      optionsInputs: {
+        attendeeInPerson: {
+          type: "address",
+          required: true,
+          placeholder: "",
+        },
+        phone: {
+          type: "phone",
+          required: true,
+          placeholder: "",
+        },
+      },
+    },
+    {
+      label: "Additional Notes",
+      type: "textarea",
+      name: "notes",
+      required: false,
+      mustHave: false,
+    },
+    {
+      label: "Add guests",
+      type: "multiemail",
+      name: "guests",
+      required: false,
+      mustHave: false,
+      hidden: true,
+    },
+  ];
+};
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
@@ -99,6 +155,7 @@ export default async function getEventTypeById({
       bookingLimits: true,
       successRedirectUrl: true,
       currency: true,
+      bookingInputs: true,
       team: {
         select: {
           id: true,
@@ -256,6 +313,7 @@ export default async function getEventTypeById({
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventType.bookingInputs),
   });
 
   const teamMembers = eventTypeObject.team

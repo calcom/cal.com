@@ -9,6 +9,7 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
+import { ensureBookingInputsHaveMustHaveItems } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -116,6 +117,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventTypeRaw.bookingInputs),
   };
 
   const eventTypeObject = [eventType].map((e) => {
