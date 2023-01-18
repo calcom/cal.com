@@ -10,3 +10,7 @@
 	path = apps/website
 	url = https://github.com/calcom/website.git
 	branch = main
+[submodule "apps/auth"]
+	path = apps/auth
+	url = https://github.com/calcom/auth.git
+	branch = main
