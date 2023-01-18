@@ -411,6 +411,8 @@
   "password_updated_successfully": "Password updated successfully",
   "password_has_been_changed": "Your password has been successfully changed.",
   "error_changing_password": "Error changing password",
+  "session_timeout_changed": "Your session configuration has been updated successfully.",
+  "session_timeout_change_error": "Error updating session configuration",
   "something_went_wrong": "Something went wrong.",
   "something_doesnt_look_right": "Something doesn't look right?",
   "please_try_again": "Please try again.",
