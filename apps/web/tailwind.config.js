@@ -16,7 +16,7 @@ module.exports = {
         },
       },
       animation: {
-        disco: "disco 5s linear infinite",
+        disco: "disco 8s linear infinite",
       },
     },
   },

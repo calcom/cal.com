@@ -378,8 +378,8 @@ export default function Success(props: SuccessProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "main inline-block transform overflow-hidden rounded border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
+                  "main inline-block transform overflow-hidden rounded sm:my-8 sm:max-w-xl",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white",
                   "p-[1px] text-left align-bottom transition-all sm:w-full sm:align-middle"
                 )}
                 role="dialog"
