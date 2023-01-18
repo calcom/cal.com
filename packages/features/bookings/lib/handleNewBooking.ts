@@ -95,12 +95,28 @@ const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
     workingHours,
+    dateOverrides,
   }: {
     workingHours: WorkingHours[];
+    dateOverrides: { start: ConfigType; end: ConfigType }[];
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
+
+  const dayDateOverrides = dateOverrides.filter((override) =>
+    dayjs(override.start).isSame(timeSlotStart, "day")
+  );
+  if (!!dayDateOverrides.length) {
+    for (const override of dayDateOverrides) {
+      if (
+        timeSlotStart.isBetween(override.start, override.end, null, "[)") &&
+        timeSlotEnd.isBetween(override.start, override.end, null, "(]")
+      ) {
+        return true;
+      }
+    }
+  }
   for (const workingHour of workingHours) {
     // TODO: Double check & possibly fix timezone conversions.
     const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
@@ -237,7 +253,11 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const {
+      busy: bufferedBusyTimes,
+      workingHours,
+      dateOverrides,
+    } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -252,6 +272,7 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
+          dateOverrides,
         }
       )
     ) {
