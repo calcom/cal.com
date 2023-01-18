@@ -38,7 +38,8 @@ export const scheduleEmailReminder = async (
   emailSubject: string,
   emailBody: string,
   workflowStepId: number,
-  template: WorkflowTemplates
+  template: WorkflowTemplates,
+  sender: string
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -125,7 +126,10 @@ export const scheduleEmailReminder = async (
     try {
       await sgMail.send({
         to: sendTo,
-        from: senderEmail,
+        from: {
+          email: senderEmail,
+          name: sender,
+        },
         subject: emailContent.emailSubject,
         text: emailContent.emailBody.text,
         html: emailContent.emailBody.html,
@@ -149,7 +153,10 @@ export const scheduleEmailReminder = async (
       try {
         await sgMail.send({
           to: sendTo,
-          from: senderEmail,
+          from: {
+            email: senderEmail,
+            name: sender,
+          },
           subject: emailContent.emailSubject,
           text: emailContent.emailBody.text,
           html: emailContent.emailBody.html,

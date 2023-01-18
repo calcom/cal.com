@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Un eveniment încă așteaptă aprobarea dvs.",
   "booking_submitted_subject": "Rezervare transmisă: {{eventType}} cu {{name}} în {{date}}",
   "your_meeting_has_been_booked": "Întâlnirea dvs. a fost programată",
-  "event_type_has_been_rescheduled_on_time_date": "{{eventType}} cu {{name}} a fost reprogramat/ă pe {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "{{title}} dvs. a fost reprogramat la {{date}}.",
   "event_has_been_rescheduled": "Evenimentul dvs. a fost reprogramat.",
   "request_reschedule_title_attendee": "Solicitați reprogramarea rezervării",
   "request_reschedule_subtitle": "{{organizer}} a anulat rezervarea și v-a cerut să alegeți o altă dată.",

@@ -12,6 +12,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+    res.status(403).json({ message: "Signup is disabled" });
+    return;
+  }
+
   const data = req.body;
   const { email, password } = data;
   const username = slugify(data.username);
