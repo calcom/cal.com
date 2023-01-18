@@ -425,6 +425,7 @@ following
 3. Copy API key to your .env file into the SENDGRID_API_KEY field
 4. Go to Settings -> Sender Authentication and verify a single sender
 5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+6. Add your custom sender name to the .env file into the NEXT_PUBLIC_SENDGRID_SENDER_NAME field (fallback is Cal.com)
 
 ### Setting up Twilio for SMS reminders
 
