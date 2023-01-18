@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
-import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkingHours } from "@calcom/types/schedule";
 import {
@@ -52,22 +51,6 @@ const DateOverrideForm = ({
   );
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
-  const includedDates = useMemo(
-    () =>
-      workingHours
-        ? workingHours.reduce((dates, workingHour) => {
-            for (let dNum = 1; dNum <= daysInMonth(browsingDate || dayjs()); dNum++) {
-              const d = browsingDate ? browsingDate.date(dNum) : dayjs.utc().date(dNum);
-              if (workingHour.days.includes(d.day())) {
-                dates.push(yyyymmdd(d));
-              }
-            }
-            return dates;
-          }, [] as string[])
-        : [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [browsingDate]
-  );
 
   const form = useForm<{ range: TimeRange[] }>();
   const { reset } = form;
@@ -95,6 +78,12 @@ const DateOverrideForm = ({
       }
       return dayRanges;
     }, [] as TimeRange[]);
+    if (!dayRanges.length) {
+      dayRanges.push({
+        start: new Date(dayjs.utc().hour(9).minute(0).second(0).format()),
+        end: new Date(dayjs.utc().hour(17).minute(0).second(0).format()),
+      });
+    }
     reset({
       range: dayRanges,
     });
@@ -118,7 +107,6 @@ const DateOverrideForm = ({
       <div className={classNames(date && "w-full sm:border-r sm:pr-6")}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
-          includedDates={includedDates}
           excludedDates={excludedDates}
           weekStart={0}
           selected={date}

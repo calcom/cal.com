@@ -84,14 +84,20 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   );
 };
 
-export default function Availability({ schedule }: { schedule: number }) {
+export default function Availability({ scheduleId }: { scheduleId: number }) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
-  const { data: defaultValues } = trpc.viewer.availability.defaultValues.useQuery({ scheduleId: schedule });
-  const form = useForm<AvailabilityFormValues>({ defaultValues });
+  const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery({
+    scheduleId,
+  });
+  const form = useForm<AvailabilityFormValues>({
+    defaultValues: {
+      ...schedule,
+      schedule: schedule?.availability || [],
+    },
+  });
   const { control } = form;
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
@@ -107,7 +113,7 @@ export default function Availability({ schedule }: { schedule: number }) {
       utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
-          scheduleName: data.schedule.name,
+          scheduleName: schedule?.name,
         }),
         "success"
       );
@@ -123,7 +129,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   return (
     <Shell
       backPath="/availability"
-      title={data?.schedule.name ? data.schedule.name + " | " + t("availability") : t("availability")}
+      title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -134,12 +140,12 @@ export default function Availability({ schedule }: { schedule: number }) {
         />
       }
       subtitle={
-        data ? (
-          data.schedule.availability
-            .filter((availability) => !!availability.days.length)
-            .map((availability) => (
-              <span key={availability.id}>
-                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+        schedule ? (
+          schedule.schedule
+            .filter((s) => !!s.days.length)
+            .map((s) => (
+              <span key={s.id}>
+                {availabilityAsString(s, { locale: i18n.language, hour12: timeFormat === 12 })}
                 <br />
               </span>
             ))
@@ -158,7 +164,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading || data?.isDefault}
+              disabled={isLoading || schedule?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);
@@ -180,7 +186,7 @@ export default function Availability({ schedule }: { schedule: number }) {
           id="availability-form"
           handleSubmit={async ({ dateOverrides, ...values }) => {
             updateMutation.mutate({
-              scheduleId: schedule,
+              scheduleId,
               dateOverrides: dateOverrides.flatMap((override) => override.ranges),
               ...values,
             });
@@ -203,7 +209,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                 />
               )}
             </div>
-            {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+            {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
           </div>
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
@@ -251,10 +257,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const scheduleId = params.data.schedule;
   await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
-  await ssr.viewer.availability.defaultValues.fetch({ scheduleId });
   return {
     props: {
-      schedule: scheduleId,
+      scheduleId,
       trpcState: ssr.dehydrate(),
     },
   };

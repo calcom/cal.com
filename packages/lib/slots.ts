@@ -209,6 +209,8 @@ const getSlots = ({
       );
       if (index >= 0) {
         computedLocalAvailability[index] = override;
+      } else {
+        computedLocalAvailability.push(override);
       }
     });
   }
