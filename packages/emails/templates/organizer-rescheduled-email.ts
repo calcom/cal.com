@@ -8,10 +8,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
     const toAddresses = [this.calEvent.organizer.email];
     if (this.calEvent.team) {
       this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
+        toAddresses.push(member.email);
       });
     }
 
