@@ -20,8 +20,8 @@ import prisma from "@calcom/prisma";
 import { ssrInit } from "@calcom/trpc/server/ssr";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { AddToHomescreen, Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
-// TODO: Fix this import
-import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
+
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 interface LoginValues {
   email: string;

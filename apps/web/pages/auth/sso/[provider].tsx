@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { z } from "zod";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getSession } from "@calcom/features/auth/lib";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   hostedCal,
@@ -15,11 +16,8 @@ import {
 } from "@calcom/features/ee/sso/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
-// TODO: Fix this import
 import { ssrInit } from "@calcom/trpc/server/ssr";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import { getSession } from "../../lib";
 
 type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 

@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { SyntheticEvent } from "react";
 
+import AuthContainer from "@calcom/features/auth/components/AuthContainer";
+import { getSession } from "@calcom/features/auth/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
-
-import AuthContainer from "../../components/AuthContainer";
-import { getSession } from "../../lib";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();

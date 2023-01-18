@@ -3,14 +3,13 @@ import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import SetupFormStep1 from "@calcom/features/auth/components/SetupFormStep1";
+import StepDone from "@calcom/features/auth/components/StepDone";
 import { getSession } from "@calcom/features/auth/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardForm } from "@calcom/ui";
-
-import SetupFormStep1 from "../../components/SetupFormStep1";
-import StepDone from "../../components/StepDone";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
