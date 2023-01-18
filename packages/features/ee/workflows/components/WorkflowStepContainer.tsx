@@ -26,6 +26,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   EmailField,
   Icon,
@@ -299,7 +300,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
-                        <Button
+                        <DropdownItem
+                          type="button"
+                          StartIcon={Icon.FiTrash2}
+                          color="destructive"
                           onClick={() => {
                             const steps = form.getValues("steps");
                             const updatedSteps = steps
@@ -315,13 +319,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (setReload) {
                               setReload(!reload);
                             }
-                          }}
-                          color="secondary"
-                          size="base"
-                          StartIcon={Icon.FiTrash2}
-                          className="w-full rounded-none">
+                          }}>
                           {t("delete")}
-                        </Button>
+                        </DropdownItem>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </Dropdown>

@@ -10,6 +10,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
 } from "@calcom/ui";
@@ -110,22 +111,18 @@ export default function TeamInviteListItem(props: Props) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <Button
-                      color="destructive"
-                      className="w-full rounded-none font-medium"
-                      StartIcon={Icon.FiCheck}
-                      onClick={acceptInvite}>
+                    <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
                       {t("accept")}
-                    </Button>
+                    </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Button
+                    <DropdownItem
                       color="destructive"
-                      className="w-full rounded-none font-medium"
+                      type="button"
                       StartIcon={Icon.FiX}
                       onClick={declineInvite}>
                       {t("reject")}
-                    </Button>
+                    </DropdownItem>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </Dropdown>

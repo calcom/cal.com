@@ -13,6 +13,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
   showToast,
@@ -172,24 +173,24 @@ export default function WorkflowListPage({ workflows }: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
-                            <Button
+                            <DropdownItem
                               type="button"
-                              color="minimal"
                               StartIcon={Icon.FiEdit2}
                               onClick={async () => await router.replace("/workflows/" + workflow.id)}>
                               {t("edit")}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <Button
+                            <DropdownItem
+                              type="button"
+                              color="destructive"
+                              StartIcon={Icon.FiTrash2}
                               onClick={() => {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
-                              }}
-                              color="minimal"
-                              StartIcon={Icon.FiTrash2}>
+                              }}>
                               {t("delete")}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </Dropdown>
