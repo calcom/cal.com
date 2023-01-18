@@ -17,9 +17,9 @@ export const TeamsMemberFilter = () => {
   return (
     <AnimatedPopover
       text={teamNames && teamNames.length > 0 ? `${teamNames.join(", ")}` : t("all_bookings_filter_label")}>
-      <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
+      <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
         <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <Icon.FiLayers className="h-full w-full" />
+          <Icon.FiLayers className="h-5 w-5" />
         </div>
         <label
           htmlFor="allBookings"
@@ -39,7 +39,9 @@ export const TeamsMemberFilter = () => {
       </div>
       {data &&
         data.map((team) => (
-          <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100" key={`${team.id}`}>
+          <div
+            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            key={`${team.id}`}>
             <Avatar
               imageSrc={team.logo}
               size="sm"
@@ -50,7 +52,7 @@ export const TeamsMemberFilter = () => {
             />
             <label
               htmlFor={team.name}
-              className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700">
+              className="ml-2 mr-auto select-none self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
               {team.name}
             </label>
 

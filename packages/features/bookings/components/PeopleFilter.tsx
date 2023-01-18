@@ -17,9 +17,9 @@ export const PeopleFilter = () => {
   return (
     <AnimatedPopover
       text={userNames && userNames.length > 0 ? `${userNames.join(", ")}` : t("all_users_filter_label")}>
-      <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
+      <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
         <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
-          <Icon.FiUser className="h-full w-full" />
+          <Icon.FiUser className="h-5 w-5" />
         </div>
         <label htmlFor="allUsers" className="mr-auto self-center truncate text-sm font-medium text-gray-700">
           {t("all_users_filter_label")}
@@ -38,7 +38,9 @@ export const PeopleFilter = () => {
       </div>
       {data &&
         data.map((user) => (
-          <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100" key={`${user.id}`}>
+          <div
+            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            key={`${user.id}`}>
             <Avatar
               imageSrc={user.avatar}
               size="sm"
@@ -49,7 +51,7 @@ export const PeopleFilter = () => {
             />
             <label
               htmlFor={user.name ?? "NamelessUser"}
-              className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700">
+              className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
               {user.name}
             </label>
 
