@@ -1510,5 +1510,6 @@
   "continue_to_install_google_calendar": "Continue to install Google Calendar",
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
+  "sender_name": "Sender name",
   "no_recordings_found": "No recordings found"
 }
