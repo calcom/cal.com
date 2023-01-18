@@ -144,11 +144,6 @@ const UserProfile = (props: IUserProfileProps) => {
           setText={(value: string) => setValue("bio", value)}
           excludedToolbarItems={["blockType"]}
         />
-        {errors.bio && (
-          <p data-testid="required" className="py-2 text-xs text-red-500">
-            {t("required")}
-          </p>
-        )}
         <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">
           {t("few_sentences_about_yourself")}
         </p>
