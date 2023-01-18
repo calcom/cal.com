@@ -1,13 +1,15 @@
 import { IdentityProvider } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Meta, PasswordField, showToast } from "@calcom/ui";
+import { Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -18,9 +20,39 @@ type ChangePasswordFormValues = {
 
 const PasswordView = () => {
   const { t } = useLocale();
+  const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
 
-  const mutation = trpc.viewer.auth.changePassword.useMutation({
+  const sessionMutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: () => {
+      showToast(t("profile_updated_successfully"), "success");
+      sessionFormMethods.reset(sessionFormMethods.getValues());
+    },
+    onSettled: () => {
+      utils.viewer.me.invalidate();
+    },
+    onMutate: async ({ metadata }) => {
+      await utils.viewer.me.cancel();
+      const previousValue = utils.viewer.me.getData();
+      const previousMetadata = userMetadata.parse(previousValue?.metadata);
+
+      if (previousValue && metadata?.sessionTimeout) {
+        utils.viewer.me.setData(undefined, {
+          ...previousValue,
+          metadata: { ...previousMetadata, sessionTimeout: metadata?.sessionTimeout },
+        });
+      }
+      return { previousValue };
+    },
+    onError: (error, _, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
+      showToast(`${t("error")}, ${error.message}`, "error");
+    },
+  });
+
+  const passwordMutation = trpc.viewer.auth.changePassword.useMutation({
     onSuccess: () => {
       showToast(t("password_has_been_changed"), "success");
     },
@@ -29,26 +61,78 @@ const PasswordView = () => {
     },
   });
 
-  const formMethods = useForm<ChangePasswordFormValues>({
+  const passwordFormMethods = useForm<ChangePasswordFormValues>({
     defaultValues: {
       oldPassword: "",
       newPassword: "",
     },
   });
 
-  const {
-    register,
-    formState: { isSubmitting },
-  } = formMethods;
-
   const handleSubmit = (values: ChangePasswordFormValues) => {
     const { oldPassword, newPassword } = values;
-    mutation.mutate({ oldPassword, newPassword });
+    passwordMutation.mutate({ oldPassword, newPassword });
   };
+
+  const sessionFormMethods = useForm<{ sessionTimeout: number | undefined }>({
+    defaultValues: {
+      sessionTimeout: user?.metadata?.sessionTimeout,
+    },
+  });
+
+  const [sessionState, setSessionState] = useState<number | undefined>(user?.metadata?.sessionTimeout);
+
+  const isDisabled = sessionFormMethods.formState.isSubmitting || !sessionFormMethods.formState.isDirty;
+
+  const timeoutOptions = [5, 10, 15].map((mins) => ({
+    label: t("multiple_duration_mins", { count: mins }),
+    value: mins,
+  }));
 
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
+      <Form
+        form={sessionFormMethods}
+        className="mb-8 w-auto"
+        handleSubmit={({ sessionTimeout }) => {
+          sessionMutation.mutate({ metadata: { ...user?.metadata, sessionTimeout } });
+        }}>
+        <SettingsToggle
+          title={t("session_timeout")}
+          description={t("session_timeout_description")}
+          checked={sessionState !== undefined}
+          data-testid="session-check"
+          onCheckedChange={(e) => {
+            if (!e) {
+              sessionFormMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+              setSessionState(undefined);
+            } else {
+              sessionFormMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+              setSessionState(10);
+            }
+          }}
+        />
+        {sessionState && (
+          <div data-testid="session-collapsible" className="mt-4 text-sm">
+            <div className="flex items-center">
+              <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
+              <Select
+                options={timeoutOptions}
+                defaultValue={timeoutOptions[1]}
+                isSearchable={false}
+                className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                onChange={(event) => {
+                  sessionFormMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
+                  setSessionState(event?.value);
+                }}
+              />
+            </div>
+          </div>
+        )}
+        <Button color="primary" className="mt-8" type="submit" disabled={isDisabled}>
+          {t("update")}
+        </Button>
+      </Form>
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
@@ -65,13 +149,13 @@ const PasswordView = () => {
           </p>
         </div>
       ) : (
-        <Form form={formMethods} handleSubmit={handleSubmit}>
+        <Form form={passwordFormMethods} handleSubmit={handleSubmit}>
           <div className="max-w-[38rem] sm:flex sm:space-x-4">
             <div className="flex-grow">
-              <PasswordField {...register("oldPassword")} label={t("old_password")} />
+              <PasswordField {...passwordFormMethods.register("oldPassword")} label={t("old_password")} />
             </div>
             <div className="flex-grow">
-              <PasswordField {...register("newPassword")} label={t("new_password")} />
+              <PasswordField {...passwordFormMethods.register("newPassword")} label={t("new_password")} />
             </div>
           </div>
           <p className="text-sm text-gray-600">
@@ -85,7 +169,7 @@ const PasswordView = () => {
             color="primary"
             className="mt-8"
             type="submit"
-            disabled={isSubmitting || mutation.isLoading}>
+            disabled={!passwordFormMethods.formState.isSubmitting || !passwordMutation.isLoading}>
             {t("update")}
           </Button>
         </Form>
