@@ -214,6 +214,7 @@ model Team {
   hideBookATeamMember Boolean      @default(false)
   members             Membership[]
   eventTypes          EventType[]
+  workflows           Workflow[]
   createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
@@ -598,8 +599,10 @@ model WorkflowStep {
 model Workflow {
   id       Int                     @id @default(autoincrement())
   name     String
-  userId   Int
-  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int?
+  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   Int?
   activeOn WorkflowsOnEventTypes[]
   trigger  WorkflowTriggerEvents
   time     Int?

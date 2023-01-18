@@ -36,6 +36,8 @@ function WorkflowsPage() {
     },
   });
 
+  const query = trpc.viewer.workflows.getByViewer.useQuery();
+
   return (
     <Shell
       heading={t("workflows")}
