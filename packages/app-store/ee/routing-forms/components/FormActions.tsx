@@ -159,7 +159,7 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
         <DropdownMenuTrigger data-testid="form-dropdown" asChild>
           <Button
             type="button"
-            size="icon"
+            variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
             StartIcon={Icon.FiMoreHorizontal}

@@ -428,7 +428,7 @@ const BookingLimits = () => {
                         }}
                       />
                       <Button
-                        size="icon"
+                        variant="icon"
                         StartIcon={Icon.FiTrash}
                         color="destructive"
                         onClick={() => {
