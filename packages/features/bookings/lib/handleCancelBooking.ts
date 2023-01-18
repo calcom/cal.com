@@ -318,24 +318,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
-    const evt: CalendarEvent = {
-      type: bookingToDelete?.eventType?.title as string,
-      title: bookingToDelete.title,
-      description: bookingToDelete.description ?? "",
-      customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
-      startTime: bookingToDelete.startTime.toISOString(),
-      endTime: bookingToDelete.endTime.toISOString(),
-      organizer: {
-        email: bookingToDelete.user?.email ?? "dev@calendso.com",
-        name: bookingToDelete.user?.name ?? "no user",
-        timeZone: bookingToDelete.user?.timeZone ?? "",
-        language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
-      },
-      attendees: attendeesList,
-      location: bookingToDelete.location ?? "",
-      uid: bookingToDelete.uid ?? "",
-      destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
-    };
     await refund(bookingToDelete, evt);
     await prisma.booking.update({
       where: {
