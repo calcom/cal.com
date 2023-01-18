@@ -60,7 +60,7 @@ export const Slider = <T extends string | unknown>({
           {isLocaleReady ? (
             title && (
               <div>
-                <h2 className="mt-0 mb-2 text-base font-semibold leading-none text-gray-900">{title}</h2>
+                <h2 className="mt-0 text-base font-semibold leading-none text-gray-900">{title}</h2>
               </div>
             )
           ) : (
