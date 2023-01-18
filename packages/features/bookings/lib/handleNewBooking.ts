@@ -116,6 +116,7 @@ const isWithinAvailableHours = (
         return true;
       }
     }
+    return false;
   }
   for (const workingHour of workingHours) {
     // TODO: Double check & possibly fix timezone conversions.
