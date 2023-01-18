@@ -154,6 +154,7 @@ export interface CalendarEvent {
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
+  seatsPerSlotTimeSlot?: number | null;
   seatsShowAttendees?: boolean | null;
 }
 

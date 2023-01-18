@@ -551,6 +551,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
+    seatsPerSlotTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
