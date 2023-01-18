@@ -65,7 +65,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
+    const t = await getTranslation(bookings[0].user[0]?.locale ?? "en", "common");
 
     const updatedBookings = bookings.map((booking) => {
       return { ...booking, location: getHumanReadableLocationValue(booking.location || "", t) };
