@@ -35,7 +35,8 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -142,7 +143,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.FiX className="h-6 w-6 text-white" />
+                  <FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -356,7 +357,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
-            <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -401,10 +402,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Icon.FiCheck className="h-5 w-5 text-green-600" />
+                    <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <Icon.FiCalendar className="h-5 w-5 text-gray-900" />}
-                  {isCancelled && <Icon.FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3

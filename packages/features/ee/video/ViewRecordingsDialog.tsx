@@ -1,8 +1,8 @@
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import RecordingListSkeleton from "@calcom/features/ee/video/components/RecordingListSkeleton";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
@@ -15,10 +15,8 @@ import {
   DialogHeader,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
-import { Button, showToast, Icon } from "@calcom/ui";
-
-import RecordingListSkeleton from "./components/RecordingListSkeleton";
-import UpgradeRecordingBanner from "./components/UpgradeRecordingBanner";
+import { Button, showToast } from "@calcom/ui";
+import { FiDownload } from "@calcom/ui/components/icon";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -127,7 +125,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                       </div>
                       {dataHasTeamPlan?.hasTeamPlan ? (
                         <Button
-                          StartIcon={Icon.FiDownload}
+                          StartIcon={FiDownload}
                           className="ml-4 lg:ml-0"
                           loading={downloadingRecordingId === recording.id}
                           onClick={() => handleDownloadClick(recording.id)}>

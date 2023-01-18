@@ -12,7 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -113,7 +114,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <aside className="mt-8 flex justify-center text-center dark:text-white">
                   <Button
                     color="minimal"
-                    EndIcon={Icon.FiArrowRight}
+                    EndIcon={FiArrowRight}
                     className="dark:hover:bg-darkgray-200"
                     href={`/team/${team.slug}?members=1`}
                     shallow={true}>

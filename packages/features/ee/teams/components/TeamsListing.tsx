@@ -5,7 +5,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, EmptyScreen, Icon } from "@calcom/ui";
+import { Alert, Button, ButtonGroup, EmptyScreen } from "@calcom/ui";
+import { FiUsers, FiRefreshCcw, FiUserPlus, FiMail, FiVideo, FiEyeOff } from "@calcom/ui/components/icon";
 
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
@@ -25,32 +26,32 @@ export function TeamsListing() {
 
   const features = [
     {
-      icon: <Icon.FiUsers className="h-5 w-5 text-gray-700" />,
+      icon: <FiUsers className="h-5 w-5 text-gray-700" />,
       title: t("collective_scheduling"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <Icon.FiRefreshCcw className="h-5 w-5 text-gray-700" />,
+      icon: <FiRefreshCcw className="h-5 w-5 text-gray-700" />,
       title: t("round_robin"),
       description: t("find_the_best_person"),
     },
     {
-      icon: <Icon.FiUserPlus className="h-5 w-5 text-gray-700" />,
+      icon: <FiUserPlus className="h-5 w-5 text-gray-700" />,
       title: t("fixed_round_robin"),
       description: t("add_one_fixed_attendee"),
     },
     {
-      icon: <Icon.FiMail className="h-5 w-5 text-gray-700" />,
+      icon: <FiMail className="h-5 w-5 text-gray-700" />,
       title: t("sms_attendee_action"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <Icon.FiVideo className="h-5 w-5 text-gray-700" />,
+      icon: <FiVideo className="h-5 w-5 text-gray-700" />,
       title: "Cal Video" + " " + t("recordings_title"),
       description: t("upgrade_to_access_recordings_description"),
     },
     {
-      icon: <Icon.FiEyeOff className="h-5 w-5 text-gray-700" />,
+      icon: <FiEyeOff className="h-5 w-5 text-gray-700" />,
       title: t("disable_cal_branding", { appName: APP_NAME }),
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },
@@ -106,7 +107,7 @@ export function TeamsListing() {
             </div>
           ) : (
             <EmptyScreen
-              Icon={Icon.FiUsers}
+              Icon={FiUsers}
               headline={t("no_teams")}
               description={t("no_teams_description")}
               buttonRaw={

@@ -22,7 +22,6 @@ import {
   DialogFooter,
   DialogTrigger,
   Form,
-  Icon,
   ImageUploader,
   Label,
   Meta,
@@ -34,6 +33,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -229,7 +229,7 @@ const ProfileView = () => {
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Icon.FiTrash2}>
+          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={FiTrash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
@@ -237,7 +237,7 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon={Icon.FiAlertTriangle}>
+          Icon={FiAlertTriangle}>
           <>
             <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
             {isCALIdentityProviver && (
@@ -278,7 +278,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon={Icon.FiAlertTriangle}>
+          Icon={FiAlertTriangle}>
           <>
             <PasswordField
               data-testid="password"

@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Tooltip } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
@@ -184,7 +184,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {size === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
-              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+              <FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
             <StartIcon
@@ -218,7 +218,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {size === "fab" ? (
             <>
               <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
-              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+              <FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
             <EndIcon className="inline h-5 w-5 ltr:-mr-1 ltr:ml-2 rtl:mr-2" />

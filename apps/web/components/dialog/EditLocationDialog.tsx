@@ -17,7 +17,8 @@ import {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, Icon, PhoneInput } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
+import { FiMapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -215,7 +216,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
+            <FiMapPin className="text-primary-600 h-6 w-6" />
           </div>
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">

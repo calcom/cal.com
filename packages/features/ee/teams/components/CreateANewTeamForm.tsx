@@ -6,7 +6,8 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui";
+import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { NewTeamFormValues } from "../lib/types";
 
@@ -140,7 +141,7 @@ export const CreateANewTeamForm = () => {
             disabled={createTeamMutation.isLoading}
             color="primary"
             type="submit"
-            EndIcon={Icon.FiArrowRight}
+            EndIcon={FiArrowRight}
             className="w-full justify-center">
             {t("continue")}
           </Button>

@@ -7,7 +7,8 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { FiArrowDown, FiTrash2 } from "@calcom/ui/components/icon";
 
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -107,7 +108,7 @@ export default function WorkflowDetailsPage(props: Props) {
           <div className="my-7 border-transparent md:border-t md:border-gray-200" />
           <Button
             type="button"
-            StartIcon={Icon.FiTrash2}
+            StartIcon={FiTrash2}
             color="destructive"
             className="border"
             onClick={() => setDeleteDialogOpen(true)}>
@@ -139,7 +140,7 @@ export default function WorkflowDetailsPage(props: Props) {
             </>
           )}
           <div className="my-3 flex justify-center">
-            <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+            <FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
           </div>
           <div className="flex justify-center">
             <Button

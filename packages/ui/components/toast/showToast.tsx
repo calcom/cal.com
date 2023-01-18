@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import toast from "react-hot-toast";
 
-import { Icon } from "@calcom/ui";
+import { FiCheck, FiInfo } from "@calcom/ui/components/icon";
 
 type IToast = {
   message: string;
@@ -14,7 +14,7 @@ export const SuccessToast = ({ message, toastVisible }: IToast) => (
       "data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
       toastVisible && "animate-fade-in-up"
     )}>
-    <Icon.FiCheck className="h-4 w-4" />
+    <FiCheck className="h-4 w-4" />
     <p>{message}</p>
   </div>
 );
@@ -25,7 +25,7 @@ export const ErrorToast = ({ message, toastVisible }: IToast) => (
       "animate-fade-in-up mb-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md rtl:space-x-reverse",
       toastVisible && "animate-fade-in-up"
     )}>
-    <Icon.FiInfo className="h-4 w-4" />
+    <FiInfo className="h-4 w-4" />
     <p>{message}</p>
   </div>
 );
@@ -36,7 +36,7 @@ export const WarningToast = ({ message, toastVisible }: IToast) => (
       "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
       toastVisible && "animate-fade-in-up"
     )}>
-    <Icon.FiInfo className="h-4 w-4" />
+    <FiInfo className="h-4 w-4" />
     <p>{message}</p>
   </div>
 );
@@ -47,7 +47,7 @@ export const DefaultToast = ({ message, toastVisible }: IToast) => (
       "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
       toastVisible && "animate-fade-in-up"
     )}>
-    <Icon.FiCheck className="h-4 w-4" />
+    <FiCheck className="h-4 w-4" />
     <p>{message}</p>
   </div>
 );

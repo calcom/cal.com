@@ -47,7 +47,6 @@ export {
   SkeletonButton,
   SkeletonContainer,
   DropdownActions,
-  Icon,
   ErrorBoundary,
   Alert,
   TrendingAppsSlider,

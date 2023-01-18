@@ -29,12 +29,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Form,
-  Icon,
   RadioGroup as RadioArea,
   showToast,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
 
@@ -285,7 +285,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         <Button
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={Icon.FiPlus}
+          StartIcon={FiPlus}
           size="fab"
           disabled={!props.canAddEvents}>
           {t("new")}
@@ -294,7 +294,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
-              EndIcon={Icon.FiChevronDown}
+              EndIcon={FiChevronDown}
               size="fab"
               className="radix-state-open:!bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2 focus:border-none">
               {t("new")}
@@ -351,14 +351,14 @@ export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
         <Button
           onClick={() => props.openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={Icon.FiPlus}
+          StartIcon={FiPlus}
           disabled={!props.canAddEvents}>
           {t("new_event_type_btn")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button EndIcon={Icon.FiChevronDown}>{t("new_event_type_btn")}</Button>
+            <Button EndIcon={FiChevronDown}>{t("new_event_type_btn")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>

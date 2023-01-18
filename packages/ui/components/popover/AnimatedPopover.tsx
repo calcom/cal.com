@@ -2,7 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui";
+import { FiChevronDown } from "@calcom/ui/components/icon";
 
 export const AnimatedPopover = ({
   text,
@@ -52,7 +52,7 @@ export const AnimatedPopover = ({
                 <div className="flex h-4 w-4 items-center justify-center rounded-full">{count}</div>
               )}
             </div>
-            <Icon.FiChevronDown
+            <FiChevronDown
               className={classNames("mt-auto ml-2 transition-transform duration-150", open && "rotate-180")}
             />
           </div>

@@ -4,8 +4,9 @@ import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { FiEye, FiEyeOff, FiX } from "@calcom/ui/components/icon";
 
-import { Alert, Icon, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -162,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <Icon.FiX
+            <FiX
               className="absolute top-2.5 h-4 w-4 cursor-pointer text-gray-500 ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
@@ -220,9 +221,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <Icon.FiEyeOff className="h-4 stroke-[2.5px]" />
+                <FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <Icon.FiEye className="h-4 stroke-[2.5px]" />
+                <FiEye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>

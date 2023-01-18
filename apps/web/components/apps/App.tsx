@@ -12,7 +12,17 @@ import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/consta
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Button, Icon, showToast, SkeletonButton, SkeletonText, HeadSeo } from "@calcom/ui";
+import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo } from "@calcom/ui";
+import {
+  FiBookOpen,
+  FiCheck,
+  FiExternalLink,
+  FiFile,
+  FiFlag,
+  FiMail,
+  FiPlus,
+  FiShield,
+} from "@calcom/ui/components/icon";
 
 const Component = ({
   name,
@@ -112,7 +122,7 @@ const Component = ({
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
+              <Button StartIcon={FiCheck} color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
@@ -133,7 +143,7 @@ const Component = ({
                     }
                     return (
                       <Button
-                        StartIcon={Icon.FiPlus}
+                        StartIcon={FiPlus}
                         {...props}
                         // @TODO: Overriding color and size prevent us from
                         // having to duplicate InstallAppButton for now.
@@ -220,7 +230,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-sm font-normal text-black no-underline hover:underline"
                 href={docs}>
-                <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
+                <FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
                 {t("documentation")}
               </a>
             </li>
@@ -232,7 +242,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={website}>
-                <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -244,7 +254,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={"mailto:" + email}>
-                <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
 
                 {email}
               </a>
@@ -257,7 +267,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={tos}>
-                <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -269,7 +279,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={privacy}>
-                <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -280,7 +290,7 @@ const Component = ({
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
+          <FiFlag className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>

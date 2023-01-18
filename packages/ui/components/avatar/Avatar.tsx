@@ -3,7 +3,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
-import { Icon } from "@calcom/ui";
+import { FiCheck } from "@calcom/ui/components/icon";
 
 import { Maybe } from "@trpc/server";
 
@@ -54,7 +54,7 @@ export function Avatar(props: AvatarProps) {
               size === "lg" ? "h-5 w-5" : "h-2 w-2"
             )}>
             <div className="flex h-full items-center justify-center p-[2px]">
-              {size === "lg" && <Icon.FiCheck />}
+              {size === "lg" && <FiCheck />}
             </div>
           </div>
         )}

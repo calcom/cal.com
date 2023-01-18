@@ -12,7 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
-import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,11 +24,11 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -107,7 +107,7 @@ const CopyButton = ({
           tooltip={t("duplicate")}
           color="minimal"
           size="icon"
-          StartIcon={Icon.FiCopy}
+          StartIcon={FiCopy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -185,7 +185,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 type="button"
                 color="minimal"
                 size="icon"
-                StartIcon={Icon.FiPlus}
+                StartIcon={FiPlus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -215,7 +215,7 @@ const RemoveTimeButton = ({
       type="button"
       size="icon"
       color="minimal"
-      StartIcon={Icon.FiTrash}
+      StartIcon={FiTrash}
       onClick={() => remove(index)}
       className={className}
     />

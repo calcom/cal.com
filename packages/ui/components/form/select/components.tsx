@@ -12,8 +12,8 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
+import { FiCheck } from "@calcom/ui/components/icon";
 
-import { Icon } from "../../../components/icon";
 import { UpgradeTeamsBadge } from "../../badge";
 
 export const InputComponent = <
@@ -62,7 +62,7 @@ export const OptionComponent = <
       <>
         <span className="mr-auto">{props.label}</span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
-        {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
+        {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
       </>
     </reactSelectComponents.Option>
   );
