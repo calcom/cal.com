@@ -1036,7 +1036,7 @@ const loggedInViewerRouter = router({
                 });
 
                 const attendeesList = await Promise.all(attendeesListPromises);
-                const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
+                const tOrganizer = await getTranslation(ctx.user.locale ?? "en", "common");
 
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
@@ -1046,16 +1046,16 @@ const loggedInViewerRouter = router({
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {
-                    email: booking?.user?.email as string,
-                    name: booking?.user?.name ?? "Nameless",
-                    timeZone: booking?.user?.timeZone as string,
-                    language: { translate: tOrganizer, locale: booking?.user?.locale ?? "en" },
+                    email: ctx.user?.email as string,
+                    name: ctx.user?.name ?? "Nameless",
+                    timeZone: booking?.user[0]?.timeZone as string,
+                    language: { translate: tOrganizer, locale: ctx.user?.locale ?? "en" },
                   },
                   attendees: attendeesList,
                   uid: booking.uid,
                   recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
                   location: booking.location,
-                  destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
+                  destinationCalendar: booking.destinationCalendar || booking.user[0]?.destinationCalendar,
                   cancellationReason: "Payment method removed by organizer",
                 });
               }
