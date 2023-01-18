@@ -53,7 +53,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
   });
 
   if (bookingToReschedule && bookingToReschedule.eventTypeId && bookingToReschedule.user) {
-    const userOwner = bookingToReschedule.user;
+    const userOwner = bookingToReschedule.user[0];
     const event = await prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
