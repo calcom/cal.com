@@ -34,6 +34,7 @@ import {
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuContent,
   Button,
 } from "@calcom/ui";
@@ -393,7 +394,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
   }, [editor, isLink]);
-
+  console.log("TEST", blockTypeToBlockName[blockType]);
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>

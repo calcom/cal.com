@@ -55,6 +55,11 @@ export async function getAppRegistryWithCredentials(userId: number) {
         select: safeCredentialSelect,
       },
     },
+    orderBy: {
+      credentials: {
+        _count: "desc",
+      },
+    },
   });
   const apps = [] as (App & {
     credentials: Credential[];

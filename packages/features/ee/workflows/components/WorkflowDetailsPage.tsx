@@ -3,12 +3,13 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 
+import { isSMSAction } from "../lib/isSMSAction";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -47,7 +48,13 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => {
+  const addAction = (
+    action: WorkflowActions,
+    sendTo?: string,
+    numberRequired?: boolean,
+    sender?: string,
+    senderName?: string
+  ) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -71,7 +78,8 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
-      sender: sender || SENDER_ID,
+      sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
+      senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
     };
     steps?.push(step);

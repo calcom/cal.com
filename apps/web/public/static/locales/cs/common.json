@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Událost stále čeká na schválení",
   "booking_submitted_subject": "Rezervace odeslána: {{eventType}} s {{name}} během {{date}}",
   "your_meeting_has_been_booked": "Vaše schůzka byla rezervována",
-  "event_type_has_been_rescheduled_on_time_date": "Váš {{eventType}} s {{name}} byl přesunut na {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Váš {{title}} byl přeplánován na {{date}}.",
   "event_has_been_rescheduled": "Změna - Vaše událost byla přesunuta na jindy",
   "request_reschedule_title_attendee": "Žádost o přeplánování rezervace",
   "request_reschedule_subtitle": "Organizátor {{organizer}} zrušil rezervaci a požádal vás, abyste si vybrali jiný čas.",
