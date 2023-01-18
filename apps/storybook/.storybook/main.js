@@ -13,12 +13,13 @@ module.exports = {
     "@storybook/addon-interactions",
     "storybook-addon-rtl-direction",
     "storybook-react-i18next",
-    {
+    "storybook-addon-next",
+    /*{
       name: "storybook-addon-next",
       options: {
         nextConfigPath: path.resolve(__dirname, "../../web/next.config.js"),
       },
-    },
+    },*/
   ],
   framework: "@storybook/react",
   core: {
