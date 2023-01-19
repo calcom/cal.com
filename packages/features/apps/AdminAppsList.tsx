@@ -3,11 +3,13 @@ import { AppCategories } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
@@ -183,26 +185,36 @@ const querySchema = z.object({
 const AdminAppsList = ({
   baseURL,
   className,
+  fromAdmin,
+  currentStep,
+  setIsLoading,
   useQueryParam = false,
 }: {
   baseURL: string;
   className?: string;
+  fromAdmin?: boolean;
+  currentStep?: number;
+  setIsLoading?: Dispatch<SetStateAction<boolean>>;
   useQueryParam?: boolean;
 }) => {
   const router = useRouter();
   return (
     <form
-      id="wizard-step-2"
-      name="wizard-step-2"
+      id={`wizard-step-${currentStep}`}
+      name={`wizard-step-${currentStep}`}
       onSubmit={(e) => {
         e.preventDefault();
+        setIsLoading && setIsLoading(true);
         router.replace("/");
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
-        fromAdmin
+        fromAdmin={fromAdmin}
         useQueryParam={useQueryParam}
-        containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
+        containerClassname={classNames(
+          "w-full xl:mx-5 xl:w-2/3 xl:pr-3.5",
+          fromAdmin ? " max-h-[400px] overflow-y-auto" : "max-w-[500px]"
+        )}
         className={className}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>

@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { Dispatch, SetStateAction } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -10,7 +11,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField, Label, PasswordField, TextField } from "@calcom/ui";
 
-const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
+const AdminUser = (props: { setIsLoading: Dispatch<SetStateAction<boolean>> }) => {
   const router = useRouter();
   const { t } = useLocale();
 
@@ -69,7 +70,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
         email: data.email_address.toLowerCase(),
         password: data.password,
       });
-      router.replace(`/auth/setup?step=2&category=calendar`);
+      router.replace(`/auth/setup?step=2`);
     } else {
       router.replace("/auth/setup");
     }
@@ -187,4 +188,4 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   );
 };
 
-export default SetupFormStep1;
+export default AdminUser;

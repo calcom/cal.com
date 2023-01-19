@@ -3,18 +3,18 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
 
-const StepDone = () => {
+const StepDone = (props: { currentStep: number; nextStepPath: string }) => {
   const router = useRouter();
   const { t } = useLocale();
 
   return (
     <form
-      id="wizard-step-1"
-      name="wizard-step-1"
+      id={`wizard-step-${props.currentStep}`}
+      name={`wizard-step-${props.currentStep}`}
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        router.replace(`/auth/setup?step=2&category=calendar`);
+        router.replace(props.nextStepPath);
       }}>
       <div className="min-h-36 my-6 flex flex-col items-center justify-center">
         <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">

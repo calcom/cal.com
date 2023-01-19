@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter } from "next/router";
 import { ComponentProps } from "react";
 
@@ -7,9 +8,10 @@ import { Button, Stepper } from "../../..";
 
 type DefaultStep = {
   title: string;
+  containerClassname?: string;
   description: string;
   content: JSX.Element;
-  enabled?: boolean;
+  isEnabled?: boolean;
   isLoading: boolean;
 };
 
@@ -37,7 +39,7 @@ function WizardForm<T extends DefaultStep>(props: {
       <img className="mx-auto mb-8 h-8" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
       <div
         className={classNames(
-          "mb-8 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent",
+          "mb-8 w-[700px] divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent",
           props.containerClassname
         )}>
         <div className="px-4 py-5 sm:px-6">
@@ -47,31 +49,28 @@ function WizardForm<T extends DefaultStep>(props: {
 
         <div className="print:p-none max-w-3xl px-4 py-5 sm:p-6">{currentStep.content}</div>
         {!props.disableNavigation && (
-          <>
-            {currentStep.enabled !== false && (
-              <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
-                {step > 1 && (
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setStep(step - 1);
-                    }}>
-                    {prevLabel}
-                  </Button>
-                )}
-
-                <Button
-                  tabIndex={0}
-                  loading={currentStep.isLoading}
-                  type="submit"
-                  color="primary"
-                  form={`wizard-step-${step}`}
-                  className="relative ml-2">
-                  {step < steps.length ? nextLabel : finishLabel}
-                </Button>
-              </div>
+          <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
+            {step > 1 && (
+              <Button
+                color="secondary"
+                onClick={() => {
+                  setStep(step - 1);
+                }}>
+                {prevLabel}
+              </Button>
             )}
-          </>
+
+            <Button
+              tabIndex={0}
+              loading={currentStep.isLoading}
+              type="submit"
+              color="primary"
+              form={`wizard-step-${step}`}
+              disabled={currentStep.isEnabled === false}
+              className="relative ml-2">
+              {step < steps.length ? nextLabel : finishLabel}
+            </Button>
+          </div>
         )}
       </div>
       {!props.disableNavigation && (

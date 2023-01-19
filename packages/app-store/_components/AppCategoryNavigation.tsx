@@ -31,7 +31,7 @@ const AppCategoryNavigation = ({
           tabs={appCategories}
           sticky
           linkProps={{ shallow: true }}
-          itemClassname={classNames(fromAdmin && "w-60")}
+          itemClassname={classNames(fromAdmin && "!w-48")}
         />
       </div>
       <div className="mb-4 block overflow-x-scroll xl:hidden">

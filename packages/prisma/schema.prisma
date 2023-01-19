@@ -615,6 +615,16 @@ model WorkflowsOnEventTypes {
   eventTypeId Int
 }
 
+model Deployment {
+  id               Int                    @id @default(autoincrement())
+  logo             String?
+  /// @zod.custom(imports.DeploymentTheme)
+  theme            Json?
+  licenseKey       String?
+  licenseType      DeploymentLicenseType?
+  licenseConsentAt DateTime?
+}
+
 enum TimeUnit {
   DAY    @map("day")
   HOUR   @map("hour")
@@ -641,6 +651,11 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
+}
+
+enum DeploymentLicenseType {
+  FREE
+  EE
 }
 
 model VerifiedNumber {

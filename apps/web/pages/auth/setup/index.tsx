@@ -1,4 +1,5 @@
 import { UserPermissionRole } from "@prisma/client";
+import { DeploymentLicenseType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
@@ -9,26 +10,83 @@ import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardForm } from "@calcom/ui";
 
-import SetupFormStep1 from "./steps/SetupFormStep1";
+import AdminUser from "./steps/AdminUser";
+import ChooseLicense from "./steps/ChooseLicense";
+import EnterpriseLicense from "./steps/EnterpriseLicense";
 import StepDone from "./steps/StepDone";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
-  const [isLoadingStep1, setIsLoadingStep1] = useState(false);
-  const shouldDisable = props.userCount !== 0;
+  const [isLoadingAdminUser, setIsLoadingAdminUser] = useState(false);
+  const [isFreeLicense, setIsFreeLicense] = useState(
+    props.deployment?.licenseType !== DeploymentLicenseType.EE
+  );
+  const [isLoadingAdminApps, setIsLoadingAdminApp] = useState(false);
+  const [isLoadingChooseLicense, setIsLoadingChooseLicense] = useState(false);
+  const [isLoadingEnterpriseLicense, setIsLoadingEnterpriseLicense] = useState(false);
+  const [isEnabledEnterpriseLicense, setIsEnabledEnterpriseLicense] = useState(
+    !!props.deployment?.licenseKey
+  );
 
   const steps = [
     {
       title: t("administrator_user"),
       description: t("lets_create_first_administrator_user"),
-      content: shouldDisable ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
-      isLoading: isLoadingStep1,
+      content:
+        props.userCount !== 0 ? (
+          <StepDone currentStep={1} nextStepPath="/auth/setup?step=2" />
+        ) : (
+          <AdminUser setIsLoading={setIsLoadingAdminUser} />
+        ),
+      isLoading: isLoadingAdminUser,
     },
+    {
+      title: "Choose a license",
+      description:
+        "Cal.com comes with an accessible and free AGPLv3 license which some limitations which can be upgraded to an Enterprise license at any time.",
+      content: props.deployment?.licenseType ? (
+        <StepDone currentStep={2} nextStepPath="/auth/setup?step=3" />
+      ) : (
+        <ChooseLicense
+          setIsLoading={setIsLoadingChooseLicense}
+          isFreeLicense={isFreeLicense}
+          setIsFreeLicense={setIsFreeLicense}
+        />
+      ),
+      isLoading: isLoadingChooseLicense,
+    },
+    ...(!isFreeLicense
+      ? [
+          {
+            title: "Enterprise License",
+            description:
+              "Everything for a commercial use case with private hosting, repackaging, rebranding and reselling and access exclusive enterprise components.",
+            content: props.deployment?.licenseKey ? (
+              <StepDone currentStep={3} nextStepPath="/auth/setup?step=4" />
+            ) : (
+              <EnterpriseLicense
+                setIsEnabled={setIsEnabledEnterpriseLicense}
+                setIsLoading={setIsLoadingEnterpriseLicense}
+              />
+            ),
+            isLoading: isLoadingEnterpriseLicense,
+            isEnabled: isEnabledEnterpriseLicense,
+          },
+        ]
+      : []),
     {
       title: t("enable_apps"),
       description: t("enable_apps_description"),
-      content: <AdminAppsList baseURL="/auth/setup?step=2" useQueryParam={true} />,
-      isLoading: false,
+      content: (
+        <AdminAppsList
+          fromAdmin
+          currentStep={isFreeLicense ? 3 : 4}
+          baseURL={`/auth/setup?step=${isFreeLicense ? 3 : 4}`}
+          setIsLoading={setIsLoadingAdminApp}
+          useQueryParam={true}
+        />
+      ),
+      isLoading: isLoadingAdminApps,
     },
   ];
 
@@ -50,6 +108,10 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const userCount = await prisma.user.count();
+  const deployment = await prisma.deployment.findFirst({
+    where: { id: 1 },
+    select: { licenseType: true, licenseKey: true },
+  });
   const { req } = context;
   const session = await getSession({ req });
 
@@ -65,6 +127,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       userCount,
+      deployment,
     },
   };
 };
