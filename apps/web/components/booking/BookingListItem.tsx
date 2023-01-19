@@ -45,7 +45,6 @@ function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  console.log("🚀 ~ file: BookingListItem.tsx:48 ~ BookingListItem ~ user", user);
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -400,7 +399,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && booking.user.some((bookingUser) => bookingUser.id === user?.id) && (
+                <TableActions actions={pendingActions} />
+              )}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>

@@ -49,6 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         eventType: {
           select: {
             recurringEvent: true,
+            users: true,
           },
         },
         uid: true,
@@ -69,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
-      const { user } = booking;
+      const user = booking.user[0];
       const name = user?.name || user?.username;
       if (!user || !name || !user.timeZone) {
         console.error(`Booking ${booking.id} is missing required properties for booking reminder`, { user });
