@@ -1,3 +1,4 @@
+// TODO: extract strings into i18n keys
 import {
   Card,
   Metric,
