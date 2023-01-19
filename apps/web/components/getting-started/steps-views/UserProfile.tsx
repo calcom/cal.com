@@ -25,7 +25,6 @@ const UserProfile = (props: IUserProfileProps) => {
     setValue,
     handleSubmit,
     getValues,
-    formState: { errors },
   } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
