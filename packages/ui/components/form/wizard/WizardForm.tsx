@@ -36,7 +36,7 @@ function WizardForm<T extends DefaultStep>(props: {
   return (
     <div className="mx-auto mt-4 print:w-full">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="mx-auto mb-8 h-8" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
+      <img className="mx-auto my-8 h-5" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
       <div
         className={classNames(
           "mb-8 w-[700px] divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent",

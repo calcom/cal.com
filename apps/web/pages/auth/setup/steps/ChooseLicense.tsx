@@ -19,6 +19,9 @@ const ChooseLicense = (props: {
       router.replace(`/auth/setup?step=3${isFreeLicense ? "&category=calendar" : ""}`);
     },
   });
+
+  const enterprise_fee = "$99"; // TODO: get this from a new API endpoint
+
   return (
     <form
       id="wizard-step-2"
@@ -54,7 +57,7 @@ const ChooseLicense = (props: {
           )}
           onClick={() => setIsFreeLicense(false)}>
           <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>
-          <p className="font-medium text-green-800">{t("enterprise_booking_fee")}</p>
+          <p className="font-medium text-green-800">{t("enterprise_booking_fee", { enterprise_fee })}</p>
           <p className="text-gray-500">{t("enterprise_license_includes")}</p>
           <ul className="ml-4 list-disc text-xs text-gray-500">
             <li>{t("no_need_to_keep_your_code_open_source")}</li>
@@ -62,6 +65,9 @@ const ChooseLicense = (props: {
             <li>{t("a_vast_suite_of_enterprise_features")}</li>
           </ul>
         </div>
+      </div>
+      <div>
+        <small>{t("you_can_upgrade_at_any_time_later")}</small>
       </div>
     </form>
   );
