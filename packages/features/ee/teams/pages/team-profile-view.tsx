@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole, Prisma } from "@prisma/client";
+import parse from "html-react-parser";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,6 +9,7 @@ import { z } from "zod";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { getInnerText } from "@calcom/lib/getInnerText";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -25,7 +27,6 @@ import {
   LinkIconButton,
   Meta,
   showToast,
-  TextArea,
   TextField,
   Editor,
 } from "@calcom/ui";
@@ -247,10 +248,10 @@ const ProfileView = () => {
                   <Label className="text-black">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
-                {team?.bio && (
+                {team?.bio && !!getInnerText(parse(team?.bio || "")).length && (
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
-                    <p className="text-sm text-gray-800">{team.bio}</p>
+                    <p className="text-sm text-gray-800">{parse(team.bio || "")}</p>
                   </>
                 )}
               </div>

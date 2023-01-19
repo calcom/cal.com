@@ -364,6 +364,7 @@ const ProfileForm = ({
         <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
       </div>
       <div className="mt-8">
+        <Label>{t("about")}</Label>
         <Editor
           getText={() => formMethods.getValues("bio")}
           setText={(value: string) => formMethods.setValue("bio", value, { shouldDirty: true })}

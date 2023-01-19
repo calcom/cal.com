@@ -3,9 +3,9 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getInnerText } from "@calcom/lib/getInnerText";
 import { Avatar } from "@calcom/ui";
 
-import { getInnerText } from "@lib/getInnerText";
 import { useLocale } from "@lib/hooks/useLocale";
 
 type TeamType = TeamPageProps["team"];

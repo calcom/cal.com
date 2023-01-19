@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
+import { getInnerText } from "@calcom/lib/getInnerText";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -15,7 +16,6 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
-import { getInnerText } from "@lib/getInnerText";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

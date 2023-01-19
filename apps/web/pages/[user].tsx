@@ -21,6 +21,7 @@ import defaultEvents, {
   getUsernameList,
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
+import { getInnerText } from "@calcom/lib/getInnerText";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -29,7 +30,6 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
-import { getInnerText } from "@lib/getInnerText";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
