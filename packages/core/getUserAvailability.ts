@@ -253,11 +253,17 @@ export async function getUserAvailability(
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
     .map((override) => {
-      const startTime = dayjs.utc(override.startTime);
-      const endTime = dayjs.utc(override.endTime);
       return {
-        start: dayjs.tz(override.date, timeZone).hour(startTime.hour()).minute(startTime.minute()),
-        end: dayjs.tz(override.date, timeZone).hour(endTime.hour()).minute(endTime.minute()),
+        start: dayjs
+          .tz(override.date, timeZone)
+          .hour(override.startTime.getUTCHours())
+          .minute(override.startTime.getUTCMinutes())
+          .utc(),
+        end: dayjs
+          .tz(override.date, timeZone)
+          .hour(override.endTime.getUTCHours())
+          .minute(override.endTime.getUTCMinutes())
+          .utc(),
       };
     });
 
