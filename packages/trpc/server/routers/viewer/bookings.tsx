@@ -241,7 +241,9 @@ export const bookingsRouter = router({
                   members: {
                     some: {
                       userId: user.id,
-                      role: "OWNER",
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },
