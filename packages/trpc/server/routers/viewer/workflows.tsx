@@ -431,16 +431,25 @@ export const workflowsRouter = router({
                   }),
                   organizer: booking.user
                     ? {
-                        language: { locale: booking.user.locale || "" },
-                        name: booking.user.name || "",
-                        email: booking.user.email,
-                        timeZone: booking.user.timeZone,
+                        language: { locale: booking?.user[0]?.locale || "" },
+                        name: booking?.user[0]?.name || "",
+                        email: booking?.user[0].email,
+                        timeZone: booking?.user[0].timeZone,
                       }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
-                  language: { locale: booking?.user?.locale || "" },
+                  language: { locale: ctx.user?.locale || "" },
+                  ...(booking.user.length > 1 && {
+                    team: {
+                      members: booking.user.reduce((teamArray, user, index) => {
+                        if (index !== 0)
+                          teamArray.push({ id: user.id, name: user.name || "", email: user.email });
+                        return teamArray;
+                      }, [] as { id: number; name: string; email: string }[]),
+                    },
+                  }),
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
@@ -618,16 +627,25 @@ export const workflowsRouter = router({
                 }),
                 organizer: booking.user
                   ? {
-                      language: { locale: booking.user.locale || "" },
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
+                      language: { locale: booking.user[0]?.locale || "" },
+                      name: booking.user[0]?.name || "",
+                      email: booking.user[0].email,
+                      timeZone: booking.user[0].timeZone,
                     }
                   : { name: "", email: "", timeZone: "", language: { locale: "" } },
                 startTime: booking.startTime.toISOString(),
                 endTime: booking.endTime.toISOString(),
                 title: booking.title,
-                language: { locale: booking?.user?.locale || "" },
+                language: { locale: booking?.user[0]?.locale || "" },
+                ...(booking.user.length > 1 && {
+                  team: {
+                    members: booking.user.reduce((teamArray, user, index) => {
+                      if (index !== 0)
+                        teamArray.push({ id: user.id, name: user.name || "", email: user.email });
+                      return teamArray;
+                    }, [] as { id: number; name: string; email: string }[]),
+                  },
+                }),
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
@@ -734,16 +752,25 @@ export const workflowsRouter = router({
                   }),
                   organizer: booking.user
                     ? {
-                        name: booking.user.name || "",
-                        email: booking.user.email,
-                        timeZone: booking.user.timeZone,
-                        language: { locale: booking.user.locale || "" },
+                        name: booking.user[0].name || "",
+                        email: booking.user[0].email,
+                        timeZone: booking.user[0].timeZone,
+                        language: { locale: booking.user[0].locale || "" },
                       }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
-                  language: { locale: booking?.user?.locale || "" },
+                  language: { locale: booking?.user[0]?.locale || "" },
+                  ...(booking.user.length > 1 && {
+                    team: {
+                      members: booking.user.reduce((teamArray, user, index) => {
+                        if (index !== 0)
+                          teamArray.push({ id: user.id, name: user.name || "", email: user.email });
+                        return teamArray;
+                      }, [] as { id: number; name: string; email: string }[]),
+                    },
+                  }),
                 };
 
                 if (
