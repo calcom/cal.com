@@ -286,7 +286,14 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    // CUSTOM_CODE First 3 Instances we check
+    // CUSTOM_CODE Changed Error
+    try {
+      await fetch(
+        `https://hooks.zapier.com/hooks/catch/8583043/bvuuxkc/silent?email=${eventType.users
+          ?.map((u) => u?.email)
+          ?.join(", ")}`
+      );
+    } catch (e) {}
     throw new Error("Please try again or contact concierge@mento.co for support.");
   }
   return availableUsers;
