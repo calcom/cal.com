@@ -18,8 +18,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     extendsFeature: "EventType",
   });
   const methods = useFormContext<FormValues>();
-  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
-  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  const installedApps = eventTypeApps?.filter((app) => app.enabled && app.credentials.length);
+  const notInstalledApps = eventTypeApps?.filter((app) => app.enabled && !app.credentials.length);
   const allAppsData = methods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
