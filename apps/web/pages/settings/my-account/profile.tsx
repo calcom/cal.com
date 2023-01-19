@@ -182,7 +182,9 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user || isLoadingAvatar || !avatar)
-    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
+    return (
+      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+    );
 
   const defaultValues = {
     username: user.username || "",
@@ -228,11 +230,7 @@ const ProfileView = () => {
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button
-            data-testid="delete-account"
-            color="destructive"
-            className="mt-1 border-2"
-            StartIcon={Icon.FiTrash2}>
+          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Icon.FiTrash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
