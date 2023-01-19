@@ -200,14 +200,14 @@ const getSlots = ({
   });
   // an override precedes all the local working hour availability logic.
   const activeOverrides = dateOverrides.filter((override) => {
-    return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
+    return override.start.isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
   });
 
   if (!!activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => ({
       userIds: override.userId ? [override.userId] : [],
-      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
-      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
+      startTime: override.start.hour() * 60 + override.start.minute(),
+      endTime: override.end.hour() * 60 + override.end.minute(),
     }));
     // unset all working hours that relate to this user availability override
     overrides.forEach((override) => {

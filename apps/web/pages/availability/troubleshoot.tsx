@@ -23,6 +23,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       username: user.username!,
       dateFrom: selectedDate.startOf("day").utc().format(),
       dateTo: selectedDate.endOf("day").utc().format(),
@@ -40,7 +41,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
         formattedSelectedDate !== dayjs(override.end).format("YYYY-MM-DD")
       )
         return acc;
-      acc.push({ ...override, source: "Date override" });
+      acc.push({ start: override.start.toDate(), end: override.end.toDate(), source: "Date override" });
       return acc;
     }, [] as IBusySlot[]) || [];
 

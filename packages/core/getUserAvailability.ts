@@ -256,8 +256,8 @@ export async function getUserAvailability(
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
       return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+        start: dayjs.tz(override.date, timeZone).hour(startTime.hour()).minute(startTime.minute()),
+        end: dayjs.tz(override.date, timeZone).hour(endTime.hour()).minute(endTime.minute()),
       };
     });
 
