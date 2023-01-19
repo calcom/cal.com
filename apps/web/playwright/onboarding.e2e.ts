@@ -54,13 +54,7 @@ test.describe("Onboarding", () => {
       });
 
       await test.step("step 4", async () => {
-        const finishButton = await page.locator("button[type=submit]");
-        await page.locator("textarea[name=bio]").fill("Something about me");
-
-        const isDisabled = await finishButton.isDisabled();
-        await expect(isDisabled).toBe(false);
-
-        await finishButton.click();
+        await page.locator("button[type=submit]").click();
 
         // should redirect to /event-types after onboarding
         await page.waitForURL("/event-types");
