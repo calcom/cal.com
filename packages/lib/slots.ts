@@ -112,7 +112,7 @@ function buildSlots({
  *
  * Note that the current implementation of `getSlotsCompact` only really
  * makes sense for events with a single host. We assume that `busyTimes`
- * only contain busy times for a single host.
+ * only contains busy times for a single host.
  **/
 export const getTimeSlotsCompact = ({
   // Day for which slots are being generated
