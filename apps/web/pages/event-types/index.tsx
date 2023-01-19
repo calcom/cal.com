@@ -396,7 +396,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
-                      <Button type="button" variant="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+                      <Button
+                        type="button"
+                        variant="icon"
+                        color="secondary"
+                        StartIcon={Icon.FiMoreHorizontal}
+                      />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
