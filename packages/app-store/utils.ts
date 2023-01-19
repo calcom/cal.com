@@ -5,12 +5,17 @@ import { z } from "zod";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { defaultLocations } from "@calcom/app-store/locations";
+import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
-import { LocationOption } from "@components/ui/form/LocationSelect";
+type LocationOption = {
+  label: string;
+  value: EventLocationType["type"];
+  icon?: string;
+  disabled?: boolean;
+};
 
 export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export type EventTypeAppsList = keyof EventTypeApps;
