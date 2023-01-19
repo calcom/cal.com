@@ -5,7 +5,7 @@ import { TeamPageProps } from "pages/team/[slug]";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { Avatar } from "@calcom/ui";
 
-import { getNodeText } from "@lib/getNodeText";
+import { getInnerText } from "@lib/getInnerText";
 import { useLocale } from "@lib/hooks/useLocale";
 
 type TeamType = TeamPageProps["team"];
@@ -27,7 +27,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         <section className="line-clamp-4 mt-2 w-full space-y-1">
           <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
           <p className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
-            {getNodeText(parsedBio).length
+            {getInnerText(parsedBio).length
               ? parsedBio
               : t("user_from_team", { user: member.name, team: teamName })}
           </p>

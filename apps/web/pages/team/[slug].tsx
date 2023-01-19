@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import parse from "html-react-parser";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -14,6 +15,7 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
+import { getInnerText } from "@lib/getInnerText";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -90,7 +92,11 @@ function TeamPage({ team }: TeamPageProps) {
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
             {teamName}
           </p>
-          <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">{team.bio}</p>
+          {!!getInnerText(parse(team.bio || "")).length && (
+            <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">
+              {parse(team.bio || "")}
+            </p>
+          )}
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (

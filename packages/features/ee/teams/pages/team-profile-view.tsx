@@ -27,6 +27,7 @@ import {
   showToast,
   TextArea,
   TextField,
+  Editor,
 } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
@@ -213,23 +214,14 @@ const ProfileView = () => {
                   </div>
                 )}
               />
-              <Controller
-                control={form.control}
-                name="bio"
-                render={({ field: { value } }) => (
-                  <div className="mt-8">
-                    <Label>{t("about")}</Label>
-                    <TextArea
-                      name="bio"
-                      value={value}
-                      className="h-14"
-                      onChange={(e) => {
-                        form.setValue("bio", e?.target.value);
-                      }}
-                    />
-                  </div>
-                )}
-              />
+              <div className="mt-8">
+                <Label>{t("about")}</Label>
+                <Editor
+                  getText={() => form.getValues("bio")}
+                  setText={(value: string) => form.setValue("bio", value)}
+                  excludedToolbarItems={["blockType"]}
+                />
+              </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
@@ -239,7 +231,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="ml-2 mt-8"
+                    className="mt-8 ml-2"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
