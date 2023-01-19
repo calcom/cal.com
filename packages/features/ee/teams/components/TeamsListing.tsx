@@ -22,7 +22,6 @@ export function TeamsListing() {
 
   const teams = data?.filter((m) => m.accepted) || [];
   const invites = data?.filter((m) => !m.accepted) || [];
-
   const features = [
     {
       icon: <Icon.FiUsers className="h-5 w-5 text-gray-700" />,
@@ -65,7 +64,65 @@ export function TeamsListing() {
           <TeamList teams={invites} />
         </div>
       )}
+
       {isLoading && <SkeletonLoaderTeamList />}
+
+      <UpgradeScreen
+        title="calcom_is_better_with_team"
+        description="add_your_team_members"
+        features={features}
+        background="/team-banner-background.jpg"
+        buttons={
+          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <ButtonGroup>
+              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                {t("create_team")}
+              </Button>
+              <Button color="secondary" href="https://go.cal.com/teams-video" target="_blank">
+                {t("learn_more")}
+              </Button>
+            </ButtonGroup>
+          </div>
+        }>
+        <>
+          <EmptyScreen
+            Icon={Icon.FiUsers}
+            headline={t("no_teams")}
+            description={t("no_teams_description")}
+            buttonRaw={
+              <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                {t("create_team")}
+              </Button>
+            }
+          />
+          {teams.length > 0 && <TeamList teams={teams} />}
+        </>
+      </UpgradeScreen>
+    </>
+  );
+}
+
+function UpgradeScreen({
+  title,
+  description,
+  background,
+  features,
+  buttons,
+  children,
+}: {
+  title: string;
+  description: string;
+  background: string;
+  features: Array<{ icon: JSX.Element; title: string; description: string }>;
+  buttons?: JSX.Element;
+  children: JSX.Element;
+}) {
+  const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {});
+  const teams = data?.filter((m) => m.accepted) || [];
+  const { t } = useLocale();
+
+  return (
+    <>
       {!teams.length && !isLoading && (
         <>
           {!isCalcom ? (
@@ -73,23 +130,14 @@ export function TeamsListing() {
               <div
                 className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
                 style={{
-                  background: "url(/team-banner-background.jpg)",
+                  background: "url(" + background + ")",
                   backgroundSize: "cover",
                   backgroundRepeat: "no-repeat",
                 }}>
                 <div className="mt-3 px-8 sm:px-14">
-                  <h1 className="font-cal text-3xl">{t("calcom_is_better_with_team")}</h1>
-                  <p className="my-4 max-w-sm text-gray-600">{t("add_your_team_members")}</p>
-                  <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-                    <ButtonGroup>
-                      <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                        {t("create_team")}
-                      </Button>
-                      <Button color="secondary" href="https://go.cal.com/teams-video" target="_blank">
-                        {t("learn_more")}
-                      </Button>
-                    </ButtonGroup>
-                  </div>
+                  <h1 className="font-cal text-3xl">{t(title)}</h1>
+                  <p className="my-4 max-w-sm text-gray-600">{t(description)}</p>
+                  {buttons}
                 </div>
               </div>
               <div className="mt-4 grid-cols-3 md:grid md:gap-4">
@@ -105,20 +153,10 @@ export function TeamsListing() {
               </div>
             </div>
           ) : (
-            <EmptyScreen
-              Icon={Icon.FiUsers}
-              headline={t("no_teams")}
-              description={t("no_teams_description")}
-              buttonRaw={
-                <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("create_team")}
-                </Button>
-              }
-            />
+            children
           )}
         </>
       )}
-      {teams.length > 0 && <TeamList teams={teams} />}
     </>
   );
 }
