@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Icon, TextField } from "@calcom/ui";
 
@@ -13,6 +14,7 @@ const EnterpriseLicense = (props: {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsEnabled: Dispatch<SetStateAction<boolean>>;
 }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const mutation = trpc.viewer.auth.deploymentSetup.useMutation({
     onSuccess: () => {
@@ -25,11 +27,6 @@ const EnterpriseLicense = (props: {
       licenseKey: "",
     },
   });
-
-  const {
-    register,
-    formState: { isSubmitting },
-  } = formMethods;
 
   const handleSubmit = ({ licenseKey }: EnterpriseLicenseFormValues) => {
     props.setIsLoading(true);
@@ -49,13 +46,13 @@ const EnterpriseLicense = (props: {
           EndIcon={Icon.FiExternalLink}
           href="https://console.cal.com"
           target="_blank">
-          Purchase a License
+          {t("purchase_license")}
         </Button>
         <div className="relative flex justify-center">
           <hr className="my-8 w-full border-[1.5px] border-gray-200" />
           <span className="absolute mt-[22px] bg-white px-3.5 text-sm">OR</span>
         </div>
-        I already have a key:
+        {t("already_have_key")}
         <TextField
           className="mt-1"
           placeholder="b6052119-1fee-42a6-90e3-55cjgjaaebb7"

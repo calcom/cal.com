@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 const ChooseLicense = (props: {
@@ -10,6 +11,7 @@ const ChooseLicense = (props: {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsFreeLicense: Dispatch<SetStateAction<boolean>>;
 }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const { isFreeLicense, setIsFreeLicense } = props;
   const mutation = trpc.viewer.auth.deploymentSetup.useMutation({
@@ -36,13 +38,13 @@ const ChooseLicense = (props: {
             isFreeLicense && "border-black"
           )}
           onClick={() => setIsFreeLicense(true)}>
-          <h2 className="font-cal text-xl text-black">AGPLv3 License</h2>
-          <p className="font-medium text-green-800">$0.00/month</p>
-          <p className="text-gray-500">Forever Open & Free</p>
+          <h2 className="font-cal text-xl text-black">{t("agplv3_license")}</h2>
+          <p className="font-medium text-green-800">{t("free_license_fee")}</p>
+          <p className="text-gray-500">{t("forever_open_and_free")}</p>
           <ul className="ml-4 list-disc text-xs text-gray-500">
-            <li>Required to keep your code open source</li>
-            <li>Cannot repackage & resell</li>
-            <li>No enterprise features</li>
+            <li>{t("required_to_keep_your_code_open_source")}</li>
+            <li>{t("cannot_repackage_and_resell")}</li>
+            <li>{t("no_enterprise_features")}</li>
           </ul>
         </div>
         <div
@@ -51,13 +53,13 @@ const ChooseLicense = (props: {
             !isFreeLicense && "border-black"
           )}
           onClick={() => setIsFreeLicense(false)}>
-          <h2 className="font-cal text-xl text-black">“/ee” Enterprise License</h2>
-          <p className="font-medium text-green-800">$0.05/booking – min. $189/month</p>
-          <p className="text-gray-500">Everything for a commercial use case</p>
+          <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>
+          <p className="font-medium text-green-800">{t("enterprise_booking_fee")}</p>
+          <p className="text-gray-500">{t("enterprise_license_includes")}</p>
           <ul className="ml-4 list-disc text-xs text-gray-500">
-            <li>No need to keep your code open source</li>
-            <li>Repackage, rebrand, resell</li>
-            <li>A vast suite of enterprise features</li>
+            <li>{t("no_need_to_keep_your_code_open_source")}</li>
+            <li>{t("repackage_rebrand_resell")}</li>
+            <li>{t("a_vast_suite_of_enterprise_features")}</li>
           </ul>
         </div>
       </div>
