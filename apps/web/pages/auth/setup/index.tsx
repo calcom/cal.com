@@ -41,9 +41,8 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       isLoading: isLoadingAdminUser,
     },
     {
-      title: "Choose a license",
-      description:
-        "Cal.com comes with an accessible and free AGPLv3 license which some limitations which can be upgraded to an Enterprise license at any time.",
+      title: t("choose_a_license"),
+      description: t("choose_license_description"),
       content: props.deployment?.licenseType ? (
         <StepDone currentStep={2} nextStepPath="/auth/setup?step=3" />
       ) : (
@@ -58,9 +57,8 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     ...(!isFreeLicense
       ? [
           {
-            title: "Enterprise License",
-            description:
-              "Everything for a commercial use case with private hosting, repackaging, rebranding and reselling and access exclusive enterprise components.",
+            title: t("step_enterprise_license"),
+            description: t("step_enterprise_license_description"),
             content: props.deployment?.licenseKey ? (
               <StepDone currentStep={3} nextStepPath="/auth/setup?step=4" />
             ) : (

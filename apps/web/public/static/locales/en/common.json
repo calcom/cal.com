@@ -1526,5 +1526,9 @@
   "forever_open_and_free": "Forever Open & Free",
   "required_to_keep_your_code_open_source": "Required to keep your code open source",
   "cannot_repackage_and_resell": "Cannot repackage & resell",
-  "no_enterprise_features": "No enterprise features"
+  "no_enterprise_features": "No enterprise features",
+  "choose_a_license": "Choose a license",
+  "choose_license_description": "Cal.com comes with an accessible and free AGPLv3 license which some limitations which can be upgraded to an Enterprise license at any time.",
+  "step_enterprise_license": "Enterprise License",
+  "step_enterprise_license_description": "Everything for a commercial use case with private hosting, repackaging, rebranding and reselling and access exclusive enterprise components."
 }
