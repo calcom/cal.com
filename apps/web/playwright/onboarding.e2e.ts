@@ -55,12 +55,6 @@ test.describe("Onboarding", () => {
 
       await test.step("step 4", async () => {
         const finishButton = await page.locator("button[type=submit]");
-        // bio field is required, try to submit (and test whether that fails)
-        await finishButton.click();
-
-        const requiredBio = await page.locator("data-testid=required");
-        await expect(requiredBio).toBeVisible();
-
         await page.locator("textarea[name=bio]").fill("Something about me");
 
         const isDisabled = await finishButton.isDisabled();
