@@ -337,12 +337,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   // Collect all busy times in this record.
   const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
   if (singleHostMode) {
-    // `userAvailability` is only used in singleInviteeMode.
+    // `userBusyTimesByDay` is only used in singleHostMode.
     userAvailability.forEach(({ busy }) => {
-      if (!singleHostMode) {
-        // No need to do this in single user mode
-        return;
-      }
       busy.forEach(({ start, end }) => {
         const day = dayjs(start).format("YYYY-MM-DD");
         if (!userBusyTimesByDay[day]) {
@@ -414,8 +410,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
       if (singleHostMode) {
-        // If we are in single user mode, there is no need to check for availability.
-        // This has already been done in getSlotsCompact.
+        // If we are in singleHostMode, there is no need to check for conflicts.
+        // The slots have been generated respecting the host's busy times.
+        // See `getTimeSlotsCompact` above.
         return true;
       }
       const schedule = userAvailability.find((s) => s.user.id === user.id);
