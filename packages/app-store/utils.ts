@@ -5,10 +5,12 @@ import { z } from "zod";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
+import { defaultLocations } from "@calcom/app-store/locations";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
+
+import type { LocationOption } from "@components/ui/form/LocationSelect";
 
 export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export type EventTypeAppsList = keyof EventTypeApps;
@@ -47,36 +49,6 @@ export const InstalledAppVariants = [
 ] as const;
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
-
-type OptionTypeBase = {
-  label: string;
-  value: EventLocationType["type"];
-  disabled?: boolean;
-};
-
-function translateLocations(locations: OptionTypeBase[], t: TFunction) {
-  return locations.map((l) => ({
-    ...l,
-    label: t(l.label),
-  }));
-}
-
-export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
-  const locations: OptionTypeBase[] = [];
-  defaultLocations.forEach((l) => {
-    locations.push({
-      label: l.label,
-      value: l.type,
-    });
-  });
-  integrations.forEach((app) => {
-    if (app.locationOption) {
-      locations.push(app.locationOption);
-    }
-  });
-
-  return translateLocations(locations, t);
-}
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
   const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: string }[]> = {};
@@ -147,7 +119,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
 function getApps(userCredentials: CredentialData[]) {
   const apps = ALL_APPS.map((appMeta) => {
     const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
-    let locationOption: OptionTypeBase | null = null;
+    let locationOption: LocationOption | null = null;
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
