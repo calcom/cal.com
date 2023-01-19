@@ -294,7 +294,7 @@ function generateFiles() {
   browserOutput.push(
     ...getExportedObject("EventTypeAddonMap", {
       importConfig: {
-        fileToBeImported: path.join("components", "EventTypeAppCardInterface.tsx"),
+        fileToBeImported: "components/EventTypeAppCardInterface.tsx",
       },
       lazyImport: true,
     })
