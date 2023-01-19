@@ -111,8 +111,8 @@ function buildSlots({
  * at 09:50 instead of 10:00. The 10 minutes are not lost.
  *
  * Note that the current implementation of `getSlotsCompact` only really
- * makes sense for events with a single invitee. We assume that `busyTimes`
- * only contain busy times for a single invitee.
+ * makes sense for events with a single host. We assume that `busyTimes`
+ * only contain busy times for a single host.
  **/
 export const getTimeSlotsCompact = ({
   // Day for which slots are being generated

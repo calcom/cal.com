@@ -333,13 +333,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
 
-  const singleInviteeMode = users.length === 1;
+  const singleHostMode = users.length === 1;
   // Collect all busy times in this record.
   const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
-  if (singleInviteeMode) {
+  if (singleHostMode) {
     // `userAvailability` is only used in singleInviteeMode.
     userAvailability.forEach(({ busy }) => {
-      if (!singleInviteeMode) {
+      if (!singleHostMode) {
         // No need to do this in single user mode
         return;
       }
@@ -380,7 +380,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
-    const timeSlots = singleInviteeMode
+    const timeSlots = singleHostMode
       ? getTimeSlotsCompact({
           slotDay: currentCheckedTime,
           shiftStart: currentCheckedTime
@@ -413,7 +413,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     getSlotsCount++;
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
-      if (singleInviteeMode) {
+      if (singleHostMode) {
         // If we are in single user mode, there is no need to check for availability.
         // This has already been done in getSlotsCompact.
         return true;
