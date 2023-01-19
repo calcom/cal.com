@@ -1,5 +1,6 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
+import parse from "html-react-parser";
 
 import { getInnerText } from "@calcom/lib/getInnerText";
 
@@ -62,7 +63,7 @@ test.describe("Onboarding", () => {
         await page.waitForURL("/event-types");
 
         const userComplete = await user.self();
-        expect(getInnerText(userComplete.bio || "").length).toBe(0);
+        expect(getInnerText(parse(userComplete.bio || "")).length).toBe(0);
       });
     });
   });
