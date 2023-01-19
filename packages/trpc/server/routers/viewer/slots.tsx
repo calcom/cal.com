@@ -40,6 +40,8 @@ const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
+    rescheduleUid: z.string().optional(),
+    rescheduleWithSameUser: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -184,6 +186,28 @@ async function getDynamicEventType(ctx: { prisma: typeof prisma }, input: z.infe
   });
 }
 
+function getOriginalBooking(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
+  if (!input.rescheduleUid) {
+    return null;
+  }
+
+  return ctx.prisma.booking.findUnique({
+    where: {
+      uid: input.rescheduleUid,
+    },
+    select: {
+      uid: true,
+      startTime: true,
+      endTime: true,
+      user: {
+        select: {
+          ...availabilityUserSelect,
+        },
+      },
+    },
+  });
+}
+
 function getRegularOrDynamicEventType(
   ctx: { prisma: typeof prisma },
   input: z.infer<typeof getScheduleSchema>
@@ -239,6 +263,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(ctx, input);
+  const originalBooking = await getOriginalBooking(ctx, input);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -282,9 +307,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
 
+  // If rescheduleWithSameUser is `true` and if this is a reschedule, the only available user is the one
+  // the original booking was scheduled for.
+  const users =
+    input.rescheduleWithSameUser && originalBooking?.user ? [originalBooking.user] : eventType.users;
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    eventType.users.map(async (currentUser) => {
+    users.map(async (currentUser) => {
       const busy = await getBufferedBusyTimes({
         credentials: currentUser.credentials,
         userId: currentUser.id,
@@ -402,7 +432,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     };
 
     const timeSlotsForDay = timeSlots.reduce((acc, time) => {
-      const availableUsers = eventType.users
+      const availableUsers = users
         .filter((user) => userIsAvailable(user, time))
         .map((user) => user.username || "");
 
@@ -411,7 +441,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         return acc;
       }
 
-      if (needAllUsers && availableUsers.length !== eventType.users.length) {
+      if (needAllUsers && availableUsers.length !== users.length) {
         // don't add the slot if not all users are available and we need all users (collective)
         return acc;
       }

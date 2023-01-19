@@ -55,6 +55,7 @@ const useSlots = ({
   timeZone,
   duration,
   useSlotsProxy,
+  rescheduleUid,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -66,6 +67,7 @@ const useSlots = ({
   timeZone?: string;
   duration?: string;
   useSlotsProxy: boolean;
+  rescheduleUid?: string;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -78,6 +80,7 @@ const useSlots = ({
       endTime: endTime?.toISOString() || "",
       timeZone,
       duration,
+      rescheduleUid,
     },
     { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
@@ -103,6 +106,7 @@ const SlotPicker = ({
   seatsPerTimeSlot,
   weekStart = 0,
   ethSignature,
+  rescheduleUid,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length" | "teamId">;
   timeFormat: TimeFormat;
@@ -113,6 +117,7 @@ const SlotPicker = ({
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   ethSignature?: string;
+  rescheduleUid?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
@@ -157,6 +162,7 @@ const SlotPicker = ({
     timeZone,
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
+    rescheduleUid,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -169,6 +175,7 @@ const SlotPicker = ({
     timeZone,
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
+    rescheduleUid,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
@@ -461,6 +468,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
+                  rescheduleUid={rescheduleUid}
                 />
               </div>
             </div>
