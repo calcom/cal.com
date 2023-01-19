@@ -7,6 +7,7 @@ import {
   KBarSearch,
   useKBar,
   useMatches,
+  useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
@@ -40,20 +41,9 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
   keywords: `app ${name}`,
 }));
 
-export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
-  const router = useRouter();
+const useEventTypesAction = () => {
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
-
-  // grab link to events
-  // quick nested actions would be extremely useful
-  const appStoreActions = useMemo(
-    () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
-  if (!data) return null;
-
+  const router = useRouter();
   const eventTypes =
     data?.eventTypeGroups.reduce((acc: EventType[], group: EventTypeGroup): EventType[] => {
       acc.push(...group.eventTypes);
@@ -70,6 +60,22 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         perform: () => router.push(`/event-types/${item.id}`),
       })
     ) || [];
+
+  useRegisterActions(eventTypeActions, [data]);
+
+  return null;
+};
+
+export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+
+  // grab link to events
+  // quick nested actions would be extremely useful
+  const appStoreActions = useMemo(
+    () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const actions = [
     // {
@@ -233,7 +239,6 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push("/settings/billing"),
     },
     ...appStoreActions,
-    ...eventTypeActions,
   ];
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
@@ -241,7 +246,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
 
 export const KBarContent = () => {
   const { t } = useLocale();
-
+  useEventTypesAction();
   return (
     <KBarPortal>
       <KBarPositioner>
