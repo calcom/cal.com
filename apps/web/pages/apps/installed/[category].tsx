@@ -115,6 +115,7 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
             logo={item.logo}
             description={item.description}
             separate={true}
+            isTemplate={item.isTemplate}
             invalidCredential={item.invalidCredentialIds.length > 0}
             actions={
               <div className="flex w-16 justify-end">

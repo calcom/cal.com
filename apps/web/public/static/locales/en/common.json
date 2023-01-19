@@ -789,6 +789,7 @@
   "number_apps_one": "{{count}} App",
   "number_apps_other": "{{count}} Apps",
   "trending_apps": "Trending Apps",
+  "most_popular":"Most Popular",
   "explore_apps": "{{category}} apps",
   "installed_apps": "Installed Apps",
   "free_to_use_apps": "Free",
@@ -1510,5 +1511,6 @@
   "continue_to_install_google_calendar": "Continue to install Google Calendar",
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
+  "sender_name": "Sender name",
   "no_recordings_found": "No recordings found"
 }

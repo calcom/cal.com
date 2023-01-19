@@ -118,6 +118,12 @@ function buildSlots({
   return slots;
 }
 
+function fromIndex<T>(cb: (val: T, i: number, a: T[]) => boolean, index: number) {
+  return function (e: T, i: number, a: T[]) {
+    return i >= index && cb(e, i, a);
+  };
+}
+
 const getSlots = ({
   inviteeDate,
   frequency,
@@ -203,14 +209,25 @@ const getSlots = ({
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
       endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
     }));
+    // unset all working hours that relate to this user availability override
     overrides.forEach((override) => {
-      const index = computedLocalAvailability.findIndex(
-        (a) => !a.userIds?.length || (override.userIds[0] && a.userIds?.includes(override.userIds[0]))
-      );
-      if (index >= 0) {
-        computedLocalAvailability[index] = override;
+      let i = -1;
+      const indexes: number[] = [];
+      while (
+        (i = computedLocalAvailability.findIndex(
+          fromIndex(
+            (a) => !a.userIds?.length || (!!override.userIds[0] && a.userIds?.includes(override.userIds[0])),
+            i + 1
+          )
+        )) != -1
+      ) {
+        indexes.push(i);
       }
+      // work backwards as splice modifies the original array.
+      indexes.reverse().forEach((idx) => computedLocalAvailability.splice(idx, 1));
     });
+    // and push all overrides as new computed availability
+    computedLocalAvailability.push(...overrides);
   }
 
   return buildSlots({
