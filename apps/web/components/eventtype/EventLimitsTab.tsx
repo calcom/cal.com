@@ -133,108 +133,110 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-        <div className="w-full">
-          <Label htmlFor="beforeBufferTime">{t("before_event")} </Label>
-          <Controller
-            name="beforeBufferTime"
-            control={formMethods.control}
-            defaultValue={eventType.beforeEventBuffer || 0}
-            render={({ field: { onChange, value } }) => {
-              const beforeBufferOptions = [
-                {
-                  label: t("event_buffer_default"),
-                  value: 0,
-                },
-                ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                  label: minutes + " " + t("minutes"),
-                  value: minutes,
-                })),
-              ];
-              return (
-                <Select
-                  isSearchable={false}
-                  onChange={(val) => {
-                    if (val) onChange(val.value);
-                  }}
-                  defaultValue={
-                    beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
-                  }
-                  options={beforeBufferOptions}
-                />
-              );
-            }}
-          />
+      <div className="space-y-4 lg:space-y-8">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+          <div className="w-full">
+            <Label htmlFor="beforeBufferTime">{t("before_event")} </Label>
+            <Controller
+              name="beforeBufferTime"
+              control={formMethods.control}
+              defaultValue={eventType.beforeEventBuffer || 0}
+              render={({ field: { onChange, value } }) => {
+                const beforeBufferOptions = [
+                  {
+                    label: t("event_buffer_default"),
+                    value: 0,
+                  },
+                  ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                    label: minutes + " " + t("minutes"),
+                    value: minutes,
+                  })),
+                ];
+                return (
+                  <Select
+                    isSearchable={false}
+                    onChange={(val) => {
+                      if (val) onChange(val.value);
+                    }}
+                    defaultValue={
+                      beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
+                    }
+                    options={beforeBufferOptions}
+                  />
+                );
+              }}
+            />
+          </div>
+          <div className="w-full">
+            <Label htmlFor="afterBufferTime">{t("after_event")} </Label>
+            <Controller
+              name="afterBufferTime"
+              control={formMethods.control}
+              defaultValue={eventType.afterEventBuffer || 0}
+              render={({ field: { onChange, value } }) => {
+                const afterBufferOptions = [
+                  {
+                    label: t("event_buffer_default"),
+                    value: 0,
+                  },
+                  ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                    label: minutes + " " + t("minutes"),
+                    value: minutes,
+                  })),
+                ];
+                return (
+                  <Select
+                    isSearchable={false}
+                    onChange={(val) => {
+                      if (val) onChange(val.value);
+                    }}
+                    defaultValue={
+                      afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
+                    }
+                    options={afterBufferOptions}
+                  />
+                );
+              }}
+            />
+          </div>
         </div>
-        <div className="w-full">
-          <Label htmlFor="afterBufferTime">{t("after_event")} </Label>
-          <Controller
-            name="afterBufferTime"
-            control={formMethods.control}
-            defaultValue={eventType.afterEventBuffer || 0}
-            render={({ field: { onChange, value } }) => {
-              const afterBufferOptions = [
-                {
-                  label: t("event_buffer_default"),
-                  value: 0,
-                },
-                ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                  label: minutes + " " + t("minutes"),
-                  value: minutes,
-                })),
-              ];
-              return (
-                <Select
-                  isSearchable={false}
-                  onChange={(val) => {
-                    if (val) onChange(val.value);
-                  }}
-                  defaultValue={
-                    afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
-                  }
-                  options={afterBufferOptions}
-                />
-              );
-            }}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col lg:flex-row lg:space-y-0 lg:space-x-4">
-        <div className="w-full">
-          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
-          <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
-        </div>
-        <div className="w-full">
-          <Label htmlFor="slotInterval">{t("slot_interval")} </Label>
-          <Controller
-            name="slotInterval"
-            control={formMethods.control}
-            render={() => {
-              const slotIntervalOptions = [
-                {
-                  label: t("slot_interval_default"),
-                  value: -1,
-                },
-                ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                  label: minutes + " " + t("minutes"),
-                  value: minutes,
-                })),
-              ];
-              return (
-                <Select
-                  isSearchable={false}
-                  onChange={(val) => {
-                    formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
-                  }}
-                  defaultValue={
-                    slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
-                    slotIntervalOptions[0]
-                  }
-                  options={slotIntervalOptions}
-                />
-              );
-            }}
-          />
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+          <div className="w-full">
+            <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
+            <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
+          </div>
+          <div className="w-full">
+            <Label htmlFor="slotInterval">{t("slot_interval")} </Label>
+            <Controller
+              name="slotInterval"
+              control={formMethods.control}
+              render={() => {
+                const slotIntervalOptions = [
+                  {
+                    label: t("slot_interval_default"),
+                    value: -1,
+                  },
+                  ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+                    label: minutes + " " + t("minutes"),
+                    value: minutes,
+                  })),
+                ];
+                return (
+                  <Select
+                    isSearchable={false}
+                    onChange={(val) => {
+                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
+                    }}
+                    defaultValue={
+                      slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
+                      slotIntervalOptions[0]
+                    }
+                    options={slotIntervalOptions}
+                  />
+                );
+              }}
+            />
+          </div>
         </div>
       </div>
       <hr />

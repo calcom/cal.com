@@ -38,7 +38,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             href={meetingUrl}
             target="_blank"
             title={t("meeting_url")}
-            style={{ color: "#3E3E3E" }}
+            style={{ color: "#101010" }}
             rel="noreferrer">
             {providerName || "Link"} <LinkIcon />
           </a>
