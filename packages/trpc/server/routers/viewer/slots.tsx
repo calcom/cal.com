@@ -333,7 +333,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
 
-  const singleInviteeMode = eventType.users.length === 1;
+  const singleInviteeMode = users.length === 1;
   // Collect all busy times in this record.
   const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
   if (singleInviteeMode) {
