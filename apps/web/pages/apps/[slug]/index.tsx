@@ -12,6 +12,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/apps/App";
 
+import { ssgInit } from "@server/lib/ssg";
+
 const md = new MarkdownIt("default", { html: true, breaks: true });
 
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
@@ -58,6 +60,7 @@ export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
 };
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {
+  const ssg = await ssgInit(ctx);
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
   const app = await prisma.app.findUnique({
@@ -89,6 +92,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     props: {
       source: { content, data },
       data: singleApp,
+      trpcState: ssg.dehydrate(),
     },
   };
 };
