@@ -99,7 +99,7 @@ export default class GoogleCalendarService implements Calendar {
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: calEventRaw.seatsShowAttendees,
+        guestsCanSeeOtherGuests: true,
       };
 
       if (calEventRaw.location) {
@@ -189,7 +189,7 @@ export default class GoogleCalendarService implements Calendar {
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: event.seatsShowAttendees,
+        guestsCanSeeOtherGuests: true,
       };
 
       if (event.location) {
