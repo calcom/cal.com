@@ -91,7 +91,7 @@ const ConferencingLayout = () => {
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
+                        <Button StartIcon={Icon.FiMoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>

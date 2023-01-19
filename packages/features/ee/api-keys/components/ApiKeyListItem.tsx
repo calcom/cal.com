@@ -66,7 +66,7 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>

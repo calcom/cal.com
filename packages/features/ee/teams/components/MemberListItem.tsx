@@ -133,7 +133,7 @@ export default function MemberListItem(props: Props) {
                   disabled={!props.member.accepted}
                   onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                   color="secondary"
-                  size="icon"
+                  variant="icon"
                   StartIcon={Icon.FiClock}
                 />
               </Tooltip>
@@ -143,7 +143,7 @@ export default function MemberListItem(props: Props) {
                   href={"/" + props.member.username}
                   color="secondary"
                   className={classNames(!editMode ? "rounded-r-md" : "")}
-                  size="icon"
+                  variant="icon"
                   StartIcon={Icon.FiExternalLink}
                 />
               </Tooltip>
@@ -154,7 +154,7 @@ export default function MemberListItem(props: Props) {
                     className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
                     <Button
                       color="secondary"
-                      size="icon"
+                      variant="icon"
                       className="rounded-r-md"
                       StartIcon={Icon.FiMoreHorizontal}
                     />
@@ -197,7 +197,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" size="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {props.member.accepted && (
