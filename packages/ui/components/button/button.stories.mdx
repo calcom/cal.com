@@ -65,6 +65,17 @@ Button are clickable elements that initiates user actions. Labels in the button 
   </Example>
 </Examples>
 
+<Examples title="Icons">
+  <Example title="Icon Normal">
+      <Button StartIcon={Icon.FiX} variant="icon" size="base" color="minimal"></Button>
+  </Example>
+  <Example title="Icon Small">
+      <Button StartIcon={Icon.FiX} variant="icon" size="sm" color="minimal"></Button>
+  </Example>
+   <Example title="Icon Loading">
+      <Button StartIcon={Icon.FiX} variant="icon" size="sm" color="minimal" loading></Button>
+  </Example>
+</Examples>
 
 ## Anatomy
 Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
@@ -80,36 +91,41 @@ Button are clickable elements that initiates user actions. Labels in the button 
 
 <Canvas>
   <Story name="All variants">
-    <VariantsTable titles={['Primary', 'Secondary', 'Minimal', 'Destructive']} columnMinWidth={150}>
+    <VariantsTable titles={['Primary', 'Secondary', 'Minimal', 'Destructive',"Icon"]} columnMinWidth={150}>
       <VariantRow variant="Default">
         <Button>Button text</Button>
         <Button color="secondary">Button text</Button>
         <Button color="minimal">Button text</Button>
         <Button color="destructive">Button text</Button>
+        <Button color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
       </VariantRow>
       <VariantRow variant="Hover">
         <Button className="sb-pseudo--hover">Button text</Button>
         <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
         <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
         <Button className="sb-pseudo--hover" color="destructive">Button text</Button>
+        <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
       </VariantRow>
       <VariantRow variant="Focus">
         <Button className="sb-pseudo--focus">Button text</Button>
         <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
         <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
         <Button className="sb-pseudo--focus" color="destructive">Button text</Button>
+        <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
       </VariantRow>
       <VariantRow variant="Loading">
         <Button loading>Button text</Button>
         <Button loading color="secondary">Button text</Button>
         <Button loading color="minimal">Button text</Button>
         <Button loading color="destructive">Button text</Button>
+        <Button loading color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
       </VariantRow>
       <VariantRow variant="Disabled">
         <Button disabled>Button text</Button>
         <Button disabled color="secondary">Button text</Button>
         <Button disabled color="minimal">Button text</Button>
         <Button disabled color="destructive">Button text</Button>
+        <Button disabled color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
       </VariantRow>
     </VariantsTable>
   </Story>

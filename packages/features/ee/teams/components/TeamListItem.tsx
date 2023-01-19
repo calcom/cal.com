@@ -115,7 +115,7 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -150,14 +150,19 @@ export default function TeamListItem(props: Props) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      size="icon"
+                      variant="icon"
                       StartIcon={Icon.FiLink}
                     />
                   </Tooltip>
                 )}
                 <Dropdown>
                   <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
-                    <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon={Icon.FiMoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
                     {isAdmin && (

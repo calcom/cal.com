@@ -64,7 +64,7 @@
   "someone_requested_an_event": "Someone has requested to schedule an event on your calendar.",
   "someone_requested_password_reset": "Someone has requested a link to change your password.",
   "password_reset_instructions": "If you didn't request this, you can safely ignore this email and your password will not be changed.",
-  "event_awaiting_approval_subject": "Awaiting Approval: {{eventType}} at {{date}}",
+  "event_awaiting_approval_subject": "Awaiting Approval: {{title}} at {{date}}",
   "event_still_awaiting_approval": "An event is still waiting for your approval",
   "booking_submitted_subject": "Booking Submitted: {{title}} at {{date}}",
   "your_meeting_has_been_booked": "Your meeting has been booked",
