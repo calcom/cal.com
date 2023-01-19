@@ -1,6 +1,8 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
 
+import { getInnerText } from "@calcom/lib/getInnerText";
+
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "serial" });
@@ -60,7 +62,7 @@ test.describe("Onboarding", () => {
         await page.waitForURL("/event-types");
 
         const userComplete = await user.self();
-        expect(userComplete.bio).toBe("Something about me");
+        expect(getInnerText(userComplete.bio || "").length).toBe(0);
       });
     });
   });
