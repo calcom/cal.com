@@ -75,7 +75,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+          "bg-brand-500 hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
       }),
       // Secondary variants
       {
@@ -94,7 +94,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
       }),
       // Minimal variants
       {
@@ -113,7 +113,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "minimal",
         className:
-          "hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
       }),
       // Destructive variants
       {
@@ -132,7 +132,7 @@ const buttonClasses = cva(
         disabled: [false, undefined],
         color: "destructive",
         className:
-          "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
+          "border dark:text-white text-gray-900 hover:text-red-700 focus-visible:text-red-700 dark:hover:text-red-700 dark:focus-visible:text-red-700 hover:border-red-100 focus-visible:border-red-100 hover:bg-red-100  focus-visible:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
       }),
       // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
