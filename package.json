@@ -50,6 +50,7 @@
     "lint": "turbo run lint",
     "postinstall": "turbo run post-install",
     "pre-commit": "lint-staged",
+    "preinstall": "./git-init.sh",
     "predev": "echo 'Checking env files'",
     "prepare": "husky install",
     "prisma": "yarn workspace @calcom/prisma prisma",
