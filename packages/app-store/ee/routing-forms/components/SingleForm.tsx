@@ -1,7 +1,9 @@
 import { App_RoutingForms_Form } from "@prisma/client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 
+import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,7 +14,8 @@ import {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import {
-  Banner,
+  Alert,
+  Badge,
   Button,
   ButtonGroup,
   Dialog,
@@ -25,7 +28,6 @@ import {
   Icon,
   Meta,
   SettingsToggle,
-  ShellMain,
   showToast,
   TextAreaField,
   TextField,
@@ -33,16 +35,17 @@ import {
   VerticalDivider,
 } from "@calcom/ui";
 
+import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
-import { RoutingPages } from "../pages/route-builder/[...appPages]";
 import { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type RoutingFormWithResponseCount = RoutingForm & {
+
+export type RoutingFormWithResponseCount = RoutingForm & {
   _count: {
     responses: number;
   };
@@ -70,7 +73,7 @@ const Actions = ({
             routingForm={form}
             color="secondary"
             target="_blank"
-            size="icon"
+            variant="icon"
             type="button"
             rel="noreferrer"
             action="preview"
@@ -81,7 +84,7 @@ const Actions = ({
           routingForm={form}
           action="copyLink"
           color="secondary"
-          size="icon"
+          variant="icon"
           type="button"
           StartIcon={Icon.FiLink}
           tooltip={t("copy_link_to_form")}
@@ -93,7 +96,7 @@ const Actions = ({
             routingForm={form}
             action="download"
             color="secondary"
-            size="icon"
+            variant="icon"
             type="button"
             StartIcon={Icon.FiDownload}
           />
@@ -102,16 +105,16 @@ const Actions = ({
           routingForm={form}
           action="embed"
           color="secondary"
-          size="icon"
+          variant="icon"
           StartIcon={Icon.FiCode}
           tooltip={t("embed")}
         />
-        <DropdownMenuSeparator className="h-px bg-gray-200" />
+        <DropdownMenuSeparator />
         <FormAction
           routingForm={form}
           action="_delete"
           // className="mr-3"
-          size="icon"
+          variant="icon"
           StartIcon={Icon.FiTrash}
           color="secondary"
           type="button"
@@ -120,6 +123,7 @@ const Actions = ({
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown form={form}>
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -172,6 +176,7 @@ const Actions = ({
           </FormAction>
           {typeformApp ? (
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -180,6 +185,7 @@ const Actions = ({
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
+          <DropdownMenuSeparator />
           <FormAction
             action="_delete"
             routingForm={form}
@@ -234,13 +240,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     onSuccess() {
       showToast("Form updated successfully.", "success");
     },
-    onError() {
+    onError(e) {
+      if (e.message) {
+        showToast(e.message, "error");
+        return;
+      }
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
+  const connectedForms = form.connectedForms;
+
   return (
     <>
       <Form
@@ -293,6 +305,51 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       }}
                     />
                   </div>
+
+                  {form.routers.length ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Routers
+                      </div>
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Modifications in fields and routes of following forms will be reflected in this form.
+                      </p>
+                      <div className="flex">
+                        {form.routers.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <Badge variant="gray">{router.name}</Badge>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {connectedForms?.length ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Connected Forms
+                      </div>
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Following forms would be affected when you modify fields or routes here
+                      </p>
+                      <div className="flex">
+                        {connectedForms.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <Badge variant="default">{router.name}</Badge>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="mt-6">
                     <Button
                       color="secondary"
@@ -302,14 +359,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </Button>
                   </div>
                   {!form._count?.responses && (
-                    <Banner
-                      className="mt-6"
-                      variant="neutral"
-                      title="No Responses yet"
-                      description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
-                      Icon={Icon.FiInfo}
-                      onDismiss={() => console.log("dismissed")}
-                    />
+                    <>
+                      <Alert
+                        className="mt-6"
+                        severity="neutral"
+                        title="No responses yet"
+                        message="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                      />
+                    </>
                   )}
                 </div>
                 <div className="w-full rounded-md border border-gray-200 p-8">
@@ -339,9 +396,12 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
-                        if (page.value === decidedAction.type) {
-                          return <div data-testid="test-routing-result-type">{page.label}</div>;
-                        }
+                        if (page.value !== decidedAction.type) return null;
+                        return (
+                          <div key={page.value} data-testid="test-routing-result-type">
+                            {page.label}
+                          </div>
+                        );
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
@@ -450,8 +510,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isAllowed = (await import("../lib/isAllowed")).isAllowed;
-  if (!(await isAllowed({ userId: user.id, formId }))) {
+  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
+  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
     return {
       notFound: true,
     };
@@ -478,7 +538,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: getSerializableForm(form),
+      form: await getSerializableForm(form),
     },
   };
 };

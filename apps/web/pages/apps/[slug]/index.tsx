@@ -1,34 +1,18 @@
 import fs from "fs";
 import matter from "gray-matter";
+import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { MDXRemote } from "next-mdx-remote";
-import { serialize } from "next-mdx-remote/serialize";
-import Image from "next/image";
-import Link from "next/link";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import ExisitingGoogleCal from "@calcom/app-store/googlevideo/components/ExistingGoogleCal";
 import prisma from "@calcom/prisma";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/apps/App";
 
-const components = {
-  a: ({ href = "", ...otherProps }: JSX.IntrinsicElements["a"]) => (
-    <Link href={href}>
-      <a {...otherProps} />
-    </Link>
-  ),
-  img: ({ src = "", alt = "", placeholder, ...rest }: JSX.IntrinsicElements["img"]) => (
-    <Image src={src} alt={alt} {...rest} />
-  ),
-  // @TODO: In v2 the slider isn't shown anymore. However, to ensure the v1 pages keep
-  // working, this component is still rendered in the MDX content. To skip them in the v2
-  // content we have to render null here. In v2 the gallery is shown by directly
-  // using the `items` property from the MDX's meta data.
-  Slider: () => <></>,
-};
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
@@ -50,10 +34,16 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       email={data.email}
       licenseRequired={data.licenseRequired}
       isProOnly={data.isProOnly}
-      images={source?.scope?.items as string[] | undefined}
+      images={source.data?.items as string[] | undefined}
+      isTemplate={data.isTemplate}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={<MDXRemote {...source} components={components} />}
+      body={
+        <>
+          {data.slug === "google-meet" && <ExisitingGoogleCal />}
+          <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
+        </>
+      }
     />
   );
 }
@@ -81,25 +71,34 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!singleApp) return { notFound: true };
 
-  const appDirname = app.dirName;
-  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
+  const isTemplate = singleApp.isTemplate;
+  const appDirname = path.join(isTemplate ? "templates" : "", app.dirName);
+  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/DESCRIPTION.md`);
   const postFilePath = path.join(README_PATH);
   let source = "";
 
   try {
-    /* If the app doesn't have a README we fallback to the package description */
     source = fs.readFileSync(postFilePath).toString();
+    source = source.replace(/{DESCRIPTION}/g, singleApp.description);
   } catch (error) {
-    console.log(`No README.mdx provided for: ${appDirname}`);
+    /* If the app doesn't have a README we fallback to the package description */
+    console.log(`No DESCRIPTION.md provided for: ${appDirname}`);
     source = singleApp.description;
   }
 
   const { content, data } = matter(source);
-  const mdxSource = await serialize(content, { scope: data });
-
+  if (data.items) {
+    data.items = data.items.map((item: string) => {
+      if (!item.includes("/api/app-store")) {
+        // Make relative paths absolute
+        return `/api/app-store/${appDirname}/${item}`;
+      }
+      return item;
+    });
+  }
   return {
     props: {
-      source: mdxSource,
+      source: { content, data },
       data: singleApp,
     },
   };

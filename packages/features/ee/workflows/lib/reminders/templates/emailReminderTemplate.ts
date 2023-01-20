@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { APP_NAME } from "@calcom/lib/constants";
 
 const emailReminderTemplate = (
   startTime: string,
@@ -32,7 +33,7 @@ const emailReminderTemplate = (
 
   const attendeeHtml = `<div style="font-weight: bold;">Attendees:</div>You & ${attendee}<br><br>`;
 
-  const endingHtml = `This reminder was triggered by a Workflow in Cal.<br><br>_<br><br>Scheduling by Cal.com</body>`;
+  const endingHtml = `This reminder was triggered by a Workflow in Cal.<br><br>_<br><br>Scheduling by ${APP_NAME}</body>`;
 
   const templateBodyHtml = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 

@@ -7,6 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   category: "other",
+  categories: ["other"],
   // If using static next public folder, can then be referenced from the base URL (/).
   imageSrc: "/api/app-store/wipemycalother/icon-dark.svg",
   logo: "/api/app-store/wipemycalother/icon-dark.svg",
@@ -21,6 +22,7 @@ export const metadata = {
   variant: "other",
   verified: true,
   email: "help@cal.com",
+  dirName: "wipemycalother",
 } as AppMeta;
 
 export default metadata;

@@ -10,7 +10,7 @@ export const metadata = {
   title: "Lark Calendar",
   imageSrc: "/api/app-store/larkcalendar/icon.svg",
   variant: "calendar",
-  category: "calendar",
+  categories: ["calendar"],
   logo: "/api/app-store/larkcalendar/icon.svg",
   publisher: "Lark",
   rating: 5,
@@ -20,6 +20,7 @@ export const metadata = {
   url: "https://larksuite.com/",
   verified: true,
   email: "alan@larksuite.com",
+  dirName: "larkcalendar",
 } as AppMeta;
 
 export default metadata;

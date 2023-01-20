@@ -44,18 +44,17 @@ const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const { duration, setQuery: setDuration } = useRouterQuery("duration");
+  const { duration = eventType.length.toString(), setQuery: setDuration } = useRouterQuery("duration");
+
   useEffect(() => {
-    if (eventType.metadata?.multipleDuration !== undefined) {
-      if (!duration) {
-        setDuration(eventType.length);
-      } else {
-        if (!eventType.metadata?.multipleDuration.includes(Number(duration))) {
-          setDuration(eventType.length);
-        }
-      }
+    if (
+      eventType.metadata?.multipleDuration &&
+      !eventType.metadata?.multipleDuration?.includes(Number(duration))
+    ) {
+      setDuration(eventType.length.toString());
     }
-  }, []);
+  }, [duration, setDuration, eventType.length, eventType.metadata?.multipleDuration]);
+
   let requiresConfirmation = eventType?.requiresConfirmation;
   let requiresConfirmationText = t("requires_confirmation");
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
@@ -77,7 +76,7 @@ const BookingDescription: FC<Props> = (props) => {
         profile={profile}
         users={eventType.users}
         showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-        size={10}
+        size="sm"
         truncateAfter={3}
       />
       <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -96,7 +95,7 @@ const BookingDescription: FC<Props> = (props) => {
             <div>
               <Icon.FiInfo
                 className={classNames(
-                  "mr-[10px] ml-[2px] inline-block h-4 w-4",
+                  "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
                   isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
                 )}
               />
@@ -113,7 +112,7 @@ const BookingDescription: FC<Props> = (props) => {
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
             <div>
-              <Icon.FiCheckSquare className="mr-[10px] ml-[2px] inline-block h-4 w-4 " />
+              <Icon.FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
             {requiresConfirmationText}
           </div>
@@ -128,7 +127,7 @@ const BookingDescription: FC<Props> = (props) => {
           )}>
           <Icon.FiClock
             className={classNames(
-              "min-h-4 min-w-4 mr-[10px] ml-[2px] inline-block",
+              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"
             )}
           />

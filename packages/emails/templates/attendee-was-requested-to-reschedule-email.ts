@@ -2,6 +2,7 @@ import { createEvent, DateArray, Person } from "ics";
 
 import dayjs from "@calcom/dayjs";
 import { getManageLink } from "@calcom/lib/CalEventParser";
+import { APP_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
@@ -21,7 +22,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("requested_to_reschedule_subject_attendee", {
         eventType: this.calEvent.type,

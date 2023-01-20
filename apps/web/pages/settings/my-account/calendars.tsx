@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -5,6 +6,7 @@ import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -12,7 +14,6 @@ import {
   Badge,
   Button,
   EmptyScreen,
-  getSettingsLayout as getLayout,
   Icon,
   List,
   ListItem,
@@ -28,6 +29,8 @@ import {
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarSwitch } from "@components/settings/CalendarSwitch";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = () => {
   return (
@@ -77,11 +80,7 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta
-        title="Calendars"
-        description="Configure how your event types interact with your calendars"
-        CTA={<AddCalendarButton />}
-      />
+      <Meta title={t("calendars")} description={t("calendars_description")} CTA={<AddCalendarButton />} />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}
@@ -157,7 +156,7 @@ const CalendarsView = () => {
                             )
                           }
                           <div className="flex-grow truncate pl-2">
-                            <ListItemTitle component="h3" className="mb-1 space-x-2">
+                            <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
                               <Link href={"/apps/" + item.integration.slug}>
                                 {item.integration.name || item.integration.title}
                               </Link>
@@ -176,9 +175,7 @@ const CalendarsView = () => {
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
-                          <p className="px-2 pt-4 text-sm text-neutral-500">
-                            {t("toggle_calendars_conflict")}
-                          </p>
+                          <p className="px-2 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
@@ -230,5 +227,15 @@ const CalendarsView = () => {
 };
 
 CalendarsView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default CalendarsView;

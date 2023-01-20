@@ -4,7 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -72,7 +72,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       id: true,
       username: true,
       away: true,
-      plan: true,
       name: true,
       hideBranding: true,
       timeZone: true,
@@ -130,7 +129,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: (typeof user.eventTypes[number] & {
-    users: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
+    users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
       ...user.eventTypes[0],
@@ -139,7 +138,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           name: user.name,
           username: user.username,
           hideBranding: user.hideBranding,
-          plan: user.plan,
           timeZone: user.timeZone,
         },
       ],
@@ -159,9 +157,10 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   // Check if the user you are logging into has any active teams
   const hasActiveTeam =
     user.teams.filter((m) => {
+      if (!IS_TEAM_BILLING_ENABLED) return true;
       const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-      if (metadata.success && metadata.data?.subscriptionId) return false;
-      return true;
+      if (metadata.success && metadata.data?.subscriptionId) return true;
+      return false;
     }).length > 0;
 
   return {
@@ -226,7 +225,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         },
       },
       theme: true,
-      plan: true,
     },
   });
 
@@ -246,7 +244,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         name: user.name,
         username: user.username,
         hideBranding: user.hideBranding,
-        plan: user.plan,
         timeZone: user.timeZone,
       };
     }),

@@ -1,8 +1,13 @@
+import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, getAdminLayout as getLayout, Meta, TextField } from "@calcom/ui";
+import { Button, Meta, TextField } from "@calcom/ui";
+
+import { getLayout } from "@components/auth/layouts/AdminLayout";
+
+import { ssrInit } from "@server/lib/ssr";
 
 function AdminView() {
   const { t } = useLocale();
@@ -10,7 +15,7 @@ function AdminView() {
 
   return (
     <>
-      <Meta title="Admin" description="Impersonation" />
+      <Meta title={t("admin")} description={t("impersonation")} />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {
@@ -18,10 +23,10 @@ function AdminView() {
           const enteredUsername = usernameRef.current?.value.toLowerCase();
           signIn("impersonation-auth", { username: enteredUsername });
         }}>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
           <TextField
             containerClassName="w-full"
-            name="Impersonate User"
+            name={t("user_impersonation_heading")}
             addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
             ref={usernameRef}
             hint={t("impersonate_user_tip")}
@@ -35,5 +40,15 @@ function AdminView() {
 }
 
 AdminView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default AdminView;

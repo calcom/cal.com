@@ -7,6 +7,7 @@ export const metadata = {
   name: "Zoom Video",
   description: _package.description,
   type: "zoom_video",
+  categories: ["video"],
   imageSrc: "/api/app-store/zoomvideo/icon.svg",
   variant: "conferencing",
   logo: "/api/app-store/zoomvideo/icon.svg",
@@ -28,6 +29,7 @@ export const metadata = {
       label: "Zoom Video",
     },
   },
+  dirName: "zoomvideo",
 } as AppMeta;
 
 export default metadata;

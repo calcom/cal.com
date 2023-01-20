@@ -71,8 +71,8 @@ export default function TeamListItem(props: Props) {
         alt="Team Logo"
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
-      <div className="ml-3 inline-block">
-        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
+      <div className="inline-block ltr:ml-3 rtl:mr-3">
+        <span className="text-sm font-bold text-gray-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>
@@ -88,10 +88,11 @@ export default function TeamListItem(props: Props) {
           !isInvitee && "group hover:bg-neutral-50"
         )}>
         {!isInvitee ? (
-          <Link href={"/settings/teams/" + team.id + "/profile"}>
-            <a className="flex-grow cursor-pointer truncate text-sm" title={`${team.name}`}>
-              {teamInfo}
-            </a>
+          <Link
+            href={"/settings/teams/" + team.id + "/profile"}
+            className="flex-grow cursor-pointer truncate text-sm"
+            title={`${team.name}`}>
+            {teamInfo}
           </Link>
         ) : (
           teamInfo
@@ -103,33 +104,33 @@ export default function TeamListItem(props: Props) {
                 <Button type="button" color="secondary" onClick={declineInvite}>
                   {t("reject")}
                 </Button>
-                <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
+                <Button
+                  type="button"
+                  color="primary"
+                  className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+                  onClick={acceptInvite}>
                   {t("accept")}
                 </Button>
               </div>
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <Button
-                        color="minimal"
-                        className="w-full rounded-none font-medium"
-                        StartIcon={Icon.FiCheck}
-                        onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
                         {t("accept")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Button
+                      <DropdownItem
                         color="destructive"
-                        className="w-full rounded-none font-medium"
+                        type="button"
                         StartIcon={Icon.FiX}
                         onClick={declineInvite}>
                         {t("reject")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
@@ -149,14 +150,19 @@ export default function TeamListItem(props: Props) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      size="icon"
+                      variant="icon"
                       StartIcon={Icon.FiLink}
                     />
                   </Tooltip>
                 )}
                 <Dropdown>
                   <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
-                    <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon={Icon.FiMoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
                     {isAdmin && (
@@ -181,20 +187,20 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
                         <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                           <DialogTrigger asChild>
-                            <Button
+                            <DropdownItem
+                              color="destructive"
+                              type="button"
+                              StartIcon={Icon.FiTrash}
                               onClick={(e) => {
                                 e.stopPropagation();
-                              }}
-                              color="destructive"
-                              className="rounded-none px-3 font-normal"
-                              StartIcon={Icon.FiTrash}>
+                              }}>
                               {t("disband_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"

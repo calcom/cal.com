@@ -4,8 +4,9 @@ import z from "zod";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
+import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
+import { getLayout } from "../../settings/layouts/SettingsLayout";
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
 const querySchema = z.object({ id: z.string() });
@@ -54,7 +55,7 @@ const EditWebhook = () => {
     return (
       <>
         <Meta
-          title="Edit Webhook"
+          title={t("edit_webhook")}
           description={t("add_webhook_description", { appName: APP_NAME })}
           backButton
         />

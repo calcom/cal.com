@@ -154,18 +154,19 @@ async function createApp(
   categories: Prisma.AppCreateInput["categories"],
   /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
-  keys?: Prisma.AppCreateInput["keys"]
+  keys?: Prisma.AppCreateInput["keys"],
+  isTemplate?: boolean
 ) {
   await prisma.app.upsert({
     where: { slug },
-    create: { slug, dirName, categories, keys },
-    update: { dirName, categories, keys },
+    create: { slug, dirName, categories, keys, enabled: true },
+    update: { dirName, categories, keys, enabled: true },
   });
   await prisma.credential.updateMany({
     where: { type },
     data: { appId: slug },
   });
-  console.log(`📲 Upserted app: '${slug}'`);
+  console.log(`📲 Upserted ${isTemplate ? "template" : "app"}: '${slug}'`);
 }
 
 export default async function main() {
@@ -274,13 +275,15 @@ export default async function main() {
     process.env.STRIPE_CLIENT_ID &&
     process.env.STRIPE_PRIVATE_KEY &&
     process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-    process.env.STRIPE_WEBHOOK_SECRET
+    process.env.STRIPE_WEBHOOK_SECRET &&
+    process.env.PAYMENT_FEE_FIXED &&
+    process.env.PAYMENT_FEE_PERCENTAGE
   ) {
     await createApp("stripe", "stripepayment", ["payment"], "stripe_payment", {
       client_id: process.env.STRIPE_CLIENT_ID,
       client_secret: process.env.STRIPE_PRIVATE_KEY,
-      payment_fee_fixed: 10,
-      payment_fee_percentage: 0.005,
+      payment_fee_fixed: Number(process.env.PAYMENT_FEE_FIXED),
+      payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
@@ -291,7 +294,17 @@ export default async function main() {
   );
   for (let i = 0; i < generatedApps.length; i++) {
     const generatedApp = generatedApps[i];
-    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
+    if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
+      continue;
+    }
+    await createApp(
+      generatedApp.slug,
+      generatedApp.dirName,
+      generatedApp.categories,
+      generatedApp.type,
+      undefined,
+      generatedApp.isTemplate
+    );
   }
 
   await seedAppData();

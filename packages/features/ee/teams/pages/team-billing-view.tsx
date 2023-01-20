@@ -2,17 +2,18 @@ import { useRouter } from "next/router";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
+import { Button, Icon, Meta } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const BillingView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const returnTo = router.asPath;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
-
   return (
     <>
-      <Meta title="Team Billing" description="Manage billing for your team" />
+      <Meta title={t("team_billing")} description={t("team_billing_description")} />
       <div className="flex flex-col text-sm sm:flex-row">
         <div>
           <h2 className="font-medium">{t("billing_manage_details_title")}</h2>

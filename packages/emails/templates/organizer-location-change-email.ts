@@ -1,3 +1,5 @@
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
@@ -18,7 +20,7 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("location_changed_event_type_subject", {
         eventType: this.calEvent.type,

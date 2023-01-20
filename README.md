@@ -1,8 +1,7 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.com">
-    <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-
+   <img src="https://user-images.githubusercontent.com/8019099/210054112-5955e812-a76e-4160-9ddd-58f2c72f1cce.png" alt="Logo">
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -37,7 +36,7 @@
    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=flat"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
-   <a href="https://github.com/orgs/calcom/projects/9"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
+   <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
    <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
@@ -292,7 +291,11 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
+
+### Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
 
 <!-- ROADMAP -->
 
@@ -310,7 +313,18 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 
 ### Good First Issues
 
-We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/25) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+
+
+<!-- TRANSLATIONS -->
+
+### Translations
+
+Don't code but still want to contribute? Join our [slack](https://cal.com/slack) and join the [#i18n channel](https://calendso.slack.com/archives/C02BY67GMMW) and let us know what language you want to translate.
+
+![ar translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ar&style=flat&logo=crowdin&query=%24.progress.0.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![bg translation](https://img.shields.io/badge/dynamic/json?color=blue&label=bg&style=flat&logo=crowdin&query=%24.progress.1.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![cs translation](https://img.shields.io/badge/dynamic/json?color=blue&label=cs&style=flat&logo=crowdin&query=%24.progress.2.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![de translation](https://img.shields.io/badge/dynamic/json?color=blue&label=de&style=flat&logo=crowdin&query=%24.progress.3.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![el translation](https://img.shields.io/badge/dynamic/json?color=blue&label=el&style=flat&logo=crowdin&query=%24.progress.4.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![en translation](https://img.shields.io/badge/dynamic/json?color=blue&label=en&style=flat&logo=crowdin&query=%24.progress.5.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![es translation](https://img.shields.io/badge/dynamic/json?color=blue&label=es&style=flat&logo=crowdin&query=%24.progress.6.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![es-419 translation](https://img.shields.io/badge/dynamic/json?color=blue&label=es-419&style=flat&logo=crowdin&query=%24.progress.7.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![fr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=fr&style=flat&logo=crowdin&query=%24.progress.8.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![he translation](https://img.shields.io/badge/dynamic/json?color=blue&label=he&style=flat&logo=crowdin&query=%24.progress.9.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![hu translation](https://img.shields.io/badge/dynamic/json?color=blue&label=hu&style=flat&logo=crowdin&query=%24.progress.10.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![it translation](https://img.shields.io/badge/dynamic/json?color=blue&label=it&style=flat&logo=crowdin&query=%24.progress.11.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ja translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ja&style=flat&logo=crowdin&query=%24.progress.12.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ko translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ko&style=flat&logo=crowdin&query=%24.progress.13.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![nl translation](https://img.shields.io/badge/dynamic/json?color=blue&label=nl&style=flat&logo=crowdin&query=%24.progress.14.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![no translation](https://img.shields.io/badge/dynamic/json?color=blue&label=no&style=flat&logo=crowdin&query=%24.progress.15.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pl translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pl&style=flat&logo=crowdin&query=%24.progress.16.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pt translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pt&style=flat&logo=crowdin&query=%24.progress.17.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![pt-BR translation](https://img.shields.io/badge/dynamic/json?color=blue&label=pt-BR&style=flat&logo=crowdin&query=%24.progress.18.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ro translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ro&style=flat&logo=crowdin&query=%24.progress.19.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![ru translation](https://img.shields.io/badge/dynamic/json?color=blue&label=ru&style=flat&logo=crowdin&query=%24.progress.20.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![sr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=sr&style=flat&logo=crowdin&query=%24.progress.21.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![sv translation](https://img.shields.io/badge/dynamic/json?color=blue&label=sv&style=flat&logo=crowdin&query=%24.progress.22.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![tr translation](https://img.shields.io/badge/dynamic/json?color=blue&label=tr&style=flat&logo=crowdin&query=%24.progress.23.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![uk translation](https://img.shields.io/badge/dynamic/json?color=blue&label=uk&style=flat&logo=crowdin&query=%24.progress.24.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![vi translation](https://img.shields.io/badge/dynamic/json?color=blue&label=vi&style=flat&logo=crowdin&query=%24.progress.25.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![zh-CN translation](https://img.shields.io/badge/dynamic/json?color=blue&label=zh-CN&style=flat&logo=crowdin&query=%24.progress.26.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json) ![zh-TW translation](https://img.shields.io/badge/dynamic/json?color=blue&label=zh-TW&style=flat&logo=crowdin&query=%24.progress.27.data.translationProgress&url=https%3A%2F%2Fbadges.awesome-crowdin.com%2Fstats-200011276-1.json)
+
+
 
 ## Integrations
 
@@ -353,7 +367,6 @@ following
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
-
 
 ### Obtaining Zoom Client ID and Secret
 
@@ -412,6 +425,7 @@ following
 3. Copy API key to your .env file into the SENDGRID_API_KEY field
 4. Go to Settings -> Sender Authentication and verify a single sender
 5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+6. Add your custom sender name to the .env file into the NEXT_PUBLIC_SENDGRID_SENDER_NAME field (fallback is Cal.com)
 
 ### Setting up Twilio for SMS reminders
 
@@ -419,14 +433,18 @@ following
 2. Click ‘Get a Twilio phone number’
 3. Copy Account SID to your .env file into the TWILIO_SID field
 4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
-5. Create a messaging service (Develop -> Messaging -> Services)
-6. Choose any name for the messaging service
-7. Click 'Add Senders'
-8. Choose phone number as sender type
-9. Add the listed phone number
-10. Leave all other fields as they are
-11. Complete setup and click ‘View my new Messaging Service’
-12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+5. Copy your Twilio phone number to your .env file into the TWILIO_PHONE_NUMBER field
+6. Add your own sender id to the .env file into the NEXT_PUBLIC_SENDER_ID field (fallback is Cal)
+7. Create a messaging service (Develop -> Messaging -> Services)
+8. Choose any name for the messaging service
+9. Click 'Add Senders'
+10. Choose phone number as sender type
+11. Add the listed phone number
+12. Leave all other fields as they are
+13. Complete setup and click ‘View my new Messaging Service’
+14. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+15. Create a verify service
+16. Copy Verify Service SID to your .env file into the TWILIO_VERIFY_SID field
 
 <!-- LICENSE -->
 

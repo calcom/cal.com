@@ -12,6 +12,7 @@ export const metadata = {
   verified: true,
   licenseRequired: true,
   isProOnly: true,
+  dirName: "routing-forms",
   ...config,
 } as AppMeta;
 

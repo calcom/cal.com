@@ -3,7 +3,7 @@ import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
 import { RefCallback, useEffect, useMemo, useState } from "react";
 
-import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,22 +11,10 @@ import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  Icon,
-  Input,
-  Label,
-  StarIconSolid,
-} from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Icon, Input, Label } from "@calcom/ui";
 
 export enum UsernameChangeStatusEnum {
-  NORMAL = "NORMAL",
   UPGRADE = "UPGRADE",
-  DOWNGRADE = "DOWNGRADE",
 }
 
 interface ICustomUsernameProps {
@@ -37,43 +25,21 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<
-    User,
-    | "username"
-    | "name"
-    | "email"
-    | "bio"
-    | "avatar"
-    | "timeZone"
-    | "weekStart"
-    | "hideBranding"
-    | "theme"
-    | "plan"
-    | "brandColor"
-    | "darkBrandColor"
-    | "timeFormat"
-    | "metadata"
-  >;
+  user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
 
 const obtainNewUsernameChangeCondition = ({
   userIsPremium,
   isNewUsernamePremium,
-  stripeCustomer,
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
   stripeCustomer: RouterOutputs["viewer"]["stripeCustomer"] | undefined;
 }) => {
-  if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
+  if (!userIsPremium && isNewUsernamePremium) {
     return UsernameChangeStatusEnum.UPGRADE;
   }
-
-  if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
-    return UsernameChangeStatusEnum.DOWNGRADE;
-  }
-  return UsernameChangeStatusEnum.NORMAL;
 };
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
@@ -106,7 +72,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         setIsInputUsernamePremium(data.premium);
         setUsernameIsAvailable(data.available);
       }, 150),
-    []
+    [currentUsername]
   );
 
   useEffect(() => {
@@ -137,7 +103,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   });
 
   // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
-  const paymentRequired = !currentUsername && stripeCustomer?.isPremium && !stripeCustomer?.paidForPremium;
+  const paymentRequired = !currentUsername && stripeCustomer?.isPremium;
 
   const usernameChangeCondition = obtainNewUsernameChangeCondition({
     userIsPremium: isCurrentUsernamePremium,
@@ -194,7 +160,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   const saveUsername = () => {
-    if (usernameChangeCondition === UsernameChangeStatusEnum.NORMAL) {
+    if (usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE) {
       updateUsername.mutate({
         username: inputUsernameValue,
       });
@@ -221,7 +187,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div className="flex justify-items-center">
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-2 flex rounded-md">
+      <div className="flex rounded-md">
         <span
           className={classNames(
             isInputUsernamePremium ? "border-1 border-orange-400 " : "",
@@ -264,7 +230,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
+              {isInputUsernamePremium ? <Icon.StarIconSolid className="mt-[2px] w-6" /> : <></>}
               {!isInputUsernamePremium && usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
             </span>
           </div>
@@ -279,14 +245,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       {paymentMsg}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
-      {usernameIsAvailable && (
-        <p className={classNames("mt-1 text-xs text-gray-900")}>
-          {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE && (
-            <>{t("premium_to_standard_username_description")}</>
-          )}
-        </p>
-      )}
-
       <Dialog open={openDialogSaveUsername}>
         <DialogContent>
           <div className="flex flex-row">
@@ -295,13 +253,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
-              {usernameChangeCondition && usernameChangeCondition !== UsernameChangeStatusEnum.NORMAL && (
-                <p className="-mt-4 mb-4 text-sm text-gray-800">
-                  {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE &&
-                    t("change_username_standard_to_premium")}
-                  {usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE &&
-                    t("change_username_premium_to_standard")}
-                </p>
+              {usernameChangeCondition && usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
+                <p className="mb-4 text-sm text-gray-800">{t("change_username_standard_to_premium")}</p>
               )}
 
               <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
@@ -323,8 +276,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             {/* redirect to checkout */}
-            {(usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE ||
-              usernameChangeCondition === UsernameChangeStatusEnum.DOWNGRADE) && (
+            {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}
@@ -336,7 +288,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               </Button>
             )}
             {/* Normal save */}
-            {usernameChangeCondition === UsernameChangeStatusEnum.NORMAL && (
+            {usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
                 loading={updateUsername.isLoading}

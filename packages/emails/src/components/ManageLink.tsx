@@ -17,7 +17,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
           fontWeight: 500,
           lineHeight: "0px",
           textAlign: "left",
-          color: "#3e3e3e",
+          color: "#101010",
         }}>
         <p
           style={{
@@ -28,16 +28,18 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             width: "100%",
             gap: "8px",
           }}>
-          <>{t("need_to_make_a_change")}</>{" "}
+          <>{t("need_to_make_a_change")}</>
           {!props.calEvent.recurringEvent && (
             <>
-              <a href={getRescheduleLink(props.calEvent)} style={{ color: "#3e3e3e" }}>
-                <>{t("reschedule")}</>{" "}
+              <a
+                href={getRescheduleLink(props.calEvent)}
+                style={{ color: "#374151", marginLeft: "5px", marginRight: "5px" }}>
+                <>{t("reschedule")}</>
               </a>
-              <>{t("or_lowercase")}</>{" "}
+              <>{t("or_lowercase")}</>
             </>
           )}
-          <a href={getCancelLink(props.calEvent)} style={{ color: "#3e3e3e" }}>
+          <a href={getCancelLink(props.calEvent)} style={{ color: "#374151", marginLeft: "5px" }}>
             <>{t("cancel")}</>
           </a>
         </p>

@@ -1,27 +1,29 @@
 import { cva, VariantProps } from "class-variance-authority";
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
+export type ButtonColor = NonNullable<InferredVariantProps["color"]>;
 export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: Icon | React.ElementType;
+  StartIcon?: SVGComponent | React.ElementType;
   /**Right aligned icon */
-  EndIcon?: Icon;
+  EndIcon?: SVGComponent;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
-    color?: NonNullable<InferredVariantProps["color"]>;
+    color?: ButtonColor;
   };
 
 export type ButtonProps = ButtonBaseProps &
@@ -34,6 +36,11 @@ const buttonClasses = cva(
   "inline-flex items-center text-sm font-medium relative rounded-md transition-colors",
   {
     variants: {
+      variant: {
+        button: "",
+        icon: "flex justify-center",
+        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
+      },
       color: {
         primary: "text-white dark:text-black",
         secondary: "text-gray-900 dark:text-darkgray-900",
@@ -44,7 +51,6 @@ const buttonClasses = cva(
         sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
-        icon: "flex justify-center min-h-[36px] min-w-[36px] ",
       },
       loading: {
         true: "cursor-wait",
@@ -69,14 +75,14 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-500 hover:bg-brand-400 focus:border focus:border-white focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+          "bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
       }),
       // Secondary variants
       {
         disabled: true,
         color: "secondary",
         className:
-          "border border-gray-200 bg-opacity-30 text-gray-900/30 bg-white dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,
@@ -88,7 +94,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
       }),
       // Minimal variants
       {
@@ -128,8 +134,20 @@ const buttonClasses = cva(
         className:
           "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
       }),
+      // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
+      {
+        variant: "icon",
+        size: "base",
+        className: "min-h-[36px] min-w-[36px] !p-2",
+      },
+      {
+        variant: "icon",
+        size: "sm",
+        className: "h-6 w-6 !p-1",
+      },
     ],
     defaultVariants: {
+      variant: "button",
       color: "primary",
       size: "base",
     },
@@ -144,6 +162,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     loading = false,
     color = "primary",
     size,
+    variant = "button",
     type = "button",
     StartIcon,
     EndIcon,
@@ -164,7 +183,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       type: !isLink ? type : undefined,
       ref: forwardedRef,
       className: classNames(
-        buttonClasses({ color, size, loading, disabled: props.disabled }),
+        buttonClasses({ color, size, loading, disabled: props.disabled, variant }),
         props.className
       ),
       // if we click a disabled button, we prevent going through the click handler
@@ -176,11 +195,23 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     },
     <>
       {StartIcon && (
-        <StartIcon
-          className={classNames("inline-flex", size === "icon" ? "h-4 w-4 " : "mr-2 h-4 w-4 stroke-[1.5px]")}
-        />
+        <>
+          {variant === "fab" ? (
+            <>
+              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
+              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+            </>
+          ) : (
+            <StartIcon
+              className={classNames(
+                variant === "icon" && "h-4 w-4",
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+              )}
+            />
+          )}
+        </>
       )}
-      {props.children}
+      {variant === "fab" ? <span className="hidden sm:inline">{props.children}</span> : props.children}
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
@@ -197,12 +228,29 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />}
+      {EndIcon && (
+        <>
+          {variant === "fab" ? (
+            <>
+              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
+              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+            </>
+          ) : (
+            <EndIcon
+              className={classNames(
+                "inline-flex",
+                variant === "icon" && "h-4 w-4",
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+              )}
+            />
+          )}
+        </>
+      )}
     </>
   );
 
   return props.href ? (
-    <Link passHref href={props.href} shallow={shallow && shallow}>
+    <Link passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
       {element}
     </Link>
   ) : (

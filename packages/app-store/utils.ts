@@ -2,20 +2,25 @@ import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 import { z } from "zod";
 
+// If you import this file on any app it should produce circular dependency
+// import appStore from "./index";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
-// If you import this file on any app it should produce circular dependency
-// import appStore from "./index";
-import { appStoreMetadata } from "./apps.metadata.generated";
-
 export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export type EventTypeAppsList = keyof EventTypeApps;
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
-  store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
+  const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
+  if (metadata.logo && !metadata.logo.includes("/")) {
+    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${metadata.slug}`;
+    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
+  }
+  store[key] = metadata;
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   delete store[key]["/*"];
@@ -26,19 +31,20 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, appId: true },
+  select: { id: true, type: true, key: true, userId: true, appId: true, invalid: true },
 });
 
-type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
-export enum InstalledAppVariants {
-  "conferencing" = "conferencing",
-  "calendar" = "calendar",
-  "payment" = "payment",
-  "analytics" = "analytics",
-  "automation" = "automation",
-  "other" = "other",
-}
+export const InstalledAppVariants = [
+  "conferencing",
+  "calendar",
+  "payment",
+  "analytics",
+  "automation",
+  "other",
+  "web3",
+] as const;
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
@@ -76,7 +82,10 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: string }[]> = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
-      const category = app.category;
+      // All apps that are labeled as a locationOption are video apps. Extract the secondary category if available
+      let category =
+        app.categories.length >= 2 ? app.categories.find((category) => category !== "video") : app.category;
+      if (!category) category = "video";
       const option = { ...app.locationOption, icon: app.imageSrc };
       if (apps[category]) {
         apps[category] = [...apps[category], option];
@@ -113,7 +122,10 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   for (const category in apps) {
     const tmp = { label: category, options: apps[category] };
     if (tmp.label === "in person") {
-      tmp.options.map((l) => ({ ...l, label: t(l.value) }));
+      tmp.options = tmp.options.map((l) => ({
+        ...l,
+        label: t(l.label),
+      }));
     } else {
       tmp.options.map((l) => ({
         ...l,
@@ -146,6 +158,7 @@ function getApps(userCredentials: CredentialData[]) {
         key: appMeta.key!,
         userId: +new Date().getTime(),
         appId: appMeta.slug,
+        invalid: false,
       });
     }
 
@@ -172,6 +185,10 @@ function getApps(userCredentials: CredentialData[]) {
   });
 
   return apps;
+}
+
+export function getLocalAppMetadata() {
+  return ALL_APPS;
 }
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {

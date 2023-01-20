@@ -215,17 +215,6 @@ button[role="switch"][data-state="checked"] {
   background: black;
 }
 
-/* add padding bottom to bottom nav on standalone mode */
-@media all and (display-mode: standalone) {
-  .bottom-nav {
-    padding-bottom: 24px;
-  }
-
-  .cta {
-    bottom: 100px;
-  }
-}
-
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
   /* Intercom FAB*/
@@ -244,13 +233,6 @@ button[role="switch"][data-state="checked"] {
     left: 50%;
     bottom: 28px !important;
     z-index: 1058 !important;
-  }
-}
-
-/* add padding bottom to bottom nav on standalone mode */
-@media all and (display-mode: standalone) {
-  .bottom-nav {
-    padding-bottom: 24px;
   }
 }
 
@@ -401,11 +383,11 @@ nav#nav--settings > a svg {
 }
 
 nav#nav--settings > a.active {
-  @apply border-neutral-500 bg-neutral-50 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-700;
+  @apply border-neutral-500 bg-neutral-50 text-gray-700 hover:bg-neutral-50 hover:text-gray-700;
 }
 
 nav#nav--settings > a.active svg {
-  @apply text-neutral-500;
+  @apply text-gray-500;
 }
 
 hr {
@@ -430,6 +412,11 @@ hr {
 /* react-date-picker forces a border upon us, cast it away */
 .react-date-picker__wrapper {
   border: none !important;
+}
+
+.react-date-picker__inputGroup__input {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* animations */

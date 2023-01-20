@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
+import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,15 +23,16 @@ import {
   showToast,
   TextArea,
   Tooltip,
+  ActionType,
+  TableActions,
 } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
-import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -48,6 +50,7 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data.status === BookingStatus.REJECTED) {
@@ -112,6 +115,17 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
+    },
+  ];
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -158,6 +172,10 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
+  if (isPast && isPending && !isConfirmed) {
+    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
@@ -202,7 +220,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-
+  const showRecordingsButtons = booking.location === "integrations:daily" && isPast && isConfirmed;
   return (
     <>
       <RescheduleDialog
@@ -216,7 +234,14 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-
+      {showRecordingsButtons && (
+        <ViewRecordingsDialog
+          booking={booking}
+          isOpenDialog={viewRecordingsDialogIsOpen}
+          setIsOpenDialog={setViewRecordingsDialogIsOpen}
+          timeFormat={user?.timeFormat ?? null}
+        />
+      )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
@@ -248,7 +273,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
+      <tr className="group flex flex-col hover:bg-neutral-50 sm:flex-row">
         <td
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
@@ -273,11 +298,6 @@ function BookingListItem(booking: BookingItemProps) {
             {booking.eventType?.team && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                 {booking.eventType.team.name}
-              </Badge>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("pending_payment")}
               </Badge>
             )}
             {booking.paid && (
@@ -336,19 +356,21 @@ function BookingListItem(booking: BookingItemProps) {
             <div
               title={booking.title}
               className={classNames(
-                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-neutral-900 md:max-w-full",
+                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
               {booking.title}
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+                <Badge className="hidden ltr:ml-2 ltr:mr-2 rtl:ml-2 sm:inline-flex" variant="orange">
+                  {t("pending_payment")}
+                </Badge>
               )}
             </div>
             {booking.description && (
               <div
-                className="max-w-10/12 sm:max-w-40 md:max-w-56 xl:max-w-80 lg:max-w-64 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -376,6 +398,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -528,15 +551,6 @@ const DisplayAttendees = ({
         </>
       )}
     </div>
-  );
-};
-
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
-  return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
   );
 };
 

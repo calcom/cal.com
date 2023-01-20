@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, Icon, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -137,7 +137,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       key={member.email}
       className={classNames("flex items-center justify-between p-6 text-sm", index !== 0 && "border-t")}
       data-testid="pending-member-item">
-      <div className="flex space-x-2">
+      <div className="flex space-x-2 rtl:space-x-reverse">
         <Avatar
           gravatarFallbackMd5="teamMember"
           size="mdLg"
@@ -156,7 +156,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           {member.username ? (
             <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal")}</p>
+            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>
@@ -164,7 +164,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Button
           data-testid="remove-member-button"
           StartIcon={Icon.FiTrash2}
-          size="icon"
+          variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"
           onClick={() => {

@@ -2,6 +2,7 @@ import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -26,6 +27,7 @@ import {
   Switch,
   TextAreaField,
   TextField,
+  SettingsToggle,
 } from "@calcom/ui";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -77,6 +79,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const hookForm = useForm<{
     name: string;
     description: string;
+    shouldConnect: boolean;
   }>();
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
@@ -97,6 +100,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           form={hookForm}
           handleSubmit={(values) => {
             const formId = uuidv4();
+
             mutation.mutate({
               id: formId,
               ...values,
@@ -115,6 +119,23 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 placeholder="Form Description"
               />
             </div>
+            {action === "duplicate" && (
+              <Controller
+                name="shouldConnect"
+                render={({ field: { value, onChange } }) => {
+                  return (
+                    <SettingsToggle
+                      title="Keep me connected with the form"
+                      description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
+                      checked={value}
+                      onCheckedChange={(checked) => {
+                        onChange(checked);
+                      }}
+                    />
+                  );
+                }}
+              />
+            )}
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
@@ -135,10 +156,10 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger data-testid="form-dropdown" asChild>
           <Button
             type="button"
-            size="icon"
+            variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
             StartIcon={Icon.FiMoreHorizontal}
@@ -186,7 +207,7 @@ function Dialogs({
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast("Something went wrong", "error");
+      showToast(err.message || "Something went wrong", "error");
     },
   });
   return (
@@ -234,14 +255,31 @@ const actionsCtx = createContext({
 export function FormActionsProvider({ appUrl, children }: { appUrl: string; children: React.ReactNode }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
-  const router = useRouter();
+  const utils = trpc.useContext();
 
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
-    onError: () => {
-      showToast(`Something went wrong`, "error");
+    onMutate: async ({ id: formId, disabled }) => {
+      await utils.viewer.appRoutingForms.forms.cancel();
+      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      if (previousValue) {
+        const itemIndex = previousValue.findIndex(({ id }) => id === formId);
+        const prevValueTemp = [...previousValue];
+
+        if (itemIndex !== -1 && prevValueTemp[itemIndex] && disabled !== undefined) {
+          prevValueTemp[itemIndex].disabled = disabled;
+        }
+        utils.viewer.appRoutingForms.forms.setData(undefined, prevValueTemp);
+      }
+      return { previousValue };
     },
-    onSuccess: () => {
-      router.replace(router.asPath);
+    onSettled: () => {
+      utils.viewer.appRoutingForms.forms.invalidate();
+    },
+    onError: (err, value, context) => {
+      if (context?.previousValue) {
+        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+      }
+      showToast("Something went wrong", "error");
     },
   });
 
@@ -409,7 +447,14 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
   return (
     <DropdownMenuItem>
-      <Component ref={forwardedRef} {...actionProps}>
+      <Component
+        ref={forwardedRef}
+        {...actionProps}
+        className={classNames(
+          props.className,
+          "w-full transition-none",
+          props.color === "destructive" && "border-0"
+        )}>
         {children}
       </Component>
     </DropdownMenuItem>

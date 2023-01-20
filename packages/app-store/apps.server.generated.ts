@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 export const apiHandlers = {
+  amie: import("./amie/api"),
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
   caldavcalendar: import("./caldavcalendar/api"),
@@ -16,6 +17,7 @@ export const apiHandlers = {
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
+  googlevideo: import("./googlevideo/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),
@@ -37,7 +39,14 @@ export const apiHandlers = {
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
+  basic: import("./templates/basic/api"),
+  "booking-pages-tag": import("./templates/booking-pages-tag/api"),
+  "event-type-app-card": import("./templates/event-type-app-card/api"),
+  "event-type-location-video-static": import("./templates/event-type-location-video-static/api"),
+  "general-app-settings": import("./templates/general-app-settings/api"),
+  "link-as-an-app": import("./templates/link-as-an-app/api"),
   typeform: import("./typeform/api"),
+  vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
   whatsapp: import("./whatsapp/api"),

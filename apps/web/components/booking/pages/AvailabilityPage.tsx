@@ -13,9 +13,11 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
+  useEmbedUiConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
@@ -26,19 +28,15 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, DatePicker } from "@calcom/ui";
+import { Icon, HeadSeo } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
-// import { timeZone } from "@lib/clock";
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import { HeadSeo } from "@components/seo/head-seo";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
@@ -153,7 +151,10 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
-    startTime: browsingDate?.startOf("month"),
+    startTime:
+      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
+        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
+        : browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
@@ -219,7 +220,7 @@ function TimezoneDropdown({
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
         <p className="flex items-center text-sm font-medium">
-          <Icon.FiGlobe className="min-h-4 min-w-4 mr-[10px] ml-[2px] -mt-[2px] inline-block" />
+          <Icon.FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
           {timeZone}
           {isTimeOptionsOpen ? (
             <Icon.FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
@@ -256,6 +257,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   useTheme(profile.theme);
   const { t } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  //TODO: Plan to remove shouldAlignCentrallyInEmbed config
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -280,9 +282,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
 
-  // TODO: Improve this;
-  useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
-
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
@@ -295,7 +294,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       );
     }
   }, [telemetry]);
-
+  const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
 
@@ -307,6 +306,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+
+  const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   // Define conditional gates here
   const gates = [
@@ -341,7 +342,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       <div>
         <main
           className={classNames(
-            "flex-col md:mx-4 lg:flex",
+            "flex flex-col md:mx-4",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
@@ -356,54 +357,55 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
-                <div
-                  className={classNames(
-                    "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                    "min-w-full md:w-[230px] md:min-w-[230px]",
-                    recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
-                  )}>
-                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
-                    {!rescheduleUid && eventType.recurringEvent && (
-                      <div className="flex items-start text-sm font-medium">
-                        <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
-                        <div>
-                          <p className="mb-1 -ml-2 inline px-2 py-1">
-                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                          </p>
-                          <input
-                            type="number"
-                            min="1"
-                            max={eventType.recurringEvent.count}
-                            className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
-                            defaultValue={eventType.recurringEvent.count}
-                            onChange={(event) => {
-                              setRecurringEventCount(parseInt(event?.target.value));
-                            }}
-                          />
-                          <p className="inline">
-                            {t("occurrence", {
-                              count: recurringEventCount,
-                            })}
-                          </p>
+                {showEventTypeDetails && (
+                  <div
+                    className={classNames(
+                      "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
+                      "min-w-full md:w-[230px] md:min-w-[230px]",
+                      recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
+                    )}>
+                    <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
+                      {!rescheduleUid && eventType.recurringEvent && (
+                        <div className="flex items-start text-sm font-medium">
+                          <Icon.FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <div>
+                            <p className="mb-1 -ml-2 inline px-2 py-1">
+                              {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                            </p>
+                            <input
+                              type="number"
+                              min="1"
+                              max={eventType.recurringEvent.count}
+                              className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                              defaultValue={eventType.recurringEvent.count}
+                              onChange={(event) => {
+                                setRecurringEventCount(parseInt(event?.target.value));
+                              }}
+                            />
+                            <p className="inline">
+                              {t("occurrence", {
+                                count: recurringEventCount,
+                              })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {stripeAppData.price > 0 && (
-                      <p className="-ml-2 px-2 text-sm font-medium">
-                        <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={stripeAppData.price / 100.0}
-                            style="currency"
-                            currency={stripeAppData.currency.toUpperCase()}
-                          />
-                        </IntlProvider>
-                      </p>
-                    )}
-                    {timezoneDropdown}
-                  </BookingDescription>
+                      )}
+                      {stripeAppData.price > 0 && (
+                        <p className="-ml-2 px-2 text-sm font-medium">
+                          <Icon.FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <IntlProvider locale="en">
+                            <FormattedNumber
+                              value={stripeAppData.price / 100.0}
+                              style="currency"
+                              currency={stripeAppData.currency.toUpperCase()}
+                            />
+                          </IntlProvider>
+                        </p>
+                      )}
+                      {timezoneDropdown}
+                    </BookingDescription>
 
-                  {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
+                    {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
                         className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
@@ -411,12 +413,13 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-darkgray-600">
-                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
                   )*/}
-                </div>
+                  </div>
+                )}
                 <SlotPicker
                   weekStart={
                     typeof profile.weekStart === "string"
@@ -442,7 +445,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
+            {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
+            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
           </div>
         </main>
       </div>

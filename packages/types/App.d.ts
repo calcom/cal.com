@@ -1,5 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
+import { Tag } from "@calcom/app-store/types";
+
 import { Optional } from "./utils";
 
 type CommonProperties = {
@@ -30,9 +32,10 @@ type DynamicLinkBasedEventLocation = {
 
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
-type EventLocationAppData = {
-  location: EventLocationTypeFromAppMeta;
-};
+type AppData = {
+  location?: EventLocationTypeFromAppMeta;
+  tag?: Tag;
+} | null;
 
 /**
  * This is the definition for an app store's app metadata.
@@ -41,7 +44,7 @@ type EventLocationAppData = {
 export interface App {
   /**
    * @deprecated
-   * Wheter if the app is installed or not. Usually we check for api keys in env
+   * Whether if the app is installed or not. Usually we check for api keys in env
    * variables to determine if this is true or not.
    * */
   installed?: boolean;
@@ -89,10 +92,10 @@ export interface App {
   /*
    * @deprecated Use categories
    */
-  category: string;
+  category?: string;
 
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
-  categories?: string[];
+  categories: string[];
   /**
    * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.
    * See https://app.gitbook.com/o/6snd8PyPYMhg0wUw6CeQ/s/VXRprBTuMlihk37NQgUU/~/changes/6xkqZ4qvJ3Xh9k8UaWaZ/engineering/product-specs/app-store#user-apps for more details
@@ -107,13 +110,13 @@ export interface App {
   /** Optional documentation website URL */
   docsUrl?: string;
   /** Wether if the app is verified by Cal.com or not */
-  verified: boolean;
+  verified?: boolean;
   /** Wether the app should appear in the trending section of the app store */
-  trending: boolean;
+  trending?: boolean;
   /** Rating from 0 to 5, harcoded for now. Should be fetched later on. */
-  rating: number;
+  rating?: number;
   /** Number of reviews, harcoded for now. Should be fetched later on. */
-  reviews: number;
+  reviews?: number;
   /**
    *  Wheter if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store
@@ -121,9 +124,6 @@ export interface App {
   isGlobal?: boolean;
   /** A contact email, mainly to ask for support */
   email: string;
-
-  /** Needed API Keys (usually for global apps) */
-  key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */
@@ -134,7 +134,15 @@ export interface App {
   commission?: number;
   licenseRequired?: boolean;
   isProOnly?: boolean;
-  appData?: EventLocationAppData;
+  appData?: AppData;
+  dirName?: string;
+  isTemplate?: boolean;
+  __template?: string;
 }
+
+export type AppFrontendPayload = Omit<App, "key"> & {
+  /** We should type error if keys are leaked to the frontend */
+  key?: never;
+};
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;
