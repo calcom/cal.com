@@ -251,7 +251,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const lastItem = types[types.length - 1];
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul ref={parent} className="!static w-full divide-y divide-neutral-200" data-testid="event-types">
+      <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;

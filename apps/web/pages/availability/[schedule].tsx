@@ -186,7 +186,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             });
           }}
           className="flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-          <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
+          <div className="flex-1 divide-y divide-gray-200 rounded-md border">
             <div className=" py-5 sm:p-6">
               {typeof me.data?.weekStart === "string" && (
                 <Schedule
