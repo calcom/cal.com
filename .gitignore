@@ -89,3 +89,4 @@ apps/console
 /apps/api
 /apps/console
 /apps/website
+/.gitmodules
