@@ -106,7 +106,7 @@ const CopyButton = ({
           type="button"
           tooltip={t("duplicate")}
           color="minimal"
-          size="icon"
+          variant="icon"
           StartIcon={Icon.FiCopy}
         />
       </DropdownMenuTrigger>
@@ -184,7 +184,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 className=" text-gray-400"
                 type="button"
                 color="minimal"
-                size="icon"
+                variant="icon"
                 StartIcon={Icon.FiPlus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -213,7 +213,7 @@ const RemoveTimeButton = ({
   return (
     <Button
       type="button"
-      size="icon"
+      variant="icon"
       color="minimal"
       StartIcon={Icon.FiTrash}
       onClick={() => remove(index)}

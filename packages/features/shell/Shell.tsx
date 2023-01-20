@@ -767,7 +767,7 @@ export function ShellMain(props: LayoutProps) {
         {!!props.backPath && (
           <div className="flex items-center">
             <Button
-              size="icon"
+              variant="icon"
               color="minimal"
               onClick={() =>
                 typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()

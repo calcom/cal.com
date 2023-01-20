@@ -2,20 +2,25 @@ import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
 import { z } from "zod";
 
+// If you import this file on any app it should produce circular dependency
+// import appStore from "./index";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
-// If you import this file on any app it should produce circular dependency
-// import appStore from "./index";
-import { appStoreMetadata } from "./apps.metadata.generated";
-
 export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export type EventTypeAppsList = keyof EventTypeApps;
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
-  store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
+  const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
+  if (metadata.logo && !metadata.logo.includes("/")) {
+    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${metadata.slug}`;
+    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
+  }
+  store[key] = metadata;
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   delete store[key]["/*"];

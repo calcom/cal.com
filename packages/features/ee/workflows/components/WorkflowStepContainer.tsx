@@ -296,7 +296,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div>
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                      <Button
+                        type="button"
+                        color="minimal"
+                        variant="icon"
+                        StartIcon={Icon.FiMoreHorizontal}
+                      />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
