@@ -1163,7 +1163,7 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:inline-flex");
+  className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
     goto(router, {
       dialog: "embed",
