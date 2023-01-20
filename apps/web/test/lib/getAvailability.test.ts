@@ -103,6 +103,35 @@ describe("Tests getAvailability", () => {
     ]);
   });
 
+  it("can merge consecutive date blocks", () => {
+    expect(
+      getAvailability({
+        timeZone: "Europe/Amsterdam",
+        availability: [
+          {
+            days: [1],
+            startTime: new Date("1970-01-01T22:00:00Z"),
+            endTime: new Date("1970-01-01T23:59:59Z"),
+            date: null,
+          },
+          {
+            date: null,
+            startTime: new Date("1970-01-01T00:00:00Z"),
+            endTime: new Date("1970-01-01T01:00:00Z"),
+            days: [2],
+          },
+        ],
+        dateFrom: new Date("2021-06-21T00:00:00Z"),
+        dateTo: new Date("2021-06-25T23:59:59Z"),
+      })
+    ).toStrictEqual([
+      {
+        start: dayjs("2021-06-21T20:00:00.000Z").tz("Europe/Amsterdam"),
+        end: dayjs("2021-06-21T23:00:00.000Z").tz("Europe/Amsterdam"),
+      },
+    ]);
+  });
+
   /*it("will exclude past times from availability", () => {
     expect(
       getAvailability({

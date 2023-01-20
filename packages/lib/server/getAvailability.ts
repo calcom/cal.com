@@ -1,5 +1,18 @@
 import dayjs, { Dayjs } from "@calcom/dayjs";
 
+const combineConsecutiveBlocks = (blocks: { start: Dayjs; end: Dayjs }[]) => {
+  const result = blocks.reduce((acc, date) => {
+    if (acc.length > 0 && date.start.diff(acc[acc.length - 1].end, "minutes") <= 1) {
+      acc.splice(acc.length - 1, 1, { start: acc[acc.length - 1].start, end: date.end });
+    } else {
+      acc.push(date);
+    }
+    return acc;
+  }, [] as { start: Dayjs; end: Dayjs }[]);
+
+  return result;
+};
+
 const getAvailability = ({
   timeZone,
   availability,
@@ -59,7 +72,7 @@ const getAvailability = ({
     ...dateOverrides,
   };
   // after merge, the keys are irrelevant so we get the values and flatten the two resulting arrays.
-  return Object.values(mergeAvailability).flat();
+  return combineConsecutiveBlocks(Object.values(mergeAvailability).flat());
 };
 
 export default getAvailability;
