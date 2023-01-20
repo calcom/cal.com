@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 // import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
@@ -32,11 +33,11 @@ export function UpgradeTip({
 }) {
   const { data } = trpc.viewer.teams.list.useQuery();
 
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]); // TODO: use hasTeam hook
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
   const { t } = useLocale();
+  const hasTeamPlan = useHasTeamPlan();
 
-  if (teams.length > 0) return children;
+  if (hasTeamPlan) return children;
 
   if (!isCalcom)
     return <EmptyScreen Icon={Icon.FiUsers} headline={title} description={description} buttonRaw={buttons} />;
@@ -68,7 +69,7 @@ export function UpgradeTip({
           </div>
         )}
         <div className="mt-4 grid-cols-3 md:grid md:gap-4">
-          {invites.length === 0 && // TODO: use hasTeam hook
+          {invites.length === 0 &&
             features.map((feature) => (
               <div
                 key={feature.title}

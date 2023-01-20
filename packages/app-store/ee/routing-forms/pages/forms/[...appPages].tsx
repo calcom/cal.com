@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
@@ -32,13 +33,11 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
+  const hasTeamPlan = useHasTeamPlan();
 
   const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
     initialData: forms_,
   });
-
-  const { data } = trpc.viewer.teams.list.useQuery(); // TODO: use hasTeam hook
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]); // TODO: use hasTeam hook
 
   const { data: typeformApp } = useApp("typeform");
 
@@ -90,7 +89,7 @@ export default function RoutingForms({
   return (
     <ShellMain
       heading="Routing Forms"
-      CTA={teams.length > 0 && <NewFormButton />} // TODO: use hasTeam hook
+      CTA={hasTeamPlan && <NewFormButton />}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
         dark
