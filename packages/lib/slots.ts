@@ -1,4 +1,4 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import { Dayjs } from "@calcom/dayjs";
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
@@ -13,6 +13,10 @@ const slotExtractor = ({ eventLength, frequency }: { eventLength: number; freque
     extract: ({ start: slotStart, end }: { start: Dayjs; end: Dayjs }) => {
       const slots: Slots = [];
       for (; slotStart.isBefore(end); slotStart = slotStart.add(frequency, "minutes")) {
+        if (!slotStart.add(eventLength, "minutes").isBefore(end)) {
+          // skip adding slot, it's not within the availability block.
+          continue;
+        }
         slots.push({
           time: slotStart,
         });
