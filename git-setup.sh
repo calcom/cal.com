@@ -11,7 +11,7 @@ for module in "$@"; do
   # Set the project git URL
   project=$(echo "git@github.com:calcom/$module.git")
   # Check if we have access to the module
-  [ "$(git ls-remote "$project" 2>/dev/null)" ] && {
+  if [ "$(git ls-remote "$project" 2>/dev/null)" ]; then
     echo "You have access to '${module}'"
     # Create the .gitmodules file if it doesn't exist
     ([ -e ".gitmodules" ] || touch ".gitmodules") && [ ! -w ".gitmodules" ] && echo cannot write to .gitmodules && exit 1
@@ -23,7 +23,7 @@ for module in "$@"; do
     git config -f .gitmodules --add "submodule.apps/$module.branch" main
     # Adding the subdmoule ignores the `.gitignore` so a reset is needed
     git reset
-  } || {
+  else
     # If the module is the API, display a link to request access
     if [ "$module" == "api" ]; then
       echo "You don't have access to: '${module}' module. You can request access in: https://console.cal.com"
@@ -31,5 +31,5 @@ for module in "$@"; do
       # If the module is not the API, display normal message
       echo "You don't have access to: '${module}' module."
     fi
-  }
+  fi
 done
