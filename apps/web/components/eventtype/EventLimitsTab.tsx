@@ -287,7 +287,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     <RadioGroup.Item
                       id={period.type}
                       value={period.type}
-                      className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                      className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus-visible:outline-none ltr:mr-2 rtl:ml-2">
                       <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                     </RadioGroup.Item>
                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
@@ -302,7 +302,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                         <select
                           id=""
-                          className="block h-9 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
+                          className="block h-9 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus-visible:outline-none"
                           {...formMethods.register("periodCountCalendarDays")}
                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                           <option value="1">{t("calendar_days")}</option>

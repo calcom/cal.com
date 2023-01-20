@@ -141,7 +141,7 @@ function RedirectionToast({ url }: { url: string }) {
                   onClick={() => {
                     setIsToastVisible(false);
                   }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
+                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:ring-2 focus:ring-white focus-visible:outline-none">
                   <Icon.FiX className="h-6 w-6 text-white" />
                 </button>
               </div>

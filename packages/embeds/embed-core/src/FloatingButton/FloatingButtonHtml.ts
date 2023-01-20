@@ -14,7 +14,7 @@ const getHtml = ({
   return `<button class="hidden fixed md:bottom-6 bottom-4 md:right-10 right-4 md:left-10 left-4 ${buttonClasses.join(
     " "
   )} flex h-16 origin-center bg-red-50 transform cursor-pointer items-center
-rounded-full py-4 px-6 text-base outline-none drop-shadow-md transition focus:outline-none fo
+rounded-full py-4 px-6 text-base outline-none drop-shadow-md transition focus-visible:outline-none fo
 cus:ring-4 focus:ring-gray-600 focus:ring-opacity-50 active:scale-95" 
 style="background-color:${buttonColor}; color:${buttonTextColor} z-index: 10001">
 <div id="button-icon" class="mr-3 flex items-center justify-center">

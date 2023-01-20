@@ -81,7 +81,7 @@ export default function Custom404() {
                       <div className="min-w-0 flex-1">
                         <h3 className="text-base font-medium text-gray-900">
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                            <span className="focus:outline-none">
+                            <span className="focus-visible:outline-none">
                               <span className="absolute inset-0" aria-hidden="true" />
                               {t("acquire_commercial_license")}
                             </span>
@@ -224,7 +224,7 @@ export default function Custom404() {
                         <div className="min-w-0 flex-1">
                           <h3 className="text-base font-medium text-gray-900">
                             <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                              <span className="focus:outline-none">
+                              <span className="focus-visible:outline-none">
                                 <span className="absolute inset-0" aria-hidden="true" />
                                 {t("register")} <strong className="text-green-500">{username}</strong>
                               </span>

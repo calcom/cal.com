@@ -151,7 +151,7 @@ export default function MemberListItem(props: Props) {
                 <Dropdown>
                   <DropdownMenuTrigger
                     asChild
-                    className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                    className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:ring-0 focus:ring-offset-0 focus-visible:outline-none">
                     <Button
                       color="secondary"
                       variant="icon"

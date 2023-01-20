@@ -250,7 +250,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:ring-0 focus-visible:outline-none sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
@@ -819,7 +819,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="relative z-0 flex-1 bg-white focus:outline-none">
+    <main className="relative z-0 flex-1 bg-white focus-visible:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full px-4 py-8 lg:px-12">
@@ -854,7 +854,7 @@ function TopNav() {
           <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:ring-2 focus:ring-black focus:ring-offset-2 focus-visible:outline-none">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/profile">
               <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />

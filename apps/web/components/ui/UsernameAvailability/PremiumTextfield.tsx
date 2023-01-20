@@ -210,7 +210,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 ? "border-1 focus:border-1 border-orange-400 focus:border-orange-400"
                 : "border-1 focus:border-2",
               markAsError
-                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
+                ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus-visible:outline-none"
                 : "border-l-gray-300",
               disabled ? "bg-gray-100 text-gray-400 focus:border-0" : ""
             )}

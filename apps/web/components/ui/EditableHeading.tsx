@@ -29,7 +29,7 @@ const EditableHeading = function EditableHeading({
             value={value}
             required
             className={classNames(
-              "absolute top-0 left-0 w-full cursor-pointer border-none bg-transparent p-0 align-top text-xl text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
+              "absolute top-0 left-0 w-full cursor-pointer border-none bg-transparent p-0 align-top text-xl text-gray-900 hover:text-gray-700 focus:text-black focus:ring-0 focus-visible:outline-none"
             )}
             onFocus={(e) => {
               setIsEditing(true);

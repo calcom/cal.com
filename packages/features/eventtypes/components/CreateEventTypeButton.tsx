@@ -393,7 +393,7 @@ function CreateEventTeamsItem(props: {
     <DropdownMenuItem
       key={props.option.slug}
       className={classNames(
-        "cursor-pointer px-3 py-2  focus:outline-none",
+        "cursor-pointer px-3 py-2  focus-visible:outline-none",
         isDisabled ? "cursor-default !text-gray-300" : "hover:bg-neutral-100"
       )}
       disabled={isDisabled}

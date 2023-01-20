@@ -84,7 +84,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
           <Link href="/auth/forgot-password" passHref legacyBehavior>
             <button
               type="button"
-              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+              className="flex w-full justify-center px-4 py-2 text-sm font-medium text-blue-600 focus:ring-2 focus:ring-black focus:ring-offset-2 focus-visible:outline-none">
               {t("try_again")}
             </button>
           </Link>

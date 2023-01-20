@@ -80,7 +80,7 @@ const DisableTwoFactorAuthModal = ({
                 className: "block text-sm font-medium text-gray-700",
               }}
               {...form.register("password")}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:ring-black focus-visible:outline-none"
             />
             <Label className="mt-4"> {t("2fa_code")}</Label>
 
