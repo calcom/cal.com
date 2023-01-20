@@ -46,7 +46,7 @@ export function UpgradeTip({
 
   return (
     <>
-      <div className="-mt-6 rtl:ml-4 md:rtl:ml-0">
+      <div className="-mt-10 rtl:ml-4 sm:mt-0 md:rtl:ml-0 lg:-mt-6">
         <div
           className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
           style={{
