@@ -4,7 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, EmptyScreen, Icon } from "@calcom/ui";
+import { Alert, Button, ButtonGroup, Icon } from "@calcom/ui";
 
 import { UpgradeTip } from "../../../tips";
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
@@ -58,7 +58,6 @@ export function TeamsListing() {
   return (
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
-
       <UpgradeTip
         title="calcom_is_better_with_team"
         description="add_your_team_members"

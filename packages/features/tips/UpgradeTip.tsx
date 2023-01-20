@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { ReactNode } from "react";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 // import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
@@ -10,6 +11,7 @@ import TeamList from "../ee/teams/components/TeamList";
 
 const isCalcom = true;
 export function UpgradeTip({
+  dark,
   title,
   description,
   background,
@@ -18,6 +20,7 @@ export function UpgradeTip({
   isParentLoading,
   children,
 }: {
+  dark?: boolean;
   title: string;
   description: string;
   background: string;
@@ -29,7 +32,7 @@ export function UpgradeTip({
 }) {
   const { data } = trpc.viewer.teams.list.useQuery();
 
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
+  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]); // TODO: use hasTeam hook
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
   const { t } = useLocale();
 
@@ -51,8 +54,10 @@ export function UpgradeTip({
             backgroundRepeat: "no-repeat",
           }}>
           <div className="mt-3 px-8 sm:px-14">
-            <h1 className="font-cal text-3xl">{t(title)}</h1>
-            <p className="my-4 max-w-sm text-gray-600">{t(description)}</p>
+            <h1 className={classNames("font-cal text-3xl", dark && "text-white")}>{t(title)}</h1>
+            <p className={classNames("my-4 max-w-sm", dark ? "text-white" : "text-gray-600")}>
+              {t(description)}
+            </p>
             {buttons}
           </div>
         </div>
@@ -63,7 +68,7 @@ export function UpgradeTip({
           </div>
         )}
         <div className="mt-4 grid-cols-3 md:grid md:gap-4">
-          {invites.length === 0 &&
+          {invites.length === 0 && // TODO: use hasTeam hook
             features.map((feature) => (
               <div
                 key={feature.title}
