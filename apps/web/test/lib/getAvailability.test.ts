@@ -131,6 +131,34 @@ describe("Tests getAvailability", () => {
     ]);
   });
 
+  it("can merge consecutive date blocks with date overrides", () => {
+    expect(
+      getAvailability({
+        availability: [
+          {
+            days: [1],
+            startTime: new Date("1970-01-01T22:00:00Z"),
+            endTime: new Date("1970-01-01T23:59:59Z"),
+            date: null,
+          },
+          {
+            date: new Date("2021-06-22T00:00:00.000Z"),
+            startTime: new Date("1970-01-01T00:00:00Z"),
+            endTime: new Date("1970-01-01T01:00:00Z"),
+            days: [],
+          },
+        ],
+        dateFrom: new Date("2021-06-21T00:00:00Z"),
+        dateTo: new Date("2021-06-25T23:59:59Z"),
+      })
+    ).toStrictEqual([
+      {
+        start: dayjs.utc("2021-06-21T22:00:00.000Z"),
+        end: dayjs.utc("2021-06-22T01:00:00.000Z"),
+      },
+    ]);
+  });
+
   /*it("will exclude past times from availability", () => {
     expect(
       getAvailability({
