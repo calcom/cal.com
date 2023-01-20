@@ -36,7 +36,7 @@ export function TeamsListing() {
 
       {teams.length === 0 && (
         <>
-          <UpgradeScreen>
+          <UpgradeScreen background="url(/team-banner-background.jpg)">
             <UpgradeScreen.Title>{t("calcom_is_better_with_team")}</UpgradeScreen.Title>
             <UpgradeScreen.Description>{t("add_your_team_members")}</UpgradeScreen.Description>
             <UpgradeScreen.Buttons>

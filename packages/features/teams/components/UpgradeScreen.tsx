@@ -3,7 +3,7 @@ import { ButtonGroup } from "@calcom/ui";
 
 import { useIsInTeam } from "../hooks/useIsInTeam";
 
-export function UpgradeScreen({ children }: { children: React.ReactNode }) {
+export function UpgradeScreen({ children, background }: { children: React.ReactNode; background: string }) {
   const { isInTeam, isLoading } = useIsInTeam();
 
   if (isLoading || (!isLoading && isInTeam) || isCalcom) return null;
@@ -13,7 +13,7 @@ export function UpgradeScreen({ children }: { children: React.ReactNode }) {
       <div
         className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
         style={{
-          background: "url(/team-banner-background.jpg)",
+          background: background,
           backgroundSize: "cover",
           backgroundRepeat: "no-repeat",
         }}>
