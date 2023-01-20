@@ -954,7 +954,7 @@ const BookingPage = ({
                     <Button
                       type="button"
                       color="minimal"
-                      size="icon"
+                      variant="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}

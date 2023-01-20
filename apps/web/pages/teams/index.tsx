@@ -16,7 +16,7 @@ function Teams() {
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
         <Button
-          size="fab"
+          variant="fab"
           StartIcon={Icon.FiPlus}
           type="button"
           href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
