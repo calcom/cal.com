@@ -13,7 +13,7 @@ for module in "$@"; do
   [ "$(git ls-remote $project 2>/dev/null)" ] && {
     echo "You have access to '${module}'"
     ([ -e ".gitmodules" ] || touch ".gitmodules") && [ ! -w ".gitmodules" ] && echo cannot write to .gitmodules && exit 1
-    git submodule add --force https://github.com/calcom/$module.git apps/$module
+    git submodule add --force git@github.com:calcom/$module.git apps/$module
     git config -f .gitmodules --add submodule.apps/$module.branch main
   } || {
     if [ "$module" == "api" ]; then
