@@ -3,7 +3,7 @@ import { ButtonGroup } from "@calcom/ui";
 
 import { useIsInTeam } from "../hooks/useIsInTeam";
 
-export function UpgradeToTeamsBanner({ children }: { children: React.ReactNode }) {
+export function UpgradeScreen({ children }: { children: React.ReactNode }) {
   const { isInTeam, isLoading } = useIsInTeam();
 
   if (isLoading || (!isLoading && isInTeam) || isCalcom) return null;
@@ -23,15 +23,15 @@ export function UpgradeToTeamsBanner({ children }: { children: React.ReactNode }
   );
 }
 
-UpgradeToTeamsBanner.Title = function Title({ children }: { children: React.ReactNode }) {
+UpgradeScreen.Title = function Title({ children }: { children: React.ReactNode }) {
   return <h1 className="font-cal text-3xl">{children}</h1>;
 };
 
-UpgradeToTeamsBanner.Description = function Description({ children }: { children: React.ReactNode }) {
+UpgradeScreen.Description = function Description({ children }: { children: React.ReactNode }) {
   return <p className="my-4 max-w-sm text-gray-600">{children}</p>;
 };
 
-UpgradeToTeamsBanner.Buttons = function Buttons({ children }: { children: React.ReactElement }) {
+UpgradeScreen.Buttons = function Buttons({ children }: { children: React.ReactElement }) {
   return (
     <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
       <ButtonGroup>{children}</ButtonGroup>

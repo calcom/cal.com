@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { UpgradeToTeamsBanner, TeamFeatures } from "@calcom/features/teams";
+import { UpgradeScreen, TeamFeatures } from "@calcom/features/teams";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -36,10 +36,10 @@ export function TeamsListing() {
 
       {teams.length === 0 && (
         <>
-          <UpgradeToTeamsBanner>
-            <UpgradeToTeamsBanner.Title>{t("calcom_is_better_with_team")}</UpgradeToTeamsBanner.Title>
-            <UpgradeToTeamsBanner.Description>{t("add_your_team_members")}</UpgradeToTeamsBanner.Description>
-            <UpgradeToTeamsBanner.Buttons>
+          <UpgradeScreen>
+            <UpgradeScreen.Title>{t("calcom_is_better_with_team")}</UpgradeScreen.Title>
+            <UpgradeScreen.Description>{t("add_your_team_members")}</UpgradeScreen.Description>
+            <UpgradeScreen.Buttons>
               <>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("create_team")}
@@ -48,8 +48,8 @@ export function TeamsListing() {
                   {t("learn_more")}
                 </Button>
               </>
-            </UpgradeToTeamsBanner.Buttons>
-          </UpgradeToTeamsBanner>
+            </UpgradeScreen.Buttons>
+          </UpgradeScreen>
           <div className="mt-4">
             <TeamFeatures />
           </div>
