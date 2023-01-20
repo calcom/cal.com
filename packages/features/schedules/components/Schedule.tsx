@@ -102,9 +102,12 @@ const CopyButton = ({
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          className={classNames(
+            "text-gray-700",
+            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+          )}
           type="button"
-          tooltip={t("duplicate")}
+          tooltip={t("copy_times_to_tooltip")}
           color="minimal"
           variant="icon"
           StartIcon={Icon.FiCopy}
@@ -181,7 +184,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className=" text-gray-400"
+                className="mx-2 text-gray-700 "
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -193,7 +196,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
           </div>
         </Fragment>
       ))}

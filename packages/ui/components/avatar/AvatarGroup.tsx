@@ -20,7 +20,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   const truncateAfter = props.truncateAfter || 4;
 
   return (
-    <ul className={classNames(props.className, "flex items-center")}>
+    <ul className={classNames("flex items-center", props.className)}>
       {avatars.map((item, enumerator) => {
         if (item.image != null) {
           if (LENGTH > truncateAfter && enumerator === truncateAfter - 1) {
