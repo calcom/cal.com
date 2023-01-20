@@ -68,10 +68,11 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
+  disableOverflow?: boolean;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, type = "creation", ...props }, forwardedRef) => {
+  ({ children, title, Icon, disableOverflow, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -87,7 +88,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[95vh] overflow-auto",
+            "max-h-[95vh]",
+            disableOverflow ? "overflow-visible" : "overflow-auto",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
