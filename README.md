@@ -411,17 +411,6 @@ following
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
-### Obtaining Vital API Keys
-
-1. Open [Vital](https://tryvital.io/) and click Get API Keys.
-1. Create a team with the team name you desire
-1. Head to the configuration section on the sidebar of the dashboard
-1. Click on API keys and you'll find your sandbox `api_key`.
-1. Copy your `api_key` to `VITAL_API_KEY` in the .env.appStore file.
-1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
-1. Select all events for the webhook you interested, e.g. `sleep_created`
-1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
-
 ## Workflows
 
 ### Setting up SendGrid for Email reminders
