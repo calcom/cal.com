@@ -65,12 +65,10 @@ const getAvailability = ({
       return dates;
     }, {} as Record<string, { start: Dayjs; end: Dayjs }[]>);
 
-  console.log(workingDates, dateOverrides);
-
   return Object.values({
     ...workingDates,
     ...dateOverrides,
-  });
+  }).flat();
 };
 
 export default getAvailability;

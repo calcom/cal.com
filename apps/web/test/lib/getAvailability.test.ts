@@ -33,16 +33,14 @@ describe("Tests getAvailability", () => {
         dateTo: new Date("2021-06-21T23:59:59Z"),
       })
     ).toStrictEqual([
-      [
-        {
-          end: dayjs("2021-06-21T16:00:00.000Z").tz("Europe/London"),
-          start: dayjs("2021-06-21T08:00:00.000Z").tz("Europe/London"),
-        },
-      ],
+      {
+        end: dayjs("2021-06-21T16:00:00.000Z").tz("Europe/London"),
+        start: dayjs("2021-06-21T08:00:00.000Z").tz("Europe/London"),
+      },
     ]);
   });
 
-  it("can apply date overrides", () => {
+  it("can override with date override", () => {
     expect(
       getAvailability({
         timeZone: "Europe/London",
@@ -62,12 +60,41 @@ describe("Tests getAvailability", () => {
         dateTo: new Date("2021-06-21T23:59:59Z"),
       })
     ).toStrictEqual([
-      [
-        {
-          end: dayjs("2021-06-21T14:00:00.000Z").tz("Europe/London"),
-          start: dayjs("2021-06-21T11:00:00.000Z").tz("Europe/London"),
-        },
-      ],
+      {
+        end: dayjs("2021-06-21T14:00:00.000Z").tz("Europe/London"),
+        start: dayjs("2021-06-21T11:00:00.000Z").tz("Europe/London"),
+      },
+    ]);
+  });
+
+  it("can add an additional day with date override", () => {
+    expect(
+      getAvailability({
+        timeZone: "Europe/London",
+        availability: [
+          {
+            days: [1],
+            startTime: new Date("1970-01-01T09:00:00Z"),
+            endTime: new Date("1970-01-01T17:00:00Z"),
+          },
+          {
+            date: new Date("2021-06-22T00:00:00Z"),
+            startTime: new Date("1970-01-01T09:00:00Z"),
+            endTime: new Date("1970-01-01T17:00:00Z"),
+          },
+        ],
+        dateFrom: new Date("2021-06-21T00:00:00Z"),
+        dateTo: new Date("2021-06-25T23:59:59Z"),
+      })
+    ).toStrictEqual([
+      {
+        end: dayjs("2021-06-21T16:00:00.000Z").tz("Europe/London"),
+        start: dayjs("2021-06-21T08:00:00.000Z").tz("Europe/London"),
+      },
+      {
+        end: dayjs("2021-06-22T16:00:00.000Z").tz("Europe/London"),
+        start: dayjs("2021-06-22T08:00:00.000Z").tz("Europe/London"),
+      },
     ]);
   });
 
