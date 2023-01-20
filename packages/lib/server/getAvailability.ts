@@ -1,12 +1,5 @@
 import dayjs, { Dayjs } from "@calcom/dayjs";
 
-import { getWorkingHours } from "../availability";
-
-type RequireOnlyOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
-  }[Keys];
-
 const getAvailability = ({
   timeZone,
   availability,
@@ -14,10 +7,7 @@ const getAvailability = ({
   dateTo,
 }: {
   timeZone: string;
-  availability: RequireOnlyOne<
-    { startTime: Date; endTime: Date; date?: Date; days?: number[] },
-    "date" | "days"
-  >[];
+  availability: { startTime: Date; endTime: Date; date: Date | null; days: number[] }[];
   dateTo: Date;
   dateFrom: Date;
 }) => {

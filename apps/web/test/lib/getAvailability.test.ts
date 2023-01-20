@@ -27,6 +27,7 @@ describe("Tests getAvailability", () => {
             days: [1],
             startTime: new Date("1970-01-01T09:00:00Z"),
             endTime: new Date("1970-01-01T17:00:00Z"),
+            date: null,
           },
         ],
         dateFrom: new Date("2021-06-21T00:00:00Z"),
@@ -49,11 +50,13 @@ describe("Tests getAvailability", () => {
             days: [1],
             startTime: new Date("1970-01-01T09:00:00Z"),
             endTime: new Date("1970-01-01T17:00:00Z"),
+            date: null,
           },
           {
             date: new Date("2021-06-21T00:00:00Z"),
             startTime: new Date("1970-01-01T12:00:00Z"),
             endTime: new Date("1970-01-01T15:00:00Z"),
+            days: [],
           },
         ],
         dateFrom: new Date("2021-06-21T00:00:00Z"),
@@ -76,11 +79,13 @@ describe("Tests getAvailability", () => {
             days: [1],
             startTime: new Date("1970-01-01T09:00:00Z"),
             endTime: new Date("1970-01-01T17:00:00Z"),
+            date: null,
           },
           {
             date: new Date("2021-06-22T00:00:00Z"),
             startTime: new Date("1970-01-01T09:00:00Z"),
             endTime: new Date("1970-01-01T17:00:00Z"),
+            days: [],
           },
         ],
         dateFrom: new Date("2021-06-21T00:00:00Z"),
@@ -98,14 +103,21 @@ describe("Tests getAvailability", () => {
     ]);
   });
 
-  it("will exclude past times from availability", () => {
-    /*expect(
+  /*it("will exclude past times from availability", () => {
+    expect(
       getAvailability({
         timeZone: "Europe/London",
-        availability: [],
-        dateFrom: "2021-06-20T11:59:59Z",
-        dateTo: "2021-06-20T11:59:59Z",
+        availability: [
+          {
+            date: new Date("2021-06-19T00:00:00Z"),
+            startTime: new Date("1970-01-01T09:00:00Z"),
+            endTime: new Date("1970-01-01T17:00:00Z"),
+            days: [],
+          },
+        ],
+        dateFrom: new Date("2021-06-19T00:00:00Z"),
+        dateTo: new Date("2021-06-19T23:59:59Z"),
       })
-    );*/
-  });
+    ).toStrictEqual([]);
+  });*/
 });
