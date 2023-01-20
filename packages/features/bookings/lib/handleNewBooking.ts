@@ -24,7 +24,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -94,22 +94,17 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
 const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
-    workingHours,
+    availability,
   }: {
-    workingHours: WorkingHours[];
+    availability: { start: Dayjs; end: Dayjs }[];
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  for (const workingHour of workingHours) {
-    // TODO: Double check & possibly fix timezone conversions.
-    const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
-    const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
+  for (const block of availability) {
     if (
-      workingHour.days.includes(timeSlotStart.day()) &&
-      // UTC mode, should be performant.
-      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
-      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
+      timeSlotStart.isBetween(block.start, block.end, null, "[)") &&
+      timeSlotEnd.isBetween(block.start, block.end, null, "(]")
     ) {
       return true;
     }
@@ -237,7 +232,7 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const { busy: bufferedBusyTimes, availability } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -251,7 +246,7 @@ async function ensureAvailableUsers(
       !isWithinAvailableHours(
         { start: input.dateFrom, end: input.dateTo },
         {
-          workingHours,
+          availability,
         }
       )
     ) {
