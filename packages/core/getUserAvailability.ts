@@ -7,6 +7,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { checkLimit } from "@calcom/lib/server";
+import getAvailability from "@calcom/lib/server/getAvailability";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
@@ -269,6 +270,12 @@ export async function getUserAvailability(
 
   return {
     busy: bufferedBusyTimes,
+    availability: getAvailability({
+      timeZone,
+      availability,
+      dateFrom: dateFrom.toDate(),
+      dateTo: dateTo.toDate(),
+    }),
     timeZone,
     workingHours,
     dateOverrides,

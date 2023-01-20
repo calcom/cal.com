@@ -9,7 +9,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots from "@calcom/lib/slots";
+import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { EventBusyDate } from "@calcom/types/Calendar";
@@ -21,9 +21,15 @@ import { router, publicProcedure } from "../../trpc";
 const getScheduleSchema = z
   .object({
     // startTime ISOString
-    startTime: z.string(),
+    startTime: z
+      .string()
+      .datetime()
+      .transform((dateString) => new Date(dateString)),
     // endTime ISOString
-    endTime: z.string(),
+    endTime: z
+      .string()
+      .datetime()
+      .transform((dateString) => new Date(dateString)),
     // Event type ID
     eventTypeId: z.number().int().optional(),
     // Event type slug
@@ -223,16 +229,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const startTime =
-    input.timeZone === "Etc/GMT"
-      ? dayjs.utc(input.startTime)
-      : dayjs(input.startTime).utc().tz(input.timeZone);
-  const endTime =
-    input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
-
-  if (!startTime.isValid() || !endTime.isValid()) {
-    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-  }
   let currentSeats: CurrentSeats | undefined = undefined;
 
   let users = eventType.users.map((user) => ({
@@ -248,16 +244,15 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     users.map(async (currentUser) => {
       const {
         busy,
-        workingHours,
-        dateOverrides,
+        availability,
         currentSeats: _currentSeats,
         timeZone,
       } = await getUserAvailability(
         {
           userId: currentUser.id,
           username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
+          dateFrom: input.startTime.toISOString(),
+          dateTo: input.endTime.toISOString(),
           eventTypeId: input.eventTypeId,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
@@ -268,18 +263,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
       return {
         timeZone,
-        workingHours,
-        dateOverrides,
+        availability,
         busy,
         user: currentUser,
       };
     })
   );
-  // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
-  );
-  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
+
   const availabilityCheckProps = {
     eventLength: eventType.length,
     currentSeats,
@@ -299,25 +289,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
 
-  const timeSlots: ReturnType<typeof getTimeSlots> = [];
+  const timeSlots = getSlots({
+    eventLength: input.duration || eventType.length,
+    availability: userAvailability.map((item) => item.availability).flat(),
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+  });
 
-  for (
-    let currentCheckedTime = startTime;
-    currentCheckedTime.isBefore(endTime);
-    currentCheckedTime = currentCheckedTime.add(1, "day")
-  ) {
-    // get slots retrieves the available times for a given day
-    timeSlots.push(
-      ...getTimeSlots({
-        inviteeDate: currentCheckedTime,
-        eventLength: input.duration || eventType.length,
-        workingHours,
-        dateOverrides,
-        minimumBookingNotice: eventType.minimumBookingNotice,
-        frequency: eventType.slotInterval || input.duration || eventType.length,
-      })
-    );
-  }
+  console.log(userAvailability);
 
   let availableTimeSlots: typeof timeSlots = [];
   availableTimeSlots = timeSlots.filter((slot) => {
@@ -358,7 +336,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       .filter((slot) => !!slot.userIds?.length);
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  // availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
