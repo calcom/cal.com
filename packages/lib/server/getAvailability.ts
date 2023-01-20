@@ -19,7 +19,7 @@ const getAvailability = ({
   dateFrom,
   dateTo,
 }: {
-  timeZone: string;
+  timeZone?: string;
   availability: { startTime: Date; endTime: Date; date: Date | null; days: number[] }[];
   dateTo: Date;
   dateFrom: Date;
@@ -32,16 +32,18 @@ const getAvailability = ({
         date.isBefore(dayjs.utc(dateTo.toISOString()));
         date = date.add(1, "day")
       ) {
-        const startDate = date
-          .tz(timeZone, true)
-          .add(block.startTime.getUTCHours() * 60 + block.startTime.getUTCMinutes(), "minutes");
+        const startDate = (timeZone ? date.tz(timeZone, true) : date).add(
+          block.startTime.getUTCHours() * 60 + block.startTime.getUTCMinutes(),
+          "minutes"
+        );
         if (block.days?.includes(startDate.day())) {
           dates[startDate.format("YYYY-MM-DD")] = dates[startDate.format("YYYY-MM-DD")] ?? [];
           dates[startDate.format("YYYY-MM-DD")].push({
             start: startDate,
-            end: date
-              .tz(timeZone, true)
-              .add(block.endTime.getUTCHours() * 60 + block.endTime.getUTCMinutes(), "minutes"),
+            end: (timeZone ? date.tz(timeZone, true) : date).add(
+              block.endTime.getUTCHours() * 60 + block.endTime.getUTCMinutes(),
+              "minutes"
+            ),
           });
         }
       }
@@ -51,16 +53,14 @@ const getAvailability = ({
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
     .reduce((dates, override) => {
-      const start = dayjs
-        .tz(override.date, timeZone)
+      const start = (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
         .hour(override.startTime.getUTCHours())
         .minute(override.startTime.getUTCMinutes());
 
       dates[start.format("YYYY-MM-DD")] = dates[start.format("YYYY-MM-DD")] ?? [];
       dates[start.format("YYYY-MM-DD")].push({
         start,
-        end: dayjs
-          .tz(override.date, timeZone)
+        end: (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
           .hour(override.endTime.getUTCHours())
           .minute(override.endTime.getUTCMinutes()),
       });

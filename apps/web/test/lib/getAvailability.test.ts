@@ -106,7 +106,6 @@ describe("Tests getAvailability", () => {
   it("can merge consecutive date blocks", () => {
     expect(
       getAvailability({
-        timeZone: "Europe/Amsterdam",
         availability: [
           {
             days: [1],
@@ -126,8 +125,8 @@ describe("Tests getAvailability", () => {
       })
     ).toStrictEqual([
       {
-        start: dayjs("2021-06-21T20:00:00.000Z").tz("Europe/Amsterdam"),
-        end: dayjs("2021-06-21T23:00:00.000Z").tz("Europe/Amsterdam"),
+        start: dayjs.utc("2021-06-21T22:00:00.000Z"),
+        end: dayjs.utc("2021-06-22T01:00:00.000Z"),
       },
     ]);
   });
