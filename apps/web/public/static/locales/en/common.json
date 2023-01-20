@@ -660,6 +660,7 @@
   "edit_availability": "Edit availability",
   "configure_availability": "Configure times when you are available for bookings.",
   "copy_times_to": "Copy times to",
+  "copy_times_to_tooltip": "Copy times to …",
   "change_weekly_schedule": "Change your weekly schedule",
   "logo": "Logo",
   "error": "Error",
