@@ -75,7 +75,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            className={classNames("mt-0", props.addOnLeading && "rounded-l-none", className)}
             {...passThrough}
             ref={ref}
           />

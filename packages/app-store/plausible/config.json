@@ -11,6 +11,16 @@
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "extendsFeature": "EventType",
+  "tag": {
+    "scripts": [
+      {
+        "src": "https://plausible.io/js/script.js",
+        "attrs": {
+          "data-domain": "{TRACKED_DOMAIN}"
+        }
+      }
+    ]
+  },
   "description": "Simple, privacy-friendly Google Analytics alternative.",
   "__createdUsingCli": true
 }

@@ -766,7 +766,7 @@ export function ShellMain(props: LayoutProps) {
       <div className="mb-6 flex sm:mt-0 lg:mb-10">
         {!!props.backPath && (
           <Button
-            size="icon"
+            variant="icon"
             color="minimal"
             onClick={() =>
               typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()

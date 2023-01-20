@@ -80,3 +80,9 @@ apps/storybook/build-storybook.log
 # Snaplet
 .snaplet/snapshots
 .snaplet/structure.d.ts
+
+# Submodules
+.gitmodules
+apps/api
+apps/website
+apps/console

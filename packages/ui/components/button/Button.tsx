@@ -36,6 +36,11 @@ const buttonClasses = cva(
   "inline-flex items-center text-sm font-medium relative rounded-md transition-colors",
   {
     variants: {
+      variant: {
+        button: "",
+        icon: "flex justify-center",
+        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
+      },
       color: {
         primary: "text-white dark:text-black",
         secondary: "text-gray-900 dark:text-darkgray-900",
@@ -46,10 +51,6 @@ const buttonClasses = cva(
         sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
-        icon: "flex justify-center min-h-[36px] min-w-[36px] ",
-        // fab = floating action button, used for the main action in a page.
-        // it uses the same primary classNames for desktop size
-        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       loading: {
         true: "cursor-wait",
@@ -133,8 +134,20 @@ const buttonClasses = cva(
         className:
           "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
       }),
+      // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
+      {
+        variant: "icon",
+        size: "base",
+        className: "min-h-[36px] min-w-[36px] !p-2",
+      },
+      {
+        variant: "icon",
+        size: "sm",
+        className: "h-6 w-6 !p-1",
+      },
     ],
     defaultVariants: {
+      variant: "button",
       color: "primary",
       size: "base",
     },
@@ -149,6 +162,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     loading = false,
     color = "primary",
     size,
+    variant = "button",
     type = "button",
     StartIcon,
     EndIcon,
@@ -169,7 +183,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       type: !isLink ? type : undefined,
       ref: forwardedRef,
       className: classNames(
-        buttonClasses({ color, size, loading, disabled: props.disabled }),
+        buttonClasses({ color, size, loading, disabled: props.disabled, variant }),
         props.className
       ),
       // if we click a disabled button, we prevent going through the click handler
@@ -182,7 +196,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     <>
       {StartIcon && (
         <>
-          {size === "fab" ? (
+          {variant === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
               <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
@@ -190,14 +204,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           ) : (
             <StartIcon
               className={classNames(
-                "inline-flex",
-                size === "icon" ? "h-4 w-4 " : "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+                variant === "icon" && "h-4 w-4",
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
               )}
             />
           )}
         </>
       )}
-      {size === "fab" ? <span className="hidden sm:inline">{props.children}</span> : props.children}
+      {variant === "fab" ? <span className="hidden sm:inline">{props.children}</span> : props.children}
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
@@ -216,13 +230,19 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       )}
       {EndIcon && (
         <>
-          {size === "fab" ? (
+          {variant === "fab" ? (
             <>
               <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
               <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
-            <EndIcon className="inline h-5 w-5 ltr:-mr-1 ltr:ml-2 rtl:mr-2" />
+            <EndIcon
+              className={classNames(
+                "inline-flex",
+                variant === "icon" && "h-4 w-4",
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+              )}
+            />
           )}
         </>
       )}
