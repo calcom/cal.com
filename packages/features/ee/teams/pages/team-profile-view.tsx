@@ -277,7 +277,7 @@ const ProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="border-1 my-8 border-gray-200" />
+          <hr className="my-8 border border-gray-200" />
 
           <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {team?.membership.role === "OWNER" ? (

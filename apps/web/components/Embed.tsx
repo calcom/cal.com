@@ -597,7 +597,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[100vh] border"
+          className="h-[100vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
