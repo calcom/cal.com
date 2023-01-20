@@ -86,7 +86,3 @@ apps/storybook/build-storybook.log
 apps/api
 apps/website
 apps/console
-/apps/api
-/apps/console
-/apps/website
-/.gitmodules
