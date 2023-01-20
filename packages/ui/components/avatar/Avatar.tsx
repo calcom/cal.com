@@ -1,5 +1,6 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
@@ -13,6 +14,7 @@ export type AvatarProps = {
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
+  href?: string;
   gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
@@ -28,14 +30,14 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
+  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
   const sizeClassname = sizesPropsBySize[size];
   const rootClass = classNames("rounded-full aspect-square ", sizeClassname);
-  const avatar = (
+  let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
         sizeClassname,
-        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full"
+        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square cursor-pointer justify-center overflow-hidden rounded-full"
       )}>
       <>
         <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
@@ -61,6 +63,10 @@ export function Avatar(props: AvatarProps) {
       </>
     </AvatarPrimitive.Root>
   );
+
+  if (href) {
+    avatar = <Link href={href}>{avatar}</Link>;
+  }
 
   return title ? (
     <Tooltip.Provider>
