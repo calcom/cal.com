@@ -162,7 +162,7 @@ export const EventSetupTab = (
                 return null;
               }
               return (
-                <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
+                <li key={location.type} className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
                   <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img

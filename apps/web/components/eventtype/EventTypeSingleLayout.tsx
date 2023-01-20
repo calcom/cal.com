@@ -208,7 +208,7 @@ function EventTypeSingleLayout({
               <Button
                 color="secondary"
                 target="_blank"
-                size="icon"
+                variant="icon"
                 href={permalink}
                 rel="noreferrer"
                 StartIcon={Icon.FiExternalLink}
@@ -217,7 +217,7 @@ function EventTypeSingleLayout({
 
             <Button
               color="secondary"
-              size="icon"
+              variant="icon"
               StartIcon={Icon.FiLink}
               tooltip={t("copy_link")}
               onClick={() => {
@@ -229,12 +229,12 @@ function EventTypeSingleLayout({
               embedUrl={encodeURIComponent(embedLink)}
               StartIcon={Icon.FiCode}
               color="secondary"
-              size="icon"
+              variant="icon"
               tooltip={t("embed")}
             />
             <Button
               color="secondary"
-              size="icon"
+              variant="icon"
               StartIcon={Icon.FiTrash}
               tooltip={t("delete")}
               disabled={!hasPermsToDelete}
@@ -324,7 +324,7 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "mt-4 rounded-md  border-neutral-200 bg-white sm:mx-0 xl:mt-0",
+                "mt-4 rounded-md  border-gray-200 bg-white sm:mx-0 xl:mt-0",
                 disableBorder ? "border-0 xl:-mt-4 " : "p-2 md:border md:p-6"
               )}>
               {children}

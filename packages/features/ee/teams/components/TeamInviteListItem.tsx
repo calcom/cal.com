@@ -90,7 +90,7 @@ export default function TeamInviteListItem(props: Props) {
               <Button
                 type="button"
                 className="mr-3 border-gray-700"
-                size="icon"
+                variant="icon"
                 color="secondary"
                 onClick={declineInvite}
                 StartIcon={Icon.FiSlash}
@@ -98,7 +98,7 @@ export default function TeamInviteListItem(props: Props) {
               <Button
                 type="button"
                 className="border-gray-700"
-                size="icon"
+                variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
                 StartIcon={Icon.FiCheck}
@@ -107,7 +107,7 @@ export default function TeamInviteListItem(props: Props) {
             <div className="block sm:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                  <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>

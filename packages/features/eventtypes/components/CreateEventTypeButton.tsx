@@ -286,7 +286,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={Icon.FiPlus}
-          size="fab"
+          variant="fab"
           disabled={!props.canAddEvents}>
           {t("new")}
         </Button>
@@ -295,7 +295,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               EndIcon={Icon.FiChevronDown}
-              size="fab"
+              variant="fab"
               className="radix-state-open:!bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2 focus:border-none">
               {t("new")}
             </Button>

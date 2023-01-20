@@ -65,7 +65,7 @@ export {
   AppSkeletonLoader,
   SkeletonLoader,
   Slider,
-  TrendingAppsSlider,
+  PopularAppsSlider,
   useShouldShowArrows,
   AppStoreCategories,
 } from "./components/apps";

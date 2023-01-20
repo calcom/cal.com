@@ -29,7 +29,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
       {...linkProps}
       className={classNames(
         isCurrent ? "bg-gray-200 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[4px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
