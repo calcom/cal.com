@@ -58,15 +58,16 @@ const o365Auth = async (credential: CredentialPayload) => {
 
   const isValid = async () => {
     const resultString = await fetch("https://graph.microsoft.com/v1.0/me", {
-      method: "POST",
+      method: "GET",
       headers: {
         Authorization: "Bearer " + o365AuthCredentials.access_token,
         "Content-Type": "application/json",
       },
-      // body: JSON.stringify(translateEvent(event)),
     }).then(handleErrorsRaw);
+    console.log("🚀 ~ file: VideoApiAdapter.ts:68 ~ isValid ~ resultString", resultString);
 
     const resultObject = JSON.parse(resultString);
+    console.log("🚀 ~ file: VideoApiAdapter.ts:70 ~ isValid ~ resultObject", resultObject);
 
     if (resultObject.error) {
       return false;
@@ -112,9 +113,9 @@ const o365Auth = async (credential: CredentialPayload) => {
   };
 
   return {
-    getToken: () =>
+    getToken: async () =>
       // !isExpired(o365AuthCredentials.expiry_date)
-      !isValid()
+      (await isValid())
         ? Promise.resolve(o365AuthCredentials.access_token)
         : refreshAccessToken(o365AuthCredentials.refresh_token),
   };
