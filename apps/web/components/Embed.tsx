@@ -597,7 +597,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[100vh] border"
+          className="h-[100vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
@@ -639,7 +639,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100 ltr:mr-2 rtl:ml-2"
+            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-gray-100 ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {

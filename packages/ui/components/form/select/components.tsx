@@ -147,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-1 !rounded-md border-gray-900 bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !rounded-md border border-gray-900 bg-white text-sm leading-4 dark:text-white",
       className
     )}
   />
