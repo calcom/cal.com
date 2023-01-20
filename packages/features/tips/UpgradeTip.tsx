@@ -38,7 +38,7 @@ export function UpgradeTip({
   if (!isCalcom)
     return <EmptyScreen Icon={Icon.FiUsers} headline={title} description={description} buttonRaw={buttons} />;
 
-  if (isParentLoading) return isParentLoading;
+  if (isParentLoading) return <>isParentLoading</>;
 
   return (
     <>
