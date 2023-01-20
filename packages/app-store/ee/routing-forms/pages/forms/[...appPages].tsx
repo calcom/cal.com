@@ -44,12 +44,12 @@ export default function RoutingForms({
 
   const features = [
     {
-      icon: <Icon.FiFileText className="h-5 w-5 text-red-500" />,
+      icon: <Icon.FiFileText className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <Icon.FiShuffle className="h-5 w-5 text-green-500" />,
+      icon: <Icon.FiShuffle className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
@@ -59,17 +59,17 @@ export default function RoutingForms({
       description: t("reporting_feature"),
     },
     {
-      icon: <Icon.FiCheckCircle className="h-5 w-5 text-orange-500" />,
+      icon: <Icon.FiCheckCircle className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <Icon.FiMail className="h-5 w-5 text-purple-500" />,
+      icon: <Icon.FiMail className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <Icon.FiDownload className="h-5 w-5 text-indigo-500" />,
+      icon: <Icon.FiDownload className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },
