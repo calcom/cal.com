@@ -56,6 +56,25 @@ const o365Auth = async (credential: CredentialPayload) => {
 
   const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
 
+  const isValid = async () => {
+    const resultString = await fetch("https://graph.microsoft.com/v1.0/me", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + o365AuthCredentials.access_token,
+        "Content-Type": "application/json",
+      },
+      // body: JSON.stringify(translateEvent(event)),
+    }).then(handleErrorsRaw);
+
+    const resultObject = JSON.parse(resultString);
+
+    if (resultObject.error) {
+      return false;
+    }
+
+    return true;
+  };
+
   const refreshAccessToken = async (refreshToken: string) => {
     const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
       method: "POST",
@@ -69,9 +88,10 @@ const o365Auth = async (credential: CredentialPayload) => {
     });
 
     const responseBody = await handleErrorsJson<ITokenResponse>(response);
+
     if (responseBody?.error) {
       console.error(responseBody);
-      throw new HttpError({ statusCode: 500, message: "Error contacting MS Teams" });
+      throw new HttpError({ statusCode: 500, message: `Error contacting MS Teams: ${responseBody.error}` });
     }
     // set expiry date as offset from current time.
     responseBody.expiry_date = Math.round(Date.now() + (responseBody?.expires_in || 0) * 1000);
@@ -93,7 +113,8 @@ const o365Auth = async (credential: CredentialPayload) => {
 
   return {
     getToken: () =>
-      !isExpired(o365AuthCredentials.expiry_date)
+      // !isExpired(o365AuthCredentials.expiry_date)
+      !isValid()
         ? Promise.resolve(o365AuthCredentials.access_token)
         : refreshAccessToken(o365AuthCredentials.refresh_token),
   };
