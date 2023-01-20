@@ -10,7 +10,7 @@ export const UpgradeTeamsBadge = function UpgradeTeamsBadge() {
   const { t } = useLocale();
   const hasTeamPlan = useHasTeamPlan();
 
-  if (hasTeamPlan) return <></>;
+  if (hasTeamPlan) return null;
 
   return (
     <Tooltip content={t("upgrade_to_enable_feature")}>
