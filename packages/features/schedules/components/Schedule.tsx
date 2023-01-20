@@ -107,7 +107,7 @@ const CopyButton = ({
             open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
           )}
           type="button"
-          tooltip={`${t("copy_times_to")}...`}
+          tooltip={t("copy_times_to...")}
           color="minimal"
           variant="icon"
           StartIcon={Icon.FiCopy}
