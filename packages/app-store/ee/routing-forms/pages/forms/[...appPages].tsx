@@ -96,7 +96,7 @@ export default function RoutingForms({
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
         features={features}
-        background="/routing-form-banner-background.svg"
+        background="/routing-form-banner-background.jpg"
         isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
