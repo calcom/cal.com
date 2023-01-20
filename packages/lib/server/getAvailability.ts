@@ -11,7 +11,6 @@ const getAvailability = ({
   dateTo: Date;
   dateFrom: Date;
 }) => {
-  // TODO evaluate if this can be done smarter
   const workingDates = availability
     .filter((value) => typeof value.days !== "undefined")
     .reduce((dates, block) => {
@@ -54,11 +53,13 @@ const getAvailability = ({
       });
       return dates;
     }, {} as Record<string, { start: Dayjs; end: Dayjs }[]>);
-
-  return Object.values({
+  // All records are keyed by date, this allows easy date overrides.
+  const mergeAvailability: Record<string, { start: Dayjs; end: Dayjs }[]> = {
     ...workingDates,
     ...dateOverrides,
-  }).flat();
+  };
+  // after merge, the keys are irrelevant so we get the values and flatten the two resulting arrays.
+  return Object.values(mergeAvailability).flat();
 };
 
 export default getAvailability;
