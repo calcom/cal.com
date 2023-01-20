@@ -305,6 +305,12 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
+<!-- RORADMAP -->
+
+## Repo Activity
+
+<img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
+
 <!-- CONTRIBUTING -->
 
 ## Contributing
