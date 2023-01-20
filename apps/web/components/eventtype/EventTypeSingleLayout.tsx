@@ -208,7 +208,7 @@ function EventTypeSingleLayout({
               <Button
                 color="secondary"
                 target="_blank"
-                size="icon"
+                variant="icon"
                 href={permalink}
                 rel="noreferrer"
                 StartIcon={Icon.FiExternalLink}
@@ -217,7 +217,7 @@ function EventTypeSingleLayout({
 
             <Button
               color="secondary"
-              size="icon"
+              variant="icon"
               StartIcon={Icon.FiLink}
               tooltip={t("copy_link")}
               onClick={() => {
@@ -229,12 +229,12 @@ function EventTypeSingleLayout({
               embedUrl={encodeURIComponent(embedLink)}
               StartIcon={Icon.FiCode}
               color="secondary"
-              size="icon"
+              variant="icon"
               tooltip={t("embed")}
             />
             <Button
               color="secondary"
-              size="icon"
+              variant="icon"
               StartIcon={Icon.FiTrash}
               tooltip={t("delete")}
               disabled={!hasPermsToDelete}

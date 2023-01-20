@@ -75,7 +75,7 @@ export default function WebhookListItem(props: {
         <Button
           color="destructive"
           StartIcon={Icon.FiTrash}
-          size="icon"
+          variant="icon"
           onClick={() => {
             // TODO: Confimation dialog before deleting
             deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });

@@ -73,7 +73,7 @@ export function ScheduleListItem({
         </div>
         <Dropdown>
           <DropdownMenuTrigger asChild className="mx-5">
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>

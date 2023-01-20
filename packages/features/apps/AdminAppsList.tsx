@@ -107,7 +107,7 @@ const IntegrationContainer = ({
                     <CollapsibleTrigger>
                       <Button
                         color="secondary"
-                        size="icon"
+                        variant="icon"
                         tooltip={t("edit_keys")}
                         onClick={() => setShowKeys(!showKeys)}>
                         <Icon.FiEdit />

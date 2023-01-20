@@ -164,7 +164,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Button
           data-testid="remove-member-button"
           StartIcon={Icon.FiTrash2}
-          size="icon"
+          variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"
           onClick={() => {
