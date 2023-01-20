@@ -919,7 +919,9 @@ const BookingPage = ({
                             {bookingForm.formState.errors.guests?.[index] && (
                               <div className="mt-2 flex items-center text-sm text-red-700 ">
                                 <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                                <p>{bookingForm.formState.errors.guests?.[index]?.message}</p>
+                                <p className="text-red-700">
+                                  {bookingForm.formState.errors.guests?.[index]?.message}
+                                </p>
                               </div>
                             )}
                           </li>
@@ -933,20 +935,6 @@ const BookingPage = ({
                         onClick={() => guestsField.append({ email: "" })}>
                         {t("add_another")}
                       </Button>
-
-                      {/* Custom code when guest emails should not be editable */}
-                      {/* {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                        <div data-tag className="react-multi-email"> */}
-                      {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                      {/* {guestListEmails.map((email, index) => {
-                            return (
-                              <div key={index} className="cursor-pointer">
-                                <span data-tag>{email}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        )} */}
                     </div>
                   </div>
                 ) : (
