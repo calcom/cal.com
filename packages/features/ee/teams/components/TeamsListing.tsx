@@ -21,7 +21,6 @@ export function TeamsListing() {
   });
 
   const teams = data?.filter((m) => m.accepted) || [];
-  const invites = data?.filter((m) => !m.accepted) || [];
 
   const features = [
     {
@@ -59,20 +58,13 @@ export function TeamsListing() {
   return (
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
-      {invites.length > 0 && (
-        <div className="mb-4">
-          <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
-          <TeamList teams={invites} />
-        </div>
-      )}
-
-      {isLoading && <SkeletonLoaderTeamList />}
 
       <UpgradeTip
         title="calcom_is_better_with_team"
         description="add_your_team_members"
         features={features}
         background="/team-banner-background.jpg"
+        isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
@@ -85,19 +77,7 @@ export function TeamsListing() {
             </ButtonGroup>
           </div>
         }>
-        <>
-          <EmptyScreen
-            Icon={Icon.FiUsers}
-            headline={t("no_teams")}
-            description={t("no_teams_description")}
-            buttonRaw={
-              <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                {t("create_team")}
-              </Button>
-            }
-          />
-          {teams.length > 0 && <TeamList teams={teams} />}
-        </>
+        <TeamList teams={teams} />
       </UpgradeTip>
     </>
   );
