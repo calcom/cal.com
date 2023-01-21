@@ -29,7 +29,7 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">{children}</div>
       </section>
-      <hr className="border-neutral-200" />
+      <hr className="border-gray-200" />
     </>
   );
 };
