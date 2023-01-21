@@ -430,7 +430,6 @@
   "password_hint_num": "Contain at least 1 number",
   "invalid_password_hint": "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
-  "1_on_1": "1-on-1",
   "24_h": "24h",
   "use_setting": "Use setting",
   "am_pm": "am/pm",
