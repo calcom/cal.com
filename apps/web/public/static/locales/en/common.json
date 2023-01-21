@@ -1465,6 +1465,7 @@
   "individual":"Individual",
   "all_bookings_filter_label":"All Bookings",
   "all_users_filter_label":"All Users",
+  "your_bookings_filter_label":"Your Bookings",
   "meeting_url_variable": "Meeting url",
   "meeting_url_info": "The event meeting conference url",
   "date_overrides": "Date overrides",
