@@ -32,16 +32,19 @@ const sizesPropsBySize = {
 
 export function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
-  const sizeClassname = sizesPropsBySize[size];
-  const rootClass = classNames("rounded-full aspect-square", sizeClassname);
+  const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        sizeClassname,
-        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full"
+        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
+        props.className
       )}>
       <>
-        <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
+        <AvatarPrimitive.Image
+          src={imageSrc ?? undefined}
+          alt={alt}
+          className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+        />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
           <>
             {props.fallback && !gravatarFallbackMd5 && props.fallback}
