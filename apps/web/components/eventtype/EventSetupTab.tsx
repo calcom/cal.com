@@ -26,17 +26,12 @@ const getLocationFromType = (
   type: EventLocationType["type"],
   locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
 ) => {
-  let option = undefined;
-
-  for (let i = 0; i < locationOptions.length; ++i) {
-    const options = locationOptions[i].options;
-    const checkIfOptionExist = options.find((option) => option.value === type);
-    if (checkIfOptionExist) {
-      option = checkIfOptionExist;
+  for (const locationOption of locationOptions) {
+    const option = locationOption.options.find((option) => option.value === type);
+    if (option) {
       return option;
     }
   }
-  return option;
 };
 
 export const EventSetupTab = (
