@@ -23,6 +23,7 @@
   "rejection_reason_description": "Are you sure you want to reject the booking? We'll let the person who tried to book know. You can provide a reason below.",
   "rejection_confirmation": "Reject the booking",
   "manage_this_event": "Manage this event",
+  "invite_team_member": "Invite team member",
   "your_event_has_been_scheduled": "Your event has been scheduled",
   "your_event_has_been_scheduled_recurring": "Your recurring event has been scheduled",
   "accept_our_license": "Accept our license by changing the .env variable <1>NEXT_PUBLIC_LICENSE_CONSENT</1> to '{{agree}}'.",
