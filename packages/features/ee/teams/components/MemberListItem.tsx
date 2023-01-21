@@ -149,13 +149,11 @@ export default function MemberListItem(props: Props) {
               </Tooltip>
               {editMode && (
                 <Dropdown>
-                  <DropdownMenuTrigger
-                    asChild
-                    className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                  <DropdownMenuTrigger asChild>
                     <Button
+                      className="radix-state-open:rounded-r-md"
                       color="secondary"
                       variant="icon"
-                      className="rounded-r-md"
                       StartIcon={Icon.FiMoreHorizontal}
                     />
                   </DropdownMenuTrigger>
