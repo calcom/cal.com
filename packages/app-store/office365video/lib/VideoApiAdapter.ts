@@ -52,29 +52,9 @@ const o365Auth = async (credential: CredentialPayload) => {
   if (!client_id) throw new HttpError({ statusCode: 400, message: "MS teams client_id missing." });
   if (!client_secret) throw new HttpError({ statusCode: 400, message: "MS teams client_secret missing." });
 
-  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+  const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date());
 
   const o365AuthCredentials = credential.key as unknown as O365AuthCredentials;
-
-  const isValid = async () => {
-    const resultString = await fetch("https://graph.microsoft.com/v1.0/me", {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + o365AuthCredentials.access_token,
-        "Content-Type": "application/json",
-      },
-    }).then(handleErrorsRaw);
-    console.log("🚀 ~ file: VideoApiAdapter.ts:68 ~ isValid ~ resultString", resultString);
-
-    const resultObject = JSON.parse(resultString);
-    console.log("🚀 ~ file: VideoApiAdapter.ts:70 ~ isValid ~ resultObject", resultObject);
-
-    if (resultObject.error) {
-      return false;
-    }
-
-    return true;
-  };
 
   const refreshAccessToken = async (refreshToken: string) => {
     const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
@@ -114,10 +94,9 @@ const o365Auth = async (credential: CredentialPayload) => {
 
   return {
     getToken: async () =>
-      // !isExpired(o365AuthCredentials.expiry_date)
-      (await isValid())
-        ? Promise.resolve(o365AuthCredentials.access_token)
-        : refreshAccessToken(o365AuthCredentials.refresh_token),
+      isExpired(o365AuthCredentials.expiry_date)
+        ? refreshAccessToken(o365AuthCredentials.refresh_token)
+        : Promise.resolve(o365AuthCredentials.access_token),
   };
 };
 
