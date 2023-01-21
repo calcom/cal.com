@@ -25,7 +25,7 @@ for module in "$@"; do
     git reset
   else
     # If the module is the API, display a link to request access
-    if [ "$module" == "api" ]; then
+    if [ "$module" = "api" ]; then
       echo "You don't have access to: '${module}' module. You can request access in: https://console.cal.com"
     else
       # If the module is not the API, display normal message
