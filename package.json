@@ -84,7 +84,7 @@
     "turbo": "^1.4.3"
   },
   "resolutions": {
-    "@apidevtools/json-schema-ref-parser": "9.0.9",
+    "@apidevtools/json-schema-ref-parser": "9.1.0",
     "@types/node": "16.9.1",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6"
