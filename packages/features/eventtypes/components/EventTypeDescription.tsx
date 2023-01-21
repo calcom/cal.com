@@ -57,7 +57,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           )}
           {eventType.schedulingType && (
             <li>
-              <Badge variant="gray" size="lg" StartIcon={Icon.FiUser}>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiUsers}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
