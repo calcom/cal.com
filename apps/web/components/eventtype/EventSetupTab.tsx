@@ -17,11 +17,21 @@ import { Button, Icon, Label, Select, SettingsToggle, Skeleton, TextField } from
 import { slugify } from "@lib/slugify";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import LocationSelect, {
+  SingleValueLocationOption,
+  LocationOption,
+} from "@components/ui/form/LocationSelect";
 
-type OptionTypeBase = {
-  label: string;
-  value: EventLocationType["type"];
-  disabled?: boolean;
+const getLocationFromType = (
+  type: EventLocationType["type"],
+  locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
+) => {
+  for (const locationOption of locationOptions) {
+    const option = locationOption.options.find((option) => option.value === type);
+    if (option) {
+      return option;
+    }
+  }
 };
 
 export const EventSetupTab = (
@@ -32,7 +42,7 @@ export const EventSetupTab = (
   const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
 
   const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
@@ -51,7 +61,8 @@ export const EventSetupTab = (
   );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
-    setSelectedLocation(locationOptions.find((option) => option.value === type));
+    const option = getLocationFromType(type, locationOptions);
+    setSelectedLocation(option);
     setShowLocationModal(true);
   };
 
@@ -131,14 +142,14 @@ export const EventSetupTab = (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
-            <Select
+            <LocationSelect
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              onChange={(e) => {
+              onChange={(e: SingleValueLocationOption) => {
                 if (e?.value) {
-                  const newLocationType: EventLocationType["type"] = e.value;
+                  const newLocationType = e.value;
                   const eventLocationType = getEventLocationType(newLocationType);
                   if (!eventLocationType) {
                     return;
@@ -362,7 +373,9 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
+          selectedLocation
+            ? { value: selectedLocation.value, label: t(selectedLocation.label), icon: selectedLocation.icon }
+            : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}
