@@ -26,12 +26,10 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { Icon, HeadSeo, AvatarGroup, Avatar } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
-
-import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -132,7 +130,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
+              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
