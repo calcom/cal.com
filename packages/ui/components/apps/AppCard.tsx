@@ -72,6 +72,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         }}>
         {app.description}
       </p>
+
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -142,6 +143,10 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
             {t("installed", { count: appAdded })}
           </span>
         )}
+        {app.isTemplate && (
+          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
+        )}
+
         {app.isGlobal && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}

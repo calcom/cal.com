@@ -64,7 +64,7 @@
   "someone_requested_an_event": "Someone has requested to schedule an event on your calendar.",
   "someone_requested_password_reset": "Someone has requested a link to change your password.",
   "password_reset_instructions": "If you didn't request this, you can safely ignore this email and your password will not be changed.",
-  "event_awaiting_approval_subject": "Awaiting Approval: {{eventType}} at {{date}}",
+  "event_awaiting_approval_subject": "Awaiting Approval: {{title}} at {{date}}",
   "event_still_awaiting_approval": "An event is still waiting for your approval",
   "booking_submitted_subject": "Booking Submitted: {{title}} at {{date}}",
   "your_meeting_has_been_booked": "Your meeting has been booked",
@@ -660,6 +660,7 @@
   "edit_availability": "Edit availability",
   "configure_availability": "Configure times when you are available for bookings.",
   "copy_times_to": "Copy times to",
+  "copy_times_to_tooltip": "Copy times to …",
   "change_weekly_schedule": "Change your weekly schedule",
   "logo": "Logo",
   "error": "Error",
@@ -789,6 +790,7 @@
   "number_apps_one": "{{count}} App",
   "number_apps_other": "{{count}} Apps",
   "trending_apps": "Trending Apps",
+  "most_popular":"Most Popular",
   "explore_apps": "{{category}} apps",
   "installed_apps": "Installed Apps",
   "free_to_use_apps": "Free",
@@ -1510,5 +1512,6 @@
   "continue_to_install_google_calendar": "Continue to install Google Calendar",
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
+  "sender_name": "Sender name",
   "no_recordings_found": "No recordings found"
 }

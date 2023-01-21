@@ -14,7 +14,7 @@ import {
   HorizontalTabs,
   Icon,
   TextField,
-  TrendingAppsSlider,
+  PopularAppsSlider,
 } from "@calcom/ui";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
@@ -77,7 +77,7 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
         {!searchText && (
           <>
             <AppStoreCategories categories={categories} />
-            <TrendingAppsSlider items={appStore} />
+            <PopularAppsSlider items={appStore} />
           </>
         )}
         <AllApps

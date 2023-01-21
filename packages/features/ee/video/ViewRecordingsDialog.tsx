@@ -109,7 +109,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
         <DialogHeader title={t("recordings_title")} subtitle={subtitle} />
         <LicenseRequired>
           <>
-            {isLoading && isLoadingHasTeamPlan && <RecordingListSkeleton />}
+            {(isLoading || isLoadingHasTeamPlan) && <RecordingListSkeleton />}
             {recordings && "data" in recordings && recordings?.data?.length > 0 && (
               <div className="flex flex-col gap-3">
                 {recordings.data.map((recording: RecordingItemSchema, index: number) => {

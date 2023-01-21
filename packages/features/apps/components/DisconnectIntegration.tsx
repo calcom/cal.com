@@ -55,7 +55,8 @@ export default function DisconnectIntegration({
           <Button
             color={buttonProps?.color || "destructive"}
             StartIcon={trashIcon ? Icon.FiTrash : undefined}
-            size={trashIcon && !label ? "icon" : "base"}
+            size="base"
+            variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal}
             {...buttonProps}>
             {label && label}
