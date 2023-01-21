@@ -219,7 +219,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           onClick={() => setShowChangeMemberRoleModal(true)}
                           StartIcon={Icon.FiEdit2}>
-                          {t("edit") as string}
+                          {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
@@ -228,7 +228,7 @@ export default function MemberListItem(props: Props) {
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
                           StartIcon={Icon.FiTrash}>
-                          {t("edit") as string}
+                          {t("delete")}
                         </DropdownItem>
                       </DropdownMenuItem>
                     </>
