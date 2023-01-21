@@ -131,7 +131,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 h-6 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
+              "mb-0 mt-0 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
