@@ -36,7 +36,7 @@ export const UserAvatars = ({
           href?: string;
         }[]
       }
-      size="sm"
+      size={users.length <= 1 ? "lg" : "sm"}
       truncateAfter={props.truncateAfter}
     />
   );
