@@ -39,7 +39,7 @@ const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
+        fab: "rounded-full justify-center sm:rounded-md  radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
         primary: "text-white dark:text-black",
@@ -144,6 +144,11 @@ const buttonClasses = cva(
         variant: "icon",
         size: "sm",
         className: "h-6 w-6 !p-1",
+      },
+      {
+        variant: "fab",
+        size: "base",
+        className: "h-14 sm:h-9 sm:w-auto sm:px-4 sm:py-2.5",
       },
     ],
     defaultVariants: {
