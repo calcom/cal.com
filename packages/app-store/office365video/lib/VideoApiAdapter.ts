@@ -93,7 +93,7 @@ const o365Auth = async (credential: CredentialPayload) => {
   };
 
   return {
-    getToken: async () =>
+    getToken: () =>
       isExpired(o365AuthCredentials.expiry_date)
         ? refreshAccessToken(o365AuthCredentials.refresh_token)
         : Promise.resolve(o365AuthCredentials.access_token),
