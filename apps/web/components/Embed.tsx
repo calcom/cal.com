@@ -597,7 +597,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[100vh] border"
+          className="h-[100vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
@@ -639,7 +639,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100 ltr:mr-2 rtl:ml-2"
+            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-gray-100 ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -676,7 +676,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
-  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -720,7 +720,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const calLink = decodeURIComponent(embedUrl);
 
-  const addToPalette = (update: typeof previewState["palette"]) => {
+  const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -1061,7 +1061,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             defaultValue="#000000"
                             onChange={(color) => {
                               addToPalette({
-                                [palette.name as keyof typeof previewState["palette"]]: color,
+                                [palette.name as keyof (typeof previewState)["palette"]]: color,
                               });
                             }}
                           />
@@ -1163,7 +1163,7 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:inline-flex");
+  className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
     goto(router, {
       dialog: "embed",

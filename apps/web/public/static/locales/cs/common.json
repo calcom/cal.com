@@ -426,7 +426,6 @@
   "password_hint_num": "Obsahuje alespoň 1 číslo",
   "invalid_password_hint": "Heslo musí být minimálně 7 znaků dlouhé, obsahovat alespoň jedno číslo a obsahovat kombinaci velkých a malých písmen",
   "incorrect_password": "Heslo není správné.",
-  "1_on_1": "Jeden na jednoho",
   "24_h": "24h",
   "use_setting": "Použít nastavení",
   "am_pm": "am/pm",

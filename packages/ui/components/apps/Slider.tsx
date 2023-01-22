@@ -56,11 +56,11 @@ export const Slider = <T extends string | unknown>({
         `}
       </style>
       <div className="glide" ref={glide}>
-        <div className="flex cursor-default pb-3">
+        <div className="flex cursor-default items-center pb-3">
           {isLocaleReady ? (
             title && (
               <div>
-                <h2 className="mt-0 mb-2 text-base font-semibold leading-none text-gray-900">{title}</h2>
+                <h2 className="mt-0 text-base font-semibold leading-none text-gray-900">{title}</h2>
               </div>
             )
           ) : (

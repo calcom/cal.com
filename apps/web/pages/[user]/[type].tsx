@@ -24,7 +24,7 @@ export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
 
   return props.away ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -128,7 +128,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: (typeof user.eventTypes[number] & {
+  const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {

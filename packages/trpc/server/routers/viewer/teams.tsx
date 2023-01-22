@@ -661,6 +661,7 @@ export const viewerTeamsRouter = router({
               user: {
                 id: ctx.user.id,
               },
+              accepted: true,
             },
           },
         },
@@ -678,7 +679,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
+      type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)

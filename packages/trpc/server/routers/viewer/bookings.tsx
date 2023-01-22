@@ -239,7 +239,9 @@ export const bookingsRouter = router({
                   members: {
                     some: {
                       userId: user.id,
-                      role: "OWNER",
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },
@@ -315,7 +317,7 @@ export const bookingsRouter = router({
 
       const recurringInfo = recurringInfoBasic.map(
         (
-          info: typeof recurringInfoBasic[number]
+          info: (typeof recurringInfoBasic)[number]
         ): {
           recurringEventId: string | null;
           count: number;

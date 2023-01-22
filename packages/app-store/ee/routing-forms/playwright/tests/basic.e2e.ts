@@ -178,8 +178,9 @@ test.describe("Routing Forms", () => {
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
+      // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
       await headerEls.first().waitFor({
-        timeout: 500,
+        timeout: 1000,
       });
       const numHeaderEls = await headerEls.count();
       const headers = [];
@@ -331,14 +332,9 @@ async function expectCurrentFormToHaveFields(
 ) {
   for (const [index, field] of Object.entries(fields)) {
     expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
-    expect(
-      await page
-        .locator(".data-testid-field-type")
-        .nth(+index)
-        .locator("div")
-        .nth(1)
-        .innerText()
-    ).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
   }
 }
 

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
+import { Badge, Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 
@@ -19,6 +19,7 @@ function IntegrationListItem(props: {
   destination?: boolean;
   separate?: boolean;
   invalidCredential?: boolean;
+  isTemplate?: boolean;
 }): JSX.Element {
   const { t } = useLocale();
   const router = useRouter();
@@ -50,8 +51,13 @@ function IntegrationListItem(props: {
       <div className={classNames("flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse")}>
         {props.logo && <img className="h-11 w-11" src={props.logo} alt={title} />}
         <div className="flex-grow truncate pl-2">
-          <ListItemTitle component="h3">
+          <ListItemTitle component="h3" className="flex ">
             <Link href={"/apps/" + props.slug}>{props.name || title}</Link>
+            {props.isTemplate && (
+              <Badge variant="red" className="ml-4">
+                Template
+              </Badge>
+            )}
           </ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
           {/* Alert error that key stopped working. */}

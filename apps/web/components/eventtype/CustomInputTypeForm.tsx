@@ -183,7 +183,7 @@ function RadioInputHandler({
                 {...register(`options.${index}.label` as const, { required: true })}
                 addOnSuffix={
                   <Button
-                    size="icon"
+                    variant="icon"
                     color="minimal"
                     StartIcon={Icon.FiX}
                     onClick={() => {
