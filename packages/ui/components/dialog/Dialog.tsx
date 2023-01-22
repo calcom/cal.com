@@ -53,12 +53,7 @@ export function Dialog(props: DialogProps) {
     }
   }
 
-  return (
-    <DialogPrimitive.Root {...dialogProps}>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity" />
-      {children}
-    </DialogPrimitive.Root>
-  );
+  return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
@@ -75,7 +70,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
   ({ children, title, Icon, disableOverflow, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 bg-gray-500 bg-opacity-80 transition-opacity" />
         <DialogPrimitive.Content
           {...props}
           className={classNames(
