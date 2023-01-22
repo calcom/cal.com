@@ -13,6 +13,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
   showToast,
@@ -142,7 +143,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                           <Button
                             type="button"
                             color="secondary"
-                            size="icon"
+                            variant="icon"
                             StartIcon={Icon.FiEdit2}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
@@ -154,7 +155,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               setwWorkflowToDeleteId(workflow.id);
                             }}
                             color="secondary"
-                            size="icon"
+                            variant="icon"
                             StartIcon={Icon.FiTrash2}
                           />
                         </Tooltip>
@@ -166,30 +167,30 @@ export default function WorkflowListPage({ workflows }: Props) {
                           <Button
                             type="button"
                             color="minimal"
-                            size="icon"
+                            variant="icon"
                             StartIcon={Icon.FiMoreHorizontal}
                           />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
-                            <Button
+                            <DropdownItem
                               type="button"
-                              color="minimal"
                               StartIcon={Icon.FiEdit2}
                               onClick={async () => await router.replace("/workflows/" + workflow.id)}>
                               {t("edit")}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <Button
+                            <DropdownItem
+                              type="button"
+                              color="destructive"
+                              StartIcon={Icon.FiTrash2}
                               onClick={() => {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
-                              }}
-                              color="minimal"
-                              StartIcon={Icon.FiTrash2}>
+                              }}>
                               {t("delete")}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </Dropdown>

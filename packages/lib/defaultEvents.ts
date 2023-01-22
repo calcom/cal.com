@@ -82,8 +82,10 @@ const commons = {
   bookingLimits: null,
   hidden: false,
   userId: 0,
+  owner: null,
   workflows: [],
   users: [user],
+  hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
 };
 

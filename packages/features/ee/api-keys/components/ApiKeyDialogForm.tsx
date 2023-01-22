@@ -9,7 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Icon,
-  DatePickerField as DatePicker,
+  DatePicker,
   DialogFooter,
   Form,
   showToast,

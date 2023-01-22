@@ -6,6 +6,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
   ButtonBaseProps,
@@ -44,7 +45,7 @@ export const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <Button type="button" color="secondary" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
@@ -53,16 +54,15 @@ export const DropdownActions = ({
         <DropdownMenuContent>
           {actions.map((action) => (
             <DropdownMenuItem key={action.id}>
-              <Button
+              <DropdownItem
                 type="button"
-                color={action.color || "minimal"}
-                className="w-full rounded-none font-normal"
-                href={action.href}
+                color={action.color}
+                data-testid={action.id}
                 StartIcon={action.icon}
-                onClick={action.onClick || defaultAction}
-                data-testid={action.id}>
+                href={action.href}
+                onClick={action.onClick || defaultAction}>
                 {action.label}
-              </Button>
+              </DropdownItem>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>

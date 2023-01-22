@@ -36,7 +36,7 @@ export default function RoutingForms({
   function NewFormButton() {
     return (
       <FormAction
-        size="fab"
+        variant="fab"
         routingForm={null}
         data-testid="new-routing-form"
         StartIcon={Icon.FiPlus}
@@ -88,7 +88,7 @@ export default function RoutingForms({
                                   target="_blank"
                                   StartIcon={Icon.FiExternalLink}
                                   color="secondary"
-                                  size="icon"
+                                  variant="icon"
                                   disabled={disabled}
                                 />
                               </Tooltip>
@@ -96,7 +96,7 @@ export default function RoutingForms({
                                 routingForm={form}
                                 action="copyLink"
                                 color="secondary"
-                                size="icon"
+                                variant="icon"
                                 StartIcon={Icon.FiLink}
                                 disabled={disabled}
                                 tooltip={t("copy_link_to_form")}
@@ -144,7 +144,7 @@ export default function RoutingForms({
                                     {t("Copy Typeform Redirect Url")}
                                   </FormAction>
                                 ) : null}
-                                <DropdownMenuSeparator className="h-px bg-gray-200" />
+                                <DropdownMenuSeparator />
                                 <FormAction
                                   action="_delete"
                                   routingForm={form}

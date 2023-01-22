@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, Icon, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -30,7 +30,13 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
 };
 
-const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormValues; teamId: number }) => {
+export const AddNewTeamMembersForm = ({
+  defaultValues,
+  teamId,
+}: {
+  defaultValues: FormValues;
+  teamId: number;
+}) => {
   const { t, i18n } = useLocale();
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const utils = trpc.useContext();
@@ -156,7 +162,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           {member.username ? (
             <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal")}</p>
+            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>
@@ -164,7 +170,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Button
           data-testid="remove-member-button"
           StartIcon={Icon.FiTrash2}
-          size="icon"
+          variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"
           onClick={() => {

@@ -9,6 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  required-checks:
+    uses: calcom/cal.com/.github/workflows/required-checks.yml@main
   synchronize-with-crowdin:
     runs-on: ubuntu-latest
 
@@ -21,7 +23,7 @@ jobs:
         with:
           upload_translations: true
           download_translations: true
-          pull_request_labels: '♻️ autoupdate, automerge'
+          pull_request_labels: "♻️ autoupdate, automerge"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}

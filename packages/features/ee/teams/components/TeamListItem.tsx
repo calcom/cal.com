@@ -1,7 +1,9 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
+import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,9 +38,20 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
+  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
+  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      setOpenMemberInvitationModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
@@ -82,6 +95,22 @@ export default function TeamListItem(props: Props) {
 
   return (
     <li className="divide-y">
+      <MemberInvitationModal
+        isOpen={openMemberInvitationModal}
+        onExit={() => {
+          setOpenMemberInvitationModal(false);
+        }}
+        onSubmit={(values) => {
+          inviteMemberMutation.mutate({
+            teamId: team.id,
+            language: i18n.language,
+            role: values.role,
+            usernameOrEmail: values.emailOrUsername,
+            sendEmailInvitation: values.sendInviteEmail,
+          });
+        }}
+        members={teamQuery?.data?.members || []}
+      />
       <div
         className={classNames(
           "flex items-center  justify-between",
@@ -115,26 +144,22 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <Button
-                        color="minimal"
-                        className="w-full rounded-none font-medium"
-                        StartIcon={Icon.FiCheck}
-                        onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
                         {t("accept")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Button
+                      <DropdownItem
                         color="destructive"
-                        className="w-full rounded-none font-medium"
+                        type="button"
                         StartIcon={Icon.FiX}
                         onClick={declineInvite}>
                         {t("reject")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
@@ -154,14 +179,20 @@ export default function TeamListItem(props: Props) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      size="icon"
+                      variant="icon"
                       StartIcon={Icon.FiLink}
                     />
                   </Tooltip>
                 )}
                 <Dropdown>
-                  <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
-                    <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="radix-state-open:rounded-r-md"
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon={Icon.FiMoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
                     {isAdmin && (
@@ -186,20 +217,30 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => {
+                          setOpenMemberInvitationModal(true);
+                        }}
+                        StartIcon={Icon.FiSend}>
+                        {t("invite_team_member") as string}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
                         <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                           <DialogTrigger asChild>
-                            <Button
+                            <DropdownItem
+                              color="destructive"
+                              type="button"
+                              StartIcon={Icon.FiTrash}
                               onClick={(e) => {
                                 e.stopPropagation();
-                              }}
-                              color="destructive"
-                              className="rounded-none px-3 font-normal"
-                              StartIcon={Icon.FiTrash}>
+                              }}>
                               {t("disband_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"

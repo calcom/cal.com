@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import {
   components as reactSelectComponents,
   ControlProps,
@@ -13,11 +12,9 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../../components/icon";
-import { Badge } from "../../badge";
-import { Tooltip } from "../../tooltip";
+import { UpgradeTeamsBadge } from "../../badge";
 
 export const InputComponent = <
   Option,
@@ -53,9 +50,6 @@ export const OptionComponent = <
   className,
   ...props
 }: OptionProps<Option, IsMulti, Group>) => {
-  const { t } = useLocale();
-  const router = useRouter();
-
   return (
     <reactSelectComponents.Option
       {...props}
@@ -67,13 +61,7 @@ export const OptionComponent = <
       )}>
       <>
         <span className="mr-auto">{props.label}</span>
-        {(props.data as unknown as ExtendedOption).needsUpgrade && (
-          <Tooltip content={t("upgrade_to_enable_feature")}>
-            <button type="button" onClick={() => router.replace("/teams")}>
-              <Badge variant="gray">{t("upgrade")}</Badge>
-            </button>
-          </Tooltip>
-        )}
+        {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
         {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
       </>
     </reactSelectComponents.Option>
@@ -159,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-1 !rounded-md border-gray-900 bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !rounded-md border border-gray-900 bg-white text-sm leading-4 dark:text-white",
       className
     )}
   />

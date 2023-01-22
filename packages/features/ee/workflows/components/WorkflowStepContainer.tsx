@@ -11,6 +11,7 @@ import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -25,6 +26,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   EmailField,
   Icon,
@@ -36,12 +38,12 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
-  Tooltip,
+  Input,
 } from "@calcom/ui";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
-import { translateVariablesToEnglish } from "../lib/variableTranslations";
+import { isSMSAction } from "../lib/isSMSAction";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -294,11 +296,19 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div>
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                      <Button
+                        type="button"
+                        color="minimal"
+                        variant="icon"
+                        StartIcon={Icon.FiMoreHorizontal}
+                      />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
-                        <Button
+                        <DropdownItem
+                          type="button"
+                          StartIcon={Icon.FiTrash2}
+                          color="destructive"
                           onClick={() => {
                             const steps = form.getValues("steps");
                             const updatedSteps = steps
@@ -314,13 +324,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (setReload) {
                               setReload(!reload);
                             }
-                          }}
-                          color="secondary"
-                          size="base"
-                          StartIcon={Icon.FiTrash2}
-                          className="w-full rounded-none">
+                          }}>
                           {t("delete")}
-                        </Button>
+                        </DropdownItem>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </Dropdown>
@@ -340,28 +346,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
-                            const wasSMSAction =
-                              oldValue === WorkflowActions.SMS_ATTENDEE ||
-                              oldValue === WorkflowActions.SMS_NUMBER;
-                            const isSMSAction =
-                              val.value === WorkflowActions.SMS_ATTENDEE ||
-                              val.value === WorkflowActions.SMS_NUMBER;
 
-                            if (isSMSAction) {
+                            if (isSMSAction(val.value)) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
                               setNumberVerified(false);
-                              if (!wasSMSAction) {
+                              if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
 
-                              if (wasSMSAction) {
+                              if (isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
                               }
                             }
 
@@ -468,25 +470,38 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                     </>
                   )}
-                  {isSenderIdNeeded && (
-                    <>
-                      <div className="pt-4">
-                        <TextField
-                          label={t("sender_id")}
-                          type="text"
-                          placeholder={SENDER_ID}
-                          maxLength={11}
-                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                        />
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                        )}
-                    </>
-                  )}
                 </div>
               )}
+              <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
+                {isSenderIdNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_id")}</Label>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
               {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
                 <div className="mt-2">
                   <Controller
