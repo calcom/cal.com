@@ -2,9 +2,8 @@ import React from "react";
 import { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { Icon, Avatar } from "@calcom/ui";
 
-import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";
 
 type CheckedSelectOption = {
@@ -43,7 +42,8 @@ export const CheckedSelect = ({
       {value.map((option) => (
         <div key={option.value} className="border p-2 font-medium">
           <Avatar
-            className="inline h-6 w-6 rounded-full ltr:mr-2 rtl:ml-2"
+            className="inline ltr:mr-2 rtl:ml-2"
+            size="sm"
             imageSrc={option.avatar}
             alt={option.label}
           />

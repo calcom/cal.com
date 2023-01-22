@@ -16,7 +16,11 @@ export const EventTypeAppCard = (props: {
   return (
     <ErrorBoundary message={`There is some problem with ${app.name} App`}>
       <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
-        <DynamicComponent slug={app.slug} componentMap={EventTypeAddonMap} {...props} />
+        <DynamicComponent
+          slug={app.slug === "stripe" ? "stripepayment" : app.slug}
+          componentMap={EventTypeAddonMap}
+          {...props}
+        />
       </EventTypeAppContext.Provider>
     </ErrorBoundary>
   );

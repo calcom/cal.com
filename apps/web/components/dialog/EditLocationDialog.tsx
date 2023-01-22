@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { components } from "react-select";
 import { z } from "zod";
 
 import {
@@ -14,32 +13,25 @@ import {
   LocationObject,
   LocationType,
 } from "@calcom/app-store/locations";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, Icon, PhoneInput } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, Icon, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
-import Select from "@components/ui/form/Select";
+import LocationSelect, { LocationOption } from "@components/ui/form/LocationSelect";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
-type OptionTypeBase = {
-  label: string;
-  value: EventLocationType["type"];
-  disabled?: boolean;
-};
-
 interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
-  selection?: OptionTypeBase;
+  selection?: LocationOption;
   booking?: BookingItem;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
-  setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
+  setSelectedLocation?: (param: LocationOption | undefined) => void;
   setEditingLocationType?: (param: string) => void;
 }
 
@@ -211,7 +203,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   })();
 
   return (
-    <Dialog open={isOpenDialog}>
+    <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
       <DialogContent disableOverflow>
         <div className="flex flex-row space-x-3">
           <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
@@ -296,38 +288,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       name="locationType"
                       control={locationFormMethods.control}
                       render={() => (
-                        <Select<{ label: string; value: string; icon?: string }>
+                        <LocationSelect
                           maxMenuHeight={300}
                           name="location"
                           defaultValue={selection}
                           options={locationOptions}
-                          components={{
-                            Option: (props) => (
-                              <components.Option {...props}>
-                                <div className="flex items-center gap-3">
-                                  {props.data.icon && (
-                                    <img src={props.data.icon} alt="cover" className="h-3.5 w-3.5" />
-                                  )}
-                                  <span
-                                    className={classNames(
-                                      "text-sm font-medium",
-                                      props.isSelected ? "text-white" : "text-gray-900"
-                                    )}>
-                                    {props.data.label}
-                                  </span>
-                                </div>
-                              </components.Option>
-                            ),
-                          }}
-                          formatOptionLabel={(e) => (
-                            <div className="flex items-center gap-3">
-                              {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
-                              <span>{e.label}</span>
-                            </div>
-                          )}
-                          formatGroupLabel={(e) => (
-                            <p className="text-xs font-medium text-gray-600">{e.label}</p>
-                          )}
                           isSearchable
                           className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
                           onChange={(val) => {

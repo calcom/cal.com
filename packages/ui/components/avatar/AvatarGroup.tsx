@@ -8,6 +8,7 @@ export type AvatarGroupProps = {
     image: string;
     title?: string;
     alt?: string;
+    href?: string;
   }[];
   className?: string;
   accepted?: boolean;
@@ -51,6 +52,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
                 alt={item.alt || ""}
                 accepted={props.accepted}
                 size={props.size}
+                href={item.href}
               />
             </li>
           );
