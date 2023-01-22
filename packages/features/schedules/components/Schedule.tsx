@@ -270,6 +270,7 @@ const LazySelect = ({
   return (
     <Select
       options={options}
+      menuPlacement="bottom"
       onMenuOpen={() => {
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
