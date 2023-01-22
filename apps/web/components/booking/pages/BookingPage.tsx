@@ -492,7 +492,7 @@ const BookingPage = ({
         <div
           className={classNames(
             "main overflow-hidden",
-            isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-100 bg-white",
+            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
@@ -954,19 +954,14 @@ const BookingPage = ({
                     <Button
                       type="button"
                       color="minimal"
-                      size="icon"
+                      variant="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}
                       className="mr-auto"
                     />
                   )}
-                  <Button
-                    color="minimal"
-                    type="button"
-                    onClick={() => router.back()}
-                    // We override this for this component only for now - as we don't support darkmode everywhere in the app
-                    className="dark:hover:bg-darkgray-200 dark:border-none dark:text-white">
+                  <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button

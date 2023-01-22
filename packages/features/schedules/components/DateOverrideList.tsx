@@ -75,7 +75,7 @@ const DateOverrideList = ({
                     tooltip={t("edit")}
                     className="text-gray-700"
                     color="minimal"
-                    size="icon"
+                    variant="icon"
                     StartIcon={Icon.FiEdit2}
                   />
                 </DialogTrigger>
@@ -85,7 +85,7 @@ const DateOverrideList = ({
               <Button
                 className="text-gray-700"
                 color="destructive"
-                size="icon"
+                variant="icon"
                 StartIcon={Icon.FiTrash2}
                 onClick={() => remove(index)}
               />

@@ -2,8 +2,7 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 
-import { Badge, BadgeProps } from "..";
-import { Icon } from "../..";
+import { Icon, Badge, BadgeProps } from "../..";
 import { Divider } from "../divider";
 
 type Action = { check: () => boolean; fn: () => void };

@@ -72,8 +72,14 @@ export function ScheduleListItem({
           </Link>
         </div>
         <Dropdown>
-          <DropdownMenuTrigger asChild className="mx-5">
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="mx-5"
+              type="button"
+              variant="icon"
+              color="secondary"
+              StartIcon={Icon.FiMoreHorizontal}
+            />
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>
@@ -95,6 +101,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
+                  StartIcon={Icon.FiTrash}
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,

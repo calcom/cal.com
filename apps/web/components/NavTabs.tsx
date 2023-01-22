@@ -67,7 +67,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   onClick={onClick}
                   className={classNames(
                     isCurrent
-                      ? "border-neutral-900 text-gray-900"
+                      ? "border-gray-900 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
                     "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium",
                     className
