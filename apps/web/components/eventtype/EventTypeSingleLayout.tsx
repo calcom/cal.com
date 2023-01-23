@@ -245,8 +245,13 @@ function EventTypeSingleLayout({
           <VerticalDivider className="hidden lg:block" />
 
           <Dropdown>
-            <DropdownMenuTrigger className="block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 lg:hidden">
-              <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="lg:hidden"
+                StartIcon={Icon.FiMoreHorizontal}
+                variant="icon"
+                color="secondary"
+              />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="focus:ring-gray-100">

@@ -185,8 +185,9 @@ export default function TeamListItem(props: Props) {
                   </Tooltip>
                 )}
                 <Dropdown>
-                  <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
+                  <DropdownMenuTrigger asChild>
                     <Button
+                      className="radix-state-open:rounded-r-md"
                       type="button"
                       color="secondary"
                       variant="icon"
