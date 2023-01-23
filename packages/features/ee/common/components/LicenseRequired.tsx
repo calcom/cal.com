@@ -9,7 +9,8 @@ import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { FiAlertTriangle } from "@calcom/ui/components/icon";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -35,7 +36,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         children
       ) : (
         <EmptyScreen
-          Icon={Icon.FiAlertTriangle}
+          Icon={FiAlertTriangle}
           headline={t("enterprise_license")}
           description={
             <div

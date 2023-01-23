@@ -2,7 +2,8 @@ import React from "react";
 import { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui";
+import { FiX } from "@calcom/ui/components/icon";
 
 import Select from "@components/ui/form/Select";
 
@@ -48,7 +49,7 @@ export const CheckedSelect = ({
             alt={option.label}
           />
           {option.label}
-          <Icon.FiX
+          <FiX
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
             className="float-right mt-0.5 h-5 w-5 cursor-pointer text-gray-500"
           />

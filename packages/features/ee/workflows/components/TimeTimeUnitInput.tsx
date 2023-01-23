@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
   TextField,
 } from "@calcom/ui";
 

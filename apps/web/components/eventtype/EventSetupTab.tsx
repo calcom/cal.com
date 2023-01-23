@@ -12,7 +12,8 @@ import { z } from "zod";
 import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { slugify } from "@lib/slugify";
 
@@ -198,10 +199,10 @@ export const EventSetupTab = (
                         }}
                         aria-label={t("edit")}
                         className="mr-1 p-1 text-gray-500 hover:text-gray-900">
-                        <Icon.FiEdit2 className="h-4 w-4" />
+                        <FiEdit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <Icon.FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                        <FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                       </button>
                     </div>
                   </div>
@@ -210,7 +211,7 @@ export const EventSetupTab = (
             })}
             {validLocations.some((location) => location.type === MeetLocationType) && (
               <div className="flex text-sm text-gray-600">
-                <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
@@ -227,7 +228,7 @@ export const EventSetupTab = (
             )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>

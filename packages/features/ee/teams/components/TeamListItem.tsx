@@ -21,10 +21,20 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import {
+  FiMoreHorizontal,
+  FiCheck,
+  FiX,
+  FiLink,
+  FiEdit2,
+  FiExternalLink,
+  FiTrash,
+  FiLogOut,
+  FiGlobe,
+} from "@calcom/ui/components/icon";
 
 import { TeamRole } from "./TeamPill";
 
@@ -144,20 +154,16 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon={FiCheck} onClick={acceptInvite}>
                         {t("accept")}
                       </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <DropdownItem
-                        color="destructive"
-                        type="button"
-                        StartIcon={Icon.FiX}
-                        onClick={declineInvite}>
+                      <DropdownItem color="destructive" type="button" StartIcon={FiX} onClick={declineInvite}>
                         {t("reject")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -180,7 +186,7 @@ export default function TeamListItem(props: Props) {
                         showToast(t("link_copied"), "success");
                       }}
                       variant="icon"
-                      StartIcon={Icon.FiLink}
+                      StartIcon={FiLink}
                     />
                   </Tooltip>
                 )}
@@ -191,7 +197,7 @@ export default function TeamListItem(props: Props) {
                       type="button"
                       color="secondary"
                       variant="icon"
-                      StartIcon={Icon.FiMoreHorizontal}
+                      StartIcon={FiMoreHorizontal}
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
@@ -200,7 +206,7 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           href={"/settings/teams/" + team.id + "/profile"}
-                          StartIcon={Icon.FiEdit2}>
+                          StartIcon={FiEdit2}>
                           {t("edit_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -212,7 +218,7 @@ export default function TeamListItem(props: Props) {
                           type="button"
                           target="_blank"
                           href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
-                          StartIcon={Icon.FiExternalLink}>
+                          StartIcon={FiExternalLink}>
                           {t("preview_team") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -235,7 +241,7 @@ export default function TeamListItem(props: Props) {
                             <DropdownItem
                               color="destructive"
                               type="button"
-                              StartIcon={Icon.FiTrash}
+                              StartIcon={FiTrash}
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
@@ -264,7 +270,7 @@ export default function TeamListItem(props: Props) {
                               type="button"
                               color="destructive"
                               size="lg"
-                              StartIcon={Icon.FiLogOut}
+                              StartIcon={FiLogOut}
                               className="w-full rounded-none"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -312,7 +318,7 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
         onClick={() => {
           publishTeamMutation.mutate({ teamId });
         }}
-        StartIcon={Icon.FiGlobe}>
+        StartIcon={FiGlobe}>
         {t("team_publish")}
       </DropdownItem>
     </DropdownMenuItem>

@@ -12,10 +12,10 @@ import {
   AppStoreCategories,
   HorizontalTabItemProps,
   HorizontalTabs,
-  Icon,
   TextField,
   PopularAppsSlider,
 } from "@calcom/ui";
+import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -42,7 +42,7 @@ function AppsSearch({
   return (
     <TextField
       className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
-      addOnLeading={<Icon.FiSearch className="h-4 w-4 text-gray-500" />}
+      addOnLeading={<FiSearch className="h-4 w-4 text-gray-500" />}
       addOnClassname="!border-gray-100"
       containerClassName={classNames("focus:!ring-offset-0", className)}
       type="search"

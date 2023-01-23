@@ -14,12 +14,11 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
   Checkbox,
-  ConfirmationDialogContent,
   Dialog,
   DialogClose,
   DialogContent,
@@ -29,7 +28,6 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
   EmailField,
-  Icon,
   Label,
   PhoneInput,
   Select,
@@ -40,6 +38,7 @@ import {
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
+import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle } from "@calcom/ui/components/icon";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -276,7 +275,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="my-3 flex justify-center">
-          <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+          <FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
           <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white p-7">
@@ -296,18 +295,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div>
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        color="minimal"
-                        variant="icon"
-                        StartIcon={Icon.FiMoreHorizontal}
-                      />
+                      <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          StartIcon={Icon.FiTrash2}
+                          StartIcon={FiTrash2}
                           color="destructive"
                           onClick={() => {
                             const steps = form.getValues("steps");
@@ -638,7 +632,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex text-sm text-gray-600">
-                        <Icon.FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>

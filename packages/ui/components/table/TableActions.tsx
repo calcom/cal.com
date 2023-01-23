@@ -10,8 +10,8 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
   ButtonBaseProps,
-  Icon,
 } from "@calcom/ui";
+import { FiChevronDown, FiMoreHorizontal } from "@calcom/ui/components/icon";
 
 export type ActionType = {
   id: string;
@@ -45,7 +45,7 @@ export const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="secondary" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <Button type="button" color="secondary" variant="icon" StartIcon={FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
@@ -84,7 +84,7 @@ export const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              {...(action?.actions ? { EndIcon: Icon.FiChevronDown } : null)}
+              {...(action?.actions ? { EndIcon: FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
               {action.label}

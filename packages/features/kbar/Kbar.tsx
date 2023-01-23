@@ -15,7 +15,8 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon, Tooltip } from "@calcom/ui";
+import { Tooltip } from "@calcom/ui";
+import { FiSearch, FiArrowUp, FiArrowDown, FiCornerDownLeft, FiCommand } from "@calcom/ui/components/icon";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -247,7 +248,7 @@ export const KBarContent = () => {
       <KBarPositioner>
         <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-md bg-white shadow-lg">
           <div className="flex items-center justify-center border-b">
-            <Icon.FiSearch className="mx-3 h-4 w-4 text-gray-500" />
+            <FiSearch className="mx-3 h-4 w-4 text-gray-500" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="w-full rounded-sm py-2.5 focus-visible:outline-none"
@@ -255,11 +256,11 @@ export const KBarContent = () => {
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
-            <Icon.FiArrowUp className="h-4 w-4" />
-            <Icon.FiArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <Icon.FiCornerDownLeft className="h-4 w-4" />
+            <FiArrowUp className="h-4 w-4" />
+            <FiArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+            <FiCornerDownLeft className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
-            {isMac ? <Icon.FiCommand className="h-3 w-3" /> : "CTRL"}
+            {isMac ? <FiCommand className="h-3 w-3" /> : "CTRL"}
             <span className="pr-1">+ K </span>
             <span className="pr-2">{t("close")}</span>
           </div>
@@ -279,7 +280,7 @@ export const KBarTrigger = () => {
           color="minimal"
           onClick={query.toggle}
           className="group flex rounded-md py-2 px-3 text-sm font-medium hover:bg-gray-100 lg:p-1 lg:hover:bg-gray-200 lg:hover:text-gray-900">
-          <Icon.FiSearch className="h-4 w-4 flex-shrink-0 text-inherit" />
+          <FiSearch className="h-4 w-4 flex-shrink-0 text-inherit" />
         </button>
       </Tooltip>
     </>

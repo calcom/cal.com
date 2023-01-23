@@ -7,7 +7,8 @@ import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Icon } from "@calcom/ui";
+import { Button, EmptyScreen } from "@calcom/ui";
+import { FiGrid } from "@calcom/ui/components/icon";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -60,7 +61,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         <div className="before:border-0">
           {!isLoading && !installedApps?.length ? (
             <EmptyScreen
-              Icon={Icon.FiGrid}
+              Icon={FiGrid}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
