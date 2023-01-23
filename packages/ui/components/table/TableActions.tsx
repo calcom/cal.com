@@ -45,7 +45,7 @@ export const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <Button type="button" color="secondary" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>

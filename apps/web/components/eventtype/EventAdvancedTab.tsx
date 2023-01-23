@@ -129,7 +129,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Button
               type="button"
               StartIcon={Icon.FiEdit}
-              size="icon"
+              variant="icon"
               color="minimal"
               className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}

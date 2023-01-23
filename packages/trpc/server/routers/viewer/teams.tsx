@@ -661,6 +661,7 @@ export const viewerTeamsRouter = router({
               user: {
                 id: ctx.user.id,
               },
+              accepted: true,
             },
           },
         },

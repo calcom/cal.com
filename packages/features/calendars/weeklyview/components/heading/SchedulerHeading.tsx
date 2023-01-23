@@ -30,7 +30,7 @@ export function SchedulerHeading() {
           {/* TODO: i18n label with correct view */}
           <Button
             StartIcon={Icon.FiChevronLeft}
-            size="icon"
+            variant="icon"
             color="secondary"
             aria-label="Previous Week"
             onClick={() => {
@@ -39,7 +39,7 @@ export function SchedulerHeading() {
           />
           <Button
             StartIcon={Icon.FiChevronRight}
-            size="icon"
+            variant="icon"
             color="secondary"
             aria-label="Next Week"
             onClick={() => {
