@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  Icon,
   MeetingTimeInTimezones,
   showToast,
   TextArea,
@@ -26,6 +25,7 @@ import {
   ActionType,
   TableActions,
 } from "@calcom/ui";
+import { FiCheck, FiClock, FiMapPin, FiRefreshCcw, FiSend, FiSlash, FiX } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -100,7 +100,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Icon.FiSlash,
+      icon: FiSlash,
       disabled: mutation.isLoading,
     },
     {
@@ -109,7 +109,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         bookingConfirm(true);
       },
-      icon: Icon.FiCheck,
+      icon: FiCheck,
       disabled: mutation.isLoading,
       color: "primary",
     },
@@ -135,7 +135,7 @@ function BookingListItem(booking: BookingItemProps) {
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }`,
-      icon: Icon.FiX,
+      icon: FiX,
     },
     {
       id: "edit_booking",
@@ -143,13 +143,13 @@ function BookingListItem(booking: BookingItemProps) {
       actions: [
         {
           id: "reschedule",
-          icon: Icon.FiClock,
+          icon: FiClock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}`,
         },
         {
           id: "reschedule_request",
-          icon: Icon.FiSend,
+          icon: FiSend,
           iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
           label: t("send_reschedule_request"),
           onClick: () => {
@@ -162,7 +162,7 @@ function BookingListItem(booking: BookingItemProps) {
           onClick: () => {
             setIsOpenLocationDialog(true);
           },
-          icon: Icon.FiMapPin,
+          icon: FiMapPin,
         },
       ],
     },
@@ -179,7 +179,7 @@ function BookingListItem(booking: BookingItemProps) {
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <Icon.FiSend className="-mt-[1px] w-4 rotate-45" />
+        <FiSend className="-mt-[1px] w-4 rotate-45" />
         <p className="ml-2 ">{t("reschedule_request_sent")}</p>
       </div>
     );
@@ -455,7 +455,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 );
               })}>
               <div className="text-gray-600 dark:text-white">
-                <Icon.FiRefreshCcw
+                <FiRefreshCcw
                   strokeWidth="3"
                   className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
                 />

@@ -5,7 +5,8 @@ import { FC } from "react";
 import { Control, Controller, useFieldArray, useForm, UseFormRegister, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, TextField } from "@calcom/ui";
+import { Button, Label, Select, TextField } from "@calcom/ui";
+import { FiPlus, FiX } from "@calcom/ui/components/icon";
 
 interface OptionTypeBase {
   label: string;
@@ -185,7 +186,7 @@ function RadioInputHandler({
                   <Button
                     variant="icon"
                     color="minimal"
-                    StartIcon={Icon.FiX}
+                    StartIcon={FiX}
                     onClick={() => {
                       remove(index);
                     }}
@@ -196,7 +197,7 @@ function RadioInputHandler({
           ))}
           <Button
             color="minimal"
-            StartIcon={Icon.FiPlus}
+            StartIcon={FiPlus}
             className="!text-sm !font-medium"
             onClick={() => {
               append({ label: "", type: "text" });

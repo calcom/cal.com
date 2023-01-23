@@ -15,7 +15,8 @@ import {
   DialogHeader,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
-import { Button, showToast, Icon } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
+import { FiDownload } from "@calcom/ui/components/icon";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
@@ -128,7 +129,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                       </div>
                       {hasTeamPlan ? (
                         <Button
-                          StartIcon={Icon.FiDownload}
+                          StartIcon={FiDownload}
                           className="ml-4 lg:ml-0"
                           loading={downloadingRecordingId === recording.id}
                           onClick={() => handleDownloadClick(recording.id)}>

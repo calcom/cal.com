@@ -8,11 +8,11 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
-  Icon,
   showToast,
   DialogFooter,
   DialogClose,
 } from "@calcom/ui";
+import { FiTrash, FiAlertCircle } from "@calcom/ui/components/icon";
 
 export default function DisconnectIntegration({
   credentialId,
@@ -54,7 +54,7 @@ export default function DisconnectIntegration({
         <DialogTrigger asChild>
           <Button
             color={buttonProps?.color || "destructive"}
-            StartIcon={trashIcon ? Icon.FiTrash : undefined}
+            StartIcon={trashIcon ? FiTrash : undefined}
             size="base"
             variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal}
@@ -66,7 +66,7 @@ export default function DisconnectIntegration({
           title={t("remove_app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          Icon={Icon.FiAlertCircle}>
+          Icon={FiAlertCircle}>
           <DialogFooter>
             <DialogClose onClick={() => setModalOpen(false)} />
             <DialogClose color="primary" onClick={() => mutation.mutate({ id: credentialId })}>

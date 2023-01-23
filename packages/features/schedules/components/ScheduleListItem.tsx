@@ -13,8 +13,8 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
 } from "@calcom/ui";
+import { FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -64,7 +64,7 @@ export function ScheduleListItem({
                 ))}
               {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <Icon.FiGlobe />
+                  <FiGlobe />
                   &nbsp;{schedule.timeZone}
                 </p>
               )}
@@ -78,7 +78,7 @@ export function ScheduleListItem({
               type="button"
               variant="icon"
               color="secondary"
-              StartIcon={Icon.FiMoreHorizontal}
+              StartIcon={FiMoreHorizontal}
             />
           </DropdownMenuTrigger>
           {!isLoading && data && (
@@ -101,7 +101,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
-                  StartIcon={Icon.FiTrash}
+                  StartIcon={FiTrash}
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,

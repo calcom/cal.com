@@ -5,7 +5,8 @@ import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules"
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { EmptyScreen, Icon, showToast } from "@calcom/ui";
+import { EmptyScreen, showToast } from "@calcom/ui";
+import { FiClock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -76,7 +77,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={Icon.FiClock}
+            Icon={FiClock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}

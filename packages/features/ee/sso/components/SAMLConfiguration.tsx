@@ -13,12 +13,12 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
-  Icon,
   Label,
   Meta,
   showToast,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
+import { ClipboardCopyIcon, FiDatabase, FiTrash2 } from "@calcom/ui/components/icon";
 
 export default function SAMLConfiguration({ teamId }: { teamId: number | null }) {
   const { t } = useLocale();
@@ -90,7 +90,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
           <div>
             <Button
               color="secondary"
-              StartIcon={Icon.FiDatabase}
+              StartIcon={FiDatabase}
               onClick={() => {
                 setConfigModal(true);
               }}>
@@ -122,7 +122,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
+                  <ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
                   {t("copy")}
                 </Button>
               </div>
@@ -142,7 +142,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
+                  <ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
                   {t("copy")}
                 </Button>
               </div>
@@ -157,7 +157,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
             <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
+                <Button color="destructive" className="border" StartIcon={FiTrash2}>
                   {t("delete_saml_configuration")}
                 </Button>
               </DialogTrigger>

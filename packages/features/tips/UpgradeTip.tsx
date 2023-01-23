@@ -6,7 +6,8 @@ import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 // import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen, Icon } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { FiUsers } from "@calcom/ui/components/icon";
 
 import TeamList from "../ee/teams/components/TeamList";
 
@@ -40,7 +41,7 @@ export function UpgradeTip({
   if (hasTeamPlan) return children;
 
   if (!isCalcom)
-    return <EmptyScreen Icon={Icon.FiUsers} headline={title} description={description} buttonRaw={buttons} />;
+    return <EmptyScreen Icon={FiUsers} headline={title} description={description} buttonRaw={buttons} />;
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
