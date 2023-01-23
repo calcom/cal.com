@@ -263,6 +263,13 @@ const nextConfig = {
     return redirects;
   },
   async headers() {
+    const ContentSecurityPolicy = `
+      default-src 'self';
+      script-src 'self';
+      child-src example.com;
+      style-src 'self' example.com;
+      font-src 'self';  
+    `;
     return [
       {
         source: "/:path*",
@@ -270,6 +277,10 @@ const nextConfig = {
           {
             key: "X-Frame-Options",
             value: "SAMEORIGIN",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: ContentSecurityPolicy.replace(/\s{2,}/g, " ").trim(),
           },
         ],
       },
