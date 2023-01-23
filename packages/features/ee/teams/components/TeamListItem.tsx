@@ -34,6 +34,7 @@ import {
   FiTrash,
   FiLogOut,
   FiGlobe,
+  FiSend,
 } from "@calcom/ui/components/icon";
 
 import { TeamRole } from "./TeamPill";
@@ -229,7 +230,7 @@ export default function TeamListItem(props: Props) {
                         onClick={() => {
                           setOpenMemberInvitationModal(true);
                         }}
-                        StartIcon={Icon.FiSend}>
+                        StartIcon={FiSend}>
                         {t("invite_team_member") as string}
                       </DropdownItem>
                     </DropdownMenuItem>

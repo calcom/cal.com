@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
   TextField,
 } from "@calcom/ui";
+import { FiChevronDown } from "@calcom/ui/components/icon";
 
 import { getWorkflowTimeUnitOptions } from "../lib/getOptions";
 import type { FormValues } from "../pages/workflow";
@@ -43,7 +44,7 @@ export const TimeTimeUnitInput = (props: Props) => {
                     {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                   </div>
                   <div className="w-1/4 pt-1">
-                    <Icon.FiChevronDown />
+                    <FiChevronDown />
                   </div>
                 </button>
               </DropdownMenuTrigger>
