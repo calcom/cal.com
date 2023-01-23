@@ -12,16 +12,18 @@
   "email": "support@cal.com",
   "description": "Google Analytics is a web analytics service offered by Google that tracks and reports website traffic, currently as a platform inside the Google Marketing Platform brand.",
   "extendsFeature": "EventType",
-  "tag": {
-    "scripts": [
-      {
-        "src": "https://www.googletagmanager.com/gtag/js?id={TRACKING_ID}",
-        "attrs": {}
-      },
-      {
-        "content": "window.dataLayer = window.dataLayer || [];\n      function gtag(){dataLayer.push(arguments);}\n      gtag('js', new Date());\n      gtag('config', '{TRACKING_ID}');"
-      }
-    ]
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "src": "https://www.googletagmanager.com/gtag/js?id={TRACKING_ID}",
+          "attrs": {}
+        },
+        {
+          "content": "window.dataLayer = window.dataLayer || [];\n      function gtag(){dataLayer.push(arguments);}\n      gtag('js', new Date());\n      gtag('config', '{TRACKING_ID}');"
+        }
+      ]
+    }
   },
   "__createdUsingCli": true
 }
