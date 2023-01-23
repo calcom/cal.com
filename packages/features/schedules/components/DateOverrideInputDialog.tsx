@@ -180,7 +180,10 @@ const DateOverrideInputDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent size="md">
+      {/* enableOverflow is used to allow overflow when there are too many overrides to show on mobile
+       ref:- https://github.com/calcom/cal.com/pull/6215
+      */}
+      <DialogContent enableOverflow size="md">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
