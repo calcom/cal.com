@@ -262,6 +262,19 @@ const nextConfig = {
 
     return redirects;
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const sentryWebpackPluginOptions = {
