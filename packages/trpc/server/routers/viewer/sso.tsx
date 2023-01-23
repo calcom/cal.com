@@ -7,8 +7,8 @@ import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure } from "../../trpc";
 
-export const samlRouter = router({
-  // Retrieve SAML Connection
+export const ssoRouter = router({
+  // Retrieve SSO Connection
   get: authedProcedure
     .input(
       z.object({
@@ -16,8 +16,6 @@ export const samlRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { connectionController, samlSPConfig } = await jackson();
-
       const { teamId } = input;
 
       const { message, access } = await canAccess(ctx.user, teamId);
@@ -29,14 +27,10 @@ export const samlRouter = router({
         });
       }
 
+      const { connectionController, samlSPConfig } = await jackson();
+
       // Retrieve the SP SAML Config
       const SPConfig = await samlSPConfig.get();
-
-      const response = {
-        provider: "",
-        acsUrl: SPConfig.acsUrl,
-        entityId: SPConfig.entityId,
-      };
 
       try {
         const connections = await connectionController.getConnections({
@@ -44,15 +38,22 @@ export const samlRouter = router({
           product: samlProductID,
         });
 
-        if (connections.length > 0 && "idpMetadata" in connections[0]) {
-          response["provider"] = connections[0].idpMetadata.provider;
+        if (connections.length === 0) {
+          return null;
         }
-      } catch (err) {
-        console.error("Error getting SAML config", err);
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Fetching SAML Connection failed." });
-      }
 
-      return response;
+        const type = "idpMetadata" in connections[0] ? "saml" : "oidc";
+
+        return {
+          ...connections[0],
+          type,
+          acsUrl: SPConfig.acsUrl,
+          entityId: SPConfig.entityId,
+        };
+      } catch (err) {
+        console.error("Error getting SSO connection", err);
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Fetching SSO connection failed." });
+      }
     }),
   // Update the SAML Connection
   update: authedProcedure
@@ -118,6 +119,46 @@ export const samlRouter = router({
       } catch (err) {
         console.error("Error deleting SAML connection", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "Deleting SAML Connection failed." });
+      }
+    }),
+
+  // Update the OIDC Connection
+  updateOIDC: authedProcedure
+    .input(
+      z.object({
+        teamId: z.union([z.number(), z.null()]),
+        clientId: z.string(),
+        clientSecret: z.string(),
+        wellKnownUrl: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { teamId, clientId, clientSecret, wellKnownUrl } = input;
+
+      const { message, access } = await canAccess(ctx.user, teamId);
+
+      if (!access) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message,
+        });
+      }
+
+      const { connectionController } = await jackson();
+
+      try {
+        return await connectionController.createOIDCConnection({
+          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
+          redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
+          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
+          product: samlProductID,
+          oidcClientId: clientId,
+          oidcClientSecret: clientSecret,
+          oidcDiscoveryUrl: wellKnownUrl,
+        });
+      } catch (err) {
+        console.error("Error updating OIDC connection", err);
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Updating OIDC Connection failed." });
       }
     }),
 });

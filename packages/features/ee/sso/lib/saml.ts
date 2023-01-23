@@ -1,3 +1,4 @@
+import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 import { PrismaClient } from "@prisma/client";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
@@ -93,4 +94,10 @@ export const canAccess = async (user: { id: number; email: string }, teamId: num
     message: "success",
     access: true,
   };
+};
+
+export type SSOConnection = (SAMLSSORecord | OIDCSSORecord) & {
+  type: string; //"saml" | "oidc";
+  acsUrl: string;
+  entityId: string;
 };
