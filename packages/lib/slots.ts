@@ -11,6 +11,17 @@ export type GetSlots = {
   minimumBookingNotice: number;
   eventLength: number;
 };
+
+export type GetSlotsCompact = {
+  slotDay: Dayjs;
+  shiftStart: Dayjs;
+  shiftEnd: Dayjs;
+  days: number[];
+  minStartTime: Dayjs;
+  eventLength: number;
+  busyTimes: { startTime: Dayjs; endTime: Dayjs }[];
+};
+
 export type TimeFrame = { startTime: number; endTime: number };
 
 /**
@@ -88,6 +99,70 @@ function buildSlots({
 
   return slots;
 }
+
+/**
+ * This function returns the slots available for a given day.
+ * `getSlots` does not take busy times into account. This is why
+ * the slots that are not available must be filtered out afterwards.
+ * `getSlotsCompact` takes busy times into account and returns the
+ * slots as compact as possible, trying to avoid gaps between slots
+ * in the calendar. For example, if the user is busy from 9:00 to
+ * 09:50 and the event length is 30 minutes, the next slot will be
+ * at 09:50 instead of 10:00. The 10 minutes are not lost.
+ *
+ * Note that the current implementation of `getSlotsCompact` only really
+ * makes sense for events with a single host. We assume that `busyTimes`
+ * only contains busy times for a single host.
+ **/
+export const getTimeSlotsCompact = ({
+  // Day for which slots are being generated
+  slotDay,
+  // Start of the shift on that day
+  shiftStart,
+  // End of the shift on that day
+  shiftEnd,
+  // Array of integers. Days of the week that the shift is active: 0 = Sunday, 1 = Monday, etc.
+  days,
+  // Minimum start time of a slot (at least 2 hours from now for example)
+  minStartTime,
+  // Length of the event in minutes
+  eventLength,
+  // Array of busy times ({ startTime, endTime }) for the day
+  busyTimes,
+}: GetSlotsCompact): Dayjs[] => {
+  if (slotDay.isBefore(minStartTime, "day")) {
+    return [];
+  }
+
+  if (!days.includes(slotDay.day())) {
+    return [];
+  }
+
+  const ret = [] as Dayjs[];
+  let slotStartTime = shiftStart;
+  let slotEndTime = slotStartTime.add(eventLength, "minute");
+
+  while (slotEndTime.isSameOrBefore(shiftEnd)) {
+    if (slotStartTime.isSameOrAfter(minStartTime)) {
+      const busyTimeBlockingThisSlot = busyTimes.find((bT) => {
+        return slotStartTime.isBefore(bT.endTime) && slotEndTime.isAfter(bT.startTime);
+      });
+      if (busyTimeBlockingThisSlot) {
+        // This slot is busy, skip it.
+        // Set the next startTime to the end of this busy slot.
+        // The next slot will begin right after it.
+        slotStartTime = busyTimeBlockingThisSlot.endTime;
+        slotEndTime = slotStartTime.add(eventLength, "minute");
+        continue;
+      } else {
+        ret.push(slotStartTime);
+      }
+    }
+    slotStartTime = slotEndTime;
+    slotEndTime = slotStartTime.add(eventLength, "minute");
+  }
+  return ret;
+};
 
 const getSlots = ({
   inviteeDate,

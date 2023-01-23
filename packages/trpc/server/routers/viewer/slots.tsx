@@ -7,7 +7,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots from "@calcom/lib/slots";
+import getTimeSlots, { getTimeSlotsCompact } from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { EventBusyDate } from "@calcom/types/Calendar";
@@ -333,12 +333,34 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
 
+  const singleHostMode = input.eventTypeTeamId === null;
+  // Collect all busy times in this record.
+  const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
+  if (singleHostMode) {
+    // `userBusyTimesByDay` is only used in singleHostMode.
+    userAvailability.forEach(({ busy }) => {
+      busy.forEach(({ start, end }) => {
+        const day = dayjs(start).format("YYYY-MM-DD");
+        if (!userBusyTimesByDay[day]) {
+          userBusyTimesByDay[day] = [];
+        }
+        userBusyTimesByDay[day].push({
+          startTime: dayjs.utc(start).utc(),
+          endTime: dayjs.utc(end).utc(),
+        });
+      });
+    });
+  }
+
   // standard working hours for all users. Mo-Sa 8-20 Berlin time.
+  const days = [1, 2, 3, 4, 5, 6];
+  const shiftStartHour = 8;
+  const shiftEndHour = 20;
   const workingHours = getWorkingHours({}, [
     {
-      days: [1, 2, 3, 4, 5, 6],
-      startTime: dayjs.tz("2000-01-01 08:00:00", "Europe/Berlin"),
-      endTime: dayjs.tz("2000-01-01 20:00:00", "Europe/Berlin"),
+      days,
+      startTime: dayjs().tz("Europe/Berlin").set("hour", shiftStartHour).set("minute", 0).set("second", 0),
+      endTime: dayjs().tz("Europe/Berlin").set("hour", shiftEndHour).set("minute", 0).set("second", 0),
     },
   ]);
 
@@ -354,19 +376,45 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
-    const timeSlots = getTimeSlots({
-      inviteeDate: currentCheckedTime,
-      eventLength,
-      workingHours,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || eventLength,
-    });
+    const timeSlots = singleHostMode
+      ? getTimeSlotsCompact({
+          slotDay: currentCheckedTime,
+          shiftStart: currentCheckedTime
+            .tz("Europe/Berlin")
+            .set("hour", shiftStartHour)
+            .set("minute", 0)
+            .set("second", 0)
+            .utc(),
+          shiftEnd: currentCheckedTime
+            .tz("Europe/Berlin")
+            .set("hour", shiftEndHour)
+            .set("minute", 0)
+            .set("second", 0)
+            .utc(),
+          days,
+          eventLength,
+          minStartTime: dayjs().add(eventType.minimumBookingNotice, "minute"),
+          busyTimes: userBusyTimesByDay[currentCheckedTime.format("YYYY-MM-DD")] || [],
+        })
+      : getTimeSlots({
+          inviteeDate: currentCheckedTime,
+          eventLength,
+          workingHours,
+          minimumBookingNotice: eventType.minimumBookingNotice,
+          frequency: eventType.slotInterval || eventLength,
+        });
 
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
+      if (singleHostMode) {
+        // If we are in singleHostMode, there is no need to check for conflicts.
+        // The slots have been generated respecting the host's busy times.
+        // See `getTimeSlotsCompact` above.
+        return true;
+      }
       const schedule = userAvailability.find((s) => s.user.id === user.id);
       if (!schedule) return false;
       const start = performance.now();
