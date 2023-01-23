@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
   echo "Usage: git-setup.sh <api,console,website>"
   exit 1
 fi
-# Get remote url to support either https or git
+# Get remote url to support either https or ssh
 remote_url=$(echo $(git config --get remote.origin.url) | sed 's![^/]*$!!')
 # Loop through the requested modules
 for module in "$@"; do
