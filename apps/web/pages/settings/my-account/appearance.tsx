@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -49,7 +50,8 @@ const AppearanceView = () => {
   const session = useSession();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { data: dataHasTeamPlan, isLoading: isLoadingHasTeamPlan } = trpc.viewer.teams.hasTeamPlan.useQuery();
+
+  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
 
   const formMethods = useForm({
     defaultValues: {
@@ -74,7 +76,7 @@ const AppearanceView = () => {
     },
   });
 
-  if (isLoading || isLoadingHasTeamPlan)
+  if (isLoading || isTeamPlanStatusLoading)
     return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (!user) return null;
@@ -182,18 +184,18 @@ const AppearanceView = () => {
                   <p className="font-semibold ltr:mr-2 rtl:ml-2">
                     {t("disable_cal_branding", { appName: APP_NAME })}
                   </p>
-                  {!dataHasTeamPlan?.hasTeamPlan && <UpgradeTeamsBadge />}
+                  <UpgradeTeamsBadge />
                 </div>
                 <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
-                  disabled={!dataHasTeamPlan?.hasTeamPlan}
+                  disabled={!hasTeamPlan}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }
-                  checked={!dataHasTeamPlan?.hasTeamPlan ? false : value}
+                  checked={hasTeamPlan ? value : false}
                 />
               </div>
             </div>
