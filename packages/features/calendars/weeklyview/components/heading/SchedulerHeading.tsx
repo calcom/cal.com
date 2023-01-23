@@ -38,7 +38,15 @@ export function SchedulerHeading() {
               handleDateChange("DECREMENT");
             }}
           />
-          <Button StartIcon={FiChevronRight} variant="icon" color="secondary" />
+          <Button
+            StartIcon={FiChevronRight}
+            variant="icon"
+            color="secondary"
+            aria-label="Next Week"
+            onClick={() => {
+              handleDateChange("INCREMENT");
+            }}
+          />
         </ButtonGroup>
       </div>
     </header>

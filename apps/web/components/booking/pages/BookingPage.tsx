@@ -487,7 +487,7 @@ const BookingPage = ({
               })}{" "}
           | {APP_NAME}
         </title>
-        <link rel="icon" href="/favico" />
+        <link rel="icon" href="/favico.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
