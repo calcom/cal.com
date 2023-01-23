@@ -67,7 +67,10 @@ export const Editor = (props: TextEditorProps) => {
             variables={props.variables}
           />
           <div className="editor-inner" style={{ height: props.height }}>
-            <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />
+            <RichTextPlugin
+              contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
+              placeholder=""
+            />
             <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />

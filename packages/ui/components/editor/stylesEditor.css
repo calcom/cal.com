@@ -40,7 +40,7 @@
 }
 
 .editor-input {
-  max-height: 150px;
+  height: auto;
   font-size: 14px;
   position: relative;
   tab-size: 1;
