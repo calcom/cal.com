@@ -36,12 +36,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="rounded-md border border-neutral-200 dark:border-neutral-700">
+    <ul className="rounded-md border border-gray-200 dark:border-gray-700">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600",
+            "dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600",
             !isEmbed && "bg-white"
           )}>
           <Link

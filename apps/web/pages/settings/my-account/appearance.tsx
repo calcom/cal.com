@@ -123,7 +123,7 @@ const AppearanceView = () => {
         />
       </div>
 
-      <hr className="border-1 my-8 border-neutral-200" />
+      <hr className="my-8 border border-gray-200" />
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("custom_brand_colors")}</p>
@@ -169,7 +169,7 @@ const AppearanceView = () => {
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-      <hr className="border-1 my-8 border-neutral-200" />
+      <hr className="my-8 border border-gray-200" />
       <Controller
         name="hideBranding"
         control={formMethods.control}

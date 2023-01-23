@@ -637,7 +637,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-neutral-700 dark:text-white">
+                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -660,7 +660,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -684,7 +684,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -697,7 +697,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
