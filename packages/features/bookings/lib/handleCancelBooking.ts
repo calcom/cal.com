@@ -329,30 +329,35 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           bookingToDelete.recurringEventId &&
           allRemainingBookings
         ) {
-          bookingToDelete.user.credentials
-            .filter((credential) => credential.type.endsWith("_calendar"))
-            .forEach((credential) => {
-              const calendar = getCalendar(credential);
-              updatedBookings.forEach((updBooking) => {
-                const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
-                if (bookingRef) {
-                  const { uid, externalCalendarId } = bookingRef;
-                  apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
-                }
-              });
-            });
+          const credentials = bookingToDelete.user.credentials.filter((credential) =>
+            credential.type.endsWith("_calendar")
+          );
+
+          for (const credential of credentials) {
+            const calendar = getCalendar(credential);
+
+            for (const updated of updatedBookings) {
+              const bookingRef = updated.references.find((ref) => ref.type.includes("_calendar"));
+              if (bookingRef) {
+                const { uid, externalCalendarId } = bookingRef;
+                await calendar?.deleteEvent(uid, evt, externalCalendarId);
+              }
+            }
+          }
         } else {
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+          await calendar?.deleteEvent(uid, evt, externalCalendarId);
         }
       }
     } else {
       // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      bookingToDelete.user.credentials
-        .filter((credential) => credential.type.endsWith("_calendar"))
-        .forEach((credential) => {
-          const calendar = getCalendar(credential);
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
-        });
+      const credentials = bookingToDelete.user.credentials.filter((credential) =>
+        credential.type.endsWith("_calendar")
+      );
+
+      for (const credential of credentials) {
+        const calendar = getCalendar(credential);
+        await calendar?.deleteEvent(uid, evt, externalCalendarId);
+      }
     }
   }
 
@@ -413,6 +418,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // We skip the deletion of the event, because that would also delete the payment reference, which we should keep
     await apiDeletes;
+
     req.statusCode = 200;
     return { message: "Booking successfully cancelled." };
   }
@@ -459,7 +465,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   );
 
   await Promise.all(prismaPromises.concat(apiDeletes));
-
   await sendCancelledEmails(evt);
 
   req.statusCode = 200;
