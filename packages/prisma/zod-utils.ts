@@ -53,15 +53,17 @@ export const EventTypeMetaDataSchema = z
   .nullable();
 
 export const eventTypeLocations = z.array(
-  z.object({
-    // TODO: Couldn't find a way to make it a union of types from App Store locations
-    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
-    type: z.string(),
-    address: z.string().optional(),
-    link: z.string().url().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    hostPhoneNumber: z.string().optional(),
-  })
+  z
+    .object({
+      // TODO: Couldn't find a way to make it a union of types from App Store locations
+      // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
+      type: z.string(),
+      address: z.string().optional(),
+      link: z.string().url().optional(),
+      displayLocationPublicly: z.boolean().optional(),
+      hostPhoneNumber: z.string().optional(),
+    })
+    .default({ type: "integrations:daily" })
 );
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
