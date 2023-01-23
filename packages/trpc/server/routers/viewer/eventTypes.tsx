@@ -417,8 +417,6 @@ export const eventTypesRouter = router({
         typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
     };
 
-    console.log({ data, location: data.locations });
-
     if (teamId && schedulingType) {
       const hasMembership = await ctx.prisma.membership.findFirst({
         where: {
