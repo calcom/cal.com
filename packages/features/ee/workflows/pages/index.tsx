@@ -8,6 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import CreateNewWorkflowButton from "../components/CreateNewWorkflowButton";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
@@ -37,6 +38,7 @@ function WorkflowsPage() {
   });
 
   const query = trpc.viewer.workflows.getByViewer.useQuery();
+  if (!query.data) return null;
 
   return (
     <Shell
@@ -45,13 +47,14 @@ function WorkflowsPage() {
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
-          <Button
-            size="fab"
-            StartIcon={Icon.FiPlus}
-            onClick={() => createMutation.mutate()}
-            loading={createMutation.isLoading}>
-            {t("new")}
-          </Button>
+          // <Button
+          //   size="fab"
+          //   StartIcon={Icon.FiPlus}
+          //   onClick={() => createMutation.mutate()}
+          //   loading={createMutation.isLoading}>
+          //   {t("new")}
+          // </Button>
+          <CreateNewWorkflowButton canAddWorkflows={true} options={query.data.profiles} />
         ) : (
           <></>
         )

@@ -1512,5 +1512,6 @@
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
   "sender_name": "Sender name",
-  "no_recordings_found": "No recordings found"
+  "no_recordings_found": "No recordings found",
+  "new_workflow_subtitle": "Create a workflow under your account or a team"
 }

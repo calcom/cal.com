@@ -1210,7 +1210,13 @@ export const workflowsRouter = router({
       }))
     );
 
-    console.log("test test ");
-    console.log(JSON.stringify(workflowGroups));
+    return {
+      workflowGroups: workflowGroups.filter((groupBy) => !!groupBy.workflows?.length),
+      profiles: workflowGroups.map((group) => ({
+        teamId: group.teamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    };
   }),
 });
