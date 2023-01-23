@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import RecordingListSkeleton from "@calcom/features/ee/video/components/RecordingListSkeleton";
+import useHasTeamPlan from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
@@ -17,6 +17,8 @@ import {
 } from "@calcom/ui";
 import { Button, showToast } from "@calcom/ui";
 import { FiDownload } from "@calcom/ui/components/icon";
+
+import RecordingListSkeleton from "./components/RecordingListSkeleton";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -63,7 +65,9 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
   const [downloadingRecordingId, setRecordingId] = useState<string | null>(null);
-  const { data: dataHasTeamPlan, isLoading: isLoadingHasTeamPlan } = trpc.viewer.teams.hasTeamPlan.useQuery();
+
+  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
+
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
     undefined;
@@ -107,7 +111,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
         <DialogHeader title={t("recordings_title")} subtitle={subtitle} />
         <LicenseRequired>
           <>
-            {isLoading && isLoadingHasTeamPlan && <RecordingListSkeleton />}
+            {(isLoading || isTeamPlanStatusLoading) && <RecordingListSkeleton />}
             {recordings && "data" in recordings && recordings?.data?.length > 0 && (
               <div className="flex flex-col gap-3">
                 {recordings.data.map((recording: RecordingItemSchema, index: number) => {
@@ -123,7 +127,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                           {convertSecondsToMs(recording.duration)}
                         </p>
                       </div>
-                      {dataHasTeamPlan?.hasTeamPlan ? (
+                      {hasTeamPlan ? (
                         <Button
                           StartIcon={FiDownload}
                           className="ml-4 lg:ml-0"

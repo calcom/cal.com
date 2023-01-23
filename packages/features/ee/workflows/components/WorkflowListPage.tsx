@@ -143,7 +143,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                           <Button
                             type="button"
                             color="secondary"
-                            size="icon"
+                            variant="icon"
                             StartIcon={FiEdit2}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
@@ -155,7 +155,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               setwWorkflowToDeleteId(workflow.id);
                             }}
                             color="secondary"
-                            size="icon"
+                            variant="icon"
                             StartIcon={FiTrash2}
                           />
                         </Tooltip>
@@ -164,7 +164,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div className="block sm:hidden">
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button type="button" color="minimal" size="icon" StartIcon={FiMoreHorizontal} />
+                          <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>

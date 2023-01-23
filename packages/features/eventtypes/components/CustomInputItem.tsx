@@ -29,7 +29,7 @@ function CustomInputItem({ required, deleteOnClick, editOnClick, type, question 
         </Button>
         <Button
           StartIcon={FiTrash}
-          size="icon"
+          variant="icon"
           color="destructive"
           onClick={deleteOnClick}
           className="h-[36px] border border-gray-200"

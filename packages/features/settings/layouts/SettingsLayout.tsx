@@ -177,7 +177,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed bottom-0 left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed bottom-0 left-0 top-0 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -347,7 +347,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="sticky top-0 z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button StartIcon={FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen}>
+          <Button StartIcon={FiMenu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
@@ -431,7 +431,7 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
+      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <FiArrowLeft className="mr-7" />
@@ -439,7 +439,9 @@ function ShellHeader() {
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">{t(meta.title)}</h1>
+            <h1 className="font-cal mb-1 text-xl font-bold leading-5 tracking-wide text-black">
+              {t(meta.title)}
+            </h1>
           ) : (
             <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
           )}

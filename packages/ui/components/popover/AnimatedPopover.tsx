@@ -42,9 +42,9 @@ export const AnimatedPopover = ({
       <Popover.Trigger asChild>
         <div
           ref={ref}
-          className="item-center  mb-2 flex h-9 justify-between whitespace-nowrap rounded-md border border-gray-300 py-2 px-3
-          text-sm placeholder:text-gray-400 hover:cursor-pointer hover:border-gray-400
-          focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+          className="item-center  mb-2 flex h-9 max-h-72 justify-between overflow-y-scroll whitespace-nowrap rounded-md border border-gray-300
+          py-2 px-3 text-sm placeholder:text-gray-400
+          hover:cursor-pointer hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
           <div className="max-w-36 flex items-center">
             <div className="truncate">
               {text}
@@ -61,7 +61,7 @@ export const AnimatedPopover = ({
       <Popover.Content side="bottom" align={align} asChild>
         <div
           className={classNames(
-            "absolute z-50 mt-2 w-56  rounded-md bg-white  shadow-sm ring-1 ring-black ring-opacity-5 focus-within:outline-none",
+            "absolute z-50 mt-2 w-56  rounded-md bg-white  py-[2px] shadow-sm ring-1 ring-black ring-opacity-5 focus-within:outline-none",
             align === "end" && "-translate-x-[228px]"
           )}>
           {children}

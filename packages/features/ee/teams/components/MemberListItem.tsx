@@ -140,7 +140,7 @@ export default function MemberListItem(props: Props) {
                   disabled={!props.member.accepted}
                   onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                   color="secondary"
-                  size="icon"
+                  variant="icon"
                   StartIcon={FiClock}
                 />
               </Tooltip>
@@ -150,19 +150,17 @@ export default function MemberListItem(props: Props) {
                   href={"/" + props.member.username}
                   color="secondary"
                   className={classNames(!editMode ? "rounded-r-md" : "")}
-                  size="icon"
+                  variant="icon"
                   StartIcon={FiExternalLink}
                 />
               </Tooltip>
               {editMode && (
                 <Dropdown>
-                  <DropdownMenuTrigger
-                    asChild
-                    className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                  <DropdownMenuTrigger asChild>
                     <Button
+                      className="radix-state-open:rounded-r-md"
                       color="secondary"
-                      size="icon"
-                      className="rounded-r-md"
+                      variant="icon"
                       StartIcon={FiMoreHorizontal}
                     />
                   </DropdownMenuTrigger>
@@ -204,7 +202,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" size="icon" color="minimal" StartIcon={FiMoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon={FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {props.member.accepted && (
@@ -226,7 +224,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           onClick={() => setShowChangeMemberRoleModal(true)}
                           StartIcon={FiEdit2}>
-                          {t("edit") as string}
+                          {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
@@ -235,7 +233,7 @@ export default function MemberListItem(props: Props) {
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
                           StartIcon={FiTrash}>
-                          {t("edit") as string}
+                          {t("delete")}
                         </DropdownItem>
                       </DropdownMenuItem>
                     </>

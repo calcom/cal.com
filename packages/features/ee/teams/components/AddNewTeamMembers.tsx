@@ -31,7 +31,13 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
 };
 
-const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormValues; teamId: number }) => {
+export const AddNewTeamMembersForm = ({
+  defaultValues,
+  teamId,
+}: {
+  defaultValues: FormValues;
+  teamId: number;
+}) => {
   const { t, i18n } = useLocale();
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const utils = trpc.useContext();
@@ -165,7 +171,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
         <Button
           data-testid="remove-member-button"
           StartIcon={FiTrash2}
-          size="icon"
+          variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"
           onClick={() => {

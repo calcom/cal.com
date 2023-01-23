@@ -8,7 +8,12 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
 
 const installApps = async (page: Page, users: Fixtures["users"]) => {
-  const user = await users.create({ username: "routing-forms" });
+  const user = await users.create(
+    { username: "routing-forms" },
+    {
+      hasTeam: true,
+    }
+  );
   await user.login();
   await page.goto(`/apps/routing-forms`);
   await page.click('[data-testid="install-app-button"]');

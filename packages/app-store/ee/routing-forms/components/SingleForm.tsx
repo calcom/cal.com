@@ -73,7 +73,7 @@ const Actions = ({
             routingForm={form}
             color="secondary"
             target="_blank"
-            size="icon"
+            variant="icon"
             type="button"
             rel="noreferrer"
             action="preview"
@@ -84,7 +84,7 @@ const Actions = ({
           routingForm={form}
           action="copyLink"
           color="secondary"
-          size="icon"
+          variant="icon"
           type="button"
           StartIcon={FiLink}
           tooltip={t("copy_link_to_form")}
@@ -96,7 +96,7 @@ const Actions = ({
             routingForm={form}
             action="download"
             color="secondary"
-            size="icon"
+            variant="icon"
             type="button"
             StartIcon={FiDownload}
           />
@@ -105,7 +105,7 @@ const Actions = ({
           routingForm={form}
           action="embed"
           color="secondary"
-          size="icon"
+          variant="icon"
           StartIcon={FiCode}
           tooltip={t("embed")}
         />
@@ -113,8 +113,7 @@ const Actions = ({
         <FormAction
           routingForm={form}
           action="_delete"
-          // className="mr-3"
-          size="icon"
+          variant="icon"
           StartIcon={FiTrash}
           color="secondary"
           type="button"
@@ -185,6 +184,7 @@ const Actions = ({
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
+          <DropdownMenuSeparator />
           <FormAction
             action="_delete"
             routingForm={form}

@@ -1,7 +1,9 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 
+import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -46,9 +48,20 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
+  const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
+  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      setOpenMemberInvitationModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
@@ -92,6 +105,22 @@ export default function TeamListItem(props: Props) {
 
   return (
     <li className="divide-y">
+      <MemberInvitationModal
+        isOpen={openMemberInvitationModal}
+        onExit={() => {
+          setOpenMemberInvitationModal(false);
+        }}
+        onSubmit={(values) => {
+          inviteMemberMutation.mutate({
+            teamId: team.id,
+            language: i18n.language,
+            role: values.role,
+            usernameOrEmail: values.emailOrUsername,
+            sendEmailInvitation: values.sendInviteEmail,
+          });
+        }}
+        members={teamQuery?.data?.members || []}
+      />
       <div
         className={classNames(
           "flex items-center  justify-between",
@@ -125,7 +154,7 @@ export default function TeamListItem(props: Props) {
               <div className="block sm:hidden">
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" color="minimal" size="icon" StartIcon={FiMoreHorizontal} />
+                    <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -156,14 +185,20 @@ export default function TeamListItem(props: Props) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      size="icon"
+                      variant="icon"
                       StartIcon={FiLink}
                     />
                   </Tooltip>
                 )}
                 <Dropdown>
-                  <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
-                    <Button type="button" color="secondary" size="icon" StartIcon={FiMoreHorizontal} />
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      className="radix-state-open:rounded-r-md"
+                      type="button"
+                      color="secondary"
+                      variant="icon"
+                      StartIcon={FiMoreHorizontal}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
                     {isAdmin && (
@@ -188,6 +223,16 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => {
+                          setOpenMemberInvitationModal(true);
+                        }}
+                        StartIcon={Icon.FiSend}>
+                        {t("invite_team_member") as string}
+                      </DropdownItem>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>

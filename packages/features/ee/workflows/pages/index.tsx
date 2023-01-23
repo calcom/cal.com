@@ -45,7 +45,7 @@ function WorkflowsPage() {
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
-            size="fab"
+            variant="fab"
             StartIcon={FiPlus}
             onClick={() => createMutation.mutate()}
             loading={createMutation.isLoading}>

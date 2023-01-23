@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
-import { FiClock, FiUser, FiRefreshCw, FiCreditCard, FiClipboard, FiPlus } from "@calcom/ui/components/icon";
+import { FiClock, FiRefreshCw, FiCreditCard, FiClipboard, FiPlus } from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -56,17 +56,11 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               </Badge>
             </li>
           )}
-          {eventType.schedulingType ? (
+          {eventType.schedulingType && (
             <li>
-              <Badge variant="gray" size="lg" StartIcon={FiUser}>
+              <Badge variant="gray" size="lg" StartIcon={FiUsers}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
-              </Badge>
-            </li>
-          ) : (
-            <li>
-              <Badge variant="gray" size="lg" StartIcon={FiUser}>
-                {t("1_on_1")}
               </Badge>
             </li>
           )}

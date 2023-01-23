@@ -1,5 +1,6 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
@@ -9,10 +10,11 @@ import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {
   className?: string;
-  size: "xs" | "sm" | "md" | "mdLg" | "lg";
+  size: "xs" | "sm" | "md" | "mdLg" | "lg" | "xl";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
+  href?: string;
   gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
@@ -25,20 +27,24 @@ const sizesPropsBySize = {
   md: "w-8 h-8", // 32px
   mdLg: "w-10 h-10", //40px
   lg: "w-16 h-16", // 64px
+  xl: "w-24 h-24", // 96px
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
-  const sizeClassname = sizesPropsBySize[size];
-  const rootClass = classNames("rounded-full aspect-square ", sizeClassname);
-  const avatar = (
+  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
+  const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
+  let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        sizeClassname,
-        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full"
+        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
+        props.className
       )}>
       <>
-        <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
+        <AvatarPrimitive.Image
+          src={imageSrc ?? undefined}
+          alt={alt}
+          className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+        />
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
           <>
             {props.fallback && !gravatarFallbackMd5 && props.fallback}
@@ -61,6 +67,10 @@ export function Avatar(props: AvatarProps) {
       </>
     </AvatarPrimitive.Root>
   );
+
+  if (href) {
+    avatar = <Link href={href}>{avatar}</Link>;
+  }
 
   return title ? (
     <Tooltip.Provider>

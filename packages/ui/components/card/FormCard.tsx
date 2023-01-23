@@ -3,7 +3,7 @@ import Link from "next/link";
 import { classNames } from "@calcom/lib";
 import { FiArrowDown, FiArrowUp, FiTrash } from "@calcom/ui/components/icon";
 
-import { Badge, BadgeProps } from "..";
+import { Badge, BadgeProps } from "../..";
 import { Divider } from "../divider";
 
 type Action = { check: () => boolean; fn: () => void };

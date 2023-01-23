@@ -72,8 +72,14 @@ export function ScheduleListItem({
           </Link>
         </div>
         <Dropdown>
-          <DropdownMenuTrigger asChild className="mx-5">
-            <Button type="button" size="icon" color="secondary" StartIcon={FiMoreHorizontal} />
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="mx-5"
+              type="button"
+              variant="icon"
+              color="secondary"
+              StartIcon={FiMoreHorizontal}
+            />
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>

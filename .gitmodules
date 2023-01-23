@@ -1,12 +1,12 @@
-[submodule "apps/console"]
-	path = apps/console
-	url = https://github.com/calcom/console.git
-	branch = main
 [submodule "apps/api"]
 	path = apps/api
-	url = https://github.com/calcom/api.git
+	url = git@github.com:calcom/api.git
 	branch = main
 [submodule "apps/website"]
 	path = apps/website
-	url = https://github.com/calcom/website.git
+	url = git@github.com:calcom/website.git
+	branch = main
+[submodule "apps/console"]
+	path = apps/console
+	url = git@github.com:calcom/console.git
 	branch = main

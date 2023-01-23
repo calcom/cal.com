@@ -7,7 +7,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
-  CheckboxField,
+  Checkbox as CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,

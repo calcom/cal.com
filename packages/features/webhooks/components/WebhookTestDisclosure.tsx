@@ -29,7 +29,7 @@ export default function WebhookTestDisclosure() {
         <Button
           type="button"
           color="secondary"
-          disabled={mutation.isLoading}
+          disabled={mutation.isLoading || !subscriberUrl}
           StartIcon={FiActivity}
           onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
           {t("ping_test")}

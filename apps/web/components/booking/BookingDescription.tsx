@@ -124,7 +124,8 @@ const BookingDescription: FC<Props> = (props) => {
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
-            isBookingPage && "dark:text-darkgray-600 text-gray-600"
+            isBookingPage && "dark:text-darkgray-600 text-gray-600",
+            !eventType.metadata?.multipleDuration && "items-center"
           )}>
           <FiClock
             className={classNames(
