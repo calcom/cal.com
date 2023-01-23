@@ -2,7 +2,9 @@
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useMemo } from "react";
 
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
@@ -23,8 +25,6 @@ import {
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import SkeletonLoaderTeamList from "../../../../../features/ee/teams/components/SkeletonloaderTeamList";
-import { UpgradeTip } from "../../../../../features/tips";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
@@ -33,7 +33,7 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
-  const hasTeamPlan = useHasTeamPlan();
+  const { hasTeamPlan } = useHasTeamPlan();
 
   const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
     initialData: forms_,

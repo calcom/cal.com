@@ -51,7 +51,7 @@ const AppearanceView = () => {
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const hasTeamPlan = useHasTeamPlan();
+  const { isLoading: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
 
   const formMethods = useForm({
     defaultValues: {
@@ -76,7 +76,8 @@ const AppearanceView = () => {
     },
   });
 
-  if (isLoading) return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
+  if (isLoading || isTeamPlanStatusLoading)
+    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (!user) return null;
 

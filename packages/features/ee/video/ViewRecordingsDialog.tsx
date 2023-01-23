@@ -65,7 +65,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
   const [downloadingRecordingId, setRecordingId] = useState<string | null>(null);
 
-  const hasTeamPlan = useHasTeamPlan();
+  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
@@ -110,7 +110,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
         <DialogHeader title={t("recordings_title")} subtitle={subtitle} />
         <LicenseRequired>
           <>
-            {isLoading && <RecordingListSkeleton />}
+            {(isLoading || isTeamPlanStatusLoading) && <RecordingListSkeleton />}
             {recordings && "data" in recordings && recordings?.data?.length > 0 && (
               <div className="flex flex-col gap-3">
                 {recordings.data.map((recording: RecordingItemSchema, index: number) => {

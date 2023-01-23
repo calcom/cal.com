@@ -35,14 +35,14 @@ export function UpgradeTip({
 
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
   const { t } = useLocale();
-  const hasTeamPlan = useHasTeamPlan();
+  const { isLoading, hasTeamPlan } = useHasTeamPlan();
 
   if (hasTeamPlan) return children;
 
   if (!isCalcom)
     return <EmptyScreen Icon={Icon.FiUsers} headline={title} description={description} buttonRaw={buttons} />;
 
-  if (isParentLoading) return <>{isParentLoading}</>;
+  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
   return (
     <>

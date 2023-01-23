@@ -8,7 +8,7 @@ import { Badge } from "./Badge";
 
 export const UpgradeTeamsBadge = function UpgradeTeamsBadge() {
   const { t } = useLocale();
-  const hasTeamPlan = useHasTeamPlan();
+  const { hasTeamPlan } = useHasTeamPlan();
 
   if (hasTeamPlan) return null;
 
