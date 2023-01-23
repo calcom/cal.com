@@ -518,14 +518,13 @@ const EventTypeListHeading = ({
 }: EventTypeListHeadingProps): JSX.Element => {
   return (
     <div className="mb-4 flex items-center space-x-2">
-      <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
-        <Avatar
-          alt={profile?.name || ""}
-          imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
-          size="sm"
-          className="mt-1 inline ltr:mr-2 rtl:ml-2"
-        />
-      </Link>
+      <Avatar
+        alt={profile?.name || ""}
+        href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
+        imageSrc={`${WEBAPP_URL}/${profile.slug}/avatar.png` || undefined}
+        size="md"
+        className="mt-1 inline-flex justify-center"
+      />
       <div>
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
