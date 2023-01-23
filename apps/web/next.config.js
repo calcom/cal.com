@@ -266,8 +266,8 @@ const nextConfig = {
     const ContentSecurityPolicy = `
       default-src 'self';
       script-src 'self';
-      child-src example.com;
-      style-src 'self' example.com;
+      child-src app.cal.com;
+      style-src 'self' app.cal.com;
       font-src 'self';  
     `;
     return [
