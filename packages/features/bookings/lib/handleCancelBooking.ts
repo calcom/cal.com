@@ -273,21 +273,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         })
       );
       await Promise.all(promises);
-
-      await prisma.booking.update({
-        where: {
-          uid: booking?.uid,
-        },
-        data: {
-          status: BookingStatus.CANCELLED,
-          cancellationReason: cancellationReason,
-        },
-        select: {
-          workflowReminders: true,
-          uid: true,
-          scheduledJobs: true,
-        },
-      });
     }
   } else {
     const updatedBooking = await prisma.booking.update({
