@@ -233,6 +233,7 @@ const WebhookForm = (props: {
                     { value: "default", label: t("default") },
                     { value: "custom", label: t("custom") },
                   ]}
+                  isFullWidth={true}
                 />
               </div>
               {useCustomTemplate && (
