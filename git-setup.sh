@@ -10,7 +10,7 @@ remote_url=$(echo $(git config --get remote.origin.url) | sed 's![^/]*$!!')
 # Loop through the requested modules
 for module in "$@"; do
   echo "Setting up '$module' module..."
-  # Set the project git. URL
+  # Set the project git URL
   project=$remote_url$module.git
   # Check if we have access to the module
   if [ "$(git ls-remote "$project" 2>/dev/null)" ]; then
