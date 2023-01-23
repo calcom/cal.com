@@ -1238,6 +1238,7 @@
   "to": "To",
   "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully",
   "download_responses": "Download Responses",
+  "download_responses_description": "Download all responses to your form in CSV format.",
   "download": "Download",
   "create_your_first_form": "Create your first form",
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
@@ -1280,6 +1281,8 @@
   "routing_forms_send_email_owner": "Send Email to Owner",
   "routing_forms_send_email_owner_description": "Sends an email to the owner when the form is submitted",
   "add_new_form": "Add new form",
+  "create_your_first_route": "Create your first route",
+  "route_to_the_right_person": "Route to the right person based on the answers to your form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
   "theme": "Theme",
@@ -1514,5 +1517,9 @@
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
   "sender_name": "Sender name",
-  "no_recordings_found": "No recordings found"
+  "no_recordings_found": "No recordings found",
+  "reporting": "Reporting",
+  "reporting_feature": "See all incoming from data and download it as a CSV",
+  "teams_plan_required": "Teams plan required",
+  "routing_forms_are_a_great_way": "Routing forms are a great way to route your incoming leads to the right person. Upgrade to a Teams plan to access this feature."
 }

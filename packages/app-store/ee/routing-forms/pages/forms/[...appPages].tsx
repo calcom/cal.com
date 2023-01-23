@@ -1,8 +1,13 @@
 // TODO: i18n
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useMemo } from "react";
 
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { UpgradeTip } from "@calcom/features/tips";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
@@ -15,6 +20,7 @@ import {
   List,
   ListLinkItem,
   Tooltip,
+  Button,
 } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -27,11 +33,46 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
-  const { data: forms } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
+  const { hasTeamPlan } = useHasTeamPlan();
+
+  const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
     initialData: forms_,
   });
 
   const { data: typeformApp } = useApp("typeform");
+
+  const features = [
+    {
+      icon: <Icon.FiFileText className="h-5 w-5 text-orange-500" />,
+      title: t("create_your_first_form"),
+      description: t("create_your_first_form_description"),
+    },
+    {
+      icon: <Icon.FiShuffle className="h-5 w-5 text-lime-500" />,
+      title: t("create_your_first_route"),
+      description: t("route_to_the_right_person"),
+    },
+    {
+      icon: <Icon.FiBarChart className="h-5 w-5 text-blue-500" />,
+      title: t("reporting"),
+      description: t("reporting_feature"),
+    },
+    {
+      icon: <Icon.FiCheckCircle className="h-5 w-5 text-teal-500" />,
+      title: t("test_routing_form"),
+      description: t("test_preview_description"),
+    },
+    {
+      icon: <Icon.FiMail className="h-5 w-5 text-yellow-500" />,
+      title: t("routing_forms_send_email_owner"),
+      description: t("routing_forms_send_email_owner_description"),
+    },
+    {
+      icon: <Icon.FiDownload className="h-5 w-5 text-violet-500" />,
+      title: t("download_responses"),
+      description: t("download_responses_description"),
+    },
+  ];
 
   function NewFormButton() {
     return (
@@ -46,137 +87,164 @@ export default function RoutingForms({
     );
   }
   return (
-    <ShellMain heading="Routing Forms" CTA={<NewFormButton />} subtitle={t("routing_forms_description")}>
-      <FormActionsProvider appUrl={appUrl}>
-        <div className="-mx-4 md:-mx-8">
-          <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-            {!forms?.length ? (
-              <EmptyScreen
-                Icon={Icon.FiGitMerge}
-                headline={t("create_your_first_form")}
-                description={t("create_your_first_form_description")}
-                buttonRaw={<NewFormButton />}
-              />
-            ) : null}
-            {forms?.length ? (
-              <div className="mb-16 overflow-hidden bg-white">
-                <List data-testid="routing-forms-list">
-                  {forms.map((form, index) => {
-                    if (!form) {
-                      return null;
-                    }
+    <ShellMain
+      heading="Routing Forms"
+      CTA={hasTeamPlan && <NewFormButton />}
+      subtitle={t("routing_forms_description")}>
+      <UpgradeTip
+        dark
+        title={t("teams_plan_required")}
+        description={t("routing_forms_are_a_great_way")}
+        features={features}
+        background="/routing-form-banner-background.jpg"
+        isParentLoading={isLoading && <SkeletonLoaderTeamList />}
+        buttons={
+          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <ButtonGroup>
+              <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                {t("upgrade")}
+              </Button>
+              <Button
+                color="minimal"
+                className="!bg-transparent text-white opacity-50 hover:opacity-100"
+                href="https://go.cal.com/teams-video"
+                target="_blank">
+                {t("learn_more")}
+              </Button>
+            </ButtonGroup>
+          </div>
+        }>
+        <FormActionsProvider appUrl={appUrl}>
+          <div className="-mx-4 md:-mx-8">
+            <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
+              {!forms?.length ? (
+                <EmptyScreen
+                  Icon={Icon.FiGitMerge}
+                  headline={t("create_your_first_form")}
+                  description={t("create_your_first_form_description")}
+                  buttonRaw={<NewFormButton />}
+                />
+              ) : null}
+              {forms?.length ? (
+                <div className="mb-16 overflow-hidden bg-white">
+                  <List data-testid="routing-forms-list">
+                    {forms.map((form, index) => {
+                      if (!form) {
+                        return null;
+                      }
 
-                    const description = form.description || "";
-                    const disabled = form.disabled;
-                    form.routes = form.routes || [];
-                    const fields = form.fields || [];
-                    return (
-                      <ListLinkItem
-                        key={index}
-                        href={appUrl + "/form-edit/" + form.id}
-                        heading={form.name}
-                        disabled={disabled}
-                        subHeading={description}
-                        actions={
-                          <>
-                            <FormAction className="self-center" action="toggle" routingForm={form} />
-                            <ButtonGroup combined>
-                              <Tooltip content={t("preview")}>
+                      const description = form.description || "";
+                      const disabled = form.disabled;
+                      form.routes = form.routes || [];
+                      const fields = form.fields || [];
+                      return (
+                        <ListLinkItem
+                          key={index}
+                          href={appUrl + "/form-edit/" + form.id}
+                          heading={form.name}
+                          disabled={disabled}
+                          subHeading={description}
+                          actions={
+                            <>
+                              <FormAction className="self-center" action="toggle" routingForm={form} />
+                              <ButtonGroup combined>
+                                <Tooltip content={t("preview")}>
+                                  <FormAction
+                                    action="preview"
+                                    routingForm={form}
+                                    target="_blank"
+                                    StartIcon={Icon.FiExternalLink}
+                                    color="secondary"
+                                    variant="icon"
+                                    disabled={disabled}
+                                  />
+                                </Tooltip>
                                 <FormAction
-                                  action="preview"
                                   routingForm={form}
-                                  target="_blank"
-                                  StartIcon={Icon.FiExternalLink}
+                                  action="copyLink"
                                   color="secondary"
                                   variant="icon"
+                                  StartIcon={Icon.FiLink}
                                   disabled={disabled}
+                                  tooltip={t("copy_link_to_form")}
                                 />
-                              </Tooltip>
-                              <FormAction
-                                routingForm={form}
-                                action="copyLink"
-                                color="secondary"
-                                variant="icon"
-                                StartIcon={Icon.FiLink}
-                                disabled={disabled}
-                                tooltip={t("copy_link_to_form")}
-                              />
-                              <FormActionsDropdown form={form}>
-                                <FormAction
-                                  action="edit"
-                                  routingForm={form}
-                                  color="minimal"
-                                  className="!flex"
-                                  StartIcon={Icon.FiEdit}>
-                                  {t("edit")}
-                                </FormAction>
-                                <FormAction
-                                  action="download"
-                                  routingForm={form}
-                                  color="minimal"
-                                  StartIcon={Icon.FiDownload}>
-                                  {t("download_responses")}
-                                </FormAction>
-                                <FormAction
-                                  action="embed"
-                                  routingForm={form}
-                                  color="minimal"
-                                  className="w-full"
-                                  StartIcon={Icon.FiCode}>
-                                  {t("embed")}
-                                </FormAction>
-                                <FormAction
-                                  action="duplicate"
-                                  routingForm={form}
-                                  color="minimal"
-                                  className="w-full"
-                                  StartIcon={Icon.FiCopy}>
-                                  {t("duplicate")}
-                                </FormAction>
-                                {typeformApp?.isInstalled ? (
+                                <FormActionsDropdown form={form}>
                                   <FormAction
-                                    data-testid="copy-redirect-url"
+                                    action="edit"
                                     routingForm={form}
-                                    action="copyRedirectUrl"
                                     color="minimal"
-                                    type="button"
-                                    StartIcon={Icon.FiLink}>
-                                    {t("Copy Typeform Redirect Url")}
+                                    className="!flex"
+                                    StartIcon={Icon.FiEdit}>
+                                    {t("edit")}
                                   </FormAction>
-                                ) : null}
-                                <DropdownMenuSeparator />
-                                <FormAction
-                                  action="_delete"
-                                  routingForm={form}
-                                  color="destructive"
-                                  className="w-full"
-                                  StartIcon={Icon.FiTrash}>
-                                  {t("delete")}
-                                </FormAction>
-                              </FormActionsDropdown>
-                            </ButtonGroup>
-                          </>
-                        }>
-                        <div className="flex flex-wrap gap-1">
-                          <Badge variant="gray" StartIcon={Icon.FiMenu}>
-                            {fields.length} {fields.length === 1 ? "field" : "fields"}
-                          </Badge>
-                          <Badge variant="gray" StartIcon={Icon.FiGitMerge}>
-                            {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
-                          </Badge>
-                          <Badge variant="gray" StartIcon={Icon.FiMessageCircle}>
-                            {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
-                          </Badge>
-                        </div>
-                      </ListLinkItem>
-                    );
-                  })}
-                </List>
-              </div>
-            ) : null}
+                                  <FormAction
+                                    action="download"
+                                    routingForm={form}
+                                    color="minimal"
+                                    StartIcon={Icon.FiDownload}>
+                                    {t("download_responses")}
+                                  </FormAction>
+                                  <FormAction
+                                    action="embed"
+                                    routingForm={form}
+                                    color="minimal"
+                                    className="w-full"
+                                    StartIcon={Icon.FiCode}>
+                                    {t("embed")}
+                                  </FormAction>
+                                  <FormAction
+                                    action="duplicate"
+                                    routingForm={form}
+                                    color="minimal"
+                                    className="w-full"
+                                    StartIcon={Icon.FiCopy}>
+                                    {t("duplicate")}
+                                  </FormAction>
+                                  {typeformApp?.isInstalled ? (
+                                    <FormAction
+                                      data-testid="copy-redirect-url"
+                                      routingForm={form}
+                                      action="copyRedirectUrl"
+                                      color="minimal"
+                                      type="button"
+                                      StartIcon={Icon.FiLink}>
+                                      {t("Copy Typeform Redirect Url")}
+                                    </FormAction>
+                                  ) : null}
+                                  <DropdownMenuSeparator />
+                                  <FormAction
+                                    action="_delete"
+                                    routingForm={form}
+                                    color="destructive"
+                                    className="w-full"
+                                    StartIcon={Icon.FiTrash}>
+                                    {t("delete")}
+                                  </FormAction>
+                                </FormActionsDropdown>
+                              </ButtonGroup>
+                            </>
+                          }>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge variant="gray" StartIcon={Icon.FiMenu}>
+                              {fields.length} {fields.length === 1 ? "field" : "fields"}
+                            </Badge>
+                            <Badge variant="gray" StartIcon={Icon.FiGitMerge}>
+                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                            </Badge>
+                            <Badge variant="gray" StartIcon={Icon.FiMessageCircle}>
+                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
+                            </Badge>
+                          </div>
+                        </ListLinkItem>
+                      );
+                    })}
+                  </List>
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </FormActionsProvider>
+        </FormActionsProvider>
+      </UpgradeTip>
     </ShellMain>
   );
 }
