@@ -13,11 +13,19 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  Icon,
   List,
   AppSkeletonLoader as SkeletonLoader,
   ShellSubHeading,
 } from "@calcom/ui";
+import {
+  FiBarChart,
+  FiCalendar,
+  FiCreditCard,
+  FiGrid,
+  FiPlus,
+  FiShare2,
+  FiVideo,
+} from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -92,8 +100,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: keyof typeof InstalledAppVariants;
-  exclude?: (keyof typeof InstalledAppVariants)[];
+  variant?: typeof InstalledAppVariants[number];
+  exclude?: typeof InstalledAppVariants[number][];
 }
 
 interface IntegrationsListProps {
@@ -115,6 +123,7 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
             logo={item.logo}
             description={item.description}
             separate={true}
+            isTemplate={item.isTemplate}
             invalidCredential={item.invalidCredentialIds.length > 0}
             actions={
               <div className="flex w-16 justify-end">
@@ -138,13 +147,15 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
-    calendar: Icon.FiCalendar,
-    conferencing: Icon.FiVideo,
-    automation: Icon.FiShare2,
-    analytics: Icon.FiBarChart,
-    payment: Icon.FiCreditCard,
-    other: Icon.FiGrid,
+    calendar: FiCalendar,
+    conferencing: FiVideo,
+    automation: FiShare2,
+    analytics: FiBarChart,
+    payment: FiCreditCard,
+    web3: FiBarChart,
+    other: FiGrid,
   };
+
   return (
     <QueryCell
       query={query}
@@ -166,7 +177,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                           : "/apps"
                       }
                       color="secondary"
-                      StartIcon={Icon.FiPlus}>
+                      StartIcon={FiPlus}>
                       {t("add")}
                     </Button>
                   }
@@ -198,31 +209,29 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
 };
 
 const querySchema = z.object({
-  category: z.nativeEnum(InstalledAppVariants),
+  category: z.enum(InstalledAppVariants),
 });
+
+type querySchemaType = z.infer<typeof querySchema>;
 
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
-  const category = router.query.category;
+  const category = router.query.category as querySchemaType["category"];
+  const categoryList: querySchemaType["category"][] = [
+    "payment",
+    "conferencing",
+    "automation",
+    "analytics",
+    "web3",
+  ];
+
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {category === InstalledAppVariants.calendar && <CalendarListContainer />}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={[
-            InstalledAppVariants.conferencing,
-            InstalledAppVariants.calendar,
-            InstalledAppVariants.analytics,
-            InstalledAppVariants.automation,
-          ]}
-        />
+      {categoryList.includes(category) && <IntegrationsContainer variant={category} />}
+      {category === "calendar" && <CalendarListContainer />}
+      {category === "other" && (
+        <IntegrationsContainer variant={category} exclude={[...categoryList, "calendar"]} />
       )}
     </InstalledAppsLayout>
   );

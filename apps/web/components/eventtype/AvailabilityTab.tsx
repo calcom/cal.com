@@ -8,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { FiExternalLink, FiGlobe } from "@calcom/ui/components/icon";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -164,13 +165,13 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
           <hr />
           <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
             <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
-              <Icon.FiGlobe className="ltr:mr-2 rtl:ml-2" />
+              <FiGlobe className="ltr:mr-2 rtl:ml-2" />
               {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             <Button
               href={`/availability/${schedule?.schedule.id}`}
               color="minimal"
-              EndIcon={Icon.FiExternalLink}
+              EndIcon={FiExternalLink}
               target="_blank"
               className="justify-center border sm:border-0"
               rel="noopener noreferrer">

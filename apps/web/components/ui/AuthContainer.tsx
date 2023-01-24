@@ -32,7 +32,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         </div>
       )}
       <div className="mb-auto mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="border-1 mx-2 rounded-md border-gray-200 bg-white px-4 py-10 sm:px-10">
+        <div className="mx-2 rounded-md border border-gray-200 bg-white px-4 py-10 sm:px-10">
           {props.children}
         </div>
         <div className="mt-8 text-center text-sm text-gray-600">

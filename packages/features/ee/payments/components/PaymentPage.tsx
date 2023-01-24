@@ -6,7 +6,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { StripePaymentData, MPPaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -15,8 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { router } from "@calcom/trpc/server/trpc";
-import { Button, Icon, LinkIconButton } from "@calcom/ui";
+import { FiCreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
@@ -81,7 +80,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <Icon.FiCreditCard className="h-8 w-8 text-green-600" />
+                    <FiCreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -142,26 +141,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         bookingUid={props.booking.uid}
                       />
                     </Elements>
-                  )}
-                  {props.payment.type === "MERCADO_PAGO" && !props.payment.success && (
-                    <div className="m-auto">
-                      <Button
-                        className="w-full rounded-md bg-[#4FC3F7] p-8 text-white hover:bg-[#4FC3F7]"
-                        onClick={() => {
-                          window.location.href = `${(props.payment.data as MPPaymentData).init_point}}`;
-                        }}>
-                        <img className="mr-2 h-6 w-6" src="/api/app-store/mercado_pago/icon.svg" /> Pagar con
-                        Mercado Pago
-                      </Button>
-                      {/* <LinkIconButton
-                        Icon={Icon.FiCreditCard}
-                        className="w-full text-[#4FC3F7]"
-                        onClick={() => {
-                          window.location.href = `${(props.payment.data as MPPaymentData).init_point}}`;
-                        }}>
-                        Pagar con Mercado Pago
-                      </LinkIconButton> */}
-                    </div>
                   )}
                   {props.payment.refunded && (
                     <div className="mt-4 text-center text-gray-700 dark:text-gray-300">{t("refunded")}</div>

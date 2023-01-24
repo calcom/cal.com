@@ -251,7 +251,7 @@ export const viewerTeamsRouter = router({
     .input(
       z.object({
         teamId: z.number(),
-        usernameOrEmail: z.string(),
+        usernameOrEmail: z.string().transform((usernameOrEmail) => usernameOrEmail.toLowerCase()),
         role: z.nativeEnum(MembershipRole),
         language: z.string(),
         sendEmailInvitation: z.boolean(),
@@ -321,7 +321,7 @@ export const viewerTeamsRouter = router({
             from: ctx.user.name,
             to: input.usernameOrEmail,
             teamName: team.name,
-            joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
+            joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
           });
         }
       } else {
@@ -661,6 +661,7 @@ export const viewerTeamsRouter = router({
               user: {
                 id: ctx.user.id,
               },
+              accepted: true,
             },
           },
         },
@@ -698,5 +699,16 @@ export const viewerTeamsRouter = router({
       },
     });
     return { hasTeamPlan: !!hasTeamPlan };
+  }),
+  listInvites: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    return await ctx.prisma.membership.findMany({
+      where: {
+        user: {
+          id: userId,
+        },
+        accepted: false,
+      },
+    });
   }),
 });
