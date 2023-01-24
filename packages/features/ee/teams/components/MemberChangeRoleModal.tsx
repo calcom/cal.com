@@ -67,7 +67,7 @@ export default function MemberChangeRoleModal(props: {
   }
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onExit}>
-      <DialogContent disableOverflow type="creation">
+      <DialogContent type="creation">
         <>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="text-center sm:text-left">
