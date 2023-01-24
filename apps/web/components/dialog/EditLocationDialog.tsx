@@ -205,7 +205,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
-      <DialogContent disableOverflow>
+      <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
             <FiMapPin className="text-primary-600 h-6 w-6" />
