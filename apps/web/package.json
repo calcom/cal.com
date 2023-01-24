@@ -23,7 +23,7 @@
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.3.6",
+    "@boxyhq/saml-jackson": "1.7.1",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
