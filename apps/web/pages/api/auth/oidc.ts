@@ -5,6 +5,7 @@ import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { HttpError } from "@lib/core/http/error";
 
 // This is the callback endpoint for the OIDC provider
+// A team must set this endpoint in the OIDC provider's configuration
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(400).send("Method not allowed");
@@ -18,7 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { oauthController } = await jackson();
 
   try {
-    // Handle the response from the OIDC provider
     const { redirect_url } = await oauthController.oidcAuthzResponse({ code, state });
 
     if (!redirect_url) {
