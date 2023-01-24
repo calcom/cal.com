@@ -20,7 +20,8 @@ export type HorizontalTabItemProps = {
 const HorizontalTabItem = function ({ name, href, linkProps, ...props }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
   const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+
+  const isCurrent = asPath === href;
 
   return (
     <Link
