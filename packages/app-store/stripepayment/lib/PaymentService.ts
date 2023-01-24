@@ -24,7 +24,6 @@ export class PaymentService extends AbstractPaymentService {
 
   constructor(credentials: { key: Prisma.JsonValue }) {
     super();
-    console.log({ credentials });
     // parse credentials key
     this.credentials = stripeCredentialKeysSchema.parse(credentials.key);
     this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
@@ -95,16 +94,16 @@ export class PaymentService extends AbstractPaymentService {
       throw new Error("Payment could not be created");
     }
   }
-  async update(): Payment {
+  async update(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  async refund(): Payment {
+  async refund(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  getPaymentPaidStatus(): string {
+  getPaymentPaidStatus(): Promise<string> {
     throw new Error("Method not implemented.");
   }
-  getPaymentDetails(): Payment {
+  getPaymentDetails(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
 }

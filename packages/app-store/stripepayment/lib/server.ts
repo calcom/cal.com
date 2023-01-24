@@ -44,16 +44,6 @@ const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });
 
-// const stripeKeysSchema = z.object({
-//   payment_fee_fixed: z.number(),
-//   payment_fee_percentage: z.number(),
-// });
-
-// const stripeCredentialSchema = z.object({
-//   stripe_user_id: z.string(),
-//   stripe_publishable_key: z.string(),
-// });
-
 export async function handlePayment(
   evt: CalendarEvent,
   selectedEventType: Pick<z.infer<typeof EventTypeModel>, "metadata">,

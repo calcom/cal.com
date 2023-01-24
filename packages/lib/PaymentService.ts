@@ -5,10 +5,10 @@ export interface IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"]
   ): Promise<Payment>;
-  update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Payment;
-  refund(paymentId: Payment["id"]): Payment;
-  getPaymentPaidStatus(): string;
-  getPaymentDetails(): Payment;
+  update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
+  refund(paymentId: Payment["id"]): Promise<Payment>;
+  getPaymentPaidStatus(): Promise<string>;
+  getPaymentDetails(): Promise<Payment>;
 }
 
 export abstract class AbstractPaymentService {
@@ -17,11 +17,11 @@ export abstract class AbstractPaymentService {
     bookingId: Booking["id"]
   ): Promise<Payment>;
 
-  abstract update(paymentId: Payment["id"]): Payment;
+  abstract update(paymentId: Payment["id"]): Promise<Payment>;
 
-  abstract refund(paymentId: Payment["id"]): Payment;
+  abstract refund(paymentId: Payment["id"]): Promise<Payment>;
 
-  abstract getPaymentPaidStatus(): string;
+  abstract getPaymentPaidStatus(): Promise<string>;
 
-  abstract getPaymentDetails(): Payment;
+  abstract getPaymentDetails(): Promise<Payment>;
 }
