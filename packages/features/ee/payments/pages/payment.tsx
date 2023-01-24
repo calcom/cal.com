@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import { MPPaymentData, PaymentData, StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -23,6 +23,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       uid,
     },
     select: {
+      type: true,
       data: true,
       success: true,
       uid: true,
@@ -81,7 +82,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
     ...restPayment,
-    data: data as unknown as PaymentData,
+    data: data as unknown as StripePaymentData | MPPaymentData,
   };
 
   if (!_booking) return { notFound: true };

@@ -2,6 +2,7 @@ import { Booking, Payment, PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
+import prisma from "@calcom/prisma";
 
 import { AbstractPaymentService } from "@calcom/lib/PaymentService";
 

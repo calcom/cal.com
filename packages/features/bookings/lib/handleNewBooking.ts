@@ -37,7 +37,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -316,7 +316,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
 
   // Check if required custom inputs exist
   handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
@@ -585,15 +585,35 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const eventManager = new EventManager({ ...organizerUser, credentials });
     await eventManager.updateCalendarAttendees(evt, booking);
 
-    if (!Number.isNaN(stripeAppData.price) && stripeAppData.price > 0 && !!booking) {
-      const [firstStripeCredential] = organizerUser.credentials.filter(
-        (cred) => cred.type == "stripe_payment"
-      );
+    if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!booking) {
+      const credentialPaymentAppCategories = await prisma.credential.findMany({
+        where: {
+          userId: organizerUser.id,
+          app: {
+            categories: {
+              hasSome: ["payment"],
+            },
+          },
+        },
+        select: {
+          key: true,
+          appId: true,
+          app: {
+            select: {
+              categories: true,
+            },
+          },
+        },
+      });
+      const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
+        return credential.appId === paymentAppData.appId;
+      });
 
-      if (!firstStripeCredential)
+      if (!eventTypePaymentAppCredential) {
         throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+      }
 
-      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+      const payment = await handlePayment(evt, eventType, eventTypePaymentAppCredential, booking);
 
       req.statusCode = 201;
       return { ...booking, message: "Payment required", paymentUid: payment?.uid };
@@ -664,7 +684,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   // Otherwise, an owner rescheduling should be always accepted.
   // Before comparing make sure that userId is set, otherwise undefined === undefined
   const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-  const isConfirmedByDefault = (!requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+  const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -757,7 +777,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
     }
 
-    if (typeof stripeAppData.price === "number" && stripeAppData.price > 0) {
+    if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
       /*  note: removes custom error message about stripe */
       await prisma.credential.findFirstOrThrow({
@@ -889,7 +909,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!requiresConfirmation && !stripeAppData.price) {
+  } else if (!requiresConfirmation && !paymentAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -969,21 +989,44 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   if (
-    !Number.isNaN(stripeAppData.price) &&
-    stripeAppData.price > 0 &&
+    !Number.isNaN(paymentAppData.price) &&
+    paymentAppData.price > 0 &&
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
-    const [firstStripeCredential] = organizerUser.credentials.filter((cred) => cred.type == "stripe_payment");
+    // Load credentials.app.categories
+    const credentialPaymentAppCategories = await prisma.credential.findMany({
+      where: {
+        userId: organizerUser.id,
+        app: {
+          categories: {
+            hasSome: ["payment"],
+          },
+        },
+      },
+      select: {
+        key: true,
+        appId: true,
+        app: {
+          select: {
+            categories: true,
+          },
+        },
+      },
+    });
+    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
+      return credential.appId === paymentAppData.appId;
+    });
 
-    if (!firstStripeCredential)
+    if (!eventTypePaymentAppCredential) {
       throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+    }
 
     if (!booking.user) booking.user = organizerUser;
-    const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+    const payment = await handlePayment(evt, eventType, eventTypePaymentAppCredential, booking);
 
     req.statusCode = 201;
-    return { ...booking, message: "Payment required", paymentUid: payment.uid };
+    return { ...booking, message: "Payment required", paymentUid: payment?.uid };
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
@@ -1032,7 +1075,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         eventTitle: eventType.title,
         eventDescription: eventType.description,
         requiresConfirmation: requiresConfirmation || null,
-        price: stripeAppData.price,
+        price: paymentAppData.price,
         currency: eventType.currency,
         length: eventType.length,
       };

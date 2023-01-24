@@ -21,7 +21,7 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -911,7 +911,7 @@ const loggedInViewerRouter = router({
 
         const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
-        const stripeAppData = getStripeAppData({ ...eventType, metadata });
+        const stripeAppData = getPaymentAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {

@@ -1,5 +1,6 @@
 import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
+import { EventTypeAppsList } from "utils";
 import { z } from "zod";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
@@ -11,9 +12,14 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import appStore from "../../index";
 import { createPaymentLink } from "./client";
 
-export type PaymentData = Stripe.Response<Stripe.PaymentIntent> & {
+export type StripePaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripe_publishable_key: string;
   stripeAccount: string;
+};
+
+// @TODO move to MP lib server or types file
+export type MPPaymentData = {
+  init_point: string;
 };
 
 export const stripeOAuthTokenSchema = z.object({
@@ -50,8 +56,8 @@ const stripe = new Stripe(stripePrivateKey, {
 
 export async function handlePayment(
   evt: CalendarEvent,
-  selectedEventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
-  paymentAppCredentials: { key: Prisma.JsonValue },
+  selectedEventType: Pick<z.infer<typeof EventTypeModel>, "metadata">,
+  paymentAppCredentials: { key: Prisma.JsonValue; appId: EventTypeAppsList },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -59,9 +65,8 @@ export async function handlePayment(
     uid: string;
   }
 ) {
-  const paymentType = selectedEventType.metadata?.paymentApp;
+  const paymentApp = appStore[paymentAppCredentials.appId as keyof typeof appStore];
   const paymentApp = appStore[paymentType as keyof typeof appStore];
-
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
@@ -70,12 +75,12 @@ export async function handlePayment(
   const paymentInstance = new PaymentService(paymentAppCredentials);
   const paymentData = await paymentInstance.create(
     {
-      amount: selectedEventType.price,
-      currency: selectedEventType.currency,
+      amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+      currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
     },
     booking.id
   );
-  console.log({ paymentData });
+
   if (!paymentData) {
     console.error("Payment data is null");
     throw new Error("Payment data is null");
