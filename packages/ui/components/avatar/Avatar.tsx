@@ -52,7 +52,6 @@ export function Avatar(props: AvatarProps) {
             {gravatarFallbackMd5 && (
               <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
             )}
-            {size === "lg"}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (
