@@ -700,4 +700,15 @@ export const viewerTeamsRouter = router({
     });
     return { hasTeamPlan: !!hasTeamPlan };
   }),
+  listInvites: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    return await ctx.prisma.membership.findMany({
+      where: {
+        user: {
+          id: userId,
+        },
+        accepted: false,
+      },
+    });
+  }),
 });
