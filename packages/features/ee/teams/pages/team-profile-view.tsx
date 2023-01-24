@@ -9,7 +9,6 @@ import { z } from "zod";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getInnerText } from "@calcom/lib/getInnerText";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -94,6 +93,8 @@ const ProfileView = () => {
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
+
+  const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
@@ -251,10 +252,10 @@ const ProfileView = () => {
                   <Label className="text-black">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
-                {team?.bio && !!getInnerText(md.render(team.bio || "")).length && (
+                {team && !isBioEmpty && (
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
-                    <p
+                    <div
                       className="dark:text-darkgray-600 text-s text-gray-500"
                       dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />

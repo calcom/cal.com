@@ -8,7 +8,6 @@ import { useEffect } from "react";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
-import { getInnerText } from "@calcom/lib/getInnerText";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -79,6 +78,8 @@ function TeamPage({ team }: TeamPageProps) {
 
   const teamName = team.name || "Nameless Team";
 
+  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+
   return (
     <div>
       <HeadSeo
@@ -95,8 +96,8 @@ function TeamPage({ team }: TeamPageProps) {
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
             {teamName}
           </p>
-          {!!getInnerText(md.render(team.bio || "")).length && (
-            <p
+          {!isBioEmpty && (
+            <div
               className="dark:text-darkgray-600 text-s text-gray-500"
               dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
             />

@@ -2,8 +2,6 @@
 import { expect } from "@playwright/test";
 import MarkdownIt from "markdown-it";
 
-import { getInnerText } from "@calcom/lib/getInnerText";
-
 import { test } from "./lib/fixtures";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
@@ -65,7 +63,10 @@ test.describe("Onboarding", () => {
         await page.waitForURL("/event-types");
 
         const userComplete = await user.self();
-        expect(getInnerText(md.render(userComplete.bio || "")).length).toBe(0);
+
+        const userCompleteBio = userComplete.bio ? userComplete.bio : "";
+
+        expect(userCompleteBio.replace("<p><br></p>", "").length).toBe(0);
       });
     });
   });

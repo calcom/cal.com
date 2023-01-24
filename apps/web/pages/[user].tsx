@@ -21,7 +21,6 @@ import defaultEvents, {
   getUsernameList,
   getUsernameSlugLink,
 } from "@calcom/lib/defaultEvents";
-import { getInnerText } from "@calcom/lib/getInnerText";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -44,6 +43,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
+
+  const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
@@ -142,9 +143,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              {!!getInnerText(md.render(user.bio || "")).length && (
+              {!isBioEmpty && (
                 <>
-                  <p
+                  <div
                     className="dark:text-darkgray-600 text-s text-gray-500"
                     dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />

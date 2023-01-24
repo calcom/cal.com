@@ -3,7 +3,6 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getInnerText } from "@calcom/lib/getInnerText";
 import { Avatar } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -17,6 +16,8 @@ type MemberType = MembersType[number];
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
 
+  const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
+
   return (
     <Link key={member.id} href={`/${member.username}`}>
       <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full w-[90%] flex-col space-y-2 rounded-md bg-white p-4  hover:cursor-pointer hover:bg-gray-50 ">
@@ -28,8 +29,8 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         <section className="line-clamp-4 mt-2 w-full space-y-1">
           <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
           <p className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
-            {getInnerText(md.render(member.bio || "")).length ? (
-              <p
+            {!isBioEmpty ? (
+              <div
                 className="dark:text-darkgray-600 text-s text-gray-500"
                 dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
               />
