@@ -22,6 +22,7 @@
     "next-i18next": "^11.3.0",
     "react-hot-toast": "^2.3.0",
     "rrule": "^2.7.1",
+    "tailwind-merge": "^1.8.1",
     "tsdav": "2.0.3",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2"

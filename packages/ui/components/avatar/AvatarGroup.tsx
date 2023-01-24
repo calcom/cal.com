@@ -8,6 +8,7 @@ export type AvatarGroupProps = {
     image: string;
     title?: string;
     alt?: string;
+    href?: string;
   }[];
   className?: string;
   accepted?: boolean;
@@ -20,7 +21,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   const truncateAfter = props.truncateAfter || 4;
 
   return (
-    <ul className={classNames(props.className, "flex items-center")}>
+    <ul className={classNames("flex items-center", props.className)}>
       {avatars.map((item, enumerator) => {
         if (item.image != null) {
           if (LENGTH > truncateAfter && enumerator === truncateAfter - 1) {
@@ -51,6 +52,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
                 alt={item.alt || ""}
                 accepted={props.accepted}
                 size={props.size}
+                href={item.href}
               />
             </li>
           );
