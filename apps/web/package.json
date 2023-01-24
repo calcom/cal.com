@@ -37,7 +37,7 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
-    "@daily-co/daily-js": "^0.26.0",
+    "@daily-co/daily-js": "^0.37.0",
     "@formkit/auto-animate": "^1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@heroicons/react": "^1.0.6",
