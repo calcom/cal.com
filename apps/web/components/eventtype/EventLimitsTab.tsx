@@ -10,7 +10,8 @@ import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
-import { Button, DateRangePicker, Icon, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
+import { Button, DateRangePicker, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
+import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
@@ -431,7 +432,7 @@ const BookingLimits = () => {
                       />
                       <Button
                         variant="icon"
-                        StartIcon={Icon.FiTrash}
+                        StartIcon={FiTrash}
                         color="destructive"
                         onClick={() => {
                           const current = currentBookingLimits;
@@ -445,7 +446,7 @@ const BookingLimits = () => {
             {currentBookingLimits && Object.keys(currentBookingLimits).length <= 3 && (
               <Button
                 color="minimal"
-                StartIcon={Icon.FiPlus}
+                StartIcon={FiPlus}
                 onClick={() => {
                   if (!currentBookingLimits || !watchBookingLimits) return;
                   const currentKeys = Object.keys(watchBookingLimits);

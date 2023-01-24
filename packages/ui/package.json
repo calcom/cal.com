@@ -3,7 +3,10 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.tsx",
-  "exports": "./index.tsx",
+  "exports": {
+    ".": "./index.tsx",
+    "./components/icon": "./components/icon/index.ts"
+  },
   "types": "./index.tsx",
   "license": "MIT",
   "scripts": {

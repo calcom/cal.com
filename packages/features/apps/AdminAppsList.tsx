@@ -19,7 +19,6 @@ import {
   Dialog,
   EmptyScreen,
   Form,
-  Icon,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -28,6 +27,7 @@ import {
   TextField,
   VerticalDivider,
 } from "@calcom/ui";
+import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
 
 const IntegrationContainer = ({
   app,
@@ -112,7 +112,7 @@ const IntegrationContainer = ({
                         variant="icon"
                         tooltip={t("edit_keys")}
                         onClick={() => setShowKeys(!showKeys)}>
-                        <Icon.FiEdit />
+                        <FiEdit />
                       </Button>
                     </CollapsibleTrigger>
                   </>
@@ -236,7 +236,7 @@ const AdminAppsListContainer = () => {
   if (!apps) {
     return (
       <EmptyScreen
-        Icon={Icon.FiAlertCircle}
+        Icon={FiAlertCircle}
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

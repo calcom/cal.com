@@ -1,6 +1,6 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
 import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
-import { Icon } from "@calcom/ui";
+import { FiPlus, FiX } from "@calcom/ui/components/icon";
 
 import { Button } from './Button';
 
@@ -58,22 +58,22 @@ Button are clickable elements that initiates user actions. Labels in the button 
     <Button>Button text</Button>
   </Example>
   <Example title="Icon left">
-      <Button StartIcon={Icon.FiPlus}>Button text</Button>
+      <Button StartIcon={FiPlus}>Button text</Button>
   </Example>
   <Example title="Icon right">
-    <Button EndIcon={Icon.FiPlus}>Button text</Button>
+    <Button EndIcon={FiPlus}>Button text</Button>
   </Example>
 </Examples>
 
 <Examples title="Icons">
   <Example title="Icon Normal">
-      <Button StartIcon={Icon.FiX} variant="icon" size="base" color="minimal"></Button>
+      <Button StartIcon={FiX} variant="icon" size="base" color="minimal"></Button>
   </Example>
   <Example title="Icon Small">
-      <Button StartIcon={Icon.FiX} variant="icon" size="sm" color="minimal"></Button>
+      <Button StartIcon={FiX} variant="icon" size="sm" color="minimal"></Button>
   </Example>
    <Example title="Icon Loading">
-      <Button StartIcon={Icon.FiX} variant="icon" size="sm" color="minimal" loading></Button>
+      <Button StartIcon={FiX} variant="icon" size="sm" color="minimal" loading></Button>
   </Example>
 </Examples>
 
@@ -97,35 +97,35 @@ Button are clickable elements that initiates user actions. Labels in the button 
         <Button color="secondary">Button text</Button>
         <Button color="minimal">Button text</Button>
         <Button color="destructive">Button text</Button>
-        <Button color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
+        <Button color="destructive" variant="icon" StartIcon={FiX}></Button>
       </VariantRow>
       <VariantRow variant="Hover">
         <Button className="sb-pseudo--hover">Button text</Button>
         <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
         <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
         <Button className="sb-pseudo--hover" color="destructive">Button text</Button>
-        <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
+        <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={FiX}></Button>
       </VariantRow>
       <VariantRow variant="Focus">
         <Button className="sb-pseudo--focus">Button text</Button>
         <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
         <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
         <Button className="sb-pseudo--focus" color="destructive">Button text</Button>
-        <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
+        <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={FiX}></Button>
       </VariantRow>
       <VariantRow variant="Loading">
         <Button loading>Button text</Button>
         <Button loading color="secondary">Button text</Button>
         <Button loading color="minimal">Button text</Button>
         <Button loading color="destructive">Button text</Button>
-        <Button loading color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
+        <Button loading color="destructive" variant="icon" StartIcon={FiX}></Button>
       </VariantRow>
       <VariantRow variant="Disabled">
         <Button disabled>Button text</Button>
         <Button disabled color="secondary">Button text</Button>
         <Button disabled color="minimal">Button text</Button>
         <Button disabled color="destructive">Button text</Button>
-        <Button disabled color="destructive" variant="icon" StartIcon={Icon.FiX}></Button>
+        <Button disabled color="destructive" variant="icon" StartIcon={FiX}></Button>
       </VariantRow>
     </VariantsTable>
   </Story>
