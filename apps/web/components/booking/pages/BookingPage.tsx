@@ -39,8 +39,16 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
-import { Group, RadioField } from "@calcom/ui";
+import { AddressInput, Button, EmailInput, Form, PhoneInput, Tooltip, Group, RadioField } from "@calcom/ui";
+import {
+  FiAlertTriangle,
+  FiCalendar,
+  FiCreditCard,
+  FiInfo,
+  FiRefreshCw,
+  FiUser,
+  FiUserPlus,
+} from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -479,7 +487,7 @@ const BookingPage = ({
               })}{" "}
           | {APP_NAME}
         </title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favico.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
@@ -501,7 +509,7 @@ const BookingPage = ({
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   {stripeAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <Icon.FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={stripeAppData.price / 100.0}
@@ -513,7 +521,7 @@ const BookingPage = ({
                   )}
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-                      <Icon.FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                      <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
                           t,
@@ -524,7 +532,7 @@ const BookingPage = ({
                     </div>
                   )}
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                    <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
                       {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
                       {!rescheduleUid &&
@@ -552,14 +560,14 @@ const BookingPage = ({
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <Icon.FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                        <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
                   )}
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
-                      <Icon.FiUser
+                      <FiUser
                         className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
                           booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                             ? "text-rose-600"
@@ -623,7 +631,7 @@ const BookingPage = ({
                     />
                     {bookingForm.formState.errors.email && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("email_validation_error")}</p>
                       </div>
                     )}
@@ -716,7 +724,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.phone && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -834,7 +842,7 @@ const BookingPage = ({
                           />
                           {bookingForm.formState.errors?.customInputs?.[input.id] && (
                             <div className="mt-2 flex items-center text-sm text-red-700 ">
-                              <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                              <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                               <p>{t("invalid_number")}</p>
                             </div>
                           )}
@@ -914,7 +922,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -956,7 +964,7 @@ const BookingPage = ({
                       color="minimal"
                       variant="icon"
                       tooltip={t("additional_guests")}
-                      StartIcon={Icon.FiUserPlus}
+                      StartIcon={FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}
                       className="mr-auto"
                     />
@@ -993,7 +1001,7 @@ function ErrorMessage({ error }: { error: unknown }) {
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <Icon.FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">

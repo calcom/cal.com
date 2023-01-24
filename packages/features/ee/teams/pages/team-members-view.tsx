@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Meta, showToast } from "@calcom/ui";
+import { Button, Meta, showToast } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -55,7 +56,7 @@ const MembersView = () => {
             <Button
               type="button"
               color="primary"
-              StartIcon={Icon.FiPlus}
+              StartIcon={FiPlus}
               className="ml-auto"
               onClick={() => setShowMemberInvitationModal(true)}
               data-testid="new-member-button">

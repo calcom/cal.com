@@ -6,7 +6,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { Icon } from "@calcom/ui";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "@calcom/ui/components/icon";
 
 import { EmptyScreen } from "../empty-screen";
 import { AppCard } from "./AppCard";
@@ -78,7 +78,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       {leftVisible && (
         <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <Icon.FiChevronLeft className="h-4 w-4 text-gray-500" />
+            <FiChevronLeft className="h-4 w-4 text-gray-500" />
           </div>
           <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
         </button>
@@ -121,7 +121,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
           <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <Icon.FiChevronRight className="h-4 w-4 text-gray-500" />
+            <FiChevronRight className="h-4 w-4 text-gray-500" />
           </div>
         </button>
       )}
@@ -175,7 +175,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
         </div>
       ) : (
         <EmptyScreen
-          Icon={Icon.FiSearch}
+          Icon={FiSearch}
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

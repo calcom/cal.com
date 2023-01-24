@@ -15,10 +15,10 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2, FiZap } from "@calcom/ui/components/icon";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -49,7 +49,7 @@ const CreateEmptyWorkflowView = () => {
     <EmptyScreen
       buttonText={t("create_workflow")}
       buttonOnClick={() => createMutation.mutate()}
-      IconHeading={Icon.FiZap}
+      IconHeading={FiZap}
       headline={t("workflows")}
       description={t("no_workflows_description")}
       isLoading={createMutation.isLoading}
@@ -122,13 +122,13 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <p key={key}>{activeOn.eventType.title}</p>
                               ))}>
                               <div>
-                                <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                                 {t("active_on_event_types", { count: workflow.activeOn.length })}
                               </div>
                             </Tooltip>
                           ) : (
                             <div>
-                              <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                              <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
                               {t("no_active_event_types")}
                             </div>
                           )}
@@ -144,7 +144,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             type="button"
                             color="secondary"
                             variant="icon"
-                            StartIcon={Icon.FiEdit2}
+                            StartIcon={FiEdit2}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
                         </Tooltip>
@@ -156,7 +156,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             }}
                             color="secondary"
                             variant="icon"
-                            StartIcon={Icon.FiTrash2}
+                            StartIcon={FiTrash2}
                           />
                         </Tooltip>
                       </ButtonGroup>
@@ -164,18 +164,13 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div className="block sm:hidden">
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            color="minimal"
-                            variant="icon"
-                            StartIcon={Icon.FiMoreHorizontal}
-                          />
+                          <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem>
                             <DropdownItem
                               type="button"
-                              StartIcon={Icon.FiEdit2}
+                              StartIcon={FiEdit2}
                               onClick={async () => await router.replace("/workflows/" + workflow.id)}>
                               {t("edit")}
                             </DropdownItem>
@@ -184,7 +179,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                             <DropdownItem
                               type="button"
                               color="destructive"
-                              StartIcon={Icon.FiTrash2}
+                              StartIcon={FiTrash2}
                               onClick={() => {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);

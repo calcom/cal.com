@@ -11,7 +11,8 @@ import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Icon, Input, Label } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Input, Label } from "@calcom/ui";
+import { FiCheck, FiEdit2, FiExternalLink, StarIconSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -230,8 +231,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <Icon.StarIconSolid className="mt-[2px] w-6" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? <FiCheck className="mt-2 w-6" /> : <></>}
             </span>
           </div>
         </div>
@@ -249,7 +250,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <DialogContent>
           <div className="flex flex-row">
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <Icon.FiEdit2 className="m-auto h-6 w-6" />
+              <FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
@@ -283,7 +284,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <FiExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

@@ -28,7 +28,8 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, HeadSeo } from "@calcom/ui";
+import { HeadSeo } from "@calcom/ui";
+import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -220,12 +221,12 @@ function TimezoneDropdown({
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
         <p className="flex items-center text-sm font-medium">
-          <Icon.FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
+          <FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
+            <FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
           ) : (
-            <Icon.FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
+            <FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
           )}
         </p>
       </Popover.Trigger>
@@ -367,7 +368,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <Icon.FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+                          <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -392,7 +393,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {stripeAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <Icon.FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={stripeAppData.price / 100.0}

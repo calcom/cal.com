@@ -13,7 +13,8 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
+import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { FiArrowLeft } from "@calcom/ui/components/icon";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
@@ -85,7 +86,7 @@ export default function Login({
         setTwoFactorRequired(false);
         methods.setValue("totpCode", "");
       }}
-      StartIcon={Icon.FiArrowLeft}
+      StartIcon={FiArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>

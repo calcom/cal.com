@@ -166,7 +166,7 @@ const AppearanceView = () => {
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
-        EndIcon={Icon.FiExternalLink}
+        EndIcon={FiExternalLink}
         className="mt-6"
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
