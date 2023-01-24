@@ -27,12 +27,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Form,
-  Icon,
   RadioGroup as RadioArea,
   showToast,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
 
@@ -136,6 +136,7 @@ const CreateEventTypeDialog = () => {
       ]}>
       <DialogContent
         type="creation"
+        enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
         <Form
@@ -283,7 +284,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         <Button
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
-          StartIcon={Icon.FiPlus}
+          StartIcon={FiPlus}
           variant="fab"
           disabled={!props.canAddEvents}>
           {t("new")}
@@ -291,7 +292,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button variant="fab" StartIcon={Icon.FiPlus}>
+            <Button variant="fab" StartIcon={FiPlus}>
               {t("new")}
             </Button>
           </DropdownMenuTrigger>

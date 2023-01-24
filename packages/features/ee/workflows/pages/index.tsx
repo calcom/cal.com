@@ -5,7 +5,8 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
@@ -45,7 +46,7 @@ function WorkflowsPage() {
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
             variant="fab"
-            StartIcon={Icon.FiPlus}
+            StartIcon={FiPlus}
             onClick={() => createMutation.mutate()}
             loading={createMutation.isLoading}>
             {t("new")}

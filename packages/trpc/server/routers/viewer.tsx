@@ -43,8 +43,8 @@ import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
-import { samlRouter } from "./viewer/saml";
 import { slotsRouter } from "./viewer/slots";
+import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
@@ -1156,7 +1156,7 @@ export const viewerRouter = mergeRouters(
     apiKeys: apiKeysRouter,
     slots: slotsRouter,
     workflows: workflowsRouter,
-    saml: samlRouter,
+    saml: ssoRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,

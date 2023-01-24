@@ -12,9 +12,9 @@ import {
   DialogFooter,
   DialogTrigger,
   Form,
-  Icon,
   showToast,
 } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
@@ -58,7 +58,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
   return (
     <Dialog name={name} clearQueryParamsOnClose={["copy-schedule-id"]}>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon={Icon.FiPlus}>
+        <Button variant="fab" data-testid={name} StartIcon={FiPlus}>
           {t("new")}
         </Button>
       </DialogTrigger>

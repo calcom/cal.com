@@ -7,7 +7,8 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -83,7 +84,7 @@ const NoAvailabilityOverlay = ({
       <h4 className="mb-4 font-medium text-gray-900 dark:text-white">
         {t("no_availability_in_month", { month: month })}
       </h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={Icon.FiArrowRight}>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={FiArrowRight}>
         {t("view_next_month")}
       </Button>
     </div>

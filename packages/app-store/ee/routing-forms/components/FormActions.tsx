@@ -22,13 +22,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Form,
-  Icon,
   showToast,
   Switch,
   TextAreaField,
   TextField,
   SettingsToggle,
 } from "@calcom/ui";
+import { FiMoreHorizontal } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
@@ -162,7 +162,7 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
             variant="icon"
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
-            StartIcon={Icon.FiMoreHorizontal}
+            StartIcon={FiMoreHorizontal}
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>

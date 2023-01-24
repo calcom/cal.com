@@ -5,11 +5,13 @@ if [ $# -eq 0 ]; then
   echo "Usage: git-setup.sh <api,console,website>"
   exit 1
 fi
+# Get remote url to support either https or ssh
+remote_url=$(echo $(git config --get remote.origin.url) | sed 's![^/]*$!!')
 # Loop through the requested modules
 for module in "$@"; do
   echo "Setting up '$module' module..."
   # Set the project git URL
-  project=$(echo "git@github.com:calcom/$module.git")
+  project=$remote_url$module.git
   # Check if we have access to the module
   if [ "$(git ls-remote "$project" 2>/dev/null)" ]; then
     echo "You have access to '${module}'"
@@ -18,7 +20,7 @@ for module in "$@"; do
     # Prevents duplicate entries
     git config -f .gitmodules --unset-all "submodule.apps/$module.branch"
     # Add the submodule
-    git submodule add --force "git@github.com:calcom/$module.git" "apps/$module"
+    git submodule add --force $project "apps/$module"
     # Set the default branch to main
     git config -f .gitmodules --add "submodule.apps/$module.branch" main
     # Adding the subdmoule ignores the `.gitignore` so a reset is needed

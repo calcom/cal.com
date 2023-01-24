@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
+import { FiExternalLink } from "@calcom/ui/components/icon";
 
 export default function HowToUse() {
   const { t } = useLocale();
@@ -30,10 +31,7 @@ export default function HowToUse() {
                   href="/api/app-store/typeform/copy-typeform-redirect-url.png"
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
-                  <Icon.FiExternalLink
-                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
-                    aria-hidden="true"
-                  />
+                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Click &quot;Copy Typeform Redirect URL&quot;
                 </Link>
               </li>
@@ -44,10 +42,7 @@ export default function HowToUse() {
                   href="https://www.typeform.com/help/a/end-screens-and-redirects-360051791392/#h_01G0CFXF21W2EQ8PXKSB4KSC8P"
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
-                  <Icon.FiExternalLink
-                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
-                    aria-hidden="true"
-                  />
+                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Redirect to your typeform
                 </Link>
               </li>
@@ -57,10 +52,7 @@ export default function HowToUse() {
                   href="https://www.typeform.com/help/a/use-recall-information-to-reference-typeform-answers-variables-and-more-360052320011/"
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
-                  <Icon.FiExternalLink
-                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
-                    aria-hidden="true"
-                  />
+                  <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />
                   Recall Information in Typeform
                 </Link>{" "}
                 to add values to query params.
