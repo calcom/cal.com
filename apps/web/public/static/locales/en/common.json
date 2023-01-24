@@ -1542,5 +1542,7 @@
   "no_enterprise_features": "No enterprise features",
   "step_enterprise_license": "Enterprise License",
   "step_enterprise_license_description": "Everything for a commercial use case with private hosting, repackaging, rebranding and reselling and access exclusive enterprise components.",
-  "you_can_upgrade_at_any_time_later": "You can upgrade at anytime later."
+  "you_can_upgrade_at_any_time_later": "You can upgrade at anytime later.",
+  "setup": "Setup",
+  "setup_description": "Setup Cal.com instance"
 }

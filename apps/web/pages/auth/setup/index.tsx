@@ -8,7 +8,7 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { WizardForm } from "@calcom/ui";
+import { Meta, WizardForm } from "@calcom/ui";
 
 import AdminUser from "./steps/AdminUser";
 import ChooseLicense from "./steps/ChooseLicense";
@@ -80,6 +80,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
   return (
     <>
+      <Meta title={t("setup")} description={t("setup_description")} />
       <main className="flex items-center bg-gray-100 print:h-full">
         <WizardForm
           href="/auth/setup"
