@@ -1,10 +1,7 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
-import MarkdownIt from "markdown-it";
 
 import { test } from "./lib/fixtures";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 test.describe.configure({ mode: "serial" });
 
