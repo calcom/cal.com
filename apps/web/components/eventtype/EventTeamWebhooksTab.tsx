@@ -131,7 +131,10 @@ export const EventTeamWebhooksTab = ({
 
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent title={t("create_webhook")} description={t("create_webhook_team_event_type")}>
+            <DialogContent
+              enableOverflow
+              title={t("create_webhook")}
+              description={t("create_webhook_team_event_type")}>
               <WebhookForm
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}
