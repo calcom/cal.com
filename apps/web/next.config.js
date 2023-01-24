@@ -89,12 +89,18 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-  // modularizeImports: {
-  //   "@calcom/ui": {
-  //     transform: "@calcom/ui/components/{{member}}",
-  //   },
-  // },
+  modularizeImports: {
+    "@heroicons/react/outline": {
+      transform: "@heroicons/react/outline/{{member}}",
+    },
+    "@heroicons/react/solid": {
+      transform: "@heroicons/react/solid/{{member}}",
+    },
+    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+    // "@calcom/ui": {
+    //   transform: "@calcom/ui/components/{{member}}",
+    // },
+  },
   images: {
     unoptimized: true,
   },
