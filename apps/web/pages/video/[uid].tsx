@@ -1,5 +1,5 @@
 import DailyIframe from "@daily-co/daily-js";
-import { NextPageContext } from "next";
+import { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { useEffect } from "react";
@@ -8,6 +8,8 @@ import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constant
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -77,7 +79,9 @@ export default function JoinCall(props: JoinCallPageProps) {
   );
 }
 
-export async function getServerSideProps(context: NextPageContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
   const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid as string,
@@ -144,7 +148,11 @@ export async function getServerSideProps(context: NextPageContext) {
 
   return {
     props: {
-      booking: bookingObj,
+      meetingUrl: bookingObj.references[0].meetingUrl ?? "",
+      ...(typeof bookingObj.references[0].meetingPassword === "string" && {
+        meetingPassword: bookingObj.references[0].meetingPassword,
+      }),
+      trpcState: ssr.dehydrate(),
     },
   };
 }
