@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { defaults } from "lodash";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -31,6 +32,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -40,6 +42,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { AddressInput, Button, EmailInput, Form, Icon, Input, Label, PhoneInput, Tooltip } from "@calcom/ui";
 import { Group, RadioField } from "@calcom/ui";
 
@@ -54,68 +57,61 @@ import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import { FormBuilderField } from "@components/eventtype/EventAdvancedTab";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
-
-type BookingFormValues = {
-  name: string;
-  email: string;
-  notes?: string;
-  locationType?: EventLocationType["type"];
-  guests?: string[];
-  address?: string;
-  attendeeAddress?: string;
-  phone?: string;
-  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-  customInputs?: {
-    [key: string]: string | boolean;
-  };
-  rescheduleReason?: string;
-  smsReminderNumber?: string;
-};
-
 const BookingFields = ({
   fields,
-  hookForm,
-  guestToggle,
   locations,
   selectedLocation,
   rescheduleUid,
 }: {
-  fields: unknown;
+  fields: BookingPageProps["eventType"]["bookingFields"];
+  locations: LocationObject[];
+  rescheduleUid?: string;
+  selectedLocation: ReturnType<typeof getEventLocationType>;
 }) => {
   const { t } = useLocale();
-  return fields.map((bookingInput, index) => {
-    const actionHappened = bookingInput.name === "guests" && guestToggle;
-    if (bookingInput.hidden) return null;
-    if (bookingInput.showOnAction && !actionHappened) return null;
-    if (bookingInput.name === "location") {
-      bookingInput.options = locations
-        .map((location) => {
-          const locationString = locationKeyToString(location);
-          if (typeof locationString !== "string") {
-            // It's possible that location app got uninstalled
-            return null;
-          }
-          return {
-            label: t(locationString),
-            value: location.type,
-          };
-        })
-        .filter(Boolean);
-      bookingInput.optionsInputs.attendeeInPerson.placeholder = t(
-        selectedLocation?.attendeeInputPlaceholder || ""
-      );
+  return fields.map((field, index) => {
+    // TODO: ManageBookings: Shouldn't we render hidden fields but invisible so that they can be prefilled?
+    if (field.hidden) return null;
+    let readOnly =
+      (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+    if (field.name === "rescheduleReason") {
+      if (!rescheduleUid) {
+        return null;
+      }
+      // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
+      readOnly = false;
     }
 
-    return (
-      <FormBuilderField field={bookingInput} hookForm={hookForm} rescheduleUid={rescheduleUid} key={index} />
-    );
+    if (field.name === "location" && field.type == "radioInput") {
+      const options = locations.map((location) => {
+        const locationString = locationKeyToString(location);
+        if (typeof locationString !== "string") {
+          // It's possible that location app got uninstalled
+          return null;
+        }
+        return {
+          label: t(locationString),
+          value: location.type,
+        };
+      });
+
+      field.options = options.filter(
+        (location): location is NonNullable<typeof options[number]> => !!location
+      );
+
+      if (!field.optionsInputs) {
+        throw new Error("radioInput must have optionsInputs");
+      }
+      field.optionsInputs.attendeeInPerson.placeholder = t(selectedLocation?.attendeeInputPlaceholder || "");
+    }
+
+    return <FormBuilderField field={field} readOnly={readOnly} key={index} />;
   });
 };
 
@@ -223,38 +219,68 @@ const BookingPage = ({
       setGuestToggle(true);
     }
   }, [router.query.guest]);
+  const [isClientTimezoneAvailable, setIsClientTimezoneAvailable] = useState(false);
+  useEffect(() => {
+    // THis is to fix hydration error that comes because of different timezone on server and client
+    setIsClientTimezoneAvailable(true);
+  }, []);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
     : [];
 
+  //FIXME: We need to be backward compatible in terms of pre-filling the form
+  const getFormBuilderFieldValueFromQuery = (paramName: string) => {
+    // const schema = getBookingResponsesSchema({
+    //   bookingFields: eventType.bookingFields,
+    // })
+    // string value for - text, textarea, select, radio,
+    // string value with , for checkbox and multiselect
+    // Object {value:"", optionValue:""} for radioInput
+    return z.string().optional().parse(router.query[paramName]);
+  };
+
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid
-      ? booking?.attendees[0].email
-      : router.query.email
-      ? (router.query.email as string)
-      : "",
-    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
+    email: rescheduleUid ? booking?.attendees[0].email : getFormBuilderFieldValueFromQuery("email"),
+    name: rescheduleUid ? booking?.attendees[0].name : getFormBuilderFieldValueFromQuery("name"),
   };
 
   const defaultValues = () => {
     if (!rescheduleUid) {
-      return {
+      const defaults = {
+        // notes: (router.query.notes as string) || "",
+        // guests: ensureArray(router.query.guest) as string[],
+        // customInputs: eventType.customInputs.reduce(
+        //   (customInputs, input) => ({
+        //     ...customInputs,
+        //     [input.id]: router.query[slugify(input.label)],
+        //   }),
+        //   {}
+        // ),
+        responses: {} as z.infer<typeof bookingFormSchema>["responses"],
+      };
+
+      // To keep URLs that might be prefilling customInputs(deprecated) fields working, we are introducing this query param to identify new prefill URLs
+      // Should be handled by mapping custom-inputs to bookingFields
+      // if (router.query["form-builder"] == "1") {
+      const responses = eventType.bookingFields.reduce((responses, field) => {
+        return {
+          ...responses,
+          [field.name]: getFormBuilderFieldValueFromQuery(field.name),
+        };
+      }, {});
+      defaults.responses = {
+        ...responses,
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
-        notes: (router.query.notes as string) || "",
-        guests: ensureArray(router.query.guest) as string[],
-        customInputs: eventType.customInputs.reduce(
-          (customInputs, input) => ({
-            ...customInputs,
-            [input.id]: router.query[slugify(input.label)],
-          }),
-          {}
-        ),
       };
+      // }
+
+      return defaults;
     }
+
     if (!booking || !booking.attendees.length) {
       return {};
     }
@@ -263,24 +289,23 @@ const BookingPage = ({
       return {};
     }
 
-    const customInputType = booking.customInputs;
-    return {
-      name: defaultUserValues.name,
-      email: defaultUserValues.email || "",
-      guests: guestListEmails,
-      notes: booking.description || "",
-      rescheduleReason: "",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      customInputs: eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: booking.customInputs
-            ? booking.customInputs[input.label as keyof typeof customInputType]
-            : "",
-        }),
-        {}
-      ),
+    const defaults = {
+      responses: {} as z.infer<typeof bookingFormSchema>["responses"],
     };
+
+    const responses = eventType.bookingFields.reduce((responses, field) => {
+      return {
+        ...responses,
+        [field.name]: booking.responses[field.name],
+      };
+    }, {});
+    defaults.responses = {
+      ...responses,
+      name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+      email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
+    };
+    console.log(defaults);
+    return defaults;
   };
 
   const bookingFormSchema = z
@@ -293,7 +318,7 @@ const BookingPage = ({
       //   .optional()
       //   .nullable(),
       // attendeeAddress: z.string().optional().nullable(),
-      inputs: getBookingResponsesSchema(eventType),
+      responses: getBookingResponsesSchema(eventType),
       // smsReminderNumber: z
       //   .string()
       //   .refine((val) => isValidPhoneNumber(val))
@@ -301,6 +326,24 @@ const BookingPage = ({
       //   .nullable(),
     })
     .passthrough();
+
+  type BookingFormValues = {
+    name: string;
+    email: string;
+    notes?: string;
+    locationType?: EventLocationType["type"];
+    guests?: string[];
+    address?: string;
+    attendeeAddress?: string;
+    phone?: string;
+    hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
+    customInputs?: {
+      [key: string]: string | boolean;
+    };
+    rescheduleReason?: string;
+    smsReminderNumber?: string;
+    responses: z.infer<typeof bookingFormSchema>["responses"];
+  };
 
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
@@ -451,11 +494,6 @@ const BookingPage = ({
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
-        location: getEventLocationValue(locations, {
-          type: (booking.inputs.location.value ? booking.inputs.location.value : selectedLocationType) || "",
-          phone: booking.phone,
-          attendeeAddress: booking.attendeeAddress,
-        }),
         metadata,
         customInputs: bookingCustomInputs,
         hasHashedBookingLink,
@@ -565,8 +603,11 @@ const BookingPage = ({
                   <div className="text-bookinghighlight flex items-start text-sm">
                     <Icon.FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
-                      {!rescheduleUid &&
+                      {isClientTimezoneAvailable &&
+                        (rescheduleUid || !eventType.recurringEvent?.freq) &&
+                        `${parseDate(date, i18n)}`}
+                      {isClientTimezoneAvailable &&
+                        !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
                           return <p key={key}>{timeFormatted}</p>;
@@ -592,7 +633,9 @@ const BookingPage = ({
                       </p>
                       <p className="line-through ">
                         <Icon.FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                        {isClientTimezoneAvailable &&
+                          typeof booking.startTime === "string" &&
+                          parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
                   )}
@@ -628,8 +671,7 @@ const BookingPage = ({
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} handleSubmit={bookEvent}>
                 <BookingFields
-                  fields={eventType.bookingInputs}
-                  hookForm={bookingForm}
+                  fields={eventType.bookingFields}
                   guestToggle={guestToggle}
                   locations={locations}
                   selectedLocation={selectedLocation}
@@ -904,17 +946,6 @@ const BookingPage = ({
                 </div> */}
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestToggle && (
-                    <Button
-                      type="button"
-                      color="minimal"
-                      size="icon"
-                      tooltip={t("additional_guests")}
-                      StartIcon={Icon.FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
-                    />
-                  )}
                   <Button
                     color="minimal"
                     type="button"

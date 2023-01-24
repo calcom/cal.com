@@ -15,7 +15,7 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getEventLocationValue, getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
@@ -37,7 +37,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { ensureBookingInputsHaveMustHaveItems } from "@calcom/lib/getEventTypeById";
+import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -48,6 +48,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import prisma, { userSelect } from "@calcom/prisma";
 import {
   customInputSchema,
+  eventTypeBookingFields,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
 } from "@calcom/prisma/zod-utils";
@@ -160,7 +161,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           name: true,
         },
       },
-      bookingInputs: true,
+      bookingFields: true,
       title: true,
       length: true,
       eventName: true,
@@ -222,6 +223,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType.customInputs),
     locations: (eventType.locations ?? []) as LocationObject[],
+    bookingFields: eventTypeBookingFields.parse(eventType.bookingFields),
   };
 };
 
@@ -298,7 +300,7 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function handler(req: NextApiRequest & { userId?: number | undefined }) {
+async function handler(req: NextApiRequest & { userId?: number | undefined }, isNotAnApiCall = false) {
   const { userId } = req;
 
   // handle dynamic user
@@ -311,8 +313,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   eventType = {
     ...eventType,
     // TODO: ManageBookings: Use getEventTypeById which would avoid having to do it again
-    // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingInputs fixed.
-    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventType.bookingInputs),
+    // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingFields fixed.
+    bookingFields: ensureBookingInputsHaveSystemFields(eventType.bookingFields),
   };
   const {
     recurringCount,
@@ -328,10 +330,24 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   } = extendedBookingCreateBody
     .merge(
       z.object({
-        inputs: getBookingResponsesSchema(eventType),
+        responses: getBookingResponsesSchema(eventType),
       })
     )
     .parse(req.body);
+
+  const bookerEmail = reqBody.responses ? reqBody.responses.email : reqBody.email;
+  const bookerName = reqBody.responses ? reqBody.responses.name : reqBody.name;
+  const reqGuests = reqBody.responses
+    ? reqBody.responses.guests
+      ? reqBody.responses.guests.split(",")
+      : []
+    : reqBody.guests;
+
+  const location = reqBody.responses
+    ? reqBody.responses.location?.optionValue || reqBody.responses.location?.value
+    : reqBody.location;
+
+  const additionalNotes = reqBody.responses ? reqBody.responses.notes : reqBody.notes;
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -489,14 +505,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const invitee = [
     {
       // TODO: ManageBookings: Ensure that email is there in TS as well as runtime. Right now I can save an attendee without email
-      email: reqBody.inputs.email,
+      email: bookerEmail,
       //TODO: ManageBookings: Ensure that name is there in TS as well as runtime
-      name: reqBody.inputs.name,
+      name: bookerName,
       timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.inputs.guests || []).map((guest) => ({
+
+  const guests = (reqGuests || []).map((guest) => ({
     email: guest,
     name: "",
     timeZone: reqBody.timeZone,
@@ -505,7 +522,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  const location = reqBody.inputs?.location?.optionValue || reqBody.inputs.location.value;
+
   const bookingLocation = getLocationValueForDB(location, eventType.locations);
 
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
@@ -530,15 +547,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
   const eventNameObject = {
-    attendeeName: reqBody.name || "Nameless",
+    //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
+    attendeeName: reqBody.responses.name || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
+    // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
     t: tOrganizer,
   };
-
-  const additionalNotes = reqBody.notes;
 
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
@@ -740,8 +757,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
+    const smsReminderNumber =
+      (reqBody.responses.location?.value === "phone" ? reqBody.responses.location.optionValue : null) ||
+      reqBody.smsReminderNumber;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
+      responses: reqBody.responses,
       title: evt.title,
       startTime: dayjs.utc(evt.startTime).toDate(),
       endTime: dayjs.utc(evt.endTime).toDate(),
@@ -750,8 +771,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
-      smsReminderNumber:
-        reqBody.inputs.location?.value === "phone" ? reqBody.inputs.location.optionValue : null,
+      smsReminderNumber: smsReminderNumber,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {

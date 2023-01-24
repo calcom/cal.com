@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
@@ -8,35 +9,50 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-export const ensureBookingInputsHaveMustHaveItems = (bookingInputs) => {
-  return [
-    // FIXME: ManageBookings: Ensure that if Name and Email are not present the request is rejected
-    // TODO: ManageBookings: Make sure that default labels for name, email, location, additionalNotes, guests are translatable
+export const ensureBookingInputsHaveSystemFields = (
+  bookingFields: z.infer<typeof eventTypeBookingFields>
+) => {
+  bookingFields = bookingFields || [];
+  const mustHaveFields: typeof bookingFields = [
     {
       label: "Your name",
       type: "text",
       name: "name",
       required: true,
-      mustHave: true,
+      editable: "system",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
     },
     {
       label: "Your email",
       type: "email",
       name: "email",
       required: true,
-      mustHave: true,
+      editable: "system",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
     },
     {
       label: "Location",
       type: "radioInput",
       name: "location",
-      // Even though it should be required it is optional in production
+      editable: "system",
+      // Even though it should be required it is optional in production with backend choosing CalVideo as the fallback
       required: false,
-      mustHave: true,
       // options: Populated on the fly from locations. HACK: It is a special handling
       optionsInputs: {
         attendeeInPerson: {
@@ -50,23 +66,68 @@ export const ensureBookingInputsHaveMustHaveItems = (bookingInputs) => {
           placeholder: "",
         },
       },
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
     },
     {
       label: "Additional Notes",
       type: "textarea",
       name: "notes",
+      editable: "system-but-optional",
       required: false,
-      mustHave: false,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
     },
     {
       label: "Add guests",
       type: "multiemail",
       name: "guests",
+      editable: "system-but-optional",
       required: false,
-      mustHave: false,
-      hidden: true,
+      hidden: false,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
+    {
+      //TODO: How to translate in user language?
+      label: "Reschedule Reason",
+      type: "textarea",
+      name: "rescheduleReason",
+      editable: "system",
+      required: false,
+      // Being a FormBuilder field, it is not aware what a booking is and what reschedule is.The BookingPage can take care of showing it on reschedule view only
+      hidden: false,
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
     },
   ];
+
+  for (const field of mustHaveFields) {
+    if (!bookingFields.find((f) => f.name === field.name)) {
+      bookingFields.push(field);
+    }
+  }
+  return bookingFields;
 };
 interface getEventTypeByIdProps {
   eventTypeId: number;
@@ -155,7 +216,7 @@ export default async function getEventTypeById({
       bookingLimits: true,
       successRedirectUrl: true,
       currency: true,
-      bookingInputs: true,
+      bookingFields: true,
       team: {
         select: {
           id: true,
@@ -230,7 +291,7 @@ export default async function getEventTypeById({
     if (isTrpcCall) {
       throw new TRPCError({ code: "NOT_FOUND" });
     } else {
-      throw new Error("Event type noy found");
+      throw new Error("Event type not found");
     }
   }
 
@@ -313,7 +374,7 @@ export default async function getEventTypeById({
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventType.bookingInputs),
+    bookingFields: ensureBookingInputsHaveSystemFields(eventType.bookingFields),
   });
 
   const teamMembers = eventTypeObject.team

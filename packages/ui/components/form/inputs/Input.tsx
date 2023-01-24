@@ -178,6 +178,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           placeholder={placeholder}
           className={className}
           {...passThrough}
+          readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
         />
@@ -339,6 +340,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
               console.log(err);
+              // FIXME: Booking Pages don't have toast, so this error is never shown
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
         }}

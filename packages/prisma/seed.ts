@@ -59,7 +59,7 @@ async function createUserAndEventType(opts: {
   );
 
   for (const eventTypeInput of opts.eventTypes) {
-    const { _bookings: bookingInputs = [], ...eventTypeData } = eventTypeInput;
+    const { _bookings: bookingFields = [], ...eventTypeData } = eventTypeInput;
     eventTypeData.userId = user.id;
     eventTypeData.users = { connect: { id: user.id } };
 
@@ -90,7 +90,7 @@ async function createUserAndEventType(opts: {
     console.log(
       `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
-    for (const bookingInput of bookingInputs) {
+    for (const bookingInput of bookingFields) {
       await prisma.booking.create({
         data: {
           ...bookingInput,

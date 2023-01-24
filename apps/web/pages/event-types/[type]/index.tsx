@@ -3,7 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PeriodType, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,12 +12,12 @@ import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
-import getEventTypeById from "@calcom/lib/getEventTypeById";
+import getEventTypeByIdAndUser from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { customInputSchema, eventTypeBookingInputs, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc, RouterOutputs } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
@@ -86,7 +86,7 @@ export type FormValues = {
   bookingLimits?: BookingLimit;
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
-  bookingInputs: z.infer<typeof eventTypeBookingInputs>;
+  bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -179,37 +179,39 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
-  const formMethods = useForm<FormValues>({
-    defaultValues: {
-      title: eventType.title,
-      locations: eventType.locations || [],
-      recurringEvent: eventType.recurringEvent || null,
-      description: eventType.description ?? undefined,
-      schedule: eventType.schedule || undefined,
-      bookingLimits: eventType.bookingLimits || undefined,
-      length: eventType.length,
-      hidden: eventType.hidden,
-      periodDates: {
-        startDate: periodDates.startDate,
-        endDate: periodDates.endDate,
-      },
-      bookingInputs: eventType.bookingInputs,
-      periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
-      schedulingType: eventType.schedulingType,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      metadata,
-      hosts: !!eventType.hosts?.length
-        ? eventType.hosts.filter((host) => !host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
-            .map((user) => ({ userId: user.id })),
-      hostsFixed: !!eventType.hosts?.length
-        ? eventType.hosts.filter((host) => host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
-            .map((user) => ({ userId: user.id })),
+  const defaultValues = {
+    title: eventType.title,
+    locations: eventType.locations || [],
+    recurringEvent: eventType.recurringEvent || null,
+    description: eventType.description ?? undefined,
+    schedule: eventType.schedule || undefined,
+    bookingLimits: eventType.bookingLimits || undefined,
+    length: eventType.length,
+    hidden: eventType.hidden,
+    periodDates: {
+      startDate: periodDates.startDate,
+      endDate: periodDates.endDate,
     },
+    bookingFields: eventType.bookingFields,
+    periodType: eventType.periodType,
+    periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+    schedulingType: eventType.schedulingType,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    metadata,
+    hosts: !!eventType.hosts?.length
+      ? eventType.hosts.filter((host) => !host.isFixed)
+      : eventType.users
+          .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
+          .map((user) => ({ userId: user.id })),
+    hostsFixed: !!eventType.hosts?.length
+      ? eventType.hosts.filter((host) => host.isFixed)
+      : eventType.users
+          .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
+          .map((user) => ({ userId: user.id })),
+  } as const;
+
+  const formMethods = useForm<FormValues>({
+    defaultValues,
     resolver: zodResolver(
       z
         .object({
@@ -221,6 +223,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
+
+  useEffect(() => {
+    if (!formMethods.formState.isDirty) {
+      //TODO: What's the best way to sync the form with backend
+      formMethods.setValue("bookingFields", defaultValues.bookingFields);
+    }
+  }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
@@ -294,6 +303,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsPerTimeSlotEnabled,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             minimumBookingNoticeInDurationType,
+            fields: bookingFields,
             ...input
           } = values;
 
@@ -344,13 +354,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery(
-    { id: props.type },
-    {
-      initialData: props.initialData,
-    }
-  );
-
+  const res = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+  const { data, isLoading } = res;
   if (isLoading || !data) return null;
   return <EventTypePage {...data} />;
 };
@@ -376,8 +381,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  console.log("getServerSideProps", typeParam, session.user.id);
+
   try {
-    const res = await getEventTypeById({ eventTypeId: typeParam, userId: session.user.id, prisma });
+    const res = await getEventTypeByIdAndUser({ eventTypeId: typeParam, userId: session.user.id, prisma });
     return {
       props: {
         session,
@@ -393,6 +400,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   } catch (err) {
+    console.error(err);
     return {
       notFound: true,
     };

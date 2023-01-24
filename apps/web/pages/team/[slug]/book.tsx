@@ -4,7 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -54,6 +54,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       metadata: true,
       seatsPerTimeSlot: true,
       schedulingType: true,
+      bookingFields: true,
       workflows: {
         include: {
           workflow: {
@@ -88,6 +89,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     //TODO: Use zodSchema to verify it instead of using Type Assertion
     locations: privacyFilteredLocations((eventTypeRaw.locations || []) as LocationObject[]),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
   };
 
   const eventTypeObject = [eventType].map((e) => {

@@ -16,10 +16,12 @@ export type ComponentProps = {
   value: string;
   setValue: (value: string) => void;
   placeholder?: string;
+  readOnly?: boolean;
+  className?: string;
 };
 
 const TextAreaWidget = (props: ComponentProps) => {
-  const { value, setValue, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
+  const { value, setValue, readOnly, placeholder, maxLength, customProps, ...remainingProps } = props;
 
   const onChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -31,10 +33,10 @@ const TextAreaWidget = (props: ComponentProps) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
-      disabled={readonly}
+      disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       {...customProps}
       {...remainingProps}
     />
@@ -42,7 +44,7 @@ const TextAreaWidget = (props: ComponentProps) => {
 };
 
 const TextWidget = (props: ComponentProps & { type?: string }) => {
-  const { value, setValue, readonly, placeholder, customProps, ...remainingProps } = props;
+  const { value, setValue, readOnly, placeholder, customProps, ...remainingProps } = props;
   let { type } = props;
   type = type || "text";
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -54,10 +56,10 @@ const TextWidget = (props: ComponentProps & { type?: string }) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}
       placeholder={placeholder}
-      disabled={readonly}
+      disabled={readOnly}
       onChange={onChange}
       {...remainingProps}
       {...customProps}
@@ -70,7 +72,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: ComponentProps) {
     <TextField
       type="number"
       containerClassName="w-full"
-      className="dark:border-darkgray-300 mt-0 border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -110,6 +112,7 @@ const MultiSelectWidget = ({
       }}
       defaultValue={defaultValue}
       isMulti={true}
+      isDisabled={remainingProps.readOnly}
       options={selectItems}
       {...remainingProps}
     />
@@ -144,6 +147,7 @@ function SelectWidget({
         }
         setValue(item.value);
       }}
+      isDisabled={remainingProps.readOnly}
       defaultValue={defaultValue}
       options={selectItems}
       {...remainingProps}

@@ -26,6 +26,7 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -34,8 +35,8 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
+import { customInputSchema, EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { Button, EmailInput, Label, Icon, HeadSeo } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -44,6 +45,8 @@ import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import getBookingResponsesSchema from "../../../../packages/features/bookings/lib/getBookingResponsesSchema";
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -185,11 +188,10 @@ export default function Success(props: SuccessProps) {
     window.scrollTo(0, document.body.scrollHeight);
   }
 
-  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0]
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+  //TODO: Remove this comment, this is just during the review to mention that location shouldn't be an array and it should have been a string. It was causing wrong Where to be shown on booking success page
+  const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
+  // We shouldn't set daily as default here because this is just a display of actual location and if it's not available this is an erroneous situation
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
     console.error(`No location found `);
@@ -504,7 +506,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {customInputs &&
+                    {/* {customInputs &&
                       Object.keys(customInputs).map((key) => {
                         // This breaks if you have two label that are the same.
                         // TODO: Fix this in another PR
@@ -550,15 +552,37 @@ export default function Success(props: SuccessProps) {
                             )}
                           </>
                         );
-                      })}
-                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
+                      })} */}
+                    {/* {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
                       <>
                         <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
                         <div className="col-span-2 mb-2 mt-9">
                           <p>{bookingInfo.smsReminderNumber}</p>
                         </div>
                       </>
-                    )}
+                    )} */}
+                    {Object.entries(bookingInfo.responses).map(([name, response]) => {
+                      const field = eventType.bookingFields.find((field) => field.name === name);
+                      // We show location in the "where" section
+                      // We show guests in Who section
+                      // We show notes in additional notes section
+                      if (
+                        !field ||
+                        field.name === "location" ||
+                        field.name === "guests" ||
+                        field.name === "notes"
+                      ) {
+                        return null;
+                      }
+                      return (
+                        <>
+                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                            {field.label}
+                          </Label>
+                          <div className="col-span-3 mt-1 mb-2">{response}</div>
+                        </>
+                      );
+                    })}
                   </div>
                 </div>
                 {(!needsConfirmation || !userIsOwner) &&
@@ -875,6 +899,7 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      bookingFields: true,
       owner: {
         select: userSelect,
       },
@@ -921,6 +946,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
+    bookingFields: ensureBookingInputsHaveSystemFields(eventTypeBookingFields.parse(eventType.bookingFields)),
     metadata,
   };
 };
@@ -965,7 +991,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
-  const bookingInfo = await prisma.booking.findFirst({
+  const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
       uid,
     },
@@ -982,6 +1008,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       location: true,
       status: true,
       cancellationReason: true,
+      responses: true,
       user: {
         select: {
           id: true,
@@ -1006,6 +1033,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
+  const eventTypeRaw = !bookingInfoRaw.eventTypeId
+    ? getDefaultEvent(eventTypeSlug || "")
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
+  if (!eventTypeRaw) {
+    return {
+      notFound: true,
+    };
+  }
+  const bookingInfo = {
+    ...bookingInfoRaw,
+    responses: getBookingResponsesSchema(eventTypeRaw).parse(bookingInfoRaw.responses),
+  };
   if (!bookingInfo) {
     return {
       notFound: true,
@@ -1016,15 +1055,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
   bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
-  const eventTypeRaw = !bookingInfo.eventTypeId
-    ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfo.eventTypeId);
-  if (!eventTypeRaw) {
-    return {
-      notFound: true,
-    };
-  }
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)

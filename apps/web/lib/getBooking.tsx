@@ -1,7 +1,17 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+import { z } from "zod";
 
-async function getBooking(prisma: PrismaClient, uid: string) {
-  const booking = await prisma.booking.findFirst({
+import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+async function getBooking(
+  prisma: PrismaClient,
+  uid: string,
+  eventType: {
+    bookingFields: z.infer<typeof eventTypeBookingFields>;
+  }
+) {
+  const rawBooking = await prisma.booking.findFirst({
     where: {
       uid,
     },
@@ -9,6 +19,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
       startTime: true,
       description: true,
       customInputs: true,
+      responses: true,
       smsReminderNumber: true,
       location: true,
       attendees: {
@@ -19,6 +30,15 @@ async function getBooking(prisma: PrismaClient, uid: string) {
       },
     },
   });
+
+  if (!rawBooking) {
+    return rawBooking;
+  }
+
+  const booking = {
+    ...rawBooking,
+    responses: getBookingResponsesSchema(eventType).parse(rawBooking.responses),
+  };
 
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]

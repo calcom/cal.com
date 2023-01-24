@@ -1,14 +1,16 @@
 import BasePhoneInput, { Props } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-export type PhoneInputProps = {
+export type PhoneInputProps = Props<{
   value: string;
   id?: string;
   placeholder?: string;
   required?: boolean;
-} & { onChange?: (e: any) => void };
+  className?: string;
+  name?: string;
+}>;
 
-function PhoneInput({ control, name, className, onChange, ...rest }: PhoneInputProps) {
+function PhoneInput({ name, className, onChange, ...rest }: PhoneInputProps) {
   return (
     <BasePhoneInput
       {...rest}

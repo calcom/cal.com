@@ -31,9 +31,11 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
+import { addBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1046,6 +1048,16 @@ export const workflowsRouter = router({
             eventTypeId,
           },
         });
+        await removeBookingField(
+          {
+            name: "smsReminderNumber",
+          },
+          {
+            id: "" + workflowId,
+            type: "workflow",
+          },
+          eventTypeId
+        );
       } else {
         await ctx.prisma.workflowsOnEventTypes.create({
           data: {
@@ -1053,6 +1065,22 @@ export const workflowsRouter = router({
             eventTypeId,
           },
         });
+        await addBookingField(
+          {
+            name: "smsReminderNumber",
+            type: "phone",
+            label: "SMS Reminder Number",
+            required: true,
+            editable: "system",
+          },
+          {
+            id: "" + workflowId,
+            type: "workflow",
+            label: "Workflow",
+            editUrl: `/workflows/${workflowId}`,
+          },
+          eventTypeId
+        );
       }
     }),
   sendVerificationCode: authedProcedure

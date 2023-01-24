@@ -9,7 +9,7 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
-import { ensureBookingInputsHaveMustHaveItems } from "@calcom/lib/getEventTypeById";
+import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -117,7 +117,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    bookingInputs: ensureBookingInputsHaveMustHaveItems(eventTypeRaw.bookingInputs),
+    bookingFields: ensureBookingInputsHaveSystemFields(eventTypeRaw.bookingFields || []),
   };
 
   const eventTypeObject = [eventType].map((e) => {
@@ -148,7 +148,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       prisma,
       context.query.rescheduleUid
         ? (context.query.rescheduleUid as string)
-        : (context.query.bookingUid as string)
+        : (context.query.bookingUid as string),
+      eventType
     );
   }
 

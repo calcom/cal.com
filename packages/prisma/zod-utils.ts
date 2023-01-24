@@ -14,6 +14,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -52,42 +53,10 @@ export const EventTypeMetaDataSchema = z
   })
   .nullable();
 
-export const eventTypeBookingInputs = z.array(
-  z.object({
-    name: z.string(),
-    label: z.string(),
-    type: z.enum([
-      "text",
-      "textarea",
-      "select",
-      "multiselect",
-      "multiemail",
-      "email",
-      "phone",
-      "number",
-      "radioInput",
-      "address",
-    ]),
-    required: z.boolean(),
-    options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
-    optionsInputs: z.record(
-      z.object({
-        //TODO: Support all as needed
-        type: z.enum(["address", "phone"]),
-        required: z.boolean().optional(),
-        placeholder: z.string().optional(),
-      })
-    ),
-    placeholder: z.string().optional(),
-    //TODO: mustHave is system field and should not be exposed to the user
-    mustHave: z.boolean().optional(),
-    // TODO: readOnly is not supposed to be saved, it would be just a view value
-    readOnly: z.boolean().optional(),
-  })
-);
+export const eventTypeBookingFields = formBuilderFieldsSchema.nullable();
 
 // Real validation happens using getBookingResponsesSchema which requires eventType. Is there a better way to do it?
-export const bookingInputs = z.record(z.any().optional());
+export const bookingResponses = z.record(z.any().optional());
 
 export const eventTypeLocations = z.array(
   z.object({

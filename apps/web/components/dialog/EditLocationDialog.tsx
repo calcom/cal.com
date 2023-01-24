@@ -2,7 +2,7 @@ import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
 import { components } from "react-select";
 import { z } from "zod";
 
@@ -53,16 +53,19 @@ const LocationInput = (props: {
   defaultValue?: string;
 }): JSX.Element | null => {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
+  const { control } = useFormContext<ReturnType<typeof useForm>>();
   if (eventLocationType?.organizerInputType === "text") {
     return (
       <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     return (
-      <PhoneInput
+      <Controller
         name={eventLocationType.variable}
-        control={locationFormMethods.control}
-        {...remainingProps}
+        control={control}
+        render={({ field: { onChange, value } }) => {
+          return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
+        }}
       />
     );
   }
