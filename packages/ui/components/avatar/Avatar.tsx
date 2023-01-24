@@ -37,7 +37,8 @@ export function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       className={classNames(
         "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
-        props.className
+        props.className,
+        sizesPropsBySize[size]
       )}>
       <>
         <AvatarPrimitive.Image
@@ -51,6 +52,7 @@ export function Avatar(props: AvatarProps) {
             {gravatarFallbackMd5 && (
               <img src={defaultAvatarSrc({ md5: gravatarFallbackMd5 })} alt={alt} className={rootClass} />
             )}
+            {size === "lg"}
           </>
         </AvatarPrimitive.Fallback>
         {props.accepted && (
