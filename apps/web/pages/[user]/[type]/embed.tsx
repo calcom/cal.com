@@ -1,10 +1,8 @@
 import { GetStaticPropsContext } from "next";
 
-import { getStaticProps as _getStaticProps } from "../[type]";
+import { getStaticProps as _getStaticProps } from ".";
 
-export { getStaticPaths } from "../[type]";
-
-export { default } from "../[type]";
+export { default, getStaticPaths } from ".";
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const staticResponse = await _getStaticProps(context);

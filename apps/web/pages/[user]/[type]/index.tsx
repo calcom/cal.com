@@ -1,9 +1,8 @@
 import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
+import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,10 +19,9 @@ import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
 
-export default function Type(props: AvailabilityPageProps) {
+const UserAway = () => {
   const { t } = useLocale();
-
-  return props.away ? (
+  return (
     <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
@@ -38,24 +36,33 @@ export default function Type(props: AvailabilityPageProps) {
         </div>
       </main>
     </div>
-  ) : props.isDynamic && !props.profile.allowDynamicBooking ? (
-    <div className="dark:bg-darkgray-50 h-screen">
-      <main className="mx-auto max-w-3xl px-4 py-24">
-        <div className="space-y-6" data-testid="event-types">
-          <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-            <div className="p-8 text-center text-gray-400 dark:text-white">
-              <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
-                {" " + t("unavailable")}
-              </h2>
-              <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
+  );
+};
+
+export default function Type(props: AvailabilityPageProps) {
+  const { t } = useLocale();
+
+  if (props.away) return <UserAway />;
+
+  if (props.isDynamic && !props.profile.allowDynamicBooking)
+    return (
+      <div className="dark:bg-darkgray-50 h-screen">
+        <main className="mx-auto max-w-3xl px-4 py-24">
+          <div className="space-y-6" data-testid="event-types">
+            <div className="overflow-hidden rounded-sm border dark:border-gray-900">
+              <div className="p-8 text-center text-gray-400 dark:text-white">
+                <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                  {" " + t("unavailable")}
+                </h2>
+                <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
-  ) : (
-    <AvailabilityPage {...props} />
-  );
+        </main>
+      </div>
+    );
+
+  return <AvailabilityPage {...props} />;
 }
 
 Type.isThemeSupported = true;
