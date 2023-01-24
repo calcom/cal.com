@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, DialogFooter, Form, showToast, TextField, Dialog, DialogContent } from "@calcom/ui";
 
@@ -46,10 +47,12 @@ const CreateConnectionDialog = ({
 }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const telemetry = useTelemetry();
   const form = useForm<FormValues>();
 
   const mutation = trpc.viewer.saml.updateOIDC.useMutation({
     async onSuccess() {
+      telemetry.event(telemetryEventTypes.samlConfig, collectPageParameters());
       showToast(
         t("sso_connection_created_successfully", {
           connectionType: "OIDC",

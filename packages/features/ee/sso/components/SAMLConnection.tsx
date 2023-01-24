@@ -45,10 +45,12 @@ const CreateConnectionDialog = ({
 }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const telemetry = useTelemetry();
   const form = useForm<FormValues>();
 
   const mutation = trpc.viewer.saml.update.useMutation({
     async onSuccess() {
+      telemetry.event(telemetryEventTypes.samlConfig, collectPageParameters());
       showToast(
         t("sso_connection_created_successfully", {
           connectionType: "SAML",
