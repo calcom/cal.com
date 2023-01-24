@@ -178,7 +178,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }
 
   // inject selection data into url for correct router history
-  const openDuplicateModal = (eventType: EventType) => {
+  const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
       ...router.query,
       dialog: "duplicate-event-type",
@@ -187,6 +187,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       slug: eventType.slug,
       id: eventType.id,
       length: eventType.length,
+      pageSlug: group.profile.slug,
     };
 
     router.push(
@@ -356,7 +357,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   type="button"
                                   data-testid={"event-type-duplicate-" + type.id}
                                   StartIcon={Icon.FiCopy}
-                                  onClick={() => openDuplicateModal(type)}>
+                                  onClick={() => openDuplicateModal(type, group)}>
                                   {t("duplicate")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -468,7 +469,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={Icon.FiCopy}
-                            onClick={() => openDuplicateModal(type)}>
+                            onClick={() => openDuplicateModal(type, group)}>
                             {t("duplicate")}
                           </Button>
                         </DropdownMenuItem>
