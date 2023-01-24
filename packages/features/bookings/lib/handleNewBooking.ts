@@ -596,7 +596,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
     if (videoCallReference) {
-      console.log("Hello there");
       evt.videoCallData = {
         type: videoCallReference.type,
         id: videoCallReference.meetingId,
