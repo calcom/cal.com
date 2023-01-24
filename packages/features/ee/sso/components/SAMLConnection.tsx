@@ -1,7 +1,7 @@
-import type { SSOConnection } from "ee/sso/lib/saml";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
