@@ -340,11 +340,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
               const bookingRef = updated.references.find((ref) => ref.type.includes("_calendar"));
               if (bookingRef) {
                 const { uid, externalCalendarId } = bookingRef;
+                // CUSTOM_CODE
                 await calendar?.deleteEvent(uid, evt, externalCalendarId);
               }
             }
           }
         } else {
+          // CUSTOM_CODE
           await calendar?.deleteEvent(uid, evt, externalCalendarId);
         }
       }
@@ -353,7 +355,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       const credentials = bookingToDelete.user.credentials.filter((credential) =>
         credential.type.endsWith("_calendar")
       );
-
+      // CUSTOM_CODE
       for (const credential of credentials) {
         const calendar = getCalendar(credential);
         await calendar?.deleteEvent(uid, evt, externalCalendarId);
