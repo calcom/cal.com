@@ -1,6 +1,5 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter } from "next/router";
-import { ComponentProps } from "react";
+import { ComponentProps, Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -9,10 +8,12 @@ import { Button, Stepper } from "../../..";
 type DefaultStep = {
   title: string;
   containerClassname?: string;
+  contentClassname?: string;
   description: string;
-  content: JSX.Element;
+  content?: JSX.Element;
+  contentEl?: (setIsLoading: Dispatch<SetStateAction<boolean>>) => JSX.Element;
   isEnabled?: boolean;
-  isLoading: boolean;
+  isLoading?: boolean;
 };
 
 function WizardForm<T extends DefaultStep>(props: {
@@ -32,6 +33,11 @@ function WizardForm<T extends DefaultStep>(props: {
   const setStep = (newStep: number) => {
     router.replace(`${href}?step=${newStep || 1}`, undefined, { shallow: true });
   };
+  const [currentStepIsLoading, setCurrentStepIsLoading] = useState(false);
+
+  useEffect(() => {
+    setCurrentStepIsLoading(false);
+  }, [currentStep]);
 
   return (
     <div className="mx-auto mt-4 print:w-full">
@@ -47,7 +53,9 @@ function WizardForm<T extends DefaultStep>(props: {
           <p className="text-sm text-gray-500">{currentStep.description}</p>
         </div>
 
-        <div className="print:p-none max-w-3xl px-4 py-5 sm:p-6">{currentStep.content}</div>
+        <div className={classNames("print:p-none max-w-3xl px-4 py-5 sm:p-6", currentStep.contentClassname)}>
+          {currentStep.contentEl ? currentStep.contentEl(setCurrentStepIsLoading) : currentStep.content}
+        </div>
         {!props.disableNavigation && (
           <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
             {step > 1 && (
@@ -62,7 +70,7 @@ function WizardForm<T extends DefaultStep>(props: {
 
             <Button
               tabIndex={0}
-              loading={currentStep.isLoading}
+              loading={currentStepIsLoading}
               type="submit"
               color="primary"
               form={`wizard-step-${step}`}

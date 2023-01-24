@@ -20,7 +20,7 @@ const ChooseLicense = (props: {
     },
   });
 
-  const enterprise_fee = "$99"; // TODO: get this from a new API endpoint
+  const enterprise_booking_fee = "$99"; // TODO: get this from a new API endpoint
 
   return (
     <form
@@ -57,7 +57,9 @@ const ChooseLicense = (props: {
           )}
           onClick={() => setIsFreeLicense(false)}>
           <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>
-          <p className="font-medium text-green-800">{t("enterprise_booking_fee", { enterprise_fee })}</p>
+          <p className="font-medium text-green-800">
+            {t("enterprise_booking_fee", { enterprise_booking_fee })}
+          </p>
           <p className="text-gray-500">{t("enterprise_license_includes")}</p>
           <ul className="ml-4 list-disc text-xs text-gray-500">
             <li>{t("no_need_to_keep_your_code_open_source")}</li>

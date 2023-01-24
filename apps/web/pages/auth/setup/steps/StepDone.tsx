@@ -1,9 +1,14 @@
 import { useRouter } from "next/router";
+import { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { FiCheck } from "@calcom/ui/components/icon";
 
-const StepDone = (props: { currentStep: number; nextStepPath: string }) => {
+const StepDone = (props: {
+  currentStep: number;
+  nextStepPath: string;
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
+}) => {
   const router = useRouter();
   const { t } = useLocale();
 
@@ -13,6 +18,7 @@ const StepDone = (props: { currentStep: number; nextStepPath: string }) => {
       name={`wizard-step-${props.currentStep}`}
       className="space-y-4"
       onSubmit={(e) => {
+        props.setIsLoading(true);
         e.preventDefault();
         router.replace(props.nextStepPath);
       }}>

@@ -1,34 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction } from "react";
-import { Controller, useForm, FormProvider } from "react-hook-form";
+import { Dispatch, SetStateAction, useState } from "react";
+import { Controller, useForm, FormProvider, useFormState } from "react-hook-form";
 import * as z from "zod";
 
+import { classNames } from "@calcom/lib";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, TextField } from "@calcom/ui";
-
-const schemaLicenseKey = z.object({
-  licenseKey: z
-    .string()
-    .uuid({
-      message: "License key must follow UUID format: 8-4-4-4-12",
-    })
-    .superRefine(async (data, ctx) => {
-      const parse = z.string().uuid().safeParse(data);
-      if (parse.success) {
-        const response = await fetch(`${CONSOLE_URL}/api/license?key=${data}`);
-        const json = await response.json();
-        if (!json.valid) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `License key ${json.message.toLowerCase()}`,
-          });
-        }
-      }
-    }),
-});
+import { Button, TextField } from "@calcom/ui";
+import { FiCheck, FiExternalLink, FiLoader } from "@calcom/ui/components/icon";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -40,10 +21,34 @@ const EnterpriseLicense = (props: {
 }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
   const mutation = trpc.viewer.auth.deploymentSetup.useMutation({
     onSuccess: () => {
       router.replace(`/auth/setup?step=4`);
     },
+  });
+
+  const schemaLicenseKey = z.object({
+    licenseKey: z
+      .string()
+      .uuid({
+        message: "License key must follow UUID format: 8-4-4-4-12",
+      })
+      .superRefine(async (data, ctx) => {
+        const parse = z.string().uuid().safeParse(data);
+        if (parse.success) {
+          setCheckLicenseLoading(true);
+          const response = await fetch(`${CONSOLE_URL}/api/license?key=${data}`);
+          setCheckLicenseLoading(false);
+          const json = await response.json();
+          if (!json.valid) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `License key ${json.message.toLowerCase()}`,
+            });
+          }
+        }
+      }),
   });
 
   const formMethods = useForm<EnterpriseLicenseFormValues>({
@@ -54,9 +59,12 @@ const EnterpriseLicense = (props: {
   });
 
   const handleSubmit = formMethods.handleSubmit(({ licenseKey }) => {
+    setCheckLicenseLoading(false);
     props.setIsLoading(true);
     mutation.mutate({ licenseKey });
   });
+
+  const { isDirty, errors } = useFormState(formMethods);
 
   return (
     <FormProvider {...formMethods}>
@@ -64,7 +72,7 @@ const EnterpriseLicense = (props: {
         <div>
           <Button
             className="w-full justify-center text-lg"
-            EndIcon={Icon.FiExternalLink}
+            EndIcon={FiExternalLink}
             href="https://console.cal.com"
             target="_blank">
             {t("purchase_license")}
@@ -79,18 +87,32 @@ const EnterpriseLicense = (props: {
             control={formMethods.control}
             render={({ field: { onBlur, onChange, value } }) => (
               <TextField
-                className="mt-1"
+                className={classNames(
+                  "group-hover:border-gray-400",
+                  (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
+                )}
                 placeholder="c73bcdcc-2669-4bf6-81d3-e4ae73fb11fd"
                 labelSrOnly={true}
                 value={value}
-                color={formMethods.formState.errors.licenseKey ? "warn" : ""}
+                addOnFilled={false}
+                addOnClassname={classNames(
+                  "hover:border-gray-300",
+                  errors.licenseKey === undefined && isDirty && "group-hover:border-gray-400"
+                )}
+                addOnSuffix={
+                  checkLicenseLoading ? (
+                    <FiLoader className="h-5 w-5 animate-spin" />
+                  ) : errors.licenseKey === undefined && isDirty ? (
+                    <FiCheck className="h-5 w-5 text-green-700" />
+                  ) : undefined
+                }
+                color={errors.licenseKey ? "warn" : ""}
                 onBlur={onBlur}
-                onChange={async (e) => {
+                onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
                   onChange(e.target.value);
                   formMethods.setValue("licenseKey", e.target.value);
                   await formMethods.trigger("licenseKey");
-                  debugger;
-                  props.setIsEnabled(formMethods.formState.errors.licenseKey === undefined);
+                  props.setIsEnabled(errors.licenseKey === undefined);
                 }}
                 id="licenseKey"
                 name="licenseKey"
