@@ -1,7 +1,13 @@
 import { z } from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { samlProductID, samlTenantID, tenantPrefix, canAccess } from "@calcom/features/ee/sso/lib/saml";
+import {
+  samlProductID,
+  samlTenantID,
+  tenantPrefix,
+  canAccess,
+  oidcCallbackPath,
+} from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
 
@@ -44,12 +50,15 @@ export const ssoRouter = router({
 
         const type = "idpMetadata" in connections[0] ? "saml" : "oidc";
 
-        return {
+        const connection = {
           ...connections[0],
           type,
-          acsUrl: SPConfig.acsUrl,
-          entityId: SPConfig.entityId,
+          acsUrl: type === "saml" ? SPConfig.acsUrl : null,
+          entityId: type === "saml" ? SPConfig.entityId : null,
+          callbackUrl: type === "oidc" ? oidcCallbackPath : null,
         };
+
+        return connection;
       } catch (err) {
         console.error("Error getting SSO connection", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "Fetching SSO connection failed." });

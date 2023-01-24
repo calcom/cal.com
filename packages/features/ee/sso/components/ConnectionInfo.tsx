@@ -44,34 +44,40 @@ export default function ConnectionInfo({
   };
 
   return (
-    <>
-      <div>
-        {connection.type === "saml" ? (
-          <SAMLInfo acsUrl={connection.acsUrl} entityId={connection.entityId} />
-        ) : (
-          <OIDCInfo callbackUrl={connection.defaultRedirectUrl} />
-        )}
+    <div>
+      {connection.type === "saml" ? (
+        <SAMLInfo acsUrl={connection.acsUrl} entityId={connection.entityId} />
+      ) : (
+        <OIDCInfo callbackUrl={connection.callbackUrl} />
+      )}
+      <hr className="my-6 border-neutral-200" />
+      <div className="flex flex-col space-y-3">
+        <Label>{t("danger_zone")}</Label>
+        <Dialog>
+          <div>
+            <DialogTrigger asChild>
+              <Button color="destructive">{t("delete_sso_configuration", { connectionType })}</Button>
+            </DialogTrigger>
+          </div>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("delete_sso_configuration", { connectionType })}
+            confirmBtnText={t("delete_sso_configuration_confirmation", { connectionType })}
+            onConfirm={deleteConnection}>
+            {t("delete_sso_configuration_confirmation_description", { appName: APP_NAME, connectionType })}
+          </ConfirmationDialogContent>
+        </Dialog>
       </div>
-      <Dialog>
-        <div>
-          <DialogTrigger asChild>
-            <Button color="destructive">{t("delete_sso_configuration", { connectionType })}</Button>
-          </DialogTrigger>
-        </div>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("delete_sso_configuration", { connectionType })}
-          confirmBtnText={t("delete_sso_configuration_confirmation", { connectionType })}
-          onConfirm={deleteConnection}>
-          {t("delete_sso_configuration_confirmation_description", { appName: APP_NAME, connectionType })}
-        </ConfirmationDialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }
 
-const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string; entityId: string }) => {
+const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: string | null }) => {
   const { t } = useLocale();
+
+  if (!acsUrl || !entityId) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -87,7 +93,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string; entityId: string }) =>
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(acsUrl);
-                showToast(t("api_key_copied"), "success");
+                showToast(t("sso_saml_acsurl_copied"), "success");
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
@@ -109,7 +115,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string; entityId: string }) =>
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(entityId);
-                showToast(t("api_key_copied"), "success");
+                showToast(t("sso_saml_entityid_copied"), "success");
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
@@ -123,8 +129,12 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string; entityId: string }) =>
   );
 };
 
-const OIDCInfo = ({ callbackUrl }: { callbackUrl: string }) => {
+const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
   const { t } = useLocale();
+
+  if (!callbackUrl) {
+    return null;
+  }
 
   return (
     <div>
@@ -140,7 +150,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string }) => {
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(callbackUrl);
-                showToast(t("api_key_copied"), "success");
+                showToast(t("sso_oidc_callback_copied"), "success");
               }}
               type="button"
               className="rounded-l-none py-[19px] text-base ">
