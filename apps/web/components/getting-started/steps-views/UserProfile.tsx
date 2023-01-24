@@ -1,14 +1,18 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
+import MarkdownIt from "markdown-it";
 import { useRouter } from "next/router";
 import { FormEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import turndownService from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 type FormData = {
   bio: string;
@@ -21,11 +25,9 @@ const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const {
-    setValue,
-    handleSubmit,
-    getValues,
-  } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
+  const { setValue, handleSubmit, getValues } = useForm<FormData>({
+    defaultValues: { bio: user?.bio || "" },
+  });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
@@ -139,8 +141,8 @@ const UserProfile = (props: IUserProfileProps) => {
       <fieldset className="mt-8">
         <Label className="mb-2 block text-sm font-medium text-gray-700">{t("about")}</Label>
         <Editor
-          getText={() => getValues("bio") || user?.bio || ""}
-          setText={(value: string) => setValue("bio", value)}
+          getText={() => md.render(getValues("bio") || user?.bio || "")}
+          setText={(value: string) => setValue("bio", turndownService.turndown(value))}
           excludedToolbarItems={["blockType"]}
         />
         <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">

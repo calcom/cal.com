@@ -1,4 +1,4 @@
-import parse from "html-react-parser";
+import MarkdownIt from "markdown-it";
 import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 
@@ -8,13 +8,14 @@ import { Avatar } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
 type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number];
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
-  const parsedBio = parse(member.bio || "");
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
@@ -27,9 +28,14 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         <section className="line-clamp-4 mt-2 w-full space-y-1">
           <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
           <p className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
-            {getInnerText(parsedBio).length
-              ? parsedBio
-              : t("user_from_team", { user: member.name, team: teamName })}
+            {getInnerText(md.render(member.bio || "")).length ? (
+              <p
+                className="dark:text-darkgray-600 text-s text-gray-500"
+                dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
+              />
+            ) : (
+              t("user_from_team", { user: member.name, team: teamName })
+            )}
           </p>
         </section>
       </div>

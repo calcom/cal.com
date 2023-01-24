@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole, Prisma } from "@prisma/client";
-import parse from "html-react-parser";
+import MarkdownIt from "markdown-it";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -13,6 +13,7 @@ import { getInnerText } from "@calcom/lib/getInnerText";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
+import turndownService from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -32,6 +33,8 @@ import {
 } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -218,8 +221,8 @@ const ProfileView = () => {
               <div className="mt-8">
                 <Label>{t("about")}</Label>
                 <Editor
-                  getText={() => form.getValues("bio")}
-                  setText={(value: string) => form.setValue("bio", value)}
+                  getText={() => md.render(form.getValues("bio") || "")}
+                  setText={(value: string) => form.setValue("bio", turndownService.turndown(value))}
                   excludedToolbarItems={["blockType"]}
                 />
               </div>
@@ -248,10 +251,13 @@ const ProfileView = () => {
                   <Label className="text-black">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
-                {team?.bio && !!getInnerText(parse(team?.bio || "")).length && (
+                {team?.bio && !!getInnerText(md.render(team.bio || "")).length && (
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
-                    <p className="text-sm text-gray-800">{parse(team.bio || "")}</p>
+                    <p
+                      className="dark:text-darkgray-600 text-s text-gray-500"
+                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                    />
                   </>
                 )}
               </div>

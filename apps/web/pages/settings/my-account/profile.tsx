@@ -1,5 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { BaseSyntheticEvent, useRef, useState } from "react";
@@ -9,6 +10,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import turndownService from "@calcom/lib/turndownService";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -40,6 +42,8 @@ import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import { ssrInit } from "@server/lib/ssr";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -364,8 +368,10 @@ const ProfileForm = ({
       <div className="mt-8">
         <Label>{t("about")}</Label>
         <Editor
-          getText={() => formMethods.getValues("bio")}
-          setText={(value: string) => formMethods.setValue("bio", value, { shouldDirty: true })}
+          getText={() => md.render(formMethods.getValues("bio") || "")}
+          setText={(value: string) => {
+            formMethods.setValue("bio", turndownService.turndown(value), { shouldDirty: true });
+          }}
           excludedToolbarItems={["blockType"]}
         />
       </div>

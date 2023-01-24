@@ -1,10 +1,12 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
-import parse from "html-react-parser";
+import MarkdownIt from "markdown-it";
 
 import { getInnerText } from "@calcom/lib/getInnerText";
 
 import { test } from "./lib/fixtures";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 test.describe.configure({ mode: "serial" });
 
@@ -63,7 +65,7 @@ test.describe("Onboarding", () => {
         await page.waitForURL("/event-types");
 
         const userComplete = await user.self();
-        expect(getInnerText(parse(userComplete.bio || "")).length).toBe(0);
+        expect(getInnerText(md.render(userComplete.bio || "")).length).toBe(0);
       });
     });
   });

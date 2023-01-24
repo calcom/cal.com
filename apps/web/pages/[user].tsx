@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import parse from "html-react-parser";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -36,6 +36,8 @@ import { EmbedProps } from "@lib/withEmbedSsr";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
@@ -141,8 +143,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              {!!getInnerText(parse(user.bio || "")).length && (
-                <p className="dark:text-darkgray-600 text-s text-gray-500">{parse(user.bio || "")}</p>
+              {!!getInnerText(md.render(user.bio || "")).length && (
+                <>
+                  <p
+                    className="dark:text-darkgray-600 text-s text-gray-500"
+                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
+                  />
+                </>
               )}
             </div>
           )}

@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import parse from "html-react-parser";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -20,6 +20,8 @@ import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -92,10 +94,11 @@ function TeamPage({ team }: TeamPageProps) {
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
             {teamName}
           </p>
-          {!!getInnerText(parse(team.bio || "")).length && (
-            <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">
-              {parse(team.bio || "")}
-            </p>
+          {!!getInnerText(md.render(team.bio || "")).length && (
+            <p
+              className="dark:text-darkgray-600 text-s text-gray-500"
+              dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+            />
           )}
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
