@@ -2,9 +2,9 @@ import { Booking, Payment, PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
-import prisma from "@calcom/prisma";
 
 import { AbstractPaymentService } from "@calcom/lib/PaymentService";
+import prisma from "@calcom/prisma";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -47,7 +47,6 @@ export class PaymentService extends AbstractPaymentService {
         },
       });
 
-      console.log({ stripeAppKeys });
       // Parse keys with zod
       const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
         stripeAppKeys?.keys

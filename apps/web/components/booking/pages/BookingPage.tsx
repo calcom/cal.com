@@ -133,6 +133,7 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
+
       if (paymentUid) {
         return await router.push(
           createPaymentLink({

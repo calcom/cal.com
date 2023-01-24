@@ -1,4 +1,4 @@
-import { PaymentType, Prisma } from "@prisma/client";
+import { App, AppCategories, PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { EventTypeAppsList } from "utils";
 import { z } from "zod";
@@ -17,10 +17,10 @@ export type StripePaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripeAccount: string;
 };
 
-// @TODO move to MP lib server or types file
-export type MPPaymentData = {
-  init_point: string;
-};
+// // @TODO move to MP lib server or types file
+// export type MPPaymentData = {
+//   init_point: string;
+// };
 
 export const stripeOAuthTokenSchema = z.object({
   access_token: z.string().optional(),
@@ -57,7 +57,14 @@ const stripe = new Stripe(stripePrivateKey, {
 export async function handlePayment(
   evt: CalendarEvent,
   selectedEventType: Pick<z.infer<typeof EventTypeModel>, "metadata">,
-  paymentAppCredentials: { key: Prisma.JsonValue; appId: EventTypeAppsList },
+  paymentAppCredentials: {
+    key: Prisma.JsonValue;
+    appId: EventTypeAppsList;
+    app: {
+      dirName: string;
+      categories: AppCategories[];
+    } | null;
+  },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -65,8 +72,7 @@ export async function handlePayment(
     uid: string;
   }
 ) {
-  const paymentApp = appStore[paymentAppCredentials.appId as keyof typeof appStore];
-  const paymentApp = appStore[paymentType as keyof typeof appStore];
+  const paymentApp = appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return null;
@@ -134,7 +140,7 @@ export async function refund(
       {
         payment_intent: payment.externalId,
       },
-      { stripeAccount: (payment.data as unknown as PaymentData)["stripeAccount"] }
+      { stripeAccount: (payment.data as unknown as StripePaymentData)["stripeAccount"] }
     );
 
     if (!refund || refund.status === "failed") {

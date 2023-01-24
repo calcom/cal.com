@@ -638,6 +638,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           app: {
             select: {
               categories: true,
+              dirName: true,
             },
           },
         },
@@ -1047,6 +1048,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         app: {
           select: {
             categories: true,
+            dirName: true,
           },
         },
       },
