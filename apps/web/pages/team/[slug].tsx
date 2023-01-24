@@ -97,10 +97,12 @@ function TeamPage({ team }: TeamPageProps) {
             {teamName}
           </p>
           {!isBioEmpty && (
-            <div
-              className="dark:text-darkgray-600 text-s text-gray-500"
-              dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
-            />
+            <>
+              <div
+                className="dark:text-darkgray-600 text-s text-gray-500"
+                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+              />
+            </>
           )}
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
