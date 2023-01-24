@@ -1,3 +1,4 @@
+import type { SSOConnection } from "ee/sso/lib/saml";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -12,7 +13,13 @@ type FormValues = {
   wellKnownUrl: string;
 };
 
-export default function OIDCConnection({ teamId }: { teamId: number | null }) {
+export default function OIDCConnection({
+  teamId,
+  connection,
+}: {
+  teamId: number | null;
+  connection: SSOConnection | null;
+}) {
   const { t } = useLocale();
   const [openModal, setOpenModal] = useState(false);
 
@@ -25,11 +32,13 @@ export default function OIDCConnection({ teamId }: { teamId: number | null }) {
             {t("sso_oidc_description")}
           </p>
         </div>
-        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
-          <Button color="secondary" onClick={() => setOpenModal(true)}>
-            {t("configure")}
-          </Button>
-        </div>
+        {!connection && (
+          <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
+            <Button color="secondary" onClick={() => setOpenModal(true)}>
+              {t("configure")}
+            </Button>
+          </div>
+        )}
       </div>
       <CreateConnectionDialog teamId={teamId} openModal={openModal} setOpenModal={setOpenModal} />
     </div>

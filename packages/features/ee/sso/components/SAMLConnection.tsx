@@ -1,3 +1,4 @@
+import type { SSOConnection } from "ee/sso/lib/saml";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -10,7 +11,13 @@ interface FormValues {
   metadata: string;
 }
 
-export default function SAMLConnection({ teamId }: { teamId: number | null }) {
+export default function SAMLConnection({
+  teamId,
+  connection,
+}: {
+  teamId: number | null;
+  connection: SSOConnection | null;
+}) {
   const { t } = useLocale();
   const [openModal, setOpenModal] = useState(false);
 
@@ -23,11 +30,13 @@ export default function SAMLConnection({ teamId }: { teamId: number | null }) {
             {t("sso_saml_description")}
           </p>
         </div>
-        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
-          <Button color="secondary" onClick={() => setOpenModal(true)}>
-            Configure
-          </Button>
-        </div>
+        {!connection && (
+          <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">
+            <Button color="secondary" onClick={() => setOpenModal(true)}>
+              Configure
+            </Button>
+          </div>
+        )}
       </div>
       <CreateConnectionDialog teamId={teamId} openModal={openModal} setOpenModal={setOpenModal} />
     </div>

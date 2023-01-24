@@ -39,8 +39,8 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
     return (
       <LicenseRequired>
         <div className="flex flex-col space-y-10">
-          <SAMLConnection teamId={teamId} />
-          <OIDCConnection teamId={teamId} />
+          <SAMLConnection teamId={teamId} connection={null} />
+          <OIDCConnection teamId={teamId} connection={null} />
         </div>
       </LicenseRequired>
     );
@@ -49,7 +49,11 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   return (
     <LicenseRequired>
       <div className="flex flex-col space-y-6">
-        {connection.type === "saml" ? <SAMLConnection teamId={teamId} /> : <OIDCConnection teamId={teamId} />}
+        {connection.type === "saml" ? (
+          <SAMLConnection teamId={teamId} connection={connection} />
+        ) : (
+          <OIDCConnection teamId={teamId} connection={connection} />
+        )}
         <ConnectionInfo teamId={teamId} connection={connection} />
       </div>
     </LicenseRequired>
