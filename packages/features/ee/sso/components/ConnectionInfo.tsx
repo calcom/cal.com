@@ -25,6 +25,7 @@ export default function ConnectionInfo({
 
   const connectionType = connection.type.toUpperCase();
 
+  // Delete SSO connection
   const mutation = trpc.viewer.saml.delete.useMutation({
     async onSuccess() {
       showToast(
@@ -72,6 +73,7 @@ export default function ConnectionInfo({
   );
 }
 
+// Connection info for SAML
 const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: string | null }) => {
   const { t } = useLocale();
 
@@ -129,6 +131,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
   );
 };
 
+// Connection info for OIDC
 const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
   const { t } = useLocale();
 

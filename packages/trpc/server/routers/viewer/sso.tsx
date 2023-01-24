@@ -6,7 +6,7 @@ import {
   samlTenantID,
   tenantPrefix,
   canAccess,
-  oidcCallbackPath,
+  oidcPath,
 } from "@calcom/features/ee/sso/lib/saml";
 
 import { TRPCError } from "@trpc/server";
@@ -50,15 +50,13 @@ export const ssoRouter = router({
 
         const type = "idpMetadata" in connections[0] ? "saml" : "oidc";
 
-        const connection = {
+        return {
           ...connections[0],
           type,
           acsUrl: type === "saml" ? SPConfig.acsUrl : null,
           entityId: type === "saml" ? SPConfig.entityId : null,
-          callbackUrl: type === "oidc" ? oidcCallbackPath : null,
+          callbackUrl: type === "oidc" ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}${oidcPath}` : null,
         };
-
-        return connection;
       } catch (err) {
         console.error("Error getting SSO connection", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "Fetching SSO connection failed." });

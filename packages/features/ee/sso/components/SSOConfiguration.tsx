@@ -26,7 +26,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
 
   return (
     <LicenseRequired>
-      <div className="flex flex-col space-y-10">
+      <div className="flex flex-col space-y-6">
         {connection.type === "saml" ? <SAMLConnection teamId={teamId} /> : <OIDCConnection teamId={teamId} />}
         <ConnectionInfo teamId={teamId} connection={connection} />
       </div>

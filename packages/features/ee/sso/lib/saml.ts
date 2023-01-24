@@ -13,7 +13,6 @@ export const samlProductID = "Cal.com";
 export const samlAudience = "https://saml.cal.com";
 export const samlPath = "/api/auth/saml/callback";
 export const oidcPath = "/api/auth/oidc";
-export const oidcCallbackPath = `${process.env.NEXT_PUBLIC_WEBAPP_URL}${oidcPath}`;
 
 export const hostedCal = Boolean(HOSTED_CAL_FEATURES);
 export const tenantPrefix = "team-";
