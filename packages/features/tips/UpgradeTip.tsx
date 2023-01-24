@@ -4,14 +4,10 @@ import type { ReactNode } from "react";
 import { classNames } from "@calcom/lib";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-// import isCalcom from "@calcom/lib/isCalcom";
-import { trpc } from "@calcom/trpc/react";
+import isCalcom from "@calcom/lib/isCalcom";
 import { EmptyScreen } from "@calcom/ui";
 import { FiUsers } from "@calcom/ui/components/icon";
 
-import TeamList from "../ee/teams/components/TeamList";
-
-const isCalcom = true;
 export function UpgradeTip({
   dark,
   title,
@@ -32,18 +28,15 @@ export function UpgradeTip({
   children: JSX.Element;
   isParentLoading?: ReactNode;
 }) {
-  const { data } = trpc.viewer.teams.list.useQuery();
-
-  const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
 
   if (hasTeamPlan) return children;
 
+  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
+
   if (!isCalcom)
     return <EmptyScreen Icon={FiUsers} headline={title} description={description} buttonRaw={buttons} />;
-
-  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
   return (
     <>
@@ -63,23 +56,15 @@ export function UpgradeTip({
             {buttons}
           </div>
         </div>
-        {invites.length > 0 && (
-          <div className="my-4">
-            <h3 className="font-cal mb-4 text-xl">{t("open_invitations")}</h3>
-            <TeamList teams={invites} />
-          </div>
-        )}
+
         <div className="mt-4 grid-cols-3 md:grid md:gap-4">
-          {invites.length === 0 &&
-            features.map((feature) => (
-              <div
-                key={feature.title}
-                className="mb-4 min-h-[180px] w-full rounded-md bg-gray-50 p-8 md:mb-0">
-                {feature.icon}
-                <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
-                <p className="text-gray-700">{feature.description}</p>
-              </div>
-            ))}
+          {features.map((feature) => (
+            <div key={feature.title} className="mb-4 min-h-[180px] w-full rounded-md bg-gray-50 p-8 md:mb-0">
+              {feature.icon}
+              <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
+              <p className="text-gray-700">{feature.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </>

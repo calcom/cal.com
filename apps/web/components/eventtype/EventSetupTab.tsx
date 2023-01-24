@@ -139,11 +139,13 @@ export const EventSetupTab = (
       return true;
     });
 
+    const defaultValue = locationOptions.find((item) => item.label === "video")?.options;
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
             <LocationSelect
+              defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
