@@ -2,7 +2,7 @@ import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } 
 import classNames from "classnames";
 import { ReactNode } from "react";
 
-import { Icon } from "../icon";
+import { FiInfo } from "../icon";
 
 export interface AlertProps {
   title?: ReactNode;
@@ -47,7 +47,7 @@ export function Alert(props: AlertProps) {
             />
           )}
           {severity === "neutral" && (
-            <Icon.FiInfo className={classNames("h-5 w-5 text-gray-800", iconClassName)} aria-hidden="true" />
+            <FiInfo className={classNames("h-5 w-5 text-gray-800", iconClassName)} aria-hidden="true" />
           )}
           {severity === "success" && (
             <CheckCircleIcon

@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
 } from "@calcom/ui";
+import { FiSlash, FiCheck, FiMoreHorizontal, FiX } from "@calcom/ui/components/icon";
 
 interface Props {
   team: {
@@ -93,7 +93,7 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
-                StartIcon={Icon.FiSlash}
+                StartIcon={FiSlash}
               />
               <Button
                 type="button"
@@ -101,26 +101,22 @@ export default function TeamInviteListItem(props: Props) {
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}
-                StartIcon={Icon.FiCheck}
+                StartIcon={FiCheck}
               />
             </div>
             <div className="block sm:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" variant="icon" StartIcon={Icon.FiMoreHorizontal} />
+                  <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
+                    <DropdownItem type="button" StartIcon={FiCheck} onClick={acceptInvite}>
                       {t("accept")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <DropdownItem
-                      color="destructive"
-                      type="button"
-                      StartIcon={Icon.FiX}
-                      onClick={declineInvite}>
+                    <DropdownItem color="destructive" type="button" StartIcon={FiX} onClick={declineInvite}>
                       {t("reject")}
                     </DropdownItem>
                   </DropdownMenuItem>

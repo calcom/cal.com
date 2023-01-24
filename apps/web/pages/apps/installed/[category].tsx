@@ -13,11 +13,19 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  Icon,
   List,
   AppSkeletonLoader as SkeletonLoader,
   ShellSubHeading,
 } from "@calcom/ui";
+import {
+  FiBarChart,
+  FiCalendar,
+  FiCreditCard,
+  FiGrid,
+  FiPlus,
+  FiShare2,
+  FiVideo,
+} from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -139,13 +147,13 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
-    calendar: Icon.FiCalendar,
-    conferencing: Icon.FiVideo,
-    automation: Icon.FiShare2,
-    analytics: Icon.FiBarChart,
-    payment: Icon.FiCreditCard,
-    web3: Icon.FiBarChart,
-    other: Icon.FiGrid,
+    calendar: FiCalendar,
+    conferencing: FiVideo,
+    automation: FiShare2,
+    analytics: FiBarChart,
+    payment: FiCreditCard,
+    web3: FiBarChart,
+    other: FiGrid,
   };
 
   return (
@@ -169,7 +177,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                           : "/apps"
                       }
                       color="secondary"
-                      StartIcon={Icon.FiPlus}>
+                      StartIcon={FiPlus}>
                       {t("add")}
                     </Button>
                   }

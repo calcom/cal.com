@@ -4,7 +4,8 @@ import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -17,7 +18,7 @@ function Teams() {
       CTA={
         <Button
           variant="fab"
-          StartIcon={Icon.FiPlus}
+          StartIcon={FiPlus}
           type="button"
           href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
           {t("new")}

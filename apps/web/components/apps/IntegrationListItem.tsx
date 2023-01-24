@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
+import { Badge, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
+import { FiAlertCircle } from "@calcom/ui/components/icon";
 
 import classNames from "@lib/classNames";
 
@@ -63,7 +64,7 @@ function IntegrationListItem(props: {
           {/* Alert error that key stopped working. */}
           {props.invalidCredential && (
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Icon.FiAlertCircle className="w-8 text-red-500 sm:w-4" />
+              <FiAlertCircle className="w-8 text-red-500 sm:w-4" />
               <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
                 {t("invalid_credential")}
               </ListItemText>
