@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { FiX } from "@calcom/ui/components/icon";
 
 export default function AddToHomescreen() {
   const { t } = useLocale();
@@ -40,7 +40,7 @@ export default function AddToHomescreen() {
                 type="button"
                 className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <Icon.FiX className="h-6 w-6 text-white" aria-hidden="true" />
+                <FiX className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>
           </div>

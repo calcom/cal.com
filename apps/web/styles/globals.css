@@ -183,19 +183,19 @@ button[role="switch"][data-state="checked"] {
   }
 
   .slider > .slider-track {
-    @apply relative h-1 flex-grow rounded-md bg-neutral-400;
+    @apply relative h-1 flex-grow rounded-md bg-gray-400;
   }
 
   .slider .slider-range {
-    @apply absolute h-full rounded-full bg-neutral-700;
+    @apply absolute h-full rounded-full bg-gray-700;
   }
 
   .slider .slider-thumb {
-    @apply block h-3 w-3 cursor-pointer rounded-full bg-neutral-700 transition-all;
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
   }
 
   .slider .slider-thumb:hover {
-    @apply bg-neutral-600;
+    @apply bg-gray-600;
   }
 
   .slider .slider-thumb:focus {
@@ -237,12 +237,12 @@ button[role="switch"][data-state="checked"] {
 }
 
 .react-multi-email > [type="text"] {
-  @apply dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500 dark:text-white;
+  @apply dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-white block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500;
 }
 
 .react-multi-email [data-tag] {
   box-shadow: none !important;
-  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
+  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
 }
 
 .react-multi-email > span[data-placeholder] {
@@ -270,7 +270,7 @@ button[role="switch"][data-state="checked"] {
 }
 
 .react-multi-email [data-tag] {
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-neutral-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-700;
+  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-700;
 }
 
 .react-multi-email [data-tag] [data-tag-item] {
@@ -383,7 +383,7 @@ nav#nav--settings > a svg {
 }
 
 nav#nav--settings > a.active {
-  @apply border-neutral-500 bg-neutral-50 text-gray-700 hover:bg-neutral-50 hover:text-gray-700;
+  @apply border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700;
 }
 
 nav#nav--settings > a.active svg {

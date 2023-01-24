@@ -1,6 +1,6 @@
 import { FieldValues, useFormContext } from "react-hook-form";
 
-import { Icon } from "../../../components/icon";
+import { FiCheck, FiCircle, FiInfo, FiX } from "@calcom/ui/components/icon";
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
@@ -48,12 +48,12 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
                 className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <Icon.FiX size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                    <FiX size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                   ) : (
-                    <Icon.FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
+                    <FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
                   )
                 ) : (
-                  <Icon.FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                  <FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
@@ -68,7 +68,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   if (fieldErrors) {
     return (
       <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-        <Icon.FiInfo className="mr-1 h-3 w-3" />
+        <FiInfo className="mr-1 h-3 w-3" />
         <>{fieldErrors.message}</>
       </div>
     );
@@ -86,9 +86,9 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (
-                <Icon.FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
+                <FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
               ) : (
-                <Icon.FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
+                <FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
               {t(`${fieldName}_hint_${key}`)}
             </li>

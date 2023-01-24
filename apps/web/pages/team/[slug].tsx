@@ -12,7 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -36,12 +37,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="rounded-md border border-neutral-200 dark:border-neutral-700">
+    <ul className="rounded-md border border-gray-200 dark:border-gray-700">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600",
+            "dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600",
             !isEmbed && "bg-white"
           )}>
           <Link
@@ -113,7 +114,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <aside className="mt-8 flex justify-center text-center dark:text-white">
                   <Button
                     color="minimal"
-                    EndIcon={Icon.FiArrowRight}
+                    EndIcon={FiArrowRight}
                     className="dark:hover:bg-darkgray-200"
                     href={`/team/${team.slug}?members=1`}
                     shallow={true}>
