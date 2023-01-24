@@ -35,6 +35,9 @@ git clone $BRANCH_TO_CLONE https://$GITHUB_ACCESS_TOKEN@github.com/calcom/cal.co
 
 echo "Cloned"
 
+# Ensure the submodule directory exists
+mkdir -p $SUBMODULE_PATH
+
 # set up an empty temporary work directory
 rm -rf tmp || true # remove the tmp folder if exists
 mkdir tmp          # create the tmp folder
