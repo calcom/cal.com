@@ -64,7 +64,12 @@
         "$STRIPE_FREE_PLAN_PRODUCT_ID",
         "$NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "$NEXT_PUBLIC_WEBAPP_URL",
-        "$NEXT_PUBLIC_WEBSITE_URL"
+        "$NEXT_PUBLIC_WEBSITE_URL",
+        "$SENDGRID_VERIFICATION_KEY",
+        "$DATOCMS_GRAPHQL_ENDPOINT",
+        "$DATOCMS_API_TOKEN",
+        "$STRIPE_SUPPORT_TABLE",
+        "$ENVIRONMENT_URL"
       ],
       "outputs": [".next/**"]
     },

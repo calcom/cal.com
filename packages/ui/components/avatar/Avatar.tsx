@@ -36,9 +36,9 @@ export function Avatar(props: AvatarProps) {
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        sizesPropsBySize[size],
         "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
-        props.className
+        props.className,
+        sizesPropsBySize[size]
       )}>
       <>
         <AvatarPrimitive.Image

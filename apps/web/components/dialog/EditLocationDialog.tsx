@@ -289,30 +289,31 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       name="locationType"
                       control={locationFormMethods.control}
                       render={() => (
-                        <LocationSelect
-                          maxMenuHeight={300}
-                          name="location"
-                          defaultValue={selection}
-                          options={locationOptions}
-                          isSearchable
-                          className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
-                          onChange={(val) => {
-                            if (val) {
-                              locationFormMethods.setValue("locationType", val.value);
-                              locationFormMethods.unregister([
-                                "locationLink",
-                                "locationAddress",
-                                "locationPhoneNumber",
-                              ]);
-                              locationFormMethods.clearErrors([
-                                "locationLink",
-                                "locationPhoneNumber",
-                                "locationAddress",
-                              ]);
-                              setSelectedLocation?.(val);
-                            }
-                          }}
-                        />
+                        <div className="py-4">
+                          <LocationSelect
+                            maxMenuHeight={300}
+                            name="location"
+                            defaultValue={selection}
+                            options={locationOptions}
+                            isSearchable
+                            onChange={(val) => {
+                              if (val) {
+                                locationFormMethods.setValue("locationType", val.value);
+                                locationFormMethods.unregister([
+                                  "locationLink",
+                                  "locationAddress",
+                                  "locationPhoneNumber",
+                                ]);
+                                locationFormMethods.clearErrors([
+                                  "locationLink",
+                                  "locationPhoneNumber",
+                                  "locationAddress",
+                                ]);
+                                setSelectedLocation?.(val);
+                              }
+                            }}
+                          />
+                        </div>
                       )}
                     />
                   );

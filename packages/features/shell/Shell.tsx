@@ -61,6 +61,8 @@ import {
   FiArrowLeft,
 } from "@calcom/ui/components/icon";
 
+import { TeamInviteBadge } from "./TeamInviteBadge";
+
 /* TODO: Migate this */
 
 export const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
@@ -474,6 +476,7 @@ const navigation: NavigationItemType[] = [
     href: "/teams",
     icon: FiUsers,
     onlyDesktop: true,
+    badge: <TeamInviteBadge />,
   },
   {
     name: "apps",
