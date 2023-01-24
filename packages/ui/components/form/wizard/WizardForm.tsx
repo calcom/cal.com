@@ -45,7 +45,7 @@ function WizardForm<T extends DefaultStep>(props: {
       <img className="mx-auto my-8 h-5" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
       <div
         className={classNames(
-          "mb-8 w-[700px] divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent",
+          "mb-8 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent md:w-[700px]",
           props.containerClassname
         )}>
         <div className="px-4 py-5 sm:px-6">
