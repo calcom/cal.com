@@ -39,7 +39,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
         username: "" /* Not used in this context */,
         role: UserPermissionRole.USER,
       },
-      hasValidLicense: true,
+      license: {
+        valid: true,
+        key: "",
+      },
       expires: "" /* Not used in this context */,
     };
   }

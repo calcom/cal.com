@@ -251,7 +251,7 @@ function WorkflowPage() {
           </div>
         }
         heading={
-          session.data?.hasValidLicense &&
+          session.data?.license.valid &&
           isAllDataLoaded && (
             <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
               {workflow && workflow.name ? workflow.name : "untitled"}

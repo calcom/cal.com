@@ -1,8 +1,9 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
+import { getSession } from "next-auth/react";
 import { CollectOpts, EventHandler } from "next-collect";
 import { useCollector } from "next-collect/client";
 // Importing types so we're not directly importing next/server
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { CONSOLE_URL } from "./constants";
 
@@ -35,24 +36,29 @@ export function collectPageParameters(
 }
 
 const reportUsage: EventHandler = async (event, { fetch }) => {
-  const ets = telemetryEventTypes;
-  if ([ets.bookingConfirmed, ets.embedBookingConfirmed].includes(event.eventType)) {
-    const key = process.env.CALCOM_LICENSE_KEY;
-    const url = `${CONSOLE_URL}/api/deployments/usage?key=${key}&quantity=1`;
-    try {
-      return fetch(url, { method: "POST", mode: "cors" });
-    } catch (e) {
-      console.error(`Error reporting booking for key: '${key}'`, e);
+  debugger;
+  const session = await getSession();
+  if (session?.license?.key && process.env.NEXT_PUBLIC_IS_E2E !== "1") {
+    const ets = telemetryEventTypes;
+    if ([ets.bookingConfirmed, ets.embedBookingConfirmed].includes(event.eventType)) {
+      const url = `${CONSOLE_URL}/api/deployments/usage?key=${session.license.key}&quantity=1`;
+      try {
+        return fetch(url, { method: "POST", mode: "cors" });
+      } catch (e) {
+        console.error(`Error reporting booking for key: '${session.license.key}'`, e);
+        return Promise.resolve();
+      }
+    } else {
       return Promise.resolve();
     }
   } else {
-    return Promise.resolve();
+    return undefined;
   }
 };
 
 export const nextCollectBasicSettings: CollectOpts = {
   drivers: [
-    process.env.CALCOM_LICENSE_KEY && process.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
+    reportUsage,
     process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"
       ? undefined
       : {
@@ -80,23 +86,20 @@ export const nextCollectBasicSettings: CollectOpts = {
   ],
 };
 
-export const extendEventData = (
-  req: NextRequest | NextApiRequest,
-  res: NextResponse | NextApiResponse,
-  original: any
-) => {
+export const extendEventData = async (req: NextRequest | NextApiRequest, original: any) => {
   const onVercel =
     typeof req.headers?.get === "function"
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as any)?.["x-vercel-id"];
   const pageUrl = original?.page_url || req.url || undefined;
   const cookies = req.cookies as { [key: string]: any };
+  const session = await getSession();
   return {
     title: "",
     ipAddress: "",
     queryString: "",
     page_url: pageUrl,
-    licensekey: process.env.CALCOM_LICENSE_KEY,
+    licensekey: session?.license.key,
     isTeamBooking:
       original?.isTeamBooking === undefined
         ? pageUrl?.includes("team/") || undefined

@@ -835,7 +835,7 @@
   "connect_metamask": "Connect Metamask",
   "create_events_on": "Create events on",
   "enterprise_license": "This is an enterprise feature",
-  "enterprise_license_description": "To enable this feature, get a deployment key at {{consoleUrl}} console and add it to your .env as CALCOM_LICENSE_KEY. If your team already has a license, please contact {{supportMail}} for help.",
+  "enterprise_license_description": "To enable this feature, have an administrator go to {{setupUrl}} to enter a license key. If a license key is already in place, please contact {{supportMail}} for help.",
   "missing_license": "Missing License",
   "signup_requires": "Commercial license required",
   "signup_requires_description": "{{companyName}} currently does not offer a free open source version of the sign up page. To receive full access to the signup components you need to acquire a commercial license. For personal use we recommend the Prisma Data Platform or any other Postgres interface to create accounts.",

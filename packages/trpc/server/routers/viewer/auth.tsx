@@ -107,4 +107,7 @@ export const authRouter = router({
 
       return;
     }),
+  deployment: authedProcedure.query(async () => {
+    return await prisma.deployment.findFirst({ where: { id: 1 } });
+  }),
 });

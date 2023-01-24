@@ -6,7 +6,10 @@ declare module "next-auth" {
    * Returned by `useSession`, `getSession` and received as a prop on the `Provider` React Context
    */
   interface Session {
-    hasValidLicense: boolean;
+    license: {
+      valid: boolean;
+      key: string | null;
+    };
     user: User;
   }
   interface User extends Omit<DefaultUser, "id"> {

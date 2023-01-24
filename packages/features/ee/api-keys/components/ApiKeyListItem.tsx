@@ -43,16 +43,8 @@ const ApiKeyListItem = ({
       <div>
         <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
         <div className="flex items-center space-x-3.5">
-          {!neverExpires && isExpired && (
-            <Badge className="-p-2" variant="red">
-              {t("expired")}
-            </Badge>
-          )}
-          {!isExpired && (
-            <Badge className="-p-2" variant="green">
-              {t("active")}
-            </Badge>
-          )}
+          {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
+          {!isExpired && <Badge variant="green">{t("active")}</Badge>}
           <p className="text-xs text-gray-600">
             {" "}
             {neverExpires ? (

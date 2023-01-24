@@ -1,7 +1,5 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    /** Needed to enable enterprise-only features */
-    readonly CALCOM_LICENSE_KEY: string | undefined;
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
