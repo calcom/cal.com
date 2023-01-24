@@ -263,28 +263,27 @@ const nextConfig = {
     return redirects;
   },
   async headers() {
-    const ContentSecurityPolicy = `
+    const ContentSecurityPolicyForCalHosted = `
       default-src 'self';
       script-src 'self';
       child-src app.cal.com;
       style-src 'self' app.cal.com;
       font-src 'self';  
     `;
-    return [
-      {
+    const redirects = [];
+
+    if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {
+      redirects.push({
         source: "/:path*",
         headers: [
           {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
             key: "Content-Security-Policy",
-            value: ContentSecurityPolicy.replace(/\s{2,}/g, " ").trim(),
+            value: ContentSecurityPolicyForCalHosted.replace(/\s{2,}/g, " ").trim(),
           },
         ],
-      },
-    ];
+      });
+    }
+    return redirects;
   },
 };
 
