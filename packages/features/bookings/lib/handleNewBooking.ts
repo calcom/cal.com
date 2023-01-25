@@ -278,10 +278,35 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+          const date = allBookingDates[i++];
+          const conflict = checkForConflicts(bufferedBusyTimes, date, eventType.length);
+
+          if (conflict) {
+            // CUSTOM_CODE Changed Error
+            try {
+              await fetch(
+                `https://hooks.zapier.com/hooks/catch/8583043/bvz7pcb/silent?email=${
+                  user?.email
+                }&coach=${eventType.hosts?.map((h) => h.user?.email)?.join(", ")}&date=${date.toISOString()}`
+              );
+            } catch (e) {}
+          }
+          foundConflict = conflict;
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        const conflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+
+        if (conflict) {
+          // CUSTOM_CODE Changed Error
+          try {
+            await fetch(
+              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${
+                user?.email
+              }&coach=${eventType.hosts?.map((h) => h.user?.email)?.join(", ")}&date=${input.dateFrom}`
+            );
+          } catch (e) {}
+        }
+        foundConflict = conflict;
       }
     } catch {
       log.debug({
@@ -294,14 +319,6 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    // CUSTOM_CODE Changed Error
-    try {
-      await fetch(
-        `https://hooks.zapier.com/hooks/catch/8583043/bvuuxkc/silent?email=${eventType.users
-          ?.map((u) => u?.email)
-          ?.join(", ")}`
-      );
-    } catch (e) {}
     throw new Error("Please try again or contact concierge@mento.co for support.");
   }
   return availableUsers;
