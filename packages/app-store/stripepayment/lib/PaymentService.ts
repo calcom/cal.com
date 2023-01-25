@@ -1,10 +1,14 @@
-import { Booking, Payment, PaymentType, Prisma } from "@prisma/client";
+import { Booking, Payment, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { AbstractPaymentService } from "@calcom/lib/PaymentService";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { CalendarEvent } from "@calcom/types/Calendar";
+
+import { StripePaymentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -66,7 +70,11 @@ export class PaymentService extends AbstractPaymentService {
       const paymentData = await prisma?.payment.create({
         data: {
           uid: uuidv4(),
-          type: PaymentType.STRIPE,
+          app: {
+            connect: {
+              slug: "stripe",
+            },
+          },
           booking: {
             connect: {
               id: bookingId,
@@ -97,9 +105,46 @@ export class PaymentService extends AbstractPaymentService {
   async update(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  async refund(): Promise<Payment> {
-    throw new Error("Method not implemented.");
+
+  async refund(paymentId: Payment["id"]): Promise<Payment> {
+    try {
+      const payment = await prisma.payment.findFirst({
+        where: {
+          id: paymentId,
+          success: true,
+          refunded: false,
+        },
+      });
+      if (!payment) {
+        throw new Error("Payment not found");
+      }
+
+      const refund = await this.stripe.refunds.create(
+        {
+          payment_intent: payment.externalId,
+        },
+        { stripeAccount: (payment.data as unknown as StripePaymentData)["stripeAccount"] }
+      );
+
+      if (!refund || refund.status === "failed") {
+        throw new Error("Refund failed");
+      }
+
+      const updatedPayment = await prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          refunded: true,
+        },
+      });
+      return updatedPayment;
+    } catch (e) {
+      const err = getErrorFromUnknown(e);
+      throw err;
+    }
   }
+
   getPaymentPaidStatus(): Promise<string> {
     throw new Error("Method not implemented.");
   }

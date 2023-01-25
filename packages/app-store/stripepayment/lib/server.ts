@@ -1,4 +1,4 @@
-import { App, AppCategories, PaymentType, Prisma } from "@prisma/client";
+import { AppCategories, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { EventTypeAppsList } from "utils";
 import { z } from "zod";
@@ -95,70 +95,6 @@ export async function handlePayment(
   });
 
   return paymentData;
-}
-
-export async function refund(
-  booking: {
-    id: number;
-    uid: string;
-    startTime: Date;
-    payment: {
-      id: number;
-      success: boolean;
-      refunded: boolean;
-      externalId: string;
-      data: Prisma.JsonValue;
-      type: PaymentType;
-    }[];
-  },
-  calEvent: CalendarEvent
-) {
-  try {
-    const payment = booking.payment.find((e) => e.success && !e.refunded);
-    if (!payment) return;
-
-    if (payment.type !== PaymentType.STRIPE) {
-      await handleRefundError({
-        event: calEvent,
-        reason: "cannot refund non Stripe payment",
-        paymentId: "unknown",
-      });
-      return;
-    }
-
-    const refund = await stripe.refunds.create(
-      {
-        payment_intent: payment.externalId,
-      },
-      { stripeAccount: (payment.data as unknown as StripePaymentData)["stripeAccount"] }
-    );
-
-    if (!refund || refund.status === "failed") {
-      await handleRefundError({
-        event: calEvent,
-        reason: refund?.failure_reason || "unknown",
-        paymentId: payment.externalId,
-      });
-      return;
-    }
-
-    await prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        refunded: true,
-      },
-    });
-  } catch (e) {
-    const err = getErrorFromUnknown(e);
-    console.error(err, "Refund failed");
-    await handleRefundError({
-      event: calEvent,
-      reason: err.message || "unknown",
-      paymentId: "unknown",
-    });
-  }
 }
 
 export const closePayments = async (paymentIntentId: string, stripeAccount: string) => {

@@ -129,7 +129,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   {props.payment.success && !props.payment.refunded && (
                     <div className="mt-4 text-center text-gray-700 dark:text-gray-300">{t("paid")}</div>
                   )}
-                  {props.payment.type === "STRIPE" && !props.payment.success && (
+                  {props.payment.appId === "stripe" && !props.payment.success && (
                     <Elements
                       stripe={getStripe((props.payment.data as StripePaymentData).stripe_publishable_key)}>
                       <PaymentComponent

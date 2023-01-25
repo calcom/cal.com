@@ -1,13 +1,16 @@
-import { PaymentType } from "@prisma/client";
-
 import { EventTypeAppsList, getEventTypeAppData } from "@calcom/app-store/utils";
 
 export default function getPaymentAppData(
   eventType: Parameters<typeof getEventTypeAppData>[0],
   forcedGet?: boolean
 ) {
-  const paymentProviders = Object.values(PaymentType).map(
-    (value) => value.toLowerCase() as EventTypeAppsList
+  const metadataApps = eventType?.metadata?.apps;
+  if (!metadataApps) {
+    return { enabled: false, price: 0, currency: "usd", appId: null };
+  }
+
+  const paymentAppIds = Object.keys(metadataApps).filter(
+    (app) => metadataApps[app]?.price && metadataApps[app]?.enabled
   );
 
   // Event type should only have one payment app data
@@ -17,12 +20,12 @@ export default function getPaymentAppData(
     currency: string;
     appId: EventTypeAppsList | null;
   } | null = null;
-  for (const paymentProvider of paymentProviders) {
-    const appData = getEventTypeAppData(eventType, paymentProvider, forcedGet);
+  for (const appId of paymentAppIds) {
+    const appData = getEventTypeAppData(eventType, appId, forcedGet);
     if (appData && paymentAppData === null) {
       paymentAppData = {
         ...appData,
-        appId: paymentProvider,
+        appId,
       };
     }
   }
