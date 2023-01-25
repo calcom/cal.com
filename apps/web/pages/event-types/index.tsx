@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import {
-  CreateEventTypeButton,
-  EventTypeDescriptionLazy as EventTypeDescription,
-} from "@calcom/features/eventtypes/components";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
+import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,6 +29,7 @@ import {
   Avatar,
   AvatarGroup,
   Tooltip,
+  CreateButton,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -195,7 +194,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
       ...router.query,
-      dialog: "duplicate-event-type",
+      dialog: "duplicate",
       title: eventType.title,
       description: eventType.description,
       slug: eventType.slug,
@@ -574,11 +573,20 @@ const CreateFirstEventTypeView = () => {
 };
 
 const CTA = () => {
+  const { t } = useLocale();
+
   const query = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   if (!query.data) return null;
 
-  return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
+  return (
+    <CreateButton
+      subtitle={t("new_event_subtitle")}
+      canAdd={true}
+      options={query.data.profiles}
+      createDialog={CreateEventTypeDialog}
+    />
+  );
 };
 
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);

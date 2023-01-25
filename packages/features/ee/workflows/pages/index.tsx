@@ -5,11 +5,10 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { CreateButton, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
-import CreateNewWorkflowButton from "../components/CreateNewWorkflowButton";
+import { CreateWorkflowDialog } from "../components/CreateWorkflowDialog";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
@@ -55,7 +54,12 @@ function WorkflowsPage() {
           //   loading={createMutation.isLoading}>
           //   {t("new")}
           // </Button>
-          <CreateNewWorkflowButton canAddWorkflows={true} options={query.data.profiles} />
+          <CreateButton
+            subtitle={t("new_workflow_subtitle")}
+            canAdd={true}
+            options={query.data.profiles}
+            createDialog={CreateWorkflowDialog}
+          />
         ) : (
           <></>
         )
