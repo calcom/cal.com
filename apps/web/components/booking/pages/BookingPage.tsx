@@ -49,7 +49,16 @@ import {
   RadioField,
   Tooltip,
 } from "@calcom/ui";
-import { FiUserPlus } from "@calcom/ui/components/icon";
+import {
+  FiUserPlus,
+  FiCalendar,
+  FiX,
+  FiInfo,
+  FiCreditCard,
+  FiRefreshCw,
+  FiUser,
+  FiAlertTriangle,
+} from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -877,69 +886,7 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && guestsField.fields.length ? (
-                  <div className="mb-4">
-                    <div>
-                      <label
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("guests")}
-                      </label>
-                      <ul>
-                        {guestsField.fields.map((field, index) => (
-                          <li key={field.id}>
-                            <EmailField
-                              {...bookingForm.register(`guests.${index}.email` as const)}
-                              className={classNames(
-                                inputClassName,
-                                bookingForm.formState.errors.guests?.[index] &&
-                                  "!focus:ring-red-700 !border-red-700",
-                                "border-r-0"
-                              )}
-                              addOnClassname={classNames(
-                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 ",
-                                bookingForm.formState.errors.guests?.[index] &&
-                                  "!focus:ring-red-700 !border-red-700"
-                              )}
-                              placeholder="guest@example.com"
-                              disabled={disableInput}
-                              label={<></>}
-                              addOnSuffix={
-                                <Tooltip content="Remove guest">
-                                  <button
-                                    disabled={disableInput}
-                                    className="disabled:hover:cursor-not-allowed"
-                                    type="button"
-                                    onClick={() => guestsField.remove(index)}>
-                                    <Icon.FiX className="text-gray-600" />
-                                  </button>
-                                </Tooltip>
-                              }
-                            />
-                            {bookingForm.formState.errors.guests?.[index] && (
-                              <div className="mt-2 flex items-center text-sm text-red-700 ">
-                                <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                                <p className="text-red-700">
-                                  {bookingForm.formState.errors.guests?.[index]?.message}
-                                </p>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button
-                        size="sm"
-                        type="button"
-                        color="minimal"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
-                        onClick={() => guestsField.append({ email: "" })}>
-                        {t("add_another")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <></>
-                )}
+
                 {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
                   <div className="mb-4">
                     <label
@@ -992,6 +939,70 @@ const BookingPage = ({
                     />
                   )}
                 </div>
+                {!eventType.disableGuests && guestsField.fields.length ? (
+                  <div className="mb-4">
+                    <div>
+                      <label
+                        htmlFor="guests"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("guests")}
+                      </label>
+                      <ul>
+                        {guestsField.fields.map((field, index) => (
+                          <li key={field.id}>
+                            <EmailField
+                              {...bookingForm.register(`guests.${index}.email` as const)}
+                              className={classNames(
+                                inputClassName,
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700",
+                                "border-r-0"
+                              )}
+                              addOnClassname={classNames(
+                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 ",
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700"
+                              )}
+                              placeholder="guest@example.com"
+                              disabled={disableInput}
+                              label={<></>}
+                              addOnSuffix={
+                                <Tooltip content="Remove guest">
+                                  <button
+                                    disabled={disableInput}
+                                    className="disabled:hover:cursor-not-allowed"
+                                    type="button"
+                                    onClick={() => guestsField.remove(index)}>
+                                    <FiX className="text-gray-600" />
+                                  </button>
+                                </Tooltip>
+                              }
+                            />
+                            {bookingForm.formState.errors.guests?.[index] && (
+                              <div className="mt-2 flex items-center text-sm text-red-700 ">
+                                <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                                <p className="text-red-700">
+                                  {bookingForm.formState.errors.guests?.[index]?.message}
+                                </p>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        StartIcon={FiUserPlus}
+                        className="my-2.5"
+                        // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
+                        onClick={() => guestsField.append({ email: "" })}>
+                        {t("add_another")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <></>
+                )}
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                   {!eventType.disableGuests && !guestsField.fields.length && (
