@@ -21,6 +21,8 @@ export interface IAbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void>;
+
+  deletePayment(paymentId: Payment["id"]): Promise<boolean>;
 }
 
 export abstract class AbstractPaymentService {
@@ -41,6 +43,8 @@ export abstract class AbstractPaymentService {
     },
     paymentData: Payment
   ): Promise<void>;
+
+  abstract deletePayment(paymentId: Payment["id"]): Promise<boolean>;
 
   abstract refund(paymentId: Payment["id"]): Promise<Payment>;
 

@@ -6,7 +6,7 @@ import z from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -23,6 +23,7 @@ import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -807,11 +808,14 @@ const loggedInViewerRouter = router({
           id: id,
           userId: ctx.user.id,
         },
-        include: {
+        select: {
+          key: true,
+          appId: true,
           app: {
             select: {
               slug: true,
               categories: true,
+              dirName: true,
             },
           },
         },
@@ -828,7 +832,11 @@ const loggedInViewerRouter = router({
         select: {
           id: true,
           locations: true,
-          destinationCalendar: true,
+          destinationCalendar: {
+            include: {
+              credential: true,
+            },
+          },
           price: true,
           currency: true,
           metadata: true,
@@ -872,7 +880,7 @@ const loggedInViewerRouter = router({
 
         // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
-          if (eventType.destinationCalendar?.integration === credential.type) {
+          if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
             const destinationCalendar = await prisma.destinationCalendar.findFirst({
               where: {
                 id: eventType.destinationCalendar?.id,
@@ -997,12 +1005,11 @@ const loggedInViewerRouter = router({
                 });
 
                 for (const payment of booking.payment) {
-                  // Right now we only close payments on Stripe
-                  const stripeKeysSchema = z.object({
-                    stripe_user_id: z.string(),
-                  });
-                  const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
-                  await closePayments(payment.externalId, stripe_user_id);
+                  try {
+                    await deletePayment(payment.id, credential);
+                  } catch (e) {
+                    console.error(e);
+                  }
                   await prisma.payment.delete({
                     where: {
                       id: payment.id,

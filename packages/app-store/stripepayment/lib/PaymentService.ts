@@ -170,6 +170,41 @@ export class PaymentService extends AbstractPaymentService {
     });
   }
 
+  async deletePayment(paymentId: Payment["id"]): Promise<boolean> {
+    try {
+      const payment = await prisma.payment.findFirst({
+        where: {
+          id: paymentId,
+        },
+      });
+
+      if (!payment) {
+        throw new Error("Payment not found");
+      }
+      const stripeAccount = (payment.data as unknown as StripePaymentData).stripeAccount;
+
+      if (!stripeAccount) {
+        throw new Error("Stripe account not found");
+      }
+      // Expire all current sessions
+      const sessions = await this.stripe.checkout.sessions.list(
+        {
+          payment_intent: payment.externalId,
+        },
+        { stripeAccount }
+      );
+      for (const session of sessions.data) {
+        await this.stripe.checkout.sessions.expire(session.id, { stripeAccount });
+      }
+      // Then cancel the payment intent
+      await this.stripe.paymentIntents.cancel(payment.externalId, { stripeAccount });
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
   getPaymentPaidStatus(): Promise<string> {
     throw new Error("Method not implemented.");
   }
