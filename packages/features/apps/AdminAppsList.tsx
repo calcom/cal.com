@@ -202,6 +202,7 @@ const AdminAppsList = ({
     <form
       id={`wizard-step-${currentStep}`}
       name={`wizard-step-${currentStep}`}
+      className="max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       onSubmit={(e) => {
         e.preventDefault();
         setIsLoading && setIsLoading(true);

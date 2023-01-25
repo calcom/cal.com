@@ -7,7 +7,6 @@ import { z } from "zod";
 import { getSession } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
 import { Button, StepCard, Steps } from "@calcom/ui";
 
 import prisma from "@lib/prisma";
@@ -107,7 +106,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
               {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}

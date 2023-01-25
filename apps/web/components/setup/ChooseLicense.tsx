@@ -38,14 +38,14 @@ const ChooseLicense = (props: {
       <RadioGroup.Root
         defaultValue={DeploymentLicenseType.FREE}
         aria-label={t("choose_a_license")}
-        className="grid grid-cols-2 gap-4"
+        className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
         onValueChange={(value) => {
           setIsFreeLicense(value === DeploymentLicenseType.FREE);
         }}>
         <RadioGroup.Item value={DeploymentLicenseType.FREE}>
           <div
             className={classNames(
-              "cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
               isFreeLicense && "border-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("agplv3_license")}</h2>
@@ -61,7 +61,7 @@ const ChooseLicense = (props: {
         <RadioGroup.Item value={DeploymentLicenseType.EE}>
           <div
             className={classNames(
-              "cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
               !isFreeLicense && "border-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>
@@ -77,9 +77,6 @@ const ChooseLicense = (props: {
           </div>
         </RadioGroup.Item>
       </RadioGroup.Root>
-      <div>
-        <small>{t("you_can_upgrade_at_any_time_later")}</small>
-      </div>
     </form>
   );
 };

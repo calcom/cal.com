@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Controller, useForm, FormProvider, useFormState } from "react-hook-form";
 import * as z from "zod";
 
@@ -16,6 +16,7 @@ type EnterpriseLicenseFormValues = {
 };
 
 const EnterpriseLicense = (props: {
+  licenseKey?: string;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsEnabled: Dispatch<SetStateAction<boolean>>;
 }) => {
@@ -53,7 +54,7 @@ const EnterpriseLicense = (props: {
 
   const formMethods = useForm<EnterpriseLicenseFormValues>({
     defaultValues: {
-      licenseKey: "",
+      licenseKey: props.licenseKey || "",
     },
     resolver: zodResolver(schemaLicenseKey),
   });
@@ -68,7 +69,11 @@ const EnterpriseLicense = (props: {
 
   return (
     <FormProvider {...formMethods}>
-      <form id="wizard-step-3" name="wizard-step-3" className="space-y-4" onSubmit={handleSubmit}>
+      <form
+        id="wizard-step-3"
+        name="wizard-step-3"
+        className="space-y-4 rounded-md bg-white px-8 py-10"
+        onSubmit={handleSubmit}>
         <div>
           <Button
             className="w-full justify-center text-lg"
@@ -89,7 +94,7 @@ const EnterpriseLicense = (props: {
               <TextField
                 {...formMethods.register("licenseKey")}
                 className={classNames(
-                  "group-hover:border-gray-400",
+                  "mb-0 group-hover:border-gray-400",
                   (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
                 )}
                 placeholder="c73bcdcc-2669-4bf6-81d3-e4ae73fb11fd"

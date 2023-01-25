@@ -10,10 +10,10 @@ import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
-import AdminUser from "./steps/AdminUser";
-import ChooseLicense from "./steps/ChooseLicense";
-import EnterpriseLicense from "./steps/EnterpriseLicense";
-import StepDone from "./steps/StepDone";
+import AdminUser from "@components/setup/AdminUser";
+import ChooseLicense from "@components/setup/ChooseLicense";
+import EnterpriseLicense from "@components/setup/EnterpriseLicense";
+import StepDone from "@components/setup/StepDone";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -23,41 +23,40 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const [isEnabledEE, setIsEnabledEE] = useState(!!props.deployment?.licenseKey);
 
   const steps = [
-    {
-      title: t("administrator_user"),
-      description: t("lets_create_first_administrator_user"),
-      contentEl: (setIsLoading: Dispatch<SetStateAction<boolean>>) =>
-        props.userCount !== 0 ? (
-          <StepDone currentStep={1} nextStepPath="/auth/setup?step=2" setIsLoading={setIsLoading} />
-        ) : (
-          <AdminUser setIsLoading={setIsLoading} />
-        ),
-    },
+    ...(props.userCount === 0
+      ? [
+          {
+            title: t("administrator_user"),
+            description: t("lets_create_first_administrator_user"),
+            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
+              <AdminUser setIsLoading={setIsLoading} />
+            ),
+          },
+        ]
+      : []),
     {
       title: t("choose_a_license"),
       description: t("choose_license_description"),
-      contentEl: (setIsLoading: Dispatch<SetStateAction<boolean>>) =>
-        props.deployment?.licenseType ? (
-          <StepDone currentStep={2} nextStepPath="/auth/setup?step=3" setIsLoading={setIsLoading} />
-        ) : (
-          <ChooseLicense
-            isFreeLicense={isFreeLicense}
-            setIsFreeLicense={setIsFreeLicense}
-            setIsLoading={setIsLoading}
-          />
-        ),
+      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
+        <ChooseLicense
+          isFreeLicense={isFreeLicense}
+          setIsFreeLicense={setIsFreeLicense}
+          setIsLoading={setIsLoading}
+        />
+      ),
     },
     ...(!isFreeLicense
       ? [
           {
             title: t("step_enterprise_license"),
             description: t("step_enterprise_license_description"),
-            contentEl: (setIsLoading: Dispatch<SetStateAction<boolean>>) =>
-              props.deployment?.licenseKey ? (
-                <StepDone currentStep={3} nextStepPath="/auth/setup?step=4" setIsLoading={setIsLoading} />
-              ) : (
-                <EnterpriseLicense setIsEnabled={setIsEnabledEE} setIsLoading={setIsLoading} />
-              ),
+            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
+              <EnterpriseLicense
+                setIsEnabled={setIsEnabledEE}
+                setIsLoading={setIsLoading}
+                licenseKey={props.deployment?.licenseKey ?? undefined}
+              />
+            ),
             isEnabled: isEnabledEE,
           },
         ]
@@ -66,7 +65,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       title: t("enable_apps"),
       description: t("enable_apps_description"),
       contentClassname: "!pb-0 mb-[-1px]",
-      contentEl: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
+      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
         <AdminAppsList
           fromAdmin
           currentStep={isFreeLicense ? 3 : 4}
@@ -81,14 +80,13 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <Meta title={t("setup")} description={t("setup_description")} />
-      <main className="flex items-center bg-gray-100 print:h-full">
+      <main className="flex items-center bg-gray-100 print:h-full md:h-screen">
         <WizardForm
           href="/auth/setup"
           steps={steps}
           nextLabel={t("next_step_text")}
           finishLabel={t("finish")}
           prevLabel={t("prev_step")}
-          stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
         />
       </main>
     </>
@@ -111,6 +109,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         permanent: false,
       },
     };
+  }
+
+  // Check existant CALCOM_LICENSE_KEY env var and acccount for it
+  if (process.env.CALCOM_LICENSE_KEY !== "" && !deployment?.licenseKey) {
+    await prisma.deployment.create({
+      data: {
+        id: 1,
+        licenseKey: process.env.CALCOM_LICENSE_KEY,
+        licenseType: DeploymentLicenseType.EE,
+        licenseConsentAt: new Date(),
+      },
+    });
   }
 
   return {

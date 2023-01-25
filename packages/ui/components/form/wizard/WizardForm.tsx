@@ -1,9 +1,10 @@
+import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { ComponentProps, Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Button, Stepper } from "../../..";
+import { Button, Steps } from "../../..";
 
 type DefaultStep = {
   title: string;
@@ -11,7 +12,7 @@ type DefaultStep = {
   contentClassname?: string;
   description: string;
   content?: JSX.Element;
-  contentEl?: (setIsLoading: Dispatch<SetStateAction<boolean>>) => JSX.Element;
+  loadingContent?: (setIsLoading: Dispatch<SetStateAction<boolean>>) => JSX.Element;
   isEnabled?: boolean;
   isLoading?: boolean;
 };
@@ -24,9 +25,9 @@ function WizardForm<T extends DefaultStep>(props: {
   prevLabel?: string;
   nextLabel?: string;
   finishLabel?: string;
-  stepLabel?: ComponentProps<typeof Stepper>["stepLabel"];
+  stepOfLabel?: (currentStep: number, maxSteps: number) => string;
 }) {
-  const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
+  const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepOfLabel } = props;
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
   const currentStep = steps[step - 1];
@@ -41,20 +42,25 @@ function WizardForm<T extends DefaultStep>(props: {
 
   return (
     <div className="mx-auto mt-4 print:w-full">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="mx-auto my-8 h-8" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
-      <div
-        className={classNames(
-          "mb-8 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow print:divide-transparent print:shadow-transparent md:w-[700px]",
-          props.containerClassname
-        )}>
-        <div className="px-4 py-5 sm:px-6">
+      <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
+        <div className="px-6 py-5 sm:px-14">
           <h1 className="font-cal text-2xl text-gray-900">{currentStep.title}</h1>
           <p className="text-sm text-gray-500">{currentStep.description}</p>
+          {!props.disableNavigation && (
+            <Steps
+              maxSteps={steps.length}
+              currentStep={step}
+              navigateToStep={noop}
+              stepOfLabel={stepOfLabel}
+            />
+          )}
         </div>
-
-        <div className={classNames("print:p-none max-w-3xl px-4 py-5 sm:p-6", currentStep.contentClassname)}>
-          {currentStep.contentEl ? currentStep.contentEl(setCurrentStepIsLoading) : currentStep.content}
+      </div>
+      <div className={classNames("mb-8 overflow-hidden md:w-[700px]", props.containerClassname)}>
+        <div className={classNames("print:p-none max-w-3xl px-8 py-5 sm:p-6", currentStep.contentClassname)}>
+          {currentStep.loadingContent
+            ? currentStep.loadingContent(setCurrentStepIsLoading)
+            : currentStep.content}
         </div>
         {!props.disableNavigation && (
           <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
@@ -81,11 +87,6 @@ function WizardForm<T extends DefaultStep>(props: {
           </div>
         )}
       </div>
-      {!props.disableNavigation && (
-        <div className="print:hidden">
-          <Stepper href={href} step={step} steps={steps} disableSteps stepLabel={stepLabel} />
-        </div>
-      )}
     </div>
   );
 }
