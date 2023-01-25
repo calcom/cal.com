@@ -55,7 +55,7 @@ function WorkflowsPage() {
           //   {t("new")}
           // </Button>
           <CreateButton
-            subtitle={t("new_workflow_subtitle")}
+            subtitle={t("new_workflow_subtitle").toUpperCase()}
             canAdd={true}
             options={query.data.profiles}
             createDialog={CreateWorkflowDialog}
