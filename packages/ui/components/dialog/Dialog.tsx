@@ -8,7 +8,7 @@ import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
-export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
+export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
@@ -55,7 +55,7 @@ export function Dialog(props: DialogProps) {
 
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
-type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
+type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
@@ -142,7 +142,7 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 
 export function DialogClose(
   props: {
-    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;
