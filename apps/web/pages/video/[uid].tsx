@@ -1,5 +1,5 @@
 import DailyIframe from "@daily-co/daily-js";
-import { NextPageContext } from "next";
+import { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { useEffect } from "react";
@@ -9,10 +9,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
+  const { meetingUrl, meetingPassword } = props;
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -36,19 +39,20 @@ export default function JoinCall(props: JoinCallPageProps) {
         width: "100%",
         height: "100%",
       },
+      url: meetingUrl,
+      ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
-    callFrame.join({
-      url: props.booking.references[0].meetingUrl ?? "",
-      showLeaveButton: true,
-      ...(props.booking.references[0].meetingPassword
-        ? { token: props.booking.references[0].meetingPassword }
-        : null),
-    });
-  }, [props.booking?.references]);
+    callFrame.join();
+    return () => {
+      callFrame.destroy();
+    };
+  }, []);
+
+  const title = `${APP_NAME} Video`;
   return (
     <>
       <Head>
-        <title>{APP_NAME} Video</title>
+        <title>{title}</title>
         <meta name="title" content={APP_NAME + " Video"} />
         <meta name="description" content={t("quick_video_meeting")} />
         <meta property="og:image" content={SEO_IMG_OGIMG_VIDEO} />
@@ -77,7 +81,9 @@ export default function JoinCall(props: JoinCallPageProps) {
   );
 }
 
-export async function getServerSideProps(context: NextPageContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
   const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid as string,
@@ -144,7 +150,11 @@ export async function getServerSideProps(context: NextPageContext) {
 
   return {
     props: {
-      booking: bookingObj,
+      meetingUrl: bookingObj.references[0].meetingUrl ?? "",
+      ...(typeof bookingObj.references[0].meetingPassword === "string" && {
+        meetingPassword: bookingObj.references[0].meetingPassword,
+      }),
+      trpcState: ssr.dehydrate(),
     },
   };
 }

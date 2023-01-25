@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
@@ -251,7 +251,7 @@ export default async function getEventTypeById({
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
+  const locationOptions = getLocationGroupedOptions(integrations, t);
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Icon, SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui";
+import { FiAlertCircle } from "@calcom/ui/components/icon";
 
 const ExistingGoogleCal = () => {
   const { t } = useLocale();
@@ -14,7 +15,7 @@ const ExistingGoogleCal = () => {
     <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
       <div className="flex items-start space-x-2.5">
         <div>
-          <Icon.FiAlertCircle className="font-semibold" />
+          <FiAlertCircle className="font-semibold" />
         </div>
         <div>
           <span className="font-semibold">{t("requires_google_calendar")}</span>
