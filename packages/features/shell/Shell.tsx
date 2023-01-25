@@ -785,7 +785,7 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="mb-6 flex sm:mt-0 lg:mb-10">
+      <div className="flex sm:mt-0 lg:mb-10">
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -844,7 +844,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 pb-8 md:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-4 md:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
