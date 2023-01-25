@@ -34,6 +34,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
      */
   req.isAdmin = true;
   req.isCustomPrisma = true;
-
+  // We don't need the key from here and on. Prevents unrecognized key errors.
+  delete req.query.key;
   await next();
 };
