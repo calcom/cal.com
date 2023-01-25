@@ -36,7 +36,6 @@ export function collectPageParameters(
 }
 
 const reportUsage: EventHandler = async (event, { fetch }) => {
-  debugger;
   const session = await getSession();
   if (session?.license?.key && process.env.NEXT_PUBLIC_IS_E2E !== "1") {
     const ets = telemetryEventTypes;

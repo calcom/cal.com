@@ -1,6 +1,5 @@
 // TODO: i18n
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { useMemo } from "react";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
