@@ -615,6 +615,16 @@ model WorkflowsOnEventTypes {
   eventTypeId Int
 }
 
+model Deployment {
+  /// This is a single row table, so we use a fixed id
+  id              Int       @id @default(1)
+  logo            String?
+  /// @zod.custom(imports.DeploymentTheme)
+  theme           Json?
+  licenseKey      String?
+  agreedLicenseAt DateTime?
+}
+
 enum TimeUnit {
   DAY    @map("day")
   HOUR   @map("hour")
