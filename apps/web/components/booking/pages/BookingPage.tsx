@@ -973,12 +973,11 @@ const BookingPage = ({
                                   "!focus:ring-red-700 !border-red-700"
                               )}
                               placeholder="guest@example.com"
-                              disabled={disableInput}
                               label={<></>}
+                              required
                               addOnSuffix={
                                 <Tooltip content="Remove guest">
                                   <button
-                                    disabled={disableInput}
                                     className="disabled:hover:cursor-not-allowed"
                                     type="button"
                                     onClick={() => guestsField.remove(index)}>
@@ -1013,19 +1012,20 @@ const BookingPage = ({
                   <></>
                 )}
 
+                {!eventType.disableGuests && !guestsField.fields.length && (
+                  <Button
+                    color="minimal"
+                    variant="button"
+                    StartIcon={FiUserPlus}
+                    onClick={() => {
+                      guestsField.append({ email: "" });
+                    }}
+                    className="mr-auto">
+                    {t("additional_guests")}
+                  </Button>
+                )}
+
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestsField.fields.length && (
-                    <Button
-                      color="minimal"
-                      variant="button"
-                      StartIcon={FiUserPlus}
-                      onClick={() => {
-                        guestsField.append({ email: "" });
-                      }}
-                      className="mr-auto">
-                      {t("additional_guests")}
-                    </Button>
-                  )}
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
