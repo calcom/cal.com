@@ -128,7 +128,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: (typeof user.eventTypes[number] & {
+  const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
