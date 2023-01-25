@@ -78,8 +78,10 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
-
   const pageTitle = title + " | " + APP_NAME;
+  // build the canonical url to ensure it's always cal.com (not app.cal.com)
+  const router = useRouter()
+  canonical = Boolean(canonical) ?? (`https://cal.com` + (router.asPath === "/" ? "": router.asPath)).split("?")[0];// cut off search params
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,
