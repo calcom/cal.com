@@ -616,7 +616,7 @@ model WorkflowsOnEventTypes {
 }
 
 model Deployment {
-  id               Int                    @id @default(autoincrement())
+  id               Int                    @id @default(1)
   logo             String?
   /// @zod.custom(imports.DeploymentTheme)
   theme            Json?

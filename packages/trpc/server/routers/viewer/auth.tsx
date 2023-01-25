@@ -1,5 +1,4 @@
 import { IdentityProvider } from "@prisma/client";
-import { DeploymentLicenseType } from "@prisma/client";
 import { z } from "zod";
 
 import { hashPassword, validPassword, verifyPassword } from "@calcom/lib/auth";
@@ -89,25 +88,4 @@ export const authRouter = router({
 
       return;
     }),
-  deploymentSetup: authedProcedure
-    .input(
-      z.object({
-        licenseType: z.nativeEnum(DeploymentLicenseType).optional(),
-        licenseKey: z.string().optional(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const data = {
-        licenseConsentAt: new Date(),
-        ...(input.licenseType ? { licenseType: input.licenseType } : {}),
-        ...(input.licenseKey ? { licenseKey: input.licenseKey } : {}),
-      };
-
-      await prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
-
-      return;
-    }),
-  deployment: authedProcedure.query(async () => {
-    return await prisma.deployment.findFirst({ where: { id: 1 } });
-  }),
 });

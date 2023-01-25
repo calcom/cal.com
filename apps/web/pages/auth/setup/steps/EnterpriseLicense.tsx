@@ -22,7 +22,7 @@ const EnterpriseLicense = (props: {
   const { t } = useLocale();
   const router = useRouter();
   const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
-  const mutation = trpc.viewer.auth.deploymentSetup.useMutation({
+  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
     onSuccess: () => {
       router.replace(`/auth/setup?step=4`);
     },
@@ -87,6 +87,7 @@ const EnterpriseLicense = (props: {
             control={formMethods.control}
             render={({ field: { onBlur, onChange, value } }) => (
               <TextField
+                {...formMethods.register("licenseKey")}
                 className={classNames(
                   "group-hover:border-gray-400",
                   (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
@@ -114,8 +115,6 @@ const EnterpriseLicense = (props: {
                   await formMethods.trigger("licenseKey");
                   props.setIsEnabled(errors.licenseKey === undefined);
                 }}
-                id="licenseKey"
-                name="licenseKey"
               />
             )}
           />

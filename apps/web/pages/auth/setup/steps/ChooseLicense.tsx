@@ -15,7 +15,7 @@ const ChooseLicense = (props: {
   const { t } = useLocale();
   const router = useRouter();
   const { isFreeLicense, setIsFreeLicense } = props;
-  const mutation = trpc.viewer.auth.deploymentSetup.useMutation({
+  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
     onSuccess: () => {
       router.replace(`/auth/setup?step=3${isFreeLicense ? "&category=calendar" : ""}`);
     },

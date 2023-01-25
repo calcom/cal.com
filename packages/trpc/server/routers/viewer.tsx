@@ -19,7 +19,6 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -42,6 +41,7 @@ import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
+import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
 import { samlRouter } from "./viewer/saml";
 import { slotsRouter } from "./viewer/slots";
@@ -1148,6 +1148,7 @@ export const viewerRouter = mergeRouters(
     loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
+    deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
