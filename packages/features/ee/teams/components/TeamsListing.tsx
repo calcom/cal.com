@@ -66,8 +66,8 @@ export function TeamsListing() {
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
 
       <UpgradeTip
-        title="calcom_is_better_with_team"
-        description="add_your_team_members"
+        title={t("calcom_is_better_with_team")}
+        description={t("add_your_team_members")}
         features={features}
         background="/team-banner-background.jpg"
         buttons={
