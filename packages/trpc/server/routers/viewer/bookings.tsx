@@ -1118,11 +1118,10 @@ export const bookingsRouter = router({
             },
           },
         });
-        console.log({ paymentAppCredentials });
+
         const paymentAppCredential = paymentAppCredentials.find((credential) => {
           return credential.appId === successPayment.appId;
         });
-        console.log({ paymentAppCredential });
 
         if (!paymentAppCredential) {
           throw new Error("Payment app credentials not found");
@@ -1134,7 +1133,7 @@ export const bookingsRouter = router({
           console.warn(`payment App service of type ${paymentApp} is not implemented`);
           return null;
         }
-        console.log({ paymentApp });
+
         const PaymentService = paymentApp.lib.PaymentService;
         const paymentInstance = new PaymentService(paymentAppCredential);
         const paymentData = await paymentInstance.refund(successPayment.id);
