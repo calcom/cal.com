@@ -17,8 +17,8 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/types": "*",
-    "@stripe/react-stripe-js": "^1.10.0",
-    "@stripe/stripe-js": "^1.35.0",
+    "@stripe/react-stripe-js": "^1.16.4",
+    "@stripe/stripe-js": "^1.46.0",
     "stripe": "^9.16.0",
     "uuid": "^8.3.2",
     "zod": "^3.20.2"

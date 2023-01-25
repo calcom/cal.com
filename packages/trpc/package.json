@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "@tanstack/react-query": "^4.3.9",
+    "@tanstack/react-query": "^4.22.4",
     "@trpc/client": "^10.0.0-rc.6",
     "@trpc/next": "^10.0.0-rc.6",
     "@trpc/react-query": "^10.0.0-rc.6",
