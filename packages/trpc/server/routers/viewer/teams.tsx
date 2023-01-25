@@ -27,6 +27,7 @@ import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, router } from "../../trpc";
 
+const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure
@@ -282,7 +283,6 @@ export const viewerTeamsRouter = router({
 
       if (!invitee) {
         // liberal email match
-        const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 
         if (!isEmail(input.usernameOrEmail))
           throw new TRPCError({
@@ -345,12 +345,16 @@ export const viewerTeamsRouter = router({
           } else throw e;
         }
 
+        let sendTo = input.usernameOrEmail;
+        if (!isEmail(input.usernameOrEmail)) {
+          sendTo = invitee.email;
+        }
         // inform user of membership by email
         if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
           await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
-            to: input.usernameOrEmail,
+            to: sendTo,
             teamName: team.name,
             joinLink: WEBAPP_URL + "/settings/teams",
           });

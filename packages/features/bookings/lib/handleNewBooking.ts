@@ -593,6 +593,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
+    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
+    }
     await prisma.booking.update({
       where: {
         uid: reqBody.bookingUid,
