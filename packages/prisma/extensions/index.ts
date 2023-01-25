@@ -5,7 +5,7 @@ export function addPrismaExtensions(prisma: PrismaClient) {
     model: {
       /**
        * We extend deployment model since it's supposed to be a single record table.
-       * New settings should be added as Columns as needed.F
+       * New settings should be added as Columns as needed.
        * */
       deployment: {
         /**
@@ -54,11 +54,6 @@ export function addPrismaExtensions(prisma: PrismaClient) {
         },
         async deleteMany() {
           throw new Error("Deployment shouldn't be deleted");
-        },
-      },
-      user: {
-        async signUp(email: string) {
-          await prisma.user.create({ data: { email } });
         },
       },
     },
