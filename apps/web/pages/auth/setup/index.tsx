@@ -1,5 +1,4 @@
 import { UserPermissionRole } from "@prisma/client";
-import { DeploymentLicenseType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { Dispatch, SetStateAction, useState } from "react";
 
@@ -13,13 +12,10 @@ import { Meta, WizardForm } from "@calcom/ui";
 import AdminUser from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
-import StepDone from "@components/setup/StepDone";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
-  const [isFreeLicense, setIsFreeLicense] = useState(
-    props.deployment?.licenseType !== DeploymentLicenseType.EE
-  );
+  const [isFreeLicense, setIsFreeLicense] = useState(props.deployment?.licenseKey === "");
   const [isEnabledEE, setIsEnabledEE] = useState(!!props.deployment?.licenseKey);
 
   const steps = [
@@ -39,6 +35,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       description: t("choose_license_description"),
       loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
         <ChooseLicense
+          currentStep={props.userCount !== 0 ? 1 : 2}
           isFreeLicense={isFreeLicense}
           setIsFreeLicense={setIsFreeLicense}
           setIsLoading={setIsLoading}
@@ -52,6 +49,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             description: t("step_enterprise_license_description"),
             loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
               <EnterpriseLicense
+                currentStep={props.userCount !== 0 ? 2 : 3}
                 setIsEnabled={setIsEnabledEE}
                 setIsLoading={setIsLoading}
                 licenseKey={props.deployment?.licenseKey ?? undefined}
@@ -97,7 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const userCount = await prisma.user.count();
   const deployment = await prisma.deployment.findFirst({
     where: { id: 1 },
-    select: { licenseType: true, licenseKey: true },
+    select: { licenseKey: true },
   });
   const { req } = context;
   const session = await getSession({ req });
@@ -117,7 +115,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       data: {
         id: 1,
         licenseKey: process.env.CALCOM_LICENSE_KEY,
-        licenseType: DeploymentLicenseType.EE,
         licenseConsentAt: new Date(),
       },
     });

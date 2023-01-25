@@ -16,6 +16,7 @@ type EnterpriseLicenseFormValues = {
 };
 
 const EnterpriseLicense = (props: {
+  currentStep: number;
   licenseKey?: string;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsEnabled: Dispatch<SetStateAction<boolean>>;
@@ -25,7 +26,7 @@ const EnterpriseLicense = (props: {
   const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
   const mutation = trpc.viewer.deploymentSetup.update.useMutation({
     onSuccess: () => {
-      router.replace(`/auth/setup?step=4`);
+      router.replace(`/auth/setup?step=${props.currentStep + 1}`);
     },
   });
 
@@ -70,8 +71,8 @@ const EnterpriseLicense = (props: {
   return (
     <FormProvider {...formMethods}>
       <form
-        id="wizard-step-3"
-        name="wizard-step-3"
+        id={`wizard-step-${props.currentStep}`}
+        name={`wizard-step-${props.currentStep}`}
         className="space-y-4 rounded-md bg-white px-8 py-10"
         onSubmit={handleSubmit}>
         <div>

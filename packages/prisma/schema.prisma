@@ -616,12 +616,11 @@ model WorkflowsOnEventTypes {
 }
 
 model Deployment {
-  id               Int                    @id @default(1)
+  id               Int       @id @default(1)
   logo             String?
   /// @zod.custom(imports.DeploymentTheme)
   theme            Json?
   licenseKey       String?
-  licenseType      DeploymentLicenseType?
   licenseConsentAt DateTime?
 }
 
@@ -651,11 +650,6 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
-}
-
-enum DeploymentLicenseType {
-  FREE
-  EE
 }
 
 model VerifiedNumber {

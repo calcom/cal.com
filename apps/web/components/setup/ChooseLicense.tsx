@@ -1,13 +1,12 @@
-import { DeploymentLicenseType } from "@prisma/client";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 
 const ChooseLicense = (props: {
+  currentStep: number;
   isFreeLicense: boolean;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsFreeLicense: Dispatch<SetStateAction<boolean>>;
@@ -15,34 +14,29 @@ const ChooseLicense = (props: {
   const { t } = useLocale();
   const router = useRouter();
   const { isFreeLicense, setIsFreeLicense } = props;
-  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
-    onSuccess: () => {
-      router.replace(`/auth/setup?step=3${isFreeLicense ? "&category=calendar" : ""}`);
-    },
-  });
 
   const enterprise_booking_fee = "$99"; // TODO: get this from a new API endpoint
 
   return (
     <form
-      id="wizard-step-2"
-      name="wizard-step-2"
+      id={`wizard-step-${props.currentStep}`}
+      name={`wizard-step-${props.currentStep}`}
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         props.setIsLoading(true);
-        mutation.mutate({
-          licenseType: isFreeLicense ? DeploymentLicenseType.FREE : DeploymentLicenseType.EE,
-        });
+        router.replace(
+          `/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
+        );
       }}>
       <RadioGroup.Root
-        defaultValue={DeploymentLicenseType.FREE}
+        defaultValue="FREE"
         aria-label={t("choose_a_license")}
         className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
         onValueChange={(value) => {
-          setIsFreeLicense(value === DeploymentLicenseType.FREE);
+          setIsFreeLicense(value === "FREE");
         }}>
-        <RadioGroup.Item value={DeploymentLicenseType.FREE}>
+        <RadioGroup.Item value="FREE">
           <div
             className={classNames(
               "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
@@ -58,7 +52,7 @@ const ChooseLicense = (props: {
             </ul>
           </div>
         </RadioGroup.Item>
-        <RadioGroup.Item value={DeploymentLicenseType.EE}>
+        <RadioGroup.Item value="EE">
           <div
             className={classNames(
               "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
