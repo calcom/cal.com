@@ -1,11 +1,10 @@
-import { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
+import { detectBrowserTimeFormat } from "./timeFormat";
 
 const processDate = (date: string | null | Dayjs, language: string) => {
   const parsedZone = parseZone(date);

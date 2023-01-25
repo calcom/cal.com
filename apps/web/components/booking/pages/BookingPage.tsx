@@ -43,12 +43,12 @@ import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { parseDate, parseRecurringDates } from "@lib/parseDate";
+import { parseDate, parseRecurringDates } from "@calcom/lib/parseDate";
 import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import { BookingFormContainer } from "@components/booking/BookingForm";
+import { BookingFormLoader } from "@components/booking/BookingForm";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -583,7 +583,7 @@ const BookingPage = ({
               </div>
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
-              <BookingFormContainer />
+              <BookingFormLoader />
               {(mutation.isError || recurringMutation.isError) && (
                 <ErrorMessage error={mutation.error || recurringMutation.error} />
               )}

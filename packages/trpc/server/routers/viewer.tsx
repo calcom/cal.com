@@ -28,6 +28,7 @@ import {
 } from "@calcom/lib/defaultEvents";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { parseRecurringDates } from "@calcom/lib/parseDate";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getBooking, GetBookingType } from "@calcom/lib/server/queries/getBooking";
@@ -39,8 +40,6 @@ import {
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-
-import { parseRecurringDates } from "@lib/parseDate";
 
 import { TRPCError } from "@trpc/server";
 
