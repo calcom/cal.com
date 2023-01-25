@@ -345,6 +345,7 @@ enum EventTypeCustomInputType {
   BOOL     @map("bool")
   RADIO    @map("radio")
   PHONE    @map("phone")
+  HIDDEN   @map("hidden")
 }
 
 model EventTypeCustomInput {
