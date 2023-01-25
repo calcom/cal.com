@@ -12,6 +12,7 @@ import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { APP_NAME } from "@calcom/lib/constants";
 import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
+import { useRouter } from "next/router";
 
 export type HeadSeoProps = {
   title: string;
@@ -72,14 +73,16 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
-  const defaultUrl = getBrowserInfo()?.url;
+  // build the canonical url to ensure it's always cal.com (not app.cal.com)
+  const router = useRouter()
+  const defaultUrl = (`https://cal.com` + (router.asPath === "/" ? "": router.asPath)).split("?")[0];// cut off search params
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
-
   const pageTitle = title + " | " + APP_NAME;
+
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,
