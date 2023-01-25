@@ -7,6 +7,7 @@
   "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
   "calcom_explained": "{{appName}} provides scheduling infrastructure for absolutely everyone.",
+  "calcom_explained_new_user": "Finish setting up your {{appName}} account! You’re just a few steps away from solving all your scheduling problems.",
   "have_any_questions": "Have questions? We're here to help.",
   "reset_password_subject": "{{appName}}: Reset password instructions",
   "event_declined_subject": "Declined: {{title}} at {{date}}",
@@ -1533,5 +1534,11 @@
   "sso_connection_deleted_successfully": "{{connectionType}} configuration deleted successfully",
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
-  "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com."
+  "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
+  "email_no_user_invite_heading":"You're almost there!",
+  "email_no_user_step_one":"Create your account and pick a username",
+  "email_no_user_step_two":"Connect your calendar account",
+  "email_no_user_step_three":"Set your Availability",
+  "email_no_user_step_four":"Accept team invite and start scheduling together"
+
 }
