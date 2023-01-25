@@ -328,6 +328,7 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
+    bookingForm.clearErrors();
     const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
       label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
       value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
@@ -402,9 +403,17 @@ const BookingPage = ({
         bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
         alreadyInvited = true;
       }
-      if (booking.guests?.find((guestArray) => guestArray.email === guest.email)) {
-        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-        alreadyInvited = true;
+
+      if (booking.guests) {
+        let guestCount = 0;
+        for (const checkGuest of booking.guests) {
+          if (checkGuest.email === guest.email) guestCount++;
+          if (guestCount > 1) {
+            bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+            alreadyInvited = true;
+            break;
+          }
+        }
       }
     });
 
