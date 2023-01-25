@@ -45,7 +45,7 @@ const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const { duration, setQuery: setDuration } = useRouterQuery("duration");
+  const { duration = eventType.length.toString(), setQuery: setDuration } = useRouterQuery("duration");
 
   useEffect(() => {
     if (
