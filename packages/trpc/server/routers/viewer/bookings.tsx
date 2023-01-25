@@ -1097,7 +1097,7 @@ export const bookingsRouter = router({
           });
           eventTypeOwnerId = teamOwner?.userId;
         }
-        console.log({ eventTypeOwnerId });
+
         if (!eventTypeOwnerId) {
           throw new Error("Event Type owner not found for obtaining payment app credentials");
         }
