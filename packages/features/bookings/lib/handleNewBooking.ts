@@ -633,11 +633,17 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       req.statusCode = 201;
-      return { ...booking, message: "Payment required", paymentUid: payment.uid };
+      return {
+        booking,
+        email: reqBody.email,
+        name: reqBody.name,
+        message: "Payment required",
+        paymentUid: payment.uid,
+      };
     }
 
     req.statusCode = 201;
-    return booking;
+    return { booking, email: reqBody.email, name: reqBody.name };
   }
 
   if (reqBody.customInputs.length > 0) {
@@ -773,7 +779,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
       }
     }
-    const createBookingObj = {
+    const createBookingObj: Prisma.BookingCreateArgs = {
       include: {
         user: {
           select: { email: true, name: true, timeZone: true },
@@ -1020,7 +1026,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
     req.statusCode = 201;
-    return { ...booking, message: "Payment required", paymentUid: payment.uid };
+    return { booking, message: "Payment required", paymentUid: payment.uid };
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
@@ -1155,7 +1161,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   // booking successful
   req.statusCode = 201;
-  return booking;
+  return { booking, email: reqBody.email, name: reqBody.name };
 }
 
 export default handler;

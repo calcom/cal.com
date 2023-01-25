@@ -15,6 +15,7 @@ import { Maybe } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 import AppProviders, { AppProps } from "@lib/app-providers";
+import { timeZone } from "@lib/clock";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
@@ -31,6 +32,8 @@ function MyApp(props: AppProps) {
   }
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
+  timeZoneHeader = timeZone();
+  timeZoneOffsetHeader = new Date().getTimezoneOffset();
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
@@ -55,6 +58,9 @@ function MyApp(props: AppProps) {
     </AppProviders>
   );
 }
+
+export let timeZoneOffsetHeader: number;
+export let timeZoneHeader: string;
 
 export default withTRPC<AppRouter>({
   config() {
@@ -91,6 +97,12 @@ export default withTRPC<AppRouter>({
             url,
             /** @link https://github.com/trpc/trpc/issues/2008 */
             // maxBatchSize: 7
+            headers() {
+              return {
+                "X-TimeZone-Offset": timeZoneOffsetHeader.toString(),
+                "X-TimeZone": timeZoneHeader,
+              };
+            },
           }),
         }),
       ],

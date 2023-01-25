@@ -7,16 +7,16 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
 
-const processDate = (date: string | null | Dayjs, i18n: I18n) => {
+const processDate = (date: string | null | Dayjs, language: string) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
   const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
-  return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
+  return formattedTime + ", " + dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" });
 };
 
-export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
+export const parseDate = (date: string | null | Dayjs, language: string) => {
   if (!date) return ["No date"];
-  return processDate(date, i18n);
+  return processDate(date, language);
 };
 
 export const parseRecurringDates = (
@@ -31,7 +31,7 @@ export const parseRecurringDates = (
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
   },
-  i18n: I18n
+  language: string
 ): [string[], Date[]] => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { count, ...restRecurringEvent } = recurringEvent || {};
@@ -49,7 +49,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), i18n);
+    return processDate(t.tz(timeZone), language);
   });
 
   return [dateStrings, times.map((t) => t.toDate())];

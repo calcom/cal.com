@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -37,6 +37,7 @@ import useRouterQuery from "@lib/hooks/useRouterQuery";
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
+import { BookingFormLoader } from "@components/booking/BookingForm";
 import TimeOptions from "@components/booking/TimeOptions";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
@@ -250,6 +251,12 @@ const dateQuerySchema = z.object({
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
+function useSelectedTime() {
+  const { date } = useRouterQuery("date");
+  const [, selectedTime] = date?.split("T") || [];
+  return selectedTime;
+}
+
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -262,6 +269,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const selectedTime = useSelectedTime();
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
@@ -317,6 +325,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       ? ("rainbow" as Gate)
       : undefined,
   ];
+  const [bookingFormRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
@@ -351,9 +360,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
-                isBackgroundTransparent
-                  ? ""
-                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
+                !isBackgroundTransparent &&
+                  "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
                 "border-bookinglightest overflow-hidden md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
@@ -421,29 +429,41 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   )*/}
                   </div>
                 )}
-                <SlotPicker
-                  weekStart={
-                    typeof profile.weekStart === "string"
-                      ? ([
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                      : profile.weekStart /* Allows providing weekStart as number */
-                  }
-                  eventType={eventType}
-                  timeFormat={timeFormat}
-                  onTimeFormatChange={onTimeFormatChange}
-                  timeZone={timeZone}
-                  users={userList}
-                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                  recurringEventCount={recurringEventCount}
-                  ethSignature={gateState.rainbowToken}
-                />
+                <div ref={bookingFormRef} className="contents">
+                  {(() => {
+                    if (selectedTime)
+                      return (
+                        <div className="min-w-96 p-6">
+                          <BookingFormLoader />
+                        </div>
+                      );
+                    return (
+                      <SlotPicker
+                        weekStart={
+                          typeof profile.weekStart === "string"
+                            ? ([
+                                "Sunday",
+                                "Monday",
+                                "Tuesday",
+                                "Wednesday",
+                                "Thursday",
+                                "Friday",
+                                "Saturday",
+                              ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                            : profile.weekStart /* Allows providing weekStart as number */
+                        }
+                        eventType={eventType}
+                        timeFormat={timeFormat}
+                        onTimeFormatChange={onTimeFormatChange}
+                        timeZone={timeZone}
+                        users={userList}
+                        seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                        recurringEventCount={recurringEventCount}
+                        ethSignature={gateState.rainbowToken}
+                      />
+                    );
+                  })()}
+                </div>
               </div>
             </div>
             {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}

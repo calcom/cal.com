@@ -12,7 +12,7 @@ type ExtendedBookingCreateBody = BookingCreateBody & {
 };
 
 const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
-  const createdBookings: BookingResponse[] = [];
+  const createdBookings: BookingResponse["booking"][] = [];
   const allRecurringDates: string[] = data.map((booking) => booking.start);
   let appsStatus: AppsStatus[] | undefined = undefined;
   // Reversing to accumulate results for noEmail instances first, to then lastly, create the
@@ -21,7 +21,8 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
     const booking = data[key];
     if (key === 0) {
       const calcAppsStatus: { [key: string]: AppsStatus } = createdBookings
-        .flatMap((book) => (book.appsStatus !== undefined ? book.appsStatus : []))
+        // @ts-expect-error handleNewBooking only returns appStatus on a specific condition and is breaking inferred types
+        .flatMap((book) => (book?.appsStatus !== undefined ? book.appsStatus : []))
         .reduce((prev, curr) => {
           if (prev[curr.type]) {
             prev[curr.type].failures += curr.failures;
@@ -41,9 +42,9 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
       currentRecurringIndex: key,
       noEmail: key !== 0,
     });
-    createdBookings.push(response);
+    createdBookings.push(response.booking);
   }
-  return createdBookings;
+  return { bookings: createdBookings };
 };
 
 export default createRecurringBooking;

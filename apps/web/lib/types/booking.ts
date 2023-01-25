@@ -1,7 +1,3 @@
-import { Attendee, Booking } from "@prisma/client";
-
-import { AppsStatus } from "@calcom/types/Calendar";
-
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -32,8 +28,6 @@ export type BookingCreateBody = {
   ethSignature?: string;
 };
 
-export type BookingResponse = Booking & {
-  paymentUid?: string;
-  attendees: Attendee[];
-  appsStatus?: AppsStatus[];
-};
+export type BookingResponse = Awaited<
+  ReturnType<Awaited<typeof import("@calcom/features/bookings/lib/handleNewBooking")>["default"]>
+>;

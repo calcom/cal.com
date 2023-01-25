@@ -6,20 +6,13 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import {
-  EventLocationType,
-  getEventLocationType,
-  getEventLocationValue,
-  getHumanReadableLocationValue,
-  locationKeyToString,
-} from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
@@ -36,19 +29,13 @@ import { APP_NAME } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, PhoneInput, Tooltip, Group, RadioField } from "@calcom/ui";
-import {
-  FiAlertTriangle,
-  FiCalendar,
-  FiCreditCard,
-  FiInfo,
-  FiRefreshCw,
-  FiUser,
-  FiUserPlus,
-} from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc";
+import { AddressInput, PhoneInput, Tooltip } from "@calcom/ui";
+import { FiAlertTriangle, FiCalendar, FiCreditCard, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -61,6 +48,7 @@ import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
+import { BookingFormContainer } from "@components/booking/BookingForm";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -304,7 +292,7 @@ const BookingPage = ({
         recurringEvent: eventType.recurringEvent,
         recurringCount: parseInt(recurringEventCount.toString()),
       },
-      i18n
+      i18n.language
     );
   }
 
@@ -534,7 +522,7 @@ const BookingPage = ({
                   <div className="text-bookinghighlight flex items-start text-sm">
                     <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
+                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n.language)}`}
                       {!rescheduleUid &&
                         eventType.recurringEvent?.freq &&
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
@@ -595,391 +583,7 @@ const BookingPage = ({
               </div>
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
-              <Form form={bookingForm} handleSubmit={bookEvent}>
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("your_name")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...bookingForm.register("name", { required: true })}
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      className={inputClassName}
-                      placeholder={t("example_name")}
-                      disabled={disableInput}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("email_address")}
-                  </label>
-                  <div className="mt-1">
-                    <EmailInput
-                      {...bookingForm.register("email")}
-                      required
-                      className={classNames(
-                        inputClassName,
-                        bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
-                      )}
-                      placeholder="you@example.com"
-                      type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                      disabled={disableInput}
-                    />
-                    {bookingForm.formState.errors.email && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("email_validation_error")}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <>
-                  {rescheduleUid ? (
-                    <div className="mb-4">
-                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("location")}
-                      </span>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {getHumanReadableLocationValue(booking?.location, t)}
-                      </p>
-                    </div>
-                  ) : (
-                    locations.length > 1 && (
-                      <div className="mb-4">
-                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                          {t("location")}
-                        </span>
-                        {locations.map((location, i) => {
-                          const locationString = locationKeyToString(location);
-                          if (!selectedLocationType) {
-                            bookingForm.setValue("locationType", locations[0].type);
-                          }
-                          if (typeof locationString !== "string") {
-                            // It's possible that location app got uninstalled
-                            return null;
-                          }
-                          return (
-                            <label key={i} className="block">
-                              <input
-                                type="radio"
-                                disabled={!!disableLocations}
-                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                                {...bookingForm.register("locationType", { required: true })}
-                                value={location.type}
-                                defaultChecked={i === 0}
-                              />
-                              <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
-                                {t(locationKeyToString(location) ?? "")}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )
-                  )}
-                </>
-                {/* TODO: Change name and id ="phone" to something generic */}
-                {AttendeeInput && !disableInput && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor={
-                        selectedLocationType === LocationType.Phone
-                          ? "phone"
-                          : selectedLocationType === LocationType.AttendeeInPerson
-                          ? "attendeeAddress"
-                          : ""
-                      }
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {selectedLocationType === LocationType.Phone
-                        ? t("phone_number")
-                        : selectedLocationType === LocationType.AttendeeInPerson
-                        ? t("address")
-                        : ""}
-                    </label>
-                    <div className="mt-1">
-                      <AttendeeInput<BookingFormValues>
-                        control={bookingForm.control}
-                        bookingForm={bookingForm}
-                        name={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        required
-                      />
-                    </div>
-                    {bookingForm.formState.errors.phone && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {eventType.customInputs
-                  .sort((a, b) => a.id - b.id)
-                  .map((input) => (
-                    <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className={classNames(
-                            "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
-                            bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
-                          )}>
-                          {input.label} {input.required && <span className="text-red-700">*</span>}
-                        </label>
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXTLONG && (
-                        <textarea
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          rows={3}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXT && (
-                        <input
-                          type="text"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.NUMBER && (
-                        <input
-                          type="number"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder=""
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="my-6">
-                          <div className="flex">
-                            <input
-                              type="checkbox"
-                              {...bookingForm.register(`customInputs.${input.id}`, {
-                                required: input.required,
-                              })}
-                              required={input.required}
-                              id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                              placeholder=""
-                              disabled={disabledExceptForOwner}
-                            />
-                            <label
-                              htmlFor={"custom_" + input.id}
-                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
-                              {input.label}
-                            </label>
-                          </div>
-                        </div>
-                      )}
-                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
-                        <div className="flex">
-                          <Group
-                            name={`customInputs.${input.id}`}
-                            required={input.required}
-                            onValueChange={(e) => {
-                              bookingForm.setValue(`customInputs.${input.id}`, e);
-                            }}>
-                            <>
-                              {input.options.map((option, i) => (
-                                <RadioField
-                                  label={option.label}
-                                  key={`option.${input.id}.${i}.radio`}
-                                  value={option.label}
-                                  id={`option.${input.id}.${i}.radio`}
-                                />
-                              ))}
-                            </>
-                            {bookingForm.formState.errors.customInputs?.[input.id] && (
-                              <div className="mt-px flex items-center text-xs text-red-700 ">
-                                <p>{t("required")}</p>
-                              </div>
-                            )}
-                          </Group>
-                        </div>
-                      )}
-                      {input.type === EventTypeCustomInputType.PHONE && (
-                        <div>
-                          <PhoneInput<BookingFormValues>
-                            name={`customInputs.${input.id}`}
-                            control={bookingForm.control}
-                            placeholder={t("enter_phone_number")}
-                            id={`customInputs.${input.id}`}
-                            required={input.required}
-                          />
-                          {bookingForm.formState.errors?.customInputs?.[input.id] && (
-                            <div className="mt-2 flex items-center text-sm text-red-700 ">
-                              <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                              <p>{t("invalid_number")}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                {!eventType.disableGuests && guestToggle && (
-                  <div className="mb-4">
-                    <div>
-                      <label
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("guests")}
-                      </label>
-                      {!disableInput && (
-                        <Controller
-                          control={bookingForm.control}
-                          name="guests"
-                          render={({ field: { onChange, value } }) => (
-                            <ReactMultiEmail
-                              className="relative"
-                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                              emails={value}
-                              onChange={onChange}
-                              getLabel={(
-                                email: string,
-                                index: number,
-                                removeEmail: (index: number) => void
-                              ) => {
-                                return (
-                                  <div data-tag key={index} className="cursor-pointer">
-                                    {email}
-                                    {!disableInput && (
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                      )}
-                      {/* Custom code when guest emails should not be editable */}
-                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                        <div data-tag className="react-multi-email">
-                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                          {guestListEmails.map((email, index) => {
-                            return (
-                              <div key={index} className="cursor-pointer">
-                                <span data-tag>{email}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor="smsReminderNumber"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("number_sms_notifications")}
-                    </label>
-                    <div className="mt-1">
-                      <PhoneInput<BookingFormValues>
-                        control={bookingForm.control}
-                        name="smsReminderNumber"
-                        placeholder={t("enter_phone_number")}
-                        id="smsReminderNumber"
-                        required={isSmsReminderNumberRequired}
-                      />
-                    </div>
-                    {bookingForm.formState.errors.smsReminderNumber && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="mb-4">
-                  <label
-                    htmlFor="notes"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                    {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
-                  </label>
-                  {rescheduleUid ? (
-                    <textarea
-                      {...bookingForm.register("rescheduleReason")}
-                      id="rescheduleReason"
-                      name="rescheduleReason"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("reschedule_placeholder")}
-                    />
-                  ) : (
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      required={!!eventType.metadata?.additionalNotesRequired}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
-                  )}
-                </div>
-
-                <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestToggle && (
-                    <Button
-                      type="button"
-                      color="minimal"
-                      variant="icon"
-                      tooltip={t("additional_guests")}
-                      StartIcon={FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
-                    />
-                  )}
-                  <Button color="minimal" type="button" onClick={() => router.back()}>
-                    {t("cancel")}
-                  </Button>
-                  <Button
-                    type="submit"
-                    data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                    loading={mutation.isLoading || recurringMutation.isLoading}>
-                    {rescheduleUid ? t("reschedule") : t("confirm")}
-                  </Button>
-                </div>
-              </Form>
+              <BookingFormContainer />
               {(mutation.isError || recurringMutation.isError) && (
                 <ErrorMessage error={mutation.error || recurringMutation.error} />
               )}
@@ -1013,3 +617,132 @@ function ErrorMessage({ error }: { error: unknown }) {
     </div>
   );
 }
+
+const bookingPageQuerySchema = z.object({
+  bookingUid: z.string().optional(),
+  count: z.string().optional(),
+  embed: z.string().optional(),
+  rescheduleUid: z.string().optional(),
+  type: z.string(),
+  user: z.string(),
+});
+
+const BookingDescriptionContainer = ({
+  eventType,
+  booking,
+  profile,
+  isDynamicGroupBooking,
+  recurringEventCount,
+  ...restProps
+}: BookingPageProps) => {
+  const { t, i18n } = useLocale();
+  const router = useRouter();
+  const stripeAppData = getStripeAppData(eventType);
+  const rescheduleUid = router.query.rescheduleUid as string;
+  const date = asStringOrNull(router.query.date);
+  const { data: routerQuery } = useTypedQuery(bookingPageQuerySchema);
+  const { data, error, isLoading } = trpc.viewer.public.bookingPage.useQuery(routerQuery);
+
+  const [recurringStrings] = data?.parsedRecurringEvent;
+
+  // Calculate the booking date(s)
+  let recurringStrings: string[] = [];
+  if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
+    [recurringStrings] = parseRecurringDates(
+      {
+        startDate: date,
+        timeZone: timeZone(),
+        recurringEvent: eventType.recurringEvent,
+        recurringCount: parseInt(recurringEventCount.toString()),
+      },
+      i18n
+    );
+  }
+
+  return (
+    <BookingDescription isBookingPage profile={profile} eventType={eventType}>
+      {stripeAppData.price > 0 && (
+        <p className="text-bookinglight -ml-2 px-2 text-sm ">
+          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+          <IntlProvider locale="en">
+            <FormattedNumber
+              value={stripeAppData.price / 100.0}
+              style="currency"
+              currency={stripeAppData.currency.toUpperCase()}
+            />
+          </IntlProvider>
+        </p>
+      )}
+      {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
+        <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
+          <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+          <p className="-ml-2 inline-block items-center px-2">
+            {getEveryFreqFor({
+              t,
+              recurringEvent: eventType.recurringEvent,
+              recurringCount: recurringEventCount,
+            })}
+          </p>
+        </div>
+      )}
+      <div className="text-bookinghighlight flex items-start text-sm">
+        <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+        <div className="text-sm font-medium">
+          {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
+          {!rescheduleUid &&
+            eventType.recurringEvent?.freq &&
+            recurringStrings.slice(0, 5).map((timeFormatted, key) => {
+              return <p key={key}>{timeFormatted}</p>;
+            })}
+          {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
+            <div className="flex">
+              <Tooltip
+                content={recurringStrings.slice(5).map((timeFormatted, key) => (
+                  <p key={key}>{timeFormatted}</p>
+                ))}>
+                <p className="dark:text-darkgray-600 text-sm">
+                  + {t("plus_more", { count: recurringStrings.length - 5 })}
+                </p>
+              </Tooltip>
+            </div>
+          )}
+        </div>
+      </div>
+      {booking?.startTime && rescheduleUid && (
+        <div>
+          <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
+            {t("former_time")}
+          </p>
+          <p className="line-through ">
+            <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+            {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+          </p>
+        </div>
+      )}
+      {!!eventType.seatsPerTimeSlot && (
+        <div className="text-bookinghighlight flex items-start text-sm">
+          <FiUser
+            className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
+              booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                ? "text-rose-600"
+                : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                ? "text-yellow-500"
+                : "text-bookinghighlight"
+            }`}
+          />
+          <p
+            className={`${
+              booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                ? "text-rose-600"
+                : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                ? "text-yellow-500"
+                : "text-bookinghighlight"
+            } mb-2 font-medium`}>
+            {booking ? eventType.seatsPerTimeSlot - booking.attendees.length : eventType.seatsPerTimeSlot} /{" "}
+            {eventType.seatsPerTimeSlot} {t("seats_available")}
+          </p>
+        </div>
+      )}
+    </BookingDescription>
+  );
+};

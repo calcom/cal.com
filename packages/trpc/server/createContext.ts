@@ -108,11 +108,13 @@ async function getUserFromSession({
 export const createContext = async ({ req }: CreateContextOptions, sessionGetter = getSession) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await sessionGetter({ req });
-
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
   return {
+    timeZone: typeof req.headers["x-timezone"] === "string" ? req.headers["x-timezone"] : "Europe/London",
+    timeZoneOffset:
+      typeof req.headers["x-timezone-offset"] === "string" ? parseInt(req.headers["x-timezone-offset"]) : 0,
     i18n,
     prisma,
     session,

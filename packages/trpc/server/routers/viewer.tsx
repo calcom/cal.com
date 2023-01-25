@@ -11,7 +11,7 @@ import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/uti
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { DailyLocationType } from "@calcom/core/location";
+import { DailyLocationType, LocationObject, privacyFilteredLocations } from "@calcom/core/location";
 import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
@@ -19,20 +19,28 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import {
+  getDefaultEvent,
+  getDynamicEventName,
+  getGroupName,
+  getUsernameList,
+} from "@calcom/lib/defaultEvents";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getBooking, GetBookingType } from "@calcom/lib/server/queries/getBooking";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import prisma, { bookEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { customInputSchema, EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+
+import { parseRecurringDates } from "@lib/parseDate";
 
 import { TRPCError } from "@trpc/server";
 
@@ -48,6 +56,22 @@ import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
+
+const bookingPageQuerySchema = z.object({
+  duration: z
+    .string()
+    .transform((val) => +val)
+    .optional(),
+  bookingUid: z.string().optional(),
+  count: z.string().optional(),
+  embed: z.string().optional(),
+  rescheduleUid: z.string().optional(),
+  type: z.string(),
+  user: z.string(),
+  email: z.string().optional(),
+  name: z.string().optional(),
+  date: z.string().optional(),
+});
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = router({
@@ -141,6 +165,153 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  bookingPage: publicProcedure.input(bookingPageQuerySchema).query(async ({ ctx, input }) => {
+    const {
+      bookingUid,
+      count: recurringEventCountQuery,
+      embed,
+      rescheduleUid,
+      type,
+      user: usernames,
+    } = input;
+    const eventTypeSlug = type;
+    const usernameList = getUsernameList(usernames);
+    const users = await prisma.user.findMany({
+      where: {
+        username: {
+          in: usernameList,
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        bio: true,
+        avatar: true,
+        theme: true,
+        brandColor: true,
+        darkBrandColor: true,
+        allowDynamicBooking: true,
+        away: true,
+      },
+    });
+
+    if (!users.length) throw new TRPCError({ code: "NOT_FOUND", message: `Could not find users to book` });
+
+    const [user] = users;
+    const isDynamicGroupBooking = users.length > 1;
+
+    // Dynamic Group link doesn't need a type but it must have a slug
+    if ((!isDynamicGroupBooking && !type) || (isDynamicGroupBooking && !eventTypeSlug)) {
+      throw new TRPCError({ code: "NOT_FOUND", message: `Could not find event type nor dynamic booking` });
+    }
+
+    const eventTypeRaw =
+      usernameList.length > 1
+        ? getDefaultEvent(eventTypeSlug)
+        : await prisma.eventType.findFirst({
+            where: {
+              slug: type,
+              userId: user.id,
+            },
+            select: {
+              ...bookEventTypeSelect,
+            },
+          });
+
+    if (!eventTypeRaw) throw new TRPCError({ code: "NOT_FOUND", message: `Could not find event type` });
+
+    const eventType = {
+      ...eventTypeRaw,
+      metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
+      recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    };
+
+    const eventTypeObject = [eventType].map((e) => {
+      let locations = eventTypeRaw.locations || [];
+      locations = privacyFilteredLocations(locations as LocationObject[]);
+      return {
+        ...e,
+        locations: locations,
+        periodStartDate: e.periodStartDate?.toString() ?? null,
+        periodEndDate: e.periodEndDate?.toString() ?? null,
+        schedulingType: null,
+        customInputs: customInputSchema.array().parse(e.customInputs || []),
+        users: users.map((u) => ({
+          id: u.id,
+          name: u.name,
+          username: u.username,
+          avatar: u.avatar,
+          image: u.avatar,
+          slug: u.username,
+          theme: u.theme,
+        })),
+      };
+    })[0];
+
+    let booking: GetBookingType | null = null;
+    if (rescheduleUid || bookingUid) {
+      booking = await getBooking(rescheduleUid || bookingUid || "This should never happen");
+    }
+
+    const dynamicNames = isDynamicGroupBooking ? users.map((user) => user.name || "") : [];
+
+    const profile = isDynamicGroupBooking
+      ? {
+          name: getGroupName(dynamicNames),
+          image: null,
+          slug: eventTypeSlug,
+          theme: null,
+          brandColor: "",
+          darkBrandColor: "",
+          allowDynamicBooking: !users.some((user) => {
+            return !user.allowDynamicBooking;
+          }),
+          eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
+        }
+      : {
+          name: user.name || user.username,
+          image: user.avatar,
+          slug: user.username,
+          theme: user.theme,
+          brandColor: user.brandColor,
+          darkBrandColor: user.darkBrandColor,
+          eventName: null,
+        };
+
+    // Checking if number of recurring event ocurrances is valid against event type configuration
+    const recurringEventCount =
+      (eventType.recurringEvent?.count &&
+        recurringEventCountQuery &&
+        (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
+          ? parseInt(recurringEventCountQuery)
+          : eventType.recurringEvent.count)) ||
+      null;
+
+    return {
+      away: user.away,
+      profile,
+      eventType: eventTypeObject,
+      booking,
+      recurringEventCount,
+      parsedRecurringEvent: parseRecurringEvent(eventType.recurringEvent),
+      parsedRecurringDates: parseRecurringDates(
+        {
+          startDate: input.date || "",
+          timeZone: ctx.timeZone,
+          recurringEvent: eventType.recurringEvent,
+          recurringCount: recurringEventCount || 0,
+        },
+        ctx.locale ?? "en"
+      ),
+      isDynamicGroupBooking,
+      hasHashedBookingLink: false,
+      hashedLink: null,
+      isEmbed: typeof embed === "string",
+      duration: input.duration || eventType.length,
+    };
+  }),
 });
 
 // routes only available to authenticated users
@@ -446,6 +617,7 @@ const loggedInViewerRouter = router({
       const enabledApps = await getEnabledApps(credentials);
 
       let apps = enabledApps.map(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
@@ -1129,7 +1301,7 @@ const loggedInViewerRouter = router({
         roomName: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { roomName } = input;
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);

@@ -1,6 +1,8 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-async function getBooking(prisma: PrismaClient, uid: string) {
+import prisma from "@calcom/prisma";
+
+export async function getBooking(uid: string) {
   const booking = await prisma.booking.findFirst({
     where: {
       uid,
@@ -30,5 +32,3 @@ async function getBooking(prisma: PrismaClient, uid: string) {
 }
 
 export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
-
-export default getBooking;

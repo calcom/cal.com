@@ -25,6 +25,8 @@ type AvailableTimesProps = {
   ethSignature?: string;
 };
 
+const USE_NEW_AVAILABILTY_UX = true;
+
 const AvailableTimes: FC<AvailableTimesProps> = ({
   slots = [],
   isLoading,
@@ -83,13 +85,18 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               query: {
                 ...router.query,
                 date: dayjs.utc(slot.time).tz(timeZone()).format(),
-                type: eventTypeId,
+                // type: eventTypeId,
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
                 ...(ethSignature ? { ethSignature } : {}),
               },
             };
+
+            if (USE_NEW_AVAILABILTY_UX) {
+              delete bookingUrl.query.slug;
+              bookingUrl.pathname = router.pathname.endsWith("/embed") ? "../[type]" : "[type]";
+            }
 
             if (rescheduleUid) {
               bookingUrl.query.rescheduleUid = rescheduleUid as string;
@@ -116,6 +123,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 ) : (
                   <Link
                     href={bookingUrl}
+                    shallow={USE_NEW_AVAILABILTY_UX}
                     prefetch={false}
                     className={classNames(
                       "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
