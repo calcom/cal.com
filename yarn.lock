@@ -3036,6 +3036,18 @@
     fast-equals "^1.6.3"
     lodash "^4.17.15"
 
+"@daily-co/daily-js@^0.37.0":
+  version "0.37.0"
+  resolved "https://registry.yarnpkg.com/@daily-co/daily-js/-/daily-js-0.37.0.tgz#39efac8003b3676d3ff21535fcdb38265815126d"
+  integrity sha512-vT6Z5t8YVlVsMX2Y6lt9CY3tgDUCUoEfOTN8F6bFy3RDSTJnDHWCqCdGr4WDiGY6jzXuAdgZr8/mZGk6rWiuew==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+    bowser "^2.8.1"
+    dequal "^2.0.3"
+    events "^3.1.0"
+    fast-equals "^1.6.3"
+    lodash "^4.17.15"
+
 "@date-io/core@^1.3.13":
   version "1.3.13"
   resolved "https://registry.yarnpkg.com/@date-io/core/-/core-1.3.13.tgz#90c71da493f20204b7a972929cc5c482d078b3fa"
@@ -8563,6 +8575,11 @@
   resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.2.tgz#fc25ad9943bcac11cceb8168db4f275e0e72e756"
   integrity sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg==
 
+"@types/turndown@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@types/turndown/-/turndown-5.0.1.tgz#fcda7b02cda4c9d445be1440036df20f335b9387"
+  integrity sha512-N8Ad4e3oJxh9n9BiZx9cbe/0M3kqDpOTm2wzj13wdDUxDPjfjloWIJaquZzWE1cYTAHpjOH3rcTnXQdpEfS/SQ==
+
 "@types/uglify-js@*":
   version "3.16.0"
   resolved "https://registry.yarnpkg.com/@types/uglify-js/-/uglify-js-3.16.0.tgz#2cf74a0e6ebb6cd54c0d48e509d5bd91160a9602"
@@ -12705,7 +12722,7 @@ dequal@^2.0.0:
   resolved "https://registry.yarnpkg.com/dequal/-/dequal-2.0.2.tgz#85ca22025e3a87e65ef75a7a437b35284a7e319d"
   integrity sha512-q9K8BlJVxK7hQYqa6XISGmBZbtQQWVXSrRrWreHC94rMt1QL/Impruc+7p2CYSYuVIUr+YCt6hjrs1kkdJRTug==
 
-dequal@^2.0.2:
+dequal@^2.0.2, dequal@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/dequal/-/dequal-2.0.3.tgz#2644214f1997d39ed0ee0ece72335490a7ac67be"
   integrity sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==
@@ -12910,6 +12927,11 @@ domhandler@^4.0.0, domhandler@^4.2.0, domhandler@^4.3.1:
   integrity sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ==
   dependencies:
     domelementtype "^2.2.0"
+
+domino@^2.1.6:
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/domino/-/domino-2.1.6.tgz#fe4ace4310526e5e7b9d12c7de01b7f485a57ffe"
+  integrity sha512-3VdM/SXBZX2omc9JF9nOPCtDaYQ67BGp5CoLpIQlO2KCAPETs8TcDHacF26jXadGbvUteZzRTeos2fhID5+ucQ==
 
 dompurify@=2.3.3:
   version "2.3.3"
@@ -26107,6 +26129,13 @@ turbo@^1.4.3:
     turbo-windows-32 "1.4.3"
     turbo-windows-64 "1.4.3"
     turbo-windows-arm64 "1.4.3"
+
+turndown@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/turndown/-/turndown-7.1.1.tgz#96992f2d9b40a1a03d3ea61ad31b5a5c751ef77f"
+  integrity sha512-BEkXaWH7Wh7e9bd2QumhfAXk5g34+6QUmmWx+0q6ThaVOLuLUqsnkq35HQ5SBHSaxjSfSM7US5o4lhJNH7B9MA==
+  dependencies:
+    domino "^2.1.6"
 
 tween-functions@^1.2.0:
   version "1.2.0"
