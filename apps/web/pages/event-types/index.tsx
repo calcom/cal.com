@@ -100,14 +100,14 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      {events.length ? (
+      {events.length && (
         <EventTypeList
           types={events[0].eventTypes}
           group={events[0]}
           groupIndex={0}
           readOnly={events[0].metadata.readOnly}
         />
-      ) : null}
+      )}
     </div>
   );
 };
