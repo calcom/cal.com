@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -366,7 +366,7 @@ const loggedInViewerRouter = router({
       }
     }
 
-    let destinationCalendarName;
+    let destinationCalendarName = undefined;
 
     for (const integration of connectedCalendars) {
       if (integration?.calendars) {
@@ -379,7 +379,11 @@ const loggedInViewerRouter = router({
 
     return {
       connectedCalendars,
-      destinationCalendar: { ...user.destinationCalendar, name: destinationCalendarName },
+      // destinationCalendar: user.destinationCalendar,
+      destinationCalendar: {
+        ...user.destinationCalendar,
+        ...(destinationCalendarName && { name: destinationCalendarName }),
+      } as DestinationCalendar & { name?: string | undefined },
     };
   }),
   setDestinationCalendar: authedProcedure
