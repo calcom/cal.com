@@ -1141,7 +1141,6 @@ export const bookingsRouter = router({
           throw new Error("Payment could not be refunded");
         }
 
-        // await refund(booking, evt);
         await prisma.booking.update({
           where: {
             id: bookingId,
