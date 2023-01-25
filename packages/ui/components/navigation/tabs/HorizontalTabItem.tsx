@@ -29,7 +29,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
       {...linkProps}
       className={classNames(
         isCurrent ? "bg-gray-200 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[4px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
@@ -39,7 +39,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
         //@ts-ignore
         <props.icon
           className={classNames(
-            isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
+            isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
             "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
           )}
           aria-hidden="true"

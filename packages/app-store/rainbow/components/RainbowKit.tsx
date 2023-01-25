@@ -14,7 +14,8 @@ import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig 
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast, SkeletonText } from "@calcom/ui";
+import { showToast, SkeletonText } from "@calcom/ui";
+import { FiAlertTriangle, FiLoader } from "@calcom/ui/components/icon";
 
 import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
@@ -112,7 +113,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
       <div className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600">
         <div className="hover:border-brand dark:bg-darkgray-100 flex min-h-[120px] grow flex-col border-b border-neutral-200 bg-white p-6 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left">
           <span className="mb-4 grow md:mb-0">
-            <h2 className="mb-2 grow font-semibold text-neutral-900 dark:text-white">Token Gate</h2>
+            <h2 className="mb-2 grow font-semibold text-gray-900 dark:text-white">Token Gate</h2>
             {isLoading && (
               <>
                 <SkeletonText className="mb-3 h-1 w-full" />
@@ -121,7 +122,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
             )}
             {!isLoading && contractData && contractData.data && (
               <>
-                <p className="text-neutral-300 dark:text-white">
+                <p className="text-gray-300 dark:text-white">
                   <Trans i18nKey="rainbow_connect_wallet_gate" t={t}>
                     Connect your wallet if you own {contractData.data.name} ({contractData.data.symbol}) .
                   </Trans>
@@ -131,7 +132,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
                   <>
                     {!balanceData.data.hasBalance && (
                       <div className="mt-2 flex flex-row items-center">
-                        <Icon.FiAlertTriangle className="h-5 w-5 text-red-600" />
+                        <FiAlertTriangle className="h-5 w-5 text-red-600" />
                         <p className="ml-2 text-red-600">
                           <Trans i18nKey="rainbow_insufficient_balance" t={t}>
                             Your connected wallet doesn&apos;t contain enough {contractData.data.symbol}.
@@ -142,7 +143,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
 
                     {balanceData.data.hasBalance && isSignatureLoading && (
                       <div className="mt-2 flex flex-row items-center">
-                        <Icon.FiLoader className="h-5 w-5 text-green-600" />
+                        <FiLoader className="h-5 w-5 text-green-600" />
                         <p className="ml-2 text-green-600">{t("rainbow_sign_message_request")}</p>
                       </div>
                     )}
@@ -151,7 +152,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
 
                 {isSignatureError && (
                   <div className="mt-2 flex flex-row items-center">
-                    <Icon.FiAlertTriangle className="h-5 w-5 text-red-600" />
+                    <FiAlertTriangle className="h-5 w-5 text-red-600" />
                     <p className="ml-2 text-red-600">
                       <Trans i18nKey="rainbow_signature_error" t={t}>
                         {t("rainbow_signature_error")}

@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         location: true,
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             username: true,
@@ -100,6 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         organizer: {
+          id: user.id,
           email: user.email,
           name,
           timeZone: user.timeZone,

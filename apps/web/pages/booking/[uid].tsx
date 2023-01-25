@@ -32,10 +32,11 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma, { baseUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -142,7 +143,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.FiX className="h-6 w-6 text-white" />
+                  <FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -322,7 +323,7 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
@@ -365,7 +366,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
-            <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -388,7 +389,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -410,14 +411,14 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Icon.FiCheck className="h-5 w-5 text-green-600" />
+                    <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <Icon.FiCalendar className="h-5 w-5 text-gray-900" />}
-                  {isCancelled && <Icon.FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -431,9 +432,10 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
-                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
+
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
@@ -508,7 +510,7 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.description}</p>
+                          <p className="break-words">{bookingInfo.description}</p>
                         </div>
                       </>
                     )}
@@ -603,7 +605,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300" />
+                      <hr className="border-bookinglightest dark:border-darkgray-200" />
                       <CancelBooking
                         booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
@@ -645,7 +647,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-neutral-700 dark:text-white">
+                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -668,7 +670,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -692,7 +694,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -705,7 +707,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -854,6 +856,17 @@ export function RecurringBookings({
 }
 
 const getEventTypesFromDB = async (id: number) => {
+  const userSelect = {
+    id: true,
+    name: true,
+    username: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    email: true,
+    timeZone: true,
+  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
@@ -872,17 +885,17 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      owner: {
+        select: userSelect,
+      },
       users: {
+        select: userSelect,
+      },
+      hosts: {
         select: {
-          id: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          email: true,
-          timeZone: true,
+          user: {
+            select: userSelect,
+          },
         },
       },
       team: {
@@ -926,6 +939,7 @@ const schema = z.object({
   uid: z.string(),
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
+  cancel: stringToBoolean,
 });
 
 const handleSeatsEventTypeOnBooking = (
@@ -959,7 +973,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -1022,27 +1036,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
-    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
-    const user = await prisma.user.findUnique({
-      where: {
-        id: eventTypeRaw.userId,
-      },
-      select: baseUserSelect,
-    });
-    if (user) {
-      eventTypeRaw.users.push({
-        ...user,
-        avatar: "",
-        allowDynamicBooking: true,
-      });
-    }
-  }
+  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+    ? eventTypeRaw.hosts.map((host) => host.user)
+    : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    return {
-      notFound: true,
-    };
+    if (!eventTypeRaw.owner)
+      return {
+        notFound: true,
+      };
+    eventTypeRaw.users.push({
+      ...eventTypeRaw.owner,
+    });
   }
 
   const eventType = {
@@ -1054,7 +1059,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl) {
+  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,

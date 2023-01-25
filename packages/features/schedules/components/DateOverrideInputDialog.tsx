@@ -5,6 +5,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { WorkingHours } from "@calcom/types/schedule";
 import {
   Dialog,
@@ -136,9 +137,7 @@ const DateOverrideForm = ({
             <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
               {datesUnavailable ? (
-                <p className="rounded border p-2 text-sm text-neutral-500">
-                  {t("date_overrides_unavailable")}
-                </p>
+                <p className="rounded border p-2 text-sm text-gray-500">{t("date_overrides_unavailable")}</p>
               ) : (
                 <DayRanges name="range" />
               )}
@@ -178,11 +177,19 @@ const DateOverrideInputDialog = ({
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
 }) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [open, setOpen] = useState(false);
+  {
+    /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
+       ref:- https://github.com/calcom/cal.com/pull/6215
+      */
+  }
+  const enableOverflow = isMobile;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent allowScroll={true} size="md">
+
+      <DialogContent enableOverflow={enableOverflow} size="md">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

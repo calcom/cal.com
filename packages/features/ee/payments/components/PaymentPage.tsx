@@ -14,7 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Icon } from "@calcom/ui";
+import { FiCreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
@@ -79,17 +79,17 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <Icon.FiCreditCard className="h-8 w-8 text-green-600" />
+                    <FiCreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
-                      className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                      className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                       id="modal-headline">
                       {t("payment")}
                     </h3>
                     <div className="mt-3">
-                      <p className="text-sm text-neutral-600 dark:text-gray-300">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {t("pay_later_instructions")}
                       </p>
                     </div>

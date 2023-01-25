@@ -17,7 +17,7 @@ export function List(props: ListProps) {
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
         // Add rounded top and bottome if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
-        !props.noBorderTreatment && "divide-y divide-neutral-200 rounded-md border border-l border-r ",
+        !props.noBorderTreatment && "divide-y divide-gray-200 rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -107,7 +107,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-neutral-900 truncate", props.className),
+      className: classNames("text-sm font-medium text-gray-900 truncate", props.className),
     },
     props.children
   );

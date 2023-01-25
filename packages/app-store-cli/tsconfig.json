@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "strict": true,
     "module": "commonjs",
     "jsx": "react",
     "esModuleInterop": true,
     "outDir": "dist",
     "noEmitOnError": false,
     "target": "ES2020",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "resolveJsonModule": true
   },
   "include": [
     "next-env.d.ts",

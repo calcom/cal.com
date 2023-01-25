@@ -1,4 +1,4 @@
-import { MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 // REVIEW: From lint error
 import _ from "lodash";
@@ -84,6 +84,14 @@ const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    hosts: z
+      .array(
+        z.object({
+          userId: z.number(),
+          isFixed: z.boolean().optional(),
+        })
+      )
+      .optional(),
     schedule: z.number().optional(),
     hashedLink: z.string(),
   })
@@ -187,6 +195,13 @@ export const eventTypesRouter = router({
       users: {
         select: baseUserSelect,
       },
+      hosts: {
+        select: {
+          user: {
+            select: baseUserSelect,
+          },
+        },
+      },
       ...baseEventTypeSelect,
     });
 
@@ -255,6 +270,7 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
       ...eventType,
+      users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     });
@@ -388,7 +404,7 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
-
+    const appKeys = await getAppKeysFromSlug("daily-video");
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
@@ -397,13 +413,9 @@ export const eventTypesRouter = router({
           id: userId,
         },
       },
+      ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
+        typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
     };
-
-    const appKeys = await getAppKeysFromSlug("daily-video");
-    // Shouldn't override input locations
-    if (rest.locations?.length === 0 && typeof appKeys.api_key === "string") {
-      data.locations = [{ type: DailyLocationType }];
-    }
 
     if (teamId && schedulingType) {
       const hasMembership = await ctx.prisma.membership.findFirst({
@@ -483,6 +495,7 @@ export const eventTypesRouter = router({
       customInputs,
       recurringEvent,
       users,
+      hosts,
       id,
       hashedLink,
       // Extract this from the input so it doesn't get saved in the db
@@ -555,6 +568,17 @@ export const eventTypesRouter = router({
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
+      };
+    }
+    if (hosts) {
+      data.hosts = {
+        deleteMany: {
+          eventTypeId: id,
+        },
+        createMany: {
+          // when schedulingType is COLLECTIVE, remove unFixed hosts.
+          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
+        },
       };
     }
 

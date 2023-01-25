@@ -43,8 +43,8 @@ import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
-import { samlRouter } from "./viewer/saml";
 import { slotsRouter } from "./viewer/slots";
+import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
@@ -474,7 +474,6 @@ const loggedInViewerRouter = router({
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
-
       return {
         items: apps,
       };
@@ -1150,39 +1149,8 @@ const loggedInViewerRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { roomName } = input;
-      let shouldHideRecordingsData = false;
-      // If self-hosted, he should be able to get recordings
-      if (IS_TEAM_BILLING_ENABLED) {
-        // If user is not a team member, throw error
-        const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
-        if (!hasTeamPlan) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "You are not a team plan.",
-          });
-        } else {
-          shouldHideRecordingsData = true;
-        }
-      }
-
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
-
-        if (shouldHideRecordingsData) {
-          if (res && "data" in res && res.data.length > 0) {
-            res.data = res.data.map((recording) => {
-              return {
-                id: "",
-                room_name: "",
-                start_ts: recording.start_ts,
-                status: recording.status,
-                max_participants: recording.max_participants,
-                duration: recording.duration,
-                share_token: recording.share_token,
-              };
-            });
-          }
-        }
         return res;
       } catch (err) {
         throw new TRPCError({
@@ -1206,7 +1174,7 @@ export const viewerRouter = mergeRouters(
     apiKeys: apiKeysRouter,
     slots: slotsRouter,
     workflows: workflowsRouter,
-    saml: samlRouter,
+    saml: ssoRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,

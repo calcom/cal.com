@@ -1,4 +1,5 @@
-import { Icon, SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { FiClock, FiUser } from "@calcom/ui/components/icon";
 
 function SkeletonLoader() {
   return (
@@ -10,7 +11,7 @@ function SkeletonLoader() {
           <SkeletonText className="h-4 w-24" />
         </div>
       </div>
-      <ul className="divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+      <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />
@@ -31,11 +32,11 @@ function SkeletonItem() {
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
-              <Icon.FiClock className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <FiClock className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
               <SkeletonText className="h-4 w-12" />
             </li>
             <li className="flex items-center whitespace-nowrap">
-              <Icon.FiUser className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
+              <FiUser className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
               <SkeletonText className="h-4 w-12" />
             </li>
           </ul>
