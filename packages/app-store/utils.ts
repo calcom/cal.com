@@ -148,7 +148,7 @@ function getApps(userCredentials: CredentialData[]) {
       };
     }
 
-    const credential: (typeof credentials)[number] | null = credentials[0] || null;
+    const credential: typeof credentials[number] | null = credentials[0] || null;
     return {
       ...appMeta,
       /**
