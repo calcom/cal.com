@@ -49,16 +49,7 @@ import {
   RadioField,
   Tooltip,
 } from "@calcom/ui";
-import { AddressInput, Button, EmailInput, Form, PhoneInput, Tooltip, Group, RadioField } from "@calcom/ui";
-import {
-  FiAlertTriangle,
-  FiCalendar,
-  FiCreditCard,
-  FiInfo,
-  FiRefreshCw,
-  FiUser,
-  FiUserPlus,
-} from "@calcom/ui/components/icon";
+import { FiUserPlus } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -1005,17 +996,15 @@ const BookingPage = ({
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                   {!eventType.disableGuests && !guestsField.fields.length && (
                     <Button
-                      type="button"
                       color="minimal"
-                      variant="icon"
-                      tooltip={t("additional_guests")}
+                      variant="button"
+                      StartIcon={FiUserPlus}
                       onClick={() => {
                         guestsField.append({ email: "" });
                       }}
-                      StartIcon={FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
-                    />
+                      className="mr-auto">
+                      {t("additional_guests")}
+                    </Button>
                   )}
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
