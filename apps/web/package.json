@@ -83,7 +83,7 @@
     "micro": "^9.4.1",
     "mime-types": "^2.1.35",
     "next": "^13.1.5",
-    "next-auth": "~4.10.3",
+    "next-auth": "~4.17.0",
     "next-axiom": "^0.16.0",
     "next-collect": "^0.2.1",
     "next-i18next": "^11.3.0",
