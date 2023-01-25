@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole, Prisma } from "@prisma/client";
+import MarkdownIt from "markdown-it";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,6 +12,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
+import turndownService from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -24,12 +26,14 @@ import {
   LinkIconButton,
   Meta,
   showToast,
-  TextArea,
   TextField,
+  Editor,
 } from "@calcom/ui";
 import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -89,6 +93,8 @@ const ProfileView = () => {
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
+
+  const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
@@ -213,23 +219,14 @@ const ProfileView = () => {
                   </div>
                 )}
               />
-              <Controller
-                control={form.control}
-                name="bio"
-                render={({ field: { value } }) => (
-                  <div className="mt-8">
-                    <Label>{t("about")}</Label>
-                    <TextArea
-                      name="bio"
-                      value={value}
-                      className="h-14"
-                      onChange={(e) => {
-                        form.setValue("bio", e?.target.value);
-                      }}
-                    />
-                  </div>
-                )}
-              />
+              <div className="mt-8">
+                <Label>{t("about")}</Label>
+                <Editor
+                  getText={() => md.render(form.getValues("bio") || "")}
+                  setText={(value: string) => form.setValue("bio", turndownService.turndown(value))}
+                  excludedToolbarItems={["blockType"]}
+                />
+              </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
@@ -239,7 +236,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="ml-2 mt-8"
+                    className="mt-8 ml-2"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
@@ -255,10 +252,13 @@ const ProfileView = () => {
                   <Label className="text-black">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
-                {team?.bio && (
+                {team && !isBioEmpty && (
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
-                    <p className="text-sm text-gray-800">{team.bio}</p>
+                    <div
+                      className="dark:text-darkgray-600 text-s text-gray-500"
+                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                    />
                   </>
                 )}
               </div>

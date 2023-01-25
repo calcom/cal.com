@@ -713,14 +713,14 @@ export const workflowsRouter = router({
         });
         addedSteps.forEach(async (step) => {
           if (step) {
-            const newStep = step;
+            const { senderName, ...newStep } = step;
             newStep.sender = getSender({
               action: newStep.action,
               sender: newStep.sender || null,
-              senderName: newStep.senderName,
+              senderName: senderName,
             });
             const createdStep = await ctx.prisma.workflowStep.create({
-              data: { ...step, numberVerificationPending: false },
+              data: { ...newStep, numberVerificationPending: false },
             });
             if (
               (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
