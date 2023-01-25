@@ -100,8 +100,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: (typeof InstalledAppVariants)[number];
-  exclude?: (typeof InstalledAppVariants)[number][];
+  variant?: typeof InstalledAppVariants[number];
+  exclude?: typeof InstalledAppVariants[number][];
 }
 
 interface IntegrationsListProps {

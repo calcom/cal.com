@@ -44,7 +44,7 @@ export default function InstalledAppsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const variant: (typeof InstalledAppVariants)[number] = "payment";
+  const variant: typeof InstalledAppVariants[number] = "payment";
 
   const query = trpc.viewer.integrations.useQuery({
     variant,
