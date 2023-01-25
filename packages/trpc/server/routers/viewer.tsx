@@ -366,9 +366,20 @@ const loggedInViewerRouter = router({
       }
     }
 
+    let destinationCalendarName;
+
+    for (const integration of connectedCalendars) {
+      if (integration?.calendars) {
+        for (const calendar of integration?.calendars) {
+          if (calendar.externalId === user.destinationCalendar?.externalId)
+            destinationCalendarName = calendar.name;
+        }
+      }
+    }
+
     return {
       connectedCalendars,
-      destinationCalendar: user.destinationCalendar,
+      destinationCalendar: { ...user.destinationCalendar, name: destinationCalendarName },
     };
   }),
   setDestinationCalendar: authedProcedure

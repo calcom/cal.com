@@ -131,7 +131,7 @@ const DestinationCalendarSelector = ({
           ) : (
             <span>
               {t("default_calendar_selected")}{" "}
-              {primaryCalendar?.primary?.externalId && `(${primaryCalendar?.primary?.externalId})`}
+              {`(${query.data.destinationCalendar.name || primaryCalendar?.primary?.externalId})`}
             </span>
           )
         }
