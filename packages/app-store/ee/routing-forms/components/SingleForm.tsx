@@ -308,9 +308,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {form.routers.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
-                        Routers
-                      </div>
+                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">Routers</div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
                         Modifications in fields and routes of following forms will be reflected in this form.
                       </p>
@@ -330,7 +328,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {connectedForms?.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">
                         Connected Forms
                       </div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
@@ -379,7 +377,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         </FormActionsProvider>
       </Form>
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent>
+        <DialogContent enableOverflow>
           <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
           <div>
             <form
