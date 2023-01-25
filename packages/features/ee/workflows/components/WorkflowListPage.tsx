@@ -28,7 +28,7 @@ const CreateEmptyWorkflowView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const createMutation = trpc.viewer.workflows.createV2.useMutation({
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },

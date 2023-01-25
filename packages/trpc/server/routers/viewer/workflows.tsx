@@ -85,12 +85,13 @@ export const workflowsRouter = router({
     .query(async ({ ctx, input }) => {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
-          userId: ctx.user.id,
           id: input.id,
         },
         select: {
           id: true,
           name: true,
+          userId: true,
+          teamId: true,
           time: true,
           timeUnit: true,
           activeOn: {
@@ -106,45 +107,76 @@ export const workflowsRouter = router({
           },
         },
       });
-      if (!workflow) {
+
+      let user;
+      if (workflow && !workflow.userId) {
+        user = await ctx.prisma.user.findFirst({
+          where: {
+            id: ctx.user.id,
+          },
+          include: {
+            teams: {
+              where: {
+                userId: ctx.user.id,
+              },
+              include: {
+                team: {
+                  include: {
+                    workflows: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      if (
+        !workflow ||
+        (workflow.userId != ctx.user.id &&
+          !user?.teams.find((membership) =>
+            membership.team.workflows.find((userWorkflow) => userWorkflow.id === input.id)
+          ))
+      ) {
+        // todo make code more readable
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });
       }
+
       return workflow;
     }),
   create: authedProcedure
     .input(
       z.object({
-        name: z.string(),
-        trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-        action: z.enum(WORKFLOW_ACTIONS),
-        timeUnit: z.enum(TIME_UNIT).optional(),
-        time: z.number().optional(),
-        sendTo: z.string().optional(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { name, trigger, action, timeUnit, time, sendTo } = input;
-      const userId = ctx.user.id;
+      const { teamId } = input;
+
+      const userId = !teamId ? ctx.user.id : undefined;
 
       try {
         const workflow = await ctx.prisma.workflow.create({
           data: {
-            name,
-            trigger,
+            name: "",
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: TimeUnit.HOUR,
             userId,
-            timeUnit: time ? timeUnit : undefined,
-            time,
+            teamId,
           },
         });
 
         await ctx.prisma.workflowStep.create({
           data: {
             stepNumber: 1,
-            action,
+            action: WorkflowActions.EMAIL_HOST,
+            template: WorkflowTemplates.REMINDER,
             workflowId: workflow.id,
-            sendTo,
+            sender: SENDER_NAME,
+            numberVerificationPending: false,
           },
         });
         return { workflow };
@@ -152,35 +184,6 @@ export const workflowsRouter = router({
         throw e;
       }
     }),
-  createV2: authedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.user.id;
-
-    try {
-      const workflow = await ctx.prisma.workflow.create({
-        data: {
-          name: "",
-          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-          time: 24,
-          timeUnit: TimeUnit.HOUR,
-          userId,
-        },
-      });
-
-      await ctx.prisma.workflowStep.create({
-        data: {
-          stepNumber: 1,
-          action: WorkflowActions.EMAIL_HOST,
-          template: WorkflowTemplates.REMINDER,
-          workflowId: workflow.id,
-          sender: SENDER_NAME,
-          numberVerificationPending: false,
-        },
-      });
-      return { workflow };
-    } catch (e) {
-      throw e;
-    }
-  }),
   delete: authedProcedure
     .input(
       z.object({
@@ -904,72 +907,72 @@ export const workflowsRouter = router({
     }
 
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
-      const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
-      if (!hasTeamPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
-      }
-    }
+const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+if (!hasTeamPlan) {
+throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+}
+}
 
-    const booking = await ctx.prisma.booking.findFirst({
-      orderBy: {
-        createdAt: "desc",
-      },
-      where: {
-        userId: ctx.user.id,
-      },
-      include: {
-        attendees: true,
-        user: true,
-      },
-    });
+const booking = await ctx.prisma.booking.findFirst({
+orderBy: {
+createdAt: "desc",
+},
+where: {
+userId: ctx.user.id,
+},
+include: {
+attendees: true,
+user: true,
+},
+});
 
-    let evt: BookingInfo;
-    if (booking) {
-      evt = {
-        uid: booking?.uid,
-        attendees:
-          booking?.attendees.map((attendee) => {
-            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-          }) || [],
-        organizer: {
-          language: {
-            locale: booking?.user?.locale || "",
-          },
-          name: booking?.user?.name || "",
-          email: booking?.user?.email || "",
-          timeZone: booking?.user?.timeZone || "",
-        },
-        startTime: booking?.startTime.toISOString() || "",
-        endTime: booking?.endTime.toISOString() || "",
-        title: booking?.title || "",
-        location: booking?.location || null,
-        additionalNotes: booking?.description || null,
-        customInputs: booking?.customInputs,
-      };
-    } else {
-      //if no booking exists create an example booking
-      evt = {
-        attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-        organizer: {
-          language: {
-            locale: ctx.user.locale,
-          },
-          name: ctx.user.name || "",
-          email: ctx.user.email,
-          timeZone: ctx.user.timeZone,
-        },
-        startTime: dayjs().add(10, "hour").toISOString(),
-        endTime: dayjs().add(11, "hour").toISOString(),
-        title: "Example Booking",
-        location: "Office",
-        additionalNotes: "These are additional notes",
-      };
-    }
+let evt: BookingInfo;
+if (booking) {
+evt = {
+uid: booking?.uid,
+attendees:
+  booking?.attendees.map((attendee) => {
+    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+  }) || [],
+organizer: {
+  language: {
+    locale: booking?.user?.locale || "",
+  },
+  name: booking?.user?.name || "",
+  email: booking?.user?.email || "",
+  timeZone: booking?.user?.timeZone || "",
+},
+startTime: booking?.startTime.toISOString() || "",
+endTime: booking?.endTime.toISOString() || "",
+title: booking?.title || "",
+location: booking?.location || null,
+additionalNotes: booking?.description || null,
+customInputs: booking?.customInputs,
+};
+} else {
+//if no booking exists create an example booking
+evt = {
+attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+organizer: {
+  language: {
+    locale: ctx.user.locale,
+  },
+  name: ctx.user.name || "",
+  email: ctx.user.email,
+  timeZone: ctx.user.timeZone,
+},
+startTime: dayjs().add(10, "hour").toISOString(),
+endTime: dayjs().add(11, "hour").toISOString(),
+title: "Example Booking",
+location: "Office",
+additionalNotes: "These are additional notes",
+};
+}
 
-    if (
-      action === WorkflowActions.EMAIL_ATTENDEE ||
-      action === WorkflowActions.EMAIL_HOST /*||
-      action === WorkflowActions.EMAIL_ADDRESS*/
+if (
+action === WorkflowActions.EMAIL_ATTENDEE ||
+action === WorkflowActions.EMAIL_HOST /*||
+action === WorkflowActions.EMAIL_ADDRESS*/
   /*) {
       scheduleEmailReminder(
         evt,

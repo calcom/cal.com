@@ -20,7 +20,7 @@ function WorkflowsPage() {
 
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
 
-  const createMutation = trpc.viewer.workflows.createV2.useMutation({
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },
@@ -58,7 +58,7 @@ function WorkflowsPage() {
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             canAdd={true}
             options={query.data.profiles}
-            createDialog={CreateWorkflowDialog}
+            createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
           />
         ) : (
           <></>

@@ -30,8 +30,9 @@ interface CreateBtnProps {
   // EventTypeParent can be a profile (as first option) or a team for the rest.
   options: Parent[];
 
-  createDialog: () => JSX.Element;
+  createDialog?: () => JSX.Element;
   dublicateDialog?: () => JSX.Element;
+  createFunction?: (teamId?: number) => void;
   subtitle?: string;
 }
 
@@ -39,7 +40,7 @@ export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const CreateDialog = props.createDialog();
+  const CreateDialog = props.createDialog ? props.createDialog() : null;
   const DublicateDialog = props.dublicateDialog ? props.dublicateDialog() : null;
 
   const hasTeams = !!props.options.find((option) => option.teamId);
@@ -100,7 +101,15 @@ export function CreateButton(props: CreateBtnProps) {
                       {...props}
                     />
                   )}
-                  onClick={() => openModal(option)}>
+                  onClick={() =>
+                    !!CreateDialog
+                      ? openModal(option)
+                      : props.createFunction
+                      ? props.createFunction(option.teamId || undefined)
+                      : null
+                  }>
+                  {" "}
+                  {/*improve this code */}
                   <span>{option.name ? option.name : option.slug}</span>
                 </DropdownItem>
               </DropdownMenuItem>
