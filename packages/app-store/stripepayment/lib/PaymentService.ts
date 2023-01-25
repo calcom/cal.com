@@ -3,11 +3,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
+import { sendAwaitingPaymentEmail } from "@calcom/emails";
 import { AbstractPaymentService } from "@calcom/lib/PaymentService";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
+import { createPaymentLink } from "./client";
 import { StripePaymentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
@@ -143,6 +145,29 @@ export class PaymentService extends AbstractPaymentService {
       const err = getErrorFromUnknown(e);
       throw err;
     }
+  }
+
+  async afterPayment(
+    event: CalendarEvent,
+    booking: {
+      user: { email: string | null; name: string | null; timeZone: string } | null;
+      id: number;
+      startTime: { toISOString: () => string };
+      uid: string;
+    },
+    paymentData: Payment
+  ): Promise<void> {
+    await sendAwaitingPaymentEmail({
+      ...event,
+      paymentInfo: {
+        link: createPaymentLink({
+          paymentUid: paymentData.uid,
+          name: booking.user?.name,
+          email: booking.user?.email,
+          date: booking.startTime.toISOString(),
+        }),
+      },
+    });
   }
 
   getPaymentPaidStatus(): Promise<string> {

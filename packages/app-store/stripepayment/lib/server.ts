@@ -1,26 +1,13 @@
-import { AppCategories, Prisma } from "@prisma/client";
 import Stripe from "stripe";
-import { EventTypeAppsList } from "utils";
 import { z } from "zod";
 
-import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
-import { EventTypeModel } from "@calcom/prisma/zod";
+import { sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import appStore from "../../index";
-import { createPaymentLink } from "./client";
 
 export type StripePaymentData = Stripe.Response<Stripe.PaymentIntent> & {
   stripe_publishable_key: string;
   stripeAccount: string;
 };
-
-// // @TODO move to MP lib server or types file
-// export type MPPaymentData = {
-//   init_point: string;
-// };
 
 export const stripeOAuthTokenSchema = z.object({
   access_token: z.string().optional(),
@@ -43,59 +30,6 @@ const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
 const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });
-
-export async function handlePayment(
-  evt: CalendarEvent,
-  selectedEventType: Pick<z.infer<typeof EventTypeModel>, "metadata">,
-  paymentAppCredentials: {
-    key: Prisma.JsonValue;
-    appId: EventTypeAppsList;
-    app: {
-      dirName: string;
-      categories: AppCategories[];
-    } | null;
-  },
-  booking: {
-    user: { email: string | null; name: string | null; timeZone: string } | null;
-    id: number;
-    startTime: { toISOString: () => string };
-    uid: string;
-  }
-) {
-  const paymentApp = appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
-  if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
-    return null;
-  }
-  const PaymentService = paymentApp.lib.PaymentService;
-  const paymentInstance = new PaymentService(paymentAppCredentials);
-  const paymentData = await paymentInstance.create(
-    {
-      amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-      currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
-    },
-    booking.id
-  );
-
-  if (!paymentData) {
-    console.error("Payment data is null");
-    throw new Error("Payment data is null");
-  }
-
-  await sendAwaitingPaymentEmail({
-    ...evt,
-    paymentInfo: {
-      link: createPaymentLink({
-        paymentUid: paymentData.uid,
-        name: booking.user?.name,
-        email: booking.user?.email,
-        date: booking.startTime.toISOString(),
-      }),
-    },
-  });
-
-  return paymentData;
-}
 
 export const closePayments = async (paymentIntentId: string, stripeAccount: string) => {
   try {

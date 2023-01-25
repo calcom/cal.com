@@ -1,5 +1,7 @@
 import { Payment, Prisma, Booking } from "@prisma/client";
 
+import { CalendarEvent } from "@calcom/types/Calendar";
+
 export interface IAbstractPaymentService {
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
@@ -9,6 +11,16 @@ export interface IAbstractPaymentService {
   refund(paymentId: Payment["id"]): Promise<Payment>;
   getPaymentPaidStatus(): Promise<string>;
   getPaymentDetails(): Promise<Payment>;
+  afterPayment(
+    event: CalendarEvent,
+    booking: {
+      user: { email: string | null; name: string | null; timeZone: string } | null;
+      id: number;
+      startTime: { toISOString: () => string };
+      uid: string;
+    },
+    paymentData: Payment
+  ): Promise<void>;
 }
 
 export abstract class AbstractPaymentService {
@@ -18,6 +30,17 @@ export abstract class AbstractPaymentService {
   ): Promise<Payment>;
 
   abstract update(paymentId: Payment["id"]): Promise<Payment>;
+
+  abstract afterPayment(
+    event: CalendarEvent,
+    booking: {
+      user: { email: string | null; name: string | null; timeZone: string } | null;
+      id: number;
+      startTime: { toISOString: () => string };
+      uid: string;
+    },
+    paymentData: Payment
+  ): Promise<void>;
 
   abstract refund(paymentId: Payment["id"]): Promise<Payment>;
 

@@ -18,7 +18,6 @@ import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
@@ -41,6 +40,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
