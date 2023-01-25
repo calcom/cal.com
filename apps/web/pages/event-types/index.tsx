@@ -97,18 +97,17 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
 
-  if (!events.length) {
-    return null;
-  }
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
-      <EventTypeList
-        types={events[0].eventTypes}
-        group={events[0]}
-        groupIndex={0}
-        readOnly={events[0].metadata.readOnly}
-      />
+      {events.length ? (
+        <EventTypeList
+          types={events[0].eventTypes}
+          group={events[0]}
+          groupIndex={0}
+          readOnly={events[0].metadata.readOnly}
+        />
+      ) : null}
     </div>
   );
 };
