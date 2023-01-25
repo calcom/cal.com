@@ -1077,7 +1077,6 @@ export const bookingsRouter = router({
           },
         });
       } else {
-        // Buscar payment dentro de booking que tenga success = true
         const successPayment = booking.payment.find((payment) => payment.success);
         if (!successPayment) {
           throw new Error("Cannot reject a booking without a successful payment");

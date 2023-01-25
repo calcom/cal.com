@@ -24,6 +24,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
@@ -381,7 +382,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     };
 
-    // Buscar payment dentro de booking que tenga success = true
     const successPayment = bookingToDelete.payment.find((payment) => payment.success);
     if (!successPayment) {
       throw new Error("Cannot reject a booking without a successful payment");
@@ -441,9 +441,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     const PaymentService = paymentApp.lib.PaymentService;
     const paymentInstance = new PaymentService(paymentAppCredential);
-    const paymentData = await paymentInstance.refund(successPayment.id);
-    if (!paymentData.refunded) {
-      throw new Error("Payment could not be refunded");
+    try {
+      await paymentInstance.refund(successPayment.id);
+    } catch (error) {
+      await handleRefundError({
+        event: evt,
+        reason: error?.toString() || "unknown",
+        paymentId: successPayment.externalId,
+      });
     }
 
     await prisma.booking.update({
