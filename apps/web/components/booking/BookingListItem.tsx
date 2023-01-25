@@ -158,6 +158,10 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
+  if (isPast && isPending && !isConfirmed) {
+    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
@@ -248,7 +252,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
+      <tr className="group flex flex-col hover:bg-neutral-50 sm:flex-row">
         <td
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
@@ -273,11 +277,6 @@ function BookingListItem(booking: BookingItemProps) {
             {booking.eventType?.team && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                 {booking.eventType.team.name}
-              </Badge>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("pending_payment")}
               </Badge>
             )}
             {booking.paid && (
@@ -343,12 +342,14 @@ function BookingListItem(booking: BookingItemProps) {
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+                <Badge className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex" variant="orange">
+                  {t("pending_payment")}
+                </Badge>
               )}
             </div>
             {booking.description && (
               <div
-                className="max-w-10/12 sm:max-w-40 md:max-w-56 xl:max-w-80 lg:max-w-64 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -528,15 +529,6 @@ const DisplayAttendees = ({
         </>
       )}
     </div>
-  );
-};
-
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
-  return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
   );
 };
 

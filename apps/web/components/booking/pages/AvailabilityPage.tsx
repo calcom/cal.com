@@ -170,7 +170,10 @@ const SlotPicker = ({
     eventTypeLength: eventType.length,
     eventTypeTeamId: eventType.teamId,
     usernameList: users,
-    startTime: browsingDate?.startOf("month"),
+    startTime:
+      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
+        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
+        : browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,

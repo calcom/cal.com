@@ -7,6 +7,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, PasswordField, TextField } from "@calcom/ui";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
@@ -27,6 +28,8 @@ type FormValues = {
 export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
+  const telemetry = useTelemetry();
+
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -54,8 +57,12 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then(handleErrors)
       .then(async () => {
-        await signIn("Cal.com", {
-          callbackUrl: router.query.callbackUrl ? `${WEBAPP_URL}/${router.query.callbackUrl}` : WEBAPP_URL,
+        telemetry.event(telemetryEventTypes.login, collectPageParameters());
+        await signIn<"credentials">("credentials", {
+          ...data,
+          callbackUrl: router.query.callbackUrl
+            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+            : `${WEBAPP_URL}/getting-started`,
         });
       })
       .catch((err) => {
@@ -112,7 +119,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     className="w-5/12 justify-center"
                     onClick={() =>
                       signIn("Cal.com", {
-                        callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
+                        callbackUrl: router.query.callbackUrl
+                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          : `${WEBAPP_URL}/getting-started`,
                       })
                     }>
                     {t("login_instead")}

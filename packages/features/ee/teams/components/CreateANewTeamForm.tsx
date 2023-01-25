@@ -9,17 +9,17 @@ import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui
 
 import { NewTeamFormValues } from "../lib/types";
 
-const querySchema = z.optional(z.string());
+const querySchema = z.object({
+  returnTo: z.string(),
+});
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const {
-    query: { returnTo },
-  } = router;
-  const returnToParsed = querySchema.safeParse(returnTo);
 
-  const returnToParam = returnToParsed.success ? returnToParsed.data : "/settings/teams";
+  const returnToParsed = querySchema.safeParse(router.query);
+
+  const returnToParam = returnToParsed.success ? returnToParsed.data.returnTo : "/settings/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 

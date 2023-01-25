@@ -154,6 +154,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
+          formerTime: booking?.startTime.toString(),
         },
       });
     },
@@ -169,6 +170,7 @@ const BookingPage = ({
           allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
+          formerTime: booking?.startTime.toString(),
         },
       });
     },
@@ -310,6 +312,39 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
+    const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
+      label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
+      value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
+    }));
+
+    // Checking if custom inputs of type Phone number are valid to display error message on UI
+    if (eventType.customInputs.length) {
+      let isErrorFound = false;
+      eventType.customInputs.forEach((customInput) => {
+        if (customInput.required && customInput.type === EventTypeCustomInputType.PHONE) {
+          const input = bookingCustomInputs.find((i) => i.label === customInput.label);
+          try {
+            z.string({
+              errorMap: () => ({
+                message: `Missing ${customInput.type} customInput: '${customInput.label}'`,
+              }),
+            })
+              .refine((val) => isValidPhoneNumber(val), {
+                message: "Phone number is invalid",
+              })
+              .parse(input?.value);
+          } catch (err) {
+            isErrorFound = true;
+            bookingForm.setError(`customInputs.${customInput.id}`, {
+              type: "custom",
+              message: "Invalid Phone number",
+            });
+          }
+        }
+      });
+      if (isErrorFound) return;
+    }
+
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -366,10 +401,7 @@ const BookingPage = ({
           attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
-        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
-        })),
+        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
@@ -397,10 +429,7 @@ const BookingPage = ({
           attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
-        customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
-          label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-          value: booking.customInputs && inputId in booking.customInputs ? booking.customInputs[inputId] : "",
-        })),
+        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
@@ -816,6 +845,23 @@ const BookingPage = ({
                               </div>
                             )}
                           </Group>
+                        </div>
+                      )}
+                      {input.type === EventTypeCustomInputType.PHONE && (
+                        <div>
+                          <PhoneInput<BookingFormValues>
+                            name={`customInputs.${input.id}`}
+                            control={bookingForm.control}
+                            placeholder={t("enter_phone_number")}
+                            id={`customInputs.${input.id}`}
+                            required={input.required}
+                          />
+                          {bookingForm.formState.errors?.customInputs?.[input.id] && (
+                            <div className="mt-2 flex items-center text-sm text-red-700 ">
+                              <Icon.FiInfo className="mr-2 h-3 w-3" />
+                              <p>{t("invalid_number")}</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

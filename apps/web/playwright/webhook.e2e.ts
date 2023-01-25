@@ -57,6 +57,7 @@ test("add webhook & test that creating an event triggers a webhook call", async 
     attendee.timeZone = dynamic;
     attendee.language = dynamic;
   }
+  body.payload.organizer.id = dynamic;
   body.payload.organizer.email = dynamic;
   body.payload.organizer.timeZone = dynamic;
   body.payload.organizer.language = dynamic;

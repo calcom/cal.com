@@ -7,6 +7,8 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -469,6 +471,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     startTime: dayjs(reqBody.start).utc().format(),
     endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
+      id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
@@ -1032,7 +1035,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     await scheduleWorkflowReminders(
       eventType.workflows,
       reqBody.smsReminderNumber as string | null,
-      evt,
+      { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
@@ -1062,6 +1065,16 @@ function handleCustomInputs(
         z.literal(true, {
           errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
         }).parse(input?.value);
+      } else if (etcInput.type === "PHONE") {
+        z.string({
+          errorMap: () => ({
+            message: `Missing ${etcInput.type} customInput: '${etcInput.label}'`,
+          }),
+        })
+          .refine((val) => isValidPhoneNumber(val), {
+            message: "Phone number is invalid",
+          })
+          .parse(input?.value);
       } else {
         // type: NUMBER are also passed as string
         z.string({
