@@ -20,7 +20,7 @@ export const metadata = {
   title: "Sylaps",
   trending: true,
   isGlobal: false,
-  email: "help@cal.com",
+  email: "support@sylaps.com",
   appData: {
     location: {
       linkType: "dynamic",
