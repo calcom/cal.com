@@ -63,7 +63,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? "team/" + eventType.team.slug
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick") /* This shouldn't happen */ +
+      : booking.user[0]?.username || "rick") /* This shouldn't happen */ +
     "/" +
     eventType?.slug;
   return {
