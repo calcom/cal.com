@@ -13,6 +13,8 @@ import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
+  Avatar,
+  AvatarGroup,
   Badge,
   Button,
   ButtonGroup,
@@ -28,8 +30,6 @@ import {
   EmptyScreen,
   showToast,
   Switch,
-  Avatar,
-  AvatarGroup,
   Tooltip,
 } from "@calcom/ui";
 import {
@@ -97,7 +97,10 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           </span>
         )}
       </div>
-      <EventTypeDescription eventType={type} />
+      <EventTypeDescription
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
+        eventType={type}
+      />
     </Link>
   );
 };
