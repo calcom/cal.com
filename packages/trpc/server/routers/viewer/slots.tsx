@@ -295,8 +295,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     frequency: eventType.slotInterval || input.duration || eventType.length,
   });
 
-  console.log(userAvailability);
-
   let availableTimeSlots: typeof timeSlots = [];
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);

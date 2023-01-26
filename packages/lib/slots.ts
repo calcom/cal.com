@@ -12,11 +12,12 @@ const slotExtractor = ({ eventLength, frequency }: { eventLength: number; freque
   return {
     extract: ({ start: slotStart, end }: { start: Dayjs; end: Dayjs }) => {
       const slots: Slots = [];
-      for (; slotStart.isBefore(end); slotStart = slotStart.add(frequency, "minutes")) {
-        if (!slotStart.add(eventLength, "minutes").isBefore(end)) {
-          // skip adding slot, it's not within the availability block.
-          continue;
-        }
+      for (
+        ;
+        // isSameOrBefore
+        !slotStart.add(eventLength, "minutes").isAfter(end);
+        slotStart = slotStart.add(frequency, "minutes")
+      ) {
         slots.push({
           time: slotStart,
         });
