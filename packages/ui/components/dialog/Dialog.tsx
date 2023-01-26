@@ -8,7 +8,7 @@ import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
-export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
+export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
@@ -55,7 +55,7 @@ export function Dialog(props: DialogProps) {
 
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
-type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
+type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
@@ -63,11 +63,12 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
-  disableOverflow?: boolean;
+  enableOverflow?: boolean;
 };
 
+// enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, disableOverflow, type = "creation", ...props }, forwardedRef) => {
+  ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fadeIn fixed inset-0 bg-gray-500 bg-opacity-80 transition-opacity" />
@@ -83,7 +84,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
             "max-h-[95vh]",
-            disableOverflow ? "overflow-visible" : "overflow-auto",
+            enableOverflow ? "overflow-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
@@ -141,7 +142,7 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 
 export function DialogClose(
   props: {
-    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;

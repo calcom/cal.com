@@ -15,7 +15,8 @@ import {
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, Form, Icon, PhoneInput } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
+import { FiMapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -204,10 +205,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
-      <DialogContent disableOverflow>
+      <DialogContent>
         <div className="flex flex-row space-x-3">
           <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
+            <FiMapPin className="text-primary-600 h-6 w-6" />
           </div>
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
@@ -288,30 +289,31 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       name="locationType"
                       control={locationFormMethods.control}
                       render={() => (
-                        <LocationSelect
-                          maxMenuHeight={300}
-                          name="location"
-                          defaultValue={selection}
-                          options={locationOptions}
-                          isSearchable
-                          className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
-                          onChange={(val) => {
-                            if (val) {
-                              locationFormMethods.setValue("locationType", val.value);
-                              locationFormMethods.unregister([
-                                "locationLink",
-                                "locationAddress",
-                                "locationPhoneNumber",
-                              ]);
-                              locationFormMethods.clearErrors([
-                                "locationLink",
-                                "locationPhoneNumber",
-                                "locationAddress",
-                              ]);
-                              setSelectedLocation?.(val);
-                            }
-                          }}
-                        />
+                        <div className="py-4">
+                          <LocationSelect
+                            maxMenuHeight={300}
+                            name="location"
+                            defaultValue={selection}
+                            options={locationOptions}
+                            isSearchable
+                            onChange={(val) => {
+                              if (val) {
+                                locationFormMethods.setValue("locationType", val.value);
+                                locationFormMethods.unregister([
+                                  "locationLink",
+                                  "locationAddress",
+                                  "locationPhoneNumber",
+                                ]);
+                                locationFormMethods.clearErrors([
+                                  "locationLink",
+                                  "locationPhoneNumber",
+                                  "locationAddress",
+                                ]);
+                                setSelectedLocation?.(val);
+                              }
+                            }}
+                          />
+                        </div>
                       )}
                     />
                   );
@@ -325,7 +327,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       setShowLocationModal(false);
                       setSelectedLocation?.(undefined);
                       setEditingLocationType?.("");
-                      locationFormMethods.unregister("locationType");
+                      locationFormMethods.unregister(["locationType", "locationLink"]);
                     }}
                     type="button"
                     color="secondary">

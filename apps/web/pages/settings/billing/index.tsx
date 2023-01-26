@@ -8,7 +8,8 @@ import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Meta } from "@calcom/ui";
+import { Button, Meta } from "@calcom/ui";
+import { FiExternalLink } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -55,7 +56,7 @@ const BillingView = () => {
         <CtaRow
           title={t("billing_manage_details_title")}
           description={t("billing_manage_details_description")}>
-          <Button color="primary" href={billingHref} target="_blank" EndIcon={Icon.FiExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon={FiExternalLink}>
             {t("billing_portal")}
           </Button>
         </CtaRow>

@@ -2,7 +2,8 @@ import { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Icon, Tooltip } from "@calcom/ui";
+import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
+import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -76,7 +77,7 @@ const DateOverrideList = ({
                     className="text-gray-700"
                     color="minimal"
                     variant="icon"
-                    StartIcon={Icon.FiEdit2}
+                    StartIcon={FiEdit2}
                   />
                 </DialogTrigger>
               }
@@ -86,7 +87,7 @@ const DateOverrideList = ({
                 className="text-gray-700"
                 color="destructive"
                 variant="icon"
-                StartIcon={Icon.FiTrash2}
+                StartIcon={FiTrash2}
                 onClick={() => remove(index)}
               />
             </Tooltip>

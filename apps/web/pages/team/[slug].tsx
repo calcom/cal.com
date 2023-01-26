@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -12,12 +13,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -74,6 +78,8 @@ function TeamPage({ team }: TeamPageProps) {
 
   const teamName = team.name || "Nameless Team";
 
+  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+
   return (
     <div>
       <HeadSeo
@@ -90,7 +96,14 @@ function TeamPage({ team }: TeamPageProps) {
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
             {teamName}
           </p>
-          <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">{team.bio}</p>
+          {!isBioEmpty && (
+            <>
+              <div
+                className="dark:text-darkgray-600 text-s text-gray-500"
+                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+              />
+            </>
+          )}
         </div>
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
@@ -113,7 +126,7 @@ function TeamPage({ team }: TeamPageProps) {
                 <aside className="mt-8 flex justify-center text-center dark:text-white">
                   <Button
                     color="minimal"
-                    EndIcon={Icon.FiArrowRight}
+                    EndIcon={FiArrowRight}
                     className="dark:hover:bg-darkgray-200"
                     href={`/team/${team.slug}?members=1`}
                     shallow={true}>

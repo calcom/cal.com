@@ -86,3 +86,4 @@ apps/storybook/build-storybook.log
 apps/api
 apps/website
 apps/console
+apps/auth
