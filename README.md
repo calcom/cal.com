@@ -27,7 +27,7 @@
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
    <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
-   <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
+   <a href="https://news.ycombinator.com/item?id=34507672"><img src="https://img.shields.io/badge/Hacker%20News-%231-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/calcom/cal.com/pulse"><img src="https://img.shields.io/github/commit-activity/m/calcom/cal.com" alt="Commits-per-month"></a>
    <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-Free-brightgreen" alt="Pricing"></a>
@@ -57,9 +57,29 @@ Calendly and other scheduling tools are awesome. It made our lives massively eas
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
-## Product of the Month: April 2021
+## Recognition
 
-#### Support us on [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
+#### Hacker News
+
+<a href="https://news.ycombinator.com/item?id=34507672">
+  <img
+    style="width: 250px; height: 54px;" width="250" height="54"
+    alt="Featured on Hacker News"
+    src="https://hackernews-badge.vercel.app/api?id=34507672"
+  />
+</a>
+
+<a href="https://news.ycombinator.com/item?id=26817795">
+  <img
+    style="width: 250px; height: 54px;" width="250" height="54"
+    alt="Featured on Hacker News"
+    src="https://hackernews-badge.vercel.app/api?id=26817795"
+  />
+</a>
+
+
+
+#### [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
 <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=291910&theme=light&period=monthly" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/posts/calendso?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-calendso" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=291910&theme=light" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/stories/how-this-open-source-calendly-alternative-rocketed-to-product-of-the-day" target="_blank"><img src="https://cal.com/maker-grant.svg" alt="Cal.com - The open source Calendly alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
@@ -305,6 +325,12 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
+<!-- RORADMAP -->
+
+## Repo Activity
+
+<img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
+
 <!-- CONTRIBUTING -->
 
 ## Contributing
@@ -405,17 +431,6 @@ following
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
-### Obtaining Vital API Keys
-
-1. Open [Vital](https://tryvital.io/) and click Get API Keys.
-1. Create a team with the team name you desire
-1. Head to the configuration section on the sidebar of the dashboard
-1. Click on API keys and you'll find your sandbox `api_key`.
-1. Copy your `api_key` to `VITAL_API_KEY` in the .env.appStore file.
-1. Open [Vital Webhooks](https://app.tryvital.io/team/{team_id}/webhooks) and add `<CALCOM BASE URL>/api/integrations/vital/webhook` as webhook for connected applications.
-1. Select all events for the webhook you interested, e.g. `sleep_created`
-1. Copy the webhook secret (`sec...`) to `VITAL_WEBHOOK_SECRET` in the .env.appStore file.
-
 ## Workflows
 
 ### Setting up SendGrid for Email reminders
@@ -425,6 +440,7 @@ following
 3. Copy API key to your .env file into the SENDGRID_API_KEY field
 4. Go to Settings -> Sender Authentication and verify a single sender
 5. Copy the verified E-Mail to your .env file into the SENDGRID_EMAIL field
+6. Add your custom sender name to the .env file into the NEXT_PUBLIC_SENDGRID_SENDER_NAME field (fallback is Cal.com)
 
 ### Setting up Twilio for SMS reminders
 

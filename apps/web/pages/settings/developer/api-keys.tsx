@@ -14,10 +14,10 @@ import {
   Dialog,
   DialogContent,
   EmptyScreen,
-  Icon,
   Meta,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
+import { FiLink, FiPlus } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -35,7 +35,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={Icon.FiPlus}
+        StartIcon={FiPlus}
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -75,7 +75,7 @@ const ApiKeysView = () => {
               </>
             ) : (
               <EmptyScreen
-                Icon={Icon.FiLink}
+                Icon={FiLink}
                 headline={t("create_first_api_key")}
                 description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}

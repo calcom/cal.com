@@ -9,7 +9,8 @@ import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
+import { Alert, Button, EmptyScreen } from "@calcom/ui";
+import { FiCalendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
@@ -176,7 +177,7 @@ export default function Bookings() {
         {query.status === "success" && isEmpty && (
           <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
-              Icon={Icon.FiCalendar}
+              Icon={FiCalendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
               description={t("no_status_bookings_yet_description", {
                 status: t(status).toLowerCase(),

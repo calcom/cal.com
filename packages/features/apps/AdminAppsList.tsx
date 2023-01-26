@@ -11,12 +11,12 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
+  Badge,
   Button,
   ConfirmationDialogContent,
   Dialog,
   EmptyScreen,
   Form,
-  Icon,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -25,6 +25,7 @@ import {
   TextField,
   VerticalDivider,
 } from "@calcom/ui";
+import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
 
 const IntegrationContainer = ({
   app,
@@ -76,8 +77,13 @@ const IntegrationContainer = ({
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
             {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
             <div className="flex-grow truncate pl-2">
-              <h3 className="truncate text-sm font-medium text-gray-900">
+              <h3 className="flex truncate text-sm font-medium text-gray-900">
                 <p>{app.name || app.title}</p>
+                {app.isTemplate && (
+                  <Badge variant="red" className="ml-4">
+                    Template
+                  </Badge>
+                )}
               </h3>
               <p className="truncate text-sm text-gray-500">{app.description}</p>
             </div>
@@ -101,10 +107,10 @@ const IntegrationContainer = ({
                     <CollapsibleTrigger>
                       <Button
                         color="secondary"
-                        size="icon"
+                        variant="icon"
                         tooltip={t("edit_keys")}
                         onClick={() => setShowKeys(!showKeys)}>
-                        <Icon.FiEdit />
+                        <FiEdit />
                       </Button>
                     </CollapsibleTrigger>
                   </>
@@ -218,7 +224,7 @@ const AdminAppsListContainer = () => {
   if (!apps) {
     return (
       <EmptyScreen
-        Icon={Icon.FiAlertCircle}
+        Icon={FiAlertCircle}
         headline={t("no_available_apps")}
         description={t("no_available_apps_description")}
       />

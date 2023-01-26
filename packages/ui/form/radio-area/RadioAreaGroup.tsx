@@ -14,7 +14,7 @@ const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
           type="radio"
           {...props}
         />
-        <div className="peer-checked:border-brand border-1 rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
+        <div className="peer-checked:border-brand rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
           {children}
         </div>
       </label>
@@ -30,6 +30,7 @@ const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: 
   const childrenWithProps = React.Children.map(children, (child) => {
     if (onChange && React.isValidElement(child)) {
       return React.cloneElement(child, {
+        // @ts-expect-error FIXME: fix type
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
           onChange(e.target.value);
         },

@@ -14,7 +14,8 @@ import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig 
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast, SkeletonText } from "@calcom/ui";
+import { showToast, SkeletonText } from "@calcom/ui";
+import { FiAlertTriangle, FiLoader } from "@calcom/ui/components/icon";
 
 import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
@@ -131,7 +132,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
                   <>
                     {!balanceData.data.hasBalance && (
                       <div className="mt-2 flex flex-row items-center">
-                        <Icon.FiAlertTriangle className="h-5 w-5 text-red-600" />
+                        <FiAlertTriangle className="h-5 w-5 text-red-600" />
                         <p className="ml-2 text-red-600">
                           <Trans i18nKey="rainbow_insufficient_balance" t={t}>
                             Your connected wallet doesn&apos;t contain enough {contractData.data.symbol}.
@@ -142,7 +143,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
 
                     {balanceData.data.hasBalance && isSignatureLoading && (
                       <div className="mt-2 flex flex-row items-center">
-                        <Icon.FiLoader className="h-5 w-5 text-green-600" />
+                        <FiLoader className="h-5 w-5 text-green-600" />
                         <p className="ml-2 text-green-600">{t("rainbow_sign_message_request")}</p>
                       </div>
                     )}
@@ -151,7 +152,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
 
                 {isSignatureError && (
                   <div className="mt-2 flex flex-row items-center">
-                    <Icon.FiAlertTriangle className="h-5 w-5 text-red-600" />
+                    <FiAlertTriangle className="h-5 w-5 text-red-600" />
                     <p className="ml-2 text-red-600">
                       <Trans i18nKey="rainbow_signature_error" t={t}>
                         {t("rainbow_signature_error")}

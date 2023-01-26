@@ -11,6 +11,5 @@
   "publisher": "Pipedream, Inc.",
   "email": "support@pipedream.com",
   "description": "Connect APIs, remarkably fast. Stop writing boilerplate code, struggling with authentication and managing infrastructure. Start connecting APIs with code-level control when you need it — and no code when you don't",
-  "extendsFeature": "User",
   "__createdUsingCli": true
 }
