@@ -358,6 +358,7 @@ export const viewerTeamsRouter = router({
             to: sendTo,
             teamName: team.name,
             joinLink: WEBAPP_URL + "/settings/teams",
+            isCalcomMember: true,
           });
         }
       }

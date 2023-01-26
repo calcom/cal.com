@@ -11,7 +11,7 @@ type TeamInvite = {
   to: string;
   teamName: string;
   joinLink: string;
-  isCalComUser?: boolean;
+  isCalComUser: boolean;
 };
 
 export const TeamInviteEmail = (
