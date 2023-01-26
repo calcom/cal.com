@@ -332,13 +332,11 @@ export default NextAuth({
     },
     async session({ session, token }) {
       const deployment = await prisma.deployment.findFirst({ where: { id: 1 } });
-      const hasValidLicense = await checkLicense(deployment?.licenseKey || "");
+      const licenseKey = process.env.CALCOM_LICENSE_KEY || deployment?.licenseKey || "";
+      const hasValidLicense = await checkLicense(licenseKey);
       const calendsoSession: Session = {
         ...session,
-        license: {
-          key: deployment?.licenseKey ?? null,
-          valid: hasValidLicense,
-        },
+        hasValidLicense,
         user: {
           ...session.user,
           id: token.id as number,

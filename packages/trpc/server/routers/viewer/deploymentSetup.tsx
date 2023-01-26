@@ -2,10 +2,10 @@ import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { router, authedProcedure } from "../../trpc";
+import { router, authedAdminProcedure } from "../../trpc";
 
 export const deploymentSetupRouter = router({
-  update: authedProcedure
+  update: authedAdminProcedure
     .input(
       z.object({
         licenseKey: z.string().optional(),

@@ -43,7 +43,7 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        session.data?.license.valid && data?.workflows && data?.workflows.length > 0 ? (
+        session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
             variant="fab"
             StartIcon={FiPlus}

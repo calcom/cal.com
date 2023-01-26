@@ -66,7 +66,15 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
         <AdminAppsList
           fromAdmin
-          currentStep={isFreeLicense ? 3 : 4}
+          /*
+            | userCount === 0 | isFreeLicense | maxSteps |
+            |-----------------|---------------|----------|
+            | T               | T             |        3 |
+            | T               | F             |        4 |
+            | F               | T             |        2 |
+            | F               | F             |        3 |
+          */
+          currentStep={(props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2}
           baseURL={`/auth/setup?step=${isFreeLicense ? 3 : 4}`}
           setIsLoading={setIsLoading}
           useQueryParam={true}
@@ -93,7 +101,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const userCount = await prisma.user.count();
-  const deployment = await prisma.deployment.findFirst({
+  let deployment = await prisma.deployment.findFirst({
     where: { id: 1 },
     select: { licenseKey: true },
   });
@@ -111,7 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
   if (process.env.CALCOM_LICENSE_KEY !== "" && !deployment?.licenseKey) {
-    await prisma.deployment.create({
+    deployment = await prisma.deployment.create({
       data: {
         id: 1,
         licenseKey: process.env.CALCOM_LICENSE_KEY,

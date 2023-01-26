@@ -32,7 +32,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
   const Component = as || Fragment;
   return (
     <Component {...rest}>
-      {session.data?.license.valid ? (
+      {session.data?.hasValidLicense ? (
         children
       ) : (
         <EmptyScreen

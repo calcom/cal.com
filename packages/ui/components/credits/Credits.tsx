@@ -1,17 +1,15 @@
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import pkg from "@calcom/web/package.json";
 
-export const CalComVersion = (licenseKey: boolean | undefined) => {
-  return `v.${pkg.version}-${!IS_SELF_HOSTED ? "h" : "sh"}-${licenseKey ? "ee" : "ce"}`;
-};
+export const CalComVersion = `v.${pkg.version}-${!IS_SELF_HOSTED ? "h" : "sh"}-${
+  process.env.CALCOM_LICENSE_KEY === "" ? "ee" : "ce"
+}`;
 
 export default function Credits() {
   const [hasMounted, setHasMounted] = useState(false);
-  const session = useSession();
 
   useEffect(() => {
     setHasMounted(true);
@@ -25,7 +23,7 @@ export default function Credits() {
       </Link>{" "}
       {hasMounted && (
         <Link href="https://go.cal.com/releases" target="_blank" className="hover:underline">
-          {CalComVersion(session.data?.license.valid)}
+          {CalComVersion}
         </Link>
       )}
     </small>
