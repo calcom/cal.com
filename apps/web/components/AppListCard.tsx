@@ -17,6 +17,7 @@ type AppListCardProps = {
   isDefault?: boolean;
   isTemplate?: boolean;
   invalidCredential?: boolean;
+  children?: ReactNode;
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
@@ -33,6 +34,7 @@ export default function AppListCard(props: AppListCardProps) {
     shouldHighlight,
     isTemplate,
     invalidCredential,
+    children,
   } = props;
   const {
     data: { hl },
@@ -85,6 +87,7 @@ export default function AppListCard(props: AppListCardProps) {
 
         {actions}
       </div>
+      {children && <div className="w-full">{children}</div>}
     </div>
   );
 }
