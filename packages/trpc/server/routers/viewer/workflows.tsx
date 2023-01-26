@@ -67,40 +67,23 @@ async function isAuthorized(
   const userWorkflow = await prisma.workflow.findFirst({
     where: {
       id: workflow.id,
-      userId: currentUserId,
+      OR: [
+        { userId: currentUserId },
+        {
+          team: {
+            members: {
+              some: {
+                userId: currentUserId,
+              },
+            },
+          },
+        },
+      ],
     },
   });
 
   if (userWorkflow) return true;
 
-  let user;
-
-  if (!workflow.userId) {
-    user = await prisma.user.findFirst({
-      where: {
-        id: currentUserId,
-      },
-      include: {
-        teams: {
-          include: {
-            team: {
-              include: {
-                workflows: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (
-      !!user?.teams.find((membership) =>
-        membership.team.workflows.find((userWorkflow) => userWorkflow.id === workflow.id)
-      )
-    ) {
-      return true;
-    }
-  }
   return false;
 }
 
