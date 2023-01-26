@@ -14,13 +14,14 @@ type AppListCardProps = {
   description: string;
   actions?: ReactNode;
   isDefault?: boolean;
+  isTemplate?: boolean;
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
 
 export default function AppListCard(props: AppListCardProps) {
   const { t } = useLocale();
-  const { logo, title, description, actions, isDefault, slug, shouldHighlight } = props;
+  const { logo, title, description, actions, isDefault, slug, shouldHighlight, isTemplate } = props;
   const {
     data: { hl },
   } = useTypedQuery(schema);
@@ -54,7 +55,10 @@ export default function AppListCard(props: AppListCardProps) {
         <div className="flex grow flex-col gap-y-1 truncate">
           <div className="flex items-center gap-x-2">
             <h3 className="truncate text-sm font-semibold text-gray-900">{title}</h3>
-            {isDefault ? <Badge variant="green">{t("default")}</Badge> : null}
+            <div className="flex items-center gap-x-2">
+              {isDefault && <Badge variant="green">{t("default")}</Badge>}
+              {isTemplate && <Badge variant="red">Template</Badge>}
+            </div>
           </div>
           <ListItemText component="p">{description}</ListItemText>
         </div>
