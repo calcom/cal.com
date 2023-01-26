@@ -66,7 +66,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       to: "John@example.com",
       teamName: "Cal.com Test Team",
       joinLink: ".....",
-      isCalComUser: false,
     })
   );
   res.end();
