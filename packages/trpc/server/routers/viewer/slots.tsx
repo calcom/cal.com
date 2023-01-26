@@ -1,17 +1,15 @@
 import { SchedulingType, EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
-import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
+import { getBufferedBusyTimes, BusyTimes } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots, { getTimeSlotsCompact } from "@calcom/lib/slots";
+import getTimeSlots, { getTimeSlotsCompact, slotsOverlap } from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { EventBusyDate } from "@calcom/types/Calendar";
-import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -61,40 +59,17 @@ const checkIfIsAvailable = ({
   eventLength,
 }: {
   time: Dayjs;
-  busy: EventBusyDate[];
+  busy: BusyTimes[];
   eventLength: number;
 }): boolean => {
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
-
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
-
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
-    return true;
+    return !slotsOverlap(
+      { startTime: slotStartTime, endTime: slotEndTime },
+      { startTime: busyTime.start, endTime: busyTime.end }
+    );
   });
 };
 
@@ -340,13 +315,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     // `userBusyTimesByDay` is only used in singleHostMode.
     userAvailability.forEach(({ busy }) => {
       busy.forEach(({ start, end }) => {
-        const day = dayjs(start).format("YYYY-MM-DD");
+        const day = start.format("YYYY-MM-DD");
         if (!userBusyTimesByDay[day]) {
           userBusyTimesByDay[day] = [];
         }
         userBusyTimesByDay[day].push({
-          startTime: dayjs.utc(start).utc(),
-          endTime: dayjs.utc(end).utc(),
+          startTime: start.utc(),
+          endTime: end.utc(),
         });
       });
     });

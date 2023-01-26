@@ -1,11 +1,18 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
-import dayjs from "@calcom/dayjs";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
+
+export type BusyTimes = {
+  start: Dayjs;
+  end: Dayjs;
+  title?: string;
+  source?: string | null;
+};
 
 export async function getBufferedBusyTimes(params: {
   credentials: Credential[];
@@ -16,7 +23,7 @@ export async function getBufferedBusyTimes(params: {
   selectedCalendars: SelectedCalendar[];
   userBufferTime: number;
   afterEventBuffer?: number;
-}): Promise<EventBusyDetails[]> {
+}): Promise<BusyTimes[]> {
   const busy = await getBusyTimes({
     credentials: params.credentials,
     userId: params.userId,
@@ -27,10 +34,8 @@ export async function getBufferedBusyTimes(params: {
   });
   return busy.map((a) => ({
     ...a,
-    start: dayjs(a.start).subtract(params.userBufferTime, "minute").toISOString(),
-    end: dayjs(a.end)
-      .add(params.userBufferTime + (params.afterEventBuffer || 0), "minute")
-      .toISOString(),
+    start: dayjs(a.start).subtract(params.userBufferTime, "minute"),
+    end: dayjs(a.end).add(params.userBufferTime + (params.afterEventBuffer || 0), "minute"),
     title: a.title,
   }));
 }

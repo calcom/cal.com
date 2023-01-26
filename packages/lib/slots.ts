@@ -110,6 +110,15 @@ function buildSlots({
   return slots;
 }
 
+// Returns true if slot1 overlaps with slot2.
+// Equality of startTime 1 and endTime 2 or endTime 1 and startTime 2 is NOT considered an overlap.
+export function slotsOverlap(
+  slot1: { startTime: Dayjs; endTime: Dayjs },
+  slot2: { startTime: Dayjs; endTime: Dayjs }
+) {
+  return slot1.startTime.isBefore(slot2.endTime) && slot1.endTime.isAfter(slot2.startTime);
+}
+
 /**
  * This function returns the slots available for a given day.
  * `getSlots` does not take busy times into account. This is why
@@ -154,8 +163,8 @@ export const getTimeSlotsCompact = ({
 
   while (slotEndTime.isSameOrBefore(shiftEnd)) {
     if (slotStartTime.isSameOrAfter(minStartTime)) {
-      const busyTimeBlockingThisSlot = busyTimes.find((bT) => {
-        return slotStartTime.isBefore(bT.endTime) && slotEndTime.isAfter(bT.startTime);
+      const busyTimeBlockingThisSlot = busyTimes.find((busyTime) => {
+        return slotsOverlap({ startTime: slotStartTime, endTime: slotEndTime }, busyTime);
       });
       if (busyTimeBlockingThisSlot) {
         // This slot is busy, skip it.
