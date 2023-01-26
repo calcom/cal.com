@@ -461,7 +461,7 @@ const BookingLimits = () => {
 
                   setValue("bookingLimits", {
                     ...watchBookingLimits,
-                    [rest[0].value]: undefined,
+                    [rest[0].value]: 1,
                   });
                 }}>
                 {t("add_limit")}
