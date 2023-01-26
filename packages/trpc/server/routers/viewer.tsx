@@ -295,15 +295,17 @@ const publicViewerRouter = router({
       booking,
       recurringEventCount,
       parsedRecurringEvent: parseRecurringEvent(eventType.recurringEvent),
-      parsedRecurringDates: parseRecurringDates(
-        {
-          startDate: input.date || "",
-          timeZone: ctx.timeZone,
-          recurringEvent: eventType.recurringEvent,
-          recurringCount: recurringEventCount || 0,
-        },
-        ctx.locale ?? "en"
-      ),
+      parsedRecurringDates: input.date
+        ? parseRecurringDates(
+            {
+              startDate: input.date || "",
+              timeZone: ctx.timeZone,
+              recurringEvent: eventType.recurringEvent,
+              recurringCount: recurringEventCount || 0,
+            },
+            ctx.locale ?? "en"
+          )
+        : [],
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
       hashedLink: null,
