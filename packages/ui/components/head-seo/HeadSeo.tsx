@@ -76,8 +76,7 @@ const buildSeoMeta = (pageProps: {
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   // build the canonical url to ensure it's always cal.com (not app.cal.com)
   const router = useRouter();
-  // REVIEW: we don't need to handle asPath === '/' because it's handled by apps/website/pages/index.tsx
-  const calcomUrl = (`https://cal.com` + router.asPath).split("?")[0]; // cut off search params
+  const calcomUrl = (`https://cal.com` + (router.asPath === "/" ? "" : router.asPath)).split("?")[0]; // cut off search params
   const defaultUrl = isCalcom ? calcomUrl : getBrowserInfo()?.url;
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
