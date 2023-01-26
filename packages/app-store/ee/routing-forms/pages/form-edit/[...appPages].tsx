@@ -126,7 +126,6 @@ function Field({
               defaultValue={routerField?.label}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
-              className="block w-full rounded-sm border-gray-300 text-sm"
             />
           </div>
           <div className="mb-6 w-full">
@@ -139,7 +138,6 @@ function Field({
               value={identifier}
               defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
-              className="block w-full rounded-sm border-gray-300 text-sm"
             />
           </div>
           <div className="mb-6 w-full ">
