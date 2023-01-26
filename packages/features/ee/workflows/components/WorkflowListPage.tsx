@@ -202,7 +202,7 @@ export default function WorkflowListPage({ workflows }: Props) {
             setIsOpenDialog={setDeleteDialogOpen}
             workflowId={workflowToDeleteId}
             additionalFunction={async () => {
-              await utils.viewer.workflows.list.invalidate();
+              await utils.viewer.workflows.filteredList.invalidate();
             }}
           />
         </div>

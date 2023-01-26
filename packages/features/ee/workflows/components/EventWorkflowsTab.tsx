@@ -155,7 +155,7 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
+  const { data, isLoading } = trpc.viewer.workflows.filteredList.useQuery();
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 

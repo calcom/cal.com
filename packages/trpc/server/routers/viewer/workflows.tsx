@@ -42,7 +42,7 @@ import { PrismaClient, Workflow } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
+import { router, authedProcedure } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
 
 function getSender(
@@ -88,31 +88,99 @@ async function isAuthorized(
 }
 
 export const workflowsRouter = router({
-  list: authedProcedure.query(async ({ ctx }) => {
-    const workflows = await ctx.prisma.workflow.findMany({
-      where: {
-        userId: ctx.user.id,
-      },
-      include: {
-        activeOn: {
-          select: {
-            eventType: {
+  filteredList: authedProcedure
+    .input(
+      z
+        .object({
+          userId: z.number().nullable(),
+          teamIds: z.number().array().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      // no filter applied
+      if (!input || (!input.userId && (!input.teamIds || input.teamIds.length === 0))) {
+        const workflows = await ctx.prisma.workflow.findMany({
+          where: {
+            OR: [
+              { userId: ctx.user.id },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: ctx.user.id,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+          include: {
+            activeOn: {
               select: {
-                id: true,
-                title: true,
+                eventType: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+            steps: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+
+        return { workflows };
+      }
+
+      const { userId, teamIds } = input;
+
+      if (userId && userId != ctx.user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+      const workflows = await ctx.prisma.workflow.findMany({
+        where: {
+          OR: [
+            { userId: userId || 0 },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: ctx.user.id,
+                    teamId: {
+                      in: teamIds || [],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          activeOn: {
+            select: {
+              eventType: {
+                select: {
+                  id: true,
+                  title: true,
+                },
               },
             },
           },
+          steps: true,
         },
-        steps: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-
-    return { workflows };
-  }),
+        orderBy: {
+          id: "asc",
+        },
+      });
+      console.log(JSON.stringify(workflows));
+      return { workflows };
+    }),
   get: authedProcedure
     .input(
       z.object({
