@@ -60,12 +60,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("TeamInviteEmail", {
-      language: t,
-      from: "John Smith",
-      to: "John@example.com",
-      teamName: "Cal.com Test Team",
-      joinLink: ".....",
+    renderEmail("OrganizerScheduledEmail", {
+      calEvent: evt,
+      attendee: evt.organizer,
     })
   );
   res.end();
