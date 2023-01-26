@@ -3,7 +3,7 @@
   "name": "@calcom/sylaps",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Sylaps is a free ideo conferencing software for web and mobile. Make a call, launch on your own servers, integrate into your app, and more.",
+  "description": "Free Audio and Video Conferencing, Online Collaboration, Screen Sharing on web browser, mobile and desktop.",
   "dependencies": {
     "@calcom/lib": "*"
   },
