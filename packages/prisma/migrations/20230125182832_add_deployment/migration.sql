@@ -1,10 +1,10 @@
 -- CreateTable
 CREATE TABLE "Deployment" (
-    "id" SERIAL NOT NULL,
+    "id" INTEGER NOT NULL DEFAULT 1,
     "logo" TEXT,
     "theme" JSONB,
     "licenseKey" TEXT,
-    "licenseConsentAt" TIMESTAMP(3),
+    "agreedLicenseAt" TIMESTAMP(3),
 
     CONSTRAINT "Deployment_pkey" PRIMARY KEY ("id")
 );

@@ -1,27 +1,34 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 
+import { addPrismaExtensions } from "./extensions";
 import { bookingReferenceMiddleware, eventTypeDescriptionParseAndSanitizeMiddleware } from "./middleware";
 
 declare global {
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var prisma: ReturnType<typeof createPrismaClient> | undefined;
 }
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
 if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
 
-export const prisma = globalThis.prisma || new PrismaClient(prismaOptions);
+function createPrismaClient(options: Prisma.PrismaClientOptions) {
+  const newPrisma = new PrismaClient(options);
+  bookingReferenceMiddleware(newPrisma);
+  eventTypeDescriptionParseAndSanitizeMiddleware(newPrisma);
+  const xprisma = addPrismaExtensions(newPrisma);
+  return xprisma;
+}
+
+export const prisma = globalThis.prisma || createPrismaClient(prismaOptions);
 
 export const customPrisma = (options: Prisma.PrismaClientOptions) =>
-  new PrismaClient({ ...prismaOptions, ...options });
+  createPrismaClient({ ...prismaOptions, ...options });
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
 // If any changed on middleware server restart is required
-bookingReferenceMiddleware(prisma);
-eventTypeDescriptionParseAndSanitizeMiddleware(prisma);
 
 export default prisma;
 

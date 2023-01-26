@@ -353,7 +353,7 @@ export function denullishShape<
  * @returns The constructed tuple array from the given object
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/entries.ts
  */
-export const entries = <O>(
+export const entries = <O extends Record<string, unknown>>(
   obj: O
 ): {
   readonly [K in keyof O]: [K, O[K]];
