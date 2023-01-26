@@ -1,12 +1,10 @@
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString, LocationObject } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { FiLink } from "@calcom/ui/components/icon";
 
-import { Props } from "./pages/AvailabilityPage";
-
-export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
+export function AvailableEventLocations({ locations }: { locations: LocationObject[] }) {
   const { t } = useLocale();
 
   return locations.length ? (

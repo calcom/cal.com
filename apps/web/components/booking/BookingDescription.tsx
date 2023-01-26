@@ -21,13 +21,15 @@ import type { TeamBookingPageProps } from "../../pages/team/[slug]/book";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 
 interface Props {
-  profile:
-    | AvailabilityPageProps["profile"]
-    | HashLinkPageProps["profile"]
-    | TeamBookingPageProps["profile"]
-    | BookPageProps["profile"]
-    | AvailabilityTeamPageProps["profile"]
-    | DynamicAvailabilityPageProps["profile"];
+  profile: {
+    name: string;
+    image: string;
+    slug: string;
+    theme: string;
+    brandColor: string;
+    darkBrandColor: string;
+    eventName: string | null;
+  };
   eventType:
     | AvailabilityPageProps["eventType"]
     | HashLinkPageProps["eventType"]
@@ -118,9 +120,7 @@ const BookingDescription: FC<Props> = (props) => {
             {requiresConfirmationText}
           </div>
         )}
-        <AvailableEventLocations
-          locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
-        />
+        <AvailableEventLocations locations={eventType.locations} />
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",

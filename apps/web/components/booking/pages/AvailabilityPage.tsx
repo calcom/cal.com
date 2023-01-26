@@ -325,7 +325,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       ? ("rainbow" as Gate)
       : undefined,
   ];
-  const [bookingFormRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
@@ -429,41 +428,39 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   )*/}
                   </div>
                 )}
-                <div ref={bookingFormRef} className="contents">
-                  {(() => {
-                    if (selectedTime)
-                      return (
-                        <div className="min-w-96 p-6">
-                          <BookingFormLoader />
-                        </div>
-                      );
+                {(() => {
+                  if (selectedTime)
                     return (
-                      <SlotPicker
-                        weekStart={
-                          typeof profile.weekStart === "string"
-                            ? ([
-                                "Sunday",
-                                "Monday",
-                                "Tuesday",
-                                "Wednesday",
-                                "Thursday",
-                                "Friday",
-                                "Saturday",
-                              ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                            : profile.weekStart /* Allows providing weekStart as number */
-                        }
-                        eventType={eventType}
-                        timeFormat={timeFormat}
-                        onTimeFormatChange={onTimeFormatChange}
-                        timeZone={timeZone}
-                        users={userList}
-                        seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                        recurringEventCount={recurringEventCount}
-                        ethSignature={gateState.rainbowToken}
-                      />
+                      <div className="min-w-96 p-6">
+                        <BookingFormLoader />
+                      </div>
                     );
-                  })()}
-                </div>
+                  return (
+                    <SlotPicker
+                      weekStart={
+                        typeof profile.weekStart === "string"
+                          ? ([
+                              "Sunday",
+                              "Monday",
+                              "Tuesday",
+                              "Wednesday",
+                              "Thursday",
+                              "Friday",
+                              "Saturday",
+                            ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                          : profile.weekStart /* Allows providing weekStart as number */
+                      }
+                      eventType={eventType}
+                      timeFormat={timeFormat}
+                      onTimeFormatChange={onTimeFormatChange}
+                      timeZone={timeZone}
+                      users={userList}
+                      seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                      recurringEventCount={recurringEventCount}
+                      ethSignature={gateState.rainbowToken}
+                    />
+                  );
+                })()}
               </div>
             </div>
             {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
