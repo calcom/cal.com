@@ -90,7 +90,6 @@ const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async (
       },
     },
   });
-  console.log("🚀 ~ file: bookings.tsx:98 ~ bookingsProcedure ~ booking", booking);
 
   if (!booking) throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -317,7 +316,7 @@ export const bookingsRouter = router({
 
       const recurringInfo = recurringInfoBasic.map(
         (
-          info: (typeof recurringInfoBasic)[number]
+          info: typeof recurringInfoBasic[number]
         ): {
           recurringEventId: string | null;
           count: number;
@@ -762,8 +761,6 @@ export const bookingsRouter = router({
       }
       return false;
     };
-
-    console.log("🚀 ~ file: bookings.tsx:743 ~ authorized ~ authorized", authorized);
 
     if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
 
