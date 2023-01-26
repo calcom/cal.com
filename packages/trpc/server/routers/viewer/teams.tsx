@@ -279,9 +279,8 @@ export const viewerTeamsRouter = router({
         },
       });
 
-      let inviteeUserId: number | undefined = invitee?.id;
-
       if (!invitee) {
+        console.log("Invitee not found, creating new user");
         // liberal email match
 
         if (!isEmail(input.usernameOrEmail))
@@ -303,8 +302,8 @@ export const viewerTeamsRouter = router({
             },
           },
         });
-        inviteeUserId = user.id;
 
+        console.log("Created new user", user.email);
         const token: string = randomBytes(32).toString("hex");
 
         await ctx.prisma.verificationToken.create({
@@ -314,7 +313,15 @@ export const viewerTeamsRouter = router({
             expires: new Date(new Date().setHours(168)), // +1 week
           },
         });
+        console.log("Created Verifcation token");
 
+        console.log("EMAIL", {
+          from: ctx.user.name,
+          to: input.usernameOrEmail,
+          teamName: team.name,
+          joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+          isCalcomMember: false,
+        });
         if (ctx?.user?.name && team?.name) {
           await sendTeamInviteEmail({
             language: translation,

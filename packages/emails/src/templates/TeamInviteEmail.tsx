@@ -11,7 +11,7 @@ type TeamInvite = {
   to: string;
   teamName: string;
   joinLink: string;
-  isCalComUser: boolean;
+  isCalComMember: boolean;
 };
 
 export const TeamInviteEmail = (
@@ -54,7 +54,7 @@ export const TeamInviteEmail = (
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalComUser ? "email_user_cta" : "email_no_user_cta")}
+          label={props.language(props.isCalComMember ? "email_user_cta" : "email_no_user_cta")}
           href={props.joinLink}
         />
       </div>
@@ -69,7 +69,7 @@ export const TeamInviteEmail = (
         <>{props.language("email_no_user_invite_steps_intro")}</>
       </p>
 
-      {!props.isCalComUser && (
+      {!props.isCalComMember && (
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           <EmailStep
             translationString={props.language("email_no_user_step_one")}
