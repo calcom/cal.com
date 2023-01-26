@@ -38,6 +38,7 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { PrismaClient, Workflow } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -48,6 +49,59 @@ function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
   return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
+}
+
+async function isAuthorized(
+  workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
+  prisma: PrismaClient<
+    Prisma.PrismaClientOptions,
+    never,
+    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
+  >,
+  currentUserId: number
+) {
+  if (!workflow) {
+    return false;
+  }
+
+  const userWorkflow = await prisma.workflow.findFirst({
+    where: {
+      id: workflow.id,
+      userId: currentUserId,
+    },
+  });
+
+  if (userWorkflow) return true;
+
+  let user;
+
+  if (!workflow.userId) {
+    user = await prisma.user.findFirst({
+      where: {
+        id: currentUserId,
+      },
+      include: {
+        teams: {
+          include: {
+            team: {
+              include: {
+                workflows: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (
+      !!user?.teams.find((membership) =>
+        membership.team.workflows.find((userWorkflow) => userWorkflow.id === workflow.id)
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export const workflowsRouter = router({
@@ -108,37 +162,9 @@ export const workflowsRouter = router({
         },
       });
 
-      let user;
-      if (workflow && !workflow.userId) {
-        user = await ctx.prisma.user.findFirst({
-          where: {
-            id: ctx.user.id,
-          },
-          include: {
-            teams: {
-              where: {
-                userId: ctx.user.id,
-              },
-              include: {
-                team: {
-                  include: {
-                    workflows: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
+      const isUserAuthorized = await isAuthorized(workflow, ctx.prisma, ctx.user.id);
 
-      if (
-        !workflow ||
-        (workflow.userId != ctx.user.id &&
-          !user?.teams.find((membership) =>
-            membership.team.workflows.find((userWorkflow) => userWorkflow.id === input.id)
-          ))
-      ) {
-        // todo make code more readable
+      if (!isUserAuthorized) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });
@@ -270,7 +296,9 @@ export const workflowsRouter = router({
           id,
         },
         select: {
+          id: true,
           userId: true,
+          teamId: true,
           user: {
             select: {
               teams: true,
@@ -280,12 +308,15 @@ export const workflowsRouter = router({
         },
       });
 
-      if (
-        !userWorkflow ||
-        userWorkflow.userId !== user.id ||
-        steps.filter((step) => step.workflowId != id).length > 0
-      )
+      const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id);
+
+      if (!isUserAuthorized || !userWorkflow) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (steps.find((step) => step.workflowId != id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
@@ -549,7 +580,7 @@ export const workflowsRouter = router({
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
           if (
-            !userWorkflow.user.teams.length &&
+            !userWorkflow.user?.teams.length &&
             !isSMSAction(oldStep.action) &&
             isSMSAction(newStep.action)
           ) {
@@ -701,7 +732,7 @@ export const workflowsRouter = router({
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
-          if (!userWorkflow.user.teams.length && isSMSAction(s.action)) {
+          if (!userWorkflow.user?.teams.length && isSMSAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           const { id: stepId, ...stepToAdd } = s;
@@ -931,16 +962,16 @@ if (booking) {
 evt = {
 uid: booking?.uid,
 attendees:
-  booking?.attendees.map((attendee) => {
-    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-  }) || [],
+booking?.attendees.map((attendee) => {
+return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+}) || [],
 organizer: {
-  language: {
-    locale: booking?.user?.locale || "",
-  },
-  name: booking?.user?.name || "",
-  email: booking?.user?.email || "",
-  timeZone: booking?.user?.timeZone || "",
+language: {
+locale: booking?.user?.locale || "",
+},
+name: booking?.user?.name || "",
+email: booking?.user?.email || "",
+timeZone: booking?.user?.timeZone || "",
 },
 startTime: booking?.startTime.toISOString() || "",
 endTime: booking?.endTime.toISOString() || "",
@@ -954,12 +985,12 @@ customInputs: booking?.customInputs,
 evt = {
 attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
 organizer: {
-  language: {
-    locale: ctx.user.locale,
-  },
-  name: ctx.user.name || "",
-  email: ctx.user.email,
-  timeZone: ctx.user.timeZone,
+language: {
+locale: ctx.user.locale,
+},
+name: ctx.user.name || "",
+email: ctx.user.email,
+timeZone: ctx.user.timeZone,
 },
 startTime: dayjs().add(10, "hour").toISOString(),
 endTime: dayjs().add(11, "hour").toISOString(),
