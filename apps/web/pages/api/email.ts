@@ -62,7 +62,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.write(
     renderEmail("TeamInviteEmail", {
       language: t,
-      from: "invites@cal.com",
+      from: "John Smith",
       to: "John@example.com",
       teamName: "Cal.com Test Team",
       joinLink: ".....",

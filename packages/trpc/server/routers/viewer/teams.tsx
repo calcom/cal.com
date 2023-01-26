@@ -322,6 +322,7 @@ export const viewerTeamsRouter = router({
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+            isCalcomMember: false,
           });
         }
       } else {

@@ -1535,10 +1535,14 @@
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
-  "email_no_user_invite_heading":"You're almost there!",
-  "email_no_user_step_one":"Create your account and pick a username",
+  "email_no_user_cta":"Create your account",
+  "email_no_user_invite_heading":"You’ve been invited to join a team on {{appName}}",
+  "email_no_user_invite_subheading":"{{invitedBy}} has invited you to join their team on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
+  "email_no_user_invite_steps_intro":"We’ll walk you through a few short steps and you’ll be enjoying stress free scheduling with your team in no time.",
+  "email_no_user_step_one":"Choose your username",
   "email_no_user_step_two":"Connect your calendar account",
   "email_no_user_step_three":"Set your Availability",
-  "email_no_user_step_four":"Accept team invite and start scheduling together"
+  "email_no_user_step_four":"Join {{teamName}}",
+  "email_no_user_signoff":"Happy Scheduling from the {{appName}} team"
 
 }
