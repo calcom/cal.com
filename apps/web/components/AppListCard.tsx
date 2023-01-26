@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText } from "@calcom/ui";
+import { FiAlertCircle } from "@calcom/ui/components/icon";
 
 type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
 
@@ -15,13 +16,24 @@ type AppListCardProps = {
   actions?: ReactNode;
   isDefault?: boolean;
   isTemplate?: boolean;
+  invalidCredential?: boolean;
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
 
 export default function AppListCard(props: AppListCardProps) {
   const { t } = useLocale();
-  const { logo, title, description, actions, isDefault, slug, shouldHighlight, isTemplate } = props;
+  const {
+    logo,
+    title,
+    description,
+    actions,
+    isDefault,
+    slug,
+    shouldHighlight,
+    isTemplate,
+    invalidCredential,
+  } = props;
   const {
     data: { hl },
   } = useTypedQuery(schema);
@@ -49,7 +61,7 @@ export default function AppListCard(props: AppListCardProps) {
 
   return (
     <div className={`p-4 ${highlight ? "bg-yellow-100" : ""}`}>
-      <div className="flex items-center gap-x-3">
+      <div className="flex  gap-x-3">
         {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
 
         <div className="flex grow flex-col gap-y-1 truncate">
@@ -61,6 +73,14 @@ export default function AppListCard(props: AppListCardProps) {
             </div>
           </div>
           <ListItemText component="p">{description}</ListItemText>
+          {invalidCredential && (
+            <div className="flex gap-x-2 pt-2">
+              <FiAlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
+              <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
+                {t("invalid_credential")}
+              </ListItemText>
+            </div>
+          )}
         </div>
 
         {actions}
