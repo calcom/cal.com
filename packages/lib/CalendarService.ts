@@ -360,14 +360,13 @@ export default abstract class BaseCalendarService implements Calendar {
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
         const iterator = event.iterator();
-        let current;
+        let current = iterator.next();
         let currentEvent;
         let currentStart;
         let currentError;
 
         do {
           maxIterations -= 1;
-          current = iterator.next();
 
           try {
             // @see https://github.com/mozilla-comm/ical.js/issues/514
@@ -395,7 +394,10 @@ export default abstract class BaseCalendarService implements Calendar {
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });
           }
-        } while (maxIterations > 0 && currentStart.isAfter(end) === false);
+        } while (maxIterations > 0 && currentStart.isAfter(end) === false
+          // this iterator was poorly implemented, normally done is expected to be
+          // returned
+          && (current = iterator.next()));
         if (maxIterations <= 0) {
           console.warn("could not find any occurrence for recurring event in 365 iterations");
         }
