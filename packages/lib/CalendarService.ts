@@ -363,10 +363,13 @@ export default abstract class BaseCalendarService implements Calendar {
         const iterator = event.iterator(ICAL.Time.fromDateTimeString(startISOString));
         let current = iterator.next();
         let currentEvent;
-        let currentStart;
+        let currentStart = null;
         let currentError;
 
-        do {
+        while (maxIterations > 0 && (currentStart === null || currentStart.isAfter(end) === false) &&
+          // this iterator was poorly implemented, normally done is expected to be
+          // returned
+          (current = iterator.next())) {
           maxIterations -= 1;
 
           try {
@@ -395,10 +398,7 @@ export default abstract class BaseCalendarService implements Calendar {
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });
           }
-        } while (maxIterations > 0 && currentStart.isAfter(end) === false &&
-          // this iterator was poorly implemented, normally done is expected to be
-          // returned
-          (current = iterator.next()));
+        }
         if (maxIterations <= 0) {
           console.warn("could not find any occurrence for recurring event in 365 iterations");
         }
