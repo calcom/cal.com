@@ -3,7 +3,10 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.tsx",
-  "exports": "./index.tsx",
+  "exports": {
+    ".": "./index.tsx",
+    "./components/icon": "./components/icon/index.ts"
+  },
   "types": "./index.tsx",
   "license": "MIT",
   "scripts": {
@@ -37,6 +40,6 @@
     "@calcom/tsconfig": "*",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.4"
   }
 }

@@ -14,11 +14,10 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Trigger
       {...props}
-      className={
-        props.asChild
-          ? classNames("rounded-md ring-0", className)
-          : `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
-      }
+      className={classNames(
+        !props.asChild &&
+          `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
+      )}
       ref={forwardedRef}
     />
   )

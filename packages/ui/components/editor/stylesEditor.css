@@ -34,18 +34,18 @@
   position: relative;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  height: 200px;
   overflow: scroll;
   resize: vertical;
+  height: auto;
 }
 
 .editor-input {
-  min-height: 150px;
+  height: auto;
   font-size: 14px;
   position: relative;
   tab-size: 1;
   outline: 0;
-  padding: 15px 10px;
+  padding: 10px 10px;
   outline: none
 }
 

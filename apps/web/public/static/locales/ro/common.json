@@ -426,7 +426,6 @@
   "password_hint_num": "Conține cel puțin 1 cifră",
   "invalid_password_hint": "Parola trebuie să aibă cel puțin 7 caractere, să conțină cel puțin o cifră și o combinație de litere mari și litere mici",
   "incorrect_password": "Parola este incorectă.",
-  "1_on_1": "1-la-1",
   "24_h": "24h",
   "use_setting": "Folosește setarea",
   "am_pm": "am/pm",

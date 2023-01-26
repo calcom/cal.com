@@ -15,13 +15,13 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
   List,
   Meta,
   showToast,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { FiAlertCircle, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 
@@ -85,7 +85,7 @@ const ConferencingLayout = () => {
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button StartIcon={Icon.FiMoreHorizontal} variant="icon" color="secondary" />
+                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
@@ -93,7 +93,7 @@ const ConferencingLayout = () => {
                             type="button"
                             color="destructive"
                             disabled={app.isGlobal}
-                            StartIcon={Icon.FiTrash}
+                            StartIcon={FiTrash}
                             onClick={() => {
                               setDeleteCredentialId(app.credentialIds[0]);
                               setDeleteAppModal(true);
@@ -114,7 +114,7 @@ const ConferencingLayout = () => {
           title={t("Remove app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          Icon={Icon.FiAlertCircle}>
+          Icon={FiAlertCircle}>
           <DialogFooter>
             <Button color="primary" onClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}>
               {t("yes_remove_app")}

@@ -2,8 +2,9 @@ import { WebhookTriggerEvents } from "@prisma/client";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Badge, Button, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Badge, Button, showToast, Switch, Tooltip } from "@calcom/ui";
+import { FiAlertCircle, FiTrash } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -50,7 +51,7 @@ export default function WebhookListItem(props: {
                 className="ltr:mr-2 rtl:ml-2"
                 variant="gray"
                 bold
-                StartIcon={Icon.FiAlertCircle}>
+                StartIcon={FiAlertCircle}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
@@ -74,7 +75,7 @@ export default function WebhookListItem(props: {
         </Button>
         <Button
           color="destructive"
-          StartIcon={Icon.FiTrash}
+          StartIcon={FiTrash}
           variant="icon"
           onClick={() => {
             // TODO: Confimation dialog before deleting

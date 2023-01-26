@@ -18,13 +18,13 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  Icon,
   Label,
   SettingsToggle,
   showToast,
   TextField,
   Tooltip,
 } from "@calcom/ui";
+import { FiEdit, FiCopy, FiPlus } from "@calcom/ui/components/icon";
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
@@ -128,7 +128,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           addOnSuffix={
             <Button
               type="button"
-              StartIcon={Icon.FiEdit}
+              StartIcon={FiEdit}
               variant="icon"
               color="minimal"
               className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
@@ -168,7 +168,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </ul>
           {customInputs.length > 0 && (
             <Button
-              StartIcon={Icon.FiPlus}
+              StartIcon={FiPlus}
               color="minimal"
               type="button"
               onClick={() => {
@@ -314,7 +314,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   }}
                   className="hover:stroke-3 hover:bg-transparent hover:text-black"
                   type="button">
-                  <Icon.FiCopy />
+                  <FiCopy />
                 </Button>
               </Tooltip>
             }
@@ -413,7 +413,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
             <DialogContent
               type="creation"
-              Icon={Icon.FiPlus}
+              Icon={FiPlus}
               title={t("add_new_custom_input_field")}
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm

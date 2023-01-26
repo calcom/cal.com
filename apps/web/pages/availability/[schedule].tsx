@@ -15,7 +15,6 @@ import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/
 import {
   Button,
   Form,
-  Icon,
   Label,
   showToast,
   Skeleton,
@@ -25,6 +24,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { FiInfo, FiPlus } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -56,7 +56,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block">
-            <Icon.FiInfo />
+            <FiInfo />
           </span>
         </Tooltip>
       </h3>
@@ -74,7 +74,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
           Trigger={
-            <Button color="secondary" StartIcon={Icon.FiPlus} data-testid="add-override">
+            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
               Add an override
             </Button>
           }
@@ -192,7 +192,7 @@ export default function Availability({ scheduleId }: { scheduleId: number }) {
             });
           }}
           className="flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-          <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
+          <div className="flex-1 divide-y divide-gray-200 rounded-md border">
             <div className=" py-5 sm:p-6">
               {typeof me.data?.weekStart === "string" && (
                 <Schedule

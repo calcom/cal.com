@@ -2,7 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Icon, showToast, Switch } from "@calcom/ui";
+import { Badge, showToast, Switch } from "@calcom/ui";
+import { FiArrowLeft } from "@calcom/ui/components/icon";
 
 export function CalendarSwitch(props: {
   type: string;
@@ -74,7 +75,7 @@ export function CalendarSwitch(props: {
       />
       {props.defaultSelected && (
         <Badge variant="gray">
-          <Icon.FiArrowLeft className="mr-1" /> {t("adding_events_to")}
+          <FiArrowLeft className="mr-1" /> {t("adding_events_to")}
         </Badge>
       )}
     </div>

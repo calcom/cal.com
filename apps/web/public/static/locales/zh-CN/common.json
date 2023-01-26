@@ -426,7 +426,6 @@
   "password_hint_num": "包含至少 1 个数字",
   "invalid_password_hint": "密码必须是至少 7 个字符长，包含至少一个数字，并且是大写和小写字母混合",
   "incorrect_password": "密码不正确。",
-  "1_on_1": "1对1",
   "24_h": "24 小时制",
   "use_setting": "使用设置",
   "am_pm": "12小时制",

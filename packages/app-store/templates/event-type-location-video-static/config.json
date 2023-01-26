@@ -20,6 +20,6 @@
     }
   },
   "description": "It is a template showing how to add a static URL EventType location e.g. Around, Whereby",
-  "isTemplate":true,
+  "isTemplate": true,
   "__createdUsingCli": true
 }
