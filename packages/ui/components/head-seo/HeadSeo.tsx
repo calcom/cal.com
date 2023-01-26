@@ -10,7 +10,8 @@ import {
   MeetingImageProps,
 } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
-import { APP_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
+import isCalcom from "@calcom/lib/isCalcom";
 import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 
@@ -75,8 +76,9 @@ const buildSeoMeta = (pageProps: {
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   // build the canonical url to ensure it's always cal.com (not app.cal.com)
   const router = useRouter();
-  const calcomUrl = (`https://cal.com` + (router.asPath === "/" ? "" : router.asPath)).split("?")[0]; // cut off search params
-  const defaultUrl = IS_SELF_HOSTED ? getBrowserInfo()?.url : calcomUrl;
+  // REVIEW: we don't need to handle asPath === '/' because it's handled by apps/website/pages/index.tsx
+  const calcomUrl = (`https://cal.com` + router.asPath).split("?")[0]; // cut off search params
+  const defaultUrl = isCalcom ? calcomUrl : getBrowserInfo()?.url;
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
