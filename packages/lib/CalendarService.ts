@@ -360,7 +360,11 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
-        const iterator = event.iterator(ICAL.Time.fromDateTimeString(startISOString));
+        const startDate = ICAL.Time.fromDateTimeString(startISOString);
+        startDate.hour = event.startDate.hour;
+        startDate.minute = event.startDate.minute;
+        startDate.second = event.startDate.second;
+        const iterator = event.iterator(startDate);
         let current = iterator.next();
         let currentEvent;
         let currentStart = null;
