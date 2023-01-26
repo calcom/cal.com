@@ -29,6 +29,7 @@ import {
 
 import { QueryCell } from "@lib/QueryCell";
 
+import AppListCard from "@components/AppListCard";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
@@ -80,11 +81,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   /** We don't need to "Connect", just show that it's installed */
   if (isGlobal) {
-    return (
-      <div className="truncate px-3 py-2">
-        <h3 className="text-sm font-medium text-gray-700">{t("default")}</h3>
-      </div>
-    );
+    return null;
   }
   return (
     <InstallAppButton
@@ -111,19 +108,18 @@ interface IntegrationsListProps {
 
 const IntegrationsList = ({ data }: IntegrationsListProps) => {
   return (
-    <List className="flex flex-col gap-6" noBorderTreatment>
+    <List>
       {data.items
         .filter((item) => item.invalidCredentialIds)
         .map((item) => (
-          <IntegrationListItem
-            name={item.name}
-            slug={item.slug}
-            key={item.title}
-            title={item.title}
-            logo={item.logo}
+          <AppListCard
+            key={item.name}
             description={item.description}
-            separate={true}
-            isTemplate={item.isTemplate}
+            title={item.name}
+            logo={item.logo}
+            isDefault={item.isGlobal}
+            shouldHighlight
+            slug={item.slug}
             invalidCredential={item.invalidCredentialIds.length > 0}
             actions={
               <div className="flex w-16 justify-end">
@@ -137,7 +133,7 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
               </div>
             }>
             <AppSettings slug={item.slug} />
-          </IntegrationListItem>
+          </AppListCard>
         ))}
     </List>
   );
