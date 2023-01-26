@@ -49,7 +49,6 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
-    paymentApp: z.string().optional(),
   })
   .nullable();
 

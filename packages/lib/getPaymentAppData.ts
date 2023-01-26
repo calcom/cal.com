@@ -1,16 +1,23 @@
+import { z } from "zod";
+
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { appDataSchema } from "@calcom/app-store/stripepayment/zod";
 import { EventTypeAppsList, getEventTypeAppData } from "@calcom/app-store/utils";
 
 export default function getPaymentAppData(
   eventType: Parameters<typeof getEventTypeAppData>[0],
   forcedGet?: boolean
 ) {
-  const metadataApps = eventType?.metadata?.apps;
+  const metadataApps = eventType?.metadata?.apps as unknown as EventTypeAppsList;
   if (!metadataApps) {
     return { enabled: false, price: 0, currency: "usd", appId: null };
   }
-
-  const paymentAppIds = Object.keys(metadataApps).filter(
-    (app) => metadataApps[app]?.price && metadataApps[app]?.enabled
+  type appId = keyof typeof metadataApps;
+  // @TODO: a lot of unknowns types here can be improved later
+  const paymentAppIds = (Object.keys(metadataApps) as Array<keyof typeof appDataSchemas>).filter(
+    (app) =>
+      (metadataApps[app as appId] as unknown as z.infer<typeof appDataSchema>)?.price &&
+      (metadataApps[app as appId] as unknown as z.infer<typeof appDataSchema>)?.enabled
   );
 
   // Event type should only have one payment app data
