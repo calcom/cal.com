@@ -138,7 +138,10 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = locationOptions.find((item) => item.label === "video")?.options;
+    const defaultValue = locationOptions
+      .find((item) => item.label === "video")
+      ?.options.find((option) => option.value === "integrations:daily");
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
