@@ -293,6 +293,7 @@ export default abstract class BaseCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
+    const startISOString = new Date(dateFrom).toISOString();
     const objects = (
       await Promise.all(
         selectedCalendars
@@ -306,7 +307,7 @@ export default abstract class BaseCalendarService implements Calendar {
               headers: this.headers,
               expand: true,
               timeRange: {
-                start: new Date(dateFrom).toISOString(),
+                start: startISOString,
                 end: new Date(dateTo).toISOString(),
               },
             })
@@ -359,7 +360,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
-        const iterator = event.iterator();
+        const iterator = event.iterator(ICAL.Time.fromDateTimeString(startISOString));
         let current = iterator.next();
         let currentEvent;
         let currentStart;
@@ -394,10 +395,10 @@ export default abstract class BaseCalendarService implements Calendar {
               end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
             });
           }
-        } while (maxIterations > 0 && currentStart.isAfter(end) === false
+        } while (maxIterations > 0 && currentStart.isAfter(end) === false &&
           // this iterator was poorly implemented, normally done is expected to be
           // returned
-          && (current = iterator.next()));
+          (current = iterator.next()));
         if (maxIterations <= 0) {
           console.warn("could not find any occurrence for recurring event in 365 iterations");
         }
