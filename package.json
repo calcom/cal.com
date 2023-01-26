@@ -45,7 +45,7 @@
     "next-swagger-doc": "^0.3.4",
     "next-transpile-modules": "^10.0.0",
     "next-validations": "^0.2.0",
-    "typescript": "^4.7.4",
+    "typescript": "^4.9.4",
     "tzdata": "^1.0.30",
     "uuid": "^8.3.2",
     "zod": "^3.20.2"
