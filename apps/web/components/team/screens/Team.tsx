@@ -32,7 +32,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
             {!isBioEmpty ? (
               <>
                 <div
-                  className="dark:text-darkgray-600 text-s text-gray-500"
+                  className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
                 />
               </>
