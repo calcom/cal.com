@@ -20,7 +20,7 @@ export default function FormInputFields(props: Props) {
     <>
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
-          // @ts-expect-error FIXME: We have an issue with the types here @hariombalhara
+          // @ts-expect-error FIXME @hariombalhara
           field = field.routerField;
         }
         const widget = queryBuilderConfig.widgets[field.type];
