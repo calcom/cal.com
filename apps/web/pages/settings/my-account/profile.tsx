@@ -374,7 +374,9 @@ const ProfileForm = ({
             if (turndownService.turndown(value) === "<p><br></p>") {
               newValue = "";
             }
-            const isEditorDirty = newValue !== formMethods.getValues("bio");
+            const isEditorDirty =
+              newValue.replace(/(\r\n|\n|\r)/gm, "") !==
+              formMethods.getValues("bio").replace(/(\r\n|\n|\r)/gm, "");
             formMethods.setValue("bio", newValue, { shouldDirty: isEditorDirty });
           }}
           excludedToolbarItems={["blockType"]}
