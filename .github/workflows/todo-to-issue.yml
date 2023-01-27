@@ -1,0 +1,22 @@
+name: TODO to Issue
+on:
+  push:
+    branches: [add-todo-to-issue-action] # TODO: Remove this after merged in main
+  pull_request_target: # So we can test on forks
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+      - name: Add TODOs to issues
+        uses: uses: alstr/todo-to-issue-action@v4
+        with:
+          IDENTIFIERS: '[{"name": "TODO", "labels": ["🙋🏻‍♂️help wanted"]}, {"name": "FIXME", "labels": ["🐛 bug"]}]'
+      
