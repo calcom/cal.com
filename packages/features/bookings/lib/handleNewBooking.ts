@@ -552,7 +552,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
-    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
