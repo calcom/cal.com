@@ -11,12 +11,12 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
-  Badge,
   Button,
   ConfirmationDialogContent,
   Dialog,
   EmptyScreen,
   Form,
+  List,
   showToast,
   SkeletonButton,
   SkeletonContainer,
@@ -27,13 +27,13 @@ import {
 } from "@calcom/ui";
 import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
 
+import AppListCard from "../../../apps/web/components/AppListCard";
+
 const IntegrationContainer = ({
   app,
-  lastEntry,
   category,
 }: {
   app: RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
-  lastEntry: boolean;
   category: string;
 }) => {
   const { t } = useLocale();
@@ -71,24 +71,17 @@ const IntegrationContainer = ({
   });
 
   return (
-    <>
-      <Collapsible key={app.name} open={showKeys}>
-        <div className={`${!lastEntry && "border-b"}`}>
-          <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
-            {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
-            <div className="flex-grow truncate pl-2">
-              <h3 className="flex truncate text-sm font-medium text-gray-900">
-                <p>{app.name || app.title}</p>
-                {app.isTemplate && (
-                  <Badge variant="red" className="ml-4">
-                    Template
-                  </Badge>
-                )}
-              </h3>
-              <p className="truncate text-sm text-gray-500">{app.description}</p>
-            </div>
+    <li>
+      <Collapsible open={showKeys}>
+        <AppListCard
+          logo={app.logo}
+          description={app.description}
+          title={app.name}
+          isTemplate={app.isTemplate}
+          isDefault={app.isGlobal}
+          actions={
             <div className="flex justify-self-end">
-              <>
+              {!app.isGlobal && (
                 <Switch
                   checked={app.enabled}
                   onClick={() => {
@@ -100,76 +93,75 @@ const IntegrationContainer = ({
                     }
                   }}
                 />
-                {app.keys && (
-                  <>
-                    <VerticalDivider className="h-10" />
-
-                    <CollapsibleTrigger>
-                      <Button
-                        color="secondary"
-                        variant="icon"
-                        tooltip={t("edit_keys")}
-                        onClick={() => setShowKeys(!showKeys)}>
-                        <FiEdit />
-                      </Button>
-                    </CollapsibleTrigger>
-                  </>
-                )}
-              </>
+              )}
+              {app.keys && !app.isGlobal && <VerticalDivider className="h-10" />}
+              {app.keys && (
+                <CollapsibleTrigger>
+                  <Button
+                    color="secondary"
+                    variant="icon"
+                    tooltip={t("edit_keys")}
+                    onClick={() => setShowKeys(!showKeys)}>
+                    <FiEdit />
+                  </Button>
+                </CollapsibleTrigger>
+              )}
             </div>
-          </div>
-          <CollapsibleContent>
-            {!!app.keys && typeof app.keys === "object" && (
-              <Form
-                form={formMethods}
-                handleSubmit={(values) =>
-                  saveKeysMutation.mutate({
-                    slug: app.slug,
-                    type: app.type,
-                    keys: values,
-                    dirName: app.dirName,
-                  })
-                }
-                className="px-4 pb-4">
-                {Object.keys(app.keys).map((key) => (
-                  <Controller
-                    name={key}
-                    key={key}
-                    control={formMethods.control}
-                    defaultValue={app.keys && app.keys[key] ? app?.keys[key] : ""}
-                    render={({ field: { value } }) => (
-                      <TextField
-                        label={key}
-                        key={key}
-                        name={key}
-                        value={value}
-                        onChange={(e) => {
-                          formMethods.setValue(key, e?.target.value);
-                        }}
-                      />
-                    )}
-                  />
-                ))}
-                <Button type="submit" loading={saveKeysMutation.isLoading}>
-                  {t("save")}
-                </Button>
-              </Form>
-            )}
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
+          }>
+          {app.keys && (
+            <CollapsibleContent className="pt-4">
+              {!!app.keys && typeof app.keys === "object" && (
+                <Form
+                  form={formMethods}
+                  handleSubmit={(values) =>
+                    saveKeysMutation.mutate({
+                      slug: app.slug,
+                      type: app.type,
+                      keys: values,
+                      dirName: app.dirName,
+                    })
+                  }
+                  className="px-4 pb-4">
+                  {Object.keys(app.keys).map((key) => (
+                    <Controller
+                      name={key}
+                      key={key}
+                      control={formMethods.control}
+                      defaultValue={app.keys && app.keys[key] ? app?.keys[key] : ""}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          label={key}
+                          key={key}
+                          name={key}
+                          value={value}
+                          onChange={(e) => {
+                            formMethods.setValue(key, e?.target.value);
+                          }}
+                        />
+                      )}
+                    />
+                  ))}
+                  <Button type="submit" loading={saveKeysMutation.isLoading}>
+                    {t("save")}
+                  </Button>
+                </Form>
+              )}
+            </CollapsibleContent>
+          )}
+        </AppListCard>
 
-      <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
-        <ConfirmationDialogContent
-          title={t("disable_app")}
-          variety="danger"
-          onConfirm={() => {
-            enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-          }}>
-          {t("disable_app_description")}
-        </ConfirmationDialogContent>
-      </Dialog>
-    </>
+        <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
+          <ConfirmationDialogContent
+            title={t("disable_app")}
+            variety="danger"
+            onConfirm={() => {
+              enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+            }}>
+            {t("disable_app_description")}
+          </ConfirmationDialogContent>
+        </Dialog>
+      </Collapsible>
+    </li>
   );
 };
 
@@ -202,7 +194,7 @@ const AdminAppsList = ({
         baseURL={baseURL}
         fromAdmin
         useQueryParam={useQueryParam}
-        containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
+        containerClassname="min-w-0 w-full"
         className={className}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
@@ -232,16 +224,11 @@ const AdminAppsListContainer = () => {
   }
 
   return (
-    <div className="rounded-md border border-gray-200">
-      {apps.map((app, index) => (
-        <IntegrationContainer
-          app={app}
-          lastEntry={index === apps.length - 1}
-          key={app.name}
-          category={category}
-        />
+    <List>
+      {apps.map((app) => (
+        <IntegrationContainer app={app} key={app.name} category={category} />
       ))}
-    </div>
+    </List>
   );
 };
 
