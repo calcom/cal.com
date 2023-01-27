@@ -21,9 +21,13 @@ const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
     );
   }
 );
-
-interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
+type MaybeArray<T> = T[] | T;
+type ChildrenOfType<T extends React.ElementType> = MaybeArray<
+  React.ReactElement<React.ComponentPropsWithoutRef<T>>
+>;
+interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange" | "children"> {
   onChange?: (value: string) => void;
+  children: ChildrenOfType<typeof RadioArea>;
 }
 
 const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: RadioAreaGroupProps) => {
