@@ -83,9 +83,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventTypes?.length) {
     await prisma.eventType.create({
       data: {
-        title: "Mento Start Bi-Weekly Coaching",
+        title: "Start Bi-Weekly Coaching",
         slug: "bi-weekly-start-coaching-session",
-        eventName: "{ATTENDEE} & {HOST} | Start Bi-Weekly Coaching",
+        eventName: "{ATTENDEE} & {HOST} | Mento Bi-Weekly Coaching",
         description:
           "Choose a time that works for you every two weeks. You'll get the first invite right-away and a complete schedule confirmed soon after.",
         locations: [{ type: "integrations:google:meet" }],
@@ -104,9 +104,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
     await prisma.eventType.create({
       data: {
-        title: "Mento Single Coaching Session",
+        title: "Single Coaching Session",
         slug: "single-coaching-session",
-        eventName: "{ATTENDEE} & {HOST} | Mento coaching",
+        eventName: "{ATTENDEE} & {HOST} | Mento Coaching Session",
         description: "Please use this to book one-time and make up sessions when necessary.",
         locations: [{ type: "integrations:google:meet" }],
         length: 45,
@@ -124,7 +124,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
     await prisma.eventType.create({
       data: {
-        title: "Mento Bi-Weekly Coaching session",
+        title: "Bi-Weekly Coaching session",
         slug: "bi-weekly-coaching-session",
         eventName: "{ATTENDEE} & {HOST} | Mento Bi-Weekly Coaching",
         description: "Set up your ongoing Mento Coaching schedule (45 minutes every two weeks).",
