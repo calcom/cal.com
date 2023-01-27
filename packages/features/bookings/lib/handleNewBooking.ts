@@ -229,7 +229,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string },
+  input: { email: string; guests?: string[]; dateFrom: string; dateTo: string },
   recurringDatesInfo?: {
     allRecurringDates: string[] | undefined;
     currentRecurringIndex: number | undefined;
@@ -283,11 +283,11 @@ async function ensureAvailableUsers(
           const conflict = checkForConflicts(bufferedBusyTimes, date, eventType.length);
 
           if (conflict) {
-            // CUSTOM_CODE Changed Error
+            // CUSTOM_CODE Zapier single session
             try {
               await fetch(
                 `https://hooks.zapier.com/hooks/catch/8583043/bvz7pcb/silent?email=${
-                  user?.email
+                  input.email
                 }&coach=${eventType?.users?.map((u) => u.email)?.join(", ")}&event=${
                   eventType?.eventName || ""
                 }&date=${date.toUTCString()}`
@@ -300,10 +300,10 @@ async function ensureAvailableUsers(
         const conflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
 
         if (conflict) {
-          // CUSTOM_CODE Changed Error
+          // CUSTOM_CODE Zapier bi weekly
           try {
             await fetch(
-              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${user?.email}&coach=${
+              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${input.email}&coach=${
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 eventType?.users?.map((u) => u.email).join(", ")
@@ -322,11 +322,12 @@ async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
 
+      // CUSTOM_CODE Zapier call for Bi weekly start
       if (eventType.slug === "bi-weekly-start-coaching-session") {
         try {
           await fetch(
             `https://hooks.zapier.com/hooks/catch/8583043/bva7ac8/silent?email=${
-              user?.email
+              input.email
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
             }&coach=${eventType?.users?.map((u) => u.email).join(", ")}&event=${
@@ -474,6 +475,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         }),
       },
       {
+        email: reqBody.email,
+        guests: reqBody.guests,
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
       },
