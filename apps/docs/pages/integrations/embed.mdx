@@ -2,7 +2,7 @@
 title: Embed
 ---
 
-import Anchor from "../../components/Anchor"
+import Anchor from "../../components/Anchor";
 
 # Embed
 
@@ -10,7 +10,7 @@ The Embed allows your website visitors to book a meeting with you directly from 
 
 ## Install on any website
 
-Install the following Vanilla JS Snippet to get embed to work on any website. After that you can <a href="#popular-ways-in-which-you-can-embed-on-your-website">choose any of the ways</a> to show your Cal Link embedded on your website.
+Install the following Vanilla JS Snippet to get embed to work on any website. After that you can <a href="#popular-ways-in-which-you-can-embed-on-your-website" /> to show your Cal Link embedded on your website.
 
 ```html
 <script>
@@ -41,9 +41,9 @@ Install the following Vanilla JS Snippet to get embed to work on any website. Af
         }
         p(cal, ar);
       };
-    })(window, "https://cal.com/embed.js", "init");
-    Cal("init")
-  </script>
+  })(window, "https://cal.com/embed.js", "init");
+  Cal("init");
+</script>
 ```
 
 ## Install with a Framework
@@ -60,7 +60,7 @@ yarn add @calcom/embed-react
 
 You can use Vanilla JS Snippet to install
 
-<Anchor as="H2">Popular ways in which you can embed on your website</Anchor>
+<Anchor as="H2" />
 
 Assuming that you have followed the steps of installing and initializing the snippet, you can show the embed in following ways:
 
@@ -69,7 +69,7 @@ Assuming that you have followed the steps of installing and initializing the sni
 Show the embed inline inside a container element. It would take the width and height of the container element.
 
 <details>
-  <summary>_Vanilla JS_</summary>
+  <summary />
 
 ```html
 <script>
@@ -88,18 +88,19 @@ Show the embed inline inside a container element. It would take the width and he
 
 *Sample sandbox*
 ```
+
 <iframe src="https://codesandbox.io/embed/vanilla-js-inline-embed-r27n67?fontsize=14&hidenavigation=1&theme=dark"
      style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
      title="Cal Component - Embed Inline Demo[React][TypeScript]"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+    />
 </details>
 
 ####
 
 <details>
-<summary>_React_</summary>
+<summary />
 
 ```jsx
 import Cal from "@calcom/embed-react";
@@ -118,14 +119,14 @@ const MyComponent = () => (
 );
 ```
 
-*Sample sandbox*
+_Sample sandbox_
 
 <iframe src="https://codesandbox.io/embed/cal-component-embed-inline-demo-react-typescript-d1zlcn?fontsize=14&hidenavigation=1&theme=dark"
      style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
      title="Cal Component - Embed Inline Demo[React][TypeScript]"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+    />
 </details>
 
 ### Popup on any existing element
@@ -134,29 +135,32 @@ To show the embed as a popup on clicking an element, add `data-cal-link` attribu
 
 <details>
 
-<summary>Vanilla JS</summary>
+<summary />
 
 To show the embed as a popup on clicking an element, simply add `data-cal-link` attribute to the element.
 
-*Sample sandbox*
-<iframe src="https://codesandbox.io/embed/popup-on-click-of-an-existing-element-y9lcuo?fontsize=14&hidenavigation=1&theme=dark"
-     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
-     title="Cal Component - Embed Inline Demo[React][TypeScript]"
-     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+_Sample sandbox_
 
-  <button data-cal-link="jane" data-cal-config="A valid config JSON"></button>
+<iframe
+  src="https://codesandbox.io/embed/popup-on-click-of-an-existing-element-y9lcuo?fontsize=14&hidenavigation=1&theme=dark"
+  style={{ width: "100%", height: "500px", border: 0, borderRadius: "4px", overflow: "hidden" }}
+  title="Cal Component - Embed Inline Demo[React][TypeScript]"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+/>
+
+  <button data-cal-link="jane" data-cal-config="A valid config JSON" />
 </details>
 <details>
-  <summary>React</summary>
+  <summary />
   ```jsx
     import "@calcom/embed-react";
 
     const MyComponent = ()=> {
       return <button data-cal-link="jane" data-cal-config='A valid config JSON'></button>
     }
-```
+
+````
 
 *Sample sandbox*
 <iframe src="https://codesandbox.io/embed/embed-popup-on-click-of-an-existing-element-demo-react-sc967e?fontsize=14&hidenavigation=1&theme=dark"
@@ -164,7 +168,7 @@ To show the embed as a popup on clicking an element, simply add `data-cal-link` 
      title="Cal Component - Embed Inline Demo[React][TypeScript]"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+    />
 
 </details>
 
@@ -177,15 +181,17 @@ To show the embed as a popup on clicking an element, simply add `data-cal-link` 
     calLink: "jane",
   });
 </script>
-```
+````
 
-*Sample sandbox*
-<iframe src="https://codesandbox.io/embed/embed-floating-button-popup-all-websites-cg7pru?fontsize=14&hidenavigation=1&theme=dark"
-     style={{width:"100%", height:"500px", border:0, borderRadius: "4px", overflow:"hidden"}}
-     title="Cal Component - Embed Inline Demo[React][TypeScript]"
-     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>
+_Sample sandbox_
+
+<iframe
+  src="https://codesandbox.io/embed/embed-floating-button-popup-all-websites-cg7pru?fontsize=14&hidenavigation=1&theme=dark"
+  style={{ width: "100%", height: "500px", border: 0, borderRadius: "4px", overflow: "hidden" }}
+  title="Cal Component - Embed Inline Demo[React][TypeScript]"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+/>
 
 ## Supported Instructions
 
@@ -197,9 +203,9 @@ Appends embed inline as the child of the element.
 
 ```html
 <script>
-Cal("inline", { elementOrSelector, calLink });
+  Cal("inline", { elementOrSelector, calLink });
 </script>
-````
+```
 
 - `elementOrSelector` - Give it either a valid CSS selector or an HTMLElement instance directly
 
@@ -211,7 +217,7 @@ Configure UI for embed. Make it look part of your webpage.
 
 ```html
 <script>
-Cal("inline", { styles });
+  Cal("inline", { styles });
 </script>
 ```
 
@@ -225,38 +231,40 @@ If you want to open cal link on some action. Make it pop open instantly by prelo
 
 ```html
 <script>
-Cal("preload", { calLink });
+  Cal("preload", { calLink });
 </script>
 ```
 
 - `calLink` - Cal Link that you want to embed e.g. john. Just give the username. No need to give the full URL [https://cal.com/john]()
 
 ## Actions
+
 You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
+
 ```html
 <script>
-Cal("on", {
-  action: "ANY_ACTION_NAME",
-  callback: (e)=>{
-    // `data` is properties for the event.
-    // `type` is the name of the action(You can also call it type of the action.) This would be same as "ANY_ACTION_NAME" except when ANY_ACTION_NAME="*" which listens to all the events.
-    // `namespace` tells you the Cal namespace for which the event is fired/
-    const {data, type, namespace} = e.detail;
-  }
-})
+  Cal("on", {
+    action: "ANY_ACTION_NAME",
+    callback: (e) => {
+      // `data` is properties for the event.
+      // `type` is the name of the action(You can also call it type of the action.) This would be same as "ANY_ACTION_NAME" except when ANY_ACTION_NAME="*" which listens to all the events.
+      // `namespace` tells you the Cal namespace for which the event is fired/
+      const { data, type, namespace } = e.detail;
+    },
+  });
 </script>
 ```
 
 Following are the list of supported actions.
-- 
-| Action               | Description                                                                                                                        | Properties                                                                                                                                                                                                                                                                             |
-|----------------------|------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| eventTypeSelected    | When user chooses an event-type from the listing.                                                                                  | eventType:object // Event Type that has been selected"                                                                                                                                                                                                                               |
-| bookingSuccessful    | When the booking is successfully done. It might not be confirmed.                                                                  | confirmed: boolean; //Whether confirmation from organizer is pending or not  <br/><br/>eventType: "Object for Event Type that has been booked";  <br/><br/>date: string; // Date of Event  <br/><br/>duration: number; //Duration of booked Event  <br/><br/>organizer: object //Organizer details like name, timezone, email  |
-| linkReady            | Tells that the link is ready to be shown now.                                                                                      | None                                                                                                                                                                                                                                                                                   |
-| linkFailed           | Fired if link fails to load                                                                                                        | code: number; // Error Code <br/><br/>msg: string;  //Human Readable msg  <br/><br/>data: object // More details to debug the error                                                                                                                                                                     |
-| __iframeReady        | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet | None                                                                                                                                                                                                                                                                                   |
-| __windowLoadComplete | Tells that window load for iframe is complete                                                                                      | None                                                                                                                                                                                                                                                                                   |
-| __dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                                                    | iframeWidth:number, iframeHeight:number                                                                                                                                                                                                                                              |
 
-_Actions that start with __ are internal._
+- | Action                 | Description                                                                                                                        | Properties                                                                                                                                                                                                                                                                                                                |
+  | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | eventTypeSelected      | When user chooses an event-type from the listing.                                                                                  | eventType:object // Event Type that has been selected"                                                                                                                                                                                                                                                                    |
+  | bookingSuccessful      | When the booking is successfully done. It might not be confirmed.                                                                  | confirmed: boolean; //Whether confirmation from organizer is pending or not <br/><br/>eventType: "Object for Event Type that has been booked"; <br/><br/>date: string; // Date of Event <br/><br/>duration: number; //Duration of booked Event <br/><br/>organizer: object //Organizer details like name, timezone, email |
+  | linkReady              | Tells that the link is ready to be shown now.                                                                                      | None                                                                                                                                                                                                                                                                                                                      |
+  | linkFailed             | Fired if link fails to load                                                                                                        | code: number; // Error Code <br/><br/>msg: string; //Human Readable msg <br/><br/>data: object // More details to debug the error                                                                                                                                                                                         |
+  | \_\_iframeReady        | It is fired when the embedded iframe is ready to communicate with parent snippet. This is mostly for internal use by Embed Snippet | None                                                                                                                                                                                                                                                                                                                      |
+  | \_\_windowLoadComplete | Tells that window load for iframe is complete                                                                                      | None                                                                                                                                                                                                                                                                                                                      |
+  | \_\_dimensionChanged   | Tells that dimensions of the content inside the iframe changed.                                                                    | iframeWidth:number, iframeHeight:number                                                                                                                                                                                                                                                                                   |
+
+_Actions that start with \_\_ are internal._
