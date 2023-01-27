@@ -23,6 +23,7 @@ interface FilteredApp {
   keys: Prisma.JsonObject | null;
   enabled: boolean;
   isTemplate?: boolean;
+  isGlobal?: boolean;
 }
 
 export const appsRouter = router({
@@ -74,6 +75,7 @@ export const appsRouter = router({
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
             isTemplate: app.isTemplate,
+            isGlobal: app.isGlobal,
           });
         } else {
           const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
@@ -97,6 +99,7 @@ export const appsRouter = router({
             enabled: dbData?.enabled || false,
             dirName: app.dirName || app.slug,
             keys: Object.keys(keys).length === 0 ? null : keys,
+            isGlobal: app.isGlobal,
           });
         }
       }
