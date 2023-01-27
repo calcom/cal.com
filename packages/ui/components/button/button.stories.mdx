@@ -1,130 +1,121 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
-import { FiPlus, FiX } from '../icon';
-import { Button } from './Button';
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  VariantRow,
+  RowTitles,
+  CustomArgsTable,
+} from "@calcom/storybook/components";
+
+import { FiPlus, FiX } from "../icon";
+import { Button } from "./Button";
 
 <Meta title="UI/Button" component={Button} />
 
-<Title title="Buttons" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
-
+<Title title="Buttons" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Definition
+
 Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
 
 ## Structure
 
 <CustomArgsTable of={Button} />
 
-
-<Examples title="Button style" footnote={
-  <ul>
-  <li>Primary: Signals most important actions at any given point in the application.</li>
-  <li>Secondary: Gives visual weight to actions that are important</li>
-  <li>Minimal: Used for actions that we want to give very little significane to</li>
-  </ul>
-}>
-  <Example title="Primary">
-    <Button className="sb-fake-pseudo--focus">Button text</Button>
-  </Example>
-  <Example title="Secondary">
-    <Button color="secondary">Button text</Button>
-  </Example>
-  <Example title="Minimal">
-    <Button color="minimal">Button text</Button>
-  </Example>
+<Examples
+  title="Button style"
+  footnote={
+    <ul>
+      <li>Primary: Signals most important actions at any given point in the application.</li>
+      <li>Secondary: Gives visual weight to actions that are important</li>
+      <li>Minimal: Used for actions that we want to give very little significane to</li>
+    </ul>
+  }>
+  <Example title="Primary" />
+  <Example title="Secondary" />
+  <Example title="Minimal" />
 </Examples>
 
 <Examples title="State">
-  <Example title="Default">
-    <Button>Button text</Button>
-  </Example>
-  <Example title="Hover">
-      <Button className="sb-pseudo--hover">Button text</Button>
-  </Example>
-  <Example title="Focus">
-    <Button className="sb-pseudo--focus">Button text</Button>
-  </Example>
-  <Example title="Disabled">
-    <Button disabled>Button text</Button>
-  </Example>
-  <Example title="Loading">
-    <Button loading>Button text</Button>
-  </Example>
+  <Example title="Default" />
+  <Example title="Hover" />
+  <Example title="Focus" />
+  <Example title="Disabled" />
+  <Example title="Loading" />
 </Examples>
 
 <Examples title="Icons">
-  <Example title="Default">
-    <Button>Button text</Button>
-  </Example>
-  <Example title="Icon left">
-      <Button StartIcon={FiPlus}>Button text</Button>
-  </Example>
-  <Example title="Icon right">
-    <Button EndIcon={FiPlus}>Button text</Button>
-  </Example>
+  <Example title="Default" />
+  <Example title="Icon left" />
+  <Example title="Icon right" />
 </Examples>
 
 <Examples title="Icons">
   <Example title="Icon Normal">
-      <Button StartIcon={FiX} variant="icon" size="base" color="minimal"></Button>
+    <Button StartIcon={FiX} variant="icon" size="base" color="minimal" />
   </Example>
   <Example title="Icon Small">
-      <Button StartIcon={FiX} variant="icon" size="sm" color="minimal"></Button>
+    <Button StartIcon={FiX} variant="icon" size="sm" color="minimal" />
   </Example>
-   <Example title="Icon Loading">
-      <Button StartIcon={FiX} variant="icon" size="sm" color="minimal" loading></Button>
+  <Example title="Icon Loading">
+    <Button StartIcon={FiX} variant="icon" size="sm" color="minimal" loading />
   </Example>
 </Examples>
 
 ## Anatomy
+
 Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
 
 ## Usage
 
-<Note>In general, there should be only one Primary button in any application context</Note>
-<Note>Aim to use maximum 2 words for the button label. Button size can be flexible based on the visual hierarchy and devices. </Note>
-<Note>Hover state variant for Mobile button is an option for assistive device.</Note>
+<Note />
+<Note />
+<Note />
 
 <Title offset title="Buttons" suffix="Variants" />
 
-
 <Canvas>
   <Story name="All variants">
-    <VariantsTable titles={['Primary', 'Secondary', 'Minimal', 'Destructive',"Icon"]} columnMinWidth={150}>
+    <VariantsTable titles={["Primary", "Secondary", "Minimal", "Destructive", "Icon"]} columnMinWidth={150}>
       <VariantRow variant="Default">
-        <Button>Button text</Button>
-        <Button color="secondary">Button text</Button>
-        <Button color="minimal">Button text</Button>
-        <Button color="destructive">Button text</Button>
-        <Button color="destructive" variant="icon" StartIcon={FiX}></Button>
+        <Button />
+        <Button color="secondary" />
+        <Button color="minimal" />
+        <Button color="destructive" />
+        <Button color="destructive" variant="icon" StartIcon={FiX} />
       </VariantRow>
       <VariantRow variant="Hover">
-        <Button className="sb-pseudo--hover">Button text</Button>
-        <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
-        <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
-        <Button className="sb-pseudo--hover" color="destructive">Button text</Button>
-        <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={FiX}></Button>
+        <Button className="sb-pseudo--hover" />
+        <Button className="sb-pseudo--hover" color="secondary" />
+        <Button className="sb-pseudo--hover" color="minimal" />
+        <Button className="sb-pseudo--hover" color="destructive" />
+        <Button className="sb-pseudo--hover" color="destructive" variant="icon" StartIcon={FiX} />
       </VariantRow>
       <VariantRow variant="Focus">
-        <Button className="sb-pseudo--focus">Button text</Button>
-        <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
-        <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
-        <Button className="sb-pseudo--focus" color="destructive">Button text</Button>
-        <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={FiX}></Button>
+        <Button className="sb-pseudo--focus" />
+        <Button className="sb-pseudo--focus" color="secondary" />
+        <Button className="sb-pseudo--focus" color="minimal" />
+        <Button className="sb-pseudo--focus" color="destructive" />
+        <Button className="sb-pseudo--focus" color="destructive" variant="icon" StartIcon={FiX} />
       </VariantRow>
       <VariantRow variant="Loading">
-        <Button loading>Button text</Button>
-        <Button loading color="secondary">Button text</Button>
-        <Button loading color="minimal">Button text</Button>
-        <Button loading color="destructive">Button text</Button>
-        <Button loading color="destructive" variant="icon" StartIcon={FiX}></Button>
+        <Button loading />
+        <Button loading color="secondary" />
+        <Button loading color="minimal" />
+        <Button loading color="destructive" />
+        <Button loading color="destructive" variant="icon" StartIcon={FiX} />
       </VariantRow>
       <VariantRow variant="Disabled">
-        <Button disabled>Button text</Button>
-        <Button disabled color="secondary">Button text</Button>
-        <Button disabled color="minimal">Button text</Button>
-        <Button disabled color="destructive">Button text</Button>
-        <Button disabled color="destructive" variant="icon" StartIcon={FiX}></Button>
+        <Button disabled />
+        <Button disabled color="secondary" />
+        <Button disabled color="minimal" />
+        <Button disabled color="destructive" />
+        <Button disabled color="destructive" variant="icon" StartIcon={FiX} />
       </VariantRow>
     </VariantsTable>
   </Story>
