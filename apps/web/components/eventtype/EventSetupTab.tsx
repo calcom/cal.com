@@ -12,10 +12,9 @@ import { z } from "zod";
 import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { slugify } from "@calcom/lib/slugify";
 import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
-
-import { slugify } from "@lib/slugify";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import LocationSelect, {

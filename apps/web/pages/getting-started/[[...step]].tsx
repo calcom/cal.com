@@ -7,10 +7,9 @@ import { z } from "zod";
 import { getSession } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
 import { Button, StepCard, Steps } from "@calcom/ui";
 
-import prisma from "@lib/prisma";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
