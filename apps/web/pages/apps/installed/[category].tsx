@@ -31,7 +31,6 @@ import { QueryCell } from "@lib/QueryCell";
 
 import AppListCard from "@components/AppListCard";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
-import IntegrationListItem from "@components/apps/IntegrationListItem";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
 function ConnectOrDisconnectIntegrationButton(props: {
