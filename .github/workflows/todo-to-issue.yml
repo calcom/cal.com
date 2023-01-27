@@ -5,14 +5,14 @@ on:
   pull_request_target: # So we can test on forks
     branches:
       - main
-    workflow_dispatch:
-      inputs:
-        MANUAL_COMMIT_REF:
-          description: "The SHA of the commit to get the diff for"
-          required: true
-        MANUAL_BASE_REF:
-          description: "By default, the commit entered above is compared to the one directly before it; to go back further, enter an earlier SHA here"
-          required: false
+  workflow_dispatch:
+    inputs:
+      MANUAL_COMMIT_REF:
+        description: "The SHA of the commit to get the diff for"
+        required: true
+      MANUAL_BASE_REF:
+        description: "By default, the commit entered above is compared to the one directly before it; to go back further, enter an earlier SHA here"
+        required: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
