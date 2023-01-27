@@ -2,6 +2,9 @@ import { Prisma, PrismaClient } from "@prisma/client";
 
 import { bookingReferenceMiddleware, eventTypeDescriptionParseAndSanitizeMiddleware } from "./middleware";
 
+// REVIEW: This enum is needed in apps/website to generate the sitemap paths
+export { AppCategories } from "@prisma/client";
+
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
