@@ -653,12 +653,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         },
       });
+
       const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
         return credential.appId === paymentAppData.appId;
       });
 
       if (!eventTypePaymentAppCredential) {
         throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+      }
+      if (!eventTypePaymentAppCredential?.appId) {
+        throw new HttpError({ statusCode: 400, message: "Missing payment app id" });
       }
 
       const payment = await handlePayment(evt, eventType, eventTypePaymentAppCredential, booking);
