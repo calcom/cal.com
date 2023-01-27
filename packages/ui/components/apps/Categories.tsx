@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
 
+import { FiArrowRight } from "../icon";
+import { SkeletonText } from "../skeleton";
 import { Slider } from "./Slider";
 
 export function AppStoreCategories({

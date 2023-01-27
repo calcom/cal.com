@@ -1,6 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui";
-import { FiChevronDown } from "@calcom/ui/components/icon";
+
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
+import { FiChevronDown } from "../../icon";
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;

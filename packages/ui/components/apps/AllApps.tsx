@@ -6,9 +6,9 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "@calcom/ui/components/icon";
 
 import { EmptyScreen } from "../empty-screen";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
