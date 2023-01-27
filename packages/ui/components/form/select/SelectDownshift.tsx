@@ -23,20 +23,11 @@ export function SelectDownshift() {
     const { getSelectedItemProps, getDropdownProps, addSelectedItem, removeSelectedItem, selectedItems } =
       useMultipleSelection<typeof books[number]>({ initialSelectedItems: [books[0]] });
     const items = books;
-    const {
-      isOpen,
-      selectedItem,
-      getToggleButtonProps,
-      getLabelProps,
-      getMenuProps,
-      highlightedIndex,
-      getItemProps,
-    } = useSelect({
-      selectedItem: null,
-      defaultHighlightedIndex: 0, // after selection, highlight the first item.
+    const { isOpen, getToggleButtonProps, getLabelProps, getMenuProps, getItemProps } = useSelect({
       items,
       stateReducer: (state, actionAndChanges) => {
         const { changes, type } = actionAndChanges;
+        console.log({ changes, type });
         switch (type) {
           case useSelect.stateChangeTypes.ItemClick:
             return {
@@ -45,17 +36,6 @@ export function SelectDownshift() {
             };
         }
         return changes;
-      },
-      onStateChange: ({ type, selectedItem }) => {
-        switch (type) {
-          case useSelect.stateChangeTypes.ItemClick:
-            if (selectedItem) {
-              addSelectedItem(selectedItem);
-            }
-            break;
-          default:
-            break;
-        }
       },
     });
 
@@ -97,17 +77,18 @@ export function SelectDownshift() {
               const isSelected =
                 selectedItems.filter((selectedItem) => selectedItem.title === item.title).length > 0;
               if (item.type === "divider") {
-                return <div className="h-[1px] w-full bg-gray-300" />;
+                return <div key={`${index}-divider`} className="h-[1px] w-full bg-gray-300" />;
               }
               return (
                 <li
                   className={classNames(
-                    highlightedIndex === index && "bg-gray-200",
-                    selectedItem === item && "font-bold",
-                    "flex cursor-pointer space-x-2 px-3 py-[10px] text-sm"
+                    "space-between flex cursor-pointer items-center space-x-2 px-3 py-[10px] text-sm hover:bg-gray-200"
                   )}
                   key={`${item.title}${index}`}
-                  {...getItemProps({ item, index })}>
+                  {...getItemProps({ item, index })}
+                  onClick={() => {
+                    isSelected ? removeSelectedItem(item) : addSelectedItem(item);
+                  }}>
                   <span className="no-highlight">{item.title}</span>
                   {isSelected && <span className="text-xs text-gray-400">✓</span>}
                 </li>
