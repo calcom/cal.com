@@ -2,10 +2,6 @@ import IframeResizer from "iframe-resizer-react";
 import Head from "next/head";
 import Bleed from "nextra-theme-docs/bleed";
 
-<!--  FIXME: We cannot use hooks in here ⬇ -->
-
-import { useWindowSize } from "../lib/useWindowSize";
-
 <Bleed full>
   <Head />
   <IframeResizer
@@ -13,8 +9,6 @@ import { useWindowSize } from "../lib/useWindowSize";
     src={process.env.NEXT_PUBLIC_SWAGGER_DOCS_URL || "https://developer.cal.com"}
     frameBorder="0"
     style={{
-      width: useWindowSize().width > 768 ? "calc(100vw - 16rem)" : "100vw",
-      minHeight: useWindowSize().width > 768 ? "100vh" : "200vh",
       height: "auto",
       border: 0,
     }}
