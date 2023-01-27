@@ -76,7 +76,6 @@
     "jest-watch-select-projects": "^2.0.0",
     "jest-watch-typeahead": "^2.2.1",
     "lint-staged": "^12.5.0",
-    "prettier": "^2.8.3",
     "ts-jest": "^28.0.8"
   },
   "dependencies": {
