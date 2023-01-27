@@ -55,7 +55,8 @@ const DuplicateDialog = () => {
     },
   });
 
-  const pageSlug = router.query.eventPage;
+  const { pageSlug } = router.query;
+
   return (
     <Dialog
       name="duplicate-event-type"

@@ -2,7 +2,8 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
+import { FiSmartphone, FiMail, FiPlus } from "@calcom/ui/components/icon";
 
 type WorkflowExampleType = {
   Icon: SVGComponent;
@@ -50,12 +51,12 @@ export default function EmptyScreen({
   const { t } = useLocale();
 
   const workflowsExamples = [
-    { icon: Icon.FiSmartphone, text: t("workflow_example_1") },
-    { icon: Icon.FiSmartphone, text: t("workflow_example_2") },
-    { icon: Icon.FiMail, text: t("workflow_example_3") },
-    { icon: Icon.FiMail, text: t("workflow_example_4") },
-    { icon: Icon.FiMail, text: t("workflow_example_5") },
-    { icon: Icon.FiSmartphone, text: t("workflow_example_6") },
+    { icon: FiSmartphone, text: t("workflow_example_1") },
+    { icon: FiSmartphone, text: t("workflow_example_2") },
+    { icon: FiMail, text: t("workflow_example_3") },
+    { icon: FiMail, text: t("workflow_example_4") },
+    { icon: FiMail, text: t("workflow_example_5") },
+    { icon: FiSmartphone, text: t("workflow_example_6") },
   ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (FiSmile icon),
 
@@ -73,7 +74,7 @@ export default function EmptyScreen({
           {buttonOnClick && buttonText && (
             <Button
               type="button"
-              StartIcon={Icon.FiPlus}
+              StartIcon={FiPlus}
               onClick={(e) => buttonOnClick(e)}
               loading={isLoading}
               className="mx-auto mt-8">

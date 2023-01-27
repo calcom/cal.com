@@ -150,6 +150,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: {
       id: true,
+      slug: true,
       customInputs: true,
       users: userSelect,
       team: {
@@ -196,6 +197,12 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           timeZone: true,
         },
       },
+      hosts: {
+        select: {
+          isFixed: true,
+          user: userSelect,
+        },
+      },
       availability: {
         select: {
           date: true,
@@ -216,9 +223,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
+type IsFixedAwareUser = User & { isFixed: boolean };
+
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
-    users: User[];
+    users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string },
   recurringDatesInfo?: {
@@ -226,7 +235,7 @@ async function ensureAvailableUsers(
     currentRecurringIndex: number | undefined;
   }
 ) {
-  const availableUsers: typeof eventType.users = [];
+  const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     console.log("getUserAvailability", user);
@@ -270,10 +279,39 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+          const date = allBookingDates[i++];
+          const conflict = checkForConflicts(bufferedBusyTimes, date, eventType.length);
+
+          if (conflict) {
+            // CUSTOM_CODE Changed Error
+            try {
+              await fetch(
+                `https://hooks.zapier.com/hooks/catch/8583043/bvz7pcb/silent?email=${
+                  user?.email
+                }&coach=${eventType?.users?.map((u) => u.email)?.join(", ")}&event=${
+                  eventType?.eventName || ""
+                }&date=${date.toUTCString()}`
+              );
+            } catch (e) {}
+          }
+          foundConflict = conflict;
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        const conflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+
+        if (conflict) {
+          // CUSTOM_CODE Changed Error
+          try {
+            await fetch(
+              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${user?.email}&coach=${
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                eventType?.users?.map((u) => u.email).join(", ")
+              }&event=${eventType?.eventName || ""}&date=${new Date(input.dateFrom)?.toUTCString()}`
+            );
+          } catch (e) {}
+        }
+        foundConflict = conflict;
       }
     } catch {
       log.debug({
@@ -283,17 +321,23 @@ async function ensureAvailableUsers(
     // no conflicts found, add to available users.
     if (!foundConflict) {
       availableUsers.push(user);
+
+      if (eventType.slug === "bi-weekly-start-coaching-session") {
+        try {
+          await fetch(
+            `https://hooks.zapier.com/hooks/catch/8583043/bva7ac8/silent?email=${
+              user?.email
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+            }&coach=${eventType?.users?.map((u) => u.email).join(", ")}&event=${
+              eventType?.eventName || ""
+            }&date=${new Date(input.dateFrom)?.toUTCString()}`
+          );
+        } catch (e) {}
+      }
     }
   }
   if (!availableUsers.length) {
-    // CUSTOM_CODE Changed Error
-    try {
-      await fetch(
-        `https://hooks.zapier.com/hooks/catch/8583043/bvuuxkc/silent?email=${eventType.users
-          ?.map((u) => u?.email)
-          ?.join(", ")}`
-      );
-    } catch (e) {}
     throw new Error("Please try again or contact concierge@mento.co for support.");
   }
   return availableUsers;
@@ -362,16 +406,25 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  let users = !eventTypeId
-    ? await prisma.user.findMany({
-        where: {
-          username: {
-            in: dynamicUserList,
+  const loadUsers = async () =>
+    !eventTypeId
+      ? await prisma.user.findMany({
+          where: {
+            username: {
+              in: dynamicUserList,
+            },
           },
-        },
-        ...userSelect,
-      })
-    : eventType.users;
+          ...userSelect,
+        })
+      : !!eventType.hosts?.length
+      ? eventType.hosts.map(({ user, isFixed }) => ({
+          ...user,
+          isFixed,
+        }))
+      : eventType.users;
+  // loadUsers allows type inferring
+  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & { isFixed?: boolean })[] = await loadUsers();
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -395,6 +448,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
+  users = users.map((user) => ({
+    ...user,
+    isFixed:
+      user.isFixed === false
+        ? false
+        : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
+  }));
+
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -404,7 +465,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
-        users,
+        users: users as IsFixedAwareUser[],
         ...(eventType.recurringEvent && {
           recurringEvent: {
             ...eventType.recurringEvent,
@@ -422,19 +483,31 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
     );
 
-    // Add an if conditional if there are no seats on the event type
-    // Assign to only one user when ROUND_ROBIN
-    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
-    } else {
-      // excluding ROUND_ROBIN, all users have availability required.
-      if (availableUsers.length !== users.length) {
-        throw new Error("Some users are unavailable for booking.");
+    const luckyUsers: typeof users = [];
+    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+    // loop through all non-fixed hosts and get the lucky users
+    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        // find a lucky user that is not already in the luckyUsers array
+        availableUsers: luckyUserPool.filter(
+          (user) => !luckyUsers.find((existing) => existing.id === user.id)
+        ),
+        eventTypeId: eventType.id,
+      });
+      if (!newLuckyUser) {
+        break; // prevent infinite loop
       }
-      users = availableUsers;
+      luckyUsers.push(newLuckyUser);
     }
+    // ALL fixed users must be available
+    if (
+      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
+    ) {
+      throw new Error("Some users are unavailable for booking.");
+    }
+    users = [...luckyUsers, ...availableUsers.filter((user) => user.isFixed)];
   }
-  console.log("available users", users);
+
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
@@ -463,11 +536,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
-  console.log(bookingLocation, reqBody.location, eventType.locations);
+
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
-    eventType.schedulingType === SchedulingType.COLLECTIVE
+    users.length > 1
       ? users.slice(1).map(async function (user) {
           return {
             email: user.email || "",
@@ -568,6 +641,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
+    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
+    }
     await prisma.booking.update({
       where: {
         uid: reqBody.bookingUid,

@@ -92,7 +92,11 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     {...register("username")}
                     required
                   />
-                  <EmailField {...register("email")} />
+                  <EmailField
+                    {...register("email")}
+                    disabled={prepopulateFormValues?.email}
+                    className="disabled:bg-gray-200 disabled:hover:cursor-not-allowed"
+                  />
                   <PasswordField
                     labelProps={{
                       className: "block text-sm font-medium text-gray-700",
@@ -144,6 +148,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
   };
+
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+    return {
+      notFound: true,
+    };
+  }
 
   // no token given, treat as a normal signup without verification token
   if (!token) {

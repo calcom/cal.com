@@ -420,7 +420,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // We skip the deletion of the event, because that would also delete the payment reference, which we should keep
     await apiDeletes;
-
     req.statusCode = 200;
     return { message: "Booking successfully cancelled." };
   }
@@ -467,6 +466,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   );
 
   await Promise.all(prismaPromises.concat(apiDeletes));
+
   await sendCancelledEmails(evt);
 
   req.statusCode = 200;

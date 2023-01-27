@@ -11,23 +11,23 @@ import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
   Checkbox,
-  ConfirmationDialogContent,
   Dialog,
   DialogClose,
   DialogContent,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   EmailField,
-  Icon,
   Label,
   PhoneInput,
   Select,
@@ -36,11 +36,13 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
+  Input,
 } from "@calcom/ui";
+import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle } from "@calcom/ui/components/icon";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
-import { translateVariablesToEnglish } from "../lib/variableTranslations";
+import { isSMSAction } from "../lib/isSMSAction";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -54,6 +56,7 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
   const { step, form, reload, setReload } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
@@ -164,7 +167,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
+  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
     },
@@ -182,7 +185,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
       showToast(message, "error");
     },
-  });
+  }); */
 
   //trigger
   if (!step) {
@@ -264,7 +267,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      disabled: false,
+      needsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -272,7 +275,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="my-3 flex justify-center">
-          <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+          <FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
           <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white p-7">
@@ -292,11 +295,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div>
                   <Dropdown>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                      <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>
-                        <Button
+                        <DropdownItem
+                          type="button"
+                          StartIcon={FiTrash2}
+                          color="destructive"
                           onClick={() => {
                             const steps = form.getValues("steps");
                             const updatedSteps = steps
@@ -312,13 +318,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             if (setReload) {
                               setReload(!reload);
                             }
-                          }}
-                          color="secondary"
-                          size="base"
-                          StartIcon={Icon.FiTrash2}
-                          className="w-full rounded-none">
+                          }}>
                           {t("delete")}
-                        </Button>
+                        </DropdownItem>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </Dropdown>
@@ -338,28 +340,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
-                            const wasSMSAction =
-                              oldValue === WorkflowActions.SMS_ATTENDEE ||
-                              oldValue === WorkflowActions.SMS_NUMBER;
-                            const isSMSAction =
-                              val.value === WorkflowActions.SMS_ATTENDEE ||
-                              val.value === WorkflowActions.SMS_NUMBER;
 
-                            if (isSMSAction) {
+                            if (isSMSAction(val.value)) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
                               setNumberVerified(false);
-                              if (!wasSMSAction) {
+                              if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
 
-                              if (wasSMSAction) {
+                              if (isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
                               }
                             }
 
@@ -382,8 +380,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          disabled: boolean;
-                        }) => option.disabled}
+                          needsUpgrade: boolean;
+                        }) => option.needsUpgrade}
                       />
                     );
                   }}
@@ -466,25 +464,38 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                     </>
                   )}
-                  {isSenderIdNeeded && (
-                    <>
-                      <div className="pt-4">
-                        <TextField
-                          label={t("sender_id")}
-                          type="text"
-                          placeholder={SENDER_ID}
-                          maxLength={11}
-                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                        />
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                        )}
-                    </>
-                  )}
                 </div>
               )}
+              <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
+                {isSenderIdNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_id")}</Label>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
               {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
                 <div className="mt-2">
                   <Controller
@@ -586,6 +597,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.form.clearErrors();
                         }}
                         variables={DYNAMIC_TEXT_VARIABLES}
+                        height="200px"
                       />
                     </>
                   ) : (
@@ -621,17 +633,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex text-sm text-gray-600">
-                        <Icon.FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
                   </div>
                 </div>
               )}
-              {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
+              {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="mt-7 w-full"
+                  className="w-full mt-7"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -701,11 +713,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   color="secondary">
                   <div className="w-full">{t("test_action")}</div>
                 </Button>
-              )}
+              )*/}
             </div>
           </div>
         </div>
-        <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+        {/* <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
           <ConfirmationDialogContent
             variety="warning"
             title={t("test_workflow_action")}
@@ -726,7 +738,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}>
             {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
-        </Dialog>
+        </Dialog> */}
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">

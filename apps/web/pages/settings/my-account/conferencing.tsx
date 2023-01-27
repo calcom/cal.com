@@ -13,17 +13,17 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
-  Icon,
   List,
-  ListItem,
-  ListItemText,
-  ListItemTitle,
   Meta,
   showToast,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { FiAlertCircle, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+
+import AppListCard from "@components/AppListCard";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -75,41 +75,37 @@ const ConferencingLayout = () => {
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => (
-              <ListItem className="flex-col border-0" key={app.title}>
-                <div className="flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse">
-                  {
-                    // eslint-disable-next-line @next/next/no-img-element
-                    app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
-                  }
-                  <div className="flex-grow truncate pl-2">
-                    <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
-                      <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
-                    </ListItemTitle>
-                    <ListItemText component="p">{app.description}</ListItemText>
-                  </div>
+              <AppListCard
+                description={app.description}
+                title={app.title}
+                logo={app.logo}
+                key={app.title}
+                isDefault={app.isGlobal}
+                actions={
                   <div>
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
-                        <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
+                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
-                          <Button
+                          <DropdownItem
+                            type="button"
                             color="destructive"
-                            StartIcon={Icon.FiTrash}
                             disabled={app.isGlobal}
+                            StartIcon={FiTrash}
                             onClick={() => {
                               setDeleteCredentialId(app.credentialIds[0]);
                               setDeleteAppModal(true);
                             }}>
                             {t("remove_app")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>
-                </div>
-              </ListItem>
+                }
+              />
             ))}
       </List>
 
@@ -118,7 +114,7 @@ const ConferencingLayout = () => {
           title={t("Remove app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          Icon={Icon.FiAlertCircle}>
+          Icon={FiAlertCircle}>
           <DialogFooter>
             <Button color="primary" onClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}>
               {t("yes_remove_app")}

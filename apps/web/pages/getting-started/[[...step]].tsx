@@ -203,6 +203,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
+  if (user.completedOnboarding) {
+    return { redirect: { permanent: false, destination: "/event-types" } };
+  }
+
   return {
     props: {
       ...(await serverSideTranslations(context.locale ?? "", ["common"])),
