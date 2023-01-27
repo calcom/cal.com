@@ -370,7 +370,12 @@ const ProfileForm = ({
         <Editor
           getText={() => md.render(formMethods.getValues("bio") || "")}
           setText={(value: string) => {
-            formMethods.setValue("bio", turndownService.turndown(value), { shouldDirty: true });
+            let newValue = turndownService.turndown(value);
+            if (turndownService.turndown(value) === "<p><br></p>") {
+              newValue = "";
+            }
+            const isEditorDirty = newValue !== formMethods.getValues("bio");
+            formMethods.setValue("bio", newValue, { shouldDirty: isEditorDirty });
           }}
           excludedToolbarItems={["blockType"]}
         />
