@@ -6,9 +6,9 @@ import {
   isPreviousDayInTimezone,
   sortByTimezone,
 } from "@calcom/lib/date-fns";
-import { FiGlobe } from "@calcom/ui/components/icon";
 
-// copied from prisma schema so calcom/ui doesn't import prisma module
+import { FiGlobe } from "../icon";
+
 type Attendee = {
   id: number;
   email: string;

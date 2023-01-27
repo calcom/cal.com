@@ -1,6 +1,6 @@
 import { FieldValues, useFormContext } from "react-hook-form";
 
-import { FiCheck, FiCircle, FiInfo, FiX } from "@calcom/ui/components/icon";
+import { FiCheck, FiCircle, FiInfo, FiX } from "../../icon";
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
