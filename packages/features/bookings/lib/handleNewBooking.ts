@@ -552,6 +552,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -620,6 +621,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
+
+    if (!evt.seatsShowAttendees) {
+      evt.attendees = invitee;
+    }
+
     /**
      * Remember objects are passed into functions as references
      * so if you modify it in a inner function it will be modified in the outer function
