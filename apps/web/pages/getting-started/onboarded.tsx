@@ -83,7 +83,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventTypes?.length) {
     await prisma.eventType.create({
       data: {
-        title: "Start Bi-Weekly Coaching",
+        title: "Mento Start Bi-Weekly Coaching",
         slug: "bi-weekly-start-coaching-session",
         eventName: "{ATTENDEE} & {HOST} | Start Bi-Weekly Coaching",
         description:
