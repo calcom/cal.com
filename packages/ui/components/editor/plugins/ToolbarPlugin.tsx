@@ -1,37 +1,37 @@
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
+  $isListNode,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
-  REMOVE_LIST_COMMAND,
-  $isListNode,
   ListNode,
+  REMOVE_LIST_COMMAND,
 } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
-import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
+import { $isAtNodeEnd, $wrapNodes } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import classNames from "classnames";
 import {
-  SELECTION_CHANGE_COMMAND,
-  FORMAT_TEXT_COMMAND,
-  $getSelection,
-  $isRangeSelection,
   $createParagraphNode,
-  RangeSelection,
-  NodeSelection,
-  GridSelection,
   $getRoot,
+  $getSelection,
   $insertNodes,
-  LexicalEditor,
+  $isRangeSelection,
   EditorState,
+  FORMAT_TEXT_COMMAND,
+  GridSelection,
+  LexicalEditor,
+  NodeSelection,
+  RangeSelection,
+  SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Dropdown, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, Button } from "@calcom/ui";
-import { FiChevronDown } from "@calcom/ui/components/icon";
-
+import { Button } from "../../button";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
+import { FiChevronDown } from "../../icon";
 import { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
