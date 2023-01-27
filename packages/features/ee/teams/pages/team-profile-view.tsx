@@ -12,7 +12,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
-import turndownService from "@calcom/lib/turndownService";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -223,7 +223,7 @@ const ProfileView = () => {
                 <Label>{t("about")}</Label>
                 <Editor
                   getText={() => md.render(form.getValues("bio") || "")}
-                  setText={(value: string) => form.setValue("bio", turndownService.turndown(value))}
+                  setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
                 />
               </div>
