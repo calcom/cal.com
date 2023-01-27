@@ -150,6 +150,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     },
     select: {
       id: true,
+      slug: true,
       customInputs: true,
       users: userSelect,
       team: {
@@ -287,7 +288,9 @@ async function ensureAvailableUsers(
               await fetch(
                 `https://hooks.zapier.com/hooks/catch/8583043/bvz7pcb/silent?email=${
                   user?.email
-                }&coach=${eventType.hosts?.map((h) => h.user?.email)?.join(", ")}&date=${date.toISOString()}`
+                }&coach=${eventType?.users?.map((u) => u.email)?.join(", ")}&event=${
+                  eventType?.eventName || ""
+                }&date=${date.toUTCString()}`
               );
             } catch (e) {}
           }
@@ -300,9 +303,11 @@ async function ensureAvailableUsers(
           // CUSTOM_CODE Changed Error
           try {
             await fetch(
-              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${
-                user?.email
-              }&coach=${eventType.hosts?.map((h) => h.user?.email)?.join(", ")}&date=${input.dateFrom}`
+              `https://hooks.zapier.com/hooks/catch/8583043/bvzjov9/silent?email=${user?.email}&coach=${
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                eventType?.users?.map((u) => u.email).join(", ")
+              }&event=${eventType?.eventName || ""}&date=${new Date(input.dateFrom)?.toUTCString()}`
             );
           } catch (e) {}
         }
@@ -316,6 +321,20 @@ async function ensureAvailableUsers(
     // no conflicts found, add to available users.
     if (!foundConflict) {
       availableUsers.push(user);
+
+      if (eventType.slug === "bi-weekly-start-coaching-session") {
+        try {
+          await fetch(
+            `https://hooks.zapier.com/hooks/catch/8583043/bva7ac8/silent?email=${
+              user?.email
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+            }&coach=${eventType?.users?.map((u) => u.email).join(", ")}&event=${
+              eventType?.eventName || ""
+            }&date=${new Date(input.dateFrom)?.toUTCString()}`
+          );
+        } catch (e) {}
+      }
     }
   }
   if (!availableUsers.length) {
