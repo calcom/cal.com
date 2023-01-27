@@ -207,6 +207,7 @@ module.exports = {
       addVariant("mac", ".mac &");
       addVariant("windows", ".windows &");
       addVariant("ios", ".ios &");
+      addVariant("hocus", ["&:hover", "&:focus"]);
     }),
   ],
   variants: {

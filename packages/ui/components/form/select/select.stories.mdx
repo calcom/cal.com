@@ -1,8 +1,9 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
 import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTable} from '@calcom/storybook/components'
-import { FiPlus } from "../icon";
+import { FiPlus } from "../../icon";
 
 import {SelectField} from "./Select"
+import {SelectDownshift} from "./SelectDownshift"
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
@@ -111,5 +112,11 @@ const GoodSelect = props => <Select {...props} components={{ Control }} />
 <Canvas>
   <Story name="Default">
       <SelectField options={options} label={"Default Select"}/>
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story name="Downshift">
+      <SelectDownshift />
   </Story>
 </Canvas>
