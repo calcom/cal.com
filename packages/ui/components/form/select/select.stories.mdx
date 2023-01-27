@@ -3,7 +3,7 @@ import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTabl
 import { FiPlus } from "../../icon";
 
 import {SelectField} from "./Select"
-import {SelectDownshift} from "./SelectDownshift"
+import {MultipleComboBoxExample} from "./SelectDownshift"
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
@@ -116,7 +116,7 @@ const GoodSelect = props => <Select {...props} components={{ Control }} />
 </Canvas>
 
 <Canvas>
-  <Story name="Downshift">
-      <SelectDownshift />
+  <Story name="Combobox downshift">
+      <MultipleComboBoxExample />
   </Story>
 </Canvas>
