@@ -255,6 +255,7 @@ export default function Success(props: SuccessProps) {
     if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
     sdkActionManager.fire("bookingSuccessful", {
+      booking: bookingInfo,
       eventType,
       date: date.toString(),
       duration: calculatedDuration,
