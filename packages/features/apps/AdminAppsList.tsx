@@ -78,33 +78,34 @@ const IntegrationContainer = ({
           description={app.description}
           title={app.name}
           isTemplate={app.isTemplate}
-          isDefault={app.isGlobal}
           actions={
             <div className="flex justify-self-end">
-              {!app.isGlobal && (
-                <Switch
-                  checked={app.enabled}
-                  onClick={() => {
-                    if (app.enabled) {
-                      setDisableDialog(true);
-                    } else {
-                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                      setShowKeys(true);
-                    }
-                  }}
-                />
-              )}
-              {app.keys && !app.isGlobal && <VerticalDivider className="h-10" />}
+              <Switch
+                checked={app.enabled}
+                onClick={() => {
+                  if (app.enabled) {
+                    setDisableDialog(true);
+                  } else {
+                    enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                    setShowKeys(true);
+                  }
+                }}
+              />
+
               {app.keys && (
-                <CollapsibleTrigger>
-                  <Button
-                    color="secondary"
-                    variant="icon"
-                    tooltip={t("edit_keys")}
-                    onClick={() => setShowKeys(!showKeys)}>
-                    <FiEdit />
-                  </Button>
-                </CollapsibleTrigger>
+                <>
+                  <VerticalDivider className="h-10" />
+
+                  <CollapsibleTrigger>
+                    <Button
+                      color="secondary"
+                      variant="icon"
+                      tooltip={t("edit_keys")}
+                      onClick={() => setShowKeys(!showKeys)}>
+                      <FiEdit />
+                    </Button>
+                  </CollapsibleTrigger>
+                </>
               )}
             </div>
           }>
