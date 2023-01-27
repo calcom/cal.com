@@ -17,16 +17,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: 2
-    - name: "Add TODOs to issues"
-      uses: "alstr/todo-to-issue-action@v4"
-      env:
-        MANUAL_COMMIT_REF: ${{ inputs.MANUAL_COMMIT_REF }}
-        MANUAL_BASE_REF: ${{ inputs.MANUAL_BASE_REF }}
-      with:
-        IDENTIFIERS: '[{"name": "TODO", "labels": ["🙋🏻‍♂️help wanted"]}, {"name": "FIXME", "labels": ["🐛 bug"]}]'
+  todos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+      - name: "Add TODOs to issues"
+        uses: "alstr/todo-to-issue-action@v4"
+        env:
+          MANUAL_COMMIT_REF: ${{ inputs.MANUAL_COMMIT_REF }}
+          MANUAL_BASE_REF: ${{ inputs.MANUAL_BASE_REF }}
+        with:
+          IDENTIFIERS: '[{"name": "TODO", "labels": ["🙋🏻‍♂️help wanted"]}, {"name": "FIXME", "labels": ["🐛 bug"]}]'
