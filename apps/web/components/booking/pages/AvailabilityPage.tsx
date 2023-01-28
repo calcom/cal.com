@@ -4,7 +4,6 @@ import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
@@ -24,26 +23,22 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
-import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
-import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { FiChevronDown, FiChevronUp, FiGlobe } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
-import BookingDescription from "@components/booking/BookingDescription";
 import { BookingFormLoader } from "@components/booking/BookingForm";
 import TimeOptions from "@components/booking/TimeOptions";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
-import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
-import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
-import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+import { BookingSummary } from "../BookingSummary";
 
 const useSlots = ({
   eventTypeId,
@@ -249,7 +244,7 @@ const dateQuerySchema = z.object({
   timeZone: z.string().optional().default(""),
 });
 
-export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+export type Props = RouterOutputs["viewer"]["public"]["bookingPage"];
 
 function useSelectedTime() {
   const { date } = useRouterQuery("date");
@@ -372,46 +367,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       "min-w-full md:w-[230px] md:min-w-[230px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
-                    <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
-                      {!rescheduleUid && eventType.recurringEvent && (
-                        <div className="flex items-start text-sm font-medium">
-                          <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
-                          <div>
-                            <p className="mb-1 -ml-2 inline px-2 py-1">
-                              {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                            </p>
-                            <input
-                              type="number"
-                              min="1"
-                              max={eventType.recurringEvent.count}
-                              className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
-                              defaultValue={eventType.recurringEvent.count}
-                              onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
-                              }}
-                            />
-                            <p className="inline">
-                              {t("occurrence", {
-                                count: recurringEventCount,
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      {stripeAppData.price > 0 && (
-                        <p className="-ml-2 px-2 text-sm font-medium">
-                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                          <IntlProvider locale="en">
-                            <FormattedNumber
-                              value={stripeAppData.price / 100.0}
-                              style="currency"
-                              currency={stripeAppData.currency.toUpperCase()}
-                            />
-                          </IntlProvider>
-                        </p>
-                      )}
-                      {timezoneDropdown}
-                    </BookingDescription>
+                    <BookingSummary />
 
                     {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>

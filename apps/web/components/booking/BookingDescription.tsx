@@ -1,9 +1,11 @@
-import { SchedulingType } from "@prisma/client";
+import { Prisma, SchedulingType } from "@prisma/client";
 import { FC, ReactNode, useEffect } from "react";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui";
 import { FiCheckSquare, FiClock, FiInfo } from "@calcom/ui/components/icon";
 
@@ -12,31 +14,34 @@ import useRouterQuery from "@lib/hooks/useRouterQuery";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
-import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
-import type { BookPageProps } from "../../pages/[user]/book";
-import type { DynamicAvailabilityPageProps } from "../../pages/d/[link]/[slug]";
-import type { HashLinkPageProps } from "../../pages/d/[link]/book";
-import type { AvailabilityTeamPageProps } from "../../pages/team/[slug]/[type]";
-import type { TeamBookingPageProps } from "../../pages/team/[slug]/book";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 
 interface Props {
   profile: {
-    name: string;
-    image: string;
-    slug: string;
-    theme: string;
+    name: string | null;
+    image: string | null;
+    slug: string | null;
+    theme: string | null;
     brandColor: string;
     darkBrandColor: string;
     eventName: string | null;
   };
-  eventType:
-    | AvailabilityPageProps["eventType"]
-    | HashLinkPageProps["eventType"]
-    | TeamBookingPageProps["eventType"]
-    | BookPageProps["eventType"]
-    | AvailabilityTeamPageProps["eventType"]
-    | DynamicAvailabilityPageProps["eventType"];
+  eventType: {
+    length: number;
+    locations: Prisma.JsonArray;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+    schedulingType: string | null;
+    title: string;
+    users: {
+      id: number;
+      name: string | null;
+      username: string | null;
+      avatar: string | null;
+      image: string | null;
+      slug: string | null;
+      theme: string | null;
+    }[];
+  };
   isBookingPage?: boolean;
   children: ReactNode;
   isMobile?: boolean;

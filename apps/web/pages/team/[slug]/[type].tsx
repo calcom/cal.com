@@ -5,7 +5,6 @@ import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
-import { ssgInit } from "@server/lib/ssg";
 import { ssrInit } from "@server/lib/ssr";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
@@ -21,7 +20,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

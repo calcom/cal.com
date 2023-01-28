@@ -23,9 +23,8 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useEvent } from "@calcom/lib/hooks/useEvent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { RouterOutputs, trpc } from "@calcom/trpc";
+import { RouterOutputs } from "@calcom/trpc";
 import {
   AddressInput,
   Button,
@@ -38,8 +37,10 @@ import {
 } from "@calcom/ui";
 import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
 
+import { QueryCell } from "@lib/QueryCell";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
+import { useBookingPageParams, useBookingPageQuery } from "@lib/hooks/useBookingPageQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import slugify from "@lib/slugify";
@@ -63,36 +64,9 @@ type BookingFormValues = {
   smsReminderNumber?: string;
 };
 
-const bookingPageQuerySchema = z.object({
-  duration: z.string().optional(),
-  bookingUid: z.string().optional(),
-  count: z.string().optional(),
-  embed: z.string().optional(),
-  rescheduleUid: z.string().optional(),
-  guest: z.string().optional(),
-  type: z.string(),
-  user: z.string(),
-  email: z.string().optional(),
-  name: z.string().optional(),
-  date: z.string().optional(),
-});
-
 export const BookingFormLoader = () => {
-  const { data: routerQuery } = useTypedQuery(bookingPageQuerySchema);
-  const { data, error, isLoading } = trpc.viewer.public.bookingPage.useQuery(routerQuery);
-
-  if (!data && isLoading) return <SkeletonLoader />;
-
-  if (error)
-    return (
-      <div>
-        <pre>{error.message}</pre>
-      </div>
-    );
-
-  if (!data) return null;
-
-  return <BookingFormHandler {...data} />;
+  const query = useBookingPageQuery();
+  return <QueryCell query={query} success={({ data }) => <BookingFormHandler {...data} />} />;
 };
 
 const BookingFormHandler = (props: Required<RouterOutputs["viewer"]["public"]["bookingPage"]>) => {
@@ -106,7 +80,7 @@ const BookingFormHandler = (props: Required<RouterOutputs["viewer"]["public"]["b
     hasHashedBookingLink,
     hashedLink,
   } = props;
-  const [recurringStrings, recurringDates] = parsedRecurringDates;
+  // const [recurringStrings, recurringDates] = parsedRecurringDates;
   const router = useRouter();
   const { gateState } = useGateState();
   const { i18n } = useLocale();
@@ -114,7 +88,7 @@ const BookingFormHandler = (props: Required<RouterOutputs["viewer"]["public"]["b
   const telemetry = useTelemetry();
   const {
     data: { rescheduleUid, email, name, date },
-  } = useTypedQuery(bookingPageQuerySchema);
+  } = useBookingPageParams();
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => attendee.email)
@@ -291,66 +265,66 @@ const BookingFormHandler = (props: Required<RouterOutputs["viewer"]["public"]["b
         }
       }
 
-      if (recurringDates.length) {
-        // Identify set of bookings to one intance of recurring event to support batch changes
-        const recurringEventId = uuidv4();
-        const recurringBookings = recurringDates.map((recurringDate) => ({
-          ...booking,
-          start: dayjs(recurringDate).format(),
-          end: dayjs(recurringDate).add(duration, "minute").format(),
-          eventTypeId: eventType.id,
-          eventTypeSlug: eventType.slug,
-          recurringEventId,
-          // Added to track down the number of actual occurrences selected by the user
-          recurringCount: recurringDates.length,
-          timeZone: timeZone(),
-          language: i18n.language,
-          rescheduleUid,
-          user: router.query.user,
-          location: getEventLocationValue(eventType.locations as LocationObject[], {
-            type: booking.locationType || "",
-            phone: booking.phone,
-            attendeeAddress: booking.attendeeAddress,
-          }),
-          metadata,
-          customInputs: bookingCustomInputs,
-          hasHashedBookingLink,
-          hashedLink,
-          smsReminderNumber:
-            booking.locationType === LocationType.Phone
-              ? booking.phone
-              : booking.smsReminderNumber || undefined,
-          ethSignature: gateState.rainbowToken,
-        }));
-        recurringMutation.mutate(recurringBookings);
-      } else {
-        mutation.mutate({
-          ...booking,
-          start: dayjs(date).format(),
-          end: dayjs(date).add(duration, "minute").format(),
-          eventTypeId: eventType.id,
-          eventTypeSlug: eventType.slug,
-          timeZone: timeZone(),
-          language: i18n.language,
-          rescheduleUid,
-          bookingUid: router.query.bookingUid as string,
-          user: router.query.user,
-          location: getEventLocationValue(locations, {
-            type: booking.locationType || "",
-            phone: booking.phone,
-            attendeeAddress: booking.attendeeAddress,
-          }),
-          metadata,
-          customInputs: bookingCustomInputs,
-          hasHashedBookingLink,
-          hashedLink,
-          smsReminderNumber:
-            booking.locationType === LocationType.Phone
-              ? booking.phone
-              : booking.smsReminderNumber || undefined,
-          // ethSignature: gateState.rainbowToken,
-        });
-      }
+      // if (recurringDates.length) {
+      //   // Identify set of bookings to one intance of recurring event to support batch changes
+      //   const recurringEventId = uuidv4();
+      //   const recurringBookings = recurringDates.map((recurringDate) => ({
+      //     ...booking,
+      //     start: dayjs(recurringDate).format(),
+      //     end: dayjs(recurringDate).add(duration, "minute").format(),
+      //     eventTypeId: eventType.id,
+      //     eventTypeSlug: eventType.slug,
+      //     recurringEventId,
+      //     // Added to track down the number of actual occurrences selected by the user
+      //     recurringCount: recurringDates.length,
+      //     timeZone: timeZone(),
+      //     language: i18n.language,
+      //     rescheduleUid,
+      //     user: router.query.user,
+      //     location: getEventLocationValue(eventType.locations as LocationObject[], {
+      //       type: booking.locationType || "",
+      //       phone: booking.phone,
+      //       attendeeAddress: booking.attendeeAddress,
+      //     }),
+      //     metadata,
+      //     customInputs: bookingCustomInputs,
+      //     hasHashedBookingLink,
+      //     hashedLink,
+      //     smsReminderNumber:
+      //       booking.locationType === LocationType.Phone
+      //         ? booking.phone
+      //         : booking.smsReminderNumber || undefined,
+      //     ethSignature: gateState.rainbowToken,
+      //   }));
+      //   recurringMutation.mutate(recurringBookings);
+      // } else {
+      mutation.mutate({
+        ...booking,
+        start: dayjs(date).format(),
+        end: dayjs(date).add(duration, "minute").format(),
+        eventTypeId: eventType.id,
+        eventTypeSlug: eventType.slug,
+        timeZone: timeZone(),
+        language: i18n.language,
+        rescheduleUid,
+        bookingUid: router.query.bookingUid as string,
+        user: router.query.user,
+        location: getEventLocationValue(locations, {
+          type: booking.locationType || "",
+          phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
+        }),
+        metadata,
+        customInputs: bookingCustomInputs,
+        hasHashedBookingLink,
+        hashedLink,
+        smsReminderNumber:
+          booking.locationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
+        // ethSignature: gateState.rainbowToken,
+      });
+      // }
     }
   );
 
@@ -379,7 +353,7 @@ const BookingForm = (props: {
   const { data: session } = useSession();
   const {
     data: { rescheduleUid, guest, email, name },
-  } = useTypedQuery(bookingPageQuerySchema);
+  } = useBookingPageParams();
   const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations = eventType.locations as LocationObject[];

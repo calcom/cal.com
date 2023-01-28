@@ -12,7 +12,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { DecorateProcedure } from "@calcom/trpc/react/shared";
 import type { AnyQueryProcedure, inferProcedureInput, inferProcedureOutput } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Alert, Loader } from "@calcom/ui";
+import { Alert, Loader, SkeletonContainer } from "@calcom/ui";
 
 import type { UseTRPCQueryOptions } from "@trpc/react-query/shared";
 
@@ -56,17 +56,21 @@ export function QueryCell<TData, TError extends ErrorLike>(
 ) {
   const { query } = opts;
   const { isLocaleReady } = useLocale();
-  const StatusLoader = opts.customLoader || <Loader />; // Fixes edge case where this can return null form query cell
+  const StatusLoader = opts.customLoader || <SkeletonContainer />; // Fixes edge case where this can return null form query cell
 
-  if (query.status === "loading" || !isLocaleReady) {
-    return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
-  }
-
-  if (query.status === "success") {
-    if ("empty" in opts && (query.data == null || (Array.isArray(query.data) && query.data.length === 0))) {
+  if (typeof query.data !== "undefined") {
+    if (
+      query.status === "success" &&
+      "empty" in opts &&
+      (query.data === null || (Array.isArray(query.data) && query.data.length === 0))
+    ) {
       return opts.empty(query);
     }
     return opts.success(query as any);
+  }
+
+  if (query.status === "loading") {
+    return opts.loading?.(query.status === "loading" ? query : null) ?? StatusLoader;
   }
 
   if (query.status === "error") {
@@ -96,9 +100,9 @@ const withQuery = <
     opts: Omit<
       Partial<QueryCellOptionsWithEmpty<TOutput, TError>> & QueryCellOptionsNoEmpty<TOutput, TError>,
       "query"
-    >
+    > & { input?: TInput }
   ) {
-    const query = queryProcedure.useQuery(input, params);
+    const query = queryProcedure.useQuery(opts.input || input, params);
     return <QueryCell query={query} {...opts} />;
   };
 };

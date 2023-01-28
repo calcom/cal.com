@@ -31,6 +31,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseDate, parseRecurringDates } from "@calcom/lib/parseDate";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc";
@@ -43,7 +44,6 @@ import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parseDate";
 import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
@@ -494,92 +494,7 @@ const BookingPage = ({
           <div className="sm:flex">
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-                <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {stripeAppData.price > 0 && (
-                    <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={stripeAppData.price / 100.0}
-                          style="currency"
-                          currency={stripeAppData.currency.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
-                  {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                    <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-                      <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                      <p className="-ml-2 inline-block items-center px-2">
-                        {getEveryFreqFor({
-                          t,
-                          recurringEvent: eventType.recurringEvent,
-                          recurringCount: recurringEventCount,
-                        })}
-                      </p>
-                    </div>
-                  )}
-                  <div className="text-bookinghighlight flex items-start text-sm">
-                    <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                    <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n.language)}`}
-                      {!rescheduleUid &&
-                        eventType.recurringEvent?.freq &&
-                        recurringStrings.slice(0, 5).map((timeFormatted, key) => {
-                          return <p key={key}>{timeFormatted}</p>;
-                        })}
-                      {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
-                        <div className="flex">
-                          <Tooltip
-                            content={recurringStrings.slice(5).map((timeFormatted, key) => (
-                              <p key={key}>{timeFormatted}</p>
-                            ))}>
-                            <p className="dark:text-darkgray-600 text-sm">
-                              + {t("plus_more", { count: recurringStrings.length - 5 })}
-                            </p>
-                          </Tooltip>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {booking?.startTime && rescheduleUid && (
-                    <div>
-                      <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
-                        {t("former_time")}
-                      </p>
-                      <p className="line-through ">
-                        <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
-                      </p>
-                    </div>
-                  )}
-                  {!!eventType.seatsPerTimeSlot && (
-                    <div className="text-bookinghighlight flex items-start text-sm">
-                      <FiUser
-                        className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
-                          booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                            ? "text-rose-600"
-                            : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                            ? "text-yellow-500"
-                            : "text-bookinghighlight"
-                        }`}
-                      />
-                      <p
-                        className={`${
-                          booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                            ? "text-rose-600"
-                            : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                            ? "text-yellow-500"
-                            : "text-bookinghighlight"
-                        } mb-2 font-medium`}>
-                        {booking
-                          ? eventType.seatsPerTimeSlot - booking.attendees.length
-                          : eventType.seatsPerTimeSlot}{" "}
-                        / {eventType.seatsPerTimeSlot} {t("seats_available")}
-                      </p>
-                    </div>
-                  )}
-                </BookingDescription>
+                <BookingSummary />
               </div>
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
@@ -617,132 +532,3 @@ function ErrorMessage({ error }: { error: unknown }) {
     </div>
   );
 }
-
-const bookingPageQuerySchema = z.object({
-  bookingUid: z.string().optional(),
-  count: z.string().optional(),
-  embed: z.string().optional(),
-  rescheduleUid: z.string().optional(),
-  type: z.string(),
-  user: z.string(),
-});
-
-const BookingDescriptionContainer = ({
-  eventType,
-  booking,
-  profile,
-  isDynamicGroupBooking,
-  recurringEventCount,
-  ...restProps
-}: BookingPageProps) => {
-  const { t, i18n } = useLocale();
-  const router = useRouter();
-  const stripeAppData = getStripeAppData(eventType);
-  const rescheduleUid = router.query.rescheduleUid as string;
-  const date = asStringOrNull(router.query.date);
-  const { data: routerQuery } = useTypedQuery(bookingPageQuerySchema);
-  const { data, error, isLoading } = trpc.viewer.public.bookingPage.useQuery(routerQuery);
-
-  const [recurringStrings] = data?.parsedRecurringEvent;
-
-  // Calculate the booking date(s)
-  let recurringStrings: string[] = [];
-  if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings] = parseRecurringDates(
-      {
-        startDate: date,
-        timeZone: timeZone(),
-        recurringEvent: eventType.recurringEvent,
-        recurringCount: parseInt(recurringEventCount.toString()),
-      },
-      i18n
-    );
-  }
-
-  return (
-    <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-      {stripeAppData.price > 0 && (
-        <p className="text-bookinglight -ml-2 px-2 text-sm ">
-          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-          <IntlProvider locale="en">
-            <FormattedNumber
-              value={stripeAppData.price / 100.0}
-              style="currency"
-              currency={stripeAppData.currency.toUpperCase()}
-            />
-          </IntlProvider>
-        </p>
-      )}
-      {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-        <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-          <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-          <p className="-ml-2 inline-block items-center px-2">
-            {getEveryFreqFor({
-              t,
-              recurringEvent: eventType.recurringEvent,
-              recurringCount: recurringEventCount,
-            })}
-          </p>
-        </div>
-      )}
-      <div className="text-bookinghighlight flex items-start text-sm">
-        <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-        <div className="text-sm font-medium">
-          {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
-          {!rescheduleUid &&
-            eventType.recurringEvent?.freq &&
-            recurringStrings.slice(0, 5).map((timeFormatted, key) => {
-              return <p key={key}>{timeFormatted}</p>;
-            })}
-          {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
-            <div className="flex">
-              <Tooltip
-                content={recurringStrings.slice(5).map((timeFormatted, key) => (
-                  <p key={key}>{timeFormatted}</p>
-                ))}>
-                <p className="dark:text-darkgray-600 text-sm">
-                  + {t("plus_more", { count: recurringStrings.length - 5 })}
-                </p>
-              </Tooltip>
-            </div>
-          )}
-        </div>
-      </div>
-      {booking?.startTime && rescheduleUid && (
-        <div>
-          <p className="mt-8 mb-2 text-sm " data-testid="former_time_p">
-            {t("former_time")}
-          </p>
-          <p className="line-through ">
-            <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-            {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
-          </p>
-        </div>
-      )}
-      {!!eventType.seatsPerTimeSlot && (
-        <div className="text-bookinghighlight flex items-start text-sm">
-          <FiUser
-            className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
-              booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                ? "text-rose-600"
-                : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                ? "text-yellow-500"
-                : "text-bookinghighlight"
-            }`}
-          />
-          <p
-            className={`${
-              booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
-                ? "text-rose-600"
-                : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
-                ? "text-yellow-500"
-                : "text-bookinghighlight"
-            } mb-2 font-medium`}>
-            {booking ? eventType.seatsPerTimeSlot - booking.attendees.length : eventType.seatsPerTimeSlot} /{" "}
-            {eventType.seatsPerTimeSlot} {t("seats_available")}
-          </p>
-        </div>
-      )}
-    </BookingDescription>
-  );
-};

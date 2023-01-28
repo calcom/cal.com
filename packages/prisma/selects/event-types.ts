@@ -19,6 +19,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   title: true,
   slug: true,
   description: true,
+  hidden: true,
   length: true,
   locations: true,
   customInputs: true,

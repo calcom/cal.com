@@ -69,7 +69,6 @@ const bookingPageQuerySchema = z.object({
   user: z.string(),
   email: z.string().optional(),
   name: z.string().optional(),
-  date: z.string().optional(),
 });
 
 // things that unauthenticated users can query about themselves
@@ -164,13 +163,14 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  bookingPage: publicProcedure.input(bookingPageQuerySchema).query(async ({ ctx, input }) => {
+  bookingPage: publicProcedure.input(bookingPageQuerySchema).query(async ({ input }) => {
     const {
       bookingUid,
       count: recurringEventCountQuery,
       embed,
       rescheduleUid,
       type,
+      duration,
       user: usernames,
     } = input;
     const eventTypeSlug = type;
@@ -295,22 +295,22 @@ const publicViewerRouter = router({
       booking,
       recurringEventCount,
       parsedRecurringEvent: parseRecurringEvent(eventType.recurringEvent),
-      parsedRecurringDates: input.date
-        ? parseRecurringDates(
-            {
-              startDate: input.date || "",
-              timeZone: ctx.timeZone,
-              recurringEvent: eventType.recurringEvent,
-              recurringCount: recurringEventCount || 0,
-            },
-            ctx.locale ?? "en"
-          )
-        : [],
+      // parsedRecurringDates: input.date
+      //   ? parseRecurringDates(
+      //       {
+      //         startDate: input.date || "",
+      //         timeZone: ctx.timeZone,
+      //         recurringEvent: eventType.recurringEvent,
+      //         recurringCount: recurringEventCount || 0,
+      //       },
+      //       ctx.locale ?? "en"
+      //     )
+      //   : [],
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
       hashedLink: null,
       isEmbed: typeof embed === "string",
-      duration: input.duration || eventType.length,
+      duration: duration || eventType.length,
     };
   }),
 });
