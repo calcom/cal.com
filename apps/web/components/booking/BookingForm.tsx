@@ -23,6 +23,7 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useEvent } from "@calcom/lib/hooks/useEvent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { RouterOutputs } from "@calcom/trpc";
 import {
@@ -43,7 +44,6 @@ import { ensureArray } from "@lib/ensureArray";
 import { useBookingPageParams, useBookingPageQuery } from "@lib/hooks/useBookingPageQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import slugify from "@lib/slugify";
 
 import { useGateState } from "@components/Gates";
 

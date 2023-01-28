@@ -11,6 +11,7 @@ import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 type AvailableTimesProps = {
   timeFormat: TimeFormat;
@@ -31,9 +32,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   slots = [],
   isLoading,
   date,
-  eventTypeId,
+  // eventTypeId,
   eventTypeSlug,
-  recurringCount,
   timeFormat,
   onTimeFormatChange,
   seatsPerTimeSlot,
@@ -42,6 +42,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   const { t, i18n } = useLocale();
   const router = useRouter();
   const { rescheduleUid } = router.query;
+  const { count } = useRouterQuery("count");
 
   const [brand, setBrand] = useState("#292929");
 
@@ -88,7 +89,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 // type: eventTypeId,
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
-                count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+                count: count && !rescheduleUid ? count : undefined,
                 ...(ethSignature ? { ethSignature } : {}),
               },
             };

@@ -7,7 +7,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -29,14 +28,12 @@ import { APP_NAME } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { parseDate, parseRecurringDates } from "@calcom/lib/parseDate";
-import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { parseRecurringDates } from "@calcom/lib/parseDate";
+import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { trpc } from "@calcom/trpc";
-import { AddressInput, PhoneInput, Tooltip } from "@calcom/ui";
-import { FiAlertTriangle, FiCalendar, FiCreditCard, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
+import { AddressInput, PhoneInput } from "@calcom/ui";
+import { FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -44,10 +41,8 @@ import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
-import BookingDescription from "@components/booking/BookingDescription";
 import { BookingFormLoader } from "@components/booking/BookingForm";
 
 import { BookPageProps } from "../../../pages/[user]/book";

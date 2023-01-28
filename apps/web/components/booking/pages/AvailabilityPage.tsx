@@ -412,7 +412,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       timeZone={timeZone}
                       users={userList}
                       seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                      recurringEventCount={recurringEventCount}
                       ethSignature={gateState.rainbowToken}
                     />
                   );

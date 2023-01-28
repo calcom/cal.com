@@ -79,6 +79,12 @@ const RecurringSummary = ({
   );
 };
 
+function useSelectedTime() {
+  const { date } = useRouterQuery("date");
+  const [, selectedTime] = date?.split("T") || [];
+  return selectedTime;
+}
+
 const RecurringInfo = ({
   recurringEvent,
   recurringCount,
@@ -88,12 +94,13 @@ const RecurringInfo = ({
 }) => {
   const { t } = useLocale();
   const { count, setQuery } = useRouterQuery("count");
+  const isSelectedTime = useSelectedTime();
 
   return (
     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
       {(() => {
-        if (true)
+        if (!isSelectedTime)
           return (
             <span>
               <p className="mb-1 -ml-2 inline px-2 py-1">{getRecurringFreq({ t, recurringEvent })}</p>
