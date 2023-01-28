@@ -2,8 +2,7 @@
 import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
 import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
 
-import { FiArrowRight, FiCalendar, FiChevronLeft, FiChevronRight } from "@calcom/ui/components/icon";
-
+import { FiArrowRight, FiCalendar, FiChevronLeft, FiChevronRight } from "../../icon";
 import "./styles.css";
 
 type Props = {
