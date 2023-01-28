@@ -1,4 +1,5 @@
 import React, { FC } from "react";
+import { IconType } from "react-icons/lib";
 
 import {
   Button,
@@ -7,18 +8,17 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
+  ButtonBaseProps,
   Icon,
 } from "@calcom/ui";
 
-import { SVGComponent } from "@lib/types/SVGComponent";
-
 export type ActionType = {
   id: string;
-  icon?: SVGComponent;
+  icon?: IconType;
   iconClassName?: string;
   label: string;
   disabled?: boolean;
-  color?: "primary" | "secondary";
+  color?: ButtonBaseProps["color"];
 } & (
   | { href: string; onClick?: never; actions?: never }
   | { href?: never; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void; actions?: never }
@@ -33,7 +33,7 @@ const defaultAction = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
   e.stopPropagation();
 };
 
-const DropdownActions = ({
+export const DropdownActions = ({
   actions,
   actionTrigger,
 }: {
@@ -52,10 +52,10 @@ const DropdownActions = ({
       <DropdownMenuPortal>
         <DropdownMenuContent>
           {actions.map((action) => (
-            <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
+            <DropdownMenuItem key={action.id}>
               <Button
                 type="button"
-                color="minimal"
+                color={action.color || "minimal"}
                 className="w-full rounded-none font-normal"
                 href={action.href}
                 StartIcon={action.icon}
@@ -71,7 +71,7 @@ const DropdownActions = ({
   );
 };
 
-const TableActions: FC<Props> = ({ actions }) => {
+export const TableActions: FC<Props> = ({ actions }) => {
   return (
     <>
       <div className="flex space-x-2 rtl:space-x-reverse">
@@ -99,5 +99,3 @@ const TableActions: FC<Props> = ({ actions }) => {
     </>
   );
 };
-
-export default TableActions;

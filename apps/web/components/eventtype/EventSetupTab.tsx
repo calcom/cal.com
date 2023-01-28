@@ -290,7 +290,7 @@ export const EventSetupTab = (
                   setDefaultDuration(
                     selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                   );
-                  formMethods.setValue("length", Number(option?.value));
+                  if (option) formMethods.setValue("length", option.value);
                 }}
               />
             </div>
@@ -298,14 +298,11 @@ export const EventSetupTab = (
         ) : (
           <TextField
             required
-            name="length"
             type="number"
             label={t("duration")}
-            addOnSuffix={<>{t("minutes")}</>}
             defaultValue={eventType.length ?? 15}
-            onChange={(e) => {
-              formMethods.setValue("length", Number(e.target.value));
-            }}
+            {...formMethods.register("length")}
+            addOnSuffix={<>{t("minutes")}</>}
           />
         )}
         <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">

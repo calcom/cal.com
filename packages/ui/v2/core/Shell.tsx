@@ -12,6 +12,7 @@ import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookin
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { Tips } from "@calcom/features/tips";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import {
@@ -40,7 +41,6 @@ import {
   Icon,
   showToast,
   TimezoneChangeDialog,
-  Tips,
 } from "../..";
 
 /* TODO: Get this from endpoint */

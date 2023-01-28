@@ -13,11 +13,11 @@ import {
   DialogHeader,
   DialogClose,
   Switch,
-  DatePicker,
   Form,
   Button,
 } from "@calcom/ui";
 
+import DatePicker from "../../calendars/DatePicker";
 import { DayRanges, TimeRange } from "./Schedule";
 
 const ALL_DAY_RANGE = {

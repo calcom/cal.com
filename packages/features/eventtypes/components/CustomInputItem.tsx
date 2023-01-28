@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import { Badge, Button, ButtonGroup, Icon } from "../../..";
+import { Badge, Button, ButtonGroup, Icon } from "@calcom/ui";
 
 type Props = {
   required?: boolean;

@@ -6,9 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { Button, Icon } from "@calcom/ui";
-
-import { SkeletonText } from "../../..";
+import { Button, Icon, SkeletonText } from "@calcom/ui";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
