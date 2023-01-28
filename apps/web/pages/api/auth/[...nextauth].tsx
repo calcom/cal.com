@@ -200,6 +200,71 @@ if (isSAMLLoginEnabled) {
       clientSecret: "dummy",
     },
   });
+
+  // Idp initiated login
+  providers.push(
+    CredentialsProvider({
+      id: "saml-idp",
+      name: "IdP Login",
+      credentials: {
+        code: {},
+      },
+      async authorize(credentials) {
+        if (!credentials) {
+          return null;
+        }
+
+        const { code } = credentials;
+
+        if (!code) {
+          return null;
+        }
+
+        // Fetch access token
+        const responseToken = await fetch(`${WEBAPP_URL}/api/auth/saml/token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            grant_type: "authorization_code",
+            client_id: "dummy",
+            client_secret: "dummy",
+            redirect_url: process.env.NEXTAUTH_URL,
+            code,
+          }),
+        });
+
+        if (responseToken.status !== 200) {
+          return null;
+        }
+
+        const { access_token } = await responseToken.json();
+
+        // Fetch user info
+        const responseUserInfo = await fetch(`${WEBAPP_URL}/api/auth/saml/userinfo`, {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
+
+        if (responseUserInfo.status !== 200) {
+          return null;
+        }
+
+        const { id, firstName, lastName, email } = await responseUserInfo.json();
+
+        return {
+          id,
+          firstName,
+          lastName,
+          email,
+          name: `${firstName} ${lastName}`.trim(),
+          email_verified: true,
+        };
+      },
+    })
+  );
 }
 
 if (true) {
@@ -299,6 +364,7 @@ export default NextAuth({
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
+
         const existingUser = await prisma.user.findFirst({
           where: {
             AND: [
@@ -353,14 +419,15 @@ export default NextAuth({
       if (account?.provider === "email") {
         return true;
       }
+
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account?.type === "credentials") {
-        return true;
+        // return true;
       }
 
       if (account?.type !== "oauth") {
-        return false;
+        // return false;
       }
 
       if (!user.email) {
@@ -373,7 +440,7 @@ export default NextAuth({
 
       if (account?.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml") {
+        if (account.provider === "saml" || account.provider === "saml-idp") {
           idP = IdentityProvider.SAML;
         }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -395,7 +462,7 @@ export default NextAuth({
             },
           },
           where: {
-            identityProvider: provider,
+            identityProvider: "SAML", //provider,
             identityProviderId: account.providerAccountId,
           },
         });
@@ -487,6 +554,7 @@ export default NextAuth({
             identityProviderId: String(user.id),
           },
         });
+        console.log({ newUser });
         const linkAccountNewUserData = { ...account, userId: newUser.id };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 

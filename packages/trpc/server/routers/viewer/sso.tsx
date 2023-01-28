@@ -87,7 +87,8 @@ export const ssoRouter = router({
       try {
         return await connectionController.createSAMLConnection({
           encodedRawMetadata,
-          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
+          // defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/callback/saml-idp`,
+          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/callback`,
           redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,
           product: samlProductID,

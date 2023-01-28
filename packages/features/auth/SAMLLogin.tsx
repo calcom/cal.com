@@ -1,5 +1,7 @@
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import z from "zod";
 
@@ -24,6 +26,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
   const { t } = useLocale();
   const methods = useFormContext();
   const telemetry = useTelemetry();
+  const router = useRouter();
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
@@ -33,6 +36,28 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
       setErrorMessage(t(err.message));
     },
   });
+
+  useEffect(() => {
+    const { code } = router.query;
+
+    if (!code) {
+      return;
+    }
+
+    (async () => {
+      const response = await signIn("saml-idp", {
+        callbackUrl: `http://localhost:3000`,
+        code,
+        redirect: false,
+      });
+
+      console.log(response);
+    })();
+  }, [router]);
+
+  // if (!router.isReady) {
+  //   return <>Loading...</>;
+  // }
 
   return (
     <Button
