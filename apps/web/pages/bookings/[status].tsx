@@ -137,7 +137,7 @@ export default function Bookings() {
               </div>
             )}
             <div className="pt-2 xl:pt-0">
-              <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("all")}</p>
+              {/* <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("all")}</p> */}
               <div className="overflow-hidden rounded-md border border-gray-200">
                 <table className="w-full max-w-full table-fixed">
                   <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">

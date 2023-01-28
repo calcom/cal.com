@@ -1,5 +1,4 @@
 import type { User } from "@prisma/client";
-import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
@@ -9,23 +8,17 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { Tips } from "@calcom/features/tips";
+import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  COMPANY_NAME,
-  DESKTOP_APP_LINK,
-  JOIN_SLACK,
-  ROADMAP,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -38,18 +31,15 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   TimezoneChangeDialog,
 } from "../..";
-
-/* TODO: Get this from endpoint */
-import pkg from "../../../../apps/web/package.json";
-import ErrorBoundary from "../../ErrorBoundary";
-import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
-import Logo from "../../Logo";
+import { Logo, ErrorBoundary } from "../../components";
+import { Icon } from "../../components/icon";
+import { SkeletonText } from "../../components/skeleton";
+import Credits from "./Credits";
+import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
 import HeadSeo from "./head-seo";
-import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -157,6 +147,7 @@ const Layout = (props: LayoutProps) => {
         <div className="divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
+          <AdminPasswordBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
@@ -252,50 +243,53 @@ function UserDropdown({ small }: { small?: boolean }) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center  rounded-full p-2 text-left outline-none hover:bg-gray-200 sm:pl-3 md:rounded lg:pl-2">
-          <span
-            className={classNames(
-              small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
-              "relative flex-shrink-0 rounded-full bg-gray-300 "
-            )}>
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="rounded-full"
-                src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                alt={user.username || "Nameless User"}
-              />
-            }
-            {!user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
-            )}
-            {user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
-            )}
-          </span>
-          {!small && (
-            <span className="flex flex-grow items-center truncate">
-              <span className="flex-grow truncate text-sm">
-                <span className="block truncate font-medium text-gray-900">
-                  {user.name || "Nameless User"}
-                </span>
-                <span className="block truncate font-normal text-gray-900">
-                  {user.username
-                    ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                      ? `cal.com/${user.username}`
-                      : `/${user.username}`
-                    : "No public page"}
-                </span>
-              </span>
-              <Icon.FiMoreVertical
-                className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                aria-hidden="true"
-              />
+      <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
+        <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+            <span
+              className={classNames(
+                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
+                "relative flex-shrink-0 rounded-full bg-gray-300 "
+              )}>
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="rounded-full"
+                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  alt={user.username || "Nameless User"}
+                />
+              }
+              {!user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+              )}
+              {user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
+              )}
             </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
+            {!small && (
+              <span className="flex flex-grow items-center truncate">
+                <span className="flex-grow truncate text-sm">
+                  <span className="block truncate font-medium text-gray-900">
+                    {user.name || "Nameless User"}
+                  </span>
+                  <span className="block truncate font-normal text-gray-900">
+                    {user.username
+                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
+                        ? `cal.com/${user.username}`
+                        : `/${user.username}`
+                      : "No public page"}
+                  </span>
+                </span>
+                <Icon.FiMoreVertical
+                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 ltr:mr-2 rtl:ml-2 rtl:mr-4"
+                  aria-hidden="true"
+                />
+              </span>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+      </div>
+
       <DropdownMenuPortal>
         <DropdownMenuContent
           onInteractOutside={() => {
@@ -313,13 +307,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
                         ? "text-purple-500 group-hover:text-purple-700"
                         : "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -334,8 +328,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("view_public_page")}
                     </a>
                   </DropdownMenuItem>
@@ -349,8 +343,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("copy_public_page_link")}
                     </a>
                   </DropdownMenuItem>
@@ -362,8 +356,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   href={JOIN_SLACK}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("join_our_slack")}
                 </a>
               </DropdownMenuItem>
@@ -372,18 +366,18 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={ROADMAP}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
                   onClick={() => setHelpOpen(true)}
-                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiHelpCircle
                     className={classNames(
                       "text-gray-500 group-hover:text-neutral-500",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -396,8 +390,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={DESKTOP_APP_LINK}
-                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
-                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse lg:flex">
+                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("download_desktop_app")}
                 </a>
               </DropdownMenuItem>
@@ -406,11 +400,11 @@ function UserDropdown({ small }: { small?: boolean }) {
               <DropdownMenuItem>
                 <a
                   onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiLogOut
                     className={classNames(
                       "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -714,22 +708,10 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function DeploymentInfo() {
-  return (
-    <small
-      style={{
-        fontSize: "0.5rem",
-      }}
-      className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
-      {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-    </small>
-  );
-}
-
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -742,14 +724,14 @@ function SideBar() {
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
-        <div className="flex flex-col pt-3 pb-32 lg:pt-5">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types">
               <a className="px-4">
                 <Logo small />
               </a>
             </Link>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -778,9 +760,10 @@ function SideBar() {
           <Navigation />
         </div>
 
-        {isCalcom && <Tips />}
-
-        <div className="fixed left-1 bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent lg:left-4 lg:w-48">
+        <div>
+          <LicenseRequired toHide>
+            <Tips />
+          </LicenseRequired>
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
@@ -789,7 +772,7 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <DeploymentInfo />
+          <Credits />
         </div>
       </aside>
     </div>
@@ -836,7 +819,7 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : "fixed right-4 bottom-[88px] z-40 ",
+                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}

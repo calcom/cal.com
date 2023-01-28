@@ -516,7 +516,7 @@ const BookingPage = ({
                   user={userToBeBooked}>
                   {stripeAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                      <Icon.FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={stripeAppData.price / 100.0}
@@ -528,7 +528,7 @@ const BookingPage = ({
                   )}
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-                      <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
+                      <Icon.FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
                           t,
@@ -539,7 +539,7 @@ const BookingPage = ({
                     </div>
                   )}
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                    <Icon.FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
                       {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
                       {!rescheduleUid &&
@@ -567,7 +567,7 @@ const BookingPage = ({
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <Icon.FiCalendar className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                        <Icon.FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
@@ -575,7 +575,7 @@ const BookingPage = ({
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
                       <Icon.FiUser
-                        className={`mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4 ${
+                        className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
                           booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                             ? "text-rose-600"
                             : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
@@ -638,7 +638,7 @@ const BookingPage = ({
                     />
                     {bookingForm.formState.errors.email && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("email_validation_error")}</p>
                       </div>
                     )}
@@ -679,8 +679,8 @@ const BookingPage = ({
                                 value={location.type}
                                 defaultChecked={i === 0}
                               />
-                              <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                                {locationKeyToString(location)}
+                              <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
+                                {t(locationKeyToString(location) ?? "")}
                               </span>
                             </label>
                           );
@@ -704,7 +704,7 @@ const BookingPage = ({
                       {selectedLocationType === LocationType.Phone
                         ? t("phone_number")
                         : selectedLocationType === LocationType.AttendeeInPerson
-                        ? t("Address")
+                        ? t("address")
                         : ""}
                     </label>
                     <div className="mt-1">
@@ -731,7 +731,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.phone && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -825,6 +825,7 @@ const BookingPage = ({
                       {input.options && input.type === EventTypeCustomInputType.RADIO && (
                         <div className="flex">
                           <Group
+                            name={`customInputs.${input.id}`}
                             required={input.required}
                             onValueChange={(e) => {
                               bookingForm.setValue(`customInputs.${input.id}`, e);
@@ -833,9 +834,9 @@ const BookingPage = ({
                               {input.options.map((option, i) => (
                                 <RadioField
                                   label={option.label}
-                                  key={`option.${i}.radio`}
+                                  key={`option.${input.id}.${i}.radio`}
                                   value={option.label}
-                                  id={`option.${i}.radio`}
+                                  id={`option.${input.id}.${i}.radio`}
                                 />
                               ))}
                             </>
@@ -858,7 +859,7 @@ const BookingPage = ({
                           />
                           {bookingForm.formState.errors?.customInputs?.[input.id] && (
                             <div className="mt-2 flex items-center text-sm text-red-700 ">
-                              <Icon.FiInfo className="mr-2 h-3 w-3" />
+                              <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                               <p>{t("invalid_number")}</p>
                             </div>
                           )}
@@ -938,7 +939,7 @@ const BookingPage = ({
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="mr-2 h-3 w-3" />
+                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}

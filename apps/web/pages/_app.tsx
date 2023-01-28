@@ -19,7 +19,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
@@ -32,7 +31,6 @@ function MyApp(props: AppProps) {
   }
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
-
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />

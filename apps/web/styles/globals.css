@@ -215,17 +215,6 @@ button[role="switch"][data-state="checked"] {
   background: black;
 }
 
-/* add padding bottom to bottom nav on standalone mode */
-@media all and (display-mode: standalone) {
-  .bottom-nav {
-    padding-bottom: 24px;
-  }
-
-  .cta {
-    bottom: 100px;
-  }
-}
-
 /* hide chat bubble on mobile */
 @media only screen and (max-width: 768px) {
   /* Intercom FAB*/
@@ -244,13 +233,6 @@ button[role="switch"][data-state="checked"] {
     left: 50%;
     bottom: 28px !important;
     z-index: 1058 !important;
-  }
-}
-
-/* add padding bottom to bottom nav on standalone mode */
-@media all and (display-mode: standalone) {
-  .bottom-nav {
-    padding-bottom: 24px;
   }
 }
 

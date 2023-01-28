@@ -8,8 +8,8 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import { Icon } from "@calcom/ui";
 
-import EmptyScreen from "../EmptyScreen";
-import AppCard from "./AppCard";
+import EmptyScreen from "../../v2/core/EmptyScreen";
+import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
   const ref = useRef<HTMLUListElement>(null);
@@ -129,7 +129,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
   );
 }
 
-export default function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
+export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
   const router = useRouter();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

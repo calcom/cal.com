@@ -68,7 +68,6 @@ export function getWorkingHours(
   if (!availability.length) {
     return [];
   }
-
   const utcOffset =
     relativeTimeUnit.utcOffset ??
     (relativeTimeUnit.timeZone ? dayjs().tz(relativeTimeUnit.timeZone).utcOffset() : 0);
@@ -118,7 +117,6 @@ export function getWorkingHours(
   }, []);
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
-
   return workingHours;
 }
 

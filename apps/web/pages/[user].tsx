@@ -27,7 +27,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
@@ -139,7 +139,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
-                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                  <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
               <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
