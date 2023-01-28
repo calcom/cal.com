@@ -45,6 +45,7 @@ declare namespace NodeJS {
     readonly VERCEL_ENV: "production" | "preview" | "development" | undefined;
     /** The URL of the deployment. Example: my-site-7q03y4pi5.vercel.app. */
     readonly VERCEL_URL: string | undefined;
+    readonly NEXT_PUBLIC_SLOTS_PROXY_URL: string | undefined;
     /**
      * This is used so we can bypass emails in auth flows for E2E testing.
      * Set it to "1" if you need to run E2E tests locally

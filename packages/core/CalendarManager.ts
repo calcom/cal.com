@@ -1,7 +1,6 @@
 import { SelectedCalendar } from "@prisma/client";
 import { createHash } from "crypto";
 import _ from "lodash";
-import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
@@ -11,6 +10,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
+import redis from "@calcom/web/lib/redis";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
@@ -113,14 +113,13 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
-const CACHING_TIME = 30_000; // 30 seconds
-
 const getCachedResults = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ) => {
+  const redisClient = await redis.getInstance();
   const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
   const calendars = calendarCredentials.map((credential) => getCalendar(credential));
 
@@ -140,11 +139,11 @@ const getCachedResults = async (
     const cacheKey = JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo });
     const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
     /** Check if we already have cached data and return */
-    const cachedAvailability = cache.get(cacheHashedKey);
+    const cachedAvailability = await redisClient.get(cacheHashedKey);
 
     if (cachedAvailability) {
       log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
-      return cachedAvailability;
+      return JSON.parse(cachedAvailability);
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -160,7 +159,7 @@ const getCachedResults = async (
 
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
-    cache.put(cacheHashedKey, availability, CACHING_TIME);
+    await redisClient.set(cacheHashedKey, JSON.stringify(availability), { EX: 30 });
     return availability;
   });
   const awaitedResults = await Promise.all(results);
@@ -292,11 +291,12 @@ export const updateEvent = async (
 export const deleteEvent = (
   credential: CredentialPayload,
   uid: string,
-  event: CalendarEvent
+  event: CalendarEvent,
+  externalCalendarId: string | null = null
 ): Promise<unknown> => {
   const calendar = getCalendar(credential);
   if (calendar) {
-    return calendar.deleteEvent(uid, event);
+    return calendar.deleteEvent(uid, event, externalCalendarId);
   }
 
   return Promise.resolve({});

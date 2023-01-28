@@ -16,7 +16,6 @@ import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
-  sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
@@ -184,11 +183,9 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
-
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0]
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+    ? props.bookingInfo.location[0] || ""
+    : props.bookingInfo.location || "";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -250,21 +247,6 @@ export default function Success(props: SuccessProps) {
   }, [telemetry]);
 
   useEffect(() => {
-    const users = eventType.users;
-    if (!sdkActionManager) return;
-    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager.fire("bookingSuccessful", {
-      eventType,
-      date: date.toString(),
-      duration: calculatedDuration,
-      organizer: {
-        name: users[0].name || "Nameless",
-        email: users[0].email || "Email-less",
-        timeZone: users[0].timeZone,
-      },
-      confirmed: !needsConfirmation,
-      // TODO: Add payment details
-    });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -563,7 +545,7 @@ export default function Success(props: SuccessProps) {
                 {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <>
+                    <div className="hidden">
                       <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                       <div className="text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -591,7 +573,7 @@ export default function Success(props: SuccessProps) {
                           {t("cancel")}
                         </button>
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300" />

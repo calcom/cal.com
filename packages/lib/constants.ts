@@ -52,6 +52,7 @@ export const SEO_IMG_OGIMG = `${CAL_URL}/_next/image?w=1200&q=100&url=${encodeUR
   "/api/social/og/image"
 )}`;
 export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
+export const SIGNUP_DISABLED = true;
 export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
