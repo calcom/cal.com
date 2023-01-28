@@ -28,6 +28,8 @@ import "dayjs/locale/zh-cn";
 import "dayjs/locale/zh-tw";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import isBetween from "dayjs/plugin/isBetween";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import isToday from "dayjs/plugin/isToday";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import minmax from "dayjs/plugin/minMax";
@@ -46,6 +48,8 @@ dayjs.extend(timeZone);
 dayjs.extend(toArray);
 dayjs.extend(utc);
 dayjs.extend(minmax);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 export type Dayjs = dayjs.Dayjs;
 

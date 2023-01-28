@@ -64,18 +64,6 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     createdEvent: undefined,
   };
   try {
-    // Check to see if video app is enabled
-    const enabledApp = await prisma.app.findFirst({
-      where: {
-        slug: credential.appId,
-      },
-      select: {
-        enabled: true,
-      },
-    });
-
-    if (!enabledApp?.enabled) throw "Current location app is not enabled";
-
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };

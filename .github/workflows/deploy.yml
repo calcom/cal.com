@@ -1,0 +1,94 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - production
+      - staging
+
+jobs:
+  deploy:
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
+      DATABASE_URL: postgresql://cal:secret@localhost:5432/cal
+      ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
+      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
+      NEXT_PUBLIC_SLOTS_PROXY_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_SLOTS_PROXY_URL_STAGING || secrets.PUBLIC_SLOTS_PROXY_URL_PRODUCTION }}
+      NEXTAUTH_SECRET: secret
+      CALENDSO_ENCRYPTION_KEY: secret
+      GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+    runs-on: ubuntu-latest
+    services:
+       db:
+         image: postgres:14
+         ports:
+           - 5432:5432
+         env:
+           POSTGRES_USER: cal
+           POSTGRES_DB: cal
+           POSTGRES_PASSWORD: secret
+         options: >-
+           --health-cmd pg_isready
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
+    concurrency:
+      group: ${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: "aws-actions/configure-aws-credentials@v1"
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+        with:
+          ssm_parameter: "/cal/${{ env.ENVIRONMENT }}/GLOBAL_WEBHOOK_SUBSCRIBERS"
+          env_variable_name: "GLOBAL_WEBHOOK_SUBSCRIBERS"
+
+      - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+        with:
+          ssm_parameter: "/cal/shared/GLOBAL_WEBHOOK_SECRET"
+          env_variable_name: "GLOBAL_WEBHOOK_SECRET"
+
+      - name: Login to ECR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.AWS_ECR_URL }}
+          username: ${{ env.AWS_ACCESS_KEY_ID }}
+          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Docker Build
+        run: make docker_build
+
+      - name: Docker Push
+        run: make docker_push
+
+      - name: Run deploy command
+        run: make deploy_to_${{ env.ENVIRONMENT }}
+        shell: bash
+
+      #- id: git_message
+        #shell: bash
+        #run: echo "::set-output name=short::$(echo "${{ github.event.head_commit.message }}" | head -1)"
+
+      #- name: Slack Notification
+        #uses: rtCamp/action-slack-notify@v2
+        #env:
+          #SLACK_CHANNEL: ${{ inputs.environment == 'staging' && 'deploys-staging' || 'deploys' }}
+          #SLACK_ICON_EMOJI: ':family:'
+          #SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'TODO' || 'TODO' }}
+          #SLACK_USERNAME: cal
+          #MSG_MINIMAL: commit
+          #SLACK_WEBHOOK: ${{ secrets.SLACK_URL }}
+          #SLACK_MESSAGE: ${{ steps.git_message.outputs.short }}

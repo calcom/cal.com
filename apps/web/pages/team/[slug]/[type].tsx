@@ -49,6 +49,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
         select: {
           id: true,
+          teamId: true,
           slug: true,
           hidden: true,
           users: {
