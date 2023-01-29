@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { defaultHandler } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
 const senderEmail = process.env.SENDGRID_EMAIL as string;
