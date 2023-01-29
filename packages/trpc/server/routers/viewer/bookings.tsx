@@ -300,6 +300,7 @@ export const bookingsRouter = router({
               },
             },
           },
+          isRecordingExist: true,
         },
         orderBy,
         take: take + 1,
