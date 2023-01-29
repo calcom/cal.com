@@ -1,44 +1,37 @@
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
+  $isListNode,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
-  REMOVE_LIST_COMMAND,
-  $isListNode,
   ListNode,
+  REMOVE_LIST_COMMAND,
 } from "@lexical/list";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
-import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
+import { $isAtNodeEnd, $wrapNodes } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import classNames from "classnames";
 import {
-  SELECTION_CHANGE_COMMAND,
-  FORMAT_TEXT_COMMAND,
-  $getSelection,
-  $isRangeSelection,
   $createParagraphNode,
-  RangeSelection,
-  NodeSelection,
-  GridSelection,
   $getRoot,
+  $getSelection,
   $insertNodes,
-  LexicalEditor,
+  $isRangeSelection,
   EditorState,
+  FORMAT_TEXT_COMMAND,
+  GridSelection,
+  LexicalEditor,
+  NodeSelection,
+  RangeSelection,
+  SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import {
-  Icon,
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuContent,
-  Button,
-} from "@calcom/ui";
-
+import { Button } from "../../button";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
+import { FiChevronDown } from "../../icon";
 import { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -394,7 +387,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
   }, [editor, isLink]);
-  console.log("TEST", blockTypeToBlockName[blockType]);
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
@@ -407,7 +399,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   <span className="text hidden text-gray-700 sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <Icon.FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
+                  <FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
                 </>
               </DropdownMenuTrigger>
               <DropdownMenuContent>

@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { Icon, Button, ButtonGroup } from "@calcom/ui";
+import { Button, ButtonGroup } from "@calcom/ui";
+import { FiChevronLeft, FiChevronRight } from "@calcom/ui/components/icon";
 
 import { useCalendarStore } from "../../state/store";
 
@@ -29,7 +30,7 @@ export function SchedulerHeading() {
         <ButtonGroup combined>
           {/* TODO: i18n label with correct view */}
           <Button
-            StartIcon={Icon.FiChevronLeft}
+            StartIcon={FiChevronLeft}
             variant="icon"
             color="secondary"
             aria-label="Previous Week"
@@ -38,7 +39,7 @@ export function SchedulerHeading() {
             }}
           />
           <Button
-            StartIcon={Icon.FiChevronRight}
+            StartIcon={FiChevronRight}
             variant="icon"
             color="secondary"
             aria-label="Next Week"

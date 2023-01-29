@@ -118,7 +118,12 @@ test.describe("Routing Forms", () => {
 
     // TODO: How to install the app just once?
     test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing-forms" });
+      const user = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+        }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -148,7 +153,10 @@ test.describe("Routing Forms", () => {
       users: Fixtures["users"];
       page: Page;
     }) {
-      const user = await users.create({ username: "routing-forms" }, { seedRoutingForms: true });
+      const user = await users.create(
+        { username: "routing-forms" },
+        { seedRoutingForms: true, hasTeam: true }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);

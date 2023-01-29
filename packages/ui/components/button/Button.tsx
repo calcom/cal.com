@@ -5,8 +5,9 @@ import React, { forwardRef } from "react";
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Tooltip } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+
+import { FiPlus } from "../icon";
+import { Tooltip } from "../tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
@@ -39,7 +40,7 @@ const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
+        fab: "rounded-full justify-center sm:rounded-md  radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
         primary: "text-white dark:text-black",
@@ -75,7 +76,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+          "bg-brand-500 hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
       }),
       // Secondary variants
       {
@@ -94,7 +95,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
       }),
       // Minimal variants
       {
@@ -113,7 +114,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "minimal",
         className:
-          "hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
       }),
       // Destructive variants
       {
@@ -132,7 +133,7 @@ const buttonClasses = cva(
         disabled: [false, undefined],
         color: "destructive",
         className:
-          "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
+          "border dark:text-white text-gray-900 hover:text-red-700 focus-visible:text-red-700 dark:hover:text-red-700 dark:focus-visible:text-red-700 hover:border-red-100 focus-visible:border-red-100 hover:bg-red-100  focus-visible:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
       }),
       // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
@@ -144,6 +145,11 @@ const buttonClasses = cva(
         variant: "icon",
         size: "sm",
         className: "h-6 w-6 !p-1",
+      },
+      {
+        variant: "fab",
+        size: "base",
+        className: "h-14 sm:h-9 sm:w-auto sm:px-4 sm:py-2.5",
       },
     ],
     defaultVariants: {
@@ -199,7 +205,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
-              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+              <FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
             <StartIcon
@@ -233,7 +239,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           {variant === "fab" ? (
             <>
               <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
-              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+              <FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
             <EndIcon

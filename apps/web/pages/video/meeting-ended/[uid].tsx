@@ -4,7 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Button, Icon, HeadSeo } from "@calcom/ui";
+import { Button, HeadSeo } from "@calcom/ui";
+import { FiArrowRight, FiCalendar, FiX } from "@calcom/ui/components/icon";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -28,7 +29,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                    <Icon.FiX className="h-6 w-6 text-red-600" />
+                    <FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
@@ -40,14 +41,14 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                       {props.booking.title}
                     </h2>
                     <p className="text-center text-gray-500">
-                      <Icon.FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
+                      <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
                     </p>
                   </div>
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={Icon.FiArrowRight}>
+                    <Button data-testid="return-home" href="/event-types" EndIcon={FiArrowRight}>
                       {t("go_back")}
                     </Button>
                   </div>

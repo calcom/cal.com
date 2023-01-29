@@ -13,8 +13,8 @@ import {
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../../components/icon";
 import { UpgradeTeamsBadge } from "../../badge";
+import { FiCheck } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -62,7 +62,7 @@ export const OptionComponent = <
       <>
         <span className="mr-auto">{props.label}</span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
-        {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
+        {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
       </>
     </reactSelectComponents.Option>
   );
@@ -147,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-1 !rounded-md border-gray-900 bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
       className
     )}
   />

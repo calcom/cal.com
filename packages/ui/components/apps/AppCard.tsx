@@ -7,7 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon, showToast } from "../..";
+import { Button } from "../button";
+import { FiPlus } from "../icon";
+import { showToast } from "../toast";
 
 interface AppCardProps {
   app: App;
@@ -100,7 +102,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                     <Button
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       {...props}>
                       {t("install")}
                     </Button>
@@ -125,7 +127,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   }
                   return (
                     <Button
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"

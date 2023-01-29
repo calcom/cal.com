@@ -11,6 +11,6 @@
   "email": "support@cal.com",
   "description": "A template showcasing how an app with EventType AppCard can be built e.g. Giphy, QR Code",
   "extendsFeature": "EventType",
-  "isTemplate":true,
+  "isTemplate": true,
   "__createdUsingCli": true
 }

@@ -10,6 +10,6 @@
   "publisher": "Cal.com Inc",
   "email": "support@cal.com",
   "description": "It is a template showing how an App can have settings in installed section that configures the app globally e.g. Weather in your Calendar",
-  "isTemplate":true,
+  "isTemplate": true,
   "__createdUsingCli": true
 }

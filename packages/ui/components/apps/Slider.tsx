@@ -5,7 +5,7 @@ import { ComponentProps, FC, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../components/icon";
+import { FiArrowLeft, FiArrowRight } from "../icon";
 import { SkeletonText } from "../skeleton";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
@@ -68,10 +68,10 @@ export const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
             <SliderButton data-glide-dir="<">
-              <Icon.FiArrowLeft className="h-5 w-5" />
+              <FiArrowLeft className="h-5 w-5" />
             </SliderButton>
             <SliderButton data-glide-dir=">">
-              <Icon.FiArrowRight className="h-5 w-5" />
+              <FiArrowRight className="h-5 w-5" />
             </SliderButton>
           </div>
         </div>

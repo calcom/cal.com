@@ -2,262 +2,198 @@
   {
     "/*": "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually",
     "dirName": "routing-forms",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "routing-forms",
     "type": "routing-forms_other"
   },
   {
     "dirName": "whereby",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "whereby",
     "type": "whereby_video"
   },
   {
     "dirName": "around",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "around",
     "type": "around_video"
   },
   {
     "dirName": "riverside",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "riverside",
     "type": "riverside_video"
   },
   {
     "dirName": "typeform",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "typeform",
     "type": "typeform_other"
   },
   {
     "dirName": "ping",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "ping",
     "type": "ping_video"
   },
   {
     "dirName": "campfire",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "campfire",
     "type": "campfire_video"
   },
   {
     "dirName": "rainbow",
-    "categories": [
-      "web3"
-    ],
+    "categories": ["web3"],
     "slug": "rainbow",
     "type": "rainbow_web3"
   },
   {
     "dirName": "raycast",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "raycast",
     "type": "raycast_other"
   },
   {
     "dirName": "n8n",
-    "categories": [
-      "automation"
-    ],
+    "categories": ["automation"],
     "slug": "n8n",
     "type": "n8n_automation"
   },
   {
     "dirName": "exchangecalendar",
-    "categories": [
-      "calendar"
-    ],
+    "categories": ["calendar"],
     "slug": "exchange",
     "type": "exchange_calendar"
   },
   {
     "dirName": "qr_code",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "qr_code",
     "type": "qr_code_other"
   },
   {
     "dirName": "weather_in_your_calendar",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "weather_in_your_calendar",
     "type": "weather_in_your_calendar_other"
   },
   {
     "dirName": "fathom",
-    "categories": [
-      "analytics"
-    ],
+    "categories": ["analytics"],
     "slug": "fathom",
     "type": "fathom_analytics"
   },
   {
     "dirName": "plausible",
-    "categories": [
-      "analytics"
-    ],
+    "categories": ["analytics"],
     "slug": "plausible",
     "type": "plausible_analytics"
   },
   {
     "dirName": "wordpress",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "wordpress",
     "type": "wordpress_other"
   },
   {
     "dirName": "ga4",
-    "categories": [
-      "analytics"
-    ],
+    "categories": ["analytics"],
     "slug": "ga4",
     "type": "ga4_analytics"
   },
   {
     "dirName": "pipedream",
-    "categories": [
-      "automation"
-    ],
+    "categories": ["automation"],
     "slug": "pipedream",
     "type": "pipedream_automation"
   },
   {
     "dirName": "sirius_video",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "sirius_video",
     "type": "sirius_video_video"
   },
   {
     "dirName": "sendgrid",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "sendgrid",
     "type": "sendgrid_other_calendar"
   },
   {
     "dirName": "closecom",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "closecom",
     "type": "closecom_other_calendar"
   },
   {
     "dirName": "whatsapp",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "whatsapp",
     "type": "whatsapp_video"
   },
   {
     "dirName": "telegram",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "telegram",
     "type": "telegram_video"
   },
   {
     "dirName": "signal",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "signal",
     "type": "signal_video"
   },
   {
     "dirName": "vimcal",
-    "categories": [
-      "calendar"
-    ],
+    "categories": ["calendar"],
     "slug": "vimcal",
     "type": "vimcal_other"
   },
   {
     "dirName": "amie",
-    "categories": [
-      "calendar"
-    ],
+    "categories": ["calendar"],
     "slug": "amie",
     "type": "amie_other"
   },
   {
     "dirName": "booking-pages-tag",
-    "categories": [
-      "analytics"
-    ],
+    "categories": ["analytics"],
     "slug": "booking-pages-tag",
     "type": "booking-pages-tag_other",
     "isTemplate": true
   },
   {
     "dirName": "event-type-app-card",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "event-type-app-card",
     "type": "event-type-app-card_other",
     "isTemplate": true
   },
   {
     "dirName": "event-type-location-video-static",
-    "categories": [
-      "video"
-    ],
+    "categories": ["video"],
     "slug": "event-type-location-video-static",
     "type": "event-type-location-video-static_other",
     "isTemplate": true
   },
   {
     "dirName": "general-app-settings",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "general-app-settings",
     "type": "general-app-settings_other",
     "isTemplate": true
   },
   {
     "dirName": "link-as-an-app",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "link-as-an-app",
     "type": "link-as-an-app_other",
     "isTemplate": true
   },
   {
     "dirName": "basic",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "basic",
     "type": "basic_other",
     "isTemplate": true
