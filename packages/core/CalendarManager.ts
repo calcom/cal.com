@@ -2,9 +2,11 @@ import { SelectedCalendar } from "@prisma/client";
 import { createHash } from "crypto";
 import _ from "lodash";
 import cache from "memory-cache";
+import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -115,15 +117,15 @@ const cleanIntegrationKeys = (
 
 const CACHING_TIME = 30_000; // 30 seconds
 
-const getCachedResults = async (
+// here I will fetch the page json file.
+export const getCachedResults = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
-) => {
+): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
   const calendars = calendarCredentials.map((credential) => getCalendar(credential));
-
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
@@ -173,18 +175,41 @@ const getCachedResults = async (
   return awaitedResults;
 };
 
-export const getBusyCalendarTimes = async (
-  withCredentials: CredentialPayload[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-) => {
-  let results: EventBusyDate[][] = [];
+/**
+ * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
+ * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
+ * @param username
+ * @param month
+ */
+const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
+  let localCache: EventBusyDate[][] = [];
   try {
-    results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
-  } catch (error) {
-    log.warn(error);
+    const { NEXT_PUBLIC_WEBAPP_URL, NODE_ENV } = process.env;
+    const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
+    const baseUrl = `${NEXT_PUBLIC_WEBAPP_URL}/_next/data/${cacheDir}/en`;
+    // console.log(`${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`);
+    localCache = await fetch(
+      `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`
+    )
+      .then((r) => r.json())
+      .then((json) => json?.pageProps?.results);
+  } catch (e) {
+    log.warn(e);
   }
+  return localCache;
+};
+
+export const getBusyCalendarTimes = async (
+  username: string,
+  withCredentials: CredentialPayload[],
+  dateFrom: string
+  // TODO: Make sure it's necessary
+  // selectedCalendars: SelectedCalendar[]
+) => {
+  /* Fetch the cached JSON file on development environment it takes a long time because Next must compiles the whole
+  page and reduces the cache time,*/
+  const results: EventBusyDate[][] = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
+
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

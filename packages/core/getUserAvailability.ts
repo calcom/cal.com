@@ -145,6 +145,7 @@ export async function getUserAvailability(
     endTime: dateTo.toISOString(),
     eventTypeId,
     userId: currentUser.id,
+    username: `${currentUser.username}`,
     selectedCalendars,
     beforeEventBuffer,
     afterEventBuffer,

@@ -85,6 +85,7 @@
     "next": "^13.1.1",
     "next-auth": "^4.10.3",
     "next-axiom": "^0.16.0",
+    "next-build-id": "^3.0.0",
     "next-collect": "^0.2.1",
     "next-i18next": "^11.3.0",
     "next-seo": "^4.26.0",
