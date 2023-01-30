@@ -5,7 +5,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, Label, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
-import { FiInfo } from "@calcom/ui/components/icon";
+import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
 
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
@@ -146,9 +146,9 @@ export const BookEventForm = ({ username, eventSlug }: BookEventFormProps) => {
             <Button
               type="button"
               color="minimal"
-              size="icon"
+              variant="icon"
               tooltip={t("additional_guests")}
-              StartIcon={Icon.FiUserPlus}
+              StartIcon={FiUserPlus}
               // onClick={() => setGuestToggle(!guestToggle)}
               className="mr-auto"
             />

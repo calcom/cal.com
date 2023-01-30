@@ -17,7 +17,7 @@ import { useScheduleWithCache, useSlotsForDate, useNonEmptyScheduleDays } from "
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { trpc } from "@calcom/trpc/react";
 import { TimezoneSelect } from "@calcom/ui";
-import { FiChevronDown } from "@calcom/ui/components/icon";
+import { FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp, fadeInLeft } from "./config";
 import { useGetBrowsingMonthStart } from "./utils/dates";
@@ -99,7 +99,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                   <EventMembers meetingType={event.data.meetingType} users={event.data.users} />
                   <EventTitle>{event.data?.title}</EventTitle>
                   <EventDetails event={event.data} />
-                  <EventMeta contentClassName="relative" icon={Icon.FiGlobe}>
+                  <EventMeta contentClassName="relative" icon={FiGlobe}>
                     <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 top-0 z-10 flex h-full w-full items-center bg-white">
                       {timezone} <FiChevronDown className="ml-2 inline-block" />
                     </span>
