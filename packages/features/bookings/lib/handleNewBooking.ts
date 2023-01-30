@@ -154,6 +154,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     select: {
       id: true,
       customInputs: true,
+      disableGuests: true,
       users: userSelect,
       team: {
         select: {
@@ -310,11 +311,18 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
 
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata || {});
+
   eventType = {
     ...eventType,
     // TODO: ManageBookings: Use getEventTypeById which would avoid having to do it again
     // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingFields fixed.
-    bookingFields: ensureBookingInputsHaveSystemFields(eventType.bookingFields),
+    bookingFields: ensureBookingInputsHaveSystemFields({
+      bookingFields: eventType.bookingFields,
+      disableGuests: eventType.disableGuests,
+      additionalNotesRequired: !!eventTypeMetadata?.additionalNotesRequired,
+      customInputs: customInputSchema.array().parse(eventType.customInputs || []),
+    }),
   };
   const {
     recurringCount,
@@ -344,8 +352,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     : reqBody.guests;
 
   const location = reqBody.responses
-    ? reqBody.responses.location?.optionValue || reqBody.responses.location?.value
+    ? reqBody.responses.location?.optionValue || reqBody.responses.location?.value || ""
     : reqBody.location;
+  const smsReminderNumber =
+    (reqBody.responses ? reqBody.responses.smsReminderNumber : null) || reqBody.smsReminderNumber;
 
   const additionalNotes = reqBody.responses ? reqBody.responses.notes : reqBody.notes;
 
@@ -360,7 +370,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
-  handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
+  // handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
@@ -629,6 +639,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
+    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
+    }
     await prisma.booking.update({
       where: {
         uid: reqBody.bookingUid,
@@ -757,9 +777,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
-    const smsReminderNumber =
-      (reqBody.responses.location?.value === "phone" ? reqBody.responses.location.optionValue : null) ||
-      reqBody.smsReminderNumber;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       responses: reqBody.responses,
@@ -1179,11 +1196,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   } catch (error) {
     log.error("Error while creating booking references", error);
   }
-
+  console.log("smsReminderNumber", smsReminderNumber);
   try {
     await scheduleWorkflowReminders(
       eventType.workflows,
-      reqBody.smsReminderNumber as string | null,
+      smsReminderNumber as string | null,
       { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,

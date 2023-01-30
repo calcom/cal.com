@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
@@ -13,11 +13,43 @@ import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } fr
 
 import { TRPCError } from "@trpc/server";
 
-export const ensureBookingInputsHaveSystemFields = (
-  bookingFields: z.infer<typeof eventTypeBookingFields>
-) => {
-  bookingFields = bookingFields || [];
-  const mustHaveFields: typeof bookingFields = [
+import slugify from "./slugify";
+
+type Fields = z.infer<typeof eventTypeBookingFields>;
+
+const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
+const EventTypeCustomInputType = {
+  TEXT: "TEXT",
+  TEXTLONG: "TEXTLONG",
+  NUMBER: "NUMBER",
+  BOOL: "BOOL",
+  RADIO: "RADIO",
+  PHONE: "PHONE",
+};
+
+export const ensureBookingInputsHaveSystemFields = ({
+  bookingFields,
+  disableGuests,
+  additionalNotesRequired,
+  customInputs,
+}: {
+  bookingFields: Fields;
+  disableGuests: boolean;
+  additionalNotesRequired: boolean;
+  customInputs: z.infer<typeof customInputSchema>[];
+}) => {
+  // If bookingFields is set already, the migration is done. The very first time for an EventType bookingFields would be empty
+  const handleMigration = !bookingFields.length;
+  const CustomInputTypeToFieldType = {
+    [EventTypeCustomInputType.TEXT]: BookingFieldType.text,
+    [EventTypeCustomInputType.TEXTLONG]: BookingFieldType.textarea,
+    [EventTypeCustomInputType.NUMBER]: BookingFieldType.number,
+    [EventTypeCustomInputType.BOOL]: BookingFieldType.boolean,
+    [EventTypeCustomInputType.RADIO]: BookingFieldType.radio,
+    [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
+  };
+
+  const systemFields: typeof bookingFields = [
     {
       label: "Your name",
       type: "text",
@@ -79,7 +111,7 @@ export const ensureBookingInputsHaveSystemFields = (
       type: "textarea",
       name: "notes",
       editable: "system-but-optional",
-      required: false,
+      required: additionalNotesRequired,
       sources: [
         {
           label: "Default",
@@ -94,7 +126,7 @@ export const ensureBookingInputsHaveSystemFields = (
       name: "guests",
       editable: "system-but-optional",
       required: false,
-      hidden: false,
+      hidden: disableGuests,
       sources: [
         {
           label: "Default",
@@ -122,13 +154,43 @@ export const ensureBookingInputsHaveSystemFields = (
     },
   ];
 
-  for (const field of mustHaveFields) {
+  const missingSystemFields = [];
+  // Push system fields first if any of them don't exist. We can't simply live without system fields
+  for (const field of systemFields) {
+    // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (!bookingFields.find((f) => f.name === field.name)) {
-      bookingFields.push(field);
+      missingSystemFields.push(field);
     }
   }
-  return bookingFields;
+
+  bookingFields = missingSystemFields.concat(bookingFields);
+  // If we are migrating from old system, we need to add custom inputs to the end of the list
+  if (handleMigration) {
+    customInputs.forEach((input) => {
+      console.log(input.label);
+      bookingFields.push({
+        label: input.label,
+        // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
+        name: slugify(input.label),
+        placeholder: input.placeholder,
+        type: CustomInputTypeToFieldType[input.type],
+        required: input.required,
+        options: input.options
+          ? input.options.reduce((newOptions, o) => {
+              newOptions.push({
+                ...o,
+                value: `${newOptions.length + 1}`,
+              });
+              return newOptions;
+            }, [] as NonNullable<Fields[number]["options"]>)
+          : [],
+      });
+    });
+  }
+
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };
+
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
@@ -369,12 +431,17 @@ export default async function getEventTypeById({
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
+  const locationOptions = getLocationGroupedOptions(integrations, t);
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: ensureBookingInputsHaveSystemFields(eventType.bookingFields),
+    bookingFields: ensureBookingInputsHaveSystemFields({
+      bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
+      disableGuests: eventType.disableGuests,
+      additionalNotesRequired: !!parsedMetaData.additionalNotesRequired,
+      customInputs: parsedCustomInputs,
+    }),
   });
 
   const teamMembers = eventTypeObject.team

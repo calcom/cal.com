@@ -18,6 +18,7 @@ import {
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
 import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -33,17 +34,20 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { addBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
 
-function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
+function getSender(
+  step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
+) {
+  return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
 export const workflowsRouter = router({
@@ -168,7 +172,7 @@ export const workflowsRouter = router({
           action: WorkflowActions.EMAIL_HOST,
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
-          sender: SENDER_ID,
+          sender: SENDER_NAME,
           numberVerificationPending: false,
         },
       });
@@ -246,6 +250,7 @@ export const workflowsRouter = router({
             template: z.enum(WORKFLOW_TEMPLATES),
             numberRequired: z.boolean().nullable(),
             sender: z.string().optional().nullable(),
+            senderName: z.string().optional().nullable(),
           })
           .array(),
         trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -474,7 +479,8 @@ export const workflowsRouter = router({
                     step.emailSubject || "",
                     step.reminderBody || "",
                     step.id,
-                    step.template
+                    step.template,
+                    step.senderName || SENDER_NAME
                   );
                 } else if (step.action === WorkflowActions.SMS_NUMBER) {
                   await scheduleSMSReminder(
@@ -563,7 +569,11 @@ export const workflowsRouter = router({
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
-              sender: newStep.sender || SENDER_ID,
+              sender: getSender({
+                action: newStep.action,
+                sender: newStep.sender || null,
+                senderName: newStep.senderName,
+              }),
               numberVerificationPending: false,
             },
           });
@@ -661,7 +671,8 @@ export const workflowsRouter = router({
                   newStep.emailSubject || "",
                   newStep.reminderBody || "",
                   newStep.id,
-                  newStep.template
+                  newStep.template,
+                  newStep.senderName || SENDER_NAME
                 );
               } else if (newStep.action === WorkflowActions.SMS_NUMBER) {
                 await scheduleSMSReminder(
@@ -703,10 +714,14 @@ export const workflowsRouter = router({
         });
         addedSteps.forEach(async (step) => {
           if (step) {
-            const newStep = step;
-            newStep.sender = step.sender || SENDER_ID;
+            const { senderName, ...newStep } = step;
+            newStep.sender = getSender({
+              action: newStep.action,
+              sender: newStep.sender || null,
+              senderName: senderName,
+            });
             const createdStep = await ctx.prisma.workflowStep.create({
-              data: { ...step, numberVerificationPending: false },
+              data: { ...newStep, numberVerificationPending: false },
             });
             if (
               (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -778,7 +793,8 @@ export const workflowsRouter = router({
                     step.emailSubject || "",
                     step.reminderBody || "",
                     createdStep.id,
-                    step.template
+                    step.template,
+                    step.senderName || SENDER_NAME
                   );
                 } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
                   await scheduleSMSReminder(

@@ -426,7 +426,6 @@
   "password_hint_num": "Contém pelo menos 1 número",
   "invalid_password_hint": "A palavra-passe deve ter no mínimo 7 caracteres, com pelo menos um número e uma mistura de letras maiúsculas e minúsculas",
   "incorrect_password": "Palavra-Passe incorreta",
-  "1_on_1": "1 para 1",
   "24_h": "24h",
   "use_setting": "Usar Configuração",
   "am_pm": "am/pm",

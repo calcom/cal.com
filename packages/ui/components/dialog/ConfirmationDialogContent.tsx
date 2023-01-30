@@ -3,7 +3,7 @@ import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../icon";
+import { FiAlertCircle, FiCheck } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 export type ConfirmationDialogContentProps = {
@@ -38,17 +38,17 @@ export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationD
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (
               <div className="mx-auto rounded-full bg-red-100 p-2 text-center">
-                <Icon.FiAlertCircle className="h-5 w-5 text-red-600" />
+                <FiAlertCircle className="h-5 w-5 text-red-600" />
               </div>
             )}
             {variety === "warning" && (
               <div className="mx-auto rounded-full bg-orange-100 p-2 text-center">
-                <Icon.FiAlertCircle className="h-5 w-5 text-orange-600" />
+                <FiAlertCircle className="h-5 w-5 text-orange-600" />
               </div>
             )}
             {variety === "success" && (
               <div className="mx-auto rounded-full bg-green-100 p-2 text-center">
-                <Icon.FiCheck className="h-5 w-5 text-green-600" />
+                <FiCheck className="h-5 w-5 text-green-600" />
               </div>
             )}
           </div>

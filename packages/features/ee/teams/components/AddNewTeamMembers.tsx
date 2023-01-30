@@ -8,7 +8,8 @@ import { classNames } from "@calcom/lib";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Avatar, Badge, Button, Icon, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { FiPlus, FiArrowRight, FiTrash2 } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -30,7 +31,13 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
 };
 
-const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormValues; teamId: number }) => {
+export const AddNewTeamMembersForm = ({
+  defaultValues,
+  teamId,
+}: {
+  defaultValues: FormValues;
+  teamId: number;
+}) => {
   const { t, i18n } = useLocale();
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const utils = trpc.useContext();
@@ -64,7 +71,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={Icon.FiPlus}
+          StartIcon={FiPlus}
           onClick={() => setMemberInviteModal(true)}
           className="mt-6 w-full justify-center">
           {t("add_team_member")}
@@ -86,7 +93,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
       />
       <hr className="my-6 border-neutral-200" />
       <Button
-        EndIcon={Icon.FiArrowRight}
+        EndIcon={FiArrowRight}
         className="mt-6 w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
@@ -163,8 +170,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {member.role !== "OWNER" && (
         <Button
           data-testid="remove-member-button"
-          StartIcon={Icon.FiTrash2}
-          size="icon"
+          StartIcon={FiTrash2}
+          variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"
           onClick={() => {

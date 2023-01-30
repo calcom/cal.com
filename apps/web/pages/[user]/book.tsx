@@ -13,7 +13,7 @@ import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeByI
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -28,7 +28,7 @@ export type BookPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Book(props: BookPageProps) {
   const { t } = useLocale();
   return props.away ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -43,7 +43,7 @@ export default function Book(props: BookPageProps) {
       </main>
     </div>
   ) : props.isDynamicGroupBooking && !props.profile.allowDynamicBooking ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -112,24 +112,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         });
 
   if (!eventTypeRaw) return { notFound: true };
-
+  const metadata = EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {});
   const eventType = {
     ...eventTypeRaw,
-    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
+    metadata,
+    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    bookingFields: ensureBookingInputsHaveSystemFields(eventTypeRaw.bookingFields || []),
   };
 
   const eventTypeObject = [eventType].map((e) => {
     let locations = eventTypeRaw.locations || [];
     locations = privacyFilteredLocations(locations as LocationObject[]);
+    const customInputs = customInputSchema.array().parse(e.customInputs || []);
     return {
       ...e,
       locations: locations,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       schedulingType: null,
-      customInputs: customInputSchema.array().parse(e.customInputs || []),
+      customInputs,
+      bookingFields: ensureBookingInputsHaveSystemFields({
+        bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
+        disableGuests: !!eventTypeRaw.disableGuests,
+        additionalNotesRequired: !!metadata?.additionalNotesRequired,
+        customInputs: customInputs,
+      }),
       users: users.map((u) => ({
         id: u.id,
         name: u.name,
@@ -149,7 +156,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       context.query.rescheduleUid
         ? (context.query.rescheduleUid as string)
         : (context.query.bookingUid as string),
-      eventType
+      eventTypeObject.bookingFields
     );
   }
 

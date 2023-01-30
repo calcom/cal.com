@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Icon } from "../../..";
+import { FiChevronRight, FiExternalLink } from "../../icon";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
@@ -66,7 +66,7 @@ const VerticalTabItem = function ({
                 <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 truncate">
                   {t(name)}
                 </Skeleton>
-                {props.isExternalLink ? <Icon.FiExternalLink /> : null}
+                {props.isExternalLink ? <FiExternalLink /> : null}
               </span>
               {info && (
                 <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
@@ -76,7 +76,7 @@ const VerticalTabItem = function ({
             </div>
             {!disableChevron && isCurrent && (
               <div className="ml-auto self-center">
-                <Icon.FiChevronRight
+                <FiChevronRight
                   width={20}
                   height={20}
                   className="h-auto w-[20px] stroke-[1.5px] text-gray-700"

@@ -7,8 +7,16 @@ import {
   sortByTimezone,
 } from "@calcom/lib/date-fns";
 
-import { Icon } from "../icon";
-import { Attendee } from ".prisma/client";
+import { FiGlobe } from "../icon";
+
+type Attendee = {
+  id: number;
+  email: string;
+  name: string;
+  timeZone: string;
+  locale: string | null;
+  bookingId: number | null;
+};
 
 interface MeetingTimeInTimezonesProps {
   attendees: Attendee[];
@@ -55,7 +63,7 @@ const MeetingTimeInTimezones = ({
       <Popover.Trigger
         onClick={preventBubbling}
         className="popover-button invisible ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm text-gray-900 transition-colors hover:bg-gray-200 focus:bg-gray-200 group-hover:visible">
-        <Icon.FiGlobe />
+        <FiGlobe />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content

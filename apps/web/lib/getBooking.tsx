@@ -7,9 +7,7 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 async function getBooking(
   prisma: PrismaClient,
   uid: string,
-  eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields>;
-  }
+  bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">
 ) {
   const rawBooking = await prisma.booking.findFirst({
     where: {
@@ -37,7 +35,9 @@ async function getBooking(
 
   const booking = {
     ...rawBooking,
-    responses: getBookingResponsesSchema(eventType).parse(rawBooking.responses),
+    responses: getBookingResponsesSchema({
+      bookingFields,
+    }).parse(rawBooking.responses),
   };
 
   if (booking) {

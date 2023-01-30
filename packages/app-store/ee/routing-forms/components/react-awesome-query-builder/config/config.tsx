@@ -4,8 +4,6 @@ import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builde
 //@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
-import { PhoneInput, AddressInput } from "@calcom/ui";
-
 import widgetsComponents from "../widgets";
 
 const {
@@ -46,6 +44,8 @@ const settings: Settings = {
 };
 
 // react-query-builder types have missing type property on Widget
+//TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
+// So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
 const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
   ...BasicConfig.widgets,
   text: {
@@ -82,7 +82,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      return <PhoneInput {...props} />;
+      return <TextWidget type="tel" {...props} />;
     },
     valuePlaceholder: "Enter Phone Number",
   },
@@ -95,20 +95,6 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       // FIXME: type=email is removed so that RHF validations can work
       // But, RHF errors are not integrated in Routing Forms form
       return <TextWidget {...props} />;
-    },
-  },
-  multiemail: {
-    ...BasicConfig.widgets.text,
-    factory: (props) => {
-      //TODO: ManageBookings: Make it use multiemail
-      return <TextWidget type="email" {...props} />;
-    },
-    valuePlaceholder: "Enter Email Addresses",
-  },
-  address: {
-    ...BasicConfig.widgets.text,
-    factory: (props) => {
-      return <AddressInput {...props} />;
     },
   },
 };

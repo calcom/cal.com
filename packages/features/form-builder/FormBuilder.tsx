@@ -1,13 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
-import { fieldsSchema } from "form-builder/FormBuilderFieldsSchema";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, UseFieldArrayReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Optional } from "@calcom/types/utils";
-import { Icon } from "@calcom/ui";
 import {
   Label,
   Badge,
@@ -24,8 +21,10 @@ import {
   Input,
 } from "@calcom/ui";
 import { Switch } from "@calcom/ui";
+import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
+import { fieldsSchema } from "./FormBuilderFieldsSchema";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -86,17 +85,29 @@ export const FormBuilder = function FormBuilder({
       value: "multiemail",
     },
     {
-      label: "Location",
+      label: "Radio Input",
       value: "radioInput",
-      //TODO: Later support it for user fields
-      systemOnly: true,
+    },
+    {
+      label: "Checkbox Group",
+      value: "checkbox",
+      needsOptions: true,
+    },
+    {
+      label: "Radio Group",
+      value: "radio",
+      needsOptions: true,
+    },
+    {
+      label: "Checkbox",
+      value: "boolean",
     },
   ];
   // I would have like to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
   const rhfFormPropName = formProp as unknown as "fields";
-
+  const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
@@ -151,9 +162,9 @@ export const FormBuilder = function FormBuilder({
                     <Button
                       type="button"
                       className="mb-2 -ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
-                      size="icon"
+                      size="sm"
                       color="minimal"
-                      StartIcon={Icon.FiX}
+                      StartIcon={FiX}
                       onClick={() => {
                         if (!value) {
                           return;
@@ -175,7 +186,7 @@ export const FormBuilder = function FormBuilder({
                 value.push({ label: "", value: `${value.length + 1}` });
                 onChange(value);
               }}
-              StartIcon={Icon.FiPlus}>
+              StartIcon={FiPlus}>
               Add an Option
             </Button>
           )}
@@ -209,6 +220,7 @@ export const FormBuilder = function FormBuilder({
   };
 
   const fieldType = FieldTypes.find((f) => f.value === fieldForm.watch("type"));
+  const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
       <div>
@@ -228,13 +240,13 @@ export const FormBuilder = function FormBuilder({
                   type="button"
                   className="invisible absolute -left-[12px] ml-0 flex  h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
                   onClick={() => swap(index, index - 1)}>
-                  <Icon.FiArrowUp className="h-5 w-5" />
+                  <FiArrowUp className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
                   className="invisible absolute -left-[12px] mt-8 ml-0 flex  h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
                   onClick={() => swap(index, index + 1)}>
-                  <Icon.FiArrowDown className="h-5 w-5" />
+                  <FiArrowDown className="h-5 w-5" />
                 </button>
                 <div className="flex">
                   <div>
@@ -283,7 +295,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={Icon.FiTrash2}
+                        StartIcon={FiTrash2}
                       />
                     )}
                   </div>
@@ -292,7 +304,7 @@ export const FormBuilder = function FormBuilder({
             );
           })}
         </ul>
-        <Button color="minimal" onClick={addField} className="mt-4" StartIcon={Icon.FiPlus}>
+        <Button color="minimal" onClick={addField} className="mt-4" StartIcon={FiPlus}>
           {addFieldLabel}
         </Button>
       </div>
@@ -385,7 +397,7 @@ export const FormBuilder = function FormBuilder({
               <DialogFooter>
                 <DialogClose color="secondary">Cancel</DialogClose>
                 {/* TODO: i18n missing */}
-                <Button type="submit">Add</Button>
+                <Button type="submit">{isFieldEditMode ? t("save") : t("add")}</Button>
               </DialogFooter>
             </Form>
           </div>
@@ -408,7 +420,7 @@ const WithLabel = ({
   return (
     <div>
       <div className="mb-2 flex items-center">
-        <Label className="!mb-0">{field.label}</Label>
+        {field.type !== "boolean" && <Label className="!mb-0">{field.label}</Label>}
         {!readOnly && !field.required && (
           <Badge className="ml-2" variant="gray">
             {t("optional")}
@@ -419,6 +431,27 @@ const WithLabel = ({
     </div>
   );
 };
+
+type ValueProps =
+  | {
+      value: string[];
+      setValue: (value: string[]) => void;
+    }
+  | {
+      value: string;
+      setValue: (value: string) => void;
+    }
+  | {
+      value: {
+        value: string;
+        optionValue: string;
+      };
+      setValue: (value: { value: string; optionValue: string }) => void;
+    }
+  | {
+      value: boolean;
+      setValue: (value: boolean) => void;
+    };
 
 export const ComponentForField = ({
   field,
@@ -435,62 +468,88 @@ export const ComponentForField = ({
     optionsInputs?: RhfFormField["optionsInputs"];
     type: RhfFormField["type"];
   };
-  value:
-    | string
-    | {
-        value: string;
-        optionValue: string;
-      };
-  setValue: ((value: string) => void) | ((value: { value: string; optionValue: string }) => void);
   readOnly: boolean;
-}) => {
-  const componentConfig = Components[field.type];
+} & ValueProps) => {
+  const fieldType = field.type;
+  const componentConfig = Components[fieldType];
   const isObjectiveWithInputValue = (value: any): value is { value: string } => {
-    if (typeof value === "undefined") {
-      return true;
-    }
-    return typeof value === "object" && "value" in value;
+    return typeof value === "object" ? "value" in value : false;
   };
 
-  if (componentConfig.propsType === "text") {
-    value = value || "";
-    if (isObjectiveWithInputValue(value)) {
-      throw new Error(`${value}: Value is not of type string for field type ${field.type}`);
+  if (componentConfig.propsType === "text" || componentConfig.propsType === "boolean") {
+    if (value !== undefined && typeof value !== "boolean" && typeof value !== "string") {
+      throw new Error(`${value}: Value is not of type string or boolean for field ${field.name}`);
+    }
+    if (!field.label) {
+      throw new Error(`Field ${field.name} doesn't have label`);
+    }
+
+    if (componentConfig.propsType === "boolean") {
+      if (value !== undefined && typeof value !== "boolean") {
+        throw new Error(`${value}: Value is not of type boolean for field type ${field.type}`);
+      }
+      return (
+        <WithLabel field={field} readOnly={readOnly}>
+          <componentConfig.factory
+            label={field.label}
+            readOnly={readOnly}
+            value={value}
+            setValue={setValue}
+          />
+        </WithLabel>
+      );
+    }
+
+    if (value !== undefined && typeof value !== "string") {
+      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
     }
     return (
-      <WithLabel field={field} readOnly>
-        <componentConfig.factory
-          readOnly={readOnly}
-          value={value}
-          setValue={setValue as (value: string) => void}
-        />
+      <WithLabel field={field} readOnly={readOnly}>
+        <componentConfig.factory label={field.label} readOnly={readOnly} value={value} setValue={setValue} />
       </WithLabel>
     );
   }
 
   if (componentConfig.propsType === "select") {
-    value = value || "";
-    if (isObjectiveWithInputValue(value)) {
-      throw new Error(`${value}: Value is not of type string for field type ${field.type}`);
-    }
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
 
+    if (value !== undefined && typeof value !== "string") {
+      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
+    }
     return (
       <WithLabel field={field} readOnly>
         <componentConfig.factory
           readOnly={readOnly}
           value={value}
-          setValue={setValue as (value: string) => void}
-          listValues={field.options.map((o) => ({ ...o, title: o.label }))}
+          setValue={setValue}
+          options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>
     );
   }
 
+  if (componentConfig.propsType === "multiselect") {
+    if (!(value instanceof Array)) {
+      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
+    }
+    if (!field.options) {
+      throw new Error("Field options is not defined");
+    }
+    return (
+      <WithLabel field={field} readOnly>
+        <componentConfig.factory
+          readOnly={readOnly}
+          value={value}
+          setValue={setValue as (value: string[]) => void}
+          options={field.options.map((o) => ({ ...o, title: o.label }))}
+        />
+      </WithLabel>
+    );
+  }
   if (componentConfig.propsType === "objectiveWithInput") {
-    if (!isObjectiveWithInputValue(value)) {
+    if (value !== undefined && !isObjectiveWithInputValue(value)) {
       throw new Error("Value is not of type {value: string}");
     }
     if (!field.options) {
@@ -512,7 +571,7 @@ export const ComponentForField = ({
       </WithLabel>
     ) : null;
   }
-  return null;
+  throw new Error(`Field ${field.name} does not have a valid propsType`);
 };
 
 //TODO: ManageBookings: Move it along FormBuilder - Also create a story for it.
@@ -529,14 +588,12 @@ export const FormBuilderField = ({
     <div className="reloading mb-4">
       <Controller
         control={control}
+        // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange } }) => {
           return (
             <div>
               <ComponentForField
-                // className={
-                //   hookForm.formState.errors[`inputs.${field.name}`] && "!focus:ring-red-700 !border-red-700"
-                // }
                 field={field}
                 value={value}
                 // Choose b/w disabled and readOnly
@@ -559,7 +616,7 @@ export const FormBuilderField = ({
                   message = message.replace(/\{[^}]+\}(.*)/, "$1");
                   return (
                     <div data-field-name={field.name} className="flex items-center text-sm text-red-700 ">
-                      <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message)}</p>
                     </div>
                   );

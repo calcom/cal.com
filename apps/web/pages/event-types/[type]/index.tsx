@@ -303,7 +303,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsPerTimeSlotEnabled,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             minimumBookingNoticeInDurationType,
-            fields: bookingFields,
             ...input
           } = values;
 
@@ -381,8 +380,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  console.log("getServerSideProps", typeParam, session.user.id);
-
   try {
     const res = await getEventTypeByIdAndUser({ eventTypeId: typeParam, userId: session.user.id, prisma });
     return {
@@ -400,7 +397,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   } catch (err) {
-    console.error(err);
+    // TODO: It should be a 500, 404 is very misleading.
     return {
       notFound: true,
     };

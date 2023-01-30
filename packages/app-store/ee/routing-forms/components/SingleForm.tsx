@@ -25,7 +25,6 @@ import {
   DialogHeader,
   DropdownMenuSeparator,
   Form,
-  Icon,
   Meta,
   SettingsToggle,
   showToast,
@@ -34,6 +33,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { FiExternalLink, FiLink, FiDownload, FiCode, FiTrash } from "@calcom/ui/components/icon";
 
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -73,20 +73,20 @@ const Actions = ({
             routingForm={form}
             color="secondary"
             target="_blank"
-            size="icon"
+            variant="icon"
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={Icon.FiExternalLink}
+            StartIcon={FiExternalLink}
           />
         </Tooltip>
         <FormAction
           routingForm={form}
           action="copyLink"
           color="secondary"
-          size="icon"
+          variant="icon"
           type="button"
-          StartIcon={Icon.FiLink}
+          StartIcon={FiLink}
           tooltip={t("copy_link_to_form")}
         />
 
@@ -96,17 +96,17 @@ const Actions = ({
             routingForm={form}
             action="download"
             color="secondary"
-            size="icon"
+            variant="icon"
             type="button"
-            StartIcon={Icon.FiDownload}
+            StartIcon={FiDownload}
           />
         </Tooltip>
         <FormAction
           routingForm={form}
           action="embed"
           color="secondary"
-          size="icon"
-          StartIcon={Icon.FiCode}
+          variant="icon"
+          StartIcon={FiCode}
           tooltip={t("embed")}
         />
         <DropdownMenuSeparator />
@@ -114,8 +114,8 @@ const Actions = ({
           routingForm={form}
           action="_delete"
           // className="mr-3"
-          size="icon"
-          StartIcon={Icon.FiTrash}
+          variant="icon"
+          StartIcon={FiTrash}
           color="secondary"
           type="button"
           tooltip={t("delete")}
@@ -128,7 +128,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={Icon.FiLink}>
+              StartIcon={FiLink}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           </FormActionsDropdown>
@@ -144,7 +144,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={Icon.FiExternalLink}>
+            StartIcon={FiExternalLink}>
             {t("preview")}
           </FormAction>
           <FormAction
@@ -153,7 +153,7 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={Icon.FiLink}>
+            StartIcon={FiLink}>
             {t("copy_link_to_form")}
           </FormAction>
           <FormAction
@@ -162,7 +162,7 @@ const Actions = ({
             className="w-full"
             color="minimal"
             type="button"
-            StartIcon={Icon.FiDownload}>
+            StartIcon={FiDownload}>
             {t("download_responses")}
           </FormAction>
           <FormAction
@@ -171,7 +171,7 @@ const Actions = ({
             color="minimal"
             type="button"
             className="w-full"
-            StartIcon={Icon.FiCode}>
+            StartIcon={FiCode}>
             {t("embed")}
           </FormAction>
           {typeformApp ? (
@@ -181,17 +181,18 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={Icon.FiLink}>
+              StartIcon={FiLink}>
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
+          <DropdownMenuSeparator />
           <FormAction
             action="_delete"
             routingForm={form}
             className="w-full"
             type="button"
             color="destructive"
-            StartIcon={Icon.FiTrash}>
+            StartIcon={FiTrash}>
             {t("delete")}
           </FormAction>
         </FormActionsDropdown>
@@ -307,9 +308,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {form.routers.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
-                        Routers
-                      </div>
+                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">Routers</div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
                         Modifications in fields and routes of following forms will be reflected in this form.
                       </p>
@@ -329,7 +328,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {connectedForms?.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                      <div className="mb-2 block text-sm font-semibold leading-none text-black ">
                         Connected Forms
                       </div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
@@ -378,7 +377,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         </FormActionsProvider>
       </Form>
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent>
+        <DialogContent enableOverflow>
           <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
           <div>
             <form

@@ -2,11 +2,12 @@ import { GetServerSidePropsContext } from "next";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
+import { getWorkingHours } from "@calcom/lib/availability";
+import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
@@ -72,6 +73,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           availability: true,
           description: true,
           length: true,
+          disableGuests: true,
           schedulingType: true,
           periodType: true,
           periodStartDate: true,
@@ -90,6 +92,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           slotInterval: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
+          customInputs: true,
           schedule: {
             select: {
               timeZone: true,
@@ -123,8 +127,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventType.schedule = null;
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata || {});
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+    metadata,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
@@ -141,7 +146,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(prisma, rescheduleUid);
+    booking = await getBooking(
+      prisma,
+      rescheduleUid,
+      ensureBookingInputsHaveSystemFields({
+        bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
+        disableGuests: eventType.disableGuests,
+        additionalNotesRequired: !!metadata?.additionalNotesRequired,
+        customInputs: customInputSchema.array().parse(eventType.customInputs),
+      })
+    );
   }
 
   return {

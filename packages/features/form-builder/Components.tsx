@@ -1,10 +1,12 @@
 import { useEffect } from "react";
+import { ReactMultiEmail } from "react-multi-email";
 import { z } from "zod";
 
 import Widgets, {
-  ComponentProps,
+  TextLikeComponentProps,
+  SelectLikeComponentProps,
 } from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
-import { PhoneInput, AddressInput } from "@calcom/ui";
+import { PhoneInput, AddressInput, Label, Group, RadioField } from "@calcom/ui";
 
 import { ComponentForField } from "./FormBuilder";
 import { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -12,35 +14,24 @@ import { fieldsSchema } from "./FormBuilderFieldsSchema";
 export const Components = {
   text: {
     propsType: "text",
-    factory: (props: ComponentProps) => <Widgets.TextWidget {...props} />,
+    type: "text",
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextWidget {...props} />,
   },
   textarea: {
     propsType: "text",
-    factory: (props: ComponentProps) => <Widgets.TextAreaWidget {...props} />,
+    type: "textarea",
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextAreaWidget {...props} />,
   },
   number: {
     propsType: "text",
-    factory: (props: ComponentProps) => <Widgets.NumberWidget {...props} />,
-  },
-  multiselect: {
-    propsType: "select",
-    factory: (
-      props: ComponentProps & {
-        listValues: { title: string; value: string }[];
-      }
-    ) => <Widgets.MultiSelectWidget {...props} />,
-  },
-  select: {
-    propsType: "select",
-    factory: (
-      props: ComponentProps & {
-        listValues: { title: string; value: string }[];
-      }
-    ) => <Widgets.SelectWidget {...props} />,
+
+    type: "number",
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.NumberWidget {...props} />,
   },
   phone: {
     propsType: "text",
-    factory: (props: ComponentProps) => {
+    type: "phone",
+    factory: <TProps extends TextLikeComponentProps>({ setValue, ...props }: TProps) => {
       if (!props) {
         return <div />;
       }
@@ -48,7 +39,7 @@ export const Components = {
       return (
         <PhoneInput
           onChange={(val: string) => {
-            props.setValue(val);
+            setValue(val);
           }}
           {...props}
         />
@@ -57,8 +48,9 @@ export const Components = {
     valuePlaceholder: "Enter Phone Number",
   },
   email: {
+    type: "email",
     propsType: "text",
-    factory: (props: ComponentProps) => {
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
       if (!props) {
         return <div />;
       }
@@ -67,17 +59,10 @@ export const Components = {
       return <Widgets.TextWidget {...props} />;
     },
   },
-  multiemail: {
-    propsType: "text",
-    factory: (props: ComponentProps) => {
-      //TODO: ManageBookings: Make it use multiemail
-      return <Widgets.TextWidget type="email" {...props} />;
-    },
-    valuePlaceholder: "Enter Email Addresses",
-  },
   address: {
+    type: "address",
     propsType: "text",
-    factory: (props: ComponentProps) => {
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
       return (
         <AddressInput
           onChange={(val) => {
@@ -88,22 +73,115 @@ export const Components = {
       );
     },
   },
-  radioInput: {
-    propsType: "objectiveWithInput",
-    factory: function RadioInputWithLabel({
-      name,
+  multiemail: {
+    type: "multiemail",
+    propsType: "text",
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
+      //TODO: ManageBookings: Make it use multiemail
+      return <Widgets.TextWidget type="email" {...props} />;
+    },
+    valuePlaceholder: "Enter Email Addresses",
+  },
+  multiselect: {
+    type: "multiselect",
+    propsType: "multiselect",
+    factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.MultiSelectWidget {...newProps} />;
+    },
+  },
+  select: {
+    type: "select",
+    propsType: "select",
+    factory: <TProps extends SelectLikeComponentProps>(props: TProps) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.SelectWidget {...newProps} />;
+    },
+  },
+  checkbox: {
+    type: "checkbox",
+    propsType: "multiselect",
+    factory: <TProps extends SelectLikeComponentProps<string[]>>({
       options,
-      optionsInputs,
-      value,
-      setValue,
       readOnly,
-    }: Omit<ComponentProps, "setValue" | "value"> & {
-      options: { label: string; value: string }[];
-      optionsInputs: NonNullable<z.infer<typeof fieldsSchema>[number]["optionsInputs"]>;
-      value: { value: string; optionValue: string };
-      setValue: (val: { value: string; optionValue: string }) => void;
-      name?: string;
-    }) {
+      setValue,
+      value,
+    }: TProps) => {
+      return (
+        <div>
+          {options.map((option, i) => {
+            return (
+              <label key={i} className="block">
+                <input
+                  type="checkbox"
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    const newValue = value.filter((v) => v !== option.value);
+                    if (e.target.checked) {
+                      newValue.push(option.value);
+                    }
+                    setValue(newValue);
+                  }}
+                  // disabled={!!disableLocations}
+                  //TODO: ManageBookings: What does this location class do?
+                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                  value={option.value}
+                  checked={value.includes(option.value)}
+                />
+                <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
+                  {option.label ?? ""}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      );
+    },
+  },
+  radio: {
+    type: "radio",
+    propsType: "select",
+    factory: <TProps extends SelectLikeComponentProps>({ setValue, value, options }: TProps) => {
+      return (
+        <Group
+          value={value}
+          onValueChange={(e) => {
+            setValue(e);
+          }}>
+          <>
+            {options.map((option, i) => (
+              <RadioField
+                label={option.label}
+                key={`option.${i}.radio`}
+                value={option.label}
+                id={`option.${i}.radio`}
+              />
+            ))}
+          </>
+        </Group>
+      );
+    },
+  },
+  radioInput: {
+    type: "radioInput",
+    propsType: "objectiveWithInput",
+    factory: function RadioInputWithLabel<
+      TProps extends SelectLikeComponentProps<{
+        value: string;
+        optionValue: string;
+      }> & {
+        optionsInputs: NonNullable<z.infer<typeof fieldsSchema>[number]["optionsInputs"]>;
+        value: { value: string; optionValue: string };
+      } & {
+        name?: string;
+      }
+    >({ name, options, optionsInputs, value, setValue, readOnly }: TProps) {
       useEffect(() => {
         setValue({
           value: options[0]?.value,
@@ -156,7 +234,6 @@ export const Components = {
                         //TODO: ManageBookings: What does this location class do?
                         className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
-                        defaultChecked={option.value === value?.value}
                       />
                       <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
                         {option.label ?? ""}
@@ -190,6 +267,36 @@ export const Components = {
               </div>
             );
           })()}
+        </div>
+      );
+    },
+  },
+  boolean: {
+    type: "boolean",
+    propsType: "boolean",
+    factory: <TProps extends TextLikeComponentProps<boolean>>({
+      readOnly,
+      label,
+      value,
+      setValue,
+    }: TProps) => {
+      return (
+        <div className="flex">
+          <input
+            type="checkbox"
+            onChange={(e) => {
+              if (e.target.checked) {
+                setValue(true);
+              } else {
+                setValue(false);
+              }
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+            placeholder=""
+            checked={value}
+            disabled={readOnly}
+          />
+          <Label className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">{label}</Label>
         </div>
       );
     },

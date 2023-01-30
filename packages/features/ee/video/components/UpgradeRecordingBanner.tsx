@@ -2,7 +2,8 @@ import { useRouter } from "next/router";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui";
+import { FiUsers } from "@calcom/ui/components/icon";
 
 export default function UpgradeRecordingBanner() {
   const { t } = useLocale();
@@ -10,7 +11,7 @@ export default function UpgradeRecordingBanner() {
 
   return (
     <div className="flex items-start gap-2 rounded-md bg-gray-100 p-4">
-      <Icon.FiUsers className="dark:bg-gray-90 inline-block h-5 w-5" />
+      <FiUsers className="dark:bg-gray-90 inline-block h-5 w-5" />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">{t("upgrade_to_access_recordings_title")}</h2>

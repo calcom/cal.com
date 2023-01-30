@@ -1,13 +1,10 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
-import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-//TODO: ManageBookings: Don't import from ReactAwesomeQueryBuilder instead make ReactAwesomeQueryBuilder use a common config that would be imported here as well
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -15,28 +12,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
-  BooleanToggleGroupField,
   Button,
   Checkbox,
   Dialog,
   DialogClose,
   DialogContent,
   DialogFooter,
-  DialogHeader,
-  Form,
-  Icon,
-  Input,
-  InputField,
   Label,
-  PhoneInput,
-  SelectField,
   SettingsToggle,
   showToast,
   TextField,
   Tooltip,
 } from "@calcom/ui";
-
-import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
+import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -47,18 +35,6 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
-const getRandomId = (length = 8) => {
-  return (
-    -1 *
-    parseInt(
-      Math.ceil(Math.random() * Date.now())
-        .toPrecision(length)
-        .toString()
-        .replace(".", "")
-    )
-  );
-};
-
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
@@ -67,30 +43,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-  const [customInputs, setCustomInputs] = useState<CustomInputParsed[]>(
-    eventType.customInputs.sort((a, b) => a.id - b.id) || []
-  );
-  const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
-  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
-  const removeCustom = (index: number) => {
-    formMethods.getValues("customInputs").splice(index, 1);
-    customInputs.splice(index, 1);
-    setCustomInputs([...customInputs]);
-  };
-
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
   }, [eventType.users, hashedUrl, team?.id]);
-
-  useEffect(() => {
-    if (eventType.customInputs) {
-      setCustomInputs(eventType.customInputs.sort((a, b) => a.id - b.id));
-    }
-  }, [eventType.customInputs]);
 
   return (
     <div className="flex flex-col space-y-8">
@@ -138,8 +97,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           addOnSuffix={
             <Button
               type="button"
-              StartIcon={Icon.FiEdit}
-              size="icon"
+              StartIcon={FiEdit}
+              variant="icon"
               color="minimal"
               className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}
@@ -163,22 +122,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
       <hr />
       <Controller
-        name="disableGuests"
-        control={formMethods.control}
-        defaultValue={eventType.disableGuests}
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            title={t("disable_guests")}
-            description={t("disable_guests_description")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            disabled={seatsEnabled}
-          />
-        )}
-      />
-
-      <hr />
-      <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}
@@ -189,22 +132,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
-        )}
-      />
-      <hr />
-      <Controller
-        name="metadata.additionalNotesRequired"
-        control={formMethods.control}
-        defaultValue={!!eventType.metadata.additionalNotesRequired}
-        render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3 ">
-            <SettingsToggle
-              title={t("require_additional_notes")}
-              description={t("require_additional_notes_description")}
-              checked={!!value}
-              onCheckedChange={(e) => onChange(e)}
-            />
-          </div>
         )}
       />
       <hr />
@@ -288,7 +215,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   }}
                   className="hover:stroke-3 hover:bg-transparent hover:text-black"
                   type="button">
-                  <Icon.FiCopy />
+                  <FiCopy />
                 </Button>
               </Tooltip>
             }
@@ -379,62 +306,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </DialogContent>
         </Dialog>
       )}
-      <Controller
-        name="customInputs"
-        control={formMethods.control}
-        defaultValue={customInputs}
-        render={() => (
-          <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
-            <DialogContent
-              type="creation"
-              Icon={Icon.FiPlus}
-              title={t("add_new_custom_input_field")}
-              description={t("this_input_will_shown_booking_this_event")}>
-              <CustomInputTypeForm
-                selectedCustomInput={selectedCustomInput}
-                onSubmit={(values) => {
-                  const customInput: CustomInputParsed = {
-                    id: getRandomId(),
-                    eventTypeId: -1,
-                    label: values.label,
-                    placeholder: values.placeholder,
-                    required: values.required,
-                    type: values.type,
-                    options: values.options,
-                    hasToBeCreated: true,
-                  };
-                  if (selectedCustomInput) {
-                    selectedCustomInput.label = customInput.label;
-                    selectedCustomInput.placeholder = customInput.placeholder;
-                    selectedCustomInput.required = customInput.required;
-                    selectedCustomInput.type = customInput.type;
-                    selectedCustomInput.options = customInput.options || undefined;
-                    selectedCustomInput.hasToBeCreated = false;
-                    // Update by id
-                    const inputIndex = customInputs.findIndex((input) => input.id === values.id);
-                    customInputs[inputIndex] = selectedCustomInput;
-                    setCustomInputs(customInputs);
-                    formMethods.setValue("customInputs", customInputs);
-                  } else {
-                    const concatted = customInputs.concat({
-                      ...customInput,
-                      options: customInput.options,
-                    });
-                    console.log(concatted);
-                    setCustomInputs(concatted);
-                    formMethods.setValue("customInputs", concatted);
-                  }
-
-                  setSelectedCustomInputModalOpen(false);
-                }}
-                onCancel={() => {
-                  setSelectedCustomInputModalOpen(false);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-      />
     </div>
   );
 };

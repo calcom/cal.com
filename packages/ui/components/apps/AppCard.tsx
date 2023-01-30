@@ -7,7 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon, showToast } from "../..";
+import { Button } from "../button";
+import { FiPlus } from "../icon";
+import { showToast } from "../toast";
 
 interface AppCardProps {
   app: App;
@@ -72,6 +74,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         }}>
         {app.description}
       </p>
+
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -99,7 +102,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                     <Button
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       {...props}>
                       {t("install")}
                     </Button>
@@ -124,7 +127,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   }
                   return (
                     <Button
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"
@@ -142,6 +145,10 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
             {t("installed", { count: appAdded })}
           </span>
         )}
+        {app.isTemplate && (
+          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
+        )}
+
         {app.isGlobal && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}

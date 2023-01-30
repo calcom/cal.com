@@ -3,6 +3,7 @@ import { JSONObject } from "superjson/dist/types";
 
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
+import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -91,14 +92,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
   };
-
   const eventTypeObject = [eventType].map((e) => {
+    const metadata = EventTypeMetaDataSchema.parse(e.metadata || {});
+    const customInputs = customInputSchema.array().parse(e.customInputs || []);
     return {
       ...e,
-      metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+      metadata,
+      bookingFields: ensureBookingInputsHaveSystemFields({
+        bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
+        disableGuests: eventType.disableGuests,
+        additionalNotesRequired: !!metadata?.additionalNotesRequired,
+        customInputs,
+      }),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
-      customInputs: customInputSchema.array().parse(e.customInputs || []),
+      customInputs,
       users: eventType.users.map((u) => ({
         id: u.id,
         name: u.name,
@@ -112,7 +120,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking(prisma, context.query.rescheduleUid as string);
+    booking = await getBooking(prisma, context.query.rescheduleUid as string, eventTypeObject.bookingFields);
   }
 
   // Checking if number of recurring event ocurrances is valid against event type configuration

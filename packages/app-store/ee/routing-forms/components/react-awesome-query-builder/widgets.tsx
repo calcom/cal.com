@@ -10,17 +10,66 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, Icon, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { Button as CalButton, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
-export type ComponentProps = {
-  value: string;
-  setValue: (value: string) => void;
+export type CommonProps<
+  TVal extends
+    | string
+    | boolean
+    | string[]
+    | {
+        value: string;
+        optionValue: string;
+      }
+> = {
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
+  label?: string;
+  value: TVal;
+  setValue: (value: TVal) => void;
+  /**
+   * required and other validations are supported using zodResolver from react-hook-form
+   */
+  // required?: boolean;
 };
 
-const TextAreaWidget = (props: ComponentProps) => {
+export type SelectLikeComponentProps<
+  TVal extends
+    | string
+    | string[]
+    | {
+        value: string;
+        optionValue: string;
+      } = string
+> = {
+  options: {
+    label: string;
+    value: TVal extends (infer P)[]
+      ? P
+      : TVal extends {
+          value: string;
+        }
+      ? TVal["value"]
+      : TVal;
+  }[];
+} & CommonProps<TVal>;
+
+export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string> = {
+  listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
+} & CommonProps<TVal>;
+
+export type TextLikeComponentProps<TVal extends string | boolean = string> = CommonProps<TVal>;
+
+export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+  TextLikeComponentProps<TVal> & {
+    customProps?: any;
+    type?: "text" | "number" | "email" | "tel";
+    maxLength?: number;
+  };
+
+const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
   const { value, setValue, readOnly, placeholder, maxLength, customProps, ...remainingProps } = props;
 
   const onChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -43,10 +92,8 @@ const TextAreaWidget = (props: ComponentProps) => {
   );
 };
 
-const TextWidget = (props: ComponentProps & { type?: string }) => {
-  const { value, setValue, readOnly, placeholder, customProps, ...remainingProps } = props;
-  let { type } = props;
-  type = type || "text";
+const TextWidget = (props: TextLikeComponentPropsRAQB) => {
+  const { value, setValue, readOnly, placeholder, customProps, type = "text", ...remainingProps } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setValue(val);
@@ -67,7 +114,7 @@ const TextWidget = (props: ComponentProps & { type?: string }) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: ComponentProps) {
+function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
       type="number"
@@ -87,9 +134,7 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: ComponentProps & {
-  listValues: { title: string; value: string }[];
-}) => {
+}: SelectLikeComponentPropsRAQB<string[]>) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
   if (!listValues) {
@@ -119,14 +164,7 @@ const MultiSelectWidget = ({
   );
 };
 
-function SelectWidget({
-  listValues,
-  setValue,
-  value,
-  ...remainingProps
-}: ComponentProps & {
-  listValues: { title: string; value: string }[];
-}) {
+function SelectWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
   if (!listValues) {
     return null;
   }
@@ -159,7 +197,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Icon.FiTrash className="m-0 h-4 w-4 text-gray-500" onClick={onClick} />
+        <FiTrash className="m-0 h-4 w-4 text-gray-500" onClick={onClick} />
       </button>
     );
   }
@@ -173,7 +211,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={Icon.FiPlus}
+      StartIcon={FiPlus}
       data-testid={dataTestId}
       type="button"
       color="secondary"

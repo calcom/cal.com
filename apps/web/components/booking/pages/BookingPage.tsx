@@ -1,16 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { defaults } from "lodash";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -42,18 +38,22 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { AddressInput, Button, EmailInput, Form, Icon, Input, Label, PhoneInput, Tooltip } from "@calcom/ui";
-import { Group, RadioField } from "@calcom/ui";
+import { Button, Form, Tooltip } from "@calcom/ui";
+import {
+  FiAlertTriangle,
+  FiCalendar,
+  FiCreditCard,
+  FiRefreshCw,
+  FiUser,
+  FiUserPlus,
+} from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
-import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
@@ -75,44 +75,50 @@ const BookingFields = ({
   selectedLocation: ReturnType<typeof getEventLocationType>;
 }) => {
   const { t } = useLocale();
-  return fields.map((field, index) => {
-    // TODO: ManageBookings: Shouldn't we render hidden fields but invisible so that they can be prefilled?
-    if (field.hidden) return null;
-    let readOnly =
-      (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
-    if (field.name === "rescheduleReason") {
-      if (!rescheduleUid) {
-        return null;
-      }
-      // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
-      readOnly = false;
-    }
-
-    if (field.name === "location" && field.type == "radioInput") {
-      const options = locations.map((location) => {
-        const locationString = locationKeyToString(location);
-        if (typeof locationString !== "string") {
-          // It's possible that location app got uninstalled
-          return null;
+  return (
+    <>
+      {fields.map((field, index) => {
+        // TODO: ManageBookings: Shouldn't we render hidden fields but invisible so that they can be prefilled?
+        if (field.hidden) return null;
+        let readOnly =
+          (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+        if (field.name === "rescheduleReason") {
+          if (!rescheduleUid) {
+            return null;
+          }
+          // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
+          readOnly = false;
         }
-        return {
-          label: t(locationString),
-          value: location.type,
-        };
-      });
 
-      field.options = options.filter(
-        (location): location is NonNullable<typeof options[number]> => !!location
-      );
+        if (field.name === "location" && field.type == "radioInput") {
+          const options = locations.map((location) => {
+            const locationString = locationKeyToString(location);
+            if (typeof locationString !== "string") {
+              // It's possible that location app got uninstalled
+              return null;
+            }
+            return {
+              label: t(locationString),
+              value: location.type,
+            };
+          });
 
-      if (!field.optionsInputs) {
-        throw new Error("radioInput must have optionsInputs");
-      }
-      field.optionsInputs.attendeeInPerson.placeholder = t(selectedLocation?.attendeeInputPlaceholder || "");
-    }
+          field.options = options.filter(
+            (location): location is NonNullable<typeof options[number]> => !!location
+          );
 
-    return <FormBuilderField field={field} readOnly={readOnly} key={index} />;
-  });
+          if (!field.optionsInputs) {
+            throw new Error("radioInput must have optionsInputs");
+          }
+          field.optionsInputs.attendeeInPerson.placeholder = t(
+            selectedLocation?.attendeeInputPlaceholder || ""
+          );
+        }
+
+        return <FormBuilderField field={field} readOnly={readOnly} key={index} />;
+      })}
+    </>
+  );
 };
 
 const BookingPage = ({
@@ -250,15 +256,6 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       const defaults = {
-        // notes: (router.query.notes as string) || "",
-        // guests: ensureArray(router.query.guest) as string[],
-        // customInputs: eventType.customInputs.reduce(
-        //   (customInputs, input) => ({
-        //     ...customInputs,
-        //     [input.id]: router.query[slugify(input.label)],
-        //   }),
-        //   {}
-        // ),
         responses: {} as z.infer<typeof bookingFormSchema>["responses"],
       };
 
@@ -310,20 +307,7 @@ const BookingPage = ({
 
   const bookingFormSchema = z
     .object({
-      // name: z.string().min(1),
-      // email: z.string().trim().email(),
-      // phone: z
-      //   .string()
-      //   .refine((val) => isValidPhoneNumber(val))
-      //   .optional()
-      //   .nullable(),
-      // attendeeAddress: z.string().optional().nullable(),
       responses: getBookingResponsesSchema(eventType),
-      // smsReminderNumber: z
-      //   .string()
-      //   .refine((val) => isValidPhoneNumber(val))
-      //   .optional()
-      //   .nullable(),
     })
     .passthrough();
 
@@ -350,7 +334,7 @@ const BookingPage = ({
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
   useEffect(() => {
-    window.bookingForm = bookingForm;
+    // window.bookingForm = bookingForm;
   });
   const selectedLocationType = useWatch({
     control: bookingForm.control,
@@ -388,34 +372,6 @@ const BookingPage = ({
       value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
     }));
 
-    // Checking if custom inputs of type Phone number are valid to display error message on UI
-    if (eventType.customInputs.length) {
-      let isErrorFound = false;
-      eventType.customInputs.forEach((customInput) => {
-        if (customInput.required && customInput.type === EventTypeCustomInputType.PHONE) {
-          const input = bookingCustomInputs.find((i) => i.label === customInput.label);
-          try {
-            z.string({
-              errorMap: () => ({
-                message: `Missing ${customInput.type} customInput: '${customInput.label}'`,
-              }),
-            })
-              .refine((val) => isValidPhoneNumber(val), {
-                message: "Phone number is invalid",
-              })
-              .parse(input?.value);
-          } catch (err) {
-            isErrorFound = true;
-            bookingForm.setError(`customInputs.${customInput.id}`, {
-              type: "custom",
-              message: "Invalid Phone number",
-            });
-          }
-        }
-      });
-      if (isErrorFound) return;
-    }
-
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -433,22 +389,6 @@ const BookingPage = ({
         }),
         {}
       );
-
-    if (eventType.customInputs.length > 0) {
-      // find all required custom inputs and ensure they are filled out in the booking form
-      const requiredCustomInputs = eventType.customInputs.filter((input) => input.required);
-      const missingRequiredCustomInputs = requiredCustomInputs.filter(
-        (input) => !booking?.customInputs?.[input.id]
-      );
-      if (missingRequiredCustomInputs.length > 0) {
-        missingRequiredCustomInputs.forEach((input) => {
-          bookingForm.setError(`customInputs.${input.id}`, {
-            type: "required",
-          });
-        });
-        return;
-      }
-    }
 
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
@@ -507,29 +447,6 @@ const BookingPage = ({
     }
   };
 
-  // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
-  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
-  const disableLocations = !!rescheduleUid;
-  const disabledExceptForOwner = disableInput && !loggedInIsOwner;
-  const inputClassName =
-    "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
-
-  let isSmsReminderNumberNeeded = false;
-  let isSmsReminderNumberRequired = false;
-
-  if (eventType.workflows.length > 0) {
-    eventType.workflows.forEach((workflowReference) => {
-      if (workflowReference.workflow.steps.length > 0) {
-        workflowReference.workflow.steps.forEach((step) => {
-          if (step.action === WorkflowActions.SMS_ATTENDEE) {
-            isSmsReminderNumberNeeded = true;
-            isSmsReminderNumberRequired = step.numberRequired || false;
-            return;
-          }
-        });
-      }
-    });
-  }
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
@@ -556,7 +473,7 @@ const BookingPage = ({
               })}{" "}
           | {APP_NAME}
         </title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favico.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
@@ -569,7 +486,7 @@ const BookingPage = ({
         <div
           className={classNames(
             "main overflow-hidden",
-            isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-100 bg-white",
+            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
@@ -578,7 +495,7 @@ const BookingPage = ({
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   {stripeAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <Icon.FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={stripeAppData.price / 100.0}
@@ -590,7 +507,7 @@ const BookingPage = ({
                   )}
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
-                      <Icon.FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                      <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
                           t,
@@ -601,7 +518,7 @@ const BookingPage = ({
                     </div>
                   )}
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                    <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
@@ -632,7 +549,7 @@ const BookingPage = ({
                         {t("former_time")}
                       </p>
                       <p className="line-through ">
-                        <Icon.FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+                        <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
                           parseDate(dayjs(booking.startTime), i18n)}
@@ -641,7 +558,7 @@ const BookingPage = ({
                   )}
                   {!!eventType.seatsPerTimeSlot && (
                     <div className="text-bookinghighlight flex items-start text-sm">
-                      <Icon.FiUser
+                      <FiUser
                         className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
                           booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                             ? "text-rose-600"
@@ -672,286 +589,24 @@ const BookingPage = ({
               <Form form={bookingForm} handleSubmit={bookEvent}>
                 <BookingFields
                   fields={eventType.bookingFields}
-                  guestToggle={guestToggle}
                   locations={locations}
                   selectedLocation={selectedLocation}
                   rescheduleUid={rescheduleUid}
                 />
-                {/* <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("your_name")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...bookingForm.register("name", { required: true })}
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      className={inputClassName}
-                      placeholder={t("example_name")}
-                      disabled={disableInput}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("email_address")}
-                  </label>
-                  <div className="mt-1">
-                    <EmailInput
-                      {...bookingForm.register("email")}
-                      required
-                      className={classNames(
-                        inputClassName,
-                        bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
-                      )}
-                      placeholder="you@example.com"
-                      type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                      disabled={disableInput}
-                    />
-                    {bookingForm.formState.errors.email && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("email_validation_error")}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-
-                {eventType.customInputs.map((input) => (
-                  <div className="mb-4" key={input.id}>
-                    {input.type !== EventTypeCustomInputType.BOOL && (
-                      <label
-                        htmlFor={"custom_" + input.id}
-                        className={classNames(
-                          "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
-                          bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
-                        )}>
-                        {input.label} {input.required && <span className="text-red-700">*</span>}
-                      </label>
-                    )}
-                    {input.type === EventTypeCustomInputType.TEXTLONG && (
-                      <textarea
-                        {...bookingForm.register(`customInputs.${input.id}`, {
-                          required: input.required,
-                        })}
-                        required={input.required}
-                        id={"custom_" + input.id}
-                        rows={3}
-                        className={inputClassName}
-                        placeholder={input.placeholder}
-                        disabled={disabledExceptForOwner}
-                      />
-                    )}
-                    {input.type === EventTypeCustomInputType.TEXT && (
-                      <input
-                        type="text"
-                        {...bookingForm.register(`customInputs.${input.id}`, {
-                          required: input.required,
-                        })}
-                        required={input.required}
-                        id={"custom_" + input.id}
-                        className={inputClassName}
-                        placeholder={input.placeholder}
-                        disabled={disabledExceptForOwner}
-                      />
-                    )}
-                    {input.type === EventTypeCustomInputType.NUMBER && (
-                      <input
-                        type="number"
-                        {...bookingForm.register(`customInputs.${input.id}`, {
-                          required: input.required,
-                        })}
-                        required={input.required}
-                        id={"custom_" + input.id}
-                        className={inputClassName}
-                        placeholder=""
-                        disabled={disabledExceptForOwner}
-                      />
-                    )}
-                    {input.type === EventTypeCustomInputType.BOOL && (
-                      <div className="my-6">
-                        <div className="flex">
-                          <input
-                            type="checkbox"
-                            {...bookingForm.register(`customInputs.${input.id}`, {
-                              required: input.required,
-                            })}
-                            required={input.required}
-                            id={"custom_" + input.id}
-                            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                            placeholder=""
-                            disabled={disabledExceptForOwner}
-                          />
-                          <label
-                            htmlFor={"custom_" + input.id}
-                            className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
-                            {input.label}
-                          </label>
-                        </div>
-                      </div>
-                    )}
-                    {input.options && input.type === EventTypeCustomInputType.RADIO && (
-                      <div className="flex">
-                        <Group
-                          name={`customInputs.${input.id}`}
-                          required={input.required}
-                          onValueChange={(e) => {
-                            bookingForm.setValue(`customInputs.${input.id}`, e);
-                          }}>
-                          <>
-                            {input.options.map((option, i) => (
-                              <RadioField
-                                label={option.label}
-                                key={`option.${input.id}.${i}.radio`}
-                                value={option.label}
-                                id={`option.${input.id}.${i}.radio`}
-                              />
-                            ))}
-                          </>
-                          {bookingForm.formState.errors.customInputs?.[input.id] && (
-                            <div className="mt-px flex items-center text-xs text-red-700 ">
-                              <p>{t("required")}</p>
-                            </div>
-                          )}
-                        </Group>
-                      </div>
-                    )}
-                    {input.type === EventTypeCustomInputType.PHONE && (
-                      <div>
-                        <PhoneInput<BookingFormValues>
-                          name={`customInputs.${input.id}`}
-                          control={bookingForm.control}
-                          placeholder={t("enter_phone_number")}
-                          id={`customInputs.${input.id}`}
-                          required={input.required}
-                        />
-                        {bookingForm.formState.errors?.customInputs?.[input.id] && (
-                          <div className="mt-2 flex items-center text-sm text-red-700 ">
-                            <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                            <p>{t("invalid_number")}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {!eventType.disableGuests && guestToggle && (
-                  <div className="mb-4">
-                    <div>
-                      <label
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("guests")}
-                      </label>
-                      {!disableInput && (
-                        <Controller
-                          control={bookingForm.control}
-                          name="guests"
-                          render={({ field: { onChange, value } }) => (
-                            <ReactMultiEmail
-                              className="relative"
-                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                              emails={value}
-                              onChange={onChange}
-                              getLabel={(
-                                email: string,
-                                index: number,
-                                removeEmail: (index: number) => void
-                              ) => {
-                                return (
-                                  <div data-tag key={index} className="cursor-pointer">
-                                    {email}
-                                    {!disableInput && (
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                      )}
-                      {/* Custom code when guest emails should not be editable }
-                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                        <div data-tag className="react-multi-email">
-                          {/* // @TODO: user owners are appearing as guest here when should be only user input }
-                          {guestListEmails.map((email, index) => {
-                            return (
-                              <div key={index} className="cursor-pointer">
-                                <span data-tag>{email}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor="smsReminderNumber"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("number_sms_notifications")}
-                    </label>
-                    <div className="mt-1">
-                      <PhoneInput<BookingFormValues>
-                        control={bookingForm.control}
-                        name="smsReminderNumber"
-                        placeholder={t("enter_phone_number")}
-                        id="smsReminderNumber"
-                        required={isSmsReminderNumberRequired}
-                      />
-                    </div>
-                    {bookingForm.formState.errors.smsReminderNumber && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="mb-4">
-                  <label
-                    htmlFor="notes"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                    {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
-                  </label>
-                  {rescheduleUid ? (
-                    <textarea
-                      {...bookingForm.register("rescheduleReason")}
-                      id="rescheduleReason"
-                      name="rescheduleReason"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("reschedule_placeholder")}
-                    />
-                  ) : (
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      required={!!eventType.metadata?.additionalNotesRequired}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
-                  )}
-                </div> */}
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  <Button
-                    color="minimal"
-                    type="button"
-                    onClick={() => router.back()}
-                    // We override this for this component only for now - as we don't support darkmode everywhere in the app
-                    className="dark:hover:bg-darkgray-200 dark:border-none dark:text-white">
+                  {!eventType.disableGuests && !guestToggle && (
+                    <Button
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      tooltip={t("additional_guests")}
+                      StartIcon={FiUserPlus}
+                      onClick={() => setGuestToggle(!guestToggle)}
+                      className="mr-auto"
+                    />
+                  )}
+                  <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button
@@ -983,7 +638,7 @@ function ErrorMessage({ error }: { error: unknown }) {
     <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <Icon.FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">

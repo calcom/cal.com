@@ -35,8 +35,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { customInputSchema, EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Label, Icon, HeadSeo } from "@calcom/ui";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
+import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -145,7 +146,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.FiX className="h-6 w-6 text-white" />
+                  <FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -256,6 +257,7 @@ export default function Success(props: SuccessProps) {
     if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
     sdkActionManager.fire("bookingSuccessful", {
+      booking: bookingInfo,
       eventType,
       date: date.toString(),
       duration: calculatedDuration,
@@ -329,14 +331,8 @@ export default function Success(props: SuccessProps) {
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
-  const customInputs = bookingInfo?.customInputs;
 
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
-
-  const hasSMSAttendeeAction =
-    eventType.workflows.find((workflowEventType) =>
-      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
-    ) !== undefined;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -358,7 +354,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
-            <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -403,10 +399,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Icon.FiCheck className="h-5 w-5 text-green-600" />
+                    <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <Icon.FiCalendar className="h-5 w-5 text-gray-900" />}
-                  {isCancelled && <Icon.FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
@@ -661,7 +657,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-neutral-700 dark:text-white">
+                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -684,7 +680,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -708,7 +704,7 @@ export default function Success(props: SuccessProps) {
                                   eventName
                               ) + (location ? "&location=" + location : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -721,7 +717,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -900,6 +896,7 @@ const getEventTypesFromDB = async (id: number) => {
       price: true,
       currency: true,
       bookingFields: true,
+      disableGuests: true,
       owner: {
         select: userSelect,
       },
@@ -946,7 +943,12 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
-    bookingFields: ensureBookingInputsHaveSystemFields(eventTypeBookingFields.parse(eventType.bookingFields)),
+    bookingFields: ensureBookingInputsHaveSystemFields({
+      bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
+      disableGuests: eventType.disableGuests,
+      additionalNotesRequired: !!metadata?.additionalNotesRequired,
+      customInputs: customInputSchema.array().parse(eventType.customInputs || []),
+    }),
     metadata,
   };
 };
@@ -1032,7 +1034,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
-
+  if (!bookingInfoRaw) {
+    return {
+      notFound: true,
+    };
+  }
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -1045,11 +1051,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...bookingInfoRaw,
     responses: getBookingResponsesSchema(eventTypeRaw).parse(bookingInfoRaw.responses),
   };
-  if (!bookingInfo) {
-    return {
-      notFound: true,
-    };
-  }
 
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse

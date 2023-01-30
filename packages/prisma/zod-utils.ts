@@ -53,10 +53,24 @@ export const EventTypeMetaDataSchema = z
   })
   .nullable();
 
-export const eventTypeBookingFields = formBuilderFieldsSchema.nullable();
+export const eventTypeBookingFields = formBuilderFieldsSchema;
 
 // Real validation happens using getBookingResponsesSchema which requires eventType. Is there a better way to do it?
-export const bookingResponses = z.record(z.any().optional());
+export const bookingResponses = z
+  .object({
+    email: z.string(),
+    name: z.string(),
+    guests: z.string().optional(),
+    notes: z.string().optional(),
+    location: z
+      .object({
+        optionValue: z.string(),
+        value: z.string(),
+      })
+      .optional(),
+    smsReminderNumber: z.string().optional(),
+  })
+  .and(z.record(z.any()));
 
 export const eventTypeLocations = z.array(
   z.object({
@@ -129,11 +143,18 @@ export const bookingCreateBodySchema = z.object({
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-  // email: z.string(),
-  // guests: z.array(z.string()).optional(),
-  // name: z.string(),
-  // location: z.string(),
-  // notes: z.string().optional(),
+
+  /**
+   * Keep old way of booking inputs here for API calls that might be coming with these fields
+   */
+  // TODO: Move these to a separate schema that is validated only when using the API.
+  name: z.string().optional(),
+  email: z.string().optional(),
+  location: z.string().optional(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  /**************/
+
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
@@ -299,6 +320,24 @@ export const RoutingFormSettings = z
   })
   .nullable();
 
+export const DeploymentTheme = z
+  .object({
+    brand: z.string().default("#292929"),
+    textBrand: z.string().default("#ffffff"),
+    darkBrand: z.string().default("#fafafa"),
+    textDarkBrand: z.string().default("#292929"),
+    bookingHighlight: z.string().default("#10B981"),
+    bookingLightest: z.string().default("#E1E1E1"),
+    bookingLighter: z.string().default("#ACACAC"),
+    bookingLight: z.string().default("#888888"),
+    bookingMedian: z.string().default("#494949"),
+    bookingDark: z.string().default("#313131"),
+    bookingDarker: z.string().default("#292929"),
+    fontName: z.string().default("Cal Sans"),
+    fontSrc: z.string().default("https://cal.com/cal.ttf"),
+  })
+  .optional();
+
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
   : T;
@@ -341,7 +380,7 @@ export function denullishShape<
  * @returns The constructed tuple array from the given object
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/entries.ts
  */
-export const entries = <O>(
+export const entries = <O extends Record<string, unknown>>(
   obj: O
 ): {
   readonly [K in keyof O]: [K, O[K]];
