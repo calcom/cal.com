@@ -4,7 +4,8 @@ import { ReactMultiEmail } from "react-multi-email";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextField, Label, EmailField, PhoneInput, Icon, Button, TextAreaField } from "@calcom/ui";
+import { Form, TextField, Label, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
+import { FiInfo } from "@calcom/ui/components/icon";
 
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
@@ -118,7 +119,7 @@ export const BookEventForm = ({ username, eventSlug }: BookEventFormProps) => {
             </div>
             {bookingForm.formState.errors.smsReminderNumber && (
               <div className="mt-2 flex items-center text-sm text-red-700 ">
-                <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                 <p>{t("invalid_number")}</p>
               </div>
             )}

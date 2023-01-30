@@ -1,5 +1,5 @@
 import { CAL_URL } from "@calcom/lib/constants";
-import { AvatarGroup } from "@calcom/ui/components/avatar";
+import { AvatarGroup } from "@calcom/ui";
 
 import { PublicEvent } from "../types";
 

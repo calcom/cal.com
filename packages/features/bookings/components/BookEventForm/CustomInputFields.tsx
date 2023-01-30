@@ -3,7 +3,8 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs } from "@calcom/trpc/react";
-import { Group, Label, RadioField, TextAreaField, TextField, Icon, PhoneInput } from "@calcom/ui";
+import { Group, Label, RadioField, TextAreaField, TextField, PhoneInput } from "@calcom/ui";
+import { FiInfo } from "@calcom/ui/components/icon";
 
 import { BookingFormValues } from "./form-config";
 
@@ -128,7 +129,7 @@ const InputPhone = ({ bookingForm, id, required, label }: FieldProps) => {
       />
       {bookingForm.formState.errors?.customInputs?.[id] && (
         <div className="mt-2 flex items-center text-sm text-red-700 ">
-          <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+          <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
           <p>{t("invalid_number")}</p>
         </div>
       )}

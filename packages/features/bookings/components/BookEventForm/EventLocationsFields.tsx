@@ -3,7 +3,8 @@ import { UseFormReturn, useWatch } from "react-hook-form";
 import { EventLocationType, getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs } from "@calcom/trpc/react";
-import { PhoneInput, AddressInput, Icon, Label } from "@calcom/ui";
+import { PhoneInput, AddressInput, Label } from "@calcom/ui";
+import { FiInfo } from "@calcom/ui/components/icon";
 
 import { BookingFormValues } from "./form-config";
 
@@ -97,7 +98,7 @@ export const EventLocationsFields = ({ eventType, bookingForm }: EventLocationsF
           </div>
           {bookingForm.formState.errors.phone && (
             <div className="mt-2 flex items-center text-sm text-red-700 ">
-              <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+              <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
               <p>{t("invalid_number")}</p>
             </div>
           )}

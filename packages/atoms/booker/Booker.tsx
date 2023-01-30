@@ -16,7 +16,8 @@ import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useScheduleWithCache, useSlotsForDate, useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, TimezoneSelect } from "@calcom/ui";
+import { TimezoneSelect } from "@calcom/ui";
+import { FiChevronDown } from "@calcom/ui/components/icon";
 
 import { fadeInUp, fadeInLeft } from "./config";
 import { useGetBrowsingMonthStart } from "./utils/dates";
@@ -100,7 +101,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                   <EventDetails event={event.data} />
                   <EventMeta contentClassName="relative" icon={Icon.FiGlobe}>
                     <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 top-0 z-10 flex h-full w-full items-center bg-white">
-                      {timezone} <Icon.FiChevronDown className="ml-2 inline-block" />
+                      {timezone} <FiChevronDown className="ml-2 inline-block" />
                     </span>
                     <TimezoneSelect
                       className="[&_.cal-react-select\_\_control]:border-0"
