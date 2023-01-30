@@ -188,6 +188,7 @@ type LayoutProps = {
   withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
+  smallHeading?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -785,7 +786,8 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="mb-6 flex sm:mt-0 lg:mb-10">
+      <div
+        className={classNames("mb-6 flex items-center sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-10")}>
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -795,7 +797,7 @@ export function ShellMain(props: LayoutProps) {
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="ltr:mr-2 rtl:ml-2"
+            className="mt-1 ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
@@ -803,7 +805,11 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
+                <h1
+                  className={classNames(
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate  font-semibold tracking-wide text-black sm:block xl:max-w-full",
+                    props.smallHeading ? "text-base" : "text-2xl"
+                  )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}

@@ -149,6 +149,7 @@ export const EventSetupTab = (
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+              menuPlacement="auto"
               onChange={(e: SingleValueLocationOption) => {
                 if (e?.value) {
                   const newLocationType = e.value;

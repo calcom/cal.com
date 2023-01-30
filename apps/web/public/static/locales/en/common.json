@@ -431,6 +431,7 @@
   "password_hint_num": "Contain at least 1 number",
   "invalid_password_hint": "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
+  "incorrect_username_password": "Username or password is incorrect.",
   "24_h": "24h",
   "use_setting": "Use setting",
   "am_pm": "am/pm",
@@ -1533,5 +1534,6 @@
   "sso_connection_deleted_successfully": "{{connectionType}} configuration deleted successfully",
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
-  "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com."
+  "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
+  "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful."
 }
