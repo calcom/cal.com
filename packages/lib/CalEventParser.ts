@@ -29,6 +29,9 @@ ${calEvent.attendees[0].timeZone}
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
+    calEvent.attendees = [];
+  }
   const attendees = calEvent.attendees
     .map((attendee) => {
       return `

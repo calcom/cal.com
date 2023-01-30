@@ -328,9 +328,6 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
-    if (event.seatsPerTimeSlot && !event.seatsShowAttendees) {
-      event.attendees = [];
-    }
 
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
