@@ -81,7 +81,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
           return changes;
       }
     },
-    onStateChange({ inputValue: newInputValue, type, selectedItem: newSelectedItem }) {
+    onStateChange({ type, selectedItem: newSelectedItem, inputValue: newInputValue }) {
       switch (type) {
         case useCombobox.stateChangeTypes.InputKeyDownEnter:
         case useCombobox.stateChangeTypes.ItemClick:
@@ -95,14 +95,11 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
             setSelectedItems(newSelectedItems);
             props.onSelectedItemsChange && props.onSelectedItemsChange(newSelectedItems);
           }
-
           break;
 
         case useCombobox.stateChangeTypes.InputChange:
-          if (newInputValue) {
-            setInputValue(newInputValue);
-          }
-          break;
+          setInputValue(newInputValue || "");
+
         default:
           break;
       }
@@ -154,7 +151,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
                   label="Search"
                   labelSrOnly
                   placeholder="Best book ever"
-                  {...getInputProps(getDropdownProps({ preventKeyAction: isOpen }))}
+                  {...getInputProps(getDropdownProps({ preventKeyAction: true }))}
                 />
               </div>
             )}
