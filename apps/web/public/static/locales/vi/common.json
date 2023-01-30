@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "Chào mừng đến với {{appName}}!",
   "edit_form_later_subtitle": "Bạn có thể sửa lại thông tin này sau.",
   "connect_calendar_later": "Tôi sẽ kết nối lịch của mình sau",
-  "set_my_availability_later": "Tôi sẽ đặt thời gian trống lịch sau",
   "problem_saving_user_profile": "Có vấn đề khi lưu dữ liệu của bạn. Vui lòng thử lại hoặc liên hệ với bộ phận hỗ trợ khách hàng.",
   "purchase_missing_seats": "Mua ghế còn thiếu",
   "slot_length": "Thời lượng của suất",
