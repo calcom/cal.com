@@ -17,7 +17,12 @@ ${calEvent.type}
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
-  return `
+  return calEvent.seatsPerTimeSlot
+    ? `
+${calEvent.organizer.language.translate("organizer_timezone")}:
+${calEvent.organizer.timeZone}
+  `
+    : `
 ${calEvent.organizer.language.translate("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
