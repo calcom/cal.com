@@ -156,6 +156,7 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
           )}
           {!!onCancel && (
             <Button color="minimal" type="button" onClick={onCancel}>
+              {/* @TODO: I feel in this new layout the text 'back' will make more sense. */}
               {t("cancel")}
             </Button>
           )}

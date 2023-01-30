@@ -1,4 +1,3 @@
-import { BookerProps } from "booker/types";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import { useMemo, useState } from "react";
 
@@ -19,20 +18,10 @@ import { trpc } from "@calcom/trpc/react";
 import { TimezoneSelect } from "@calcom/ui";
 import { FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
-import { fadeInUp, fadeInLeft } from "./config";
+import { fadeInUp, fadeInLeft, cssVariableConfig, resizeAnimationConfig } from "./config";
+import { BookerProps, BookerState } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
 import { useTimePrerences } from "./utils/time";
-
-enum BookerState {
-  LOADING = "loading",
-  SELECTING_DATE = "selecting_date",
-  SELECTING_TIME = "selecting_time",
-  BOOKING = "booking",
-}
-
-// Why any? :( -> https://www.framer.com/motion/component/#%23%23animating-css-variables)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MotionStyleWithCssVar = any;
 
 const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { timezone, setTimezone } = useTimePrerences();
@@ -54,12 +43,11 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   };
 
   const onTimeSelect = (time: string) => {
-    console.log(time);
     setBookingTime(time);
   };
 
   const status = useMemo(() => {
-    if (event.isFetching) return BookerState.LOADING;
+    if (event.isLoading) return BookerState.LOADING;
     if (slots.length === 0) return BookerState.SELECTING_DATE;
     if (!bookingTime) return BookerState.SELECTING_TIME;
     return BookerState.BOOKING;
@@ -72,28 +60,11 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
       <CustomBranding />
       <m.div
         layout
-        style={{ "--booker-max-width": "700px", "--booker-max-height": "412px" } as MotionStyleWithCssVar}
-        variants={{
-          [BookerState.LOADING]: {
-            "--booker-max-width": "700px",
-            "--booker-max-height": "412px",
-          } as MotionStyleWithCssVar,
-          [BookerState.SELECTING_DATE]: {
-            "--booker-max-width": "700px",
-            "--booker-max-height": "2000px",
-          } as MotionStyleWithCssVar,
-          [BookerState.SELECTING_TIME]: {
-            "--booker-max-width": "2000px",
-            "--booker-max-height": "2000px",
-          } as MotionStyleWithCssVar,
-          [BookerState.BOOKING]: {
-            "--booker-max-width": "2000px",
-            "--booker-max-height": "2000px",
-          } as MotionStyleWithCssVar,
-        }}
+        style={cssVariableConfig}
+        variants={resizeAnimationConfig}
         animate={status}
         transition={{ ease: "easeInOut", duration: 0.4 }}
-        className="md:max-h[var(--booker-max-height)] md:max-w[var(--booker-max-width)] flex max-w-[90%] items-center justify-center">
+        className="flex max-w-[90%] items-center justify-center md:max-h-[var(--booker-max-height)] md:max-w-[var(--booker-max-width)]">
         <m.div
           layout
           className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:flex-row">
@@ -101,12 +72,12 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             <m.div
               layout
               className="dark:border-darkgray-300 border-gray-200 p-6 md:w-[280px] md:min-w-[280px] md:border-r">
-              {event.isFetching && (
+              {event.isLoading && (
                 <m.div {...fadeInUp} initial="visible" layout>
                   <EventMetaSkeleton />
                 </m.div>
               )}
-              {!event.isFetching && !!event.data && (
+              {!event.isLoading && !!event.data && (
                 <m.div
                   className="space-y-4"
                   {...fadeInUp}
@@ -130,19 +101,19 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             </m.div>
 
             <AnimatePresence>
-              {status === "booking" && (
-                <m.div layout {...fadeInUp} className="p-6 md:w-[425px] md:min-w-[425px]">
-                  <BookEventForm
-                    username={username}
-                    eventSlug={eventSlug}
-                    onCancel={() => setBookingTime(null)}
-                  />
-                </m.div>
-              )}
+              <m.div>
+                {status === "booking" && (
+                  <m.div {...fadeInUp} className="p-6 md:w-[425px]">
+                    <BookEventForm
+                      username={username}
+                      eventSlug={eventSlug}
+                      onCancel={() => setBookingTime(null)}
+                    />
+                  </m.div>
+                )}
 
-              {status !== "booking" && (
-                <>
-                  <m.div layout {...fadeInUp} initial="visible" className="p-6 md:w-[425px] md:min-w-[425px]">
+                {status !== "booking" && (
+                  <m.div {...fadeInUp} initial="visible" className="p-6 md:w-[425px]">
                     {/* @TODO: Guts of this component aren't touched (yet) */}
                     <DatePicker
                       isLoading={schedule.isLoading}
@@ -154,21 +125,26 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                       browsingDate={browsingMonthStart}
                     />
                   </m.div>
+                )}
+              </m.div>
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {status !== "booking" && (
+                <m.div>
                   {slots.length > 0 && selectedDate && (
-                    <div>
-                      <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[300px]">
-                        <m.div {...fadeInLeft} layout className="flex-grow md:h-[400px]">
-                          <AvailableTimes
-                            onTimeSelect={onTimeSelect}
-                            date={dayjs(selectedDate)}
-                            slots={slots}
-                            timezone={timezone}
-                          />
-                        </m.div>
-                      </div>
+                    <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[300px]">
+                      <m.div {...fadeInLeft} layout className="flex-grow md:h-[400px]">
+                        <AvailableTimes
+                          onTimeSelect={onTimeSelect}
+                          date={dayjs(selectedDate)}
+                          slots={slots}
+                          timezone={timezone}
+                        />
+                      </m.div>
                     </div>
                   )}
-                </>
+                </m.div>
               )}
             </AnimatePresence>
           </AnimatePresence>

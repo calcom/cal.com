@@ -53,3 +53,10 @@ export interface BookerProps extends OptionalServersideSettings, AtomsGlobalConf
 
   hideBranding?: boolean;
 }
+
+export enum BookerState {
+  LOADING = "loading",
+  SELECTING_DATE = "selecting_date",
+  SELECTING_TIME = "selecting_time",
+  BOOKING = "booking",
+}
