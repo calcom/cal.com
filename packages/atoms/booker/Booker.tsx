@@ -30,6 +30,10 @@ enum BookerState {
   BOOKING = "booking",
 }
 
+// Why any? :( -> https://www.framer.com/motion/component/#%23%23animating-css-variables)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MotionStyleWithCssVar = any;
+
 const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { timezone, setTimezone } = useTimePrerences();
   const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
@@ -68,23 +72,35 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
       <CustomBranding />
       <m.div
         layout
-        style={{ maxWidth: "700px", maxHeight: "412px" }}
+        style={{ "--booker-max-width": "700px", "--booker-max-height": "412px" } as MotionStyleWithCssVar}
         variants={{
-          [BookerState.LOADING]: { maxWidth: "700px", maxHeight: "412px" },
-          [BookerState.SELECTING_DATE]: { maxWidth: "700px", maxHeight: "2000px" },
-          [BookerState.SELECTING_TIME]: { maxWidth: "2000px", maxHeight: "2000px" },
-          [BookerState.BOOKING]: { maxWidth: "2000px", maxHeight: "2000px" },
+          [BookerState.LOADING]: {
+            "--booker-max-width": "700px",
+            "--booker-max-height": "412px",
+          } as MotionStyleWithCssVar,
+          [BookerState.SELECTING_DATE]: {
+            "--booker-max-width": "700px",
+            "--booker-max-height": "2000px",
+          } as MotionStyleWithCssVar,
+          [BookerState.SELECTING_TIME]: {
+            "--booker-max-width": "2000px",
+            "--booker-max-height": "2000px",
+          } as MotionStyleWithCssVar,
+          [BookerState.BOOKING]: {
+            "--booker-max-width": "2000px",
+            "--booker-max-height": "2000px",
+          } as MotionStyleWithCssVar,
         }}
         animate={status}
         transition={{ ease: "easeInOut", duration: 0.4 }}
-        className="flex items-center justify-center overflow-hidden">
+        className="md:max-h[var(--booker-max-height)] md:max-w[var(--booker-max-width)] flex max-w-[90%] items-center justify-center overflow-hidden">
         <m.div
           layout
-          className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full max-h-[540px] w-full flex-row rounded-md border border-gray-200 bg-white">
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:max-h-[540px] md:flex-row">
           <AnimatePresence>
             <m.div
               layout
-              className="dark:border-darkgray-300 w-[280px] min-w-[280px] border-r border-gray-200 p-6">
+              className="dark:border-darkgray-300 border-gray-200 p-6 md:w-[280px] md:min-w-[280px] md:border-r">
               {event.isFetching && (
                 <m.div {...fadeInUp} initial="visible" layout>
                   <EventMetaSkeleton />
@@ -115,14 +131,18 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
 
             <AnimatePresence>
               {status === "booking" && (
-                <m.div layout {...fadeInUp} className="w-[425px] min-w-[425px] p-6">
-                  <BookEventForm username={username} eventSlug={eventSlug} />
+                <m.div layout {...fadeInUp} className="p-6 md:w-[425px] md:min-w-[425px]">
+                  <BookEventForm
+                    username={username}
+                    eventSlug={eventSlug}
+                    onCancel={() => setBookingTime(null)}
+                  />
                 </m.div>
               )}
 
               {status !== "booking" && (
                 <>
-                  <m.div layout {...fadeInUp} initial="visible" className="w-[425px] min-w-[425px] p-6">
+                  <m.div layout {...fadeInUp} initial="visible" className="p-6 md:w-[425px] md:min-w-[425px]">
                     {/* @TODO: Guts of this component aren't touched (yet) */}
                     <DatePicker
                       isLoading={schedule.isLoading}
@@ -136,8 +156,8 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                   </m.div>
                   {slots.length > 0 && selectedDate && (
                     <div>
-                      <div className="dark:border-darkgray-300 flex h-full min-h-full w-full min-w-[300px] flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0">
-                        <m.div {...fadeInLeft} layout className="h-[400px] flex-grow">
+                      <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[300px]">
+                        <m.div {...fadeInLeft} layout className="flex-grow md:h-[400px]">
                           <AvailableTimes
                             onTimeSelect={onTimeSelect}
                             date={dayjs(selectedDate)}

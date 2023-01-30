@@ -14,13 +14,14 @@ import { BookingFormValues, bookingFormSchema } from "./form-config";
 type BookEventFormProps = {
   username: string;
   eventSlug: string;
+  onCancel?: () => void;
 };
 
 /**
  * @TODO: Full form HTML is copied from original /book page in order to break
  * as little as possible. I think we want to optimise this bit by bit later one as well.
  */
-export const BookEventForm = ({ username, eventSlug }: BookEventFormProps) => {
+export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormProps) => {
   const { t } = useLocale();
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
 
@@ -153,9 +154,11 @@ export const BookEventForm = ({ username, eventSlug }: BookEventFormProps) => {
               className="mr-auto"
             />
           )}
-          <Button color="minimal" type="button">
-            {t("cancel")}
-          </Button>
+          {!!onCancel && (
+            <Button color="minimal" type="button" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
+          )}
           <Button
             type="submit"
             // loading={mutation.isLoading || recurringMutation.isLoading}>
