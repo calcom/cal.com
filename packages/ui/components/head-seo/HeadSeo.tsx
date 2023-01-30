@@ -1,5 +1,6 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
+import { useRouter } from "next/router";
 
 import {
   AppImageProps,
@@ -10,6 +11,7 @@ import {
 } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { APP_NAME } from "@calcom/lib/constants";
+import isCalcom from "@calcom/lib/isCalcom";
 import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 
@@ -72,13 +74,15 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
-  const defaultUrl = getBrowserInfo()?.url;
+  // build the canonical url to ensure it's always cal.com (not app.cal.com)
+  const router = useRouter();
+  const calcomUrl = (`https://cal.com` + (router.asPath === "/" ? "" : router.asPath)).split("?")[0]; // cut off search params
+  const defaultUrl = isCalcom ? calcomUrl : getBrowserInfo()?.url;
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
-
   const pageTitle = title + " | " + APP_NAME;
   let seoObject = buildSeoMeta({
     title: pageTitle,
