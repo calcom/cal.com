@@ -622,19 +622,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    // if (!evt.seatsShowAttendees) {
-    //   evt.attendees = invitee;
-    // }
-
     /**
      * Remember objects are passed into functions as references
      * so if you modify it in a inner function it will be modified in the outer function
      * deep cloning evt to avoid this
      */
-    // const copyEvent = cloneDeep({
-    //   ...evt,
-    //   ...(evt.seatsPerTimeSlot && !evt.seatsShowAttendees && { attendees: invitee }),
-    // });
     const copyEvent = cloneDeep(evt);
     await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
