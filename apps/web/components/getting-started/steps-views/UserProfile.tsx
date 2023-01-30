@@ -5,7 +5,7 @@ import { FormEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import turndownService from "@calcom/lib/turndownService";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
@@ -142,7 +142,7 @@ const UserProfile = (props: IUserProfileProps) => {
         <Label className="mb-2 block text-sm font-medium text-gray-700">{t("about")}</Label>
         <Editor
           getText={() => md.render(getValues("bio") || user?.bio || "")}
-          setText={(value: string) => setValue("bio", turndownService.turndown(value))}
+          setText={(value: string) => setValue("bio", turndown(value))}
           excludedToolbarItems={["blockType"]}
         />
         <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">

@@ -432,6 +432,7 @@
   "password_hint_num": "Contain at least 1 number",
   "invalid_password_hint": "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
+  "incorrect_username_password": "Username or password is incorrect.",
   "24_h": "24h",
   "use_setting": "Use setting",
   "am_pm": "am/pm",
@@ -1544,6 +1545,6 @@
   "email_no_user_step_two":"Connect your calendar account",
   "email_no_user_step_three":"Set your Availability",
   "email_no_user_step_four":"Join {{teamName}}",
-  "email_no_user_signoff":"Happy Scheduling from the {{appName}} team"
-
+  "email_no_user_signoff":"Happy Scheduling from the {{appName}} team",
+  "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful."
 }
