@@ -58,6 +58,7 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
           label={t("your_name")}
           required
           placeholder={t("example_name")}
+          autoFocus
         />
 
         <EmailField

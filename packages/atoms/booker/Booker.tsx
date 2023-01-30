@@ -64,7 +64,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         variants={resizeAnimationConfig}
         animate={status}
         transition={{ ease: "easeInOut", duration: 0.4 }}
-        className="flex max-w-[90%] items-center justify-center md:max-h-[var(--booker-max-height)] md:max-w-[var(--booker-max-width)]">
+        className="flex max-w-[90%] items-center justify-center overflow-hidden md:max-h-[var(--booker-max-height)] md:max-w-[var(--booker-max-width)]">
         <m.div
           layout
           className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:flex-row">

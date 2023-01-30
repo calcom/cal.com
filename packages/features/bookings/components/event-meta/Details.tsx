@@ -35,7 +35,6 @@ interface EventMetaProps {
   // Emphasises the text in the block. For now only
   // applying in dark mode.
   highlight?: boolean;
-  className?: string;
   contentClassName?: string;
 }
 
@@ -45,19 +44,12 @@ const defaultEventDetailsBlocks = [
   EventDetailBlocks.LOCATION,
 ];
 
-export const EventMeta = ({
-  icon: Icon,
-  children,
-  highlight,
-  className,
-  contentClassName,
-}: EventMetaProps) => {
+export const EventMeta = ({ icon: Icon, children, highlight, contentClassName }: EventMetaProps) => {
   return (
     <div
       className={classNames(
         "flex items-baseline justify-start text-gray-600",
-        highlight ? "dark:text-white" : "dark:text-darkgray-600 ",
-        className
+        highlight ? "dark:text-white" : "dark:text-darkgray-600 "
       )}>
       <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
       <div className={contentClassName}>{children}</div>
@@ -65,9 +57,9 @@ export const EventMeta = ({
   );
 };
 
-export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks, className }: EventDetailsProps) => {
+export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   return (
-    <div className={className}>
+    <>
       {blocks.map((block) => {
         if (typeof block === "function") {
           return <Fragment key={block.name}>block(event)</Fragment>;
@@ -103,6 +95,6 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks, classN
             );
         }
       })}
-    </div>
+    </>
   );
 };
