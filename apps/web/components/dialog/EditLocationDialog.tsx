@@ -1,6 +1,8 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -216,7 +218,15 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 {t("edit_location")}
               </h3>
               {!booking && (
-                <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
+                <p className="text-sm text-gray-400">
+                  <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
+                    Can&apos;t find the right video app? Visit our
+                    <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+                      App Store
+                    </Link>
+                    .
+                  </Trans>
+                </p>
               )}
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:text-left" />
@@ -289,30 +299,31 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       name="locationType"
                       control={locationFormMethods.control}
                       render={() => (
-                        <LocationSelect
-                          maxMenuHeight={300}
-                          name="location"
-                          defaultValue={selection}
-                          options={locationOptions}
-                          isSearchable
-                          className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
-                          onChange={(val) => {
-                            if (val) {
-                              locationFormMethods.setValue("locationType", val.value);
-                              locationFormMethods.unregister([
-                                "locationLink",
-                                "locationAddress",
-                                "locationPhoneNumber",
-                              ]);
-                              locationFormMethods.clearErrors([
-                                "locationLink",
-                                "locationPhoneNumber",
-                                "locationAddress",
-                              ]);
-                              setSelectedLocation?.(val);
-                            }
-                          }}
-                        />
+                        <div className="py-4">
+                          <LocationSelect
+                            maxMenuHeight={300}
+                            name="location"
+                            defaultValue={selection}
+                            options={locationOptions}
+                            isSearchable
+                            onChange={(val) => {
+                              if (val) {
+                                locationFormMethods.setValue("locationType", val.value);
+                                locationFormMethods.unregister([
+                                  "locationLink",
+                                  "locationAddress",
+                                  "locationPhoneNumber",
+                                ]);
+                                locationFormMethods.clearErrors([
+                                  "locationLink",
+                                  "locationPhoneNumber",
+                                  "locationAddress",
+                                ]);
+                                setSelectedLocation?.(val);
+                              }
+                            }}
+                          />
+                        </div>
                       )}
                     />
                   );
@@ -326,7 +337,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       setShowLocationModal(false);
                       setSelectedLocation?.(undefined);
                       setEditingLocationType?.("");
-                      locationFormMethods.unregister("locationType");
+                      locationFormMethods.unregister(["locationType", "locationLink"]);
                     }}
                     type="button"
                     color="secondary">

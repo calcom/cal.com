@@ -12,9 +12,9 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { FiCheck } from "@calcom/ui/components/icon";
 
 import { UpgradeTeamsBadge } from "../../badge";
+import { FiCheck } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -147,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 dark:border-darkgray-300 !rounded-md border border-gray-900 bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
       className
     )}
   />

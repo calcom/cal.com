@@ -593,6 +593,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
+    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
+    }
     await prisma.booking.update({
       where: {
         uid: reqBody.bookingUid,
@@ -610,6 +620,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
+
+    if (!evt.seatsShowAttendees) {
+      evt.attendees = invitee;
+    }
+
     /**
      * Remember objects are passed into functions as references
      * so if you modify it in a inner function it will be modified in the outer function
