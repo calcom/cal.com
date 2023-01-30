@@ -176,6 +176,19 @@ const nextConfig = {
       }, */
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/auth/login",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     const redirects = [
       {
