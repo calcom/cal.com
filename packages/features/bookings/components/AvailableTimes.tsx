@@ -50,7 +50,7 @@ export const AvailableTimes = ({ date, slots, timezone, onTimeSelect }: Availabl
           <div key={slot.time}>
             <Button
               onClick={() => onTimeSelect(dayjs.utc(slot.time).tz(timezone).format())}
-              className="mb-2 flex h-[44px] w-full justify-center"
+              className="mb-3 flex h-[44px] w-full justify-center"
               color="secondary">
               {dayjs(slot.time).tz(timezone).format(timeFormat)}
             </Button>

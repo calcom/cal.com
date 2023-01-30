@@ -34,6 +34,7 @@ export const cssVariableConfig = {
   // Width of the columns:
   "--booker-meta-width": "280px",
   "--booker-calendar-width": "425px",
+  "--booker-form-width": "425px",
   "--booker-timeslots-width": "280px",
   // Animated variables by framer motion
   "--booker-max-width": "var(--booker-default-width)",

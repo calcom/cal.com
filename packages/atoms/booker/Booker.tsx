@@ -71,31 +71,29 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
           <AnimatePresence>
             <m.div
               layout
-              className="dark:border-darkgray-300 border-gray-200 p-6 md:w-[280px] md:min-w-[280px] md:border-r">
+              className="dark:border-darkgray-300 border-gray-200 p-6 md:w-[var(--booker-meta-width)] md:min-w-[var(--booker-meta-width)] md:border-r">
               {event.isLoading && (
                 <m.div {...fadeInUp} initial="visible" layout>
                   <EventMetaSkeleton />
                 </m.div>
               )}
               {!event.isLoading && !!event.data && (
-                <m.div
-                  className="space-y-4"
-                  {...fadeInUp}
-                  layout
-                  transition={{ ...fadeInUp.transition, delay: 0.3 }}>
+                <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
                   <EventMembers meetingType={event.data.meetingType} users={event.data.users} />
-                  <EventTitle>{event.data?.title}</EventTitle>
-                  <EventDetails event={event.data} />
-                  <EventMeta contentClassName="relative" icon={FiGlobe}>
-                    <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 top-0 z-10 flex h-full w-full items-center bg-white">
-                      {timezone} <FiChevronDown className="ml-2 inline-block" />
-                    </span>
-                    <TimezoneSelect
-                      className="[&_.cal-react-select\_\_control]:border-0"
-                      value={timezone}
-                      onChange={(tz) => setTimezone(tz.value)}
-                    />
-                  </EventMeta>
+                  <EventTitle className="mt-2 mb-8">{event.data?.title}</EventTitle>
+                  <div className="space-y-5">
+                    <EventDetails event={event.data} />
+                    <EventMeta contentClassName="relative" icon={FiGlobe}>
+                      <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 top-0 z-10 flex h-full w-full items-center bg-white">
+                        {timezone} <FiChevronDown className="ml-2 inline-block" />
+                      </span>
+                      <TimezoneSelect
+                        className="[&_.cal-react-select\_\_control]:border-0"
+                        value={timezone}
+                        onChange={(tz) => setTimezone(tz.value)}
+                      />
+                    </EventMeta>
+                  </div>
                 </m.div>
               )}
             </m.div>
@@ -103,7 +101,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             <AnimatePresence>
               <m.div>
                 {status === "booking" && (
-                  <m.div {...fadeInUp} className="p-6 md:w-[425px]">
+                  <m.div {...fadeInUp} className="p-6 md:w-[var(--booker-form-width)]">
                     <BookEventForm
                       username={username}
                       eventSlug={eventSlug}
@@ -113,7 +111,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                 )}
 
                 {status !== "booking" && (
-                  <m.div {...fadeInUp} initial="visible" className="p-6 md:w-[425px]">
+                  <m.div {...fadeInUp} initial="visible" className="p-6 md:w-[var(--booker-calendar-width)]">
                     {/* @TODO: Guts of this component aren't touched (yet) */}
                     <DatePicker
                       isLoading={schedule.isLoading}
@@ -133,7 +131,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
               {status !== "booking" && (
                 <m.div>
                   {slots.length > 0 && selectedDate && (
-                    <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[300px]">
+                    <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)]">
                       <m.div {...fadeInLeft} layout className="flex-grow md:h-[400px]">
                         <AvailableTimes
                           onTimeSelect={onTimeSelect}
