@@ -263,7 +263,7 @@ const WebhookForm = (props: {
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
-            {props?.webhook?.id ? t("save") : t("create webhook")}
+            {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>
         </div>
       </Form>
