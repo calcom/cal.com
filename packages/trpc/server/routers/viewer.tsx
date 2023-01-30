@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider, Prisma, WorkflowActions } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -32,7 +32,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata, customInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -180,6 +180,19 @@ const publicViewerRouter = router({
           schedulingType: true,
           length: true,
           locations: true,
+          customInputs: true,
+          disableGuests: true,
+          // @TODO: Could this contain sensitive data?
+          metadata: true,
+          workflows: {
+            include: {
+              workflow: {
+                include: {
+                  steps: true,
+                },
+              },
+            },
+          },
 
           users: {
             select: {
@@ -192,10 +205,29 @@ const publicViewerRouter = router({
 
       if (!event) return event;
 
+      let isSmsReminderNumberNeeded = false;
+      let isSmsReminderNumberRequired = false;
+      event.workflows.forEach((workflowReference) => {
+        if (workflowReference.workflow.steps.length > 0) {
+          workflowReference.workflow.steps.forEach((step) => {
+            if (step.action === WorkflowActions.SMS_ATTENDEE) {
+              isSmsReminderNumberNeeded = true;
+              isSmsReminderNumberRequired = step.numberRequired || false;
+              return;
+            }
+          });
+        }
+      });
+
       const locations = privacyFilteredLocations((event.locations || []) as LocationObject[]);
       return {
         ...event,
+        customInputs: customInputSchema.array().parse(event.customInputs || []),
         locations,
+        isSmsReminderNumberNeeded,
+        isSmsReminderNumberRequired,
+        // unseet workflows since we don't want to send this in the public api.
+        workflows: undefined,
       };
     }),
 });

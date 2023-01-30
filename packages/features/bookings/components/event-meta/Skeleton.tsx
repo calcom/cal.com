@@ -1,5 +1,5 @@
-import { classNames } from "@calcom/lib";
-import { SkeletonText } from "@calcom/ui";
+import classNames from "@calcom/lib/classNames";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export const EventMetaSkeleton = () => (
   <div className="flex flex-col">

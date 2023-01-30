@@ -1,5 +1,7 @@
+import { Fragment } from "react";
+
 import classNames from "@calcom/lib/classNames";
-import { Icon } from "@calcom/ui";
+import { FiInfo, FiClock, FiMapPin } from "@calcom/ui/components/icon";
 
 import { PublicEvent } from "../types";
 
@@ -9,11 +11,23 @@ enum EventDetailBlocks {
   LOCATION,
 }
 
-interface EventDetailsProps {
-  blocks?: (EventDetailBlocks | React.FC)[];
+type EventDetailsPropsBase = {
   event: PublicEvent;
   className?: string;
-}
+};
+
+type EventDetailDefaultBlock = {
+  blocks?: EventDetailBlocks[];
+};
+
+// Rendering a custom block requires passing a name prop,
+// which is used as a key for the block.
+type EventDetailCustomBlock = {
+  blocks?: React.FC[];
+  name: string;
+};
+
+type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
   icon: React.FC<{ className: string }>;
@@ -31,7 +45,13 @@ const defaultEventDetailsBlocks = [
   EventDetailBlocks.LOCATION,
 ];
 
-const EventMeta = ({ icon: Icon, children, highlight, className, contentClassName }: EventMetaProps) => {
+export const EventMeta = ({
+  icon: Icon,
+  children,
+  highlight,
+  className,
+  contentClassName,
+}: EventMetaProps) => {
   return (
     <div
       className={classNames(
@@ -50,26 +70,30 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks, classN
     <div className={className}>
       {blocks.map((block) => {
         if (typeof block === "function") {
-          return block(event);
+          return <Fragment key={block.name}>block(event)</Fragment>;
         }
 
         switch (block) {
           case EventDetailBlocks.DESCRIPTION:
             // @TODO: Parse markdown
             return (
-              <EventMeta icon={Icon.FiInfo} contentClassName="break-words max-w-full overflow-clip">
+              <EventMeta key={block} icon={FiInfo} contentClassName="break-words max-w-full overflow-clip">
                 {event.description}
               </EventMeta>
             );
 
           case EventDetailBlocks.DURATION:
-            return <EventMeta icon={Icon.FiClock}>{event.length} mins</EventMeta>;
+            return (
+              <EventMeta key={block} icon={FiClock}>
+                {event.length} mins
+              </EventMeta>
+            );
 
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length) return null;
             // @TODO: Proper parse location names into translations.
             return (
-              <EventMeta icon={Icon.FiMapPin}>
+              <EventMeta key={block} icon={FiMapPin}>
                 {event.locations.map((location) => (
                   <div key={location.type} className="flex flex-row items-center text-sm font-medium">
                     {location.type}

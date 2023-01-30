@@ -12,7 +12,7 @@ type PageProps = inferSSRProps<typeof getStaticProps>;
 export default function Type({ slug, user }: PageProps) {
   // @TODO: Add gates
   return (
-    <main className="flex min-h-screen items-center justify-center">
+    <main className="flex justify-center pt-20">
       <Booker username={user} eventSlug={slug} />
     </main>
   );

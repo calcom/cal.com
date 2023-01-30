@@ -22,5 +22,10 @@ libraries.forEach(async (lib) => {
       },
       emptyOutDir: false,
     },
+    resolve: {
+      alias: {
+        crypto: require.resolve("rollup-plugin-node-builtins"),
+      },
+    },
   });
 });

@@ -5,9 +5,8 @@ import React, { forwardRef } from "react";
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-
-import { FiPlus } from "../icon";
-import { Tooltip } from "../tooltip";
+import { FiPlus } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
