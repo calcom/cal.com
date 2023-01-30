@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useReducer, FC } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +13,14 @@ import {
   Button,
   ConfirmationDialogContent,
   Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   EmptyScreen,
   Form,
   List,
@@ -21,31 +28,44 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  Switch,
   TextField,
-  VerticalDivider,
 } from "@calcom/ui";
-import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
+import {
+  FiAlertCircle,
+  FiEdit,
+  FiMoreHorizontal,
+  FiCheckCircle,
+  FiXCircle,
+} from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
+
+type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
 
 const IntegrationContainer = ({
   app,
   category,
+  handleModelOpen,
 }: {
-  app: RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
+  app: App;
   category: string;
+  handleModelOpen: (data: EditModalState) => void;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
-  const [showKeys, setShowKeys] = useState(false);
 
-  const appKeySchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
-
-  const formMethods = useForm({
-    resolver: zodResolver(appKeySchema),
-  });
+  const showKeyModal = () => {
+    if (app.keys) {
+      handleModelOpen({
+        dirName: app.dirName,
+        keys: app.keys,
+        slug: app.slug,
+        type: app.type,
+        isOpen: "editKeys",
+      });
+    }
+  };
 
   const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
     onSuccess: (enabled) => {
@@ -55,15 +75,9 @@ const IntegrationContainer = ({
         enabled ? t("app_is_enabled", { appName: app.name }) : t("app_is_disabled", { appName: app.name }),
         "success"
       );
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
-  const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
-    onSuccess: () => {
-      showToast(t("keys_have_been_saved"), "success");
+      if (enabled) {
+        showKeyModal();
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -72,96 +86,53 @@ const IntegrationContainer = ({
 
   return (
     <li>
-      <Collapsible open={showKeys}>
-        <AppListCard
-          logo={app.logo}
-          description={app.description}
-          title={app.name}
-          isTemplate={app.isTemplate}
-          actions={
-            <div className="flex justify-self-end">
-              <Switch
-                checked={app.enabled}
-                onClick={() => {
-                  if (app.enabled) {
-                    setDisableDialog(true);
-                  } else {
-                    enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                    setShowKeys(true);
-                  }
-                }}
-              />
+      <AppListCard
+        logo={app.logo}
+        description={app.description}
+        title={app.name}
+        isTemplate={app.isTemplate}
+        actions={
+          <div className="flex justify-self-end">
+            <Dropdown modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {app.keys && (
+                  <DropdownMenuItem>
+                    <DropdownItem onClick={showKeyModal} type="button" StartIcon={FiEdit}>
+                      {t("edit_keys")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (app.enabled) {
+                      setDisableDialog(true);
+                    } else {
+                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                    }
+                  }}>
+                  <DropdownItem StartIcon={app.enabled ? FiXCircle : FiCheckCircle} type="button">
+                    {app.enabled ? t("disable") : t("enable")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </Dropdown>
+          </div>
+        }
+      />
 
-              {app.keys && (
-                <>
-                  <VerticalDivider className="h-10" />
-
-                  <CollapsibleTrigger>
-                    <Button
-                      color="secondary"
-                      variant="icon"
-                      tooltip={t("edit_keys")}
-                      onClick={() => setShowKeys(!showKeys)}>
-                      <FiEdit />
-                    </Button>
-                  </CollapsibleTrigger>
-                </>
-              )}
-            </div>
-          }>
-          {app.keys && (
-            <CollapsibleContent className="pt-4">
-              {!!app.keys && typeof app.keys === "object" && (
-                <Form
-                  form={formMethods}
-                  handleSubmit={(values) =>
-                    saveKeysMutation.mutate({
-                      slug: app.slug,
-                      type: app.type,
-                      keys: values,
-                      dirName: app.dirName,
-                    })
-                  }
-                  className="px-4 pb-4">
-                  {Object.keys(app.keys).map((key) => (
-                    <Controller
-                      name={key}
-                      key={key}
-                      control={formMethods.control}
-                      defaultValue={app.keys && app.keys[key] ? app?.keys[key] : ""}
-                      render={({ field: { value } }) => (
-                        <TextField
-                          label={key}
-                          key={key}
-                          name={key}
-                          value={value}
-                          onChange={(e) => {
-                            formMethods.setValue(key, e?.target.value);
-                          }}
-                        />
-                      )}
-                    />
-                  ))}
-                  <Button type="submit" loading={saveKeysMutation.isLoading}>
-                    {t("save")}
-                  </Button>
-                </Form>
-              )}
-            </CollapsibleContent>
-          )}
-        </AppListCard>
-
-        <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
-          <ConfirmationDialogContent
-            title={t("disable_app")}
-            variety="danger"
-            onConfirm={() => {
-              enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-            }}>
-            {t("disable_app_description")}
-          </ConfirmationDialogContent>
-        </Dialog>
-      </Collapsible>
+      <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
+        <ConfirmationDialogContent
+          title={t("disable_app")}
+          variety="danger"
+          onConfirm={() => {
+            enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+          }}>
+          {t("disable_app_description")}
+        </ConfirmationDialogContent>
+      </Dialog>
     </li>
   );
 };
@@ -203,14 +174,112 @@ const AdminAppsList = ({
   );
 };
 
+const EditKeysModal: FC<{
+  dirName: string;
+  slug: string;
+  type: string;
+  isOpen: boolean;
+  keys: App["keys"];
+  handleModelClose: () => void;
+}> = (props) => {
+  const { t } = useLocale();
+  const { dirName, slug, type, isOpen, keys, handleModelClose } = props;
+  const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
+
+  const formMethods = useForm({
+    resolver: zodResolver(appKeySchema),
+  });
+
+  const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
+    onSuccess: () => {
+      showToast(t("keys_have_been_saved"), "success");
+      handleModelClose();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleModelClose}>
+      <DialogContent title={t("edit_keys")} type="creation">
+        {!!keys && typeof keys === "object" && (
+          <Form
+            id="edit-keys"
+            form={formMethods}
+            handleSubmit={(values) =>
+              saveKeysMutation.mutate({
+                slug,
+                type,
+                keys: values,
+                dirName,
+              })
+            }
+            className="px-4 pb-4">
+            {Object.keys(keys).map((key) => (
+              <Controller
+                name={key}
+                key={key}
+                control={formMethods.control}
+                defaultValue={keys && keys[key] ? keys?.[key] : ""}
+                render={({ field: { value } }) => (
+                  <TextField
+                    label={key}
+                    key={key}
+                    name={key}
+                    value={value}
+                    onChange={(e) => {
+                      formMethods.setValue(key, e?.target.value);
+                    }}
+                  />
+                )}
+              />
+            ))}
+          </Form>
+        )}
+        <DialogFooter>
+          <DialogClose onClick={handleModelClose} />
+          <Button form="edit-keys" type="submit">
+            {t("save")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+interface EditModalState extends Pick<App, "keys"> {
+  isOpen: "none" | "editKeys" | "disableKeys";
+  dirName: string;
+  type: string;
+  slug: string;
+}
+
 const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const router = useRouter();
   const { category } = querySchema.parse(router.query);
+
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
     { enabled: router.isReady }
   );
+
+  const [modalState, setModalState] = useReducer(
+    (data: EditModalState, partialData: Partial<EditModalState>) => ({ ...data, ...partialData }),
+    {
+      keys: null,
+      isOpen: "none",
+      dirName: "",
+      type: "",
+      slug: "",
+    }
+  );
+
+  const handleModelClose = () =>
+    setModalState({ keys: null, isOpen: "none", dirName: "", slug: "", type: "" });
+
+  const handleModelOpen = (data: EditModalState) => setModalState({ ...data });
 
   if (isLoading) return <SkeletonLoader />;
 
@@ -225,11 +294,26 @@ const AdminAppsListContainer = () => {
   }
 
   return (
-    <List>
-      {apps.map((app) => (
-        <IntegrationContainer app={app} key={app.name} category={category} />
-      ))}
-    </List>
+    <>
+      <List>
+        {apps.map((app) => (
+          <IntegrationContainer
+            handleModelOpen={handleModelOpen}
+            app={app}
+            key={app.name}
+            category={category}
+          />
+        ))}
+      </List>
+      <EditKeysModal
+        keys={modalState.keys}
+        dirName={modalState.dirName}
+        handleModelClose={handleModelClose}
+        isOpen={modalState.isOpen === "editKeys"}
+        slug={modalState.slug}
+        type={modalState.type}
+      />
+    </>
   );
 };
 
