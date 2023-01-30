@@ -93,10 +93,10 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         }}
         animate={status}
         transition={{ ease: "easeInOut", duration: 0.4 }}
-        className="md:max-h[var(--booker-max-height)] md:max-w[var(--booker-max-width)] flex max-w-[90%] items-center justify-center overflow-hidden">
+        className="md:max-h[var(--booker-max-height)] md:max-w[var(--booker-max-width)] flex max-w-[90%] items-center justify-center">
         <m.div
           layout
-          className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:max-h-[540px] md:flex-row">
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:flex-row">
           <AnimatePresence>
             <m.div
               layout
