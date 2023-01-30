@@ -1534,5 +1534,6 @@
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
-  "organizer_timezone": "Organizer timezone"
+  "organizer_timezone": "Organizer timezone",
+  "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful."
 }
