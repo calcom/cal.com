@@ -1,0 +1,18 @@
+{
+  "name": "@calcom/atoms",
+  "sideEffects": false,
+  "description": "Cal.com Atoms",
+  "authors": "Cal.com, Inc.",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.9",
+    "@vitejs/plugin-react": "^2.2.0",
+    "typescript": "^4.9.3",
+    "vite": "^3.2.4"
+  }
+}

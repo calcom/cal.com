@@ -11,7 +11,7 @@ import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/uti
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { DailyLocationType } from "@calcom/core/location";
+import { DailyLocationType, LocationObject, privacyFilteredLocations } from "@calcom/core/location";
 import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
@@ -141,6 +141,63 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  event: publicProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        eventSlug: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // @TODO: Eventtype queries uniquely on userid instead of name,
+      // is there a way we can removed this extra query?
+      const user = await ctx.prisma.user.findUnique({
+        where: {
+          username: input.username,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      const event = await ctx.prisma.eventType.findUnique({
+        where: {
+          userId_slug: {
+            userId: user.id,
+            slug: input.eventSlug,
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          eventName: true,
+          slug: true,
+          schedulingType: true,
+          length: true,
+          locations: true,
+
+          users: {
+            select: {
+              username: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      if (!event) return event;
+
+      const locations = privacyFilteredLocations((event.locations || []) as LocationObject[]);
+      return {
+        ...event,
+        locations,
+      };
+    }),
 });
 
 // routes only available to authenticated users

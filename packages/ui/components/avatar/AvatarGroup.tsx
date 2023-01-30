@@ -46,7 +46,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
           return (
             <li key={enumerator} className="-mr-[4px] inline-block">
               <Avatar
-                className="border-gray-200"
+                className="border border-white"
                 imageSrc={item.image}
                 title={item.title}
                 alt={item.alt || ""}

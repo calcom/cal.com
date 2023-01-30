@@ -8,6 +8,12 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
 
+  // Allow visiting new booker page when cookie is present.
+  if (url.pathname.includes("/new-booker/") && !req.cookies.has("new-booker-enabled")) {
+    url.pathname = url.pathname.replace("/new-booker/", "/");
+    return NextResponse.redirect(url);
+  }
+
   if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
     const callbackUrl = url.searchParams.get("callbackUrl");
     const { isBot } = userAgent(req);
@@ -40,7 +46,13 @@ const middleware: NextMiddleware = async (req) => {
 };
 
 export const config = {
-  matcher: ["/api/collect-events/:path*", "/api/auth/:path*", "/apps/routing_forms/:path*", "/:path*/embed"],
+  matcher: [
+    "/api/collect-events/:path*",
+    "/api/auth/:path*",
+    "/apps/routing_forms/:path*",
+    "/:path*/embed",
+    "/:path*/new-booker/:path*",
+  ],
 };
 
 export default collectEvents({

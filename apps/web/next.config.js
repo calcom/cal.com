@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
 const withTM = require("next-transpile-modules")([
+  "@calcom/atoms",
   "@calcom/app-store",
   "@calcom/core",
   "@calcom/dayjs",
