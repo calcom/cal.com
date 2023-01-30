@@ -208,6 +208,19 @@ module.exports = {
       addVariant("windows", ".windows &");
       addVariant("ios", ".ios &");
       addVariant("hocus", ["&:hover", "&:focus"]);
+      matchVariant(
+        "nth",
+        (value) => {
+          return `&:nth-child(${value})`;
+        },
+        {
+          values: {
+            1: "1",
+            2: "2",
+            3: "3",
+          },
+        }
+      );
     }),
   ],
   variants: {

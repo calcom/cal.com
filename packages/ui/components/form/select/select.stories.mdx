@@ -15,13 +15,15 @@ Dropdown fields allow users to input existing options that is preset by the deis
 ## Structure
 <CustomArgsTable of={SelectField} />
 
-
-
 export const options = [
+    { type: "label", text: "Team One" },
     { value: 0, label: "Option One" },
     { value: 1, label: "Option Two" },
+    { type: "divider" },
+    { type: "label", text: "Team Two" },
+    { value: 3, label: "Option Three" },
+    { value: 4, label: "Option Four" },
 ];
-
 
 ## Examples
 
@@ -68,43 +70,14 @@ export const options = [
   </Example>
   <Example title="Icon Left">
     WIP
-    {/* <SelectField options={options} components={{ Control }}/> */}
   </Example>
 </Examples>
 
-
-## Variant Caviats (WIP) - To be updated
-Using Icons is a bit of a strange one cause you can't simpily pass in an icon as a prop. You have to pass in a component. To the select field.
-
-```js
-// Bad: Inline declaration will cause remounting issues
-const BadSelect = props => (
-  <Select {...props} components={{
-    Control: ({ children, ...rest }) => (
-      <components.Control {...rest}>
-        👎 {children}
-      </components.Control>
-    )}}
-  />
-)
-
-// Good: Custom component declared outside of the Select scope
-const Control = <IconLeading icon={FiPlus}/>
-
-const GoodSelect = props => <Select {...props} components={{ Control }} />
-
-```
 
 <Examples title="States ">
   <Example title="Default">
     <SelectField options={options} label={"Default Select"}/>
   </Example>
-  {/* <Example title="Hover">
-    <SelectField options={options} className="sb-pseudo--hover"/>
-  </Example>
-  <Example title="Focus">
-    <SelectField options={options} className="sb-pseudo--focus"/>
-  </Example> */}
 </Examples>
 
 
@@ -117,6 +90,6 @@ const GoodSelect = props => <Select {...props} components={{ Control }} />
 
 <Canvas>
   <Story name="Combobox downshift">
-      <MultipleComboBoxExample />
+      <MultipleComboBoxExample items={options} labelKey="label" searchableKey="label" />
   </Story>
 </Canvas>
