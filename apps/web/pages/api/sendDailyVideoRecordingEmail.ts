@@ -20,8 +20,7 @@ const schema = z.object({
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    res.status(405).json({ message: "No SendGrid API key or email" });
-    return;
+    return res.status(405).json({ message: "No SendGrid API key or email" });
   }
 
   const response = schema.safeParse(req.body);
