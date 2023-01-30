@@ -12,6 +12,7 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -220,39 +221,29 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
+        const { oauthController } = await jackson();
+
         // Fetch access token
-        const responseToken = await fetch(`${WEBAPP_URL}/api/auth/saml/token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            grant_type: "authorization_code",
-            client_id: "dummy",
-            client_secret: "dummy",
-            redirect_url: process.env.NEXTAUTH_URL,
-            code,
-          }),
+        const { access_token } = await oauthController.token({
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: `${process.env.NEXTAUTH_URL}`,
+          client_id: "dummy",
+          client_secret: "dummy",
         });
 
-        if (responseToken.status !== 200) {
+        if (!access_token) {
           return null;
         }
-
-        const { access_token } = await responseToken.json();
 
         // Fetch user info
-        const responseUserInfo = await fetch(`${WEBAPP_URL}/api/auth/saml/userinfo`, {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-          },
-        });
+        const userInfo = await oauthController.userInfo(access_token);
 
-        if (responseUserInfo.status !== 200) {
+        if (!userInfo) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = await responseUserInfo.json();
+        const { id, firstName, lastName, email } = userInfo;
 
         return {
           id,
@@ -344,7 +335,7 @@ export default NextAuth({
         return await autoMergeIdentities();
       }
 
-      if (account && account.type === "credentials") {
+      if (account && account.type === "credentials" && account.provider != "saml-idp") {
         return {
           ...token,
           id: user.id,
@@ -416,18 +407,23 @@ export default NextAuth({
     async signIn(params) {
       const { user, account, profile } = params;
 
+      // { type: 'credentials', provider: 'saml-idp' }
+
       if (account?.provider === "email") {
         return true;
       }
 
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
-      if (account?.type === "credentials") {
-        // return true;
-      }
+      // Only if provider is not saml-idp
+      if (account?.provider !== "saml-idp") {
+        if (account?.type === "credentials") {
+          return true;
+        }
 
-      if (account?.type !== "oauth") {
-        // return false;
+        if (account?.type !== "oauth") {
+          return false;
+        }
       }
 
       if (!user.email) {
@@ -451,18 +447,18 @@ export default NextAuth({
           return "/auth/error?error=unverified-email";
         }
         // Only google oauth on this path
-        const provider = account.provider.toUpperCase() as IdentityProvider;
+        // const provider = account.provider.toUpperCase() as IdentityProvider;
 
         const existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
               where: {
-                provider: account.provider,
+                provider: idP,
               },
             },
           },
           where: {
-            identityProvider: "SAML", //provider,
+            identityProvider: idP as IdentityProvider,
             identityProviderId: account.providerAccountId,
           },
         });
@@ -554,7 +550,7 @@ export default NextAuth({
             identityProviderId: String(user.id),
           },
         });
-        console.log({ newUser });
+
         const linkAccountNewUserData = { ...account, userId: newUser.id };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 

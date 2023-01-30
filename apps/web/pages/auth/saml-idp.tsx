@@ -13,11 +13,8 @@ export default function Page() {
 
     const { code } = router.query;
 
-    if (!code) {
-      return;
-    }
-
     signIn("saml-idp", {
+      callbackUrl: "/",
       code,
     });
   }, []);
