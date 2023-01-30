@@ -30,7 +30,7 @@ export default function WebhookTestDisclosure() {
           {t("ping_test")}
         </Button>
       </div>
-      <div className="space-y-0 rounded-md border-0 border-neutral-200 bg-white sm:mx-0 md:border">
+      <div className="space-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
         <div className="flex justify-between border-b p-4">
           <div className="flex items-center space-x-1">
             <h3 className="font-sm self-center font-medium text-black">{t("webhook_response")}</h3>
