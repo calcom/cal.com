@@ -149,7 +149,7 @@ export default function Login({
                   </div>
                   <PasswordField
                     id="password"
-                    autoComplete="current-password"
+                    autoComplete="off"
                     required
                     className="mb-0"
                     {...register("password")}
