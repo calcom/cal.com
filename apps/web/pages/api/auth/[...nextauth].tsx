@@ -407,8 +407,6 @@ export default NextAuth({
     async signIn(params) {
       const { user, account, profile } = params;
 
-      // { type: 'credentials', provider: 'saml-idp' }
-
       if (account?.provider === "email") {
         return true;
       }
