@@ -134,7 +134,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...rest}
       className={classNames(
-        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
+        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900 disabled:cursor-not-allowed",
         color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-gray-100"
       )}>
       <>
