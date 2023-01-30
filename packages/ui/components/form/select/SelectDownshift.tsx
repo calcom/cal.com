@@ -20,23 +20,23 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
   searchableKey?: StringProperties<T>;
   dividerKey?: keyof T;
   initalSelectedItems?: T[];
+  /** @default true */
+  renderItemsInside?: boolean;
   onSelectedItemsChange?: (selectedItems: T[]) => void;
 }
 
 export function MultipleComboBoxExample<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
+  const { renderItemsInside = true } = props;
   const [inputValue, setInputValue] = React.useState("");
   const [selectedItems, setSelectedItems] = React.useState<T[]>(props.initalSelectedItems || ([] as T[]));
 
-  function getFilteredItems(selectedItems: T[], inputValue: string) {
+  const items = React.useMemo(() => {
     const lowerCasedInputValue = inputValue.toLowerCase();
-    return props.items.filter(function filterBook(item) {
+    return props.items.filter(function filterItem(item) {
       const itemSearchable = props.searchableKey && (item[props.searchableKey] as string); // we know this is as string due to string properties type
       return itemSearchable ? itemSearchable?.toLowerCase().includes(lowerCasedInputValue) : props.items;
     });
-  }
-
-  // Could be memoized
-  const items = getFilteredItems(selectedItems, inputValue);
+  }, [inputValue, props.items, props.searchableKey]);
 
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } = useMultipleSelection({
     selectedItems,
@@ -56,84 +56,91 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
       }
     },
   });
-  const { isOpen, getToggleButtonProps, getLabelProps, getMenuProps, getInputProps, getItemProps } =
-    useCombobox({
-      items,
-      selectedItem: null,
-      stateReducer(state, actionAndChanges) {
-        const { changes, type } = actionAndChanges;
+  const {
+    isOpen,
+    getToggleButtonProps,
+    getLabelProps,
+    getMenuProps,
+    getInputProps,
+    getItemProps,
+    highlightedIndex,
+  } = useCombobox({
+    items,
+    stateReducer(state, actionAndChanges) {
+      const { changes, type } = actionAndChanges;
 
-        switch (type) {
-          case useCombobox.stateChangeTypes.InputKeyDownEnter:
-          case useCombobox.stateChangeTypes.ItemClick:
-          case useCombobox.stateChangeTypes.InputBlur:
-            return {
-              ...changes,
-              ...(changes.selectedItem && { isOpen: true, highlightedIndex: 0 }),
-            };
-          default:
-            return changes;
-        }
-      },
-      onStateChange({ inputValue: newInputValue, type, selectedItem: newSelectedItem }) {
-        switch (type) {
-          case useCombobox.stateChangeTypes.InputKeyDownEnter:
-          case useCombobox.stateChangeTypes.ItemClick:
-            if (newSelectedItem) {
-              if (selectedItems.includes(newSelectedItem)) {
-                removeSelectedItem(newSelectedItem);
-                props.onSelectedItemsChange && props.onSelectedItemsChange(selectedItems);
-                return;
-              }
-              const newSelectedItems = [...selectedItems, newSelectedItem];
-              setSelectedItems(newSelectedItems);
-              props.onSelectedItemsChange && props.onSelectedItemsChange(newSelectedItems);
+      switch (type) {
+        case useCombobox.stateChangeTypes.InputKeyDownEnter:
+        case useCombobox.stateChangeTypes.ItemClick:
+        case useCombobox.stateChangeTypes.InputBlur:
+          return {
+            ...changes,
+            ...(changes.selectedItem && { isOpen: true, highlightedIndex: changes.highlightedIndex }),
+          };
+        default:
+          return changes;
+      }
+    },
+    onStateChange({ inputValue: newInputValue, type, selectedItem: newSelectedItem }) {
+      switch (type) {
+        case useCombobox.stateChangeTypes.InputKeyDownEnter:
+        case useCombobox.stateChangeTypes.ItemClick:
+          if (newSelectedItem) {
+            if (selectedItems.includes(newSelectedItem)) {
+              removeSelectedItem(newSelectedItem);
+              props.onSelectedItemsChange && props.onSelectedItemsChange(selectedItems);
+              return;
             }
+            const newSelectedItems = [...selectedItems, newSelectedItem];
+            setSelectedItems(newSelectedItems);
+            props.onSelectedItemsChange && props.onSelectedItemsChange(newSelectedItems);
+          }
 
-            break;
+          break;
 
-          case useCombobox.stateChangeTypes.InputChange:
-            if (newInputValue) {
-              setInputValue(newInputValue);
-            }
-            break;
-          default:
-            break;
-        }
-      },
-    });
+        case useCombobox.stateChangeTypes.InputChange:
+          if (newInputValue) {
+            setInputValue(newInputValue);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+  });
 
   return (
-    <div>
+    <>
       <div className="flex flex-col">
         <Label {...getLabelProps()}>Pick some books:</Label>
         <div
           aria-label="menu-toggle"
           {...getToggleButtonProps(getDropdownProps({ preventKeyAction: isOpen }))}
           className="flex h-9 space-x-1 rounded-md border border-gray-300 p-1 focus-within:border-gray-900 hover:cursor-pointer hover:border-gray-400 focus-visible:border-gray-900">
-          {selectedItems.map(function renderSelectedItem(selectedItemForRender, index) {
-            return (
-              <span
-                className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"
-                key={`selected-item-${index}`}
-                {...getSelectedItemProps({
-                  selectedItem: selectedItemForRender,
-                  index,
-                })}>
-                <span>
-                  <>{selectedItemForRender[props.labelKey]}</>
-                </span>
-                <span
-                  className="ml-2 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeSelectedItem(selectedItemForRender);
-                  }}>
-                  &#10005;
-                </span>
-              </span>
-            );
-          })}
+          {renderItemsInside &&
+            selectedItems.map(function renderSelectedItem(selectedItemForRender, index) {
+              return (
+                <div
+                  className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"
+                  key={`selected-item-${index}`}
+                  {...getSelectedItemProps({
+                    selectedItem: selectedItemForRender,
+                    index,
+                  })}>
+                  <span>
+                    <>{selectedItemForRender[props.labelKey]}</>
+                  </span>
+                  <span
+                    className="ml-2 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeSelectedItem(selectedItemForRender);
+                    }}>
+                    &#10005;
+                  </span>
+                </div>
+              );
+            })}
         </div>
       </div>
       <ul
@@ -170,7 +177,10 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
               return (
                 <li
                   className={classNames(
-                    "space-between flex cursor-pointer items-center text-sm hover:bg-gray-200"
+                    "space-between flex cursor-pointer items-center border-transparent text-sm hover:bg-gray-200",
+                    isSelected && "bg-gray-100",
+                    highlightedIndex === index &&
+                      "bg-gray-200 focus-visible:border focus-visible:border-gray-900"
                   )}
                   key={`${item[props.labelKey]}${index}`}
                   {...getItemProps({ item, index })}>
@@ -186,6 +196,6 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
           </div>
         )}
       </ul>
-    </div>
+    </>
   );
 }
