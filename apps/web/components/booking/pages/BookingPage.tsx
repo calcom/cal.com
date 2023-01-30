@@ -978,7 +978,7 @@ const BookingPage = ({
                               addOnSuffix={
                                 <Tooltip content="Remove guest">
                                   <button
-                                    className="disabled:hover:cursor-not-allowed"
+                                    className="m-1 disabled:hover:cursor-not-allowed"
                                     type="button"
                                     onClick={() => guestsField.remove(index)}>
                                     <FiX className="text-gray-600" />
