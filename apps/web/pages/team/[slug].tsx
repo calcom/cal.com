@@ -21,6 +21,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
+import { ssrInit } from "@server/lib/ssr";
+
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -40,12 +42,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="rounded-md border border-gray-200 dark:border-gray-700">
+    <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600",
+            "dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50",
             !isEmbed && "bg-white"
           )}>
           <Link
@@ -143,6 +145,7 @@ function TeamPage({ team }: TeamPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -160,6 +163,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team,
+      trpcState: ssr.dehydrate(),
     },
   };
 };
