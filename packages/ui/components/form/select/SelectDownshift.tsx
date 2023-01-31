@@ -1,5 +1,5 @@
-import { useCombobox, useMultipleSelection } from "downshift";
-import React from "react";
+import { useCombobox, UseComboboxGetItemPropsOptions, useMultipleSelection } from "downshift";
+import React, { ReactNode } from "react";
 import { FiCheck } from "react-icons/fi";
 
 import { classNames } from "@calcom/lib";
@@ -23,6 +23,14 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
   /** @default true */
   renderItemsInside?: boolean;
   onSelectedItemsChange?: (selectedItems: T[]) => void;
+  selectNode?: (
+    item: T,
+    index: number,
+    selection: { isActive: boolean; isKeyboardFocused: boolean },
+    // Downshift doesnt supply types here so we have to say as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getItemProps: (options: UseComboboxGetItemPropsOptions<T>) => any
+  ) => ReactNode;
 }
 
 export function MultipleComboBoxExample<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
@@ -144,7 +152,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
         {...getMenuProps()}
         className="absolute mt-2 max-h-80 max-w-[256px] overflow-scroll rounded-md border border-gray-300 bg-white p-0 focus-visible:border-gray-900 ">
         {isOpen && (
-          <div className="">
+          <div>
             {props.searchableKey && (
               <div className="flex px-3 pt-2.5">
                 <TextField
@@ -168,6 +176,19 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
                       <>{item["text"]}</>
                     </span>
                   </div>
+                );
+              }
+
+              // If we need a custom node - return it here.
+              if (props.selectNode) {
+                return props.selectNode(
+                  item,
+                  index,
+                  {
+                    isActive: isSelected,
+                    isKeyboardFocused: highlightedIndex === index,
+                  },
+                  getItemProps({ item, index })
                 );
               }
 

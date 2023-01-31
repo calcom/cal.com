@@ -1,95 +1,120 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTable} from '@calcom/storybook/components'
-import { FiPlus } from "../../icon";
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
 
-import {SelectField} from "./Select"
-import {MultipleComboBoxExample} from "./SelectDownshift"
+import { classNames } from "@calcom/lib";
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import { FiPlus,FiCheck } from "../../icon";
+import { SelectField } from "./Select";
+import { MultipleComboBoxExample } from "./SelectDownshift";
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
-<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Definition
+
 Dropdown fields allow users to input existing options that is preset by the deisgner/ developer. It can be just one choice per field, or they might be multiple choices depends on the circumstances.
 
 ## Structure
+
 <CustomArgsTable of={SelectField} />
 
 export const options = [
-    { type: "label", text: "Team One" },
-    { value: 0, label: "Option One" },
-    { value: 1, label: "Option Two" },
-    { type: "divider" },
-    { type: "label", text: "Team Two" },
-    { value: 3, label: "Option Three" },
-    { value: 4, label: "Option Four" },
+  { type: "label", text: "Team One" },
+  { value: 0, label: "Option One" },
+  { value: 1, label: "Option Two" },
+  { type: "divider" },
+  { type: "label", text: "Team Two" },
+  { value: 3, label: "Option Three" },
+  { value: 4, label: "Option Four" },
 ];
 
 ## Examples
 
-<Examples title=" Single Selected / Unselected" footnote={
-  <ul>
-    <li>The difference between the types are when they are filled.  </li>
-  </ul>
-}>
+<Examples
+  title=" Single Selected / Unselected"
+  footnote={
+    <ul>
+      <li>The difference between the types are when they are filled. </li>
+    </ul>
+  }>
   <Example title="Single Select [Unselected]">
-    <SelectField
-      label={"Single Select"}
-      options={options}
-    />
+    <SelectField label={"Single Select"} options={options} />
   </Example>
-    <Example title="Single Select [Selected]">
-    <SelectField
-      label={"Single Select"}
-      options={options}
-      defaultValue={options[0]}
-    />
+  <Example title="Single Select [Selected]">
+    <SelectField label={"Single Select"} options={options} defaultValue={options[0]} />
   </Example>
   <Example title="Multi Select [Unselected]">
-    <SelectField
-      label={"Multi Select"}
-      options={options}
-      isMulti={true}
-    />
+    <SelectField label={"Multi Select"} options={options} isMulti={true} />
   </Example>
   <Example title="Multi Select [Selected]">
-    <SelectField
-      label={"Multi Select"}
-      options={options}
-      isMulti={true}
-      defaultValue={options[0]}
-    />
+    <SelectField label={"Multi Select"} options={options} isMulti={true} defaultValue={options[0]} />
   </Example>
 </Examples>
 
 <Examples title="Variants">
   <Example title="Default">
-    <SelectField
-      label={"Default Select"}
-      options={options}/>
+    <SelectField label={"Default Select"} options={options} />
   </Example>
-  <Example title="Icon Left">
-    WIP
-  </Example>
+  <Example title="Icon Left">WIP</Example>
 </Examples>
-
 
 <Examples title="States ">
   <Example title="Default">
-    <SelectField options={options} label={"Default Select"}/>
+    <SelectField options={options} label={"Default Select"} />
   </Example>
 </Examples>
 
-
 ## Select Story
+
 <Canvas>
   <Story name="Default">
-      <SelectField options={options} label={"Default Select"}/>
+    <SelectField options={options} label={"Default Select"} />
   </Story>
 </Canvas>
 
 <Canvas>
   <Story name="Combobox downshift">
-      <MultipleComboBoxExample items={options} labelKey="label" searchableKey="label" />
+    <MultipleComboBoxExample items={options} labelKey="label" searchableKey="label" />
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story name="Combobox downshift custom Item">
+    <MultipleComboBoxExample
+      items={options}
+      labelKey="label"
+      searchableKey="label"
+      selectNode={(item, index, selection, getItemProps) => {
+        return (
+          <li
+            className={classNames(
+              "space-between flex cursor-pointer items-center border-transparent text-sm hover:bg-gray-200",
+              selection.isActive && "bg-gray-100",
+              selection.isKeyboardFocused && "bg-gray-200 focus-visible:border focus-visible:border-gray-900"
+            )}
+            key={`${item["label"]}${index}`}
+            {...getItemProps}>
+            <div className="flex w-full justify-between px-3 py-2.5">
+              <div className="flex space-x-2">
+                <div className="w-5 h-5 rounded-full bg-gray-300"> </div>
+                <span>
+                  <>{item["label"]}</>
+                </span>
+              </div>
+              {selection.isActive && <FiCheck className="h-4 w-4 text-black" />}
+            </div>
+          </li>
+        );
+      }}
+    />
   </Story>
 </Canvas>
