@@ -68,6 +68,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           name: true,
           logo: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
         },
       },
       users: {
@@ -129,9 +132,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
-        theme: null as string | null /* Teams don't have a theme, and `BookingPage` uses it */,
-        brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
-        darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
         eventName: null,
       },
       eventType: eventTypeObject,
