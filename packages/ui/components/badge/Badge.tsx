@@ -41,13 +41,16 @@ export const Badge = function Badge(props: BadgeProps) {
     ...passThroughProps
   } = props;
   const hasIconOrDot = StartIcon || withDot;
+  const Element = passThroughProps.onClick ? "button" : "div";
   return (
-    <div
+    <Element
       {...passThroughProps}
       className={classNames(
-        "inline-flex items-center justify-center py-0.5 px-[6px] text-xs",
+        "inline-flex items-center justify-center py-0.5 px-[6px] text-xs transition-colors",
         bold ? "font-semibold" : "font-normal",
         rounded ? "min-w-5 min-h-5 rounded-full pt-1" : "rounded-md",
+        // @TODO: Hover states
+        Element === "button" && "hover:bg-gray-100",
         !hasIconOrDot ? classNameBySize[size] : "",
         badgeClassNameByVariant[variant],
         className
@@ -57,6 +60,6 @@ export const Badge = function Badge(props: BadgeProps) {
         {withDot && <GoPrimitiveDot className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
         {props.children}
       </>
-    </div>
+    </Element>
   );
 };

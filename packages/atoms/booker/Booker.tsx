@@ -133,6 +133,10 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                   {slots.length > 0 && selectedDate && (
                     <div className="dark:border-darkgray-300 flex h-full min-h-full w-full flex-col overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)]">
                       <m.div {...fadeInLeft} layout className="flex-grow md:h-[400px]">
+                        {/* @TODO: Weekstart day */}
+                        {/* @TODO: recurring event count */}
+                        {/* @TODO: eth signature */}
+                        {/* @TODO: seats per timeslot */}
                         <AvailableTimes
                           onTimeSelect={onTimeSelect}
                           date={dayjs(selectedDate)}

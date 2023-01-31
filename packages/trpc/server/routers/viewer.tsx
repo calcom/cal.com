@@ -16,7 +16,7 @@ import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { isPrismaObjOrUndefined, isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -184,6 +184,10 @@ const publicViewerRouter = router({
           disableGuests: true,
           // @TODO: Could this contain sensitive data?
           metadata: true,
+          requiresConfirmation: true,
+          recurringEvent: true,
+          price: true,
+          currency: true,
           workflows: {
             include: {
               workflow: {
@@ -222,10 +226,14 @@ const publicViewerRouter = router({
       const locations = privacyFilteredLocations((event.locations || []) as LocationObject[]);
       return {
         ...event,
+        metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
         customInputs: customInputSchema.array().parse(event.customInputs || []),
         locations,
         isSmsReminderNumberNeeded,
         isSmsReminderNumberRequired,
+        recurringEvent: isRecurringEvent(event.recurringEvent)
+          ? parseRecurringEvent(event.recurringEvent)
+          : null,
         // unseet workflows since we don't want to send this in the public api.
         workflows: undefined,
       };

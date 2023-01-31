@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 
-export const ToggleGroupItem = () => <div>hi</div>;
-
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
   options: { value: string; label: string; disabled?: boolean }[];
   isFullWidth?: boolean;
