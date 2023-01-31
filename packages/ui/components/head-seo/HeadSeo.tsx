@@ -73,14 +73,18 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
-  // build the canonical url to ensure it's always cal.com (not app.cal.com)
-  const router = useRouter();
-  // compose the url with only the router's path (e.g. /apps/zapier) such that on app.cal.com the canonical is still cal.com
-  const calcomUrl = (`https://cal.com` + (router.asPath === "/" ? "" : router.asPath)).split("?")[0]; // cut off search params
-  const url = getBrowserInfo()?.url ?? "";
-  // avoid setting cal.com canonicals on self-hosted apps. Note: isCalcom or IS_SELF_HOSTED from @calcom/lib do not handle https:cal.com
-  const isCalcom = new URL(url).hostname.endsWith("cal.com");
-  const defaultUrl = isCalcom ? calcomUrl : url;
+  // The below code sets the defaultUrl for our canonical tags
+
+  // Get the current URL from the window object
+  const url = getBrowserInfo()?.url;
+  // Check if the URL is from cal.com
+  const isCalcom = url && new URL(url).hostname.endsWith("cal.com");
+  // Get the router's path
+  const path = useRouter().asPath;
+  // Build the canonical URL using the router's path, without query parameters. Note: on homepage it omits the trailing slash
+  const calcomCanonical = `https://cal.com${path === "/" ? "" : path}`.split("?")[0];
+  // Set the default URL to either the current URL (if self-hosted) or https://cal.com canonical URL
+  const defaultUrl = isCalcom ? calcomCanonical : url;
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
