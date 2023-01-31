@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "Добро пожаловать на {{appName}}!",
   "edit_form_later_subtitle": "Вы сможете изменить эту информацию позже.",
   "connect_calendar_later": "Я подключу свой календарь позже",
-  "set_my_availability_later": "Я укажу доступность позже",
   "problem_saving_user_profile": "При сохранении данных возникла проблема. Попробуйте еще раз или обратитесь в службу поддержки.",
   "purchase_missing_seats": "Приобрести недостающие места",
   "slot_length": "Величина интервала",
