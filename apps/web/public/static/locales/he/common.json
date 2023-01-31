@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "ברוך בואך ל-{{appName}}!",
   "edit_form_later_subtitle": "ניתן יהיה לערוך את זה מאוחר יותר.",
   "connect_calendar_later": "אקשר את לוח השנה שלי מאוחר יותר",
-  "set_my_availability_later": "אגדיר את הזמינות שלי מאוחר יותר",
   "problem_saving_user_profile": "אירעה בעיה בשמירת הנתונים שלך. נסה/י שוב או פנה/י לשירות התמיכה.",
   "purchase_missing_seats": "רכישת מקומות חסרים",
   "slot_length": "אורך חלון הזמן",

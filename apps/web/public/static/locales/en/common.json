@@ -1265,7 +1265,6 @@
   "welcome_to_cal_header": "Welcome to {{appName}}!",
   "edit_form_later_subtitle": "You’ll be able to edit this later.",
   "connect_calendar_later": "I'll connect my calendar later",
-  "set_my_availability_later": "I'll set my availability later",
   "problem_saving_user_profile": "There was a problem saving your data. Please try again or reach out to customer support.",
   "purchase_missing_seats": "Purchase missing seats",
   "slot_length": "Slot length",
