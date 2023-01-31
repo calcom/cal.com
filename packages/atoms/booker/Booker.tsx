@@ -64,14 +64,14 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         variants={resizeAnimationConfig}
         animate={status}
         transition={{ ease: "easeInOut", duration: 0.4 }}
-        className="flex max-w-[90%] items-center justify-center overflow-hidden md:max-h-[var(--booker-max-height)] md:max-w-[var(--booker-max-width)]">
+        className="flex max-w-[90%] items-center justify-center md:max-h-[var(--booker-max-height)] md:max-w-[var(--booker-max-width)]">
         <m.div
           layout
           className="dark:bg-darkgray-100 dark:border-darkgray-300 flex h-full w-full flex-col rounded-md border border-gray-200 bg-white md:flex-row">
           <AnimatePresence>
             <m.div
               layout
-              className="dark:border-darkgray-300 border-gray-200 p-6 md:w-[var(--booker-meta-width)] md:min-w-[var(--booker-meta-width)] md:border-r">
+              className="dark:border-darkgray-300 relative z-10 border-gray-200 p-6 md:w-[var(--booker-meta-width)] md:min-w-[var(--booker-meta-width)] md:border-r">
               {event.isLoading && (
                 <m.div {...fadeInUp} initial="visible" layout>
                   <EventMetaSkeleton />
@@ -84,11 +84,12 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                   <div className="space-y-5">
                     <EventDetails event={event.data} />
                     <EventMeta contentClassName="relative" icon={FiGlobe}>
-                      <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 top-0 z-10 flex h-full w-full items-center bg-white">
+                      <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full items-center bg-white">
                         {timezone} <FiChevronDown className="ml-2 inline-block" />
                       </span>
+                      {/* @TODO: When old booking page is gone, hopefully we can improve the select component itself :)  */}
                       <TimezoneSelect
-                        className="[&_.cal-react-select\_\_control]:border-0"
+                        className="[&_.cal-react-select\_\_control]:h-auto [&_.cal-react-select\_\_control]:min-h-0 [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px]"
                         value={timezone}
                         onChange={(tz) => setTimezone(tz.value)}
                       />

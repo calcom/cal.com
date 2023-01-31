@@ -63,10 +63,10 @@ export const EventMeta = ({ icon: Icon, children, highlight, contentClassName }:
   return (
     <div
       className={classNames(
-        "flex items-center justify-start text-gray-600",
+        "flex items-start justify-start text-gray-600",
         highlight ? "dark:text-white" : "dark:text-darkgray-600 "
       )}>
-      <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+      <Icon className="mr-2 mt-1 h-4 w-4 flex-shrink-0" />
       <div className={contentClassName}>{children}</div>
     </div>
   );
@@ -132,6 +132,8 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.PRICE:
+            if (event.price === 0) return null;
+
             return (
               <EventMeta key={block} icon={FiCreditCard}>
                 <EventPrice event={event} />
