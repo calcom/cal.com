@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "{{appName}}오신 것을 환영합니다!",
   "edit_form_later_subtitle": "이것은 나중에 수정할 수 있습니다.",
   "connect_calendar_later": "내 캘린더를 나중에 연결하겠습니다",
-  "set_my_availability_later": "내 가용성은 나중에 설정하겠습니다",
   "problem_saving_user_profile": "데이터를 저장하는 중 문제가 발생했습니다. 다시 시도하거나 고객 지원에 문의하십시오.",
   "purchase_missing_seats": "누락 시트 구매",
   "slot_length": "슬롯 길이",

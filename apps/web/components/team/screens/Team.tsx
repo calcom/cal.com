@@ -60,7 +60,7 @@ const Members = ({ members, teamName }: { members: MembersType; teamName: string
   );
 };
 
-const Team = ({ team }: TeamPageProps) => {
+const Team = ({ team }: Omit<TeamPageProps, "trpcState">) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />

@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "Välkommen till {{appName}}!",
   "edit_form_later_subtitle": "Du kan redigera detta senare.",
   "connect_calendar_later": "Jag ansluter min kalender senare",
-  "set_my_availability_later": "Jag ställer in min tillgänglighet senare",
   "problem_saving_user_profile": "Det gick inte att spara dina data. Försök igen eller kontakta kundsupport.",
   "purchase_missing_seats": "Köp saknade platser",
   "slot_length": "Längd på plats",
