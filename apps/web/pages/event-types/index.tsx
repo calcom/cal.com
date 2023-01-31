@@ -2,7 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useState } from "react";
+import { FC, useEffect, useState, memo } from "react";
+import { z } from "zod";
 
 import {
   CreateEventTypeButton,
@@ -11,6 +12,8 @@ import {
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Badge,
@@ -31,6 +34,7 @@ import {
   Avatar,
   AvatarGroup,
   Tooltip,
+  HorizontalTabs,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -74,6 +78,40 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
+interface MobileTeamsTabProps {
+  eventTypeGroups: EventTypeGroups;
+}
+
+const querySchema = z.object({
+  teamId: z.nullable(z.coerce.number()).optional().default(null),
+});
+
+const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
+  const { eventTypeGroups } = props;
+
+  const tabs = eventTypeGroups.map((item) => ({
+    name: item.profile.name ?? "",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
+    avatar: item.profile.image ?? `${WEBAPP_URL}/${item.profile.slug}/avatar.png`,
+  }));
+  const { data } = useTypedQuery(querySchema);
+  const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
+
+  return (
+    <div>
+      <HorizontalTabs tabs={tabs} />
+      {events.length && (
+        <EventTypeList
+          types={events[0].eventTypes}
+          group={events[0]}
+          groupIndex={0}
+          readOnly={events[0].metadata.readOnly}
+        />
+      )}
+    </div>
+  );
+};
+
 const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
@@ -105,7 +143,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   );
 };
 
-const MemoizedItem = React.memo(Item);
+const MemoizedItem = memo(Item);
 
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
@@ -589,6 +627,8 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 const EventTypesPage = () => {
   const { t } = useLocale();
 
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   return (
     <div>
       <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
@@ -596,26 +636,40 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
-              {data.eventTypeGroups.map((group, index) => (
-                <Fragment key={group.profile.slug}>
-                  {/* hide list heading when there is only one (current user) */}
-                  {(data.eventTypeGroups.length !== 1 || group.teamId) && (
-                    <EventTypeListHeading
-                      profile={group.profile}
-                      membershipCount={group.metadata.membershipCount}
-                      teamId={group.teamId}
-                    />
-                  )}
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
-                  />
-                </Fragment>
-              ))}
+              {data.eventTypeGroups.length > 1 ? (
+                <>
+                  {isMobile ? (
+                    <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+                  ) : (
+                    data.eventTypeGroups.map((group, index) => (
+                      <div className="flex flex-col" key={group.profile.slug}>
+                        <EventTypeListHeading
+                          profile={group.profile}
+                          membershipCount={group.metadata.membershipCount}
+                          teamId={group.teamId}
+                        />
 
-              {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
+                        <EventTypeList
+                          types={group.eventTypes}
+                          group={group}
+                          groupIndex={index}
+                          readOnly={group.metadata.readOnly}
+                        />
+                      </div>
+                    ))
+                  )}
+                </>
+              ) : data.eventTypeGroups.length === 1 ? (
+                <EventTypeList
+                  types={data.eventTypeGroups[0].eventTypes}
+                  group={data.eventTypeGroups[0]}
+                  groupIndex={0}
+                  readOnly={data.eventTypeGroups[0].metadata.readOnly}
+                />
+              ) : (
+                <CreateFirstEventTypeView />
+              )}
+
               <EmbedDialog />
             </>
           )}

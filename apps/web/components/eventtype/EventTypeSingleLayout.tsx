@@ -323,7 +323,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <Suspense fallback={<FiLoader />}>
-        <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
+        <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
               className="primary-navigation"

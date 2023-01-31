@@ -59,7 +59,6 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         `${t("set_availability_getting_started_subtitle_1")}`,
         `${t("set_availability_getting_started_subtitle_2")}`,
       ],
-      skipText: `${t("set_my_availability_later")}`,
     },
     {
       title: `${t("nearly_there")}`,
