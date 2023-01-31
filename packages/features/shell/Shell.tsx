@@ -783,36 +783,32 @@ export function ShellMain(props: LayoutProps) {
   return (
     <>
       <div
-        className={classNames("mb-6 flex items-center sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-10")}>
+        className={classNames("mb-6 flex items-center sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
         {!!props.backPath && (
           <Button
             variant="icon"
+            size="sm"
             color="minimal"
             onClick={() =>
               typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="mt-1 ltr:mr-2 rtl:ml-2"
+            className="rounded-md ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
-          <header className={classNames(props.large && "py-8", "flex w-full max-w-full")}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
               {props.heading && (
                 <h1
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate  font-semibold tracking-wide text-black sm:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-2xl"
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-xl font-semibold tracking-wide text-black sm:block xl:max-w-full",
+                    props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
-              )}
-              {props.subtitle && (
-                <p className="hidden text-sm text-gray-500 sm:block">
-                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                </p>
               )}
             </div>
             {props.CTA && (
