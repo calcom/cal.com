@@ -179,8 +179,8 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // eslint-disable-next-line prettier/prettier
-        source: "/:path*((?<!(/embed|/embed/preview.html))$)",
+        // prettier-ignore
+        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
         headers: [
           {
             key: "X-Frame-Options",
