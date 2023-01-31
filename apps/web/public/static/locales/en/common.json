@@ -1511,6 +1511,7 @@
   "install_google_meet": "Install Google Meet",
   "install_google_calendar": "Install Google Calendar",
   "sender_name": "Sender name",
+  "already_invited": "Attendee already invited",
   "no_recordings_found": "No recordings found",
   "reporting": "Reporting",
   "reporting_feature": "See all incoming from data and download it as a CSV",
