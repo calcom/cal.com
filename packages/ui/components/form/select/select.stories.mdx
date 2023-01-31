@@ -93,6 +93,7 @@ export const options = [
       items={options}
       labelKey="label"
       searchableKey="label"
+      onSelectedItemsChange={(items)=>console.log(items)}
       selectNode={(item, index, selection, getItemProps) => {
         return (
           <li

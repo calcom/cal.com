@@ -1,5 +1,5 @@
 import { useCombobox, UseComboboxGetItemPropsOptions, useMultipleSelection } from "downshift";
-import React, { ReactNode } from "react";
+import React, { ReactElement, ReactNode } from "react";
 import { FiCheck } from "react-icons/fi";
 
 import { classNames } from "@calcom/lib";
@@ -31,6 +31,10 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getItemProps: (options: UseComboboxGetItemPropsOptions<T>) => any
   ) => ReactNode;
+  searchNode?: () => ReactElement<HTMLInputElement>;
+  input?: {
+    className: string; // Nested so intelisense still picks up classNames
+  };
 }
 
 export function MultipleComboBoxExample<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
@@ -150,17 +154,26 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
       </div>
       <ul
         {...getMenuProps(undefined, { suppressRefError: true })} // Ref is correctly being passed not sure why downshift complains
-        className="absolute mt-2 max-h-80 max-w-[256px] overflow-scroll rounded-md border border-gray-300 bg-white p-0 focus-visible:border-gray-900 ">
+        className={classNames(
+          "absolute mt-2 max-h-80 max-w-[256px] overflow-scroll rounded-md border border-gray-300 bg-white p-0 focus-visible:border-gray-900",
+          props.input?.className
+        )}>
         {isOpen && (
           <div>
             {props.searchableKey && (
               <div className="flex px-3 pt-2.5">
-                <TextField
-                  label="Search"
-                  labelSrOnly
-                  placeholder="Best book ever"
-                  {...getInputProps(getDropdownProps({ preventKeyAction: true }))}
-                />
+                {props.searchNode ? (
+                  <>
+                    <props.searchNode {...getInputProps(getDropdownProps({ preventKeyAction: true }))} />
+                  </>
+                ) : (
+                  <TextField
+                    label="Search"
+                    labelSrOnly
+                    placeholder="Best book ever"
+                    {...getInputProps(getDropdownProps({ preventKeyAction: true }))}
+                  />
+                )}
               </div>
             )}
             {items.map((item, index) => {
