@@ -145,7 +145,11 @@ const PasswordView = () => {
                   <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
                   <Select
                     options={timeoutOptions}
-                    defaultValue={timeoutOptions[1]}
+                    defaultValue={
+                      metadata?.sessionTimeout
+                        ? timeoutOptions.find((tmo) => tmo.value === metadata.sessionTimeout)
+                        : timeoutOptions[1]
+                    }
                     isSearchable={false}
                     className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
                     onChange={(event) => {
