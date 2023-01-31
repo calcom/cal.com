@@ -134,10 +134,6 @@ const Layout = (props: LayoutProps) => {
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
-          nextSeoProps={{
-            nofollow: true,
-            noindex: true,
-          }}
         />
       )}
       <div>
