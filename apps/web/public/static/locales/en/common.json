@@ -7,6 +7,7 @@
   "upgrade_now": "Upgrade now",
   "accept_invitation": "Accept Invitation",
   "calcom_explained": "{{appName}} provides scheduling infrastructure for absolutely everyone.",
+  "calcom_explained_new_user": "Finish setting up your {{appName}} account! You’re just a few steps away from solving all your scheduling problems.",
   "have_any_questions": "Have questions? We're here to help.",
   "reset_password_subject": "{{appName}}: Reset password instructions",
   "event_declined_subject": "Declined: {{title}} at {{date}}",
@@ -1536,5 +1537,15 @@
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
+  "email_no_user_cta":"Create your account",
+  "email_user_cta":"View Invitation",
+  "email_no_user_invite_heading":"You’ve been invited to join a team on {{appName}}",
+  "email_no_user_invite_subheading":"{{invitedBy}} has invited you to join their team on {{appName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
+  "email_no_user_invite_steps_intro":"We’ll walk you through a few short steps and you’ll be enjoying stress free scheduling with your team in no time.",
+  "email_no_user_step_one":"Choose your username",
+  "email_no_user_step_two":"Connect your calendar account",
+  "email_no_user_step_three":"Set your Availability",
+  "email_no_user_step_four":"Join {{teamName}}",
+  "email_no_user_signoff":"Happy Scheduling from the {{appName}} team",
   "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful."
 }
