@@ -73,6 +73,7 @@ export const ensureSession = async (ctxOrReq: CtxOrReq) => {
 };
 
 export enum ErrorCode {
+  IncorrectUsernamePassword = "incorrect-username-password",
   UserNotFound = "user-not-found",
   IncorrectPassword = "incorrect-password",
   UserMissingPassword = "missing-password",
