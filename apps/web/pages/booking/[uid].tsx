@@ -169,7 +169,7 @@ const querySchema = z.object({
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
-  email: z.string(),
+  email: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
