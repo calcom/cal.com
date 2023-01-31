@@ -21,6 +21,8 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
+import { ssrInit } from "@server/lib/ssr";
+
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -143,6 +145,7 @@ function TeamPage({ team }: TeamPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -160,6 +163,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team,
+      trpcState: ssr.dehydrate(),
     },
   };
 };
