@@ -77,7 +77,6 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   // Get the current URL from the window object
   const url = getBrowserInfo()?.url;
-  console.log("[HeadSeo] - url: ", url);
   // Check if the URL is from cal.com
   const isCalcom = url && new URL(url).hostname.endsWith("cal.com");
   // Get the router's path
