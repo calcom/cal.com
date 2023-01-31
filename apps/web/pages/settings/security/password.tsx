@@ -23,6 +23,7 @@ const PasswordView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
+  const metadata = userMetadata.parse(user?.metadata);
 
   const sessionMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
@@ -67,7 +68,7 @@ const PasswordView = () => {
     defaultValues: {
       oldPassword: "",
       newPassword: "",
-      sessionTimeout: user?.metadata?.sessionTimeout,
+      sessionTimeout: metadata?.sessionTimeout,
     },
   });
 
@@ -78,8 +79,8 @@ const PasswordView = () => {
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
     }
-    if (user?.metadata?.sessionTimeout !== sessionTimeout) {
-      sessionMutation.mutate({ metadata: { ...user?.metadata, sessionTimeout } });
+    if (metadata?.sessionTimeout !== sessionTimeout) {
+      sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout } });
     }
   };
 
