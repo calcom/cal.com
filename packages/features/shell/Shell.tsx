@@ -810,6 +810,11 @@ export function ShellMain(props: LayoutProps) {
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
+               {props.subtitle && (
+                <p className="hidden text-sm text-gray-500 sm:block">
+                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
+                </p>
+              )}
             </div>
             {props.CTA && (
               <div
