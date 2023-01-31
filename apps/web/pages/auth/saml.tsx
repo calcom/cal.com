@@ -13,6 +13,7 @@ export default function Page({ samlTenantID, samlProductID }: inferSSRProps<type
 
   if (HOSTED_CAL_FEATURES) {
     router.push("/auth/login");
+    return;
   }
 
   // Initiate SAML authentication flow
