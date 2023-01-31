@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "Bem-vindo(a) ao {{appName}}!",
   "edit_form_later_subtitle": "Poderá editar isto mais tarde.",
   "connect_calendar_later": "Vou associar o meu calendário mais tarde",
-  "set_my_availability_later": "Vou definir a minha disponibilidade mais tarde",
   "problem_saving_user_profile": "Ocorreu um problema ao guardar os seus dados. Tente novamente ou contacte o apoio ao cliente.",
   "purchase_missing_seats": "Compre os lugares em falta",
   "slot_length": "Comprimento do espaço",
