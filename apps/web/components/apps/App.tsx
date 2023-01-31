@@ -331,7 +331,7 @@ export default function App(props: {
   const { t } = useLocale();
 
   return (
-    <Shell large isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}
