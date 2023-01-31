@@ -247,7 +247,7 @@ if (isSAMLLoginEnabled) {
         const { id, firstName, lastName, email } = userInfo;
 
         return {
-          id,
+          id: id as unknown as number,
           firstName,
           lastName,
           email,
