@@ -17,7 +17,7 @@ import {
   Switch,
 } from "@calcom/ui";
 
-import ThemeLabel from "../../../../../apps/web/components/settings/theming/ThemeLabel";
+import ThemeLabel from "../../../settings/ThemeLabel";
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {

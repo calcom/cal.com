@@ -2,6 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
+import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
@@ -19,8 +20,6 @@ import {
   Switch,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
-
-import ThemeLabel from "@components/settings/theming/ThemeLabel";
 
 import { ssrInit } from "@server/lib/ssr";
 
