@@ -179,7 +179,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*((?<!embed)$)",
+        source: "/:path*((?<!(\/embed|\/embed\/preview.html))$),
         headers: [
           {
             key: "X-Frame-Options",
