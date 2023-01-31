@@ -40,11 +40,11 @@ export default function AppListCard(props: AppListCardProps) {
     data: { hl },
   } = useTypedQuery(schema);
   const router = useRouter();
-  const [highlight, setHighlight] = useState(shouldHighlight === true && hl === slug);
+  const [highlight, setHighlight] = useState(shouldHighlight && hl === slug);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (shouldHighlight === true && highlight) {
+    if (shouldHighlight && highlight) {
       const timer = setTimeout(() => {
         setHighlight(false);
         const url = new URL(window.location.href);
