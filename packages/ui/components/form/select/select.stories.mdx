@@ -11,7 +11,7 @@ import {
   VariantsTable,
 } from "@calcom/storybook/components";
 
-import { FiPlus,FiCheck } from "../../icon";
+import { FiPlus, FiCheck } from "../../icon";
 import { SelectField } from "./Select";
 import { MultipleComboBoxExample } from "./SelectDownshift";
 
@@ -93,7 +93,7 @@ export const options = [
       items={options}
       labelKey="label"
       searchableKey="label"
-      onSelectedItemsChange={(items)=>console.log(items)}
+      onSelectedItemsChange={(items) => console.log(items)}
       selectNode={(item, index, selection, getItemProps) => {
         return (
           <li
@@ -106,7 +106,49 @@ export const options = [
             {...getItemProps}>
             <div className="flex w-full justify-between px-3 py-2.5">
               <div className="flex space-x-2">
-                <div className="w-5 h-5 rounded-full bg-gray-300"> </div>
+                <div className="h-5 w-5 rounded-full bg-gray-300"> </div>
+                <span>
+                  <>{item["label"]}</>
+                </span>
+              </div>
+              {selection.isActive && <FiCheck className="h-4 w-4 text-black" />}
+            </div>
+          </li>
+        );
+      }}
+    />
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story name="Combobox downshift custom selected node">
+    <MultipleComboBoxExample
+      items={options}
+      labelKey="label"
+      searchableKey="label"
+      onSelectedItemsChange={(items) => console.log(items)}
+      renderNode={(selectedItems, getSelectedItemProps, removeSelectedItem) => {
+        return (
+          <div
+            className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"
+            key={`selected-item`}>
+            {selectedItems.length} selected
+          </div>
+        );
+      }}
+      selectNode={(item, index, selection, getItemProps) => {
+        return (
+          <li
+            className={classNames(
+              "space-between flex cursor-pointer items-center border-transparent text-sm hover:bg-gray-200",
+              selection.isActive && "bg-gray-100",
+              selection.isKeyboardFocused && "bg-gray-200 focus-visible:border focus-visible:border-gray-900"
+            )}
+            key={`${item["label"]}${index}`}
+            {...getItemProps}>
+            <div className="flex w-full justify-between px-3 py-2.5">
+              <div className="flex space-x-2">
+                <div className="h-5 w-5 rounded-full bg-gray-300"> </div>
                 <span>
                   <>{item["label"]}</>
                 </span>

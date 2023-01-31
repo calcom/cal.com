@@ -1,6 +1,10 @@
-import { useCombobox, UseComboboxGetItemPropsOptions, useMultipleSelection } from "downshift";
+import {
+  useCombobox,
+  UseComboboxGetItemPropsOptions,
+  useMultipleSelection,
+  UseMultipleSelectionGetSelectedItemPropsOptions,
+} from "downshift";
 import React, { ReactElement, ReactNode } from "react";
-import { FiCheck } from "react-icons/fi";
 
 import { classNames } from "@calcom/lib";
 
@@ -20,8 +24,6 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
   searchableKey?: StringProperties<T>;
   dividerKey?: keyof T;
   initalSelectedItems?: T[];
-  /** @default true */
-  renderItemsInside?: boolean;
   onSelectedItemsChange?: (selectedItems: T[]) => void;
   selectNode?: (
     item: T,
@@ -31,6 +33,13 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getItemProps: (options: UseComboboxGetItemPropsOptions<T>) => any
   ) => ReactNode;
+  renderNode?: (
+    items: T[],
+    // Downshift doesnt supply types here so we have to say as any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getSelectedItemProps: (options: UseMultipleSelectionGetSelectedItemPropsOptions<T>) => any,
+    removeSelectedItem: (item: T) => void
+  ) => ReactNode;
   searchNode?: () => ReactElement<HTMLInputElement>;
   input?: {
     className: string; // Nested so intelisense still picks up classNames
@@ -38,7 +47,6 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
 }
 
 export function MultipleComboBoxExample<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
-  const { renderItemsInside = true } = props;
   const [inputValue, setInputValue] = React.useState("");
   const [selectedItems, setSelectedItems] = React.useState<T[]>(props.initalSelectedItems || ([] as T[]));
 
@@ -126,32 +134,34 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
           aria-label="menu-toggle"
           {...getToggleButtonProps(getDropdownProps({ preventKeyAction: isOpen }))}
           className="flex h-9 space-x-1 rounded-md border border-gray-300 p-1 focus-within:border-gray-900 hover:cursor-pointer hover:border-gray-400 focus-visible:border-gray-900">
-          {renderItemsInside &&
-            selectedItems.map(function renderSelectedItem(selectedItemForRender, index) {
-              return (
-                <div
-                  className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"
-                  key={`selected-item-${index}`}
-                  {...getSelectedItemProps({
-                    selectedItem: selectedItemForRender,
-                    index,
-                  })}>
-                  <span>
-                    <>{selectedItemForRender[props.labelKey]}</>
-                  </span>
-                  <span
-                    className="ml-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeSelectedItem(selectedItemForRender);
-                    }}>
-                    &#10005;
-                  </span>
-                </div>
-              );
-            })}
+          {!props.renderNode
+            ? selectedItems.map(function renderSelectedItem(selectedItemForRender, index) {
+                return (
+                  <div
+                    className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"
+                    key={`selected-item-${index}`}
+                    {...getSelectedItemProps({
+                      selectedItem: selectedItemForRender,
+                      index,
+                    })}>
+                    <span>
+                      <>{selectedItemForRender[props.labelKey]}</>
+                    </span>
+                    <span
+                      className="ml-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSelectedItem(selectedItemForRender);
+                      }}>
+                      &#10005;
+                    </span>
+                  </div>
+                );
+              })
+            : props.renderNode(selectedItems, getSelectedItemProps, removeSelectedItem)}
         </div>
       </div>
+      {/* @TODO: Make this UL (Button part) overrideable via props  */}
       <ul
         {...getMenuProps(undefined, { suppressRefError: true })} // Ref is correctly being passed not sure why downshift complains
         className={classNames(
@@ -219,7 +229,13 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
                     <span>
                       <>{item[props.labelKey]}</>
                     </span>
-                    {isSelected && <FiCheck className="h-4 w-4 text-black" />}
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      className={classNames(
+                        "text-primary-600 h-4 w-4 rounded border-gray-300 focus:outline-0 ltr:mr-2 rtl:ml-2 "
+                      )}
+                    />
                   </div>
                 </li>
               );
