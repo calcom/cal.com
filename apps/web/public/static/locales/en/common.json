@@ -1543,6 +1543,7 @@
   "delete_sso_configuration": "Delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation": "Yes, delete {{connectionType}} configuration",
   "delete_sso_configuration_confirmation_description": "Are you sure you want to delete the {{connectionType}} configuration? Your team members who use {{connectionType}} login will no longer be able to access Cal.com.",
+  "organizer_timezone": "Organizer timezone",
   "email_no_user_cta":"Create your account",
   "email_user_cta":"View Invitation",
   "email_no_user_invite_heading":"You’ve been invited to join a team on {{appName}}",
