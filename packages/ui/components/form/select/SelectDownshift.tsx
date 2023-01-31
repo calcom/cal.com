@@ -230,6 +230,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
                       <>{item[props.labelKey]}</>
                     </span>
                     <input
+                      disabled
                       type="checkbox"
                       checked={isSelected}
                       className={classNames(
