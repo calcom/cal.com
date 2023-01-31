@@ -1239,7 +1239,6 @@
   "welcome_to_cal_header": "Vítá vás {{appName}}!",
   "edit_form_later_subtitle": "Toto budete moci upravit později.",
   "connect_calendar_later": "Připojím svůj kalendář později",
-  "set_my_availability_later": "Svou dostupnost nastavím později",
   "problem_saving_user_profile": "Při ukládání vašich údajů došlo k problému. Zkuste to prosím znovu, případně se obraťte na zákaznickou podporu.",
   "purchase_missing_seats": "Koupit chybějící místa",
   "slot_length": "Délka slotu",

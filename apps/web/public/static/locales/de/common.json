@@ -1241,7 +1241,6 @@
   "welcome_to_cal_header": "Willkommen bei {{appName}}!",
   "edit_form_later_subtitle": "Sie können dies später bearbeiten.",
   "connect_calendar_later": "Ich verbinde meinen Kalender später",
-  "set_my_availability_later": "Ich werde meine Verfügbarkeit später festlegen",
   "problem_saving_user_profile": "Beim Speichern Ihrer Daten ist ein Problem aufgetreten. Bitte versuchen Sie es erneut oder wenden Sie sich an den Support.",
   "purchase_missing_seats": "Fehlende Plätze kaufen",
   "slot_length": "Zeitfensterlänge",

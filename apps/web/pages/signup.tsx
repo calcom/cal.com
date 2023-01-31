@@ -5,15 +5,16 @@ import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, EmailField, PasswordField, TextField, HeadSeo } from "@calcom/ui";
-import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
-import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
-import prisma from "@calcom/web/lib/prisma";
-import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-import { ssrInit } from "@calcom/web/server/lib/ssr";
+import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import { asStringOrNull } from "../lib/asStringOrNull";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
+import { ssrInit } from "../server/lib/ssr";
 
 type FormValues = {
   username: string;
