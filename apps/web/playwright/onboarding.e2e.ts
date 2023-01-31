@@ -48,7 +48,7 @@ test.describe("Onboarding", () => {
         const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
         await expect(isDisabled).toBe(false);
         // same here, skip this step.
-        await page.locator("button[data-testid=skip-step]").click();
+        await page.locator("button[data-testid=save-availability]").click();
 
         await expect(page).toHaveURL(/.*user-profile/);
       });

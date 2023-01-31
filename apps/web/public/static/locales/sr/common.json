@@ -1240,7 +1240,6 @@
   "welcome_to_cal_header": "Dobrodošli na {{appName}}!",
   "edit_form_later_subtitle": "Ovo ćete moći da izmenite kasnije.",
   "connect_calendar_later": "Povezaću svoj kalendar kasnije",
-  "set_my_availability_later": "Podesiću svoju dostupnost kasnije",
   "problem_saving_user_profile": "Došlo je do problema prilikom čuvanja vaših podataka. Pokušajte ponovo ili se obratite korisničkoj podršci.",
   "purchase_missing_seats": "Kupite mesta koja nedostaju",
   "slot_length": "Dužina vremenskog intervala",

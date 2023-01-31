@@ -72,8 +72,9 @@ const providers: Provider[] = [
         },
       });
 
+      // Don't leak information about it being username or password that is invalid
       if (!user) {
-        throw new Error(ErrorCode.UserNotFound);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       if (user.identityProvider !== IdentityProvider.CAL) {
@@ -81,12 +82,12 @@ const providers: Provider[] = [
       }
 
       if (!user.password) {
-        throw new Error(ErrorCode.UserMissingPassword);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       const isCorrectPassword = await verifyPassword(credentials.password, user.password);
       if (!isCorrectPassword) {
-        throw new Error(ErrorCode.IncorrectPassword);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       if (user.twoFactorEnabled) {
