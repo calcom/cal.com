@@ -945,7 +945,7 @@
   "session_description": "Control your account session",
   "session_timeout_after": "Timeout session after",
   "session_timeout": "Session timeout",
-  "session_timeout_description": "Invalidate your session after certain amount of time.",
+  "session_timeout_description": "Invalidate your session after a certain amount of time.",
   "no_location": "No location defined",
   "set_location": "Set Location",
   "update_location": "Update Location",
