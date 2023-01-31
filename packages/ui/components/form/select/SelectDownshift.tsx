@@ -149,7 +149,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
         </div>
       </div>
       <ul
-        {...getMenuProps()}
+        {...getMenuProps(undefined, { suppressRefError: true })} // Ref is correctly being passed not sure why downshift complains
         className="absolute mt-2 max-h-80 max-w-[256px] overflow-scroll rounded-md border border-gray-300 bg-white p-0 focus-visible:border-gray-900 ">
         {isOpen && (
           <div>
@@ -167,11 +167,11 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
               const isSelected = selectedItems.includes(item);
 
               if (item["type"] === "divider") {
-                return <Divider className="px-3" />;
+                return <Divider className="px-3" key={`${index}-Label`} />;
               }
               if (item["type"] === "label") {
                 return (
-                  <div className="px-3">
+                  <div className="px-3" key={`${index}-Label`}>
                     <span className="text-xs uppercase leading-none text-gray-600">
                       <>{item["text"]}</>
                     </span>
