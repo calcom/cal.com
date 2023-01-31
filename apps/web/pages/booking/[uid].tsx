@@ -169,6 +169,7 @@ const querySchema = z.object({
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
+  email: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -180,6 +181,7 @@ export default function Success(props: SuccessProps) {
     cancel: isCancellationMode,
     changes,
     formerTime,
+    email,
   } = querySchema.parse(router.query);
 
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
@@ -196,7 +198,6 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
@@ -735,7 +736,7 @@ export default function Success(props: SuccessProps) {
                         <EmailInput
                           name="email"
                           id="email"
-                          defaultValue={email || ""}
+                          defaultValue={email}
                           className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
