@@ -77,7 +77,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const router = useRouter();
   // compose the url with only the router's path (e.g. /apps/zapier) such that on app.cal.com the canonical is still cal.com
   const calcomUrl = (`https://cal.com` + (router.asPath === "/" ? "" : router.asPath)).split("?")[0]; // cut off search params
-  const url = getBrowserInfo()?.url;
+  const url = getBrowserInfo()?.url ?? "";
   // avoid setting cal.com canonicals on self-hosted apps. Note: isCalcom or IS_SELF_HOSTED from @calcom/lib do not handle https:cal.com
   const isCalcom = new URL(url).hostname.endsWith("cal.com");
   const defaultUrl = isCalcom ? calcomUrl : url;
