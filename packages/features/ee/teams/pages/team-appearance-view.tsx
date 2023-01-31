@@ -5,13 +5,18 @@ import { Controller, useForm } from "react-hook-form";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, Switch } from "@calcom/ui";
+import { Button, ColorPicker, Form, Meta, showToast, Switch } from "@calcom/ui";
+
+import ThemeLabel from "@components/settings/theming/ThemeLabel";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 interface TeamAppearanceValues {
   hideBranding: boolean;
   hideBookATeamMember: boolean;
+  brandColor: string;
+  darkBrandColor: string;
+  theme: string | null | undefined;
 }
 
 const ProfileView = () => {
@@ -29,8 +34,6 @@ const ProfileView = () => {
     },
   });
 
-  const form = useForm<TeamAppearanceValues>();
-
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(router.query.id) },
     {
@@ -39,6 +42,15 @@ const ProfileView = () => {
       },
     }
   );
+
+  const form = useForm<TeamAppearanceValues>({
+    defaultValues: {
+      theme: team?.theme,
+      brandColor: team?.brandColor,
+      darkBrandColor: team?.darkBrandColor,
+      hideBranding: team?.hideBranding,
+    },
+  });
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
@@ -52,14 +64,82 @@ const ProfileView = () => {
             <Form
               form={form}
               handleSubmit={(values) => {
-                if (team) {
-                  mutation.mutate({
-                    id: team.id,
-                    hideBranding: values.hideBranding,
-                    hideBookATeamMember: values.hideBookATeamMember,
-                  });
-                }
+                mutation.mutate({
+                  id: team.id,
+                  ...values,
+                  theme: values.theme || null,
+                });
               }}>
+              <div className="mb-6 flex items-center text-sm">
+                <div>
+                  <p className="font-semibold">{t("theme")}</p>
+                  <p className="text-gray-600">{t("theme_applies_note")}</p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-between sm:flex-row">
+                <ThemeLabel
+                  variant="system"
+                  value={null}
+                  label={t("theme_system")}
+                  defaultChecked={team.theme === null}
+                  register={form.register}
+                />
+                <ThemeLabel
+                  variant="light"
+                  value="light"
+                  label={t("theme_light")}
+                  defaultChecked={team.theme === "light"}
+                  register={form.register}
+                />
+                <ThemeLabel
+                  variant="dark"
+                  value="dark"
+                  label={t("theme_dark")}
+                  defaultChecked={team.theme === "dark"}
+                  register={form.register}
+                />
+              </div>
+
+              <hr className="my-8 border-gray-200" />
+              <div className="mb-6 flex items-center text-sm">
+                <div>
+                  <p className="font-semibold">{t("custom_brand_colors")}</p>
+                  <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
+                </div>
+              </div>
+
+              <div className="block justify-between sm:flex">
+                <Controller
+                  name="brandColor"
+                  control={form.control}
+                  defaultValue={team.brandColor}
+                  render={() => (
+                    <div>
+                      <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+                      <ColorPicker
+                        defaultValue={team.brandColor}
+                        onChange={(value) => form.setValue("brandColor", value, { shouldDirty: true })}
+                      />
+                    </div>
+                  )}
+                />
+                <Controller
+                  name="darkBrandColor"
+                  control={form.control}
+                  defaultValue={team.darkBrandColor}
+                  render={() => (
+                    <div className="mt-6 sm:mt-0">
+                      <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+                      <ColorPicker
+                        defaultValue={team.darkBrandColor}
+                        onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+              <hr className="my-8 border-gray-200" />
+
               <div className="flex flex-col gap-8">
                 <div className="relative flex items-start">
                   <div className="flex-grow text-sm">
@@ -70,6 +150,7 @@ const ProfileView = () => {
                       {t("team_disable_cal_branding_description", { appName: APP_NAME })}
                     </p>
                   </div>
+
                   <div className="flex-none">
                     <Controller
                       control={form.control}
