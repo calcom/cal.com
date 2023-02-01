@@ -199,7 +199,7 @@ if (isSAMLLoginEnabled) {
     },
     options: {
       clientId: "dummy",
-      clientSecret: "dummy",
+      clientSecret: clientSecretVerifier,
     },
   });
 
@@ -225,12 +225,11 @@ if (isSAMLLoginEnabled) {
         const { oauthController } = await jackson();
 
         // Fetch access token
-        // We'll use clientSecretVerifier to verify the client/request
         const { access_token } = await oauthController.token({
           code,
           grant_type: "authorization_code",
           redirect_uri: `${process.env.NEXTAUTH_URL}`,
-          client_id: `tenant=null&product=null`,
+          client_id: "dummy",
           client_secret: clientSecretVerifier,
         });
 
