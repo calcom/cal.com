@@ -63,6 +63,10 @@ const useSlots = ({
   timeZone?: string;
   duration?: string;
 }) => {
+  const [groupedByDate, setGroupedByDate] = useState<{
+    [x: string]: RouterOutputs["viewer"]["public"]["slots"]["getSchedule"]["slots"];
+  }>({});
+  const utils = trpc.useContext();
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       eventTypeId,
@@ -76,16 +80,26 @@ const useSlots = ({
       enabled: !!startTime && !!endTime,
     }
   );
-  const groupedByDate: {
-    [x: string]: RouterOutputs["viewer"]["public"]["slots"]["getSchedule"]["slots"];
-  } = {};
-  if (data?.slots) {
-    data?.slots.forEach((slot) => {
-      const time = timeZone ? dayjs.utc(slot.time).tz(timeZone) : new Date(slot.time);
-      groupedByDate[yyyymmdd(time)] = groupedByDate[yyyymmdd(time)] || [];
-      groupedByDate[yyyymmdd(time)].push(slot);
-    });
-  }
+  useEffect(() => {
+    setGroupedByDate({});
+    utils.viewer.public.slots.getSchedule.invalidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeZone]);
+  useEffect(() => {
+    if (data?.slots) {
+      const newGroupedByDate: typeof groupedByDate = {};
+      data.slots.forEach((slot) => {
+        const time = timeZone ? dayjs.utc(slot.time).tz(timeZone) : new Date(slot.time);
+        newGroupedByDate[yyyymmdd(time)] = newGroupedByDate[yyyymmdd(time)] || [];
+        newGroupedByDate[yyyymmdd(time)].push(slot);
+      });
+      setGroupedByDate({
+        ...groupedByDate,
+        ...newGroupedByDate,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.slots]);
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
   return { slots: groupedByDate, isLoading: isLoading || isPaused };
 };
