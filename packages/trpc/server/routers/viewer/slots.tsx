@@ -34,8 +34,6 @@ const getScheduleSchema = z
     eventTypeId: z.number().int().optional(),
     // Event type slug
     eventTypeSlug: z.string(),
-    // invitee timezone
-    timeZone: z.string().optional(),
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).optional(),
     debug: z.boolean().optional(),
@@ -284,11 +282,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       periodDays: eventType.periodDays,
     });
 
-  const getSlotsTime = 0;
-  let checkForAvailabilityTime = 0;
-  const getSlotsCount = 0;
-  let checkForAvailabilityCount = 0;
-
   const timeSlots = getSlots({
     eventLength: input.duration || eventType.length,
     availability: userAvailability.map((item) => item.availability).flat(),
@@ -299,15 +292,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
     return fixedHosts.every((schedule) => {
-      const startCheckForAvailability = performance.now();
       const isAvailable = checkIfIsAvailable({
         time: slot.time,
         ...schedule,
         ...availabilityCheckProps,
       });
-      const endCheckForAvailability = performance.now();
-      checkForAvailabilityCount++;
-      checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
       return isAvailable;
     });
   });
@@ -334,45 +323,29 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       .filter((slot) => !!slot.userIds?.length);
   }
 
-  // availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
-
-  const computedAvailableSlots = availableTimeSlots.reduce(
-    (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: time, ...passThroughProps }
-    ) => {
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
-        ...passThroughProps,
-        time: time.toISOString(),
-        users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
-          (user) => user.username || ""
-        ),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
-        }),
-      });
-      return r;
-    },
-    Object.create(null)
-  );
-
-  logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
-
-  logger.debug(
-    `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
-  );
-  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  const slotsWithMetadata = availableTimeSlots.map((slot) => {
+    const { time, ...passThrough } = slot;
+    return {
+      ...passThrough,
+      time: time.toISOString(),
+      users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
+        (user) => user.username || ""
+      ),
+      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+        attendees:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ]._count.attendees,
+        bookingUid:
+          currentSeats[
+            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+          ].uid,
+      }),
+    };
+  });
 
   return {
-    slots: computedAvailableSlots,
+    slots: slotsWithMetadata,
   };
 }

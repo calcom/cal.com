@@ -20,6 +20,7 @@ import {
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -27,7 +28,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
 import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
 
@@ -44,6 +45,7 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
+// Get slots grouped by date in booker TZ
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
@@ -68,23 +70,24 @@ const useSlots = ({
       usernameList,
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
-      timeZone,
       duration,
     },
     {
       enabled: !!startTime && !!endTime,
     }
   );
-  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
-
-  useEffect(() => {
-    if (data?.slots) {
-      setCachedSlots((c) => ({ ...c, ...data?.slots }));
-    }
-  }, [data]);
-
+  const groupedByDate: {
+    [x: string]: RouterOutputs["viewer"]["public"]["slots"]["getSchedule"]["slots"];
+  } = {};
+  if (data?.slots) {
+    data?.slots.forEach((slot) => {
+      const time = timeZone ? dayjs.utc(slot.time).tz(timeZone) : new Date(slot.time);
+      groupedByDate[yyyymmdd(time)] = groupedByDate[yyyymmdd(time)] || [];
+      groupedByDate[yyyymmdd(time)].push(slot);
+    });
+  }
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isPaused };
+  return { slots: groupedByDate, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
@@ -148,6 +151,9 @@ const SlotPicker = ({
     timeZone,
     duration,
   });
+
+  // slots must be updated on: timeZone change, month changes, date select
+
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
