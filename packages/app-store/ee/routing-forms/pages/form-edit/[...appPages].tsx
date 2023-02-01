@@ -117,7 +117,6 @@ function Field({
             <TextField
               disabled={!!router}
               label="Label"
-              type="text"
               placeholder="This is what your users would see"
               /**
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
