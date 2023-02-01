@@ -1557,6 +1557,11 @@
   "email_no_user_step_four":"Join {{teamName}}",
   "email_no_user_signoff":"Happy Scheduling from the {{appName}} team",
   "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful.",
+  "scheduler": "{Scheduler}",
   "available_variables": "Available variables",
-  "scheduler": "{Scheduler}"
+  "recommended_next_steps": "Recommended next steps",
+  "create_a_managed_event": "Create a managed event type",
+  "meetings_are_better_with_the_right": "Meetings are better with the right team members there. Invite them now.",
+  "collective_or_roundrobin": "Collective or round-robin",
+  "book_your_team_members": "Book your team members together with collective events or cycle through to get the right person with round-robin."
 }
