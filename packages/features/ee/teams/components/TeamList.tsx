@@ -78,10 +78,11 @@ export default function TeamList(props: Props) {
                       description={t("meetings_are_better_with_the_right")}
                       actionButton={{
                         href:
-                          "/event-types?dialog=new-eventtype&eventPage=team%2F&managed=true" +
-                          team.name +
+                          "/event-types?dialog=new-eventtype&eventPage=team%2F" +
+                          team.slug +
                           "&teamId=" +
-                          team.id,
+                          team.id +
+                          "&managed=true",
                         child: t("create"),
                       }}
                     />
@@ -93,7 +94,7 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href:
                           "/event-types?dialog=new-eventtype&eventPage=team%2F" +
-                          team.name +
+                          team.slug +
                           "&teamId=" +
                           team.id,
                         child: t("create"),
