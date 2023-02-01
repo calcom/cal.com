@@ -33,9 +33,16 @@ function WorkflowExample(props: WorkflowExampleType) {
   );
 }
 
-export default function EmptyScreen() {
+export default function EmptyScreen(props: {
+  profiles: {
+    membershipCount?: number | undefined;
+    readOnly?: boolean | undefined;
+    slug: string | null;
+    name: string | null;
+    teamId: number | null | undefined;
+  }[];
+}) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
   const router = useRouter();
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
@@ -79,7 +86,7 @@ export default function EmptyScreen() {
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             canAdd={true}
-            options={[]}
+            options={props.profiles}
             className="mx-auto mt-8"
             createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
             buttonText={t("create_workflow")}

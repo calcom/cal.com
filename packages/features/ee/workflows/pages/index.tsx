@@ -11,10 +11,10 @@ import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
+import { Workflow } from ".prisma/client";
 
 function WorkflowsPage() {
   const { t } = useLocale();
-
   const session = useSession();
   const router = useRouter();
   const [checkedFilterItems, setCheckedFilterItems] = useState<{ userId: number | null; teamIds: number[] }>({
@@ -22,7 +22,10 @@ function WorkflowsPage() {
     teamIds: [],
   });
 
-  const { data, isLoading } = trpc.viewer.workflows.filteredList.useQuery(checkedFilterItems);
+  const allWorkflowsQuery = trpc.viewer.workflows.list.useQuery();
+  const { data: allWorkflowsData, isLoading } = allWorkflowsQuery;
+
+  const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -44,18 +47,33 @@ function WorkflowsPage() {
   const query = trpc.viewer.workflows.getByViewer.useQuery();
 
   useEffect(() => {
+    const allWorkflows = allWorkflowsData?.workflows;
+    if (allWorkflows && allWorkflows.length > 0) {
+      const filtered = allWorkflows.filter((workflow) => {
+        if (workflow.userId === checkedFilterItems.userId) return workflow;
+        if (checkedFilterItems.teamIds.includes(workflow.teamId)) return workflow;
+      });
+      setFilteredWorkflows(filtered);
+    }
+  }, [checkedFilterItems]);
+
+  useEffect(() => {
     if (session.status !== "loading" && !query.isLoading) {
       if (!query.data!) return;
       setCheckedFilterItems({
         userId: session.data?.user.id || null,
-        teamIds: query.data.profiles.map((profile) => {
-          if (!!profile.teamId) {
-            return profile.teamId;
-          }
-        }) as number[],
+        teamIds: query.data.profiles
+          .map((profile) => {
+            if (!!profile.teamId) {
+              return profile.teamId;
+            }
+          })
+          .filter((teamId) => !!teamId) as number[],
       });
     }
   }, [session.status, query.isLoading]);
+
+  if (!query.data) return null;
 
   return (
     <Shell
@@ -63,7 +81,9 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
+        session.data?.hasValidLicense &&
+        allWorkflowsData?.workflows &&
+        allWorkflowsData?.workflows.length > 0 ? (
           // <Button
           //   variant="fab"
           //   StartIcon={FiPlus}
@@ -86,14 +106,14 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {data?.workflows && data?.workflows.length > 0 && (
+            {allWorkflowsData?.workflows && allWorkflowsData.workflows.length > 0 && (
               <Filter
                 profiles={query.data.profiles}
                 checked={checkedFilterItems}
                 setChecked={setCheckedFilterItems}
               />
             )}
-            <WorkflowList workflows={data?.workflows} />
+            <WorkflowList workflows={filteredWorkflows} profiles={query.data.profiles} />
           </>
         )}
       </LicenseRequired>

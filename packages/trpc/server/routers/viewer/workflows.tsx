@@ -88,99 +88,42 @@ async function isAuthorized(
 }
 
 export const workflowsRouter = router({
-  filteredList: authedProcedure
-    .input(
-      z
-        .object({
-          userId: z.number().nullable(),
-          teamIds: z.number().array().optional(),
-        })
-        .optional()
-    )
-    .query(async ({ ctx, input }) => {
-      // no filter applied
-      if (!input || (!input.userId && (!input.teamIds || input.teamIds.length === 0))) {
-        const workflows = await ctx.prisma.workflow.findMany({
-          where: {
-            OR: [
-              { userId: ctx.user.id },
-              {
-                team: {
-                  members: {
-                    some: {
-                      userId: ctx.user.id,
-                    },
-                  },
+  list: authedProcedure.query(async ({ ctx, input }) => {
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        OR: [
+          { userId: ctx.user.id },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: ctx.user.id,
                 },
               },
-            ],
+            },
           },
-          include: {
-            activeOn: {
+        ],
+      },
+      include: {
+        activeOn: {
+          select: {
+            eventType: {
               select: {
-                eventType: {
-                  select: {
-                    id: true,
-                    title: true,
-                  },
-                },
-              },
-            },
-            steps: true,
-          },
-          orderBy: {
-            id: "asc",
-          },
-        });
-
-        return { workflows };
-      }
-
-      const { userId, teamIds } = input;
-
-      if (userId && userId != ctx.user.id) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-      const workflows = await ctx.prisma.workflow.findMany({
-        where: {
-          OR: [
-            { userId: userId || 0 },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: ctx.user.id,
-                    teamId: {
-                      in: teamIds || [],
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          activeOn: {
-            select: {
-              eventType: {
-                select: {
-                  id: true,
-                  title: true,
-                },
+                id: true,
+                title: true,
               },
             },
           },
-          steps: true,
         },
-        orderBy: {
-          id: "asc",
-        },
-      });
-      console.log(JSON.stringify(workflows));
-      return { workflows };
-    }),
+        steps: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    return { workflows };
+  }),
   get: authedProcedure
     .input(
       z.object({

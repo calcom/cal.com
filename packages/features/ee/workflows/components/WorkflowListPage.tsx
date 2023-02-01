@@ -33,8 +33,15 @@ export type WorkflowType = Workflow & {
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
+  profiles: {
+    membershipCount?: number | undefined;
+    readOnly?: boolean | undefined;
+    slug: string | null;
+    name: string | null;
+    teamId: number | null | undefined;
+  }[];
 }
-export default function WorkflowListPage({ workflows }: Props) {
+export default function WorkflowListPage({ workflows, profiles }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -166,12 +173,12 @@ export default function WorkflowListPage({ workflows }: Props) {
             setIsOpenDialog={setDeleteDialogOpen}
             workflowId={workflowToDeleteId}
             additionalFunction={async () => {
-              await utils.viewer.workflows.filteredList.invalidate();
+              await utils.viewer.workflows.list.invalidate();
             }}
           />
         </div>
       ) : (
-        <EmptyScreen />
+        <EmptyScreen profiles={profiles} />
       )}
     </>
   );
