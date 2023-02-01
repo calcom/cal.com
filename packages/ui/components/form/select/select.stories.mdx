@@ -13,7 +13,7 @@ import {
 
 import { FiPlus, FiCheck } from "../../icon";
 import { SelectField } from "./Select";
-import { MultipleComboBoxExample } from "./SelectDownshift";
+import { MultiSelect } from "./SelectDownshift";
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
 
@@ -83,14 +83,15 @@ export const options = [
 
 <Canvas>
   <Story name="Combobox downshift">
-    <MultipleComboBoxExample items={options} labelKey="label" searchableKey="label" />
+    <MultiSelect label="Team Select" items={options} labelKey="label" searchableKey="label" />
   </Story>
 </Canvas>
 
 <Canvas>
   <Story name="Combobox downshift custom Item">
-    <MultipleComboBoxExample
+    <MultiSelect
       items={options}
+      label="Team Select"
       labelKey="label"
       searchableKey="label"
       onSelectedItemsChange={(items) => console.log(items)}
@@ -122,12 +123,13 @@ export const options = [
 
 <Canvas>
   <Story name="Combobox downshift custom selected node">
-    <MultipleComboBoxExample
+    <MultiSelect
       items={options}
       labelKey="label"
+      label="Team Select"
       searchableKey="label"
       onSelectedItemsChange={(items) => console.log(items)}
-      renderNode={(selectedItems, getSelectedItemProps, removeSelectedItem) => {
+      listItemNode={(selectedItems, getSelectedItemProps, removeSelectedItem) => {
         return (
           <div
             className="hocus:text-gray-900 hocus:bg-gray-300 focus:border-1 flex items-center rounded-md border-transparent bg-gray-200 px-2 py-[6px] text-sm text-gray-700"

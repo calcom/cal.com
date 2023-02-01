@@ -5,6 +5,7 @@ import {
   UseMultipleSelectionGetSelectedItemPropsOptions,
 } from "downshift";
 import React, { ReactElement, ReactNode } from "react";
+import { FiSearch } from "react-icons/fi";
 
 import { classNames } from "@calcom/lib";
 
@@ -17,11 +18,12 @@ type StringProperties<T> = {
 }[keyof T];
 
 interface MultiComboboxProps<T extends Record<string, unknown>> {
+  label: string;
   items: T[];
   /** The field that will be used to display info */
   labelKey: keyof T;
   // gets that can be used to search for items in text box
-  searchableKey?: StringProperties<T>;
+  searchableKey: StringProperties<T>;
   dividerKey?: keyof T;
   initalSelectedItems?: T[];
   onSelectedItemsChange?: (selectedItems: T[]) => void;
@@ -33,7 +35,7 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getItemProps: (options: UseComboboxGetItemPropsOptions<T>) => any
   ) => ReactNode;
-  renderNode?: (
+  listItemNode?: (
     items: T[],
     // Downshift doesnt supply types here so we have to say as any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,11 +44,12 @@ interface MultiComboboxProps<T extends Record<string, unknown>> {
   ) => ReactNode;
   searchNode?: () => ReactElement<HTMLInputElement>;
   input?: {
-    className: string; // Nested so intelisense still picks up classNames
+    className?: string; // Nested so intelisense still picks up classNames
+    placeHolder?: string;
   };
 }
 
-export function MultipleComboBoxExample<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
+export function MultiSelect<T extends Record<string, unknown>>(props: MultiComboboxProps<T>) {
   const [inputValue, setInputValue] = React.useState("");
   const [selectedItems, setSelectedItems] = React.useState<T[]>(props.initalSelectedItems || ([] as T[]));
 
@@ -129,12 +132,12 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
   return (
     <>
       <div className="flex flex-col">
-        <Label {...getLabelProps()}>Pick some books:</Label>
+        <Label {...getLabelProps()}>{props.label}</Label>
         <div
           aria-label="menu-toggle"
           {...getToggleButtonProps(getDropdownProps({ preventKeyAction: isOpen }))}
-          className="flex h-9 space-x-1 rounded-md border border-gray-300 p-1 focus-within:border-gray-900 hover:cursor-pointer hover:border-gray-400 focus-visible:border-gray-900">
-          {!props.renderNode
+          className="flex h-9 space-x-1 overflow-x-scroll rounded-md border border-gray-300 p-1 focus-within:border-gray-900 hover:cursor-pointer hover:border-gray-400 focus-visible:border-gray-900">
+          {!props.listItemNode
             ? selectedItems.map(function renderSelectedItem(selectedItemForRender, index) {
                 return (
                   <div
@@ -158,7 +161,7 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
                   </div>
                 );
               })
-            : props.renderNode(selectedItems, getSelectedItemProps, removeSelectedItem)}
+            : props.listItemNode(selectedItems, getSelectedItemProps, removeSelectedItem)}
         </div>
       </div>
       {/* @TODO: Make this UL (Button part) overrideable via props  */}
@@ -168,81 +171,84 @@ export function MultipleComboBoxExample<T extends Record<string, unknown>>(props
           "absolute mt-2 max-h-80 max-w-[256px] overflow-scroll rounded-md border border-gray-300 bg-white p-0 focus-visible:border-gray-900",
           props.input?.className
         )}>
-        {isOpen && (
-          <div>
-            {props.searchableKey && (
-              <div className="flex px-3 pt-2.5">
-                {props.searchNode ? (
-                  <>
-                    <props.searchNode {...getInputProps(getDropdownProps({ preventKeyAction: true }))} />
-                  </>
-                ) : (
-                  <TextField
-                    label="Search"
-                    labelSrOnly
-                    placeholder="Best book ever"
-                    {...getInputProps(getDropdownProps({ preventKeyAction: true }))}
-                  />
-                )}
-              </div>
+        <>
+          {/* Weird issue with ref not liking being loaded conditionally - as per docks this shoudl always be mounted */}
+          <div className={classNames("px-3 pt-2.5", isOpen ? "flex" : "hidden")}>
+            {props.searchNode ? (
+              <>
+                <props.searchNode {...getInputProps(getDropdownProps({ preventKeyAction: true }))} />
+              </>
+            ) : (
+              <TextField
+                label="Search"
+                labelSrOnly
+                addOnFilled={false}
+                placeholder={props.input?.placeHolder ?? "Search..."}
+                addOnLeading={<FiSearch className="h-5 w-5" />}
+                {...getInputProps(getDropdownProps({ preventKeyAction: true }))}
+              />
             )}
-            {items.map((item, index) => {
-              const isSelected = selectedItems.includes(item);
-
-              if (item["type"] === "divider") {
-                return <Divider className="px-3" key={`${index}-Label`} />;
-              }
-              if (item["type"] === "label") {
-                return (
-                  <div className="px-3" key={`${index}-Label`}>
-                    <span className="text-xs uppercase leading-none text-gray-600">
-                      <>{item["text"]}</>
-                    </span>
-                  </div>
-                );
-              }
-
-              // If we need a custom node - return it here.
-              if (props.selectNode) {
-                return props.selectNode(
-                  item,
-                  index,
-                  {
-                    isActive: isSelected,
-                    isKeyboardFocused: highlightedIndex === index,
-                  },
-                  getItemProps({ item, index })
-                );
-              }
-
-              return (
-                <li
-                  className={classNames(
-                    "space-between flex cursor-pointer items-center border-transparent text-sm hover:bg-gray-200",
-                    isSelected && "bg-gray-100",
-                    highlightedIndex === index &&
-                      "bg-gray-200 focus-visible:border focus-visible:border-gray-900"
-                  )}
-                  key={`${item[props.labelKey]}${index}`}
-                  {...getItemProps({ item, index })}>
-                  <div className="flex w-full justify-between px-3 py-2.5">
-                    <span>
-                      <>{item[props.labelKey]}</>
-                    </span>
-                    <input
-                      disabled
-                      type="checkbox"
-                      checked={isSelected}
-                      className={classNames(
-                        "text-primary-600 h-4 w-4 rounded border-gray-300 focus:outline-0 ltr:mr-2 rtl:ml-2 "
-                      )}
-                    />
-                  </div>
-                </li>
-              );
-            })}
           </div>
-        )}
+          {isOpen && (
+            <>
+              {items.map((item, index) => {
+                const isSelected = selectedItems.includes(item);
+
+                if (item["type"] === "divider") {
+                  return <Divider className="px-3" key={`${index}-Label`} />;
+                }
+                if (item["type"] === "label") {
+                  return (
+                    <div className="px-3" key={`${index}-Label`}>
+                      <span className="text-xs uppercase leading-none text-gray-600">
+                        <>{item["text"]}</>
+                      </span>
+                    </div>
+                  );
+                }
+
+                // If we need a custom node - return it here.
+                if (props.selectNode) {
+                  return props.selectNode(
+                    item,
+                    index,
+                    {
+                      isActive: isSelected,
+                      isKeyboardFocused: highlightedIndex === index,
+                    },
+                    getItemProps({ item, index })
+                  );
+                }
+
+                return (
+                  <li
+                    className={classNames(
+                      "space-between flex cursor-pointer items-center border-transparent text-sm hover:bg-gray-200",
+                      isSelected && "bg-gray-100",
+                      highlightedIndex === index &&
+                        "bg-gray-200 focus-visible:border focus-visible:border-gray-900"
+                    )}
+                    key={`${item[props.labelKey]}${index}`}
+                    {...getItemProps({ item, index })}>
+                    <div className="flex w-full justify-between px-3 py-2.5">
+                      <span>
+                        <>{item[props.labelKey]}</>
+                      </span>
+                      <input
+                        disabled
+                        type="checkbox"
+                        checked={isSelected}
+                        className={classNames(
+                          "text-primary-600 h-4 w-4 rounded border-gray-300 focus:outline-0 ltr:mr-2 rtl:ml-2 "
+                        )}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </>
+          )}
+        </>
       </ul>
     </>
   );
