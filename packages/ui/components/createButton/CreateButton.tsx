@@ -89,9 +89,8 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={14} align="end">
             <DropdownMenuLabel>
-              <div className="w-48">{props.subtitle}</div>
+              <div className="w-48 text-xs">{props.subtitle}</div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             {props.options.map((option) => (
               <DropdownMenuItem key={option.slug}>
                 <DropdownItem

@@ -11,8 +11,7 @@ import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
-import WorkflowList from "../components/WorkflowListPage";
-import { Workflow } from ".prisma/client";
+import WorkflowList, { WorkflowType } from "../components/WorkflowListPage";
 
 function WorkflowsPage() {
   const { t } = useLocale();
@@ -26,7 +25,17 @@ function WorkflowsPage() {
   const allWorkflowsQuery = trpc.viewer.workflows.list.useQuery();
   const { data: allWorkflowsData, isLoading } = allWorkflowsQuery;
 
-  const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
+  const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowType[]>([]);
+
+  useEffect(() => {
+    if (allWorkflowsData?.workflows) {
+      const filtered = allWorkflowsData?.workflows.filter((workflow) => {
+        if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
+        if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
+      });
+      setFilteredWorkflows(filtered);
+    }
+  }, [allWorkflowsData]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -157,7 +166,7 @@ const Filter = (props: {
   const [noFilter, setNoFilter] = useState(true);
 
   return (
-    <div className={classNames(noFilter ? "w-16" : "w-24")}>
+    <div className={classNames(noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
         <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
           <Avatar

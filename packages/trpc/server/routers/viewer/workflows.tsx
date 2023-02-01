@@ -88,7 +88,7 @@ async function isAuthorized(
 }
 
 export const workflowsRouter = router({
-  list: authedProcedure.query(async ({ ctx, input }) => {
+  list: authedProcedure.query(async ({ ctx }) => {
     const workflows = await ctx.prisma.workflow.findMany({
       where: {
         OR: [
