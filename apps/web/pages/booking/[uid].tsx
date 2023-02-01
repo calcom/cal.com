@@ -560,13 +560,15 @@ export default function Success(props: SuccessProps) {
                     {Object.entries(bookingInfo.responses).map(([name, response]) => {
                       const field = eventType.bookingFields.find((field) => field.name === name);
                       // We show location in the "where" section
-                      // We show guests in Who section
+                      // We show Booker Name, Emails and guests in Who section
                       // We show notes in additional notes section
                       if (
                         !field ||
                         field.name === "location" ||
                         field.name === "guests" ||
-                        field.name === "notes"
+                        field.name === "notes" ||
+                        field.name === "name" ||
+                        field.name === "email"
                       ) {
                         return null;
                       }

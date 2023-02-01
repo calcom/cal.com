@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { ReactMultiEmail } from "react-multi-email";
 import { z } from "zod";
 
 import Widgets, {
@@ -14,23 +13,23 @@ import { fieldsSchema } from "./FormBuilderFieldsSchema";
 export const Components = {
   text: {
     propsType: "text",
-    type: "text",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextWidget {...props} />,
   },
   textarea: {
     propsType: "text",
-    type: "textarea",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextAreaWidget {...props} />,
   },
   number: {
     propsType: "text",
-
-    type: "number",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.NumberWidget {...props} />,
+  },
+  name: {
+    propsType: "text",
+    // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextWidget {...props} />,
   },
   phone: {
     propsType: "text",
-    type: "phone",
     factory: <TProps extends TextLikeComponentProps>({ setValue, ...props }: TProps) => {
       if (!props) {
         return <div />;
@@ -48,7 +47,6 @@ export const Components = {
     valuePlaceholder: "Enter Phone Number",
   },
   email: {
-    type: "email",
     propsType: "text",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
       if (!props) {
@@ -60,7 +58,6 @@ export const Components = {
     },
   },
   address: {
-    type: "address",
     propsType: "text",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
       return (
@@ -74,7 +71,6 @@ export const Components = {
     },
   },
   multiemail: {
-    type: "multiemail",
     propsType: "text",
     factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
       //TODO: ManageBookings: Make it use multiemail
@@ -83,7 +79,6 @@ export const Components = {
     valuePlaceholder: "Enter Email Addresses",
   },
   multiselect: {
-    type: "multiselect",
     propsType: "multiselect",
     factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => {
       const newProps = {
@@ -94,7 +89,6 @@ export const Components = {
     },
   },
   select: {
-    type: "select",
     propsType: "select",
     factory: <TProps extends SelectLikeComponentProps>(props: TProps) => {
       const newProps = {
@@ -105,7 +99,6 @@ export const Components = {
     },
   },
   checkbox: {
-    type: "checkbox",
     propsType: "multiselect",
     factory: <TProps extends SelectLikeComponentProps<string[]>>({
       options,
@@ -145,7 +138,6 @@ export const Components = {
     },
   },
   radio: {
-    type: "radio",
     propsType: "select",
     factory: <TProps extends SelectLikeComponentProps>({ setValue, value, options }: TProps) => {
       return (
@@ -169,7 +161,6 @@ export const Components = {
     },
   },
   radioInput: {
-    type: "radioInput",
     propsType: "objectiveWithInput",
     factory: function RadioInputWithLabel<
       TProps extends SelectLikeComponentProps<{
@@ -272,7 +263,6 @@ export const Components = {
     },
   },
   boolean: {
-    type: "boolean",
     propsType: "boolean",
     factory: <TProps extends TextLikeComponentProps<boolean>>({
       readOnly,
@@ -302,3 +292,4 @@ export const Components = {
     },
   },
 } as const;
+// Should use `statisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config

@@ -9,7 +9,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
 
-  const booking = await handleNewBooking(req);
+  const booking = await handleNewBooking(req, true);
   return booking;
 }
 

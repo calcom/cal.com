@@ -139,22 +139,19 @@ export const stringOrNumber = z.union([
 
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
+export const bookingCreateSchemaForApiOnly = z.object({
+  name: z.string(),
+  email: z.string(),
+  location: z.string().optional(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+});
+
 export const bookingCreateBodySchema = z.object({
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-
-  /**
-   * Keep old way of booking inputs here for API calls that might be coming with these fields
-   */
-  // TODO: Move these to a separate schema that is validated only when using the API.
-  name: z.string().optional(),
-  email: z.string().optional(),
-  location: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  /**************/
-
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
@@ -162,7 +159,6 @@ export const bookingCreateBodySchema = z.object({
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),

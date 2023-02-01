@@ -5,6 +5,7 @@ export const fieldsSchema = z.array(
     name: z.string(),
     label: z.string(),
     type: z.enum([
+      "name",
       "text",
       "textarea",
       "number",

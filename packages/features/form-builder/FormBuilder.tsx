@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { useState } from "react";
-import { Controller, useFieldArray, useForm, useFormContext, UseFieldArrayReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -51,6 +51,18 @@ export const FormBuilder = function FormBuilder({
     systemOnly?: boolean;
   }[] = [
     {
+      label: "Name",
+      value: "name",
+    },
+    {
+      label: "Email",
+      value: "email",
+    },
+    {
+      label: "Phone",
+      value: "phone",
+    },
+    {
       label: "Short Text",
       value: "text",
     },
@@ -71,14 +83,6 @@ export const FormBuilder = function FormBuilder({
       label: "MultiSelect",
       value: "multiselect",
       needsOptions: true,
-    },
-    {
-      label: "Phone",
-      value: "phone",
-    },
-    {
-      label: "Email",
-      value: "email",
     },
     {
       label: "Multiple Emails",
@@ -548,6 +552,7 @@ export const ComponentForField = ({
       </WithLabel>
     );
   }
+
   if (componentConfig.propsType === "objectiveWithInput") {
     if (value !== undefined && !isObjectiveWithInputValue(value)) {
       throw new Error("Value is not of type {value: string}");
@@ -584,6 +589,9 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
+  // if (typeof window !== "undefined") {
+  //   window.formState = formState;
+  // }
   return (
     <div className="reloading mb-4">
       <Controller

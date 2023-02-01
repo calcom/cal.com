@@ -259,9 +259,6 @@ const BookingPage = ({
         responses: {} as z.infer<typeof bookingFormSchema>["responses"],
       };
 
-      // To keep URLs that might be prefilling customInputs(deprecated) fields working, we are introducing this query param to identify new prefill URLs
-      // Should be handled by mapping custom-inputs to bookingFields
-      // if (router.query["form-builder"] == "1") {
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
@@ -273,7 +270,6 @@ const BookingPage = ({
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
       };
-      // }
 
       return defaults;
     }
@@ -321,9 +317,6 @@ const BookingPage = ({
     attendeeAddress?: string;
     phone?: string;
     hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-    customInputs?: {
-      [key: string]: string | boolean;
-    };
     rescheduleReason?: string;
     smsReminderNumber?: string;
     responses: z.infer<typeof bookingFormSchema>["responses"];
@@ -367,11 +360,6 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
-      label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-      value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
-    }));
-
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -412,7 +400,6 @@ const BookingPage = ({
           attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
-        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
@@ -435,7 +422,6 @@ const BookingPage = ({
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         metadata,
-        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:

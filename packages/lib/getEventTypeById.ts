@@ -52,7 +52,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   const systemFields: typeof bookingFields = [
     {
       label: "Your name",
-      type: "text",
+      type: "name",
       name: "name",
       required: true,
       editable: "system",

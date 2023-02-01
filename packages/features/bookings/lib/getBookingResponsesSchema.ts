@@ -12,6 +12,7 @@ export default function getBookingResponsesSchema(eventType: {
       // Tag the message with the input name so that the message can be shown at appropriate plae
       const m = (message: string) => `{${input.name}}${message}`;
       if (input.required && !value) ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`Required`) });
+
       if (input.type === "email") {
         // Email RegExp to validate if the input is a valid email
         if (!z.string().email().safeParse(value).success)
@@ -21,6 +22,7 @@ export default function getBookingResponsesSchema(eventType: {
             message: m("That doesn't look like an email address"),
           });
       }
+
       if (input.type === "phone") {
         if (
           !z

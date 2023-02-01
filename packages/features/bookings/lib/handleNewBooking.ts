@@ -44,9 +44,11 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import {
+  bookingCreateSchemaForApiOnly,
   customInputSchema,
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
@@ -222,9 +224,9 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
-    customInputs: customInputSchema.array().parse(eventType.customInputs),
+    customInputs: customInputSchema.array().parse(eventType.customInputs || []),
     locations: (eventType.locations ?? []) as LocationObject[],
-    bookingFields: eventTypeBookingFields.parse(eventType.bookingFields),
+    bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
   };
 };
 
@@ -301,6 +303,84 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
+function getBookingData({
+  req,
+  isNotAnApiCall,
+  eventType,
+}: {
+  req: NextApiRequest;
+  isNotAnApiCall: boolean;
+  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+}) {
+  const bookingDataSchema = isNotAnApiCall
+    ? extendedBookingCreateBody.merge(
+        z.object({
+          responses: getBookingResponsesSchema(eventType),
+        })
+      )
+    : extendedBookingCreateBody.merge(bookingCreateSchemaForApiOnly);
+
+  const reqBody = bookingDataSchema.parse(req.body);
+
+  if ("responses" in reqBody) {
+    const responses = reqBody.responses;
+    return {
+      ...reqBody,
+      name: responses.name,
+      email: responses.email,
+      guests: responses.guests ? responses.guests.split(",") : [],
+      location: responses.location?.optionValue || responses.location?.value || "",
+      smsReminderNumber: responses.smsReminderNumber,
+      notes: responses.notes,
+    };
+  } else {
+    // Check if required custom inputs exist
+    // TODO: Run it conditionally for API.
+    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
+
+    return {
+      ...reqBody,
+      name: reqBody.name,
+      email: reqBody.email,
+      guests: reqBody.guests,
+      location: reqBody.location || "",
+      smsReminderNumber: reqBody.smsReminderNumber,
+      notes: reqBody.notes,
+    };
+  }
+}
+
+function getCustomInputsResponses(
+  reqBody: {
+    responses?: Record<string, any>;
+    customInputs?: z.infer<typeof bookingCreateSchemaForApiOnly>["customInputs"];
+  },
+  eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
+) {
+  const customInputsResponses = {} as NonNullable<CalendarEvent["customInputs"]>;
+  if ("customInputs" in reqBody) {
+    const reqCustomInputsResponses = reqBody.customInputs || [];
+    if (reqCustomInputsResponses?.length > 0) {
+      reqCustomInputsResponses.forEach(({ label, value }) => {
+        customInputsResponses[label] = value;
+      });
+    }
+  } else {
+    const responses = reqBody.responses || {};
+    // Map new responses format to old customInputs format so that webhooks can still receive same values.
+    for (const [fieldName, fieldValue] of Object.entries(responses)) {
+      const foundACustomInputForTheResponse = eventTypeCustomInputs.find(
+        (input) => slugify(input.label) === fieldName
+      );
+      if (foundACustomInputForTheResponse) {
+        customInputsResponses[foundACustomInputForTheResponse.label] = fieldValue;
+      }
+    }
+  }
+
+  return customInputsResponses;
+}
+
 async function handler(req: NextApiRequest & { userId?: number | undefined }, isNotAnApiCall = false) {
   const { userId } = req;
 
@@ -324,6 +404,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       customInputs: customInputSchema.array().parse(eventType.customInputs || []),
     }),
   };
+
   const {
     recurringCount,
     allRecurringDates,
@@ -334,30 +415,18 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
+    name: bookerName,
+    email: bookerEmail,
+    guests: reqGuests,
+    location,
+    notes: additionalNotes,
+    smsReminderNumber,
     ...reqBody
-  } = extendedBookingCreateBody
-    .merge(
-      z.object({
-        responses: getBookingResponsesSchema(eventType),
-      })
-    )
-    .parse(req.body);
-
-  const bookerEmail = reqBody.responses ? reqBody.responses.email : reqBody.email;
-  const bookerName = reqBody.responses ? reqBody.responses.name : reqBody.name;
-  const reqGuests = reqBody.responses
-    ? reqBody.responses.guests
-      ? reqBody.responses.guests.split(",")
-      : []
-    : reqBody.guests;
-
-  const location = reqBody.responses
-    ? reqBody.responses.location?.optionValue || reqBody.responses.location?.value || ""
-    : reqBody.location;
-  const smsReminderNumber =
-    (reqBody.responses ? reqBody.responses.smsReminderNumber : null) || reqBody.smsReminderNumber;
-
-  const additionalNotes = reqBody.responses ? reqBody.responses.notes : reqBody.notes;
+  } = getBookingData({
+    req,
+    isNotAnApiCall,
+    eventType,
+  });
 
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
@@ -368,9 +437,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const stripeAppData = getStripeAppData(eventType);
-
-  // Check if required custom inputs exist
-  // handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
@@ -535,8 +601,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   const bookingLocation = getLocationValueForDB(location, eventType.locations);
 
-  const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
-
+  const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
       ? users.slice(1).map(async function (user) {
@@ -558,7 +623,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: reqBody.responses.name || "Nameless",
+    attendeeName: bookerName || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
@@ -696,12 +761,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     return booking;
   }
 
-  if (reqBody.customInputs.length > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputs[label] = value;
-    });
-  }
-
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
       members: users.map((user) => user.name || user.username || "Nameless"),
@@ -779,7 +838,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
-      responses: reqBody.responses,
+      responses: "responses" in reqBody ? reqBody.responses : [],
       title: evt.title,
       startTime: dayjs.utc(evt.startTime).toDate(),
       endTime: dayjs.utc(evt.endTime).toDate(),
