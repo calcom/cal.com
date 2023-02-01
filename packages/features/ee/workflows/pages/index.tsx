@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,7 +18,7 @@ function WorkflowsPage() {
   const session = useSession();
   const router = useRouter();
   const [checkedFilterItems, setCheckedFilterItems] = useState<{ userId: number | null; teamIds: number[] }>({
-    userId: null,
+    userId: session.data?.user.id || null,
     teamIds: [],
   });
 
@@ -42,7 +42,20 @@ function WorkflowsPage() {
   });
 
   const query = trpc.viewer.workflows.getByViewer.useQuery();
-  if (!query.data) return null;
+
+  useEffect(() => {
+    if (session.status !== "loading" && !query.isLoading) {
+      if (!query.data!) return;
+      setCheckedFilterItems({
+        userId: session.data?.user.id || null,
+        teamIds: query.data.profiles.map((profile) => {
+          if (!!profile.teamId) {
+            return profile.teamId;
+          }
+        }) as number[],
+      });
+    }
+  }, [session.status, query.isLoading]);
 
   return (
     <Shell
@@ -73,11 +86,13 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            <Filter
-              profiles={query.data.profiles}
-              checked={checkedFilterItems}
-              setChecked={setCheckedFilterItems}
-            />
+            {data?.workflows && data?.workflows.length > 0 && (
+              <Filter
+                profiles={query.data.profiles}
+                checked={checkedFilterItems}
+                setChecked={setCheckedFilterItems}
+              />
+            )}
             <WorkflowList workflows={data?.workflows} />
           </>
         )}
