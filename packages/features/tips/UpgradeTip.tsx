@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -11,6 +10,8 @@ import { FiUsers } from "@calcom/ui/components/icon";
 export function UpgradeTip({
   dark,
   title,
+  emptyTitle,
+  emptyDescription,
   description,
   background,
   features,
@@ -21,6 +22,9 @@ export function UpgradeTip({
   dark?: boolean;
   title: string;
   description: string;
+  /* overwrite EmptyScreen text */
+  emptyTitle?: string;
+  emptyDescription?: string;
   background: string;
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
@@ -36,7 +40,14 @@ export function UpgradeTip({
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
   if (!isCalcom)
-    return <EmptyScreen Icon={FiUsers} headline={title} description={description} buttonRaw={buttons} />;
+    return (
+      <EmptyScreen
+        Icon={FiUsers}
+        headline={emptyTitle ? t(emptyTitle) : t(title)}
+        description={emptyDescription ? t(emptyDescription) : t(description)}
+        buttonRaw={buttons}
+      />
+    );
 
   return (
     <>
