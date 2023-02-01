@@ -336,7 +336,7 @@ export default NextAuth({
         return await autoMergeIdentities();
       }
 
-      if (account && account.type === "credentials" && account.provider != "saml-idp") {
+      if (account && account.type === "credentials" && account.provider !== "saml-idp") {
         return {
           ...token,
           id: user.id,
@@ -445,9 +445,8 @@ export default NextAuth({
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
         }
-        // Only google oauth on this path
-        // const provider = account.provider.toUpperCase() as IdentityProvider;
 
+        // Only google oauth on this path
         const existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
