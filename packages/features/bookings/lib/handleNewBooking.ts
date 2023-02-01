@@ -974,11 +974,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
           videoCallUrl = metadata.hangoutLink || videoCallUrl;
-
-          // CUSTOM_CODE: Hack to force hangout link
-          if (metadata?.hangoutLink) {
-            evt.location = metadata?.hangoutLink;
-          }
         }
       }
       if (noEmail !== true) {
@@ -1054,11 +1049,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
         videoCallUrl = metadata.hangoutLink || videoCallUrl;
-
-        // CUSTOM_CODE: Hack to force hangout link
-        if (metadata?.hangoutLink) {
-          evt.location = metadata?.hangoutLink;
-        }
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
