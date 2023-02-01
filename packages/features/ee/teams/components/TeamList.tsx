@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { FiUserPlus, FiUsers, FiUnlock } from "@calcom/ui/components/icon";
+import { FiUserPlus, FiUsers, FiUnlock, FiEdit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
@@ -60,7 +60,7 @@ export default function TeamList(props: Props) {
               i === 0 && (
                 <div className="bg-gray-100 p-6">
                   <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
-                  <div className="grid-col-1 grid gap-2 md:grid-cols-2">
+                  <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
                       icon={<FiUserPlus className="h-5 w-5 text-green-700" />}
                       variant="basic"
@@ -99,6 +99,16 @@ export default function TeamList(props: Props) {
                           "&teamId=" +
                           team.id,
                         child: t("create"),
+                      }}
+                    />
+                    <Card
+                      icon={<FiEdit className="h-5 w-5 text-purple-700" />}
+                      variant="basic"
+                      title={t("appearance")}
+                      description={t("appearance_subtitle")}
+                      actionButton={{
+                        href: "/settings/teams/" + team.id + "/appearance",
+                        child: t("edit"),
                       }}
                     />
                   </div>
