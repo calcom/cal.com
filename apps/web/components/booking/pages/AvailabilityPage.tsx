@@ -58,7 +58,7 @@ const useSlots = ({
   duration,
   useSlotsProxy,
   rescheduleUid,
-  proxyParams,
+  proxy,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -71,7 +71,7 @@ const useSlots = ({
   duration?: string;
   useSlotsProxy: boolean;
   rescheduleUid?: string;
-  proxyParams?: Record<string, string>;
+  proxy?: Record<string, string>;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -85,7 +85,7 @@ const useSlots = ({
       timeZone,
       duration,
       rescheduleUid,
-      proxyParams,
+      proxy,
     },
     { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
@@ -155,7 +155,7 @@ const SlotPicker = ({
     }
   }, [router.isReady, month, date, duration, timeZone]);
 
-  const proxyParams = decodeProxyParams(router.asPath.split("?")[1]);
+  const proxy = decodeProxyParams(router.asPath.split("?")[1]);
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
@@ -169,7 +169,7 @@ const SlotPicker = ({
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
-    proxyParams,
+    proxy,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -186,7 +186,7 @@ const SlotPicker = ({
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
-    proxyParams,
+    proxy,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
