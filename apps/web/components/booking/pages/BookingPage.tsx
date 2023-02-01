@@ -125,7 +125,12 @@ const BookingPage = ({
   const stripeAppData = getStripeAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
-  if (queryDuration && !isNaN(Number(queryDuration))) {
+  if (
+    queryDuration &&
+    !isNaN(Number(queryDuration)) &&
+    eventType.metadata?.multipleDuration &&
+    eventType.metadata?.multipleDuration.includes(Number(queryDuration))
+  ) {
     duration = Number(queryDuration);
   }
 
