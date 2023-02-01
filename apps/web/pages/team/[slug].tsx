@@ -27,7 +27,7 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
-  useTheme();
+  useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
