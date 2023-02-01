@@ -38,7 +38,6 @@
   "price": "Fiyat",
   "paid": "Ödendi",
   "refunded": "İade edildi",
-  "pay_later_instructions": "Daha sonra ödeme yapmak isterseniz bu ödeme bağlantısını da içeren e-postanızı kontrol edebilirsiniz.",
   "payment": "Ödeme",
   "missing_card_fields": "Kart alanları eksik",
   "pay_now": "Şimdi öde",
