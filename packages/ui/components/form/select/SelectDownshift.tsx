@@ -98,6 +98,7 @@ export function MultiSelect<T extends Record<string, unknown>>(props: MultiCombo
         case useCombobox.stateChangeTypes.InputBlur:
           return {
             ...changes,
+            inputValue,
             ...(changes.selectedItem && { isOpen: true, highlightedIndex: changes.highlightedIndex }),
           };
         default:
