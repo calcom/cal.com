@@ -336,7 +336,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   // standard working hours for all users. Mo-Sa 8-20 Berlin time.
   const days = [1, 2, 3, 4, 5, 6];
   const shiftStartHour = 8;
-  const shiftEndHour = 20;
+  const shiftEndHour = 21;
   const workingHours = getWorkingHours({}, [
     {
       days,
