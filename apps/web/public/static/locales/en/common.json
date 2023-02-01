@@ -1559,5 +1559,7 @@
   "email_no_user_signoff":"Happy Scheduling from the {{appName}} team",
   "impersonation_user_tip": "You are about to impersonate a user, which means you can make changes on their behalf. Please be careful.",
   "available_variables": "Available variables",
-  "scheduler": "{Scheduler}"
+  "scheduler": "{Scheduler}",
+  "no_workflows": "No workflows",
+  "change_filter": "Change filter to see your personal and team workflows."
 }

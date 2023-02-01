@@ -41,6 +41,7 @@ export default function EmptyScreen(props: {
     name: string | null;
     teamId: number | null | undefined;
   }[];
+  isFilteredView: boolean;
 }) {
   const { t } = useLocale();
   const router = useRouter();
@@ -71,6 +72,17 @@ export default function EmptyScreen(props: {
     { icon: FiSmartphone, text: t("workflow_example_6") },
   ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (FiSmile icon),
+
+  if (props.isFilteredView) {
+    return (
+      <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md">
+        <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("no_workflows")}</h2>
+        <p className="line-clamp-2 mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+          {t("change_filter")}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

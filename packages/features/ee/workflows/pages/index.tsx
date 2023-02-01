@@ -113,7 +113,11 @@ function WorkflowsPage() {
                 setChecked={setCheckedFilterItems}
               />
             )}
-            <WorkflowList workflows={filteredWorkflows} profiles={query.data.profiles} />
+            <WorkflowList
+              workflows={filteredWorkflows}
+              profiles={query.data.profiles}
+              hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
+            />
           </>
         )}
       </LicenseRequired>

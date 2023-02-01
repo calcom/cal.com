@@ -40,8 +40,9 @@ interface Props {
     name: string | null;
     teamId: number | null | undefined;
   }[];
+  hasNoWorkflows?: boolean;
 }
-export default function WorkflowListPage({ workflows, profiles }: Props) {
+export default function WorkflowListPage({ workflows, profiles, hasNoWorkflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -178,7 +179,7 @@ export default function WorkflowListPage({ workflows, profiles }: Props) {
           />
         </div>
       ) : (
-        <EmptyScreen profiles={profiles} />
+        <EmptyScreen profiles={profiles} isFilteredView={!hasNoWorkflows} />
       )}
     </>
   );
