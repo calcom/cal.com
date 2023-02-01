@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { FiArrowRight, FiCalendar, FiPlus } from "@calcom/ui/components/icon";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { Button } from "../button";
 
