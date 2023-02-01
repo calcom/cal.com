@@ -34,6 +34,8 @@ interface CreateBtnProps {
   dublicateDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
   subtitle?: string;
+  className?: string;
+  buttonText?: string;
 }
 
 export function CreateButton(props: CreateBtnProps) {
@@ -74,14 +76,15 @@ export function CreateButton(props: CreateBtnProps) {
           data-testid="new-event-type"
           StartIcon={FiPlus}
           variant="fab"
-          disabled={!props.canAdd}>
-          {t("new")}
+          disabled={!props.canAdd}
+          className={props.className}>
+          {props.buttonText ? props.buttonText : t("new")}
         </Button>
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button variant="fab" StartIcon={FiPlus}>
-              {t("new")}
+            <Button variant="fab" StartIcon={FiPlus} className={props.className}>
+              {props.buttonText ? props.buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={14} align="end">

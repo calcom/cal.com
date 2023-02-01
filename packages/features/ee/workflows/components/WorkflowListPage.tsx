@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -15,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  showToast,
   Tooltip,
 } from "@calcom/ui";
 import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2, FiZap } from "@calcom/ui/components/icon";
@@ -23,40 +21,6 @@ import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2, FiZap } from "@calcom/ui/c
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
 import EmptyScreen from "./EmptyScreen";
-
-const CreateEmptyWorkflowView = () => {
-  const { t } = useLocale();
-  const router = useRouter();
-
-  const createMutation = trpc.viewer.workflows.create.useMutation({
-    onSuccess: async ({ workflow }) => {
-      await router.replace("/workflows/" + workflow.id);
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this workflow`;
-        showToast(message, "error");
-      }
-    },
-  });
-
-  return (
-    <EmptyScreen
-      buttonText={t("create_workflow")}
-      buttonOnClick={() => createMutation.mutate()}
-      IconHeading={FiZap}
-      headline={t("workflows")}
-      description={t("no_workflows_description")}
-      isLoading={createMutation.isLoading}
-      showExampleWorkflows={true}
-    />
-  );
-};
 
 export type WorkflowType = Workflow & {
   steps: WorkflowStep[];
@@ -207,7 +171,7 @@ export default function WorkflowListPage({ workflows }: Props) {
           />
         </div>
       ) : (
-        <CreateEmptyWorkflowView />
+        <EmptyScreen />
       )}
     </>
   );
