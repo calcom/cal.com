@@ -56,14 +56,19 @@ const getAvailability = ({
       const start = (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
         .hour(override.startTime.getUTCHours())
         .minute(override.startTime.getUTCMinutes());
-
+      // [)
+      if (+start < +dateFrom || +start >= +dateTo) {
+        return dates;
+      }
+      const end = (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
+        .hour(override.endTime.getUTCHours())
+        .minute(override.endTime.getUTCMinutes());
+      // (]
+      if (+end <= +dateFrom || +end > +dateTo) {
+        return dates;
+      }
       dates[start.format("YYYY-MM-DD")] = dates[start.format("YYYY-MM-DD")] ?? [];
-      dates[start.format("YYYY-MM-DD")].push({
-        start,
-        end: (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
-          .hour(override.endTime.getUTCHours())
-          .minute(override.endTime.getUTCMinutes()),
-      });
+      dates[start.format("YYYY-MM-DD")].push({ start, end });
       return dates;
     }, {} as Record<string, { start: Dayjs; end: Dayjs }[]>);
   // All records are keyed by date, this allows easy date overrides.

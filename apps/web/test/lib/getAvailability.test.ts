@@ -4,6 +4,7 @@ import MockDate from "mockdate";
 import dayjs from "@calcom/dayjs";
 import getAvailability from "@calcom/lib/server/getAvailability";
 
+// Note the 20th of June is in DST
 MockDate.set("2021-06-20T11:59:59Z");
 
 describe("Tests getAvailability", () => {
@@ -159,21 +160,61 @@ describe("Tests getAvailability", () => {
     ]);
   });
 
-  /*it("will exclude past times from availability", () => {
+  it("it can also get availability of standard times", () => {
     expect(
       getAvailability({
-        timeZone: "Europe/London",
+        timeZone: "Asia/Jakarta", // UTC+7
         availability: [
           {
-            date: new Date("2021-06-19T00:00:00Z"),
-            startTime: new Date("1970-01-01T09:00:00Z"),
-            endTime: new Date("1970-01-01T17:00:00Z"),
+            date: new Date("2021-01-31T00:00:00.000Z"),
+            startTime: new Date("1970-01-01T00:00:00Z"),
+            endTime: new Date("1970-01-01T01:00:00Z"),
             days: [],
           },
         ],
-        dateFrom: new Date("2021-06-19T00:00:00Z"),
-        dateTo: new Date("2021-06-19T23:59:59Z"),
+        // UTC
+        dateFrom: new Date("2021-01-31T00:00:00Z"),
+        dateTo: new Date("2021-01-31T23:59:59Z"),
       })
     ).toStrictEqual([]);
-  });*/
+  });
+
+  it("will translate a week correctly", () => {
+    expect(
+      getAvailability({
+        timeZone: "Asia/Jakarta", // UTC+7
+        availability: [
+          {
+            date: null,
+            startTime: new Date("1970-01-01T04:00:00Z"), // 21+7
+            endTime: new Date("1970-01-01T06:00:00Z"), // 23+7
+            days: [0, 1, 2, 3, 4, 5], // Mon-Fri
+          },
+        ],
+        // UTC
+        dateFrom: new Date("2021-01-30T00:00:00Z"),
+        dateTo: new Date("2021-02-03T23:59:59Z"),
+      }).map((range) => ({
+        start: range.start.utc(),
+        end: range.end.utc(),
+      }))
+    ).toStrictEqual([
+      {
+        end: dayjs.utc("2021-01-30T23:00:00.000Z"),
+        start: dayjs.utc("2021-01-30T21:00:00.000Z"),
+      },
+      {
+        end: dayjs.utc("2021-01-31T23:00:00.000Z"),
+        start: dayjs.utc("2021-01-31T21:00:00.000Z"),
+      },
+      {
+        end: dayjs.utc("2021-02-01T23:00:00.000Z"),
+        start: dayjs.utc("2021-02-01T21:00:00.000Z"),
+      },
+      {
+        end: dayjs.utc("2021-02-02T23:00:00.000Z"),
+        start: dayjs.utc("2021-02-02T21:00:00.000Z"),
+      },
+    ]);
+  });
 });
