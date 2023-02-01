@@ -5208,6 +5208,18 @@
     "@radix-ui/react-use-callback-ref" "1.0.0"
     "@radix-ui/react-use-escape-keydown" "1.0.0"
 
+"@radix-ui/react-dismissable-layer@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.0.2.tgz#f04d1061bddf00b1ca304148516b9ddc62e45fb2"
+  integrity sha512-WjJzMrTWROozDqLB0uRWYvj4UuXsM/2L19EmQ3Au+IJWqwvwq9Bwd+P8ivo0Deg9JDPArR1I6MbWNi1CmXsskg==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/primitive" "1.0.0"
+    "@radix-ui/react-compose-refs" "1.0.0"
+    "@radix-ui/react-primitive" "1.0.1"
+    "@radix-ui/react-use-callback-ref" "1.0.0"
+    "@radix-ui/react-use-escape-keydown" "1.0.2"
+
 "@radix-ui/react-dropdown-menu@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-dropdown-menu/-/react-dropdown-menu-1.0.0.tgz#687959e1bcdd5e8eb0de406484aff28d0974c593"
@@ -5448,6 +5460,14 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-slot" "1.0.0"
 
+"@radix-ui/react-primitive@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-primitive/-/react-primitive-1.0.1.tgz#c1ebcce283dd2f02e4fbefdaa49d1cb13dbc990a"
+  integrity sha512-fHbmislWVkZaIdeF6GZxF0A/NH/3BjrGIYj+Ae6eTmTCr7EB0RQAAVEiqsXK6p3/JcRqVSBQoceZroj30Jj3XA==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-slot" "1.0.1"
+
 "@radix-ui/react-radio-group@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-radio-group/-/react-radio-group-1.0.0.tgz#16267bdfc3c1bd293a6ac1b34f3e9b484e88ebf8"
@@ -5537,6 +5557,14 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.0.0.tgz#7fa805b99891dea1e862d8f8fbe07f4d6d0fd698"
   integrity sha512-3mrKauI/tWXo1Ll+gN5dHcxDPdm/Df1ufcDLCecn+pnCIVcdWE7CujXo8QaXOWRJyZyQWWbpB8eFwHzWXlv5mQ==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-compose-refs" "1.0.0"
+
+"@radix-ui/react-slot@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.0.1.tgz#e7868c669c974d649070e9ecbec0b367ee0b4d81"
+  integrity sha512-avutXAFL1ehGvAXtPquu0YK5oz6ctS474iM3vNGQIkswrVhdrS52e3uoMQBzZhNRAIE0jBnUyXWNmSjGHhCFcw==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "1.0.0"
@@ -5649,6 +5677,14 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-use-escape-keydown/-/react-use-escape-keydown-1.0.0.tgz#aef375db4736b9de38a5a679f6f49b45a060e5d1"
   integrity sha512-JwfBCUIfhXRxKExgIqGa4CQsiMemo1Xt0W/B4ei3fpzpvPENKpMKQ8mZSB6Acj3ebrAEgi2xiQvcI1PAAodvyg==
+  dependencies:
+    "@babel/runtime" "^7.13.10"
+    "@radix-ui/react-use-callback-ref" "1.0.0"
+
+"@radix-ui/react-use-escape-keydown@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-use-escape-keydown/-/react-use-escape-keydown-1.0.2.tgz#09ab6455ab240b4f0a61faf06d4e5132c4d639f6"
+  integrity sha512-DXGim3x74WgUv+iMNCF+cAo8xUHHeqvjx8zs7trKf+FkQKPQXLk2sX7Gx1ysH7Q76xCpZuxIJE7HLPxRE+Q+GA==
   dependencies:
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-use-callback-ref" "1.0.0"
