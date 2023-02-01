@@ -13,7 +13,7 @@ import path from "path";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { hostedCal, isSAMLLoginEnabled, clientSecretVerifier } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -225,12 +225,13 @@ if (isSAMLLoginEnabled) {
         const { oauthController } = await jackson();
 
         // Fetch access token
+        // We'll use clientSecretVerifier to verify the client/request
         const { access_token } = await oauthController.token({
           code,
           grant_type: "authorization_code",
           redirect_uri: `${process.env.NEXTAUTH_URL}`,
-          client_id: "dummy",
-          client_secret: "dummy",
+          client_id: `tenant=null&product=null`,
+          client_secret: clientSecretVerifier,
         });
 
         if (!access_token) {
