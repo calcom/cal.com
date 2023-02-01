@@ -38,7 +38,6 @@
   "price": "Cena",
   "paid": "Zaplaceno",
   "refunded": "Platba vrácena",
-  "pay_later_instructions": "Poslali jsme vám rovněž e-mail s odkazem, pokud chcete zaplatit později.",
   "payment": "Platba",
   "missing_card_fields": "Chybějící údaje karty",
   "pay_now": "Zaplatit",

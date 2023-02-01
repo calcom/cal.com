@@ -38,7 +38,6 @@
   "price": "料金",
   "paid": "支払い済み",
   "refunded": "返金済み",
-  "pay_later_instructions": "後からの支払いをご希望でしたら、このリンクをメールでもお送りしていますので、ご自由にお使いください。",
   "payment": "お支払い",
   "missing_card_fields": "カード情報のフィールドが未記入です",
   "pay_now": "今すぐ支払う",

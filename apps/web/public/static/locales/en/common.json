@@ -41,7 +41,6 @@
   "price": "Price",
   "paid": "Paid",
   "refunded": "Refunded",
-  "pay_later_instructions": "You have also received an email with this link, if you want to pay later.",
   "payment": "Payment",
   "missing_card_fields": "Missing card fields",
   "pay_now": "Pay now",
