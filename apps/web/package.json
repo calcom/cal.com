@@ -74,6 +74,7 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
+    "jose": "^4.11.1",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.10.12",
     "lodash": "^4.17.21",
@@ -164,6 +165,6 @@
     "tailwindcss": "^3.2.1",
     "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.4"
   }
 }

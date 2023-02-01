@@ -117,7 +117,6 @@ const DuplicateDialog = () => {
                 min="10"
                 placeholder="15"
                 label={t("length")}
-                className="pr-20"
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />

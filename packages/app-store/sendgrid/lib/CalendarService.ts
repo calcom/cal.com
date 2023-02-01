@@ -75,13 +75,13 @@ export default class CloseComCalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     // Unless we want to be able to support modifying an event to add more attendees
-    // to have them created in Sendgrid, ingoring this use case for now
+    // to have them created in Sendgrid, ignoring this use case for now
     return Promise.resolve();
   }
 
   async deleteEvent(uid: string): Promise<void> {
     // Unless we want to delete the contact in Sendgrid once the event
-    // is deleted just ingoring this use case for now
+    // is deleted just ignoring this use case for now
     return Promise.resolve();
   }
 
