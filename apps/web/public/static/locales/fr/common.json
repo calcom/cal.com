@@ -38,7 +38,6 @@
   "price": "Prix",
   "paid": "Payé",
   "refunded": "Remboursé",
-  "pay_later_instructions": "Vous avez également reçu un e-mail avec ce lien, si vous souhaitez payer plus tard.",
   "payment": "Paiement",
   "missing_card_fields": "Champs de carte manquants",
   "pay_now": "Payer maintenant",
