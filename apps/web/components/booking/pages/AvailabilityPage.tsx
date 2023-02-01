@@ -21,6 +21,7 @@ import {
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import decodeProxyParams from "@calcom/lib/decodeProxyParams";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -57,6 +58,7 @@ const useSlots = ({
   duration,
   useSlotsProxy,
   rescheduleUid,
+  proxy,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -69,6 +71,7 @@ const useSlots = ({
   duration?: string;
   useSlotsProxy: boolean;
   rescheduleUid?: string;
+  proxy?: Record<string, string>;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -82,6 +85,7 @@ const useSlots = ({
       timeZone,
       duration,
       rescheduleUid,
+      proxy,
     },
     { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
@@ -151,6 +155,7 @@ const SlotPicker = ({
     }
   }, [router.isReady, month, date, duration, timeZone]);
 
+  const proxy = decodeProxyParams(router.asPath.split("?")[1]);
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
@@ -164,6 +169,7 @@ const SlotPicker = ({
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
+    proxy,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -180,6 +186,7 @@ const SlotPicker = ({
     duration,
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
+    proxy,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);

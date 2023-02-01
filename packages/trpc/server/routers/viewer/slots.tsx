@@ -40,6 +40,7 @@ const getScheduleSchema = z
       .transform((val) => val && parseInt(val)),
     rescheduleUid: z.string().optional(),
     rescheduleWithSameUser: z.boolean().optional(),
+    proxy: z.object({}).optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
