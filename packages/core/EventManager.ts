@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -29,7 +30,7 @@ import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
 
 export const isDedicatedIntegration = (location: string): boolean => {
-  return location !== "integrations:google:meet" && location.includes("integrations:");
+  return location !== MeetLocationType && location.includes("integrations:");
 };
 
 const log = logger.getChildLogger({ prefix: ["[EventManager]"] });
@@ -106,6 +107,7 @@ export default class EventManager {
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);

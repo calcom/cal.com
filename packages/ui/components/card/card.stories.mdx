@@ -1,0 +1,40 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
+import Card from './Card';
+
+<Meta title="UI/Card" component={Card} />
+
+<Title title="Card" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023"/>
+
+## Definition
+All Cards used in Cal.com
+
+<CustomArgsTable of={Card} />
+
+export const tip = {
+    id: 1,
+    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
+    mediaLink: "https://go.cal.com/dynamic-video",
+    title: "Dynamic booking links",
+    description: "Booking link that allows people to quickly schedule meetings.",
+    href: "https://cal.com/blog/cal-v-1-9",
+}
+
+
+<Canvas>
+  <Story name="Card">
+    <VariantsTable titles={['']} columnMinWidth={150}>
+      <VariantRow variant="Sidebar Card">
+          <Card
+                variant="SidebarCard"
+                thumbnailUrl={tip.thumbnailUrl}
+                mediaLink={tip.mediaLink}
+                title={tip.title}
+                description={tip.description}
+                learnMore={{ href: tip.href, text: "learn more" }}
+                actionButton={{ onClick: () => console.log("Clicked") }}
+              />
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

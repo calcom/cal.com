@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { BaseSyntheticEvent, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +22,6 @@ import {
   DialogFooter,
   DialogTrigger,
   Form,
-  getSettingsLayout as getLayout,
   Icon,
   ImageUploader,
   Label,
@@ -181,7 +181,9 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user || isLoadingAvatar || !avatar)
-    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
+    return (
+      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+    );
 
   const defaultValues = {
     username: user.username || "",

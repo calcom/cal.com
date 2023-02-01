@@ -37,7 +37,7 @@ const buttonClasses = cva(
     variants: {
       color: {
         primary: "text-white dark:text-black",
-        secondary: "text-gray-900 dark:text-darkgray-900",
+        secondary: "text-gray-900 dark:text-darkgray-900 bg-white",
         minimal: "text-gray-900 dark:text-darkgray-900",
         destructive: "",
       },
@@ -229,7 +229,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link passHref href={props.href} shallow={shallow && shallow}>
+    <Link passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
       {element}
     </Link>
   ) : (

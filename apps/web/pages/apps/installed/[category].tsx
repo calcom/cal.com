@@ -14,7 +14,6 @@ import {
   Button,
   EmptyScreen,
   Icon,
-  InstalledAppsLayout,
   List,
   ShellSubHeading,
   AppSkeletonLoader as SkeletonLoader,
@@ -24,6 +23,7 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
+import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
@@ -32,7 +32,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   installed?: boolean;
   invalidCredentialIds?: number[];
 }) {
-  const { type, credentialIds, isGlobal, installed, invalidCredentialIds } = props;
+  const { type, credentialIds, isGlobal, installed } = props;
   const { t } = useLocale();
   const [credentialId] = credentialIds;
 
@@ -183,6 +183,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                 buttonRaw={
                   <Button
                     color="secondary"
+                    data-testid={`connect-${variant || "other"}-apps`}
                     href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
                     {t(`connect_${variant || "other"}_apps`)}
                   </Button>

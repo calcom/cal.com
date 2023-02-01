@@ -20,7 +20,8 @@ type CustomUseMutationOptions =
 
 type AddAppMutationData = { setupPending: boolean } | void;
 type UseAddAppMutationOptions = CustomUseMutationOptions & {
-  onSuccess: (data: AddAppMutationData) => void;
+  onSuccess?: (data: AddAppMutationData) => void;
+  installGoogleVideo?: boolean;
   returnTo?: string;
 };
 
@@ -42,6 +43,10 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     if (type?.endsWith("_other_calendar")) {
       type = type.split("_other_calendar")[0];
     }
+
+    if (options?.installGoogleVideo && type !== "google_calendar")
+      throw new Error("Could not install Google Meet");
+
     const state: IntegrationOAuthCallbackState = {
       returnTo:
         returnTo ||
@@ -50,6 +55,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
             { variant: variables && variables.variant, slug: variables && variables.slug },
             location.search
           ),
+      ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
