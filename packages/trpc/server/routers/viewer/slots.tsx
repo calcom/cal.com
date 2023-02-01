@@ -315,14 +315,19 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     // `userBusyTimesByDay` is only used in singleHostMode.
     userAvailability.forEach(({ busy }) => {
       busy.forEach(({ start, end }) => {
-        const day = start.format("YYYY-MM-DD");
-        if (!userBusyTimesByDay[day]) {
-          userBusyTimesByDay[day] = [];
+        let startTime = start;
+        const endTime = end;
+        while (startTime.isBefore(endTime)) {
+          const day = startTime.format("YYYY-MM-DD");
+          if (!userBusyTimesByDay[day]) {
+            userBusyTimesByDay[day] = [];
+          }
+          userBusyTimesByDay[day].push({
+            startTime: start.utc(),
+            endTime: end.utc(),
+          });
+          startTime = startTime.add(1, "day");
         }
-        userBusyTimesByDay[day].push({
-          startTime: start.utc(),
-          endTime: end.utc(),
-        });
       });
     });
   }
