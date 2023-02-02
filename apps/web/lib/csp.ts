@@ -15,12 +15,15 @@ function getCspPolicy(nonce: string) {
 
   return `
 	  default-src 'self' ${IS_PRODUCTION ? "" : "data:"};
-	  script-src 'self'  ${
+	  script-src ${
       IS_PRODUCTION
-        ? "'nonce-" + nonce + "' 'strict-dynamic' 'unsafe-inline' https:"
+        ? // 'self' 'unsafe-inline' https: added for Browsers not supporting strict-dynamic not supporting strict-dynamic
+          "'nonce-" + nonce + "' 'strict-dynamic' 'self' 'unsafe-inline' https:"
         : // Note: We could use 'strict-dynamic' with 'nonce-..' instead of unsafe-inline but in dev mode there are some streaming related scripts that get blocked(because they don't have nonce on them)
           "'unsafe-inline' 'unsafe-eval' https:"
     };
+    object-src 'none';
+    base-uri 'none';
 	  child-src app.cal.com;
 	  style-src 'self' ${
       IS_PRODUCTION ? (useNonStrictPolicy ? "'unsafe-inline'" : "") : "'unsafe-inline'"
