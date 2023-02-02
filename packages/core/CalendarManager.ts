@@ -187,7 +187,6 @@ const getNextCache = async (username: string, month: string): Promise<EventBusyD
     const { NEXT_PUBLIC_WEBAPP_URL, NODE_ENV } = process.env;
     const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
     const baseUrl = `${NEXT_PUBLIC_WEBAPP_URL}/_next/data/${cacheDir}/en`;
-    // console.log(`${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`);
     localCache = await fetch(
       `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`
     )

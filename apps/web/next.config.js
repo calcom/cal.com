@@ -2,7 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
-const nextBuildId = require("next-build-id");
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
@@ -77,10 +76,8 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 plugins.push(withAxiom);
-const buildId = nextBuildId.sync({ dir: __dirname });
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  generateBuildId: () => buildId,
   i18n,
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
@@ -100,7 +97,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { webpack }) => {
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
