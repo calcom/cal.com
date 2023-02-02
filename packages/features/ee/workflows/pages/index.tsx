@@ -89,40 +89,27 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       title={t("workflows")}
-      subtitle={t("workflows_to_automate_notifications")}
-      CTA={
-        session.data?.hasValidLicense &&
-        allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length > 0 ? (
-          // <Button
-          //   variant="fab"
-          //   StartIcon={FiPlus}
-          //   onClick={() => createMutation.mutate()}
-          //   loading={createMutation.isLoading}>
-          //   {t("new")}
-          // </Button>
-          <CreateButton
-            subtitle={t("new_workflow_subtitle").toUpperCase()}
-            canAdd={true}
-            options={query.data.profiles}
-            createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-          />
-        ) : (
-          <></>
-        )
-      }>
+      subtitle={t("workflows_to_automate_notifications")}>
       <LicenseRequired>
         {isLoading ? (
           <SkeletonLoader />
         ) : (
           <>
             {allWorkflowsData?.workflows && allWorkflowsData.workflows.length > 0 && (
-              <div>
+              <div className="mb-4 flex">
                 <Filter
                   profiles={query.data.profiles}
                   checked={checkedFilterItems}
                   setChecked={setCheckedFilterItems}
                 />
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    canAdd={true}
+                    options={query.data.profiles}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                  />
+                </div>
               </div>
             )}
             <WorkflowList
@@ -166,7 +153,7 @@ const Filter = (props: {
   const [noFilter, setNoFilter] = useState(true);
 
   return (
-    <div className={classNames(noFilter ? "w-16" : "w-[100px]")}>
+    <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
         <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
           <Avatar

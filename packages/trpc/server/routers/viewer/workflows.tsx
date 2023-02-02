@@ -184,7 +184,7 @@ export const workflowsRouter = router({
       const userId = !teamId ? ctx.user.id : undefined;
 
       try {
-        const workflow = await ctx.prisma.workflow.create({
+        const workflow: Workflow = await ctx.prisma.workflow.create({
           data: {
             name: "",
             trigger: WorkflowTriggerEvents.BEFORE_EVENT,
@@ -222,40 +222,42 @@ export const workflowsRouter = router({
       const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
           id,
-          userId: ctx.user.id,
         },
       });
 
-      if (workflowToDelete) {
-        const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
-          where: {
-            workflowStep: {
-              workflowId: id,
-            },
-            scheduled: true,
-            NOT: {
-              referenceId: null,
-            },
-          },
-        });
+      const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.prisma, ctx.user.id);
 
-        scheduledReminders.forEach((reminder) => {
-          if (reminder.referenceId) {
-            if (reminder.method === WorkflowMethods.EMAIL) {
-              deleteScheduledEmailReminder(reminder.referenceId);
-            } else if (reminder.method === WorkflowMethods.SMS) {
-              deleteScheduledSMSReminder(reminder.referenceId);
-            }
-          }
-        });
-
-        await ctx.prisma.workflow.deleteMany({
-          where: {
-            userId: ctx.user.id,
-            id,
-          },
-        });
+      if (!isUserAuthorized || !workflowToDelete) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+
+      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+        where: {
+          workflowStep: {
+            workflowId: id,
+          },
+          scheduled: true,
+          NOT: {
+            referenceId: null,
+          },
+        },
+      });
+
+      scheduledReminders.forEach((reminder) => {
+        if (reminder.referenceId) {
+          if (reminder.method === WorkflowMethods.EMAIL) {
+            deleteScheduledEmailReminder(reminder.referenceId);
+          } else if (reminder.method === WorkflowMethods.SMS) {
+            deleteScheduledSMSReminder(reminder.referenceId);
+          }
+        }
+      });
+
+      await ctx.prisma.workflow.deleteMany({
+        where: {
+          id,
+        },
+      });
 
       return {
         id,
