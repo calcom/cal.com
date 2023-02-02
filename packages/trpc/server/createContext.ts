@@ -118,6 +118,7 @@ export const createContext = async ({ req }: CreateContextOptions, sessionGetter
     session,
     user,
     locale,
+    req,
   };
 };
 
