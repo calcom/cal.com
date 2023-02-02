@@ -34,10 +34,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
     schemaBookingCancelParams.parse(req.body);
 
-  // console.log("🚀 ~ file: handleCancelBooking.ts:35 ~ handler ~ seatReferenceUId", seatReferenceUId);
-
-  // return;
-
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
       id,
@@ -77,7 +73,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           price: true,
           currency: true,
           length: true,
-          seatsPerTimeSlot: true,
           workflows: {
             include: {
               workflow: {
