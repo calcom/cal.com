@@ -275,6 +275,7 @@ function WorkflowPage() {
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
+                    teamId={workflow ? workflow.teamId || undefined : undefined}
                   />
                 </>
               ) : (

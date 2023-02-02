@@ -21,10 +21,11 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  teamId?: number;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -36,16 +37,25 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const eventTypeOptions = useMemo(
     () =>
-      data?.eventTypeGroups.reduce(
-        (options, group) => [
-          ...options,
-          ...group.eventTypes.map((eventType) => ({
-            value: String(eventType.id),
-            label: eventType.title,
-          })),
-        ],
-        [] as Option[]
-      ) || [],
+      data?.eventTypeGroups
+        .filter((eventType) => {
+          if (!teamId && !eventType.teamId) {
+            return eventType;
+          }
+          if (teamId === eventType.teamId) {
+            return eventType;
+          }
+        })
+        .reduce(
+          (options, group) => [
+            ...options,
+            ...group.eventTypes.map((eventType) => ({
+              value: String(eventType.id),
+              label: eventType.title,
+            })),
+          ],
+          [] as Option[]
+        ) || [],
     [data]
   );
 

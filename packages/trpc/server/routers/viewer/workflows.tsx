@@ -877,6 +877,12 @@ export const workflowsRouter = router({
             },
           },
           steps: true,
+          team: {
+            select: {
+              id: true,
+              slug: true,
+            },
+          },
         },
       });
 
