@@ -17,7 +17,7 @@
         {
           "src": "https://plausible.io/js/script.js",
           "attrs": {
-            "data-domain": "{TRACKED_DOMAIN}"
+            "data-domain": "{TRACKING_ID}"
           }
         }
       ]

@@ -10,7 +10,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import turndownService from "@calcom/lib/turndownService";
+import turndown from "@calcom/lib/turndownService";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -370,7 +370,7 @@ const ProfileForm = ({
         <Editor
           getText={() => md.render(formMethods.getValues("bio") || "")}
           setText={(value: string) => {
-            formMethods.setValue("bio", turndownService.turndown(value), { shouldDirty: true });
+            formMethods.setValue("bio", turndown(value), { shouldDirty: true });
           }}
           excludedToolbarItems={["blockType"]}
         />

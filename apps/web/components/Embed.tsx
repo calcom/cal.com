@@ -863,7 +863,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             };
                           });
                         }}
-                        addOnLeading={<InputLeading>W</InputLeading>}
+                        addOnLeading={<>W</>}
                       />
                       <span className="p-2">×</span>
                       <TextField
@@ -883,7 +883,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             };
                           });
                         }}
-                        addOnLeading={<InputLeading>H</InputLeading>}
+                        addOnLeading={<>H</>}
                       />
                     </div>
                   </div>
