@@ -6,7 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  selectFirstAvailableTimeSlotNextMonth,
+  selectSecondAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -316,7 +319,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.goto(`/reschedule/${references[1].referenceUId}`);
 
-    await selectFirstAvailableTimeSlotNextMonth(page);
+    await selectSecondAvailableTimeSlotNextMonth(page);
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
