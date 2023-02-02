@@ -783,7 +783,12 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div className={classNames("flex items-center", props.smallHeading ? "md:mb-7" : "md:mb-8")}>
+      <div
+        className={classNames(
+          "mb-6 flex items-center sm:mt-0",
+          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+          props.backPath === "/availability" && "ml-2.5 xl:ml-[7rem]"
+        )}>
         {!!props.backPath && (
           <Button
             variant="icon"
