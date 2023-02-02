@@ -108,6 +108,7 @@ function WorkflowsPage() {
                     canAdd={true}
                     options={query.data.profiles}
                     createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
                   />
                 </div>
               </div>

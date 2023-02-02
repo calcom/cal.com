@@ -102,17 +102,8 @@ export default function EmptyScreen(props: {
             className="mx-auto mt-8"
             createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
             buttonText={t("create_workflow")}
+            isLoading={createMutation.isLoading}
           />
-          {
-            // <Button
-            //   type="button"
-            //   StartIcon={FiPlus}
-            //   onClick={(e) => buttonOnClick(e)}
-            //   loading={isLoading}
-            //   className="mx-auto mt-8">
-            //   {buttonText}
-            // </Button>
-          }
         </div>
       </div>
       <div className="flex flex-row items-center justify-center">

@@ -36,6 +36,7 @@ interface CreateBtnProps {
   subtitle?: string;
   className?: string;
   buttonText?: string;
+  isLoading?: boolean;
 }
 
 export function CreateButton(props: CreateBtnProps) {
@@ -83,7 +84,7 @@ export function CreateButton(props: CreateBtnProps) {
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button variant="fab" StartIcon={FiPlus} className={props.className}>
+            <Button variant="fab" StartIcon={FiPlus} className={props.className} loading={props.isLoading}>
               {props.buttonText ? props.buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
