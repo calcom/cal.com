@@ -140,6 +140,12 @@ export const workflowsRouter = router({
           name: true,
           userId: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              slug: true,
+            },
+          },
           time: true,
           timeUnit: true,
           activeOn: {

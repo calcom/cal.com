@@ -20,7 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Badge, MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 import { Alert, Button, Form, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
@@ -253,8 +253,15 @@ function WorkflowPage() {
         heading={
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
-            <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
-              {workflow && workflow.name ? workflow.name : "untitled"}
+            <div className="flex">
+              <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+                {workflow && workflow.name ? workflow.name : "untitled"}
+              </div>
+              {workflow && workflow.team && (
+                <Badge className="mt-1 ml-4" variant="gray">
+                  {workflow.team.slug}
+                </Badge>
+              )}
             </div>
           )
         }>
