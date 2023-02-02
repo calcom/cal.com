@@ -55,12 +55,14 @@ export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
 
   const parsedUrl = new URL(req.url, "http://base_url");
   const cspEnabledForPage = cspEnabledForInstance && isPagePathRequest(parsedUrl);
-
-  if (cspEnabledForPage) {
-    // Set x-nonce request header to be used by `getServerSideProps` or similar fns and `Document.getInitialProps` to read the nonce from
-    // It is generated for all page requests but only used by pages that need CSP
-    req.headers["x-nonce"] = nonce;
+  if (!cspEnabledForPage) {
+    return {
+      nonce: undefined,
+    };
   }
+  // Set x-nonce request header to be used by `getServerSideProps` or similar fns and `Document.getInitialProps` to read the nonce from
+  // It is generated for all page requests but only used by pages that need CSP
+  req.headers["x-nonce"] = nonce;
 
   if (res) {
     res.setHeader(
