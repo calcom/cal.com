@@ -176,6 +176,20 @@ const nextConfig = {
       }, */
     ];
   },
+  async headers() {
+    return [
+      {
+        // prettier-ignore
+        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     const redirects = [
       {
