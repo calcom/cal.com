@@ -1,0 +1,67 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import { FiPlus } from "../../icon";
+import Select from "./components/Select";
+
+<Meta title="UI/Form/CustomSelect" component={Select} />
+
+<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+export const options = [
+  { value: "fox", label: "🦊 Fox" },
+  { value: "Butterfly", label: "🦋 Butterfly" },
+  { value: "Honeybee", label: "🐝 Honeybee" },
+  { value: "Honeybee", label: "🚀 Moooon", disabled: true },
+  {
+    label: "Teams",
+    options: [
+      { value: "UserF", label: "🦊 User F" },
+      { value: "Butterfly", label: "🦋 User B" },
+      { value: "Honeybee", label: "🐝 User Be" },
+      { value: "Honeybee", label: "🚀 User R", disabled: true },
+    ],
+  },
+];
+
+export const SelectWithState = (...args) => {
+  const [value, setValue] = React.useState(options[0]);
+  return (
+    <Select options={options} selectedItems={value} onChange={(e) => setValue(e)} isSearchable isClearable />
+  );
+};
+
+export const MultiWithState = (...args) => {
+  const [value, setValue] = React.useState([options[0]]);
+  return (
+    <Select
+      options={options}
+      selectedItems={value}
+      onChange={(e) => {
+        console.log(e);
+        setValue(e);
+      }}
+      isSearchable
+      isMultiple
+      isClearable
+    />
+  );
+};
+
+<Canvas>
+  <Story name="Default">
+    <div className="flex flex-col space-y-4">
+      <SelectWithState />
+      <MultiWithState />
+    </div>
+  </Story>
+</Canvas>
