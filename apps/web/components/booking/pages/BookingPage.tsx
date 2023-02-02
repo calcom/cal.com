@@ -166,7 +166,8 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
-          formerTime: booking?.startTime.toString(),
+          ...(!eventType.seatsPerTimeSlot &&
+            booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
     },
