@@ -29,7 +29,7 @@ function getCspPolicy(nonce: string) {
       IS_PRODUCTION ? (useNonStrictPolicy ? "'unsafe-inline'" : "") : "'unsafe-inline'"
     } app.cal.com;
 	  font-src 'self';
-	  img-src 'self' https://www.gravatar.com https://img.youtube.com data:
+	  img-src 'self' https://www.gravatar.com https://img.youtube.com https://eu.ui-avatars.com/api/ data:
 	`;
 }
 
