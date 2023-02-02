@@ -469,11 +469,20 @@ export default NextAuth({
             return true;
           }
 
-          if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
+          // User signup with email and password and
+          // then tries to login with Google using the same email
+          if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
+            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+          ) {
+            const linkAccountNewUserData = { ...account, userId: existingUserWithEmail.id };
+            await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+            return true;
           }
 
-          return "/auth/error?error=use-identity-login";
+          return "/auth/error?error=use-password-login";
+          //return "/auth/error?error=use-identity-login";
         }
 
         const newUser = await prisma.user.create({
