@@ -11,8 +11,11 @@ type Props = Record<string, unknown> & DocumentProps;
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
     const { nonce } = csp(ctx.req || null, ctx.res || null);
-    if (!ctx.res?.getHeader("x-nonce-used")) {
-      ctx.res?.setHeader("x-nonce-used", "initialPropsOnly");
+    if (!process.env.CSP_POLICY) {
+      ctx.res?.setHeader("x-csp", "not-opted-in");
+    } else if (!ctx.res?.getHeader("x-csp")) {
+      // If x-csp not set by gSSP, then it's initialPropsOnly
+      ctx.res?.setHeader("x-csp", "initialPropsOnly");
     }
     const isEmbed = ctx.asPath?.includes("/embed") || ctx.asPath?.includes("embedType=");
     const initialProps = await Document.getInitialProps(ctx);

@@ -28,7 +28,7 @@ export default function withNonce(getServerSideProps: GetServerSideProps) {
     }
 
     // Helps in debugging that withNonce was used but a valid nonce couldn't be set
-    context.res.setHeader("x-nonce-used", nonce ? "ssr" : "false");
+    context.res.setHeader("x-csp", nonce ? "ssr" : "false");
 
     return {
       ...ssrResponse,
