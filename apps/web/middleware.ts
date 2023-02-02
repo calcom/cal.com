@@ -36,11 +36,27 @@ const middleware: NextMiddleware = async (req) => {
     return NextResponse.rewrite(url);
   }
 
+  if (url.pathname.startsWith("/api/trpc/")) {
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
   return NextResponse.next();
 };
 
 export const config = {
-  matcher: ["/api/collect-events/:path*", "/api/auth/:path*", "/apps/routing_forms/:path*", "/:path*/embed"],
+  matcher: [
+    "/api/collect-events/:path*",
+    "/api/auth/:path*",
+    "/apps/routing_forms/:path*",
+    "/:path*/embed",
+    "/api/trpc/:path*",
+  ],
 };
 
 export default collectEvents({
