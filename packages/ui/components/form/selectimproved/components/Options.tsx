@@ -25,26 +25,37 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
   const upPress = useKeyPress("ArrowUp", searchBoxRef);
   const enterPress = useKeyPress("Enter", searchBoxRef);
 
+  const totalOptionsLength = useMemo(() => {
+    return list.reduce((acc, item) => {
+      if (item.options) {
+        return acc + item.options.length + 1;
+      }
+      return acc + 1;
+    }, 0);
+  }, [list]);
+
   useEffect(() => {
     if (downPress) {
       // Cycle to start of list if at end
-      setKeyboardFocus((prev) => (prev + 1) % list.length);
+      setKeyboardFocus((prev) => (prev + 1) % totalOptionsLength);
     }
-  }, [downPress, list]);
+  }, [downPress, totalOptionsLength]);
 
   useEffect(() => {
     if (upPress) {
       // Cycle to end of list if at start
-      setKeyboardFocus((prev) => (prev - 1 + list.length) % list.length);
+      setKeyboardFocus((prev) => (prev - 1 + totalOptionsLength) % totalOptionsLength);
     }
-  }, [upPress, list]);
+  }, [upPress, totalOptionsLength]);
 
   useEffect(() => {
     if (enterPress) {
       const item = list[keyboardFocus];
       handleValueChange(item);
     }
-  }, [enterPress, keyboardFocus, list, handleValueChange]);
+    // We don't want to re-run this effect when handleValueChange changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enterPress, keyboardFocus, list]);
 
   const search = useCallback((optionsArray: Option[], searchTerm: string) => {
     // search options by label, or group label or options.options
@@ -86,7 +97,12 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
             {item.options ? (
               <>
                 <div className="px-2.5">
-                  <GroupItem item={item as Option & { options: Option[] }} hocused={hocused} />
+                  <GroupItem
+                    index={index}
+                    item={item as Option & { options: Option[] }}
+                    keyboardFocusIndex={keyboardFocus}
+                    hoveredIndex={hovered}
+                  />
                 </div>
               </>
             ) : (

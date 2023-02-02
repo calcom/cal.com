@@ -1,15 +1,13 @@
-import React, { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 
 import { FiX, FiChevronDown } from "../../../icon";
-import { COLORS, DEFAULT_THEME, THEME_DATA } from "../constants";
 import useOnClickOutside from "../hooks/use-onclick-outside";
 import Options from "./Options";
 import SearchInput from "./SearchInput";
 import SelectProvider from "./SelectProvider";
-import Spinner from "./Spinner";
 import { Option } from "./type";
 
 interface SelectProps<T extends Option> {
@@ -44,6 +42,24 @@ interface SelectProps<T extends Option> {
   };
 }
 
+function useTraceUpdate(props: any) {
+  const prev = useRef(props);
+  useEffect(() => {
+    const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+      if (prev.current[k] !== v) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        ps[k] = [prev.current[k], v];
+      }
+      return ps;
+    }, {});
+    if (Object.keys(changedProps).length > 0) {
+      console.log("Changed props:", changedProps);
+    }
+    prev.current = props;
+  });
+}
+
 function Select<T extends Option>({
   options = [],
   selectedItems = null,
@@ -59,6 +75,21 @@ function Select<T extends Option>({
   noOptionsMessage = "No options found",
   classNames,
 }: SelectProps<T>) {
+  useTraceUpdate({
+    options,
+    selectedItems,
+    onChange,
+    placeholder,
+    searchInputPlaceholder,
+    isMultiple,
+    isClearable,
+    isSearchable,
+    isDisabled,
+    loading,
+    menuIsOpen,
+    noOptionsMessage,
+    classNames,
+  });
   const [open, setOpen] = useState<boolean>(menuIsOpen);
   const [inputValue, setInputValue] = useState<string>("");
   const ref = useRef<HTMLDivElement>(null);
