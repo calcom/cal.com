@@ -194,6 +194,19 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
     ];
   },
   async redirects() {
@@ -281,23 +294,6 @@ const nextConfig = {
     }
 
     return redirects;
-  },
-  async headers() {
-    const headers = [];
-    headers.push({
-      source: "/:path*",
-      headers: [
-        {
-          key: "X-Content-Type-Options",
-          value: "nosniff",
-        },
-        {
-          key: "Referrer-Policy",
-          value: "strict-origin-when-cross-origin",
-        },
-      ],
-    });
-    return headers;
   },
 };
 
