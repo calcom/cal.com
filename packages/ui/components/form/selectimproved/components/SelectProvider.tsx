@@ -35,7 +35,7 @@ const SelectProvider: React.FC<Props> = ({ selectedItems, handleValueChange, opt
       selectedItems,
       handleValueChange,
       classNames: options?.classNames,
-    };
+    } as Store;
   }, [handleValueChange, options, selectedItems]);
 
   return <SelectContext.Provider value={store}>{children}</SelectContext.Provider>;

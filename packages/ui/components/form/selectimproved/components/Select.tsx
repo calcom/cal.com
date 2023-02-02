@@ -25,7 +25,6 @@ interface SelectProps<T extends Option> {
   menuIsOpen?: boolean;
   searchInputPlaceholder?: string;
   noOptionsMessage?: string;
-  primaryColor: string;
   classNames?: {
     menuButton?: ({ isDisabled }: { isDisabled: boolean }) => string;
     menu?: string;
@@ -58,12 +57,12 @@ function Select<T extends Option>({
   loading = false,
   menuIsOpen = false,
   noOptionsMessage = "No options found",
-  primaryColor = DEFAULT_THEME,
   classNames,
 }: SelectProps<T>) {
   const [open, setOpen] = useState<boolean>(menuIsOpen);
   const [inputValue, setInputValue] = useState<string>("");
   const ref = useRef<HTMLDivElement>(null);
+  const searchBoxRef = useRef<HTMLInputElement>(null);
   const escapePressed = useKeyPress("Escape");
   const isMultipleValue = Array.isArray(selectedItems) && isMultiple;
 
@@ -208,11 +207,11 @@ function Select<T extends Option>({
           </div>
 
           <div className="flex flex-none items-center py-1.5">
-            {loading && (
+            {/* {loading && (
               <div className="px-1.5">
                 <Spinner primaryColor={primaryColor} />
               </div>
-            )}
+            )} */}
 
             {isClearable && !isDisabled && selectedItems !== null && (
               <div className="cursor-pointer px-1.5" onClick={clearValue}>
@@ -246,6 +245,7 @@ function Select<T extends Option>({
             }>
             {isSearchable && (
               <SearchInput
+                searchInputRef={searchBoxRef}
                 value={inputValue}
                 placeholder={searchInputPlaceholder}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -253,12 +253,12 @@ function Select<T extends Option>({
             )}
 
             <Options
+              searchBoxRef={searchBoxRef}
               list={options}
               noOptionsMessage={noOptionsMessage}
               inputValue={inputValue}
               isMultiple={isMultiple}
               selected={selectedItems}
-              primaryColor={primaryColor || DEFAULT_THEME}
             />
           </div>
         )}

@@ -1,6 +1,7 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { DEFAULT_THEME } from "../constants";
+import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
+
 import DisabledItem from "./DisabledItem";
 import GroupItem from "./GroupItem";
 import Item from "./Item";
@@ -12,17 +13,38 @@ interface OptionsProps<T extends Option> {
   noOptionsMessage: string;
   inputValue: string;
   isMultiple: boolean;
-  primaryColor: string;
   selected: T | T[] | null;
+  searchBoxRef: React.RefObject<HTMLInputElement>;
 }
 
-function Options<T extends Option>({
-  list,
-  noOptionsMessage,
-  inputValue,
-  primaryColor = DEFAULT_THEME,
-}: OptionsProps<T>) {
-  const { classNames } = useContext(SelectContext);
+function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchBoxRef }: OptionsProps<T>) {
+  const { classNames, handleValueChange } = useContext(SelectContext);
+  const [hovered, setHovered] = useState(-1);
+  const [keyboardFocus, setKeyboardFocus] = useState(-1);
+  const downPress = useKeyPress("ArrowDown", searchBoxRef);
+  const upPress = useKeyPress("ArrowUp", searchBoxRef);
+  const enterPress = useKeyPress("Enter", searchBoxRef);
+
+  useEffect(() => {
+    if (downPress) {
+      // Cycle to start of list if at end
+      setKeyboardFocus((prev) => (prev + 1) % list.length);
+    }
+  }, [downPress, list]);
+
+  useEffect(() => {
+    if (upPress) {
+      // Cycle to end of list if at start
+      setKeyboardFocus((prev) => (prev - 1 + list.length) % list.length);
+    }
+  }, [upPress, list]);
+
+  useEffect(() => {
+    if (enterPress) {
+      const item = list[keyboardFocus];
+      handleValueChange(item);
+    }
+  }, [enterPress, keyboardFocus, list, handleValueChange]);
 
   const search = useCallback((optionsArray: Option[], searchTerm: string) => {
     // search options by label, or group label or options.options
@@ -58,19 +80,18 @@ function Options<T extends Option>({
   return (
     <div role="options" className={classNames?.list ?? "max-h-72 overflow-y-auto overflow-y-scroll"}>
       {filteredList?.map((item, index) => {
+        const hocused = index === hovered || index === keyboardFocus;
         return (
           <React.Fragment key={index}>
             {item.options ? (
               <>
                 <div className="px-2.5">
-                  <GroupItem primaryColor={primaryColor || DEFAULT_THEME} item={item} />
+                  <GroupItem item={item as Option & { options: Option[] }} hocused={hocused} />
                 </div>
-
-                {index + 1 < list.length && <hr className="my-1" />}
               </>
             ) : (
               <div className="px-2.5">
-                <Item primaryColor={primaryColor || DEFAULT_THEME} item={item} />
+                <Item item={item} index={index} hocused={hocused} />
               </div>
             )}
           </React.Fragment>

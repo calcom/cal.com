@@ -1,41 +1,29 @@
 import React from "react";
 
+import { Label } from "../../inputs/Label";
 import Item from "./Item";
-import { useSelectContext } from "./SelectProvider";
-import { GroupOption } from "./type";
+import { Option } from "./type";
 
 interface GroupItemProps {
-  item: GroupOption;
-  primaryColor: string;
+  item: Option & { options: Option[] }; // We know options exist here
+  index?: number;
+  hocused: boolean;
 }
 
-const GroupItem: React.FC<GroupItemProps> = ({ item, primaryColor }) => {
-  const { classNames, formatGroupLabel } = useSelectContext();
-
+function GroupItem({ item, index: tabIndex, hocused }: GroupItemProps) {
   return (
     <>
       {item.options.length > 0 && (
         <>
-          {formatGroupLabel ? (
-            <>{formatGroupLabel(item)}</>
-          ) : (
-            <div
-              className={
-                classNames && classNames.listGroupLabel
-                  ? classNames.listGroupLabel
-                  : "cursor-default select-none truncate py-2 pr-2 font-bold text-gray-700"
-              }>
-              {item.label}
-            </div>
-          )}
+          <Label>{item.label}</Label>
 
           {item.options.map((item, index) => (
-            <Item primaryColor={primaryColor} key={index} item={item} />
+            <Item key={index} item={item} index={tabIndex} hocused={hocused} />
           ))}
         </>
       )}
     </>
   );
-};
+}
 
 export default GroupItem;

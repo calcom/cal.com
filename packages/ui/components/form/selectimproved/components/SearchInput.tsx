@@ -8,9 +8,16 @@ interface SearchInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   name?: string;
+  searchInputRef?: React.RefObject<HTMLInputElement>;
 }
 
-const SearchInput: React.FC<SearchInputProps> = ({ placeholder = "", value = "", onChange, name = "" }) => {
+const SearchInput: React.FC<SearchInputProps> = ({
+  placeholder = "",
+  value = "",
+  onChange,
+  name = "",
+  searchInputRef,
+}) => {
   const { classNames } = useContext(SelectContext);
   return (
     <div
@@ -25,6 +32,7 @@ const SearchInput: React.FC<SearchInputProps> = ({ placeholder = "", value = "",
         }
       />
       <input
+        ref={searchInputRef}
         className={
           classNames && classNames.searchBox
             ? classNames.searchBox
