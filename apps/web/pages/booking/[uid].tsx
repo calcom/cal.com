@@ -170,6 +170,7 @@ const querySchema = z.object({
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
   email: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -182,6 +183,7 @@ export default function Success(props: SuccessProps) {
     changes,
     formerTime,
     email,
+    seatReferenceUid,
   } = querySchema.parse(router.query);
 
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
@@ -607,6 +609,7 @@ export default function Success(props: SuccessProps) {
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
+                        seatReferenceUId={seatReferenceUid}
                       />
                     </>
                   ))}

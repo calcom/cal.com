@@ -249,6 +249,15 @@ export const bookingsRouter = router({
                 },
               },
             },
+            {
+              seatsReferences: {
+                some: {
+                  attendee: {
+                    email: user.email,
+                  },
+                },
+              },
+            },
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
@@ -282,6 +291,7 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
+          seatsReferences: true,
         },
         orderBy,
         take: take + 1,

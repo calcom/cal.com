@@ -23,13 +23,14 @@ type Props = {
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
   allRemainingBookings: boolean;
+  seatReferenceUId?: string;
 };
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, allRemainingBookings } = props;
+  const { booking, allRemainingBookings, seatReferenceUId } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -77,6 +78,7 @@ export default function CancelBooking(props: Props) {
                     id: booking?.id,
                     cancellationReason: cancellationReason,
                     allRemainingBookings,
+                    seatReferenceUId,
                   };
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());

@@ -31,7 +31,12 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 async function handler(req: NextApiRequest & { userId?: number }) {
   const { userId } = req;
 
-  const { id, uid, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
+    schemaBookingCancelParams.parse(req.body);
+
+  // console.log("🚀 ~ file: handleCancelBooking.ts:35 ~ handler ~ seatReferenceUId", seatReferenceUId);
+
+  // return;
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
@@ -72,6 +77,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           price: true,
           currency: true,
           length: true,
+          seatsPerTimeSlot: true,
           workflows: {
             include: {
               workflow: {
@@ -89,6 +95,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       smsReminderNumber: true,
       workflowReminders: true,
       scheduledJobs: true,
+      seatsReferences: true,
     },
   });
 
@@ -102,6 +109,30 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
+    const seatReference = bookingToDelete.seatsReferences.find(
+      (reference) => reference.referenceUId === seatReferenceUId
+    );
+
+    if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+    await Promise.all([
+      prisma.bookingSeatsReferences.delete({
+        where: {
+          referenceUId: seatReferenceUId,
+        },
+      }),
+      prisma.attendee.delete({
+        where: {
+          id: seatReference.attendeeId,
+        },
+      }),
+    ]);
+
+    return;
   }
 
   const organizer = await prisma.user.findFirstOrThrow({

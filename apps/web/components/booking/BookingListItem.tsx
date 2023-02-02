@@ -42,6 +42,7 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
+  console.log("🚀 ~ file: BookingListItem.tsx:45 ~ BookingListItem ~ booking", booking);
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
@@ -93,6 +94,24 @@ function BookingListItem(booking: BookingItemProps) {
     mutation.mutate(body);
   };
 
+  const getSeatReferenceUid = () => {
+    const attendee = booking.attendees.find((attendee) => {
+      if (attendee.email === user?.email) return attendee;
+    });
+
+    console.log("🚀 ~ file: BookingListItem.tsx:99 ~ getSeatReferenceUid ~ attendee", attendee);
+
+    if (attendee) {
+      const attendeeSeatReference = booking.seatsReferences.find(
+        (attendeeSeatReference) => attendeeSeatReference.attendeeId === attendee.id
+      );
+
+      if (attendeeSeatReference) return attendeeSeatReference.referenceUId;
+    }
+
+    return "";
+  };
+
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -134,7 +153,8 @@ function BookingListItem(booking: BookingItemProps) {
          cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }`,
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
+      `,
       icon: FiX,
     },
     {
