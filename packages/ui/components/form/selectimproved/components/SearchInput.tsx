@@ -28,8 +28,9 @@ const SearchInput: React.FC<SearchInputProps> = ({ placeholder = "", value = "",
         className={
           classNames && classNames.searchBox
             ? classNames.searchBox
-            : "w-full rounded border border-gray-200 bg-gray-100 py-2 pl-8 text-sm text-gray-500 focus:border-gray-200 focus:outline-none focus:ring-0"
+            : "w-full rounded border border-gray-200 py-2 pl-8 text-sm text-gray-500 focus:border-gray-900 focus:outline-none focus:ring-0"
         }
+        autoFocus
         type="text"
         placeholder={placeholder}
         value={value}

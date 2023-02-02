@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
+import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 
 import { FiX, FiChevronDown } from "../../../icon";
 import { COLORS, DEFAULT_THEME, THEME_DATA } from "../constants";
@@ -63,7 +64,7 @@ function Select<T extends Option>({
   const [open, setOpen] = useState<boolean>(menuIsOpen);
   const [inputValue, setInputValue] = useState<string>("");
   const ref = useRef<HTMLDivElement>(null);
-
+  const escapePressed = useKeyPress("Escape");
   const isMultipleValue = Array.isArray(selectedItems) && isMultiple;
 
   const toggle = useCallback(() => {
@@ -79,6 +80,12 @@ function Select<T extends Option>({
   useOnClickOutside(ref, () => {
     closeDropDown();
   });
+
+  useEffect(() => {
+    if (escapePressed) {
+      closeDropDown();
+    }
+  }, [escapePressed, closeDropDown]);
 
   const onPressEnterOrSpace = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -223,7 +230,7 @@ function Select<T extends Option>({
               <FiChevronDown
                 className={cn(
                   "h-6 w-6 p-0.5 transition duration-300",
-                  open ? " rotate-90 transform text-gray-500" : " text-gray-300"
+                  open ? " rotate-180 transform text-gray-500" : " text-gray-300"
                 )}
               />
             </div>
@@ -234,9 +241,8 @@ function Select<T extends Option>({
           <div
             tabIndex={-1}
             className={
-              classNames && classNames.menu
-                ? classNames.menu
-                : "absolute z-10 mt-1.5 w-full rounded border bg-white py-1 text-sm text-gray-700 shadow-lg"
+              classNames?.menu ??
+              "absolute z-10 mt-1.5 w-full rounded border bg-white py-1 text-sm text-gray-700 shadow-lg"
             }>
             {isSearchable && (
               <SearchInput
