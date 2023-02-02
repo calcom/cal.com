@@ -77,7 +77,7 @@ export default function TeamList(props: Props) {
                       icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"
                       title={t("create_a_managed_event")}
-                      description={t("meetings_are_better_with_the_right")}
+                      description={t("create_a_one_one_template")}
                       actionButton={{
                         href:
                           "/event-types?dialog=new-eventtype&eventPage=team%2F" +
