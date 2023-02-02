@@ -51,7 +51,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   });
   const { t } = useLocale();
   return (
-    <div className="px-4 py-5 sm:p-6">
+    <div className="p-6">
       <h3 className="font-medium leading-6 text-gray-900">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
@@ -60,8 +60,8 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           </span>
         </Tooltip>
       </h3>
-      <p className="mb-4 text-sm text-gray-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
-      <div className="mt-1 space-y-2">
+      <p className="mb-4 text-sm text-gray-500">{t("date_overrides_subtitle")}</p>
+      <div className="space-y-2">
         <DateOverrideList
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           remove={remove}
@@ -148,7 +148,7 @@ export default function Availability({ schedule }: { schedule: number }) {
         )
       }
       CTA={
-        <div className="flex items-center justify-end">
+        <div className="mr-10 flex items-center justify-end xl:mr-36">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
             <Skeleton
               as={Label}
@@ -185,25 +185,29 @@ export default function Availability({ schedule }: { schedule: number }) {
               ...values,
             });
           }}
-          className="flex flex-col pb-16 pt-4 sm:mx-0 md:pt-0 xl:flex-row xl:space-x-6">
-          <div className="flex-1 divide-y divide-gray-200 rounded-md border">
-            <div className=" py-5 sm:p-6">
-              {typeof me.data?.weekStart === "string" && (
-                <Schedule
-                  control={control}
-                  name="schedule"
-                  weekStart={
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      me.data?.weekStart
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                  }
-                />
-              )}
+          className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
+          <div className="mx-10 flex-1 flex-row xl:mr-0 xl:ml-36">
+            <div className="mb-6 rounded-md border">
+              <div>
+                {typeof me.data?.weekStart === "string" && (
+                  <Schedule
+                    control={control}
+                    name="schedule"
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        me.data?.weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                  />
+                )}
+              </div>
             </div>
-            {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+            <div className="my-6 rounded-md border">
+              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+            </div>
           </div>
-          <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-            <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
+          <div className="min-w-40 col-span-3 ml-10 space-y-2 lg:col-span-1 xl:ml-36">
+            <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                   {t("timezone")}
@@ -223,7 +227,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                   }
                 />
               </div>
-              <hr className="my-8" />
+              <hr className="my-6 mr-8" />
               <div className="rounded-md">
                 <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
                 <div className="mt-3 flex">
