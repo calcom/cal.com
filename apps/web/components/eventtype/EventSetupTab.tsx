@@ -9,7 +9,12 @@ import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
 import { z } from "zod";
 
-import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import {
+  EventLocationType,
+  getEventLocationType,
+  MeetLocationType,
+  LocationType,
+} from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { slugify } from "@calcom/lib/slugify";
@@ -79,7 +84,12 @@ export const EventSetupTab = (
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     formMethods.setValue(
       "locations",
-      formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type),
+      formMethods.getValues("locations").filter((location) => {
+        if (location.type === LocationType.InPerson) {
+          return location.address !== selectedLocation.address;
+        }
+        return location.type !== selectedLocation.type;
+      }),
       { shouldValidate: true }
     );
   };
@@ -94,14 +104,14 @@ export const EventSetupTab = (
           ...details,
           type: newLocationType,
         };
-      } else {
-        copy[existingIdx] = {
-          ...formMethods.getValues("locations")[existingIdx],
-          ...details,
-        };
       }
 
-      formMethods.setValue("locations", copy);
+      formMethods.setValue("locations", [
+        ...copy,
+        ...(newLocationType === LocationType.InPerson && editingLocationType === ""
+          ? [{ ...details, type: newLocationType }]
+          : []),
+      ]);
     } else {
       formMethods.setValue(
         "locations",
@@ -187,7 +197,9 @@ export const EventSetupTab = (
                 return null;
               }
               return (
-                <li key={location.type} className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
+                <li
+                  key={`${location.type}${index}`}
+                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
                   <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
