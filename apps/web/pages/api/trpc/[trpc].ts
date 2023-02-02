@@ -49,8 +49,6 @@ export default trpcNext.createNextApiHandler({
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore ctx.req is available for SSR but not SSG
     if (!!ctx?.req && allOk && isQuery) {
       // cache request for 1 day + revalidate once every 5 seconds
       const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
