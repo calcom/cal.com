@@ -1,9 +1,8 @@
 import { IdentityProvider, UserPermissionRole } from "@prisma/client";
-import { BinaryLike, hkdfSync, KeyObject } from "crypto";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import * as jose from "jose";
 import NextAuth, { Session } from "next-auth";
+import { encode } from "next-auth/jwt";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
@@ -11,7 +10,6 @@ import GoogleProvider from "next-auth/providers/google";
 import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -238,10 +236,13 @@ if (true) {
     })
   );
 }
+
+function isNumber(n: string) {
+  return !isNaN(parseFloat(n)) && !isNaN(+n);
+}
+
 const calcomAdapter = CalComAdapter(prisma);
-const getDerivedEncryptionKey = async (secret: BinaryLike | KeyObject) => {
-  return await hkdfSync("sha256", secret, "", "NextAuth.js Generated Encryption Key", 32);
-};
+
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -250,34 +251,23 @@ export default NextAuth({
     strategy: "jwt",
   },
   jwt: {
-    encode: async ({ secret, token }) => {
-      if (!token || token.sub === undefined) throw new Error("Not valid token");
-      const user = await prisma.user.findFirst({
-        where: { id: Number(token.sub) },
-        select: { metadata: true },
-      });
-      const encryptionSecret = await getDerivedEncryptionKey(secret);
-      const metadata = userMetadata.parse(user?.metadata);
-      return await new jose.EncryptJWT({
-        sub: token?.sub,
-        name: token?.name,
-        email: token?.email,
-      })
-        .setProtectedHeader({
-          alg: "dir",
-          enc: "A256GCM",
-        })
-        .setIssuedAt()
-        .setExpirationTime(metadata?.sessionTimeout ? `${metadata.sessionTimeout}m` : "30d")
-        .setJti(uuidv4())
-        .encrypt(new Uint8Array(encryptionSecret));
-    },
-    decode: async ({ secret, token }) => {
-      const encryptionSecret = await getDerivedEncryptionKey(secret);
-      const { payload } = await jose.jwtDecrypt(token || "", new Uint8Array(encryptionSecret), {
-        clockTolerance: 15,
-      });
-      return payload;
+    // decorate the native JWT encode function
+    // Impl. detail: We don't pass through as this function is called with encode/decode functions.
+    encode: async ({ token, maxAge, secret }) => {
+      if (token?.sub && isNumber(token.sub)) {
+        const user = await prisma.user.findFirst({
+          where: { id: Number(token.sub) },
+          select: { metadata: true },
+        });
+        // if no user is found, we still don't want to crash here.
+        if (user) {
+          const metadata = userMetadata.parse(user.metadata);
+          if (metadata?.sessionTimeout) {
+            maxAge = metadata.sessionTimeout / 60;
+          }
+        }
+      }
+      return encode({ secret, token, maxAge });
     },
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
