@@ -34,6 +34,16 @@ const getLocationFromType = (
   }
 };
 
+const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"], type: string) => {
+  for (const locationType of options) {
+    for (const location of locationType.options) {
+      if (location.value === type && location.disabled === false) {
+        return location;
+      }
+    }
+  }
+};
+
 export const EventSetupTab = (
   props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
@@ -138,7 +148,8 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = locationOptions.find((item) => item.label === "video")?.options;
+    const defaultValue = getDefaultLocationValue(locationOptions, "integrations:daily");
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
