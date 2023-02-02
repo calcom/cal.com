@@ -19,8 +19,8 @@ function getCspPolicy(nonce: string) {
       IS_PRODUCTION
         ? // 'self' 'unsafe-inline' https: added for Browsers not supporting strict-dynamic not supporting strict-dynamic
           "'nonce-" + nonce + "' 'strict-dynamic' 'self' 'unsafe-inline' https:"
-        : // Note: We could use 'strict-dynamic' with 'nonce-..' instead of unsafe-inline but in dev mode there are some streaming related scripts that get blocked(because they don't have nonce on them)
-          "'unsafe-inline' 'unsafe-eval' https:"
+        : // Note: We could use 'strict-dynamic' with 'nonce-..' instead of unsafe-inline but there are some streaming related scripts that get blocked(because they don't have nonce on them). It causes a really frustrating full page error model by Next.js to show up sometimes
+          "'unsafe-inline' 'unsafe-eval' https: http:"
     };
     object-src 'none';
     base-uri 'none';
@@ -33,6 +33,7 @@ function getCspPolicy(nonce: string) {
 	`;
 }
 
+// Taken from @next-safe/middleware
 const isPagePathRequest = (url: URL) => {
   const isNonPagePathPrefix = /^\/(?:_next|api)\//;
   const isFile = /\..*$/;

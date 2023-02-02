@@ -278,7 +278,7 @@ const nextConfig = {
           value: "nosniff",
         },
         {
-          key: "Referer-Policy",
+          key: "Referrer-Policy",
           value: "strict-origin-when-cross-origin",
         },
       ],
