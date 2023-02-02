@@ -356,3 +356,7 @@ export const sendDisabledAppEmail = async ({
     }
   });
 };
+
+export const sendCancelledSeatEmails = async () => {
+  return;
+};
