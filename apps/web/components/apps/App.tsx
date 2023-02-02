@@ -210,7 +210,7 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose prose-sm mt-8">{body}</div>
+        <div className="prose-sm prose mt-8">{body}</div>
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (
@@ -336,10 +336,6 @@ export default function App(props: {
         title={props.name}
         description={props.description}
         app={{ slug: props.logo, name: props.name, description: props.description }}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
       />
       {props.licenseRequired ? (
         <LicenseRequired>

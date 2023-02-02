@@ -1,6 +1,8 @@
 import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import { BinaryLike, hkdfSync, KeyObject } from "crypto";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
+import * as jose from "jose";
 import NextAuth, { Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -9,6 +11,7 @@ import GoogleProvider from "next-auth/providers/google";
 import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -22,7 +25,7 @@ import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 
@@ -60,6 +63,7 @@ const providers: Provider[] = [
           username: true,
           name: true,
           email: true,
+          metadata: true,
           identityProvider: true,
           password: true,
           twoFactorEnabled: true,
@@ -235,12 +239,46 @@ if (true) {
   );
 }
 const calcomAdapter = CalComAdapter(prisma);
+const getDerivedEncryptionKey = async (secret: BinaryLike | KeyObject) => {
+  return await hkdfSync("sha256", secret, "", "NextAuth.js Generated Encryption Key", 32);
+};
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
+  },
+  jwt: {
+    encode: async ({ secret, token }) => {
+      if (!token || token.sub === undefined) throw new Error("Not valid token");
+      const user = await prisma.user.findFirst({
+        where: { id: Number(token.sub) },
+        select: { metadata: true },
+      });
+      const encryptionSecret = await getDerivedEncryptionKey(secret);
+      const metadata = userMetadata.parse(user?.metadata);
+      return await new jose.EncryptJWT({
+        sub: token?.sub,
+        name: token?.name,
+        email: token?.email,
+      })
+        .setProtectedHeader({
+          alg: "dir",
+          enc: "A256GCM",
+        })
+        .setIssuedAt()
+        .setExpirationTime(metadata?.sessionTimeout ? `${metadata.sessionTimeout}m` : "30d")
+        .setJti(uuidv4())
+        .encrypt(new Uint8Array(encryptionSecret));
+    },
+    decode: async ({ secret, token }) => {
+      const encryptionSecret = await getDerivedEncryptionKey(secret);
+      const { payload } = await jose.jwtDecrypt(token || "", new Uint8Array(encryptionSecret), {
+        clockTolerance: 15,
+      });
+      return payload;
+    },
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {

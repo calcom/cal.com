@@ -1,5 +1,4 @@
 import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";

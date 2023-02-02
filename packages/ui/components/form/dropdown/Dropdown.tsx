@@ -128,18 +128,18 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {
-  const { StartIcon, EndIcon } = props;
+  const { StartIcon, EndIcon, children, color, ...rest } = props;
 
   return (
     <ButtonOrLink
-      {...props}
+      {...rest}
       className={classNames(
-        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
-        props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-gray-100"
+        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900 disabled:cursor-not-allowed",
+        color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-gray-100"
       )}>
       <>
         {StartIcon && <StartIcon className="h-4 w-4" />}
-        <div className="mx-3 text-sm font-medium leading-5">{props.children}</div>
+        <div className="mx-3 text-sm font-medium leading-5">{children}</div>
         {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>
