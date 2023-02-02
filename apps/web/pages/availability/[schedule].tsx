@@ -1,35 +1,37 @@
-import { GetStaticPaths, GetStaticProps } from "next";
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { GetServerSidePropsContext } from "next";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
+import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType } from "@calcom/types/schedule";
+import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
   Form,
-  Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   SkeletonText,
   Switch,
   TimezoneSelect,
+  Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
+import { FiInfo, FiPlus } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
-import { ssgInit } from "@server/lib/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -38,8 +40,48 @@ const querySchema = z.object({
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
+  dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   isDefault: boolean;
+};
+
+const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+    name: "dateOverrides",
+  });
+  const { t } = useLocale();
+  return (
+    <div className="p-6">
+      <h3 className="font-medium leading-6 text-gray-900">
+        {t("date_overrides")}{" "}
+        <Tooltip content={t("date_overrides_info")}>
+          <span className="inline-block">
+            <FiInfo />
+          </span>
+        </Tooltip>
+      </h3>
+      <p className="mb-4 text-sm text-gray-500">{t("date_overrides_subtitle")}</p>
+      <div className="space-y-2">
+        <DateOverrideList
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          remove={remove}
+          update={update}
+          items={fields}
+          workingHours={workingHours}
+        />
+        <DateOverrideInputDialog
+          workingHours={workingHours}
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          onChange={(ranges) => append({ ranges })}
+          Trigger={
+            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
+              Add an override
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
 };
 
 export default function Availability({ schedule }: { schedule: number }) {
@@ -48,21 +90,9 @@ export default function Availability({ schedule }: { schedule: number }) {
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
   const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
-
-  const form = useForm<AvailabilityFormValues>();
-  const { control, reset } = form;
-
-  useEffect(() => {
-    if (!isLoading && data) {
-      reset({
-        name: data?.schedule?.name,
-        schedule: data.availability,
-        timeZone: data.timeZone,
-        isDefault: data.isDefault,
-      });
-    }
-  }, [data, isLoading, reset]);
-
+  const { data: defaultValues } = trpc.viewer.availability.defaultValues.useQuery({ scheduleId: schedule });
+  const form = useForm<AvailabilityFormValues>({ defaultValues });
+  const { control } = form;
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -73,7 +103,7 @@ export default function Availability({ schedule }: { schedule: number }) {
           utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.viewer.availability.schedule.get.setData({ scheduleId: data.schedule.id }, data);
+      utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
       utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
@@ -98,23 +128,27 @@ export default function Availability({ schedule }: { schedule: number }) {
         <Controller
           control={form.control}
           name="name"
-          render={({ field }) => <EditableHeading isReady={!isLoading} {...field} />}
+          render={({ field }) => (
+            <EditableHeading isReady={!isLoading} {...field} data-testid="availablity-title" />
+          )}
         />
       }
       subtitle={
         data ? (
-          data.schedule.availability.map((availability) => (
-            <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
-              <br />
-            </span>
-          ))
+          data.schedule.availability
+            .filter((availability) => !!availability.days.length)
+            .map((availability) => (
+              <span key={availability.id}>
+                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+                <br />
+              </span>
+            ))
         ) : (
           <SkeletonText className="h-4 w-48" />
         )
       }
       CTA={
-        <div className="flex items-center justify-end">
+        <div className="mr-10 flex items-center justify-end xl:mr-36">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
             <Skeleton
               as={Label}
@@ -140,25 +174,21 @@ export default function Availability({ schedule }: { schedule: number }) {
           </Button>
         </div>
       }>
-      <div className="flex items-baseline sm:mt-0">
-        {/* TODO: Find a better way to guarantee alignment, but for now this'll do. */}
-        <Icon.FiArrowLeft className=" mr-3 text-transparent hover:cursor-pointer" />
-        <div className="w-full">
-          <Form
-            form={form}
-            id="availability-form"
-            handleSubmit={async (values) => {
-              updateMutation.mutate({
-                scheduleId: schedule,
-                ...values,
-              });
-            }}
-            className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-            <div className="flex-1">
-              <div className="rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
-                <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
-                  {t("change_start_end")}
-                </h3>
+      <div className="w-full">
+        <Form
+          form={form}
+          id="availability-form"
+          handleSubmit={async ({ dateOverrides, ...values }) => {
+            updateMutation.mutate({
+              scheduleId: schedule,
+              dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+              ...values,
+            });
+          }}
+          className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
+          <div className="mx-10 flex-1 flex-row xl:mr-0 xl:ml-36">
+            <div className="mb-6 rounded-md border">
+              <div>
                 {typeof me.data?.weekStart === "string" && (
                   <Schedule
                     control={control}
@@ -172,63 +202,61 @@ export default function Availability({ schedule }: { schedule: number }) {
                 )}
               </div>
             </div>
-            <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
-                <div>
-                  <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    {t("timezone")}
-                  </label>
-                  <Controller
-                    name="timeZone"
-                    render={({ field: { onChange, value } }) =>
-                      value ? (
-                        <TimezoneSelect
-                          value={value}
-                          className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
-                          onChange={(timezone) => onChange(timezone.value)}
-                        />
-                      ) : (
-                        <SelectSkeletonLoader className="w-72" />
-                      )
-                    }
-                  />
-                </div>
-                <hr className="my-8" />
-                <div className="rounded-md">
-                  <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
-                  <div className="mt-3 flex">
-                    <Button href="/availability/troubleshoot" color="secondary">
-                      {t("launch_troubleshooter")}
-                    </Button>
-                  </div>
+            <div className="my-6 rounded-md border">
+              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+            </div>
+          </div>
+          <div className="min-w-40 col-span-3 ml-10 space-y-2 lg:col-span-1 xl:ml-36">
+            <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+              <div>
+                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                  {t("timezone")}
+                </label>
+                <Controller
+                  name="timeZone"
+                  render={({ field: { onChange, value } }) =>
+                    value ? (
+                      <TimezoneSelect
+                        value={value}
+                        className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
+                        onChange={(timezone) => onChange(timezone.value)}
+                      />
+                    ) : (
+                      <SelectSkeletonLoader className="w-72" />
+                    )
+                  }
+                />
+              </div>
+              <hr className="my-6 mr-8" />
+              <div className="rounded-md">
+                <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
+                <div className="mt-3 flex">
+                  <Button href="/availability/troubleshoot" color="secondary">
+                    {t("launch_troubleshooter")}
+                  </Button>
                 </div>
               </div>
             </div>
-          </Form>
-        </div>
+          </div>
+        </Form>
       </div>
     </Shell>
   );
 }
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const params = querySchema.safeParse(ctx.params);
-  const ssg = await ssgInit(ctx);
+  const ssr = await ssrInit(ctx);
 
   if (!params.success) return { notFound: true };
 
+  const scheduleId = params.data.schedule;
+  await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
+  await ssr.viewer.availability.defaultValues.fetch({ scheduleId });
   return {
     props: {
-      schedule: params.data.schedule,
-      trpcState: ssg.dehydrate(),
+      schedule: scheduleId,
+      trpcState: ssr.dehydrate(),
     },
-    revalidate: 10, // seconds
-  };
-};
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: [],
-    fallback: "blocking",
   };
 };

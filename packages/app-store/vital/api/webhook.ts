@@ -12,7 +12,7 @@ import prisma from "@calcom/prisma";
 import { Reschedule } from "../lib";
 import { initVitalClient, vitalEnv } from "../lib/client";
 
-// @Note: not being used anymore but left as example
+/* @Note: not being used anymore but left as example
 const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
   const vitalClient = await initVitalClient();
   if (!vitalClient) throw Error("Missing vital client");
@@ -22,6 +22,7 @@ const getOuraSleepScore = async (user_id: string, bedtime_start: Date) => {
   }
   return +sleep_data.sleep[0].data.score;
 };
+*/
 
 /**
  * This is will generate a user token for a client_user_id`

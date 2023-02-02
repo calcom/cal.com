@@ -7,6 +7,7 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
@@ -14,7 +15,9 @@ import { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -194,8 +197,15 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           timeZone: true,
         },
       },
+      hosts: {
+        select: {
+          isFixed: true,
+          user: userSelect,
+        },
+      },
       availability: {
         select: {
+          date: true,
           startTime: true,
           endTime: true,
           days: true,
@@ -213,9 +223,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
+type IsFixedAwareUser = User & { isFixed: boolean };
+
 async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
-    users: User[];
+    users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string },
   recurringDatesInfo?: {
@@ -223,7 +235,7 @@ async function ensureAvailableUsers(
     currentRecurringIndex: number | undefined;
   }
 ) {
-  const availableUsers: typeof eventType.users = [];
+  const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
@@ -347,16 +359,25 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  let users = !eventTypeId
-    ? await prisma.user.findMany({
-        where: {
-          username: {
-            in: dynamicUserList,
+  const loadUsers = async () =>
+    !eventTypeId
+      ? await prisma.user.findMany({
+          where: {
+            username: {
+              in: dynamicUserList,
+            },
           },
-        },
-        ...userSelect,
-      })
-    : eventType.users;
+          ...userSelect,
+        })
+      : !!eventType.hosts?.length
+      ? eventType.hosts.map(({ user, isFixed }) => ({
+          ...user,
+          isFixed,
+        }))
+      : eventType.users;
+  // loadUsers allows type inferring
+  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & { isFixed?: boolean })[] = await loadUsers();
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -380,6 +401,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
+  users = users.map((user) => ({
+    ...user,
+    isFixed:
+      user.isFixed === false
+        ? false
+        : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
+  }));
+
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -389,7 +418,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
-        users,
+        users: users as IsFixedAwareUser[],
         ...(eventType.recurringEvent && {
           recurringEvent: {
             ...eventType.recurringEvent,
@@ -407,19 +436,31 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
     );
 
-    // Add an if conditional if there are no seats on the event type
-    // Assign to only one user when ROUND_ROBIN
-    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
-    } else {
-      // excluding ROUND_ROBIN, all users have availability required.
-      if (availableUsers.length !== users.length) {
-        throw new Error("Some users are unavailable for booking.");
+    const luckyUsers: typeof users = [];
+    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+    // loop through all non-fixed hosts and get the lucky users
+    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        // find a lucky user that is not already in the luckyUsers array
+        availableUsers: luckyUserPool.filter(
+          (user) => !luckyUsers.find((existing) => existing.id === user.id)
+        ),
+        eventTypeId: eventType.id,
+      });
+      if (!newLuckyUser) {
+        break; // prevent infinite loop
       }
-      users = availableUsers;
+      luckyUsers.push(newLuckyUser);
     }
+    // ALL fixed users must be available
+    if (
+      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
+    ) {
+      throw new Error("Some users are unavailable for booking.");
+    }
+    users = [...luckyUsers, ...availableUsers.filter((user) => user.isFixed)];
   }
-  console.log("available users", users);
+
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
@@ -448,11 +489,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
-  console.log(bookingLocation, reqBody.location, eventType.locations);
+
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
-    eventType.schedulingType === SchedulingType.COLLECTIVE
+    users.length > 1
       ? users.slice(1).map(async function (user) {
           return {
             email: user.email || "",
@@ -498,6 +539,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     startTime: dayjs(reqBody.start).utc().format(),
     endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
+      id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
@@ -511,6 +553,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -550,6 +593,17 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+    }
+
+    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
     }
 
     const bookingUpdated = await prisma.booking.update({
@@ -594,6 +648,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.attendeeUniqueId = attendeeUniqueId;
 
     const newSeat = booking.attendees.length !== 0;
+
     /**
      * Remember objects are passed into functions as references
      * so if you modify it in a inner function it will be modified in the outer function
@@ -929,6 +984,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.appsStatus = Object.values(calcAppsStatus);
   }
 
+  let videoCallUrl;
+
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
 
@@ -965,9 +1022,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
+          videoCallUrl = metadata.hangoutLink || videoCallUrl;
         }
       }
-
       if (noEmail !== true) {
         const copyEvent = cloneDeep(evt);
         // Reschedule login for booking with seats
@@ -996,6 +1053,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
+
+    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
@@ -1007,11 +1067,44 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const metadata: AdditionalInformation = {};
 
       if (results.length) {
+        // Handle Google Meet results
+        // We use the original booking location since the evt location changes to daily
+        if (bookingLocation === MeetLocationType) {
+          const googleMeetResult = {
+            appName: GoogleMeetMetadata.name,
+            type: "conferencing",
+            uid: results[0].uid,
+            originalEvent: results[0].originalEvent,
+          };
+
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
+
+          if (!googleCalResult) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+              calWarnings: [tOrganizer("google_meet_warning")],
+            });
+          }
+
+          if (googleCalResult?.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: true,
+            });
+          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+            });
+          }
+        }
         // TODO: Handle created event metadata more elegantly
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
+        videoCallUrl = metadata.hangoutLink || videoCallUrl;
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
@@ -1048,7 +1141,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-
+  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
@@ -1104,7 +1197,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
-          metadata: reqBody.metadata,
+          rescheduleStartTime: originalRescheduledBooking?.startTime
+            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+            : undefined,
+          rescheduleEndTime: originalRescheduledBooking?.endTime
+            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+            : undefined,
+          metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
           smsReminderNumber: booking?.smsReminderNumber || undefined,
@@ -1146,6 +1245,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: booking.uid,
       },
       data: {
+        metadata,
         references: {
           createMany: {
             data: referencesToCreate,
@@ -1161,7 +1261,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     await scheduleWorkflowReminders(
       eventType.workflows,
       reqBody.smsReminderNumber as string | null,
-      evt,
+      { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
@@ -1191,6 +1291,16 @@ function handleCustomInputs(
         z.literal(true, {
           errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
         }).parse(input?.value);
+      } else if (etcInput.type === "PHONE") {
+        z.string({
+          errorMap: () => ({
+            message: `Missing ${etcInput.type} customInput: '${etcInput.label}'`,
+          }),
+        })
+          .refine((val) => isValidPhoneNumber(val), {
+            message: "Phone number is invalid",
+          })
+          .parse(input?.value);
       } else {
         // type: NUMBER are also passed as string
         z.string({

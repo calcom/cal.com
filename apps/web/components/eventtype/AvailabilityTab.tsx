@@ -8,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { FiExternalLink, FiGlobe } from "@calcom/ui/components/icon";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -109,7 +110,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
       <div className="space-y-4">
         <div>
           <div className="min-w-4 mb-2">
-            <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-neutral-700">
+            <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-gray-700">
               {t("availability")}
             </label>
           </div>
@@ -149,7 +150,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
                           <span className="w-16 sm:w-28 sm:text-left">
                             {format(dayRange.startTime, timeFormat === 12)}
                           </span>
-                          <span className="ml-4">-</span>
+                          <span className="ltr:ml-4 rtl:mr-4">-</span>
                           <div className="ml-6">{format(dayRange.endTime, timeFormat === 12)}</div>
                         </div>
                       ))}
@@ -164,13 +165,13 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
           <hr />
           <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
             <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
-              <Icon.FiGlobe className="mr-2" />
+              <FiGlobe className="ltr:mr-2 rtl:ml-2" />
               {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             <Button
               href={`/availability/${schedule?.schedule.id}`}
               color="minimal"
-              EndIcon={Icon.FiExternalLink}
+              EndIcon={FiExternalLink}
               target="_blank"
               className="justify-center border sm:border-0"
               rel="noopener noreferrer">

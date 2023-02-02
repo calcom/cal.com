@@ -1,6 +1,5 @@
 import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
@@ -24,7 +23,7 @@ export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
 
   return props.away ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">

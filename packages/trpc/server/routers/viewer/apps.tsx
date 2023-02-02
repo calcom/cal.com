@@ -10,7 +10,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedAdminProcedure, router } from "../../trpc";
+import { authedAdminProcedure, authedProcedure, router } from "../../trpc";
 
 interface FilteredApp {
   name: string;
@@ -22,6 +22,7 @@ interface FilteredApp {
   dirName: string;
   keys: Prisma.JsonObject | null;
   enabled: boolean;
+  isTemplate?: boolean;
 }
 
 export const appsRouter = router({
@@ -72,6 +73,7 @@ export const appsRouter = router({
             keys: dbData.keys,
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
+            isTemplate: app.isTemplate,
           });
         } else {
           const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
@@ -268,4 +270,13 @@ export const appsRouter = router({
         },
       });
     }),
+  checkForGCal: authedProcedure.query(async ({ ctx }) => {
+    const gCalPresent = await ctx.prisma.credential.findFirst({
+      where: {
+        type: "google_calendar",
+        userId: ctx.user.id,
+      },
+    });
+    return !!gCalPresent;
+  }),
 });

@@ -2,9 +2,8 @@ import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
+import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 import getSlots from "@calcom/lib/slots";
-
-import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
@@ -18,6 +17,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours: [
           {
+            userId: 1,
             days: Array.from(Array(7).keys()),
             startTime: MINUTES_DAY_START,
             endTime: MINUTES_DAY_END,
@@ -38,6 +38,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours: [
           {
+            userId: 1,
             days: Array.from(Array(7).keys()),
             startTime: MINUTES_DAY_START,
             endTime: MINUTES_DAY_END,
@@ -56,6 +57,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours: [
           {
+            userId: 1,
             days: [0],
             startTime: 23 * 60, // 23h
             endTime: MINUTES_DAY_END,
@@ -69,6 +71,7 @@ describe("Tests the slot logic", () => {
   it("can cut off dates that due to invitee timezone differences fall on the previous day", async () => {
     const workingHours = [
       {
+        userId: 1,
         days: [0],
         startTime: MINUTES_DAY_START,
         endTime: 1 * 60, // 1h
@@ -94,6 +97,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 1500,
         workingHours: [
           {
+            userId: 1,
             days: Array.from(Array(7).keys()),
             startTime: MINUTES_DAY_START,
             endTime: MINUTES_DAY_END,

@@ -6,6 +6,7 @@ import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -13,8 +14,6 @@ import {
   Badge,
   Button,
   EmptyScreen,
-  getSettingsLayout as getLayout,
-  Icon,
   List,
   ListItem,
   ListItemText,
@@ -25,6 +24,7 @@ import {
   SkeletonText,
   showToast,
 } from "@calcom/ui";
+import { FiPlus, FiCalendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -52,7 +52,7 @@ const AddCalendarButton = () => {
 
   return (
     <>
-      <Button color="secondary" StartIcon={Icon.FiPlus} href="/apps/categories/calendar">
+      <Button color="secondary" StartIcon={FiPlus} href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
@@ -89,7 +89,7 @@ const CalendarsView = () => {
             <div>
               <div className="mt-4 flex space-x-4 rounded-md border-gray-200 bg-gray-50 p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
                 <div className=" flex h-9 w-9 items-center justify-center rounded-md border-2 border-gray-200 bg-white p-[6px]">
-                  <Icon.FiCalendar className="h-6 w-6" />
+                  <FiCalendar className="h-6 w-6" />
                 </div>
 
                 <div className="flex w-full flex-col space-y-3">
@@ -156,7 +156,7 @@ const CalendarsView = () => {
                             )
                           }
                           <div className="flex-grow truncate pl-2">
-                            <ListItemTitle component="h3" className="mb-1 space-x-2">
+                            <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
                               <Link href={"/apps/" + item.integration.slug}>
                                 {item.integration.name || item.integration.title}
                               </Link>
@@ -175,9 +175,7 @@ const CalendarsView = () => {
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
-                          <p className="px-2 pt-4 text-sm text-neutral-500">
-                            {t("toggle_calendars_conflict")}
-                          </p>
+                          <p className="px-2 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
@@ -199,7 +197,7 @@ const CalendarsView = () => {
             </div>
           ) : (
             <EmptyScreen
-              Icon={Icon.FiCalendar}
+              Icon={FiCalendar}
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}

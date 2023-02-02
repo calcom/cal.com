@@ -1,20 +1,19 @@
 name: E2E test
 on:
-  push:
-    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
     paths:
       - apps/web/**
       - packages/**
+  workflow_call:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   e2e:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso

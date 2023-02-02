@@ -4,19 +4,22 @@ module.exports = {
   stories: [
     "../intro.stories.mdx",
     "../../../packages/ui/components/**/*.stories.mdx",
+    "../../../packages/features/**/*.stories.mdx",
     "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
   ],
   addons: [
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-interactions",
+    "storybook-addon-rtl-direction",
     "storybook-react-i18next",
-    {
+    "storybook-addon-next",
+    /*{
       name: "storybook-addon-next",
       options: {
         nextConfigPath: path.resolve(__dirname, "../../web/next.config.js"),
       },
-    },
+    },*/
   ],
   framework: "@storybook/react",
   core: {
@@ -50,6 +53,21 @@ module.exports = {
       vm: false,
       zlib: false,
     };
+
+    config.module.rules.push({
+      test: /\.css$/,
+      use: [
+        "style-loader",
+        {
+          loader: "css-loader",
+          options: {
+            modules: true, // Enable modules to help you using className
+          },
+        },
+      ],
+      include: path.resolve(__dirname, "../src"),
+    });
+
     return config;
   },
 };

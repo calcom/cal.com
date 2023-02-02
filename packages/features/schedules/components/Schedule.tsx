@@ -12,7 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
-import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,11 +24,13 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+
+export type { TimeRange };
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
@@ -40,7 +42,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   control,
   CopyButton,
 }: {
-  name: string;
+  name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
   CopyButton: JSX.Element;
@@ -49,25 +51,23 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
       {/* Label & switch container */}
-      <div className="flex h-11 items-center justify-between sm:w-32">
+      <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2">
+          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
-                  setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                  setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && (
-              <div className="mt-1 mb-1 sm:hidden">{CopyButton}</div>
-            )}
+            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
@@ -75,13 +75,12 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="mt-1 hidden sm:block">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
         )}
       </>
-      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
 };
@@ -101,12 +100,15 @@ const CopyButton = ({
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          className={classNames(
+            "text-gray-700",
+            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+          )}
           type="button"
-          tooltip={t("duplicate")}
+          tooltip={t("copy_times_to_tooltip")}
           color="minimal"
-          size="icon"
-          StartIcon={Icon.FiCopy}
+          variant="icon"
+          StartIcon={FiCopy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -138,11 +140,11 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <>
+    <div className="divide-y p-4 sm:divide-none">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
-        const dayRangeName = `${name}.${weekdayIndex}`;
+        const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
             name={dayRangeName}
@@ -153,38 +155,38 @@ const Schedule = <
           />
         );
       })}
-    </>
+    </div>
   );
 };
 
-const DayRanges = <TFieldValues extends FieldValues>({
+export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   control,
 }: {
-  name: string;
-  control: Control<TFieldValues>;
+  name: ArrayPath<TFieldValues>;
+  control?: Control<TFieldValues>;
 }) => {
   const { t } = useLocale();
 
   const { remove, fields, append } = useFieldArray({
     control,
-    name: name as unknown as ArrayPath<TFieldValues>,
+    name,
   });
 
   return (
     <div>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="mb-2 flex first:mt-1">
+          <div className="mb-2 flex last:mb-0">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className=" text-neutral-400"
+                className="mx-2 text-gray-700 "
                 type="button"
                 color="minimal"
-                size="icon"
-                StartIcon={Icon.FiPlus}
+                variant="icon"
+                StartIcon={FiPlus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -192,7 +194,7 @@ const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
           </div>
         </Fragment>
       ))}
@@ -212,9 +214,9 @@ const RemoveTimeButton = ({
   return (
     <Button
       type="button"
-      size="icon"
+      variant="icon"
       color="minimal"
-      StartIcon={Icon.FiTrash}
+      StartIcon={FiTrash}
       onClick={() => remove(index)}
       className={className}
     />
@@ -224,9 +226,9 @@ const RemoveTimeButton = ({
 const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("mr-1 sm:mx-1", className)}>
+    <div className={className}>
       <LazySelect
-        className="inline-block h-9 w-[100px]"
+        className="inline-block w-[100px]"
         value={value.start}
         max={value.end}
         onChange={(option) => {
@@ -299,18 +301,26 @@ const useOptions = () => {
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
-    let t: Dayjs = dayjs().utc().startOf("day");
-
     const options: IOption[] = [];
-    while (t.isBefore(end)) {
+    for (
+      let t = dayjs().utc().startOf("day");
+      t.isBefore(end);
+      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+    ) {
       options.push({
         value: t.toDate().valueOf(),
         label: dayjs(t)
           .utc()
           .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
       });
-      t = t.add(INCREMENT, "minutes");
     }
+    // allow 23:59
+    options.push({
+      value: end.toDate().valueOf(),
+      label: dayjs(end)
+        .utc()
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+    });
     return options;
   }, [timeFormat]);
 
@@ -362,7 +372,7 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">{t("copy_times_to")}</p>
+        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-gray-400">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
@@ -382,7 +392,7 @@ const CopyTimes = ({
                       }
                     }}
                     type="checkbox"
-                    className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                    className="inline-block rounded-[4px] border-gray-300 text-gray-900 focus:ring-neutral-500 disabled:text-gray-400"
                   />
                 </label>
               </li>
@@ -391,7 +401,7 @@ const CopyTimes = ({
         </ol>
       </div>
       <hr />
-      <div className="space-x-2 px-2">
+      <div className="space-x-2 px-2 rtl:space-x-reverse">
         <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}
         </Button>

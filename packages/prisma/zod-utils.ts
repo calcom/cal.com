@@ -37,6 +37,7 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    disableSuccessPage: z.boolean().optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),
@@ -207,6 +208,7 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
+    sessionTimeout: z.number().optional(), // Minutes
   })
   .nullable();
 
@@ -218,6 +220,12 @@ export const teamMetadataSchema = z
     subscriptionItemId: z.string().nullable(),
   })
   .partial()
+  .nullable();
+
+export const bookingMetadataSchema = z
+  .object({
+    videoCallUrl: z.string().optional(),
+  })
   .nullable();
 
 export const customInputOptionSchema = z.array(
@@ -235,9 +243,34 @@ export const customInputSchema = z.object({
   options: customInputOptionSchema.optional().nullable(),
   required: z.boolean(),
   placeholder: z.string(),
+  hasToBeCreated: z.boolean().optional(),
 });
 
 export type CustomInputSchema = z.infer<typeof customInputSchema>;
+
+export const recordingItemSchema = z.object({
+  id: z.string(),
+  room_name: z.string(),
+  start_ts: z.number(),
+  status: z.string(),
+  max_participants: z.number(),
+  duration: z.number(),
+  share_token: z.string(),
+});
+
+export const recordingItemsSchema = z.array(recordingItemSchema);
+
+export type RecordingItemSchema = z.infer<typeof recordingItemSchema>;
+
+export const getRecordingsResponseSchema = z.union([
+  z.object({
+    total_count: z.number(),
+    data: recordingItemsSchema,
+  }),
+  z.object({}),
+]);
+
+export type GetRecordingsResponseSchema = z.infer<typeof getRecordingsResponseSchema>;
 
 /**
  * Ensures that it is a valid HTTP URL
@@ -260,6 +293,24 @@ export const RoutingFormSettings = z
     emailOwnerOnSubmission: z.boolean(),
   })
   .nullable();
+
+export const DeploymentTheme = z
+  .object({
+    brand: z.string().default("#292929"),
+    textBrand: z.string().default("#ffffff"),
+    darkBrand: z.string().default("#fafafa"),
+    textDarkBrand: z.string().default("#292929"),
+    bookingHighlight: z.string().default("#10B981"),
+    bookingLightest: z.string().default("#E1E1E1"),
+    bookingLighter: z.string().default("#ACACAC"),
+    bookingLight: z.string().default("#888888"),
+    bookingMedian: z.string().default("#494949"),
+    bookingDark: z.string().default("#313131"),
+    bookingDarker: z.string().default("#292929"),
+    fontName: z.string().default("Cal Sans"),
+    fontSrc: z.string().default("https://cal.com/cal.ttf"),
+  })
+  .optional();
 
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
@@ -303,7 +354,7 @@ export function denullishShape<
  * @returns The constructed tuple array from the given object
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/entries.ts
  */
-export const entries = <O>(
+export const entries = <O extends Record<string, unknown>>(
   obj: O
 ): {
   readonly [K in keyof O]: [K, O[K]];

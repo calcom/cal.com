@@ -1,41 +1,48 @@
-import { Icon } from "@calcom/ui";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { FiCalendar, FiVideo, FiCreditCard, FiShare2, FiBarChart, FiGrid } from "@calcom/ui/components/icon";
 
-const getAppCategories = (baseURL: string) => {
+function getHref(baseURL: string, category: string, useQueryParam: boolean) {
+  const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
+  baseUrlParsed.searchParams.set("category", category);
+  return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
+}
+
+const getAppCategories = (baseURL: string, useQueryParam: boolean) => {
   return [
     {
       name: "calendar",
-      href: `${baseURL}/calendar`,
-      icon: Icon.FiCalendar,
+      href: getHref(baseURL, "calendar", useQueryParam),
+      icon: FiCalendar,
     },
     {
       name: "conferencing",
-      href: `${baseURL}/conferencing`,
-      icon: Icon.FiVideo,
+      href: getHref(baseURL, "conferencing", useQueryParam),
+      icon: FiVideo,
     },
     {
       name: "payment",
-      href: `${baseURL}/payment`,
-      icon: Icon.FiCreditCard,
+      href: getHref(baseURL, "payment", useQueryParam),
+      icon: FiCreditCard,
     },
     {
       name: "automation",
-      href: `${baseURL}/automation`,
-      icon: Icon.FiShare2,
+      href: getHref(baseURL, "automation", useQueryParam),
+      icon: FiShare2,
     },
     {
       name: "analytics",
-      href: `${baseURL}/analytics`,
-      icon: Icon.FiBarChart,
+      href: getHref(baseURL, "analytics", useQueryParam),
+      icon: FiBarChart,
     },
     {
       name: "web3",
-      href: `${baseURL}/web3`,
-      icon: Icon.FiBarChart,
+      href: getHref(baseURL, "web3", useQueryParam),
+      icon: FiBarChart,
     },
     {
       name: "other",
-      href: `${baseURL}/other`,
-      icon: Icon.FiGrid,
+      href: getHref(baseURL, "other", useQueryParam),
+      icon: FiGrid,
     },
   ];
 };

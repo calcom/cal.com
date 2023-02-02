@@ -13,7 +13,6 @@ import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { EventBusyDate } from "@calcom/types/Calendar";
-import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -47,6 +46,7 @@ const getScheduleSchema = z
 
 export type Slot = {
   time: string;
+  userIds?: number[];
   attendees?: number;
   bookingUid?: string;
   users?: string[];
@@ -138,9 +138,18 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       },
       availability: {
         select: {
+          date: true,
           startTime: true,
           endTime: true,
           days: true,
+        },
+      },
+      hosts: {
+        select: {
+          isFixed: true,
+          user: {
+            select: availabilityUserSelect,
+          },
         },
       },
       users: {
@@ -226,12 +235,21 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   let currentSeats: CurrentSeats | undefined = undefined;
 
+  let users = eventType.users.map((user) => ({
+    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+    ...user,
+  }));
+  // overwrite if it is a team event & hosts is set, otherwise keep using users.
+  if (eventType.schedulingType && !!eventType.hosts?.length) {
+    users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  }
   /* We get all users working hours and busy slots */
-  const usersWorkingHoursAndBusySlots = await Promise.all(
-    eventType.users.map(async (currentUser) => {
+  const userAvailability = await Promise.all(
+    users.map(async (currentUser) => {
       const {
         busy,
         workingHours,
+        dateOverrides,
         currentSeats: _currentSeats,
         timeZone,
       } = await getUserAvailability(
@@ -251,12 +269,17 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       return {
         timeZone,
         workingHours,
+        dateOverrides,
         busy,
+        user: currentUser,
       };
     })
   );
-  const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
-  const computedAvailableSlots: Record<string, Slot[]> = {};
+  // flattens availability of multiple users
+  const dateOverrides = userAvailability.flatMap((availability) =>
+    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
+  );
+  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const availabilityCheckProps = {
     eventLength: eventType.length,
     currentSeats,
@@ -271,60 +294,100 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       periodDays: eventType.periodDays,
     });
 
-  let currentCheckedTime = startTime;
-  let getSlotsTime = 0;
+  const getSlotsTime = 0;
   let checkForAvailabilityTime = 0;
-  let getSlotsCount = 0;
+  const getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
 
-  do {
-    const startGetSlots = performance.now();
+  const timeSlots: ReturnType<typeof getTimeSlots> = [];
+
+  for (
+    let currentCheckedTime = startTime;
+    currentCheckedTime.isBefore(endTime);
+    currentCheckedTime = currentCheckedTime.add(1, "day")
+  ) {
     // get slots retrieves the available times for a given day
-    const timeSlots = getTimeSlots({
-      inviteeDate: currentCheckedTime,
-      eventLength: input.duration || eventType.length,
-      workingHours,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
-    });
-
-    const endGetSlots = performance.now();
-    getSlotsTime += endGetSlots - startGetSlots;
-    getSlotsCount++;
-    // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
-    const filterStrategy =
-      !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-        ? ("every" as const)
-        : ("some" as const);
-
-    const availableTimeSlots = timeSlots.filter(isTimeWithinBounds).filter((time) =>
-      usersWorkingHoursAndBusySlots[filterStrategy]((schedule) => {
-        const startCheckForAvailability = performance.now();
-        const isAvailable = checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
-        const endCheckForAvailability = performance.now();
-        checkForAvailabilityCount++;
-        checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-        return isAvailable;
+    timeSlots.push(
+      ...getTimeSlots({
+        inviteeDate: currentCheckedTime,
+        eventLength: input.duration || eventType.length,
+        workingHours,
+        dateOverrides,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        frequency: eventType.slotInterval || input.duration || eventType.length,
       })
     );
+  }
 
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
-      time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
-      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-        attendees:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ]._count.attendees,
-        bookingUid:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ].uid,
-      }),
-    }));
-    currentCheckedTime = currentCheckedTime.add(1, "day");
-  } while (currentCheckedTime.isBefore(endTime));
+  let availableTimeSlots: typeof timeSlots = [];
+  availableTimeSlots = timeSlots.filter((slot) => {
+    const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
+    return fixedHosts.every((schedule) => {
+      const startCheckForAvailability = performance.now();
+      const isAvailable = checkIfIsAvailable({
+        time: slot.time,
+        ...schedule,
+        ...availabilityCheckProps,
+      });
+      const endCheckForAvailability = performance.now();
+      checkForAvailabilityCount++;
+      checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
+      return isAvailable;
+    });
+  });
+  // what else are you going to call it?
+  const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
+  if (looseHostAvailability.length > 0) {
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        slot.userIds = slot.userIds?.filter((slotUserId) => {
+          const userSchedule = looseHostAvailability.find(
+            ({ user: { id: userId } }) => userId === slotUserId
+          );
+          if (!userSchedule) {
+            return false;
+          }
+          return checkIfIsAvailable({
+            time: slot.time,
+            ...userSchedule,
+            ...availabilityCheckProps,
+          });
+        });
+        return slot;
+      })
+      .filter((slot) => !!slot.userIds?.length);
+  }
+
+  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+
+  const computedAvailableSlots = availableTimeSlots.reduce(
+    (
+      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
+      { time: time, ...passThroughProps }
+    ) => {
+      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
+      r[time.format("YYYY-MM-DD")].push({
+        ...passThroughProps,
+        time: time.toISOString(),
+        users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
+          (user) => user.username || ""
+        ),
+        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+          attendees:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ]._count.attendees,
+          bookingUid:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ].uid,
+        }),
+      });
+      return r;
+    },
+    Object.create(null)
+  );
 
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 

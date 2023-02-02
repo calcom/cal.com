@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = []
 }
 
 generator zod {
@@ -29,6 +29,15 @@ enum PeriodType {
   RANGE     @map("range")
 }
 
+model Host {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+  isFixed     Boolean   @default(false)
+}
+
 model EventType {
   id                      Int                     @id @default(autoincrement())
   /// @zod.min(1)
@@ -41,6 +50,7 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                 @default(false)
+  hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
   owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
@@ -68,7 +78,7 @@ model EventType {
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
   seatsPerTimeSlot        Int?
-  seatsShowAttendees      Boolean?
+  seatsShowAttendees      Boolean?                @default(false)
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
@@ -186,24 +196,30 @@ model User {
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
+  verifiedNumbers      VerifiedNumber[]
+  hosts                Host[]
 
   @@map(name: "users")
 }
 
 model Team {
-  id           Int          @id @default(autoincrement())
+  id                  Int          @id @default(autoincrement())
   /// @zod.min(1)
-  name         String
+  name                String
   /// @zod.min(1)
-  slug         String?      @unique
-  logo         String?
-  bio          String?
-  hideBranding Boolean      @default(false)
-  members      Membership[]
-  eventTypes   EventType[]
-  createdAt    DateTime     @default(now())
+  slug                String?      @unique
+  logo                String?
+  bio                 String?
+  hideBranding        Boolean      @default(false)
+  hideBookATeamMember Boolean      @default(false)
+  members             Membership[]
+  eventTypes          EventType[]
+  createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata     Json?
+  metadata            Json?
+  theme               String?
+  brandColor          String       @default("#292929")
+  darkBrandColor      String       @default("#fafafa")
 }
 
 enum MembershipRole {
@@ -302,6 +318,8 @@ model Booking {
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
   seatsReferences       BookingSeatsReferences[]
+  /// @zod.custom(imports.bookingMetadataSchema)
+  metadata              Json?
 }
 
 model Schedule {
@@ -312,6 +330,8 @@ model Schedule {
   name         String
   timeZone     String?
   availability Availability[]
+
+  @@index([userId])
 }
 
 model Availability {
@@ -326,6 +346,9 @@ model Availability {
   date        DateTime?  @db.Date
   Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
+
+  @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model SelectedCalendar {
@@ -343,6 +366,7 @@ enum EventTypeCustomInputType {
   NUMBER   @map("number")
   BOOL     @map("bool")
   RADIO    @map("radio")
+  PHONE    @map("phone")
 }
 
 model EventTypeCustomInput {
@@ -351,7 +375,7 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
-  // @zod.custom(imports.customInputOptionSchema)
+  /// @zod.custom(imports.customInputOptionSchema)
   options     Json?
   required    Boolean
   placeholder String                   @default("")
@@ -561,18 +585,19 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id                Int                @id @default(autoincrement())
-  stepNumber        Int
-  action            WorkflowActions
-  workflowId        Int
-  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  sendTo            String?
-  reminderBody      String?
-  emailSubject      String?
-  template          WorkflowTemplates  @default(REMINDER)
-  workflowReminders WorkflowReminder[]
-  numberRequired    Boolean?
-  sender            String?
+  id                        Int                @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates  @default(REMINDER)
+  workflowReminders         WorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean            @default(true)
 }
 
 model Workflow {
@@ -593,6 +618,16 @@ model WorkflowsOnEventTypes {
   workflowId  Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
+}
+
+model Deployment {
+  /// This is a single row table, so we use a fixed id
+  id              Int       @id @default(1)
+  logo            String?
+  /// @zod.custom(imports.DeploymentTheme)
+  theme           Json?
+  licenseKey      String?
+  agreedLicenseAt DateTime?
 }
 
 enum TimeUnit {
@@ -631,4 +666,10 @@ model BookingSeatsReferences {
   attendeeId   Int
   attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   data         Json?
+}
+model VerifiedNumber {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String
 }

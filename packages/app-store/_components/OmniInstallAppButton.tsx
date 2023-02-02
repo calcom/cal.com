@@ -2,7 +2,8 @@ import { classNames } from "@calcom/lib";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -11,12 +12,21 @@ import { InstallAppButton } from "../components";
  * Use this component to allow installing an app from anywhere on the app.
  * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself
  */
-export default function OmniInstallAppButton({ appId, className }: { appId: string; className: string }) {
+export default function OmniInstallAppButton({
+  appId,
+  className,
+  returnTo,
+}: {
+  appId: string;
+  className: string;
+  returnTo?: string;
+}) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
 
   const mutation = useAddAppMutation(null, {
+    returnTo,
     onSuccess: (data) => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.viewer.appById.invalidate({ appId });
@@ -53,7 +63,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
             loading={mutation.isLoading}
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-            StartIcon={Icon.FiPlus}
+            StartIcon={FiPlus}
             {...props}>
             {t("install")}
           </Button>

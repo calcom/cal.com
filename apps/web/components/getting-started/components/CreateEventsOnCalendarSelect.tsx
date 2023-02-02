@@ -16,7 +16,7 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
     <>
       <div className="mt-6 flex flex-row">
         <div className="w-full">
-          <label htmlFor="createEventsOn" className="flex text-sm font-medium text-neutral-700">
+          <label htmlFor="createEventsOn" className="flex text-sm font-medium text-gray-700">
             {t("create_events_on")}
           </label>
           <div className="mt-2">

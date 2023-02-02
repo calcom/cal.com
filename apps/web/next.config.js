@@ -89,6 +89,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
+  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+  // modularizeImports: {
+  //   "@calcom/ui": {
+  //     transform: "@calcom/ui/components/{{member}}",
+  //   },
+  // },
   images: {
     unoptimized: true,
   },
@@ -170,6 +176,20 @@ const nextConfig = {
       }, */
     ];
   },
+  async headers() {
+    return [
+      {
+        // prettier-ignore
+        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     const redirects = [
       {
@@ -226,6 +246,11 @@ const nextConfig = {
         ],
         destination: "/404",
         permanent: false,
+      },
+      {
+        source: "/booking/direct/:action/:email/:bookingUid/:oldToken",
+        destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
+        permanent: true,
       },
     ];
 

@@ -1,6 +1,6 @@
 import classNames from "classnames";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -12,6 +12,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
@@ -26,23 +27,24 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, EventTypeDescriptionLazy as EventTypeDescription, Icon } from "@calcom/ui";
+import { HeadSeo, AvatarGroup, Avatar } from "@calcom/ui";
+import { BadgeCheckIcon, FiArrowRight } from "@calcom/ui/components/icon";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
-import AvatarGroup from "@components/ui/AvatarGroup";
-import { AvatarSSR } from "@components/ui/AvatarSSR";
-
 import { ssrInit } from "@server/lib/ssr";
 
-const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
+
+  const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
@@ -58,27 +60,27 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600">
-          <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
-          <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
-            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
-              <div className="flex-shrink">
-                <p className="dark:text-darkgray-700 text-sm font-semibold text-neutral-900">{type.title}</p>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div>
-              <div className="mt-1 self-center">
-                <AvatarGroup
-                  border="border-2 border-white"
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size={10}
-                  items={props.users.map((user) => ({
-                    alt: user.name || "",
-                    image: user.avatar || "",
-                  }))}
-                />
-              </div>
-            </a>
+          className="dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600">
+          <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          <Link
+            href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
+            className="flex justify-between px-6 py-4"
+            data-testid="event-type-link">
+            <div className="flex-shrink">
+              <p className="dark:text-darkgray-700 text-sm font-semibold text-gray-900">{type.title}</p>
+              <EventTypeDescription className="text-sm" eventType={type} />
+            </div>
+            <div className="mt-1 self-center">
+              <AvatarGroup
+                truncateAfter={4}
+                className="flex flex-shrink-0"
+                size="sm"
+                items={props.users.map((user) => ({
+                  alt: user.name || "",
+                  image: user.avatar || "",
+                }))}
+              />
+            </div>
           </Link>
         </li>
       ))}
@@ -134,21 +136,27 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
-              <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
+              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
+              <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
+              {!isBioEmpty && (
+                <>
+                  <div
+                    className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
+                  />
+                </>
+              )}
             </div>
           )}
           <div
             className={classNames(
               "rounded-md ",
-              !isEventListEmpty &&
-                "border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
+              !isEventListEmpty && "border border-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
             )}
             data-testid="event-types">
             {user.away ? (
@@ -167,30 +175,28 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
-                  <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className="dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600">
+                  <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
                     prefetch={false}
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
                       query,
-                    }}>
-                    <a
-                      onClick={async () => {
-                        sdkActionManager?.fire("eventTypeSelected", {
-                          eventType: type,
-                        });
-                      }}
-                      className="block w-full p-5"
-                      data-testid="event-type-link">
-                      <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                          {type.title}
-                        </h2>
-                      </div>
-                      <EventTypeDescription eventType={type} />
-                    </a>
+                    }}
+                    onClick={async () => {
+                      sdkActionManager?.fire("eventTypeSelected", {
+                        eventType: type,
+                      });
+                    }}
+                    className="block w-full p-5"
+                    data-testid="event-type-link">
+                    <div className="flex flex-wrap items-center">
+                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                        {type.title}
+                      </h2>
+                    </div>
+                    <EventTypeDescription eventType={type} />
                   </Link>
                 </div>
               ))

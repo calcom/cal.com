@@ -1,8 +1,9 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
-import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
-import { SerializableForm, Response } from "../types/types";
+import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
+import isRouterLinkedField from "../lib/isRouterLinkedField";
+import { Response, SerializableForm } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;
@@ -18,6 +19,10 @@ export default function FormInputFields(props: Props) {
   return (
     <>
       {form.fields?.map((field) => {
+        if (isRouterLinkedField(field)) {
+          // @ts-expect-error FIXME @hariombalhara
+          field = field.routerField;
+        }
         const widget = queryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
           return null;
@@ -38,7 +43,7 @@ export default function FormInputFields(props: Props) {
               <label
                 id="slug-label"
                 htmlFor="slug"
-                className="flex text-sm font-medium text-neutral-700 dark:text-white">
+                className="flex text-sm font-medium text-gray-700 dark:text-white">
                 {field.label}
               </label>
             </div>

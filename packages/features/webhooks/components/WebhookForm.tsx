@@ -42,6 +42,7 @@ const WebhookForm = (props: {
   webhook?: WebhookFormData;
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
+  onCancel?: () => void;
 }) => {
   const { apps = [] } = props;
   const { t } = useLocale();
@@ -95,6 +96,8 @@ const WebhookForm = (props: {
                 label={t("subscriber_url")}
                 labelClassName="font-medium text-gray-900 font-sm"
                 value={value}
+                required
+                type="url"
                 onChange={(e) => {
                   formMethods.setValue("subscriberUrl", e?.target.value);
                   if (hasTemplateIntegration({ url: e.target.value })) {
@@ -153,7 +156,7 @@ const WebhookForm = (props: {
                 <>
                   <Label className="font-sm font-medium text-gray-900">Secret</Label>
                   <div className="space-y-0 rounded-md border-0 border-neutral-200 bg-white sm:mx-0 md:border">
-                    <div className="rounded-sm border-b p-2 text-sm text-neutral-900">
+                    <div className="rounded-sm border-b p-2 text-sm text-gray-900">
                       {t("forgotten_secret_description")}
                     </div>
                     <div className="p-2">
@@ -230,6 +233,7 @@ const WebhookForm = (props: {
                     { value: "default", label: t("default") },
                     { value: "custom", label: t("custom") },
                   ]}
+                  isFullWidth={true}
                 />
               </div>
               {useCustomTemplate && (
@@ -245,18 +249,20 @@ const WebhookForm = (props: {
             </>
           )}
         />
-        <div className="mt-8">
-          <p className="font-medium text-black">{t("webhook_test")}</p>
-          <p className="font-sm mb-4 text-gray-600">{t("test_webhook")}</p>
+        <div className="mt-8 rounded-md bg-gray-100 p-6">
           <WebhookTestDisclosure />
         </div>
 
         <div className="mt-12 flex place-content-end space-x-4">
-          <Button type="button" color="minimal" href={`${WEBAPP_URL}/settings/developer/webhooks`}>
+          <Button
+            type="button"
+            color="minimal"
+            onClick={props.onCancel}
+            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
-            {props?.webhook?.id ? t("save") : t("create")}
+            {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>
         </div>
       </Form>

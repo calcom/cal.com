@@ -1,36 +1,63 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { Trans } from "next-i18next";
+import Link from "next/link";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
 import { z } from "zod";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import {
+  EventLocationType,
+  getEventLocationType,
+  MeetLocationType,
+  LocationType,
+} from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
-
-import { slugify } from "@lib/slugify";
+import { slugify } from "@calcom/lib/slugify";
+import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import LocationSelect, {
+  SingleValueLocationOption,
+  LocationOption,
+} from "@components/ui/form/LocationSelect";
 
-type OptionTypeBase = {
-  label: string;
-  value: EventLocationType["type"];
-  disabled?: boolean;
+const getLocationFromType = (
+  type: EventLocationType["type"],
+  locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
+) => {
+  for (const locationOption of locationOptions) {
+    const option = locationOption.options.find((option) => option.value === type);
+    if (option) {
+      return option;
+    }
+  }
+};
+
+const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"], type: string) => {
+  for (const locationType of options) {
+    for (const location of locationType.options) {
+      if (location.value === type && location.disabled === false) {
+        return location;
+      }
+    }
+  }
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
 
   const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
@@ -49,14 +76,20 @@ export const EventSetupTab = (
   );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
-    setSelectedLocation(locationOptions.find((option) => option.value === type));
+    const option = getLocationFromType(type, locationOptions);
+    setSelectedLocation(option);
     setShowLocationModal(true);
   };
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     formMethods.setValue(
       "locations",
-      formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type),
+      formMethods.getValues("locations").filter((location) => {
+        if (location.type === LocationType.InPerson) {
+          return location.address !== selectedLocation.address;
+        }
+        return location.type !== selectedLocation.type;
+      }),
       { shouldValidate: true }
     );
   };
@@ -71,14 +104,14 @@ export const EventSetupTab = (
           ...details,
           type: newLocationType,
         };
-      } else {
-        copy[existingIdx] = {
-          ...formMethods.getValues("locations")[existingIdx],
-          ...details,
-        };
       }
 
-      formMethods.setValue("locations", copy);
+      formMethods.setValue("locations", [
+        ...copy,
+        ...(newLocationType === LocationType.InPerson && editingLocationType === ""
+          ? [{ ...details, type: newLocationType }]
+          : []),
+      ]);
     } else {
       formMethods.setValue(
         "locations",
@@ -125,18 +158,22 @@ export const EventSetupTab = (
       return true;
     });
 
+    const defaultValue = getDefaultLocationValue(locationOptions, "integrations:daily");
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
-            <Select
+            <LocationSelect
+              defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              onChange={(e) => {
+              menuPlacement="auto"
+              onChange={(e: SingleValueLocationOption) => {
                 if (e?.value) {
-                  const newLocationType: EventLocationType["type"] = e.value;
+                  const newLocationType = e.value;
                   const eventLocationType = getEventLocationType(newLocationType);
                   if (!eventLocationType) {
                     return;
@@ -160,7 +197,9 @@ export const EventSetupTab = (
                 return null;
               }
               return (
-                <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
+                <li
+                  key={`${location.type}${index}`}
+                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
                   <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
@@ -169,7 +208,7 @@ export const EventSetupTab = (
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
                       </span>
                     </div>
                     <div className="flex">
@@ -185,19 +224,36 @@ export const EventSetupTab = (
                         }}
                         aria-label={t("edit")}
                         className="mr-1 p-1 text-gray-500 hover:text-gray-900">
-                        <Icon.FiEdit2 className="h-4 w-4" />
+                        <FiEdit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <Icon.FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                        <FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                       </button>
                     </div>
                   </div>
                 </li>
               );
             })}
+            {validLocations.some((location) => location.type === MeetLocationType) && (
+              <div className="flex text-sm text-gray-600">
+                <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Trans i18nKey="event_type_requres_google_cal">
+                  <p>
+                    The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
+                    Change it{" "}
+                    <Link
+                      href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                      className="underline">
+                      here.
+                    </Link>{" "}
+                    We will fall back to Cal video if you do not change it.
+                  </p>
+                </Trans>
+              </div>
+            )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>
@@ -262,12 +318,14 @@ export const EventSetupTab = (
                   if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
                     if (newOptions.length > 0) {
                       setDefaultDuration(newOptions[0]);
+                      formMethods.setValue("length", newOptions[0].value);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
                   if (newOptions.length === 1 && defaultDuration === null) {
                     setDefaultDuration(newOptions[0]);
+                    formMethods.setValue("length", newOptions[0].value);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
@@ -288,7 +346,7 @@ export const EventSetupTab = (
                   setDefaultDuration(
                     selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                   );
-                  formMethods.setValue("length", Number(option?.value));
+                  if (option) formMethods.setValue("length", option.value);
                 }}
               />
             </div>
@@ -296,14 +354,11 @@ export const EventSetupTab = (
         ) : (
           <TextField
             required
-            name="length"
             type="number"
             label={t("duration")}
-            addOnSuffix={<>{t("minutes")}</>}
             defaultValue={eventType.length ?? 15}
-            onChange={(e) => {
-              formMethods.setValue("length", Number(e.target.value));
-            }}
+            {...formMethods.register("length")}
+            addOnSuffix={<>{t("minutes")}</>}
           />
         )}
         <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
@@ -327,6 +382,7 @@ export const EventSetupTab = (
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
           </Skeleton>
+
           <Controller
             name="locations"
             control={formMethods.control}
@@ -343,7 +399,9 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          selectedLocation
+            ? { value: selectedLocation.value, label: t(selectedLocation.label), icon: selectedLocation.icon }
+            : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}

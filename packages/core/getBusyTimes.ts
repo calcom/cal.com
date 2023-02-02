@@ -34,7 +34,7 @@ export async function getBusyTimes(params: {
       status: BookingStatus.ACCEPTED,
     })}`
   );
-  const startPrismaBookingGet = performance.now();
+  performance.mark("prismaBookingGetStart");
   const busyTimes: EventBusyDetails[] = await prisma.booking
     .findMany({
       where: {
@@ -72,11 +72,10 @@ export async function getBusyTimes(params: {
       }))
     );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
-  const endPrismaBookingGet = performance.now();
-  logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
+  performance.mark("prismaBookingGetEnd");
+  performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
-
     busyTimes.push(
       ...calendarBusyTimes.map((value) => ({
         ...value,

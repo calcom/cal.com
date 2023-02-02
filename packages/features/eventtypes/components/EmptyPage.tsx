@@ -4,16 +4,16 @@ const SkeletonEventType = () => {
   return (
     <div className="dark:bg-darkgray-100 h-24 w-full bg-white">
       <div className="p-5">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 rtl:space-x-reverse">
           <div className="dark:bg-darkgray-400 h-2 w-1/6 rounded-md bg-neutral-200" />
           <div className="dark:bg-darkgray-400 h-2 w-1/6 rounded-md bg-neutral-200" />
         </div>
-        <div className="flex space-x-2 py-2">
+        <div className="flex space-x-2 py-2 rtl:space-x-reverse">
           <div className="dark:bg-darkgray-400 h-2 w-1/12 rounded-md bg-neutral-200" />
           <div className="dark:bg-darkgray-400 h-2 w-1/6 rounded-md bg-neutral-200" />
           <div className="dark:bg-darkgray-400 h-2 w-1/12 rounded-md bg-neutral-200" />
         </div>
-        <div className="flex space-x-2 py-1">
+        <div className="flex space-x-2 py-1 rtl:space-x-reverse">
           <div className="dark:bg-darkgray-200 h-6 w-1/6 rounded-md bg-neutral-300" />
           <div className="dark:bg-darkgray-200 h-6 w-1/6 rounded-md bg-neutral-300" />
         </div>

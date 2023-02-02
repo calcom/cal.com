@@ -17,6 +17,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
@@ -26,8 +27,10 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, DatePicker } from "@calcom/ui";
+import { HeadSeo } from "@calcom/ui";
+import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -36,7 +39,6 @@ import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import { HeadSeo } from "@components/seo/head-seo";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
@@ -97,7 +99,10 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<
+    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
+    "id" | "schedulingType" | "slug" | "length" | "metadata"
+  >;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -109,10 +114,14 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  const { duration } = useRouterQuery("duration");
+  let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
+
+  if (!eventType.metadata?.multipleDuration) {
+    duration = eventType.length.toString();
+  }
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -151,7 +160,10 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
-    startTime: browsingDate?.startOf("month"),
+    startTime:
+      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
+        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
+        : browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
@@ -217,12 +229,12 @@ function TimezoneDropdown({
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
         <p className="flex items-center text-sm font-medium">
-          <Icon.FiGlobe className="min-h-4 min-w-4 mr-[10px] ml-[2px] -mt-[2px] inline-block" />
+          <FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
+            <FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
           ) : (
-            <Icon.FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
+            <FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
           )}
         </p>
       </Popover.Trigger>
@@ -364,7 +376,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
-                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
+                          <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
                           <div>
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
@@ -389,7 +401,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {stripeAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           <IntlProvider locale="en">
                             <FormattedNumber
                               value={stripeAppData.price / 100.0}
@@ -410,7 +422,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         {t("former_time")}
                       </p>
                       <p className="text-gray-500 line-through dark:text-darkgray-600">
-                        <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>

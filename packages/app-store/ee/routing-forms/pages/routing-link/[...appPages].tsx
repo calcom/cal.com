@@ -112,7 +112,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
                         {form.name}
                       </h1>
                       {form.description ? (
-                        <p className="min-h-10 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4 dark:text-white">
+                        <p className="min-h-10 text-sm text-gray-500 ltr:mr-4 rtl:ml-4 dark:text-white">
                           {form.description}
                         </p>
                       ) : null}
@@ -199,7 +199,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      form: getSerializableForm(form),
+      form: await getSerializableForm(form),
     },
   };
 };

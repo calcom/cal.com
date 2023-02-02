@@ -43,19 +43,20 @@ const DuplicateDialog = () => {
         showToast(message, "error");
       }
 
-      if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: URL already exists.`;
+      if (err.data?.code === "INTERNAL_SERVER_ERROR" || err.data?.code === "BAD_REQUEST") {
+        const message = t("unexpected_error_try_again");
         showToast(message, "error");
       }
 
-      if (err.data?.code === "UNAUTHORIZED") {
+      if (err.data?.code === "UNAUTHORIZED" || err.data?.code === "FORBIDDEN") {
         const message = `${err.data.code}: You are not able to create this event`;
         showToast(message, "error");
       }
     },
   });
 
-  const pageSlug = router.query.eventPage;
+  const { pageSlug } = router.query;
+
   return (
     <Dialog
       name="duplicate-event-type"
@@ -116,7 +117,6 @@ const DuplicateDialog = () => {
                 min="10"
                 placeholder="15"
                 label={t("length")}
-                className="pr-20"
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />

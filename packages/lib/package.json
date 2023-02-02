@@ -13,9 +13,8 @@
   "dependencies": {
     "@calcom/config": "*",
     "@calcom/dayjs": "*",
-    "@prisma/client": "^4.2.1",
     "@sendgrid/client": "^7.7.0",
-    "@vercel/og": "^0.0.19",
+    "@vercel/og": "^0.0.21",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
@@ -23,6 +22,7 @@
     "next-i18next": "^11.3.0",
     "react-hot-toast": "^2.3.0",
     "rrule": "^2.7.1",
+    "tailwind-merge": "^1.8.1",
     "tsdav": "2.0.3",
     "tslog": "^3.2.1",
     "uuid": "^8.3.2"
@@ -31,6 +31,6 @@
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "@faker-js/faker": "^7.3.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.4"
   }
 }

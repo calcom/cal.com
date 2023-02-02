@@ -12,6 +12,7 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
+import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
@@ -41,8 +42,8 @@ import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
-import { samlRouter } from "./viewer/saml";
 import { slotsRouter } from "./viewer/slots";
+import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
 import { workflowsRouter } from "./viewer/workflows";
@@ -395,8 +396,23 @@ const loggedInViewerRouter = router({
 
       let where;
 
-      if (eventTypeId) where = { eventTypeId };
-      else where = { userId: user.id };
+      if (eventTypeId) {
+        if (
+          !(await prisma.eventType.findFirst({
+            where: {
+              id: eventTypeId,
+              userId: user.id,
+            },
+          }))
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: `You don't have access to event type ${eventTypeId}`,
+          });
+        }
+
+        where = { eventTypeId };
+      } else where = { userId: user.id };
 
       await ctx.prisma.destinationCalendar.upsert({
         where,
@@ -457,7 +473,6 @@ const loggedInViewerRouter = router({
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
-
       return {
         items: apps,
       };
@@ -570,12 +585,14 @@ const loggedInViewerRouter = router({
         locale: z.string().optional(),
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
+        metadata: userMetadata.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
+        metadata: input.metadata as Prisma.InputJsonValue,
       };
       let isPremiumUsername = false;
       if (input.username) {
@@ -724,42 +741,7 @@ const loggedInViewerRouter = router({
         })
       );
     }),
-  eventTypePosition: authedProcedure
-    .input(
-      z.object({
-        eventType: z.number(),
-        action: z.string(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      // This mutation is for the user to be able to order their event types by incrementing or decrementing the position number
-      const { prisma } = ctx;
-      if (input.eventType && input.action == "increment") {
-        await prisma.eventType.update({
-          where: {
-            id: input.eventType,
-          },
-          data: {
-            position: {
-              increment: 1,
-            },
-          },
-        });
-      }
-
-      if (input.eventType && input.action == "decrement") {
-        await prisma.eventType.update({
-          where: {
-            id: input.eventType,
-          },
-          data: {
-            position: {
-              decrement: 1,
-            },
-          },
-        });
-      }
-    }),
+  //Comment for PR: eventTypePosition is not used anywhere
   submitFeedback: authedProcedure
     .input(
       z.object({
@@ -1138,10 +1120,27 @@ const loggedInViewerRouter = router({
     });
     return recurringGrouping.reduce((prev, current) => {
       // recurringEventId is the total number of recurring instances for a booking
-      // we need to substract all but one, to represent a single recurring booking
+      // we need to subtract all but one, to represent a single recurring booking
       return prev - (current._count?.recurringEventId - 1);
     }, count);
   }),
+  getCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        roomName: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { roomName } = input;
+      try {
+        const res = await getRecordingsOfCalVideoByRoomName(roomName);
+        return res;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
+      }
+    }),
 });
 
 export const viewerRouter = mergeRouters(
@@ -1158,7 +1157,7 @@ export const viewerRouter = mergeRouters(
     apiKeys: apiKeysRouter,
     slots: slotsRouter,
     workflows: workflowsRouter,
-    saml: samlRouter,
+    saml: ssoRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,

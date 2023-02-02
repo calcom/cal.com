@@ -5,6 +5,7 @@ import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -13,11 +14,10 @@ import {
   Dialog,
   DialogContent,
   EmptyScreen,
-  getSettingsLayout as getLayout,
-  Icon,
   Meta,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
+import { FiLink, FiPlus } from "@calcom/ui/components/icon";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -35,7 +35,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={Icon.FiPlus}
+        StartIcon={FiPlus}
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -75,7 +75,7 @@ const ApiKeysView = () => {
               </>
             ) : (
               <EmptyScreen
-                Icon={Icon.FiLink}
+                Icon={FiLink}
                 headline={t("create_first_api_key")}
                 description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}

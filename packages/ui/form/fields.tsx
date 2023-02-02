@@ -6,8 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert } from "../Alert";
-import { showToast } from "../v2/core/notifications";
+import { Alert, showToast } from "../";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 
@@ -76,7 +75,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            className={classNames("mt-0", props.addOnLeading && "rounded-l-none", className)}
             {...passThrough}
             ref={ref}
           />

@@ -5,15 +5,16 @@ import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, EmailField, PasswordField, TextField } from "@calcom/ui";
-import { HeadSeo } from "@calcom/web/components/seo/head-seo";
-import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
-import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
-import prisma from "@calcom/web/lib/prisma";
-import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-import { ssrInit } from "@calcom/web/server/lib/ssr";
+import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import { asStringOrNull } from "../lib/asStringOrNull";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
+import { ssrInit } from "../server/lib/ssr";
 
 type FormValues = {
   username: string;
@@ -26,6 +27,8 @@ type FormValues = {
 export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
+  const telemetry = useTelemetry();
+
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -53,8 +56,12 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then(handleErrors)
       .then(async () => {
-        await signIn("Cal.com", {
-          callbackUrl: router.query.callbackUrl ? `${WEBAPP_URL}/${router.query.callbackUrl}` : WEBAPP_URL,
+        telemetry.event(telemetryEventTypes.login, collectPageParameters());
+        await signIn<"credentials">("credentials", {
+          ...data,
+          callbackUrl: router.query.callbackUrl
+            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+            : `${WEBAPP_URL}/getting-started`,
         });
       })
       .catch((err) => {
@@ -86,7 +93,11 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     {...register("username")}
                     required
                   />
-                  <EmailField {...register("email")} />
+                  <EmailField
+                    {...register("email")}
+                    disabled={prepopulateFormValues?.email}
+                    className="disabled:bg-gray-200 disabled:hover:cursor-not-allowed"
+                  />
                   <PasswordField
                     labelProps={{
                       className: "block text-sm font-medium text-gray-700",
@@ -111,7 +122,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     className="w-5/12 justify-center"
                     onClick={() =>
                       signIn("Cal.com", {
-                        callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
+                        callbackUrl: router.query.callbackUrl
+                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          : `${WEBAPP_URL}/getting-started`,
                       })
                     }>
                     {t("login_instead")}
@@ -136,6 +149,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     trpcState: ssr.dehydrate(),
     prepopulateFormValues: undefined,
   };
+
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+    return {
+      notFound: true,
+    };
+  }
 
   // no token given, treat as a normal signup without verification token
   if (!token) {

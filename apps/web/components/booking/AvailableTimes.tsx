@@ -57,7 +57,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
           </span>
           <span className="text-bookinglight font-medium">
-            , {date.toDate().toLocaleString(i18n.language, { month: "long" })} {date.format(" D ")}
+            , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
           </span>
         </div>
         <div className="ml-auto">
@@ -71,7 +71,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           />
         </div>
       </div>
-      <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
@@ -87,7 +87,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                ethSignature,
+                ...(ethSignature ? { ethSignature } : {}),
               },
             };
 
@@ -101,7 +101,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             return (
-              <div key={dayjs(slot.time).format()}>
+              <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
+                {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div
@@ -113,29 +114,29 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
                   </div>
                 ) : (
-                  <Link href={bookingUrl} prefetch={false}>
-                    <a
-                      className={classNames(
-                        "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
-                        "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent dark:text-neutral-200",
-                        brand === "#fff" || brand === "#ffffff" ? "" : ""
-                      )}
-                      data-testid="time">
-                      {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
-                      {!!seatsPerTimeSlot && (
-                        <p
-                          className={`${
-                            slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
-                              ? "text-rose-600"
-                              : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
-                              ? "text-yellow-500"
-                              : "text-emerald-400"
-                          } text-sm`}>
-                          {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
-                          {seatsPerTimeSlot} {t("seats_available")}
-                        </p>
-                      )}
-                    </a>
+                  <Link
+                    href={bookingUrl}
+                    prefetch={false}
+                    className={classNames(
+                      "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
+                      "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
+                      brand === "#fff" || brand === "#ffffff" ? "" : ""
+                    )}
+                    data-testid="time">
+                    {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
+                    {!!seatsPerTimeSlot && (
+                      <p
+                        className={`${
+                          slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.8
+                            ? "text-rose-600"
+                            : slot.attendees && slot.attendees / seatsPerTimeSlot >= 0.33
+                            ? "text-yellow-500"
+                            : "text-emerald-400"
+                        } text-sm`}>
+                        {slot.attendees ? seatsPerTimeSlot - slot.attendees : seatsPerTimeSlot} /{" "}
+                        {seatsPerTimeSlot} {t("seats_available")}
+                      </p>
+                    )}
                   </Link>
                 )}
               </div>

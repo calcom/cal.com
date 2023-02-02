@@ -4,7 +4,8 @@ import { useRouter } from "next/router";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
+import { FiX } from "@calcom/ui/components/icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -28,7 +29,7 @@ export default function Error() {
     <AuthContainer title="" description="">
       <div>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <Icon.FiX className="h-6 w-6 text-red-600" />
+          <FiX className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
@@ -40,7 +41,7 @@ export default function Error() {
         </div>
       </div>
       <div className="mt-5 sm:mt-6">
-        <Link href="/auth/login" passHref>
+        <Link href="/auth/login" passHref legacyBehavior>
           <Button className="flex w-full justify-center">{t("go_back_login")}</Button>
         </Link>
       </div>

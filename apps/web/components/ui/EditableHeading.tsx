@@ -1,8 +1,8 @@
 import classNames from "classnames";
-import React, { useState } from "react";
+import { useState } from "react";
 import { ControllerRenderProps } from "react-hook-form";
 
-import { Icon } from "@calcom/ui";
+import { FiEdit2 } from "@calcom/ui/components/icon";
 
 const EditableHeading = function EditableHeading({
   value,
@@ -21,7 +21,7 @@ const EditableHeading = function EditableHeading({
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           {!isEditing && isReady && (
-            <Icon.FiEdit2 className="ml-1 inline h-4 w-4 align-top text-gray-700 group-hover:text-gray-500" />
+            <FiEdit2 className="ml-1 inline h-4 w-4 align-top text-gray-700 group-hover:text-gray-500" />
           )}
           <input
             {...passThroughProps}

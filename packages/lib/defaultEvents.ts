@@ -82,8 +82,10 @@ const commons = {
   bookingLimits: null,
   hidden: false,
   userId: 0,
+  owner: null,
   workflows: [],
   users: [user],
+  hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
 };
 
@@ -162,7 +164,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 
   const allUsers = users.map((user) =>
     user
-      //.toLowerCase() // This was causing 404s for mixed-case usernames
+      .toLowerCase()
       .replace(/( |%20)/g, "+")
       .split("+")
   );

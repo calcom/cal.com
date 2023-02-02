@@ -17,13 +17,21 @@ ${calEvent.type}
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
-  return `
+  return calEvent.seatsPerTimeSlot
+    ? `
+${calEvent.organizer.language.translate("organizer_timezone")}:
+${calEvent.organizer.timeZone}
+  `
+    : `
 ${calEvent.organizer.language.translate("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
+    calEvent.attendees = [];
+  }
   const attendees = calEvent.attendees
     .map((attendee) => {
       return `
@@ -77,7 +85,7 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
   if (!calEvent.appsStatus) {
     return "";
   }
-  return `\n${calEvent.attendees[0].language.translate("apps_status")}
+  return `\n${calEvent.organizer.language.translate("apps_status")}
       ${calEvent.appsStatus.map((app) => {
         return `\n- ${app.appName} ${
           app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
@@ -94,7 +102,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
   }
-  return `\n${calEvent.attendees[0].language.translate("description")}
+  return `\n${calEvent.organizer.language.translate("description")}
     ${calEvent.description}
     `;
 };

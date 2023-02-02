@@ -1,13 +1,20 @@
+import { WorkflowActions } from "@prisma/client";
 import { TFunction } from "next-i18next";
 
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
+import { isSMSAction } from "./isSMSAction";
 
-export function getWorkflowActionOptions(t: TFunction) {
-  return WORKFLOW_ACTIONS.map((action) => {
-    const actionString = t(`${action.toLowerCase()}_action`);
+export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
+  return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode
+    .map((action) => {
+      const actionString = t(`${action.toLowerCase()}_action`);
 
-    return { label: actionString.charAt(0).toUpperCase() + actionString.slice(1), value: action };
-  });
+      return {
+        label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+        value: action,
+        needsUpgrade: isSMSAction(action) && !isTeamsPlan,
+      };
+    });
 }
 
 export function getWorkflowTriggerOptions(t: TFunction) {

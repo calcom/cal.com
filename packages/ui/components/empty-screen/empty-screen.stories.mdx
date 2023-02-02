@@ -1,0 +1,28 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
+import { FiCalendar } from "../icon";
+import { EmptyScreen } from './EmptyScreen';
+
+<Meta title="UI/EmptyScreen" component={EmptyScreen} />
+
+<Title title="EmptyScreen" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023"/>
+
+## Definition
+An empty state is where no info/ apps are added to a page with typically content. There must be a text that prompts users to learn more about why they see this state if necessary.
+The CTA button can prompt the user to add the info/ apps needed for the page.
+
+<Canvas>
+  <Story
+    name="EmptyScreen">
+    <VariantsTable titles={[]} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <EmptyScreen
+          Icon={FiCalendar}
+          headline="Empty state header"
+          description="Do consectetur qui ex deserunt do est veniam commodo. Eiusmod eiusmod dolore nostrud pariatur mollit sit commodo. Learn More."
+          buttonText="Button text"
+        />
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

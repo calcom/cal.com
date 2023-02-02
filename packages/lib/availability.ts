@@ -63,17 +63,18 @@ export function getWorkingHours(
     timeZone?: string;
     utcOffset?: number;
   },
-  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
+  availability: { userId?: number | null; days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   if (!availability.length) {
     return [];
   }
-
   const utcOffset =
     relativeTimeUnit.utcOffset ??
     (relativeTimeUnit.timeZone ? dayjs().tz(relativeTimeUnit.timeZone).utcOffset() : 0);
 
   const workingHours = availability.reduce((currentWorkingHours: WorkingHours[], schedule) => {
+    // Include only recurring weekly availability, not date overrides
+    if (!schedule.days.length) return currentWorkingHours;
     // Get times localised to the given utcOffset/timeZone
     const startTime =
       dayjs.utc(schedule.startTime).get("hour") * 60 +
@@ -88,35 +89,40 @@ export function getWorkingHours(
       return currentWorkingHours;
     }
     if (sameDayStartTime !== sameDayEndTime) {
-      currentWorkingHours.push({
+      const newWorkingHours: WorkingHours = {
         days: schedule.days,
         startTime: sameDayStartTime,
         endTime: sameDayEndTime,
-      });
+      };
+      if (schedule.userId) newWorkingHours.userId = schedule.userId;
+      currentWorkingHours.push(newWorkingHours);
     }
     // check for overflow to the previous day
     // overflowing days constraint to 0-6 day range (Sunday-Saturday)
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
-      currentWorkingHours.push({
+      const newWorkingHours: WorkingHours = {
         days: schedule.days.map((day) => (day - 1 >= 0 ? day - 1 : 6)),
         startTime: startTime + MINUTES_IN_DAY,
         endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
-      });
+      };
+      if (schedule.userId) newWorkingHours.userId = schedule.userId;
+      currentWorkingHours.push(newWorkingHours);
     }
     // else, check for overflow in the next day
     else if (startTime > MINUTES_DAY_END || endTime > MINUTES_IN_DAY) {
-      currentWorkingHours.push({
+      const newWorkingHours: WorkingHours = {
         days: schedule.days.map((day) => (day + 1) % 7),
         startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
         endTime: endTime - MINUTES_IN_DAY,
-      });
+      };
+      if (schedule.userId) newWorkingHours.userId = schedule.userId;
+      currentWorkingHours.push(newWorkingHours);
     }
 
     return currentWorkingHours;
   }, []);
 
   workingHours.sort((a, b) => a.startTime - b.startTime);
-
   return workingHours;
 }
 

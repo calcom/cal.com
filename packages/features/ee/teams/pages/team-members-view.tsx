@@ -5,8 +5,10 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, getSettingsLayout as getLayout, Icon, Meta, showToast } from "@calcom/ui";
+import { Button, Meta, showToast } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
@@ -46,7 +48,25 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title={t("team_members")} description={t("members_team_description")} />
+      <Meta
+        title={t("team_members")}
+        description={t("members_team_description")}
+        CTA={
+          isAdmin ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={FiPlus}
+              className="ml-auto"
+              onClick={() => setShowMemberInvitationModal(true)}
+              data-testid="new-member-button">
+              {t("add")}
+            </Button>
+          ) : (
+            <></>
+          )
+        }
+      />
       {!isLoading && (
         <>
           <div>
@@ -67,19 +87,6 @@ const MembersView = () => {
                   />
                 )}
               </>
-            )}
-            {isAdmin && (
-              <div className="relative mb-5 flex w-full items-center ">
-                <Button
-                  type="button"
-                  color="primary"
-                  StartIcon={Icon.FiPlus}
-                  className="ml-auto"
-                  onClick={() => setShowMemberInvitationModal(true)}
-                  data-testid="new-member-button">
-                  {t("add")}
-                </Button>
-              </div>
             )}
             <div>
               <ul className="divide-y divide-gray-200 rounded-md border ">

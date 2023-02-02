@@ -5,7 +5,8 @@ import { FC } from "react";
 import { Control, Controller, useFieldArray, useForm, UseFormRegister, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, TextField } from "@calcom/ui";
+import { Button, Label, Select, TextField } from "@calcom/ui";
+import { FiPlus, FiX } from "@calcom/ui/components/icon";
 
 interface OptionTypeBase {
   label: string;
@@ -40,6 +41,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       value: EventTypeCustomInputType.RADIO,
       label: t("radio"),
     },
+    { value: EventTypeCustomInputType.PHONE, label: t("phone_number") },
   ];
 
   const { selectedCustomInput } = props;
@@ -76,7 +78,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               defaultValue={selectedInputOption}
               options={inputOptions}
               isSearchable={false}
-              className="mt-1 mb-2 block w-full min-w-0 flex-1  text-sm"
+              className="mt-1 mb-2 block w-full min-w-0 flex-1 text-sm"
               onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
@@ -133,8 +135,8 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         value={selectedCustomInput?.id || -1}
         {...register("id", { valueAsNumber: true })}
       />
-      <div className="mt-5 flex justify-end space-x-2 sm:mt-4">
-        <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
+      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse sm:mt-4">
+        <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2 rtl:ml-2">
           {t("cancel")}
         </Button>
         <Button
@@ -182,9 +184,9 @@ function RadioInputHandler({
                 {...register(`options.${index}.label` as const, { required: true })}
                 addOnSuffix={
                   <Button
-                    size="icon"
+                    variant="icon"
                     color="minimal"
-                    StartIcon={Icon.FiX}
+                    StartIcon={FiX}
                     onClick={() => {
                       remove(index);
                     }}
@@ -195,7 +197,7 @@ function RadioInputHandler({
           ))}
           <Button
             color="minimal"
-            StartIcon={Icon.FiPlus}
+            StartIcon={FiPlus}
             className="!text-sm !font-medium"
             onClick={() => {
               append({ label: "", type: "text" });

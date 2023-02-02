@@ -1,0 +1,20 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title, CustomArgsTable, VariantsTable, VariantRow } from '@calcom/storybook/components';
+import { AppStoreCategories as Categories } from './Categories';
+import { _SBAppCategoryList } from './_storybookData';
+
+<Meta title="UI/apps/Categories" component={Categories} />
+
+<Title title="Categories" suffix="Brief" subtitle="Version 2.0 — Last Update: 03 Jan 2023" />
+
+## Definition
+
+Categories that is used in our appstore.
+
+<CustomArgsTable of={Categories} />
+
+## Examples
+
+We don't currently mock translations in storybook so the stories will display placeholder text.
+
+<Categories categories={_SBAppCategoryList} />

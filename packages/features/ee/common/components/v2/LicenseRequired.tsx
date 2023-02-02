@@ -4,7 +4,8 @@ import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { FiAlertTriangle } from "@calcom/ui/components/icon";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -13,22 +14,19 @@ type LicenseRequiredProps = {
   children: React.ReactNode;
 };
 
-/**
- * This component will only render it's children if the installation has a valid
- * license.
- */
 const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
   const session = useSession();
   const { t } = useLocale();
   const Component = as || Fragment;
   const hasValidLicense = session.data ? session.data.hasValidLicense : null;
+
   return (
     <Component {...rest}>
       {hasValidLicense === null || hasValidLicense ? (
         children
       ) : (
         <EmptyScreen
-          Icon={Icon.FiAlertTriangle}
+          Icon={FiAlertTriangle}
           headline={t("enterprise_license")}
           description={
             <div
@@ -53,7 +51,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
 };
 
 export const withLicenseRequired =
-  <T,>(Component: ComponentType<T>) =>
+  <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (
