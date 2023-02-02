@@ -780,10 +780,10 @@ function SideBar() {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+
   return (
     <>
-      <div
-        className={classNames("mb-6 flex items-center sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
+      <div className={classNames("flex items-center", props.smallHeading ? "md:mb-7" : "md:mb-8")}>
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -800,18 +800,18 @@ export function ShellMain(props: LayoutProps) {
         {props.heading && (
           <header className={classNames(props.large && "py-8", "flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
+            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
               {props.heading && (
                 <h1
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-xl font-semibold tracking-wide text-black sm:block xl:max-w-full",
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
                     props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-gray-500 sm:block">
+                <p className="hidden text-sm text-gray-500 md:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -821,8 +821,8 @@ export function ShellMain(props: LayoutProps) {
                 className={classNames(
                   props.backPath
                     ? "relative"
-                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
+                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                 )}>
                 {props.CTA}
               </div>
