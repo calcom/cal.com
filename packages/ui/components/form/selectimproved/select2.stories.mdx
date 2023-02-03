@@ -18,22 +18,24 @@ import Select from "./components/Select";
 <Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 export const options = [
-  {
+  { //4
     label: "Cal.com Inc",
     options: [
-      { value: "UserA", label: "Pro" },
-      { value: "UserB", label: "Teampro" },
+      { value: "UserA", label: "Pro" }, // 5
+      { value: "UserB", label: "Teampro" }, // 6
       { value: "UserC", label: "Example" },
       { value: "UserD", label: "Admin", disabled: true },
     ],
+  },
+  { // 5
     label: "Acme Inc",
     options: [
-      { value: "UserE", label: "Acme Pro" },
+      { value: "UserE", label: "Acme Pro" }, // 1 == 6
       { value: "UserF", label: "Acme Teampro" },
       { value: "UserG", label: "Acme example" },
       { value: "UserH", label: "Acme Admin", disabled: true },
     ],
-  },
+  }
 ];
 
 export const SelectWithState = (...args) => {

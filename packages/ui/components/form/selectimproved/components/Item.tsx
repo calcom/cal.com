@@ -9,10 +9,10 @@ import { Option } from "./type";
 interface ItemProps {
   item: Option;
   index?: number;
-  hocused: boolean;
+  focused: boolean;
 }
 
-const Item: React.FC<ItemProps> = ({ item, index, hocused }) => {
+const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
   const { classNames, selectedItems, handleValueChange } = useSelectContext();
   const isSelected =
     (Array.isArray(selectedItems) && selectedItems?.some((selection) => selection.value === item.value)) ||
@@ -23,8 +23,8 @@ const Item: React.FC<ItemProps> = ({ item, index, hocused }) => {
       {item.disabled ? (
         <li
           className={cn(
-            "flex cursor-not-allowed select-none justify-between truncate px-2 py-2 text-gray-400",
-            hocused && "bg-gray-50"
+            "flex cursor-not-allowed select-none justify-between truncate px-2.5 py-2 text-gray-400",
+            focused ? "bg-gray-50" : "hover:bg-gray-100"
           )}>
           <>
             <div className="flex space-x-2">
@@ -45,9 +45,9 @@ const Item: React.FC<ItemProps> = ({ item, index, hocused }) => {
           role="option"
           onClick={() => handleValueChange(item)}
           className={cn(
-            "block flex cursor-pointer select-none items-center justify-between truncate px-2 py-2 transition duration-200",
-            hocused && "bg-gray-100",
-            isSelected ? "bg-gray-200 text-gray-900" : "text-gray-700",
+            "block flex cursor-pointer select-none items-center justify-between truncate px-2.5 py-2 transition duration-200 ",
+            focused && "bg-gray-100",
+            isSelected ? "bg-gray-200 text-gray-900" : "text-gray-700 hover:bg-gray-100",
             classNames?.listItem
           )}>
           <div className="flex space-x-2">

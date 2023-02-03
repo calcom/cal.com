@@ -19,9 +19,9 @@ function GroupItem({ item, index: tabIndex, keyboardFocusIndex }: GroupItemProps
 
           <div className="flex flex-col space-y-[1px]">
             {item.options.map((item, internalIndex) => {
-              const hocused = internalIndex + tabIndex === keyboardFocusIndex;
+              const focused = internalIndex + tabIndex === keyboardFocusIndex;
               return (
-                <Item key={internalIndex} item={item} index={internalIndex + tabIndex} hocused={hocused} />
+                <Item key={internalIndex} item={item} index={internalIndex + tabIndex} focused={focused} />
               );
             })}
           </div>
