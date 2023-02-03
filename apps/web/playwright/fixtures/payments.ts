@@ -2,7 +2,6 @@ import type { Page } from "@playwright/test";
 import type { Payment } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import appStore from "@calcom/app-store";
 import { prisma } from "@calcom/prisma";
 
 type PaymentFixture = ReturnType<typeof createPaymentFixture>;
@@ -25,7 +24,7 @@ export const createPaymentsFixture = (page: Page) => {
           refunded,
           app: {
             connect: {
-              slug: appStore["stripepayment"].metadata.slug,
+              slug: "stripe",
             },
           },
           data: {},
