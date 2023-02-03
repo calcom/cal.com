@@ -57,7 +57,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
             .map((slot) => ({
               // TODO: Modify the Calendar view to be better at displaying blocks.
               id: undefined,
-              title: slot.source || "",
+              title:
+                (slot.title ? `(${slot.title}) - ` : "") + (slot.source ? `(source: ${slot.source})` : ""),
               start: new Date(slot.start),
               end: new Date(slot.end),
             }))}
