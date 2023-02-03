@@ -4,6 +4,7 @@ export interface Option {
   disabled?: boolean;
   isSelected?: boolean;
   options?: Option[];
+  leftNode?: React.ReactNode;
 }
 
 export interface ClassNames {

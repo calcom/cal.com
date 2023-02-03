@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from "re
 
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 
-import DisabledItem from "./DisabledItem";
 import GroupItem from "./GroupItem";
 import Item from "./Item";
 import { SelectContext } from "./SelectProvider";
@@ -10,29 +9,32 @@ import { Option } from "./type";
 
 interface OptionsProps<T extends Option> {
   list: T[];
-  noOptionsMessage: string;
   inputValue: string;
   isMultiple: boolean;
   selected: T | T[] | null;
   searchBoxRef: React.RefObject<HTMLInputElement>;
 }
 
-function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchBoxRef }: OptionsProps<T>) {
+const flatternOptions = (options: Option[]): Option[] => {
+  return options.reduce((acc, option) => {
+    if (option.options) {
+      return [...acc, ...flatternOptions(option.options)];
+    }
+    return [...acc, option];
+  }, [] as Option[]);
+};
+
+function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsProps<T>) {
   const { classNames, handleValueChange } = useContext(SelectContext);
-  const [hovered, setHovered] = useState(-1);
   const [keyboardFocus, setKeyboardFocus] = useState(-1);
   const downPress = useKeyPress("ArrowDown", searchBoxRef);
   const upPress = useKeyPress("ArrowUp", searchBoxRef);
   const enterPress = useKeyPress("Enter", searchBoxRef);
 
+  const flatternedList = useMemo(() => flatternOptions(list), [list]);
   const totalOptionsLength = useMemo(() => {
-    return list.reduce((acc, item) => {
-      if (item.options) {
-        return acc + item.options.length + 1;
-      }
-      return acc + 1;
-    }, 0);
-  }, [list]);
+    return flatternedList.length;
+  }, [flatternedList]);
 
   useEffect(() => {
     if (downPress) {
@@ -50,7 +52,8 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
 
   useEffect(() => {
     if (enterPress) {
-      const item = list[keyboardFocus];
+      const item = flatternedList[keyboardFocus];
+      if (!item || item.disabled) return;
       handleValueChange(item);
     }
     // We don't want to re-run this effect when handleValueChange changes
@@ -91,7 +94,7 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
   return (
     <div role="options" className={classNames?.list ?? "max-h-72 overflow-y-auto overflow-y-scroll"}>
       {filteredList?.map((item, index) => {
-        const hocused = index === hovered || index === keyboardFocus;
+        const hocused = index === keyboardFocus;
         return (
           <React.Fragment key={index}>
             {item.options ? (
@@ -101,7 +104,6 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
                     index={index}
                     item={item as Option & { options: Option[] }}
                     keyboardFocusIndex={keyboardFocus}
-                    hoveredIndex={hovered}
                   />
                 </div>
               </>
@@ -113,8 +115,6 @@ function Options<T extends Option>({ list, noOptionsMessage, inputValue, searchB
           </React.Fragment>
         );
       })}
-
-      {list.length === 0 && <DisabledItem>{noOptionsMessage}</DisabledItem>}
     </div>
   );
 }
