@@ -588,10 +588,11 @@ export const FormBuilderField = ({
   readOnly: boolean;
 }) => {
   const { t } = useLocale();
-  const { control, formState } = useFormContext();
-  // if (typeof window !== "undefined") {
-  //   window.formState = formState;
-  // }
+  const { control, formState, ...form } = useFormContext();
+  if (typeof window !== "undefined") {
+    window.formState = formState;
+    window.form = form;
+  }
   return (
     <div className="reloading mb-4">
       <Controller

@@ -3,7 +3,6 @@ import { Attendee, Booking } from "@prisma/client";
 import { AppsStatus } from "@calcom/types/Calendar";
 
 export type BookingCreateBody = {
-  email: string;
   end: string;
   web3Details?: {
     userWallet: string;
@@ -11,10 +10,6 @@ export type BookingCreateBody = {
   };
   eventTypeId: number;
   eventTypeSlug: string;
-  guests?: string[];
-  location: string;
-  name: string;
-  notes?: string;
   rescheduleUid?: string;
   recurringEventId?: string;
   start: string;
@@ -27,7 +22,6 @@ export type BookingCreateBody = {
   };
   hasHashedBookingLink: boolean;
   hashedLink?: string | null;
-  smsReminderNumber?: string;
   ethSignature?: string;
 };
 

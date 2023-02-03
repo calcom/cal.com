@@ -11,12 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import {
-  EventLocationType,
-  getEventLocationType,
-  getEventLocationValue,
-  locationKeyToString,
-} from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
@@ -255,13 +250,13 @@ const BookingPage = ({
 
   //FIXME: We need to be backward compatible in terms of pre-filling the form
   const getFormBuilderFieldValueFromQuery = (paramName: string) => {
-    // const schema = getBookingResponsesSchema({
-    //   bookingFields: eventType.bookingFields,
-    // })
+    const schema = getBookingResponsesSchema({
+      bookingFields: eventType.bookingFields,
+    });
     // string value for - text, textarea, select, radio,
     // string value with , for checkbox and multiselect
     // Object {value:"", optionValue:""} for radioInput
-    return z.string().optional().parse(router.query[paramName]);
+    return schema.parse(router.query)[paramName];
   };
 
   // There should only exists one default userData variable for primaryAttendee.
@@ -411,20 +406,10 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         user: router.query.user,
-        location: getEventLocationValue(locations, {
-          type: booking.locationType ? booking.locationType : selectedLocationType || "",
-          phone: booking.phone,
-          attendeeAddress: booking.attendeeAddress,
-        }),
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        smsReminderNumber:
-          selectedLocationType === LocationType.Phone
-            ? booking.phone
-            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
-        guests: booking.guests?.map((guest) => guest.email),
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -442,10 +427,6 @@ const BookingPage = ({
         metadata,
         hasHashedBookingLink,
         hashedLink,
-        smsReminderNumber:
-          selectedLocationType === LocationType.Phone
-            ? booking.phone
-            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
         guests: booking.guests?.map((guest) => guest.email),
       });
