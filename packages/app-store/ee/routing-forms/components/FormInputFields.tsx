@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import { Response, SerializableForm } from "../types/types";
+import { SerializableForm, Response } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;

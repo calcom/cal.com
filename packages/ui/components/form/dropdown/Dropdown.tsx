@@ -10,7 +10,7 @@ import { ButtonColor } from "../../button/Button";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
-type DropdownMenuTriggerProps = ComponentProps<(typeof DropdownMenuPrimitive)["Trigger"]>;
+type DropdownMenuTriggerProps = ComponentProps<typeof DropdownMenuPrimitive["Trigger"]>;
 export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Trigger
@@ -29,7 +29,7 @@ export const DropdownMenuTriggerItem = DropdownMenuPrimitive.Trigger;
 
 export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
-type DropdownMenuContentProps = ComponentProps<(typeof DropdownMenuPrimitive)["Content"]>;
+type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
   ({ children, sideOffset = 2, align = "end", ...props }, forwardedRef) => {
     return (
@@ -49,12 +49,12 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
 );
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
-type DropdownMenuLabelProps = ComponentProps<(typeof DropdownMenuPrimitive)["Label"]>;
+type DropdownMenuLabelProps = ComponentProps<typeof DropdownMenuPrimitive["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
   <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-gray-500" />
 );
 
-type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
+type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["CheckboxItem"]>;
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
@@ -68,7 +68,7 @@ DropdownMenuItem.displayName = "DropdownMenuItem";
 
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
-type DropdownMenuCheckboxItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
+type DropdownMenuCheckboxItemProps = ComponentProps<typeof DropdownMenuPrimitive["CheckboxItem"]>;
 export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
   ({ children, ...props }, forwardedRef) => {
     return (
@@ -85,7 +85,7 @@ DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
-type DropdownMenuRadioItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["RadioItem"]>;
+type DropdownMenuRadioItemProps = ComponentProps<typeof DropdownMenuPrimitive["RadioItem"]>;
 export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadioItemProps>(
   ({ children, ...props }, forwardedRef) => {
     return (
@@ -146,7 +146,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
   );
 };
 
-type DropdownMenuSeparatorProps = ComponentProps<(typeof DropdownMenuPrimitive)["Separator"]>;
+type DropdownMenuSeparatorProps = ComponentProps<typeof DropdownMenuPrimitive["Separator"]>;
 export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSeparatorProps>(
   ({ className = "", ...props }, forwardedRef) => {
     return (

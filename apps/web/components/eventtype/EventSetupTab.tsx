@@ -81,7 +81,7 @@ export const EventSetupTab = (
     setShowLocationModal(true);
   };
 
-  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
+  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     formMethods.setValue(
       "locations",
       formMethods.getValues("locations").filter((location) => {
