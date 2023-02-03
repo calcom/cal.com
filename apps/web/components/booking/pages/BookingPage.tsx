@@ -38,14 +38,24 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Button, Form, Tooltip } from "@calcom/ui";
 import {
-  FiAlertTriangle,
+  AddressInput,
+  Button,
+  EmailField,
+  EmailInput,
+  Form,
+  Group,
+  PhoneInput,
+  RadioField,
+  Tooltip,
+} from "@calcom/ui";
+import {
+  FiUserPlus,
   FiCalendar,
   FiCreditCard,
   FiRefreshCw,
   FiUser,
-  FiUserPlus,
+  FiAlertTriangle,
 } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -151,7 +161,12 @@ const BookingPage = ({
   const stripeAppData = getStripeAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
-  if (queryDuration && !isNaN(Number(queryDuration))) {
+  if (
+    queryDuration &&
+    !isNaN(Number(queryDuration)) &&
+    eventType.metadata?.multipleDuration &&
+    eventType.metadata?.multipleDuration.includes(Number(queryDuration))
+  ) {
     duration = Number(queryDuration);
   }
 
@@ -233,7 +248,9 @@ const BookingPage = ({
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => attendee.email)
+    ? booking?.attendees.slice(1).map((attendee) => {
+        return { email: attendee.email };
+      })
     : [];
 
   //FIXME: We need to be backward compatible in terms of pre-filling the form
@@ -407,6 +424,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -429,6 +447,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       });
     }
   };
@@ -581,17 +600,6 @@ const BookingPage = ({
                 />
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestToggle && (
-                    <Button
-                      type="button"
-                      color="minimal"
-                      variant="icon"
-                      tooltip={t("additional_guests")}
-                      StartIcon={FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
-                    />
-                  )}
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>

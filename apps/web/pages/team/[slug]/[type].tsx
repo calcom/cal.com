@@ -44,6 +44,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: true,
       logo: true,
       hideBranding: true,
+      brandColor: true,
+      darkBrandColor: true,
+      theme: true,
       eventTypes: {
         where: {
           slug: typeParam,
@@ -69,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             },
           },
+
           title: true,
           availability: true,
           description: true,
@@ -164,10 +168,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
-        theme: null as string | null,
+        theme: team.theme,
         weekStart: "Sunday",
-        brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
-        darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
+        brandColor: team.brandColor,
+        darkBrandColor: team.darkBrandColor,
       },
       date: dateParam,
       eventType: eventTypeObject,

@@ -143,7 +143,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...passThrough}
             {...(type == "search" && {
               onChange: (e) => {
-                console.log(e.target.value);
                 setInputValue(e.target.value);
                 props.onChange && props.onChange(e);
               },

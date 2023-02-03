@@ -24,11 +24,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.t = attendee.language.translate;
 
     if (!this.showAttendees) {
-      this.calEvent.attendees = [
-        {
-          ...this.attendee,
-        },
-      ];
+      this.calEvent.attendees = [this.attendee];
     }
   }
 
