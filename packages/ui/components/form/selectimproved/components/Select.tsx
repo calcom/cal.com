@@ -195,7 +195,7 @@ function Select<T extends Option>({
                   ))}
                 </div>
               ) : (
-                <div className="py-2.5 px-3 text-sm leading-none text-gray-400">
+                <div className="py-2.5 px-3 text-sm leading-none text-gray-900">
                   <p>{selectedItems?.label}</p>
                 </div>
               )}

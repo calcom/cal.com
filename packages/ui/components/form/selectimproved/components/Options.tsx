@@ -55,7 +55,7 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
 
   useEffect(() => {
     if (enterPress) {
-      const item = flatternedList[keyboardFocus];
+      const item = filteredList[keyboardFocus];
       if (!item || item.disabled) return;
       handleValueChange(item);
     }
@@ -66,6 +66,7 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
   const search = useCallback((optionsArray: FlatternedOption[], searchTerm: string) => {
     // search options by label, or group label or options.options
     return optionsArray.reduce((acc: FlatternedOption[], option: FlatternedOption) => {
+      // @TODO: add search by lavbel group gets awkward as it doesnt exist in the flatterned list
       if (option.label.toLowerCase().includes(searchTerm.toLowerCase())) {
         acc.push(option);
       }
