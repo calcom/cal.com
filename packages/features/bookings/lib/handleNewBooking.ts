@@ -744,6 +744,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       location: evt.location,
       eventType: eventTypeRel,
       smsReminderNumber: reqBody.smsReminderNumber,
+      metadata: reqBody.metadata,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
