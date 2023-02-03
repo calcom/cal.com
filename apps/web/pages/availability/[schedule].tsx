@@ -148,7 +148,7 @@ export default function Availability({ schedule }: { schedule: number }) {
         )
       }
       CTA={
-        <div className="mr-10 flex items-center justify-end xl:mr-36">
+        <div className="flex items-center justify-end">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
             <Skeleton
               as={Label}
@@ -186,7 +186,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             });
           }}
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
-          <div className="mx-10 flex-1 flex-row xl:mr-0 xl:ml-36">
+          <div className="flex-1 flex-row xl:mr-0">
             <div className="mb-6 rounded-md border">
               <div>
                 {typeof me.data?.weekStart === "string" && (
@@ -206,7 +206,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
             </div>
           </div>
-          <div className="min-w-40 col-span-3 ml-10 space-y-2 lg:col-span-1 xl:ml-36">
+          <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
                 <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
