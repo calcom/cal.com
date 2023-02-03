@@ -29,6 +29,7 @@ import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
+  const organizerCalEvent = cloneDeep(calEvent);
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -46,7 +47,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent);
+        const scheduledEmail = new OrganizerScheduledEmail(organizerCalEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));

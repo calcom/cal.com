@@ -125,8 +125,10 @@ export default class EventManager {
       results.push(result);
     }
 
+    // Some calendar libraries may edit the original event so let's clone it
+    const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
-    results.push(...(await this.createAllCalendarEvents(evt)));
+    results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
     const referencesToCreate = results.map((result) => {
       let createdEventObj: createdEventSchema | null = null;
