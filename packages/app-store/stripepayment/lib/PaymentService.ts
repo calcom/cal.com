@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
-import { AbstractPaymentService } from "@calcom/lib/PaymentService";
+import { IAbstractPaymentService } from "@calcom/lib/PaymentService";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { CalendarEvent } from "@calcom/types/Calendar";
@@ -24,12 +24,11 @@ const stripeAppKeysSchema = z.object({
   payment_fee_percentage: z.number(),
 });
 
-export class PaymentService extends AbstractPaymentService {
+export class PaymentService implements IAbstractPaymentService {
   private stripe: Stripe;
   private credentials: z.infer<typeof stripeCredentialKeysSchema>;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    super();
     // parse credentials key
     this.credentials = stripeCredentialKeysSchema.parse(credentials.key);
     this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "", {
@@ -104,6 +103,7 @@ export class PaymentService extends AbstractPaymentService {
       throw new Error("Payment could not be created");
     }
   }
+
   async update(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
@@ -208,6 +208,7 @@ export class PaymentService extends AbstractPaymentService {
   getPaymentPaidStatus(): Promise<string> {
     throw new Error("Method not implemented.");
   }
+
   getPaymentDetails(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
