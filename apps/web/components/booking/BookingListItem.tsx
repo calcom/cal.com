@@ -150,7 +150,7 @@ function BookingListItem(booking: BookingItemProps) {
          cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUId()}` : ""}
+      }${booking.seatsReferences.length ? `&seatReferenceUId=${getSeatReferenceUId()}` : ""}
       `,
       icon: FiX,
     },

@@ -15,7 +15,7 @@ import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmails } from "@calcom/emails";
+import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -106,30 +106,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  // If it's just an attendee of a booking then just remove them from that booking
-  if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
-    const seatReference = bookingToDelete.seatsReferences.find(
-      (reference) => reference.referenceUId === seatReferenceUId
-    );
-
-    if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
-
-    await Promise.all([
-      prisma.bookingSeatsReferences.delete({
-        where: {
-          referenceUId: seatReferenceUId,
-        },
-      }),
-      prisma.attendee.delete({
-        where: {
-          id: seatReference.attendeeId,
-        },
-      }),
-    ]);
-
-    return;
-  }
-
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
       id: bookingToDelete.userId,
@@ -180,6 +156,42 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
   };
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
+    const seatReference = bookingToDelete.seatsReferences.find(
+      (reference) => reference.referenceUId === seatReferenceUId
+    );
+
+    const attendee = bookingToDelete.attendees.find((attendee) => attendee.id === seatReference?.attendeeId);
+
+    if (!seatReference || !attendee)
+      throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+    await Promise.all([
+      prisma.bookingSeatsReferences.delete({
+        where: {
+          referenceUId: seatReferenceUId,
+        },
+      }),
+      prisma.attendee.delete({
+        where: {
+          id: seatReference.attendeeId,
+        },
+      }),
+    ]);
+
+    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
+
+    sendCancelledSeatEmails(evt, {
+      ...attendee,
+      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+    });
+
+    req.statusCode = 200;
+    return { message: "No longer attending event" };
+  }
+
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
