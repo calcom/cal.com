@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -94,6 +95,8 @@ export const sendScheduledSeatsEmails = async (
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
 
+  const organizerCalEvent = cloneDeep(calEvent);
+
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
@@ -108,7 +111,7 @@ export const sendScheduledSeatsEmails = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent, newSeat);
+        const scheduledEmail = new OrganizerScheduledEmail(organizerCalEvent, newSeat);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));

@@ -1,4 +1,5 @@
 import { createEvent, DateArray } from "ics";
+import { cloneDeep } from "lodash";
 import { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
@@ -61,6 +62,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
+    const clonedCalEvent = cloneDeep(this.calEvent);
+
+    this.getiCalEventAsString();
+
     return {
       icalEvent: {
         filename: "event.ics",
@@ -71,7 +76,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: decodeURIComponent(`${this.calEvent.title}`),
       html: renderEmail("AttendeeScheduledEmail", {
-        calEvent: this.calEvent,
+        calEvent: clonedCalEvent,
         attendee: this.attendee,
       }),
       text: this.getTextBody(),
