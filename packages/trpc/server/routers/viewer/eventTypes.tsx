@@ -770,20 +770,12 @@ export const eventTypesRouter = router({
       }
 
       if (workflows.length > 0) {
-        const workflowIds = workflows.map((workflow) => {
-          return { id: workflow.workflowId };
+        const relationCreateData = workflows.map((workflow) => {
+          return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
         });
 
-        const eventUpdateData: Prisma.EventTypeUpdateInput = {
-          workflows: {
-            connect: workflowIds,
-          },
-        };
-        await ctx.prisma.eventType.update({
-          where: {
-            id: newEventType.id,
-          },
-          data: eventUpdateData,
+        await ctx.prisma.workflowsOnEventTypes.createMany({
+          data: relationCreateData,
         });
       }
 
