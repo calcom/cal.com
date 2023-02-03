@@ -195,7 +195,6 @@ function EventTypeSingleLayout({
       backPath="/event-types"
       title={eventType.title + " | " + t("event_type")}
       heading={eventType.title}
-      subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
           <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
@@ -324,7 +323,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <Suspense fallback={<FiLoader />}>
-        <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
+        <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
               className="primary-navigation"

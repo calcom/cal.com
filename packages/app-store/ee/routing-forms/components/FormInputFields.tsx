@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import { SerializableForm, Response } from "../types/types";
+import { Response, SerializableForm } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;
@@ -20,6 +20,7 @@ export default function FormInputFields(props: Props) {
     <>
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
+          // @ts-expect-error FIXME @hariombalhara
           field = field.routerField;
         }
         const widget = queryBuilderConfig.widgets[field.type];
