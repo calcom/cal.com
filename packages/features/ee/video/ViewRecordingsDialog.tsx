@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import useHasTeamPlan from "@calcom/lib/hooks/useHasTeamPlan";
+import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
@@ -66,7 +66,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
   const [downloadingRecordingId, setRecordingId] = useState<string | null>(null);
 
-  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
+  const { hasPaidPlan, isLoading: isTeamPlanStatusLoading } = useHasPaidPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
@@ -127,7 +127,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                           {convertSecondsToMs(recording.duration)}
                         </p>
                       </div>
-                      {hasTeamPlan ? (
+                      {hasPaidPlan ? (
                         <Button
                           StartIcon={FiDownload}
                           className="ml-4 lg:ml-0"

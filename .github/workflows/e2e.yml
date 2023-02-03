@@ -13,7 +13,7 @@ concurrency:
 jobs:
   e2e:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso

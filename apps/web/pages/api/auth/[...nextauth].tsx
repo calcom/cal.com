@@ -2,6 +2,7 @@ import { IdentityProvider, UserPermissionRole } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
 import NextAuth, { Session } from "next-auth";
+import { encode } from "next-auth/jwt";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
@@ -22,7 +23,7 @@ import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 
@@ -60,6 +61,7 @@ const providers: Provider[] = [
           username: true,
           name: true,
           email: true,
+          metadata: true,
           identityProvider: true,
           password: true,
           twoFactorEnabled: true,
@@ -234,13 +236,39 @@ if (true) {
     })
   );
 }
+
+function isNumber(n: string) {
+  return !isNaN(parseFloat(n)) && !isNaN(+n);
+}
+
 const calcomAdapter = CalComAdapter(prisma);
+
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
+  },
+  jwt: {
+    // decorate the native JWT encode function
+    // Impl. detail: We don't pass through as this function is called with encode/decode functions.
+    encode: async ({ token, maxAge, secret }) => {
+      if (token?.sub && isNumber(token.sub)) {
+        const user = await prisma.user.findFirst({
+          where: { id: Number(token.sub) },
+          select: { metadata: true },
+        });
+        // if no user is found, we still don't want to crash here.
+        if (user) {
+          const metadata = userMetadata.parse(user.metadata);
+          if (metadata?.sessionTimeout) {
+            maxAge = metadata.sessionTimeout / 60;
+          }
+        }
+      }
+      return encode({ secret, token, maxAge });
+    },
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {

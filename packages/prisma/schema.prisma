@@ -217,6 +217,9 @@ model Team {
   createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
+  theme               String?
+  brandColor          String       @default("#292929")
+  darkBrandColor      String       @default("#fafafa")
 }
 
 enum MembershipRole {

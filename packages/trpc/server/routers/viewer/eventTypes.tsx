@@ -299,6 +299,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: typeof user["username"];
         name: typeof user["name"];
+        image?: string;
       };
       metadata: {
         membershipCount: number;

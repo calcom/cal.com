@@ -5,6 +5,8 @@ import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import type { EventNameObjectType } from "@calcom/core/event";
+import { getEventName } from "@calcom/core/event";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -57,6 +59,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const eventNameObject: EventNameObjectType = {
+    attendeeName: t("scheduler"),
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    host: eventType.users[0]?.name || "Nameless",
+    t,
+  };
+  const [previewText, setPreviewText] = useState(getEventName(eventNameObject));
   const [customInputs, setCustomInputs] = useState<CustomInputParsed[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -70,6 +80,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     formMethods.getValues("customInputs").splice(index, 1);
     customInputs.splice(index, 1);
     setCustomInputs([...customInputs]);
+  };
+
+  const changePreviewText = (eventNameObject: EventNameObjectType, previewEventName: string) => {
+    setPreviewText(
+      previewEventName
+        .replace("{Event type title}", eventNameObject.eventType)
+        .replace("{Scheduler}", eventNameObject.attendeeName)
+        .replace("{Organiser}", eventNameObject.host)
+    );
   };
 
   useEffect(() => {
@@ -120,11 +139,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       )}
       <div className="w-full">
         <TextField
-          label={t("event_name")}
+          label={t("event_name_in_calendar")}
           type="text"
-          placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
+          placeholder={t("meeting_with_user")}
           defaultValue={eventType.eventName || ""}
-          {...formMethods.register("eventName")}
+          {...formMethods.register("eventName", {
+            onChange: (e) => {
+              if (!e.target.value || !formMethods.getValues("eventName")) {
+                return setPreviewText(getEventName(eventNameObject));
+              }
+              changePreviewText(eventNameObject, e.target.value);
+            },
+          })}
           addOnSuffix={
             <Button
               type="button"
@@ -384,23 +410,63 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             description={t("custom_event_name_description")}
             type="creation">
             <TextField
-              label={t("event_name")}
+              label={t("event_name_in_calendar")}
               type="text"
-              placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
+              placeholder={t("meeting_with_user")}
               defaultValue={eventType.eventName || ""}
-              {...formMethods.register("eventName")}
+              {...formMethods.register("eventName", {
+                onChange: (e) => {
+                  if (!e.target.value || !formMethods.getValues("eventName")) {
+                    return setPreviewText(getEventName(eventNameObject));
+                  }
+                  changePreviewText(eventNameObject, e.target.value);
+                },
+              })}
+              className="mb-0"
             />
-            <div className="mt-1 text-gray-500">
-              <p>{`{HOST} = ${t("your_name")}`}</p>
-              <p>{`{ATTENDEE} = ${t("attendee_name")}`}</p>
-              <p>{`{HOST/ATTENDEE} = ${t("dynamically_display_attendee_or_organizer")}`}</p>
-              <p>{`{LOCATION} = ${t("event_location")}`}</p>
+            <div className="text-sm">
+              <div className="mb-6 rounded-md bg-gray-100 p-2">
+                <h1 className="mb-2 ml-1 font-medium text-gray-900">{t("available_variables")}</h1>
+                <div className="mb-2.5 flex font-normal">
+                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Event type title}`}</p>
+                  <p className="text-gray-900">{t("event_name_info")}</p>
+                </div>
+                <div className="mb-2.5 flex font-normal">
+                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Organiser}`}</p>
+                  <p className="text-gray-900">{t("your_full_name")}</p>
+                </div>
+                <div className="mb-2.5 flex font-normal">
+                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Scheduler}`}</p>
+                  <p className="text-gray-900">{t("scheduler_full_name")}</p>
+                </div>
+                <div className="mb-1 flex font-normal">
+                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Location}`}</p>
+                  <p className="text-gray-900">{t("location_info")}</p>
+                </div>
+              </div>
+              <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
+              <div
+                className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center"
+                style={{
+                  backgroundImage: "url(/calendar-preview.svg)",
+                }}>
+                <div className="m-auto flex items-center justify-center self-stretch">
+                  <div className="mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black bg-gray-100 text-[12px] leading-3">
+                    <p className="overflow-hidden text-ellipsis p-1.5 font-medium text-gray-900">
+                      {previewText}
+                    </p>
+                    <p className="ml-1.5 text-[10px] font-normal text-gray-600">8 - 10 AM</p>
+                  </div>
+                </div>
+              </div>
             </div>
             <DialogFooter>
+              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")}>
+                {t("cancel")}
+              </DialogClose>
               <Button color="primary" onClick={() => setShowEventNameTip(false)}>
                 {t("create")}
               </Button>
-              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")} />
             </DialogFooter>
           </DialogContent>
         </Dialog>
