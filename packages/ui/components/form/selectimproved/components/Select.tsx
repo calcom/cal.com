@@ -52,9 +52,7 @@ function Select<T extends Option>({
   isClearable = false,
   isSearchable = false,
   isDisabled = false,
-  loading = false,
   menuIsOpen = false,
-  noOptionsMessage = "No options found",
   classNames,
 }: SelectProps<T>) {
   const [open, setOpen] = useState<boolean>(menuIsOpen);
@@ -205,12 +203,6 @@ function Select<T extends Option>({
           </div>
 
           <div className="flex flex-none items-center py-1.5">
-            {/* {loading && (
-              <div className="px-1.5">
-                <Spinner primaryColor={primaryColor} />
-              </div>
-            )} */}
-
             {isClearable && !isDisabled && selectedItems !== null && (
               <div className="cursor-pointer px-1.5" onClick={clearValue}>
                 <FiX

@@ -15,7 +15,8 @@ interface ItemProps {
 const Item: React.FC<ItemProps> = ({ item, index, hocused }) => {
   const { classNames, selectedItems, handleValueChange } = useSelectContext();
   const isSelected =
-    Array.isArray(selectedItems) && selectedItems?.some((selection) => selection.value === item.value);
+    (Array.isArray(selectedItems) && selectedItems?.some((selection) => selection.value === item.value)) ||
+    (!Array.isArray(selectedItems) && selectedItems?.value === item.value);
 
   return (
     <>
@@ -45,8 +46,8 @@ const Item: React.FC<ItemProps> = ({ item, index, hocused }) => {
           onClick={() => handleValueChange(item)}
           className={cn(
             "block flex cursor-pointer select-none items-center justify-between truncate px-2 py-2 transition duration-200",
-            isSelected ? "bg-blue-500 text-white" : "text-gray-500",
-            hocused && "bg-gray-200",
+            hocused && "bg-gray-100",
+            isSelected ? "bg-gray-200 text-gray-900" : "text-gray-700",
             classNames?.listItem
           )}>
           <div className="flex space-x-2">

@@ -92,7 +92,11 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
   }, [inputValue, list, search]);
 
   return (
-    <div role="options" className={classNames?.list ?? "max-h-72 overflow-y-auto overflow-y-scroll"}>
+    <div
+      role="options"
+      className={
+        classNames?.list ?? "flex max-h-72 flex-col space-y-[1px] overflow-y-auto overflow-y-scroll"
+      }>
       {filteredList?.map((item, index) => {
         const hocused = index === keyboardFocus;
         return (

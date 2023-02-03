@@ -17,12 +17,14 @@ function GroupItem({ item, index: tabIndex, keyboardFocusIndex }: GroupItemProps
         <>
           <Label>{item.label}</Label>
 
-          {item.options.map((item, internalIndex) => {
-            const hocused = internalIndex + tabIndex === keyboardFocusIndex;
-            return (
-              <Item key={internalIndex} item={item} index={internalIndex + tabIndex} hocused={hocused} />
-            );
-          })}
+          <div className="flex flex-col space-y-[1px]">
+            {item.options.map((item, internalIndex) => {
+              const hocused = internalIndex + tabIndex === keyboardFocusIndex;
+              return (
+                <Item key={internalIndex} item={item} index={internalIndex + tabIndex} hocused={hocused} />
+              );
+            })}
+          </div>
         </>
       )}
     </>

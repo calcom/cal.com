@@ -18,17 +18,20 @@ import Select from "./components/Select";
 <Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 export const options = [
-  { value: "fox", label: "🦊 Fox" },
-  { value: "Butterfly", label: "🦋 Butterfly" },
-  { value: "Honeybee", label: "🐝 Honeybee" },
-  { value: "Honeybee", label: "🚀 Moooon", disabled: true },
   {
-    label: "Teams",
+    label: "Cal.com Inc",
     options: [
-      { value: "UserF", label: "🦊 User F" },
-      { value: "UserB", label: "🦋 User B" },
-      { value: "UserBe", label: "🐝 User Be" },
-      { value: "UserR", label: "🚀 User R", disabled: true },
+      { value: "UserA", label: "Pro" },
+      { value: "UserB", label: "Teampro" },
+      { value: "UserC", label: "Example" },
+      { value: "UserD", label: "Admin", disabled: true },
+    ],
+    label: "Acme Inc",
+    options: [
+      { value: "UserE", label: "Acme Pro" },
+      { value: "UserF", label: "Acme Teampro" },
+      { value: "UserG", label: "Acme example" },
+      { value: "UserH", label: "Acme Admin", disabled: true },
     ],
   },
 ];
