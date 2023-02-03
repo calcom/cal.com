@@ -1,4 +1,5 @@
 import {
+  App,
   BookingStatus,
   Credential,
   EventTypeCustomInput,
@@ -18,7 +19,7 @@ import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { EventTypeAppsList, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -62,6 +63,15 @@ const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
+
+interface IEventTypePaymentCredentialType {
+  appId: EventTypeAppsList;
+  app: {
+    categories: App["categories"];
+    dirName: string;
+  };
+  key: Prisma.JsonValue;
+}
 
 /**
  * Refreshes a Credential with fresh data from the database.
@@ -667,7 +677,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         throw new HttpError({ statusCode: 400, message: "Missing payment app id" });
       }
 
-      const payment = await handlePayment(evt, eventType, eventTypePaymentAppCredential, booking);
+      const payment = await handlePayment(
+        evt,
+        eventType,
+        eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+        booking
+      );
 
       req.statusCode = 201;
       return { ...booking, message: "Payment required", paymentUid: payment?.uid };
@@ -1077,8 +1092,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
     }
 
+    // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
-    const payment = await handlePayment(evt, eventType, eventTypePaymentAppCredential, booking);
+    const payment = await handlePayment(
+      evt,
+      eventType,
+      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      booking
+    );
 
     req.statusCode = 201;
     return { ...booking, message: "Payment required", paymentUid: payment?.uid };
