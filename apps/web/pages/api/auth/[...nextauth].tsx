@@ -164,6 +164,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: !hostedCal,
     })
   );
 }
@@ -202,6 +203,7 @@ if (isSAMLLoginEnabled) {
       clientId: "dummy",
       clientSecret: "dummy",
     },
+    allowDangerousEmailAccountLinking: !hostedCal,
   });
 }
 
