@@ -240,7 +240,7 @@ export default function Success(props: SuccessProps) {
   const giphyAppData = getEventTypeAppData(eventType, "giphy");
   const giphyImage = giphyAppData?.thankYouPage;
 
-  const eventName = getEventName(eventNameObject);
+  const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
   const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
