@@ -4,6 +4,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
+import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -115,6 +116,26 @@ export const sendScheduledSeatsEmails = async (
   );
 
   await Promise.all(emailsToSend);
+};
+
+export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+  await Promise.all([
+    new Promise((resolve, reject) => {
+      try {
+        const attendeeCancelledSeatEmail = new AttendeeCancelledSeatEmail(calEvent, cancelledAttendee);
+        resolve(attendeeCancelledSeatEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("attendeeCancelledSeat.sendEmail failed", e));
+      }
+    }),
+    // new Promise((resolve, reject) => {
+    //   try {
+    //     const organizerAttendeeSeatCancelledEmail;
+    //   } catch (e) {
+    //     reject(console.error("organizerAttendeeSeatCalledEmail.sendEmail failed", e));
+    //   }
+    // });
+  ]);
 };
 
 export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
@@ -355,8 +376,4 @@ export const sendDisabledAppEmail = async ({
       reject(console.error("DisabledPaymentEmail.sendEmail failed", e));
     }
   });
-};
-
-export const sendCancelledSeatEmails = async () => {
-  return;
 };
