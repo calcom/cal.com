@@ -16,7 +16,7 @@ const CalendarCache = () => <div />;
 
 const paramsSchema = z.object({ user: z.string(), month: z.string() });
 export const getStaticProps: GetStaticProps<
-  { results: UnwrapPromise<ReturnType<typeof getCachedResults>> },
+  { results: Awaited<ReturnType<typeof getCachedResults>> },
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);
