@@ -34,6 +34,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo } from "@calcom/ui";
 import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
@@ -193,12 +194,9 @@ export default function Success(props: SuccessProps) {
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
 
-  const locationVideoCallUrl =
-    props?.bookingInfo?.metadata &&
-    typeof props.bookingInfo.metadata === "object" &&
-    "videoCallUrl" in props.bookingInfo.metadata
-      ? props.bookingInfo?.metadata?.videoCallUrl
-      : undefined;
+  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+    props?.bookingInfo?.metadata || {}
+  )?.videoCallUrl;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
