@@ -179,7 +179,7 @@ export const getCachedResults = async (
  * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
  * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
  * @param username
- * @param month
+ * @param month A string representing year and month using YYYY-MM format
  */
 const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
