@@ -15,6 +15,7 @@ import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
+import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
@@ -128,13 +129,17 @@ export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelled
         reject(console.error("attendeeCancelledSeat.sendEmail failed", e));
       }
     }),
-    // new Promise((resolve, reject) => {
-    //   try {
-    //     const organizerAttendeeSeatCancelledEmail;
-    //   } catch (e) {
-    //     reject(console.error("organizerAttendeeSeatCalledEmail.sendEmail failed", e));
-    //   }
-    // });
+    new Promise((resolve, reject) => {
+      try {
+        const organizerAttendeeSeatCancelledEmail = new OrganizerAttendeeCancelledSeatEmail(
+          calEvent,
+          cancelledAttendee
+        );
+        resolve(organizerAttendeeSeatCancelledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("organizerAttendeeSeatCalledEmail.sendEmail failed", e));
+      }
+    }),
   ]);
 };
 

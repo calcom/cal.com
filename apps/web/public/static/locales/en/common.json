@@ -1566,5 +1566,8 @@
   "collective_or_roundrobin": "Collective or round-robin",
   "book_your_team_members": "Book your team members together with collective events or cycle through to get the right person with round-robin.",
   "event_no_longer_attending_subject": "No longer attending {{title}} at {{date}}",
-  "no_longer_attending": "You are no longer attending this event"
+  "no_longer_attending": "You are no longer attending this event",
+  "attendee_no_longer_attending_subject": "An attendee is no longer attending {{title}} at {{date}}",
+  "attendee_no_longer_attending": "An attendee is no longer attending your event",
+  "attendee_no_longer_attending_subtitle": "{{name}} has cancelled. This means a seat has opened up for this time slot"
 }
