@@ -50,10 +50,13 @@ const AvailabilityView = ({ user }: { user: User }) => {
     <div className="max-w-xl overflow-hidden rounded-md border border-gray-200 bg-white">
       <div className="px-4">
         <Calendar
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           events={[...(data?.busy || []), ...overrides]
             .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
             .map((slot) => ({
-              id: 0,
+              // TODO: Modify the Calendar view to be better at displaying blocks.
+              id: undefined,
               title: slot.source || "",
               start: new Date(slot.start),
               end: new Date(slot.end),
