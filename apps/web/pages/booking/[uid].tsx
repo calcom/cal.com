@@ -193,9 +193,12 @@ export default function Success(props: SuccessProps) {
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
 
-  const locationVideoCallUrl = props.bookingInfo?.metadata?.videoCallUrl
-    ? props.bookingInfo?.metadata?.videoCallUrl
-    : undefined;
+  const locationVideoCallUrl =
+    props?.bookingInfo?.metadata &&
+    typeof props.bookingInfo.metadata === "object" &&
+    "videoCallUrl" in props.bookingInfo.metadata
+      ? props.bookingInfo?.metadata?.videoCallUrl
+      : undefined;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
