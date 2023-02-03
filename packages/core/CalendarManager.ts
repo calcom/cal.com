@@ -178,6 +178,7 @@ export const getCachedResults = async (
 /**
  * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
  * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
+ * On development environment it takes a long time because Next must compiles the whole page.
  * @param username
  * @param month
  */
@@ -201,14 +202,24 @@ const getNextCache = async (username: string, month: string): Promise<EventBusyD
 export const getBusyCalendarTimes = async (
   username: string,
   withCredentials: CredentialPayload[],
-  dateFrom: string
+  dateFrom: string,
+  dateTo: string
   // TODO: Make sure it's necessary
   // selectedCalendars: SelectedCalendar[]
 ) => {
-  /* Fetch the cached JSON file on development environment it takes a long time because Next must compiles the whole
-  page and reduces the cache time,*/
-  const results: EventBusyDate[][] = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
-
+  let results: EventBusyDate[][] = [];
+  if (dayjs(dateFrom).isSame(dayjs(dateTo), "month")) {
+    results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
+  } else {
+    // if dateFrom and dateTo is from different months get cache by each month
+    const monthsOfDiff = dayjs(dateTo).diff(dayjs(dateFrom), "month");
+    const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
+    for (let i = 1; i <= monthsOfDiff; i++) {
+      months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
+    }
+    const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
+    results = data.flat(1);
+  }
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

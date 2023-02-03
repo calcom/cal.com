@@ -80,7 +80,8 @@ export async function getBusyTimes(params: {
     const calendarBusyTimes = await getBusyCalendarTimes(
       username,
       credentials,
-      startTime
+      startTime,
+      endTime
       // selectedCalendars
     );
     busyTimes.push(
