@@ -9,7 +9,7 @@ import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
-  const trackedDomain = getAppData("trackedDomain");
+  const trackingId = getAppData("trackingId");
   const [enabled, setEnabled] = useState(getAppData("enabled"));
 
   return (
@@ -26,9 +26,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}>
       <TextField
         name="Tracked Domain"
-        value={trackedDomain}
+        value={trackingId}
         onChange={(e) => {
-          setAppData("trackedDomain", e.target.value);
+          setAppData("trackingId", e.target.value);
         }}
       />
     </AppCard>

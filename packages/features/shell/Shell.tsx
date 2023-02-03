@@ -783,12 +783,7 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div
-        className={classNames(
-          "mb-6 flex items-center sm:mt-0",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-          props.backPath === "/availability" && "ml-2.5 xl:ml-[7rem]"
-        )}>
+      <div className={classNames("mb-6 flex sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -799,7 +794,7 @@ export function ShellMain(props: LayoutProps) {
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="rounded-md ltr:mr-2 rtl:ml-2"
+            className="mt-2 rounded-md ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
