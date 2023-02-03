@@ -10,13 +10,11 @@ import { getCachedResults } from "@calcom/core";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
-type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
-
 const CalendarCache = () => <div />;
 
 const paramsSchema = z.object({ user: z.string(), month: z.string() });
 export const getStaticProps: GetStaticProps<
-  { results: UnwrapPromise<ReturnType<typeof getCachedResults>> },
+  { results: Awaited<ReturnType<typeof getCachedResults>> },
   { user: string }
 > = async (context) => {
   const { user: username, month } = paramsSchema.parse(context.params);

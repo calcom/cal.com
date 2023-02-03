@@ -180,7 +180,7 @@ export const getCachedResults = async (
  * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
  * On development environment it takes a long time because Next must compiles the whole page.
  * @param username
- * @param month
+ * @param month A string representing year and month using YYYY-MM format
  */
 const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
