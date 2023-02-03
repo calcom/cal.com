@@ -94,7 +94,7 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
         return (
           <React.Fragment key={index}>
             <div className="px-2.5">
-              {item.current === 0 && item.groupedIndex !== undefined && (
+              {item.current === 0 && item.groupedIndex !== undefined && !inputValue && (
                 <Label>{list[item.groupedIndex].label}</Label>
               )}
               <Item item={item} index={index} focused={focused} />
