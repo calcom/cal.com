@@ -250,9 +250,12 @@ const BookingPage = ({
 
   //FIXME: We need to be backward compatible in terms of pre-filling the form
   const getFormBuilderFieldValueFromQuery = (paramName: string) => {
-    const schema = getBookingResponsesSchema({
-      bookingFields: eventType.bookingFields,
-    });
+    const schema = getBookingResponsesSchema(
+      {
+        bookingFields: eventType.bookingFields,
+      },
+      true
+    );
     // string value for - text, textarea, select, radio,
     // string value with , for checkbox and multiselect
     // Object {value:"", optionValue:""} for radioInput

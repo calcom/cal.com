@@ -3,27 +3,45 @@ import z from "zod";
 
 import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-export default function getBookingResponsesSchema(eventType: {
-  bookingFields: z.infer<typeof eventTypeBookingFields>;
-}) {
+export default function getBookingResponsesSchema(
+  eventType: {
+    bookingFields: z.infer<typeof eventTypeBookingFields>;
+  },
+  partial = false
+) {
+  const schema = partial
+    ? bookingResponses.partial().and(z.record(z.any()))
+    : bookingResponses.and(z.record(z.any()));
+
   return z.preprocess(
-    (responses: Record<string, any>) => {
-      const newResponses: Record<string, any> = {};
+    (responses) => {
+      const parsedResponses = z.record(z.any()).parse(responses);
+      const newResponses = {} as typeof parsedResponses;
       eventType.bookingFields.forEach((field) => {
+        if (parsedResponses[field.name] === undefined) {
+          // If there is no response for the field, then we don't need to do any processing
+          return;
+        }
+        // Turn a boolean in string to a real boolean
         if (field.type === "boolean") {
-          newResponses[field.name] = responses[field.name] === "true" || responses[field.name] === true;
+          newResponses[field.name] =
+            parsedResponses[field.name] === "true" || parsedResponses[field.name] === true;
         } else {
-          newResponses[field.name] = responses[field.name];
+          newResponses[field.name] = parsedResponses[field.name];
         }
       });
       return newResponses;
     },
-    bookingResponses.superRefine((response, ctx) => {
+    schema.superRefine((response, ctx) => {
       eventType.bookingFields.forEach((input) => {
         const value = response[input.name];
         // Tag the message with the input name so that the message can be shown at appropriate plae
         const m = (message: string) => `{${input.name}}${message}`;
-        if (input.required && !value) ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`Required`) });
+        if ((partial || !input.required) && value === undefined) {
+          return;
+        }
+        if (input.required && !partial && !value)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`Required`) });
 
         if (input.type === "email") {
           // Email RegExp to validate if the input is a valid email

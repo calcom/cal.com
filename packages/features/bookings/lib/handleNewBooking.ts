@@ -639,7 +639,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       requiresConfirmation = false;
     }
   }
-
+  console.log("Custom Inputs", customInputs);
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
