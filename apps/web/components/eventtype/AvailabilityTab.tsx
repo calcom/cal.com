@@ -128,7 +128,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
             )}
           />
         </div>
-        <div className="space-y-4 rounded border p-4 py-6 pt-2 md:p-8">
+        <div className="space-y-4 rounded border px-6 pb-4">
           <ol className="table border-collapse text-sm">
             {weekdayNames(i18n.language, 1, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
@@ -173,7 +173,6 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
               color="minimal"
               EndIcon={FiExternalLink}
               target="_blank"
-              className="justify-center border sm:border-0"
               rel="noopener noreferrer">
               {t("edit_availability")}
             </Button>
