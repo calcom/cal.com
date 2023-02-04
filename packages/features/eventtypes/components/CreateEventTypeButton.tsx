@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -31,14 +34,16 @@ import {
   showToast,
   TextAreaField,
   TextField,
+  Checkbox,
 } from "@calcom/ui";
-import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
+  membershipRole?: MembershipRole | null;
   name?: string | null;
   slug?: string | null;
   image?: string | null;
@@ -83,10 +88,9 @@ const querySchema = z.object({
     .optional(),
 });
 
-const CreateEventTypeDialog = () => {
+const CreateEventTypeDialog = (props: { membershipRole: MembershipRole | null | undefined }) => {
   const { t } = useLocale();
   const router = useRouter();
-
   const {
     data: { teamId, eventPage: pageSlug, ...defaultValues },
   } = useTypedQuery(querySchema);
@@ -96,7 +100,13 @@ const CreateEventTypeDialog = () => {
     defaultValues,
   });
 
+  const schedulingTypeWatch = form.watch("schedulingType");
+
   const { register } = form;
+
+  const isAdmin =
+    teamId !== undefined &&
+    (props.membershipRole === MembershipRole.OWNER || props.membershipRole === MembershipRole.ADMIN);
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
@@ -167,26 +177,39 @@ const CreateEventTypeDialog = () => {
 
             {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
             process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
-              <TextField
-                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
-                required
-                addOnLeading={<>/{pageSlug}/</>}
-                {...register("slug")}
-                onChange={(e) => {
-                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                }}
-              />
+              <div>
+                <TextField
+                  label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                  required
+                  addOnLeading={
+                    <>/{schedulingTypeWatch !== SchedulingType.MANAGED ? pageSlug : "{username}"}/</>
+                  }
+                  {...register("slug")}
+                  onChange={(e) => {
+                    form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                  }}
+                />
+                {schedulingTypeWatch === SchedulingType.MANAGED && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
+              </div>
             ) : (
-              <TextField
-                label={t("url")}
-                required
-                addOnLeading={
-                  <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                  </>
-                }
-                {...register("slug")}
-              />
+              <div>
+                <TextField
+                  label={t("url")}
+                  required
+                  addOnLeading={
+                    <>
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+                      {schedulingTypeWatch !== SchedulingType.MANAGED ? pageSlug : "{username}"}/
+                    </>
+                  }
+                  {...register("slug")}
+                />
+                {schedulingTypeWatch === SchedulingType.MANAGED && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
+              </div>
             )}
 
             <TextAreaField
@@ -210,7 +233,9 @@ const CreateEventTypeDialog = () => {
 
             {teamId && (
               <div className="mb-4">
-                <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="schedulingType"
+                  className="mb-2 block text-sm font-medium leading-none text-gray-700">
                   {t("scheduling_type")}
                 </label>
                 {form.formState.errors.schedulingType && (
@@ -220,21 +245,35 @@ const CreateEventTypeDialog = () => {
                     message={form.formState.errors.schedulingType.message}
                   />
                 )}
-                <RadioArea.Group className="mt-1 flex space-x-4">
+                <RadioArea.Group className={classNames("mt-1 flex gap-4", isAdmin && "flex-col")}>
                   <RadioArea.Item
                     {...register("schedulingType")}
                     value={SchedulingType.COLLECTIVE}
-                    className="w-1/2 text-sm">
+                    className={classNames("w-full text-sm", !isAdmin && "w-1/2")}
+                    containerClassName={classNames(isAdmin && "w-full")}>
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
                   <RadioArea.Item
                     {...register("schedulingType")}
                     value={SchedulingType.ROUND_ROBIN}
-                    className="w-1/2 text-sm">
+                    className={classNames("text-sm", !isAdmin && "w-1/2")}
+                    containerClassName={classNames(isAdmin && "w-full")}>
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
+                  <>
+                    {isAdmin && (
+                      <RadioArea.Item
+                        {...register("schedulingType")}
+                        value={SchedulingType.MANAGED}
+                        className={classNames("text-sm", !isAdmin && "w-1/2")}
+                        containerClassName={classNames(isAdmin && "w-full")}>
+                        <strong className="mb-1 block">{t("managed_event")}</strong>
+                        <p>{t("managed_event_description")}</p>
+                      </RadioArea.Item>
+                    )}
+                  </>
                 </RadioArea.Group>
               </div>
             )}
@@ -256,6 +295,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const router = useRouter();
 
   const hasTeams = !!props.options.find((option) => option.teamId);
+  const [membershipRole, setMembershipRole] = useState<MembershipRole | null | undefined>(null);
 
   // inject selection data into url for correct router history
   const openModal = (option: EventTypeParent) => {
@@ -268,6 +308,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     if (!option.teamId) {
       delete query.teamId;
     }
+    setMembershipRole(option.membershipRole);
     router.push(
       {
         pathname: router.pathname,
@@ -323,7 +364,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       )}
       {/* Dialog for duplicate event type */}
       {router.query.dialog === "duplicate-event-type" && <DuplicateDialog />}
-      {router.query.dialog === "new-eventtype" && <CreateEventTypeDialog />}
+      {router.query.dialog === "new-eventtype" && <CreateEventTypeDialog membershipRole={membershipRole} />}
     </>
   );
 }

@@ -21,6 +21,7 @@ generator zod {
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")
   COLLECTIVE  @map("collective")
+  MANAGED     @map("managed")
 }
 
 enum PeriodType {

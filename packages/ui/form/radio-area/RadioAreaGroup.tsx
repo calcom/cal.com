@@ -2,10 +2,10 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-type RadioAreaProps = React.InputHTMLAttributes<HTMLInputElement>;
+type RadioAreaProps = React.InputHTMLAttributes<HTMLInputElement> & { containerClassName?: string };
 
 const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
-  ({ children, className, ...props }, ref) => {
+  ({ children, className, containerClassName, ...props }, ref) => {
     return (
       <label className={classNames("relative flex", className)}>
         <input
@@ -14,7 +14,11 @@ const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
           type="radio"
           {...props}
         />
-        <div className="peer-checked:border-brand rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
+        <div
+          className={classNames(
+            "peer-checked:border-brand rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500",
+            containerClassName
+          )}>
           {children}
         </div>
       </label>

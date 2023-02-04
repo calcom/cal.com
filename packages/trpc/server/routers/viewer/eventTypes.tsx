@@ -296,6 +296,7 @@ export const eventTypesRouter = router({
 
     type EventTypeGroup = {
       teamId?: number | null;
+      membershipRole?: MembershipRole | null;
       profile: {
         slug: typeof user["username"];
         name: typeof user["name"];
@@ -317,6 +318,7 @@ export const eventTypesRouter = router({
     const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
     eventTypeGroups.push({
       teamId: null,
+      membershipRole: null,
       profile: {
         slug: user.username,
         name: user.name,
@@ -332,6 +334,7 @@ export const eventTypesRouter = router({
       eventTypeGroups,
       user.teams.map((membership) => ({
         teamId: membership.team.id,
+        membershipRole: membership.role,
         profile: {
           name: membership.team.name,
           image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
@@ -350,6 +353,7 @@ export const eventTypesRouter = router({
       // so we can show a dropdown when the user has teams
       profiles: eventTypeGroups.map((group) => ({
         teamId: group.teamId,
+        membershipRole: group.membershipRole,
         ...group.profile,
         ...group.metadata,
       })),
@@ -444,6 +448,7 @@ export const eventTypesRouter = router({
       const eventType = await ctx.prisma.eventType.create({ data });
       return { eventType };
     } catch (e) {
+      console.log(e);
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });

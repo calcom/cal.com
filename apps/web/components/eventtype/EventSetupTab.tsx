@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -279,20 +280,30 @@ export const EventSetupTab = (
           defaultValue={eventType.description ?? ""}
           {...formMethods.register("description")}
         />
-        <TextField
-          required
-          label={t("URL")}
-          defaultValue={eventType.slug}
-          addOnLeading={
-            <>
-              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
-              {team ? "team/" + team.slug : eventType.users[0].username}/
-            </>
-          }
-          {...formMethods.register("slug", {
-            setValueAs: (v) => slugify(v),
-          })}
-        />
+        <div>
+          <TextField
+            required
+            label={t("URL")}
+            defaultValue={eventType.slug}
+            addOnLeading={
+              <>
+                {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+                {eventType.schedulingType === SchedulingType.MANAGED
+                  ? "{username}"
+                  : team
+                  ? "team/" + team.slug
+                  : eventType.users[0].username}
+                /
+              </>
+            }
+            {...formMethods.register("slug", {
+              setValueAs: (v) => slugify(v),
+            })}
+          />
+          {eventType.schedulingType === SchedulingType.MANAGED && (
+            <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+          )}
+        </div>
         {multipleDuration ? (
           <div className="space-y-4">
             <div>
