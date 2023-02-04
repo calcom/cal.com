@@ -320,6 +320,9 @@ const loggedInViewerRouter = router({
     // get all the connected integrations' calendars (from third party)
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
+    // store email of the destination calendar to display
+    let destinationCalendarEmail = null;
+
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
       if (user.destinationCalendar) {
@@ -342,6 +345,7 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
+      destinationCalendarEmail = user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -352,6 +356,7 @@ const loggedInViewerRouter = router({
           cal.externalId === user.destinationCalendar?.externalId &&
           cal.integration === user.destinationCalendar?.integration
       );
+
       if (!destinationCal) {
         // If destinationCalendar is out of date, update it with the first primary connected calendar
         const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
@@ -363,11 +368,18 @@ const loggedInViewerRouter = router({
           },
         });
       }
+      destinationCalendarEmail = user.destinationCalendar?.externalId;
+
+      // in case of office_365 external id is not email
+      if (user.destinationCalendar?.integration === "office365_calendar") {
+        destinationCalendarEmail = destinationCal?.email;
+      }
     }
 
     return {
       connectedCalendars,
       destinationCalendar: user.destinationCalendar,
+      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
