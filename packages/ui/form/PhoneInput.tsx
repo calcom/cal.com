@@ -1,3 +1,5 @@
+import { isSupportedCountry } from "libphonenumber-js";
+import { useEffect, useState } from "react";
 import type { Props } from "react-phone-number-input/react-hook-form";
 import BasePhoneInput from "react-phone-number-input/react-hook-form";
 import "react-phone-number-input/style.css";
@@ -19,10 +21,22 @@ function PhoneInput<FormValues>({
   onChange,
   ...rest
 }: PhoneInputProps<FormValues>) {
+  const [defaultCountry, setDefaultCountry] = useState("US");
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (isSupportedCountry(data.country_code)) setDefaultCountry(data.country_code);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
   return (
     <BasePhoneInput
       {...rest}
       international
+      defaultCountry={defaultCountry}
       name={name}
       control={control}
       onChange={onChange}
