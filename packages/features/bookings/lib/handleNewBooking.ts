@@ -1141,7 +1141,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: booking.uid,
       },
       data: {
-        metadata,
+        metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
         references: {
           createMany: {
             data: referencesToCreate,
