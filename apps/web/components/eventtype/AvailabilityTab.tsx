@@ -109,11 +109,9 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
     return (
       <div className="space-y-4">
         <div>
-          <div className="min-w-4 mb-2">
-            <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-gray-700">
-              {t("availability")}
-            </label>
-          </div>
+          <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
+            {t("availability")}
+          </label>
           <Controller
             name="schedule"
             render={({ field }) => (
