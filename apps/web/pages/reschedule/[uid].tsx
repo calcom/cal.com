@@ -12,6 +12,7 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  console.log("🚀 ~ file: [uid].tsx:15 ~ getServerSideProps ~ context", context.query);
   let bookingUid = z.string().parse(context.query.uid);
 
   // Booking uid while rescheduling can be a reference to bookingSeatsReferences Table
@@ -92,7 +93,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventType?.slug;
   return {
     redirect: {
-      destination: "/" + eventPage + "?rescheduleUid=" + z.string().parse(context.query.uid),
+      destination:
+        "/" +
+        eventPage +
+        "?rescheduleUid=" +
+        z.string().parse(context.query.uid) +
+        (context.query.seatReferenceUId ? `&seatReferenceUId=${context.query.seatReferenceUId}` : ""),
       permanent: false,
     },
   };

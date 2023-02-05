@@ -645,7 +645,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       },
     });
-    evt.attendeeUniqueId = attendeeUniqueId;
+    evt.attendeeSeatId = attendeeUniqueId;
 
     const newSeat = booking.attendees.length !== 0;
 
@@ -914,7 +914,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       // Save description to bookingSeatsReferences
 
       const uniqueAttendeeId = uuid();
-      await prisma.bookingSeatsReferences.create({
+      const seatReference = await prisma.bookingSeatsReferences.create({
         data: {
           referenceUId: uniqueAttendeeId,
           data: {
@@ -932,7 +932,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         },
       });
-      evt.attendeeUniqueId = uniqueAttendeeId;
+      evt.attendeeSeatId = uniqueAttendeeId;
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);

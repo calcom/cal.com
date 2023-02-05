@@ -249,6 +249,10 @@ const BookingPage = ({
     }
 
     const customInputType = booking.customInputs;
+
+    // If rescheduling on a booking with seats, find that attendee
+    console.log(booking);
+
     return {
       name: defaultUserValues.name,
       email: defaultUserValues.email || "",

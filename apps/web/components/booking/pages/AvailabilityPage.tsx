@@ -254,6 +254,7 @@ const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
+  seatReferenceUId: z.string().optional(),
 });
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;

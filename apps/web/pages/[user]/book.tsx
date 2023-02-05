@@ -141,6 +141,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If rescheduleUid and event has seats lets convert Uid to bookingUid
   let rescheduleUid = context.query.rescheduleUid as string;
+  const seatReferenceUId = context.query.seatReferenceUId as string;
   const rescheduleEventTypeHasSeats = context.query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
   let attendeeEmail: string;
   if (rescheduleEventTypeHasSeats) {
@@ -158,6 +159,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
+    // NOTE this isn't triggering
+    console.log("🚀 ~ file: book.tsx:161 ~ getServerSideProps ~ bookingSeatReference", bookingSeatReference);
     if (bookingSeatReference) {
       rescheduleUid = bookingSeatReference.booking.uid;
       attendeeEmail = bookingSeatReference.attendee.email;
@@ -168,7 +171,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (rescheduleUid || context.query.bookingUid) {
     booking = await getBooking(
       prisma,
-      rescheduleUid ? (rescheduleUid as string) : (context.query.bookingUid as string)
+      rescheduleUid ? (rescheduleUid as string) : (context.query.bookingUid as string),
+      seatReferenceUId
     );
   }
   if (rescheduleEventTypeHasSeats && booking?.attendees) {

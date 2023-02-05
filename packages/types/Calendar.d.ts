@@ -155,7 +155,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
-  attendeeUniqueId?: string;
+  attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
 }
 
