@@ -38,6 +38,7 @@ import {
   HeadSeo,
   showToast,
   SkeletonText,
+  Avatar,
 } from "@calcom/ui";
 import {
   FiMoreVertical,
@@ -274,14 +275,11 @@ function UserDropdown({ small }: { small?: boolean }) {
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
-              {
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  className="rounded-full"
-                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                  alt={user.username || "Nameless User"}
-                />
-              }
+              <Avatar
+                size="md"
+                alt={user.username || "Nameless User"}
+                imageSrc={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+              />
               {!user.away && (
                 <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
               )}

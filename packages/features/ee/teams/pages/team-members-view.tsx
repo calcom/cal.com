@@ -1,7 +1,7 @@
 import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { Key, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -90,13 +90,13 @@ const MembersView = () => {
             )}
             <div>
               <ul className="divide-y divide-gray-200 rounded-md border ">
-                {team?.members.map((member) => {
+                {team?.members.map((member: { id: Key | null | undefined }) => {
                   return <MemberListItem key={member.id} team={team} member={member} />;
                 })}
               </ul>
             </div>
             <hr className="my-8 border-gray-200" />
-
+ga
             {team && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}

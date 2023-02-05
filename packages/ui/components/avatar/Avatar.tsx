@@ -1,6 +1,7 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import Link from "next/link";
+import { Squircle } from "react-ios-corners";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
@@ -16,6 +17,7 @@ export type AvatarProps = {
   title?: string;
   alt: string;
   href?: string;
+  squircle?: boolean;
   gravatarFallbackMd5?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
@@ -32,21 +34,33 @@ const sizesPropsBySize = {
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, gravatarFallbackMd5, size, alt, title, href } = props;
-  const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
+  const { imageSrc, gravatarFallbackMd5, size, alt, title, href, squircle = true } = props;
+  const rootClass = classNames(
+    "aspect-square",
+    squircle ? "rounded-none" : "rounded-full",
+    sizesPropsBySize[size]
+  );
+
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
+        "item-center relative inline-flex aspect-square justify-center overflow-hidden",
+        squircle ? "rounded-none" : "rounded-full",
         props.className,
         sizesPropsBySize[size]
       )}>
-      <>
+      <Squircle>
         <AvatarPrimitive.Image
           src={imageSrc ?? undefined}
           alt={alt}
-          className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+          className={classNames(
+            "aspect-square",
+            squircle ? "rounded-none" : "rounded-full",
+            sizesPropsBySize[size]
+          )}
         />
+      </Squircle>
+      <Squircle>
         <AvatarPrimitive.Fallback delayMs={600} asChild={props.asChild}>
           <>
             {props.fallback && !gravatarFallbackMd5 && props.fallback}
@@ -55,18 +69,18 @@ export function Avatar(props: AvatarProps) {
             )}
           </>
         </AvatarPrimitive.Fallback>
-        {props.accepted && (
-          <div
-            className={classNames(
-              "absolute bottom-0 right-0 block rounded-full bg-green-400 text-white ring-2 ring-white",
-              size === "lg" ? "h-5 w-5" : "h-2 w-2"
-            )}>
-            <div className="flex h-full items-center justify-center p-[2px]">
-              {size === "lg" && <FiCheck />}
-            </div>
+      </Squircle>
+      {props.accepted && (
+        <div
+          className={classNames(
+            "absolute bottom-0 right-0 block rounded-full bg-green-400 text-white ring-2 ring-white",
+            size === "lg" ? "h-5 w-5" : "h-2 w-2"
+          )}>
+          <div className="flex h-full items-center justify-center p-[2px]">
+            {size === "lg" && <FiCheck />}
           </div>
-        )}
-      </>
+        </div>
+      )}
     </AvatarPrimitive.Root>
   );
 
