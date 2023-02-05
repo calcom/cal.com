@@ -42,6 +42,7 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
+  console.log("🚀 ~ file: BookingListItem.tsx:45 ~ BookingListItem ~ booking", booking);
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
@@ -93,20 +94,25 @@ function BookingListItem(booking: BookingItemProps) {
     mutation.mutate(body);
   };
 
+  // const getSeatReferenceUId = () => {
+  //   const attendee = booking.attendees.find((attendee) => {
+  //     if (attendee.email === user?.email) return attendee;
+  //   });
+
+  //   if (attendee) {
+  //     const attendeeSeatReference = booking.seatsReferences.find(
+  //       (attendeeSeatReference) => attendeeSeatReference.attendeeId === attendee.id
+  //     );
+
+  //     if (attendeeSeatReference) return attendeeSeatReference.referenceUId;
+  //   }
+
+  //   return "";
+  // };
   const getSeatReferenceUId = () => {
-    const attendee = booking.attendees.find((attendee) => {
-      if (attendee.email === user?.email) return attendee;
-    });
-
-    if (attendee) {
-      const attendeeSeatReference = booking.seatsReferences.find(
-        (attendeeSeatReference) => attendeeSeatReference.attendeeId === attendee.id
-      );
-
-      if (attendeeSeatReference) return attendeeSeatReference.referenceUId;
+    if (booking.seatsReferences.length > 0) {
+      return booking.seatsReferences[0].referenceUId;
     }
-
-    return "";
   };
 
   const pendingActions: ActionType[] = [
@@ -162,7 +168,9 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: FiClock,
           label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}`,
+          href: `/reschedule/${booking.uid}${
+            booking.seatsReferences.length ? `?seatReferenceUId=${getSeatReferenceUId()}` : ""
+          }`,
         },
         {
           id: "reschedule_request",

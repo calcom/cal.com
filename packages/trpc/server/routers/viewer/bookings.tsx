@@ -291,7 +291,21 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
-          seatsReferences: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUId: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
         orderBy,
         take: take + 1,
