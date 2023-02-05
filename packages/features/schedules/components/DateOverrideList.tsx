@@ -60,7 +60,15 @@ const DateOverrideList = ({
               ))
             )}
           </div>
-          <div className="space-x-2 rtl:space-x-reverse">
+          <div className="flex space-x-2 rtl:space-x-reverse">
+            <Button
+              className="text-gray-700"
+              tooltip={t("delete")}
+              color="minimal"
+              variant="icon"
+              StartIcon={FiTrash2}
+              onClick={() => remove(index)}
+            />
             <DateOverrideInputDialog
               excludedDates={excludedDates}
               workingHours={workingHours}
@@ -82,15 +90,6 @@ const DateOverrideList = ({
                 </DialogTrigger>
               }
             />
-            <Tooltip content="Delete">
-              <Button
-                className="text-gray-700"
-                color="destructive"
-                variant="icon"
-                StartIcon={FiTrash2}
-                onClick={() => remove(index)}
-              />
-            </Tooltip>
           </div>
         </li>
       ))}

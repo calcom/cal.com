@@ -208,7 +208,9 @@ export default function Availability({ scheduleId }: { scheduleId: number }) {
                 )}
               </div>
             </div>
-            {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+            <div className="my-6 rounded-md border">
+              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+            </div>
           </div>
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
