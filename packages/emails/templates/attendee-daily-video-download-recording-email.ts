@@ -46,9 +46,11 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   }
 
   protected getFormattedDate() {
+    // TODO: Figure out why this is throwing error
     // return `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
     //   this.getInviteeStart("dddd").toLowerCase()
     // )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;
+
     return "6:30pm - 6:45pm, Tuesday, February 21, 2023";
   }
 }
