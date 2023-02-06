@@ -1,4 +1,5 @@
 import { SchedulingType } from "@prisma/client";
+import cache from "memory-cache";
 import { z } from "zod";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
@@ -115,6 +116,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
     },
     select: {
       id: true,
+      slug: true,
       minimumBookingNotice: true,
       length: true,
       seatsPerTimeSlot: true,
@@ -320,10 +322,21 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   let availableTimeSlots: typeof timeSlots = [];
+  // Load cached busy slots
+  let slotBusy: string[] = [];
+  const busySlotName = `${eventType.slug}-${eventType.id}`;
+  const cachedBusySlot: string[] | undefined = cache.get(busySlotName);
+  if (cachedBusySlot && cachedBusySlot?.length > 0) {
+    slotBusy = cachedBusySlot?.map((slot: string) => {
+      return slot;
+    });
+  }
+
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
     return fixedHosts.every((schedule) => {
       const startCheckForAvailability = performance.now();
+
       const isAvailable = checkIfIsAvailable({
         time: slot.time,
         ...schedule,
@@ -358,7 +371,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       .filter((slot) => !!slot.userIds?.length);
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+  availableTimeSlots = availableTimeSlots.filter((slot) => {
+    if (slotBusy && slotBusy?.includes(slot.time.toISOString())) {
+      return false;
+    }
+    return isTimeWithinBounds(slot.time);
+  });
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
