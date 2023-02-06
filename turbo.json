@@ -69,7 +69,8 @@
         "$DATOCMS_GRAPHQL_ENDPOINT",
         "$DATOCMS_API_TOKEN",
         "$STRIPE_SUPPORT_TABLE",
-        "$ENVIRONMENT_URL"
+        "$ENVIRONMENT_URL",
+        "$CSP_POLICY"
       ],
       "outputs": [".next/**"]
     },

@@ -53,5 +53,10 @@ declare namespace NodeJS {
     readonly NEXT_PUBLIC_APP_NAME: string | "Cal";
     readonly NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS: string | "help@cal.com";
     readonly NEXT_PUBLIC_COMPANY_NAME: string | "Cal.com, Inc.";
+    /**
+     *  "strict" -> Strict CSP
+     *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
+     */
+    readonly CSP_POLICY: "strict" | "non-strict";
   }
 }
