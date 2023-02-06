@@ -92,7 +92,7 @@ const EventTypeUpdateInput = _EventTypeModel
         })
       )
       .optional(),
-    schedule: z.number().optional(),
+    schedule: z.number().nullable().optional(),
     hashedLink: z.string(),
   })
   .partial()
@@ -563,6 +563,12 @@ export const eventTypesRouter = router({
           },
         };
       }
+    }
+    // allows unsetting a schedule through { schedule: null, ... }
+    else if (null === schedule) {
+      data.schedule = {
+        disconnect: true,
+      };
     }
 
     if (users) {
