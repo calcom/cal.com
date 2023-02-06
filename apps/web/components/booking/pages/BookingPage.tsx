@@ -215,15 +215,48 @@ const BookingPage = ({
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid
-      ? booking?.attendees[0].email
-      : router.query.email
-      ? (router.query.email as string)
-      : "",
-    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
+    email:
+      rescheduleUid && router.query.seatReferenceUId
+        ? booking?.attendees.find((attendee) => {
+            if (
+              "bookingSeatReference" in attendee &&
+              attendee.bookingSeatReference[0].referenceUId === router.query.seatReferenceUId
+            )
+              return attendee;
+          })?.email
+        : rescheduleUid
+        ? booking?.attendees[0].email
+        : router.query.email
+        ? (router.query.email as string)
+        : "",
+    name:
+      rescheduleUid && router.query.seatReferenceUId
+        ? booking?.attendees.find((attendee) => {
+            if (
+              "bookingSeatReference" in attendee &&
+              attendee.bookingSeatReference[0].referenceUId === router.query.seatReferenceUId
+            )
+              return attendee;
+          })?.name
+        : rescheduleUid
+        ? booking?.attendees[0].name
+        : router.query.name
+        ? (router.query.name as string)
+        : "",
   };
 
   const defaultValues = () => {
+    console.log("🚀 ~ file: BookingPage.tsx:218 ~ defaultUserValues", defaultUserValues);
+    console.log(
+      booking?.attendees.find((attendee) => {
+        if (
+          "bookingSeatReference" in attendee &&
+          attendee.bookingSeatReference[0].referenceUId === router.query.seatReferenceUId
+        )
+          return attendee;
+      })
+    );
+
     if (!rescheduleUid) {
       return {
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
