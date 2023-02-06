@@ -23,10 +23,10 @@ function PhoneInput<FormValues>({
 }: PhoneInputProps<FormValues>) {
   const [defaultCountry, setDefaultCountry] = useState("US");
   useEffect(() => {
-    fetch("https://ipapi.co/json/")
+    fetch("/api/countrycode")
       .then((res) => res.json())
-      .then((data) => {
-        if (isSupportedCountry(data.country_code)) setDefaultCountry(data.country_code);
+      .then((res) => {
+        if (isSupportedCountry(res.countryCode)) setDefaultCountry(res.countryCode);
       })
       .catch((err) => {
         console.log(err);
