@@ -109,6 +109,7 @@ function Select<T extends Option>({
     (selected: Option) => {
       function update() {
         if (!isMultiple && !Array.isArray(selectedItems)) {
+          // Close dropdown when you select an item when we are on single select
           closeDropDown();
           onChange(selected);
           return;
