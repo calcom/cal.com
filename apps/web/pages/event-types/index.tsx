@@ -164,6 +164,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
+  const { data } = trpc.viewer.availability.list.useQuery();
+  const availabilities = data?.schedules?.map((schedule) => schedule.availability) ?? [];
+  const emptyAvailability = availabilities.filter((availability) => availability.length > 0).length === 0;
 
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
@@ -349,6 +352,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         {type.hidden && (
                           <Badge variant="gray" size="lg">
                             {t("hidden")}
+                          </Badge>
+                        )}
+                        {type.team === null && type.availability.length === 0 && emptyAvailability && (
+                          <Badge variant="red" size="lg">
+                            {t("empty_availability")}
                           </Badge>
                         )}
                         <Tooltip content={t("show_eventtype_on_profile")}>

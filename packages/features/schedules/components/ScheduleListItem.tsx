@@ -14,7 +14,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { FiAlertCircle, FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -51,6 +51,12 @@ export function ScheduleListItem({
               )}
             </div>
             <p className="mt-1 text-xs text-gray-500">
+              {schedule.availability.length === 0 && (
+                <div className="flex">
+                  <FiAlertCircle color="red" className="mr-1 mt-0.5" />
+                  <span className="">{t("no_availability_selected")}</span>
+                </div>
+              )}
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (

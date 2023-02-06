@@ -202,6 +202,11 @@ export const eventTypesRouter = router({
           },
         },
       },
+      availability: {
+        select: {
+          id: true,
+        },
+      },
       ...baseEventTypeSelect,
     });
 
