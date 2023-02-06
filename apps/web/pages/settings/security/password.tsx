@@ -1,6 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -58,6 +58,16 @@ const PasswordView = () => {
       showToast(t("password_has_been_changed"), "success");
       formMethods.resetField("oldPassword");
       formMethods.resetField("newPassword");
+
+      if (data?.user.role === "INACTIVE_ADMIN") {
+        /*
+      AdminPasswordBanner component relies on the role returned from the session.
+      Next-Auth doesn't provide a way to revalidate the session cookie,
+      so this a workaround to hide the banner after updating the password.
+      discussion: https://github.com/nextauthjs/next-auth/discussions/4229
+      */
+        signOut({ callbackUrl: "/auth/login" });
+      }
     },
     onError: (error) => {
       showToast(`${t("error_updating_password")}, ${error.message}`, "error");
