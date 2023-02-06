@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 
@@ -25,6 +25,38 @@ const flatternOptions = (options: Option[], groupCount?: number): FlattenedOptio
     return [...acc, { ...option, current, groupedIndex: groupCount }];
   }, [] as FlattenedOption[]);
 };
+
+function FilteredItem<T extends Option>({
+  index,
+  keyboardFocus,
+  item,
+  inputValue,
+  list,
+}: {
+  index: number;
+  keyboardFocus: number;
+  item: FlattenedOption;
+  inputValue: string;
+  list: T[];
+}) {
+  const focused = index === keyboardFocus;
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current && focused) {
+      ref.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [ref, focused]);
+
+  return (
+    <div className="px-2.5" key={index} ref={ref}>
+      {item.current === 0 && item.groupedIndex !== undefined && !inputValue && (
+        <Label>{list[item.groupedIndex].label}</Label>
+      )}
+      <Item item={item} index={index} focused={focused} />
+    </div>
+  );
+}
 
 function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsProps<T>) {
   const { classNames, handleValueChange } = useContext(SelectContext);
@@ -85,23 +117,19 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
 
   return (
     <div
-      role="options"
       className={
         classNames?.list ?? "flex max-h-72 flex-col space-y-[1px] overflow-y-auto overflow-y-scroll"
       }>
-      {filteredList?.map((item, index) => {
-        const focused = index === keyboardFocus;
-        return (
-          <React.Fragment key={index}>
-            <div className="px-2.5">
-              {item.current === 0 && item.groupedIndex !== undefined && !inputValue && (
-                <Label>{list[item.groupedIndex].label}</Label>
-              )}
-              <Item item={item} index={index} focused={focused} />
-            </div>
-          </React.Fragment>
-        );
-      })}
+      {filteredList?.map((item, index) => (
+        <FilteredItem
+          key={index}
+          item={item}
+          index={index}
+          keyboardFocus={keyboardFocus}
+          inputValue={inputValue}
+          list={list}
+        />
+      ))}
     </div>
   );
 }
