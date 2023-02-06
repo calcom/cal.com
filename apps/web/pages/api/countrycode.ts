@@ -5,7 +5,7 @@ export const config = {
 };
 
 export default async function handler(req: NextRequest) {
-  const countryCode = req.headers.get("x-vercel-ip-city") ?? "";
+  const countryCode = req.headers.get("x-vercel-ip-country") ?? "";
   return new Response(
     JSON.stringify({
       countryCode,
