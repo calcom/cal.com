@@ -1,4 +1,4 @@
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
 
@@ -100,7 +100,7 @@ export const EventTeamWebhooksTab = ({
               <>
                 {webhooks.length ? (
                   <>
-                    <div className="mt-4 mb-8 rounded-md border">
+                    <div className="mb-8 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
                           <WebhookListItem

@@ -163,6 +163,7 @@ const loggedInViewerRouter = router({
       avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
+      defaultScheduleId: user.defaultScheduleId,
       completedOnboarding: user.completedOnboarding,
       twoFactorEnabled: user.twoFactorEnabled,
       disableImpersonation: user.disableImpersonation,
@@ -586,12 +587,14 @@ const loggedInViewerRouter = router({
         locale: z.string().optional(),
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
+        metadata: userMetadata.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
+        metadata: input.metadata as Prisma.InputJsonValue,
       };
       let isPremiumUsername = false;
       if (input.username) {
@@ -1129,7 +1132,7 @@ const loggedInViewerRouter = router({
         roomName: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { roomName } = input;
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);

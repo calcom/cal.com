@@ -13,7 +13,7 @@ export const deploymentSetupRouter = router({
     )
     .mutation(async ({ input }) => {
       const data = {
-        licenseConsentAt: new Date(),
+        agreedLicenseAt: new Date(),
         ...(input.licenseKey ? { licenseKey: input.licenseKey } : {}),
       };
 

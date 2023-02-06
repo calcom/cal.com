@@ -75,7 +75,9 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             | F               | F             |        3 |
           */
           currentStep={(props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2}
-          baseURL={`/auth/setup?step=${isFreeLicense ? 3 : 4}`}
+          baseURL={`/auth/setup?step=${
+            (props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2
+          }`}
           setIsLoading={setIsLoading}
           useQueryParam={true}
         />
@@ -123,7 +125,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       data: {
         id: 1,
         licenseKey: process.env.CALCOM_LICENSE_KEY,
-        licenseConsentAt: new Date(),
+        agreedLicenseAt: new Date(),
       },
     });
   }

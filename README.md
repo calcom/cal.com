@@ -84,10 +84,11 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 
 ### Built With
 
-- [Next.js](https://nextjs.org/)
-- [React](https://reactjs.org/)
-- [Tailwind](https://tailwindcss.com/)
-- [Prisma](https://prisma.io/)
+- [Next.js](https://nextjs.org/?ref=cal.com)
+- [tRPC](https://trpc.io/?ref=cal.com)
+- [React](https://reactjs.org/?ref=cal.com)
+- [Tailwind](https://tailwindcss.com/?ref=cal.com)
+- [Prisma](https://prisma.io/?ref=cal.com)
 
 ## Stay Up-to-Date
 
