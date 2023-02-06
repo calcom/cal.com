@@ -14,9 +14,10 @@ interface ItemProps {
 
 const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
   const { classNames, selectedItems, handleValueChange } = useSelectContext();
+  const isMultiple = Array.isArray(selectedItems);
   const isSelected =
-    (Array.isArray(selectedItems) && selectedItems?.some((selection) => selection.value === item.value)) ||
-    (!Array.isArray(selectedItems) && selectedItems?.value === item.value);
+    (isMultiple && selectedItems?.some((selection) => selection.value === item.value)) ||
+    (!isMultiple && selectedItems?.value === item.value);
 
   return (
     <>
@@ -31,11 +32,15 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
               {item.leftNode && item.leftNode}
               <p>{item.label}</p>
             </div>
-            <div
-              className={cn(
-                "text-primary-600 h-4 w-4 rounded-[4px] border border-gray-300 bg-gray-50 ltr:mr-2 rtl:ml-2 "
-              )}
-            />
+            {isMultiple ? (
+              <div
+                className={cn(
+                  "text-primary-600 h-4 w-4 rounded-[4px] border border-gray-300 bg-gray-50 ltr:mr-2 rtl:ml-2 "
+                )}
+              />
+            ) : (
+              isSelected && <FiCheck className="h-3 w-3 text-black" strokeWidth={2} />
+            )}
           </>
         </li>
       ) : (
@@ -55,13 +60,17 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
             <p>{item.label}</p>
           </div>
 
-          <div
-            className={cn(
-              "flex h-4 w-4 items-center justify-center rounded-[4px]  border ltr:mr-2 rtl:ml-2",
-              isSelected ? "bg-gray-800 text-gray-50" : "text-primary-600 border-gray-300 bg-gray-50"
-            )}>
-            {isSelected && <FiCheck className="h-3 w-3 text-current" />}
-          </div>
+          {isMultiple ? (
+            <div
+              className={cn(
+                "flex h-4 w-4 items-center justify-center rounded-[4px]  border ltr:mr-2 rtl:ml-2",
+                isSelected ? "bg-gray-800 text-gray-50" : "text-primary-600 border-gray-300 bg-gray-50"
+              )}>
+              {isSelected && <FiCheck className="h-3 w-3 text-current" />}
+            </div>
+          ) : (
+            isSelected && <FiCheck className="h-3 w-3 text-black" strokeWidth={2} />
+          )}
         </li>
       )}
     </>
