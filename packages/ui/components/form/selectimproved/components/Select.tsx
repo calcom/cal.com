@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
+import useOnClickOutside from "@calcom/lib/hooks/useOnclickOutside";
 
 import { FiX, FiChevronDown } from "../../../icon";
-import useOnClickOutside from "../hooks/use-onclick-outside";
 import Options from "./Options";
 import SearchInput from "./SearchInput";
 import SelectProvider from "./SelectProvider";
