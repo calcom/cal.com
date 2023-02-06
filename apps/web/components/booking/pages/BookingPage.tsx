@@ -105,6 +105,7 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
+  console.log("🚀 ~ file: BookingPage.tsx:108 ~ booking", booking);
   const { t, i18n } = useLocale();
   const { duration: queryDuration } = useRouterQuery("duration");
   const isEmbed = useIsEmbed(restProps.isEmbed);

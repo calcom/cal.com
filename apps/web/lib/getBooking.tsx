@@ -20,7 +20,12 @@ async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: 
     where: {
       uid,
     },
-    select: { ...bookingSelect, ...(seatReferenceUId && { attendees: true, seatsReferences: true }) },
+    select: {
+      ...bookingSelect,
+      ...(seatReferenceUId && {
+        attendees: { include: { bookingSeatReference: true } },
+      }),
+    },
   });
   console.log("🚀 ~ file: getBooking.tsx:24 ~ getBooking ~ booking", booking);
 
