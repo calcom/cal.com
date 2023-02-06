@@ -185,13 +185,9 @@ const EventTypeSchedule = () => {
   );
 };
 
-export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
+const UseCommonScheduleSettingsToggle = () => {
   const { t } = useLocale();
-
-  if (!isTeamEvent) {
-    return <EventTypeSchedule />;
-  }
-
+  const { resetField, setValue } = useFormContext<FormValues>();
   return (
     <Controller
       name="metadata.config.useHostSchedulesForTeamEvent"
@@ -200,6 +196,11 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
           checked={!value}
           onCheckedChange={(checked) => {
             onChange(!checked);
+            if (checked) {
+              resetField("schedule");
+            } else {
+              setValue("schedule", null);
+            }
           }}
           title={t("choose_common_schedule_team_event")}
           description={t("choose_common_schedule_team_event_description")}>
@@ -208,4 +209,8 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
       )}
     />
   );
+};
+
+export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
+  return isTeamEvent ? <UseCommonScheduleSettingsToggle /> : <EventTypeSchedule />;
 };
