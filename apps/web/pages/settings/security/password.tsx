@@ -1,7 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { Trans } from "next-i18next";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -20,6 +19,7 @@ type ChangePasswordSessionFormValues = {
 };
 
 const PasswordView = () => {
+  const { data } = useSession();
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
@@ -119,12 +119,7 @@ const PasswordView = () => {
               <PasswordField {...formMethods.register("newPassword")} label={t("new_password")} />
             </div>
           </div>
-          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
-            <Trans i18nKey="invalid_password_hint">
-              Password must be at least at least 7 characters, mix of uppercase & lowercase letters, and
-              contain at least 1 number.
-            </Trans>
-          </p>
+          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">{t("invalid_password_hint")}</p>
           <div className="mt-8 border-t border-gray-200 py-8">
             <SettingsToggle
               title={t("session_timeout")}
