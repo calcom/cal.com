@@ -163,6 +163,7 @@ const loggedInViewerRouter = router({
       avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
+      defaultScheduleId: user.defaultScheduleId,
       completedOnboarding: user.completedOnboarding,
       twoFactorEnabled: user.twoFactorEnabled,
       disableImpersonation: user.disableImpersonation,
