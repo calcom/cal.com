@@ -105,7 +105,6 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
-  console.log("🚀 ~ file: BookingPage.tsx:108 ~ booking", booking);
   const { t, i18n } = useLocale();
   const { duration: queryDuration } = useRouterQuery("duration");
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -430,24 +429,26 @@ const BookingPage = ({
 
     // Validate that guests are unique
     let alreadyInvited = false;
-    booking.guests?.forEach((guest, index) => {
-      if (guest.email === booking.email) {
-        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-        alreadyInvited = true;
-      }
+    if (!router.query.seatReferenceUId) {
+      booking.guests?.forEach((guest, index) => {
+        if (guest.email === booking.email) {
+          bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+          alreadyInvited = true;
+        }
 
-      if (booking.guests) {
-        let guestCount = 0;
-        for (const checkGuest of booking.guests) {
-          if (checkGuest.email === guest.email) guestCount++;
-          if (guestCount > 1) {
-            bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-            alreadyInvited = true;
-            break;
+        if (booking.guests) {
+          let guestCount = 0;
+          for (const checkGuest of booking.guests) {
+            if (checkGuest.email === guest.email) guestCount++;
+            if (guestCount > 1) {
+              bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+              alreadyInvited = true;
+              break;
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     if (alreadyInvited) return;
 
