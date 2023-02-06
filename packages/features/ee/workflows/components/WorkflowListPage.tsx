@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Team } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -15,6 +16,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
   Tooltip,
+  Badge,
 } from "@calcom/ui";
 import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2, FiZap } from "@calcom/ui/components/icon";
 
@@ -23,6 +25,7 @@ import { DeleteDialog } from "./DeleteDialog";
 import EmptyScreen from "./EmptyScreen";
 
 export type WorkflowType = Workflow & {
+  team: Team;
   steps: WorkflowStep[];
   activeOn: {
     eventType: {
@@ -75,38 +78,49 @@ export default function WorkflowListPage({ workflows, profiles, hasNoWorkflows }
                             ")"
                           : "Untitled"}
                       </div>
-                      <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
-                        <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-                          <div>
-                            {getActionIcon(workflow.steps)}
+                      <ul className="mt-1 flex flex-wrap space-x-2 sm:flex-nowrap ">
+                        <li>
+                          <Badge variant="gray">
+                            <div>
+                              {getActionIcon(workflow.steps)}
 
-                            <span className="mr-1">{t("triggers")}</span>
-                            {workflow.timeUnit && workflow.time && (
-                              <span className="mr-1">
-                                {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
-                              </span>
-                            )}
-                            <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
-                          </div>
+                              <span className="mr-1">{t("triggers")}</span>
+                              {workflow.timeUnit && workflow.time && (
+                                <span className="mr-1">
+                                  {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
+                                </span>
+                              )}
+                              <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
+                            </div>
+                          </Badge>
                         </li>
-                        <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-                          {workflow.activeOn && workflow.activeOn.length > 0 ? (
-                            <Tooltip
-                              content={workflow.activeOn.map((activeOn, key) => (
-                                <p key={key}>{activeOn.eventType.title}</p>
-                              ))}>
+                        <li>
+                          <Badge variant="gray">
+                            {workflow.activeOn && workflow.activeOn.length > 0 ? (
+                              <Tooltip
+                                content={workflow.activeOn.map((activeOn, key) => (
+                                  <p key={key}>{activeOn.eventType.title}</p>
+                                ))}>
+                                <div>
+                                  <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                </div>
+                              </Tooltip>
+                            ) : (
                               <div>
                                 <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                {t("no_active_event_types")}
                               </div>
-                            </Tooltip>
-                          ) : (
-                            <div>
-                              <FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                              {t("no_active_event_types")}
-                            </div>
-                          )}
+                            )}
+                          </Badge>
                         </li>
+                        {workflow.teamId && (
+                          <li>
+                            <Badge variant="gray">
+                              <>{workflow.team.name}</>
+                            </Badge>
+                          </li>
+                        )}
                       </ul>
                     </div>
                   </Link>

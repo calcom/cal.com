@@ -116,6 +116,7 @@ export const workflowsRouter = router({
           },
         },
         steps: true,
+        team: true,
       },
       orderBy: {
         id: "asc",
