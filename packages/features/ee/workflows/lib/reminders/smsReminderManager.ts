@@ -25,8 +25,13 @@ export enum timeUnitLowerCase {
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: Person[];
-  organizer: Person;
+  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
+  organizer: {
+    language: { locale: string };
+    name: string;
+    email: string;
+    timeZone: string;
+  };
   startTime: string;
   endTime: string;
   title: string;
