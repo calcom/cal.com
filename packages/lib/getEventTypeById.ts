@@ -49,9 +49,10 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
   };
 
-  const systemFields: typeof bookingFields = [
+  // These fields should be added before other user fields
+  const systemBeforeFields: typeof bookingFields = [
     {
-      label: "Your name",
+      label: "your_name",
       type: "name",
       name: "name",
       required: true,
@@ -65,7 +66,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      label: "Your email",
+      label: "email_address",
       type: "email",
       name: "email",
       required: true,
@@ -79,7 +80,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      label: "Location",
+      label: "location",
       type: "radioInput",
       name: "location",
       editable: "system",
@@ -106,8 +107,12 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
+  ];
+
+  // These fields should be added after other user fields
+  const systemAfterFields: typeof bookingFields = [
     {
-      label: "Additional Notes",
+      label: "additional_notes",
       type: "textarea",
       name: "notes",
       editable: "system-but-optional",
@@ -121,7 +126,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
     {
-      label: "Add guests",
+      label: "additional_guests",
       type: "multiemail",
       name: "guests",
       editable: "system-but-optional",
@@ -137,7 +142,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
     {
       //TODO: How to translate in user language?
-      label: "Reschedule Reason",
+      label: "reschedule_reason",
       type: "textarea",
       name: "rescheduleReason",
       editable: "system",
@@ -154,16 +159,16 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
   ];
 
-  const missingSystemFields = [];
-  // Push system fields first if any of them don't exist. We can't simply live without system fields
-  for (const field of systemFields) {
+  const missingSystemBeforeFields = [];
+  for (const field of systemBeforeFields) {
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
     if (!bookingFields.find((f) => f.name === field.name)) {
-      missingSystemFields.push(field);
+      missingSystemBeforeFields.push(field);
     }
   }
 
-  bookingFields = missingSystemFields.concat(bookingFields);
+  bookingFields = missingSystemBeforeFields.concat(bookingFields);
+
   // If we are migrating from old system, we need to add custom inputs to the end of the list
   if (handleMigration) {
     customInputs.forEach((input) => {
@@ -187,6 +192,16 @@ export const ensureBookingInputsHaveSystemFields = ({
       });
     });
   }
+
+  const missingSystemAfterFields = [];
+  for (const field of systemAfterFields) {
+    // Only do a push, we must not update existing system fields as user could have modified any property in it,
+    if (!bookingFields.find((f) => f.name === field.name)) {
+      missingSystemAfterFields.push(field);
+    }
+  }
+
+  bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

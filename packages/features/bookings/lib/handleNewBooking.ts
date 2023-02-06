@@ -328,7 +328,7 @@ function getBookingData({
       ...reqBody,
       name: responses.name,
       email: responses.email,
-      guests: responses.guests ? responses.guests.split(",") : [],
+      guests: responses.guests ? responses.guests : [],
       location: responses.location?.optionValue || responses.location?.value || "",
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes,

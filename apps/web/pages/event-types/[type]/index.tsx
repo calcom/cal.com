@@ -190,7 +190,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       startDate: periodDates.startDate,
       endDate: periodDates.endDate,
     },
-    bookingFields: eventType.bookingFields,
+    bookingFields: eventType.bookingFields.map((field) => ({
+      ...field,
+      label: t(field.label),
+    })),
     periodType: eventType.periodType,
     periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
     schedulingType: eventType.schedulingType,

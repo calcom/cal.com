@@ -5,11 +5,13 @@ import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-uti
 
 export default function getBookingResponsesSchema(
   eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields>;
+    bookingFields: z.infer<typeof eventTypeBookingFields> &
+      z.infer<typeof eventTypeBookingFields> &
+      z.BRAND<"HAS_SYSTEM_FIELDS">;
   },
-  partial = false
+  forgiving = false
 ) {
-  const schema = partial
+  const schema = forgiving
     ? bookingResponses.partial().and(z.record(z.any()))
     : bookingResponses.and(z.record(z.any()));
 
@@ -32,53 +34,64 @@ export default function getBookingResponsesSchema(
       });
       return newResponses;
     },
-    schema.superRefine((response, ctx) => {
-      eventType.bookingFields.forEach((input) => {
-        const value = response[input.name];
+    schema.superRefine((responses, ctx) => {
+      eventType.bookingFields.forEach((bookingField) => {
+        const value = responses[bookingField.name];
+        const emailSchema = forgiving ? z.string() : z.string().email();
+        const phoneSchema = forgiving ? z.string() : z.string().refine((val) => isValidPhoneNumber(val));
         // Tag the message with the input name so that the message can be shown at appropriate plae
-        const m = (message: string) => `{${input.name}}${message}`;
-        if ((partial || !input.required) && value === undefined) {
+        const m = (message: string) => `{${bookingField.name}}${message}`;
+        if ((forgiving || !bookingField.required) && value === undefined) {
           return;
         }
-        if (input.required && !partial && !value)
+        if (bookingField.required && !forgiving && !value)
           ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`Required`) });
 
-        if (input.type === "email") {
+        if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
-          if (!z.string().email().safeParse(value).success)
+          if (!emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               //TODO: How to do translation in booker language here?
               message: m("That doesn't look like an email address"),
             });
+            return;
+          }
+        }
+        if (bookingField.type === "multiemail") {
+          if (!emailSchema.array().safeParse(value).success) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              //TODO: How to do translation in booker language here?
+              message: m("That doesn't look like an email address"),
+            });
+            return;
+          }
+          return;
         }
 
-        if (input.type === "phone") {
-          if (
-            !z
-              .string()
-              .refine((val) => isValidPhoneNumber(val))
-              .optional()
-              .nullable()
-              .safeParse(value).success
-          ) {
+        if (bookingField.type === "phone") {
+          if (!phoneSchema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid Phone") });
           }
         }
 
-        if (input.type === "boolean") {
-          const schema = z.preprocess((val) => {
-            return val === "true";
-          }, z.boolean());
+        if (bookingField.type === "boolean") {
+          const schema = z.boolean();
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid Boolean") });
           }
         }
-        if (input.type === "radioInput" && input.optionsInputs) {
+
+        if (bookingField.type === "radioInput" && bookingField.optionsInputs) {
           //FIXME: ManageBookings: If there is just one option then it is not required to show the radio options
           // Also, if the option is there with one input, we need to show just the input and not radio
-          if (input.required && input.optionsInputs[value?.value]?.required && !value?.optionValue) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Required") });
+          if (
+            bookingField.required &&
+            bookingField.optionsInputs[value?.value]?.required &&
+            !value?.optionValue
+          ) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Required Option Value") });
           }
         }
 

@@ -2,7 +2,14 @@ import { PeriodType, Prisma, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
-import { CustomInputSchema, EventTypeMetaDataSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import {
+  CustomInputSchema,
+  EventTypeMetaDataSchema,
+  customInputSchema,
+  eventTypeBookingFields,
+} from "@calcom/prisma/zod-utils";
+
+import { ensureBookingInputsHaveSystemFields } from "./getEventTypeById";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -87,7 +94,12 @@ const commons = {
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
-  bookingFields: eventTypeBookingFields.parse([]),
+  bookingFields: ensureBookingInputsHaveSystemFields({
+    bookingFields: eventTypeBookingFields.parse([]),
+    disableGuests: true,
+    additionalNotesRequired: false,
+    customInputs: customInputSchema.array().parse([]),
+  }),
 };
 
 const min15Event = {

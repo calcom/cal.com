@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import Widgets, {
   TextLikeComponentProps,
   SelectLikeComponentProps,
 } from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
-import { PhoneInput, AddressInput, Label, Group, RadioField } from "@calcom/ui";
+import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import { FiInfo, FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
 import { fieldsSchema } from "./FormBuilderFieldsSchema";
@@ -71,12 +74,110 @@ export const Components = {
     },
   },
   multiemail: {
-    propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
-      //TODO: ManageBookings: Make it use multiemail
-      return <Widgets.TextWidget type="email" {...props} />;
+    propsType: "textList",
+    factory: <TProps extends SelectLikeComponentProps<string[]>>({
+      value,
+      label,
+      setValue,
+      ...props
+    }: TProps) => {
+      const placeholder = props.placeholder;
+      const { t } = useLocale();
+      value = value || [];
+      const inputClassName =
+        "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
+      return (
+        <>
+          {value.length ? (
+            <div className="mb-4">
+              <div>
+                <label
+                  htmlFor="guests"
+                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                  {label}
+                </label>
+                <ul>
+                  {value.map((field, index) => (
+                    <li key={index}>
+                      <EmailField
+                        value={value[index]}
+                        onChange={(e) => {
+                          value[index] = e.target.value;
+                          setValue(value);
+                        }}
+                        className={classNames(
+                          inputClassName,
+                          // bookingForm.formState.errors.guests?.[index] &&
+                          //   "!focus:ring-red-700 !border-red-700",
+                          "border-r-0"
+                        )}
+                        addOnClassname={classNames(
+                          "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 "
+                          // bookingForm.formState.errors.guests?.[index] &&
+                          //   "!focus:ring-red-700 !border-red-700"
+                        )}
+                        placeholder={placeholder}
+                        label={<></>}
+                        required
+                        addOnSuffix={
+                          <Tooltip content="Remove email">
+                            <button
+                              className="m-1 disabled:hover:cursor-not-allowed"
+                              type="button"
+                              onClick={() => {
+                                value.splice(index, 1);
+                                setValue(value);
+                              }}>
+                              <FiX className="text-gray-600" />
+                            </button>
+                          </Tooltip>
+                        }
+                      />
+                      {/* {bookingForm.formState.errors.guests?.[index] && (
+                        <div className="mt-2 flex items-center text-sm text-red-700 ">
+                          <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                          <p className="text-red-700">
+                            {bookingForm.formState.errors.guests?.[index]?.message}
+                          </p>
+                        </div>
+                      )} */}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  type="button"
+                  color="minimal"
+                  StartIcon={FiUserPlus}
+                  className="my-2.5"
+                  // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
+                  onClick={() => {
+                    value.push("");
+                    setValue(value);
+                  }}>
+                  {t("add_another")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+
+          {!value.length && (
+            <Button
+              color="minimal"
+              variant="button"
+              StartIcon={FiUserPlus}
+              onClick={() => {
+                value.push("");
+                setValue(value);
+              }}
+              className="mr-auto">
+              {label}
+            </Button>
+          )}
+        </>
+      );
     },
-    valuePlaceholder: "Enter Email Addresses",
   },
   multiselect: {
     propsType: "multiselect",

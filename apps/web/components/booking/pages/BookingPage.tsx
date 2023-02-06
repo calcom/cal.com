@@ -33,25 +33,8 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import {
-  AddressInput,
-  Button,
-  EmailField,
-  EmailInput,
-  Form,
-  Group,
-  PhoneInput,
-  RadioField,
-  Tooltip,
-} from "@calcom/ui";
-import {
-  FiUserPlus,
-  FiCalendar,
-  FiCreditCard,
-  FiRefreshCw,
-  FiUser,
-  FiAlertTriangle,
-} from "@calcom/ui/components/icon";
+import { Button, Form, Tooltip } from "@calcom/ui";
+import { FiCalendar, FiCreditCard, FiRefreshCw, FiUser, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -87,6 +70,7 @@ const BookingFields = ({
         if (field.hidden) return null;
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+        //TODO: `rescheduleReason` should be an enum or similar to avoid typos
         if (field.name === "rescheduleReason") {
           if (!rescheduleUid) {
             return null;
@@ -119,6 +103,8 @@ const BookingFields = ({
             selectedLocation?.attendeeInputPlaceholder || ""
           );
         }
+
+        field.label = t(field.label);
 
         return <FormBuilderField field={field} readOnly={readOnly} key={index} />;
       })}
@@ -222,19 +208,26 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
+  const querySchema = getBookingResponsesSchema(
+    {
+      bookingFields: eventType.bookingFields,
+    },
+    true
+  );
+  // string value for - text, textarea, select, radio,
+  // string value with , for checkbox and multiselect
+  // Object {value:"", optionValue:""} for radioInput
+  const parsedQuery = querySchema.parse({
+    ...router.query,
+    guests: router.query.guest,
+  });
 
-  const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: LocationObject[] = useMemo(
     () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 
-  useEffect(() => {
-    if (router.query.guest) {
-      setGuestToggle(true);
-    }
-  }, [router.query.guest]);
   const [isClientTimezoneAvailable, setIsClientTimezoneAvailable] = useState(false);
   useEffect(() => {
     // THis is to fix hydration error that comes because of different timezone on server and client
@@ -242,24 +235,9 @@ const BookingPage = ({
   }, []);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
-  const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => {
-        return { email: attendee.email };
-      })
-    : [];
 
-  //FIXME: We need to be backward compatible in terms of pre-filling the form
   const getFormBuilderFieldValueFromQuery = (paramName: string) => {
-    const schema = getBookingResponsesSchema(
-      {
-        bookingFields: eventType.bookingFields,
-      },
-      true
-    );
-    // string value for - text, textarea, select, radio,
-    // string value with , for checkbox and multiselect
-    // Object {value:"", optionValue:""} for radioInput
-    return schema.parse(router.query)[paramName];
+    return parsedQuery[paramName];
   };
 
   // There should only exists one default userData variable for primaryAttendee.
@@ -323,17 +301,7 @@ const BookingPage = ({
     .passthrough();
 
   type BookingFormValues = {
-    name: string;
-    email: string;
-    notes?: string;
     locationType?: EventLocationType["type"];
-    guests?: string[];
-    address?: string;
-    attendeeAddress?: string;
-    phone?: string;
-    hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-    rescheduleReason?: string;
-    smsReminderNumber?: string;
     responses: z.infer<typeof bookingFormSchema>["responses"];
   };
 

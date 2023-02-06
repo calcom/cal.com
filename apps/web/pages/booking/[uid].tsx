@@ -1050,6 +1050,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
+
   const bookingInfo = {
     ...bookingInfoRaw,
     responses: getBookingResponsesSchema(eventTypeRaw).parse(bookingInfoRaw.responses),

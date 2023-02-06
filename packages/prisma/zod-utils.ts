@@ -55,11 +55,11 @@ export const EventTypeMetaDataSchema = z
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
 
-// Real validation happens using getBookingResponsesSchema which requires eventType. Is there a better way to do it?
+// Validation of user added bookingFields's responses happen using getBookingResponsesSchema which requires eventType.
 export const bookingResponses = z.object({
   email: z.string(),
   name: z.string(),
-  guests: z.string().optional(),
+  guests: z.array(z.string()).optional(),
   notes: z.string().optional(),
   location: z
     .object({

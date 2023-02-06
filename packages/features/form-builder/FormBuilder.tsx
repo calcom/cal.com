@@ -33,6 +33,10 @@ type RhfForm = {
 type RhfFormFields = RhfForm["fields"];
 type RhfFormField = RhfFormFields[number];
 
+/**
+ * It works with a react-hook-form only.
+ * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
+ */
 export const FormBuilder = function FormBuilder({
   title,
   description,
@@ -49,62 +53,76 @@ export const FormBuilder = function FormBuilder({
     label: string;
     needsOptions?: boolean;
     systemOnly?: boolean;
+    isTextType?: boolean;
   }[] = [
     {
       label: "Name",
       value: "name",
+      isTextType: true,
     },
     {
       label: "Email",
       value: "email",
+      isTextType: true,
     },
     {
       label: "Phone",
       value: "phone",
+      isTextType: true,
     },
     {
       label: "Short Text",
       value: "text",
+      isTextType: true,
     },
     {
       label: "Number",
       value: "number",
+      isTextType: true,
     },
     {
       label: "Long Text",
       value: "textarea",
+      isTextType: true,
     },
     {
       label: "Select",
       value: "select",
       needsOptions: true,
+      isTextType: true,
     },
     {
       label: "MultiSelect",
       value: "multiselect",
       needsOptions: true,
+      isTextType: false,
     },
     {
       label: "Multiple Emails",
       value: "multiemail",
+      isTextType: true,
     },
     {
       label: "Radio Input",
       value: "radioInput",
+      isTextType: false,
     },
     {
       label: "Checkbox Group",
       value: "checkbox",
       needsOptions: true,
+      isTextType: false,
     },
     {
       label: "Radio Group",
       value: "radio",
       needsOptions: true,
+      isTextType: false,
     },
     {
       label: "Checkbox",
       value: "boolean",
+      isTextType: false,
     },
   ];
   // I would have like to give Form Builder it's own Form but nested Forms aren't something that browsers support.
@@ -143,7 +161,6 @@ export const FormBuilder = function FormBuilder({
         value: "2",
       },
     ];
-    // const [optionsState, setOptionsState] = useState(options);
     return (
       <div className={className}>
         <Label>{label}</Label>
@@ -363,7 +380,6 @@ export const FormBuilder = function FormBuilder({
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label="Input Type"
               />
-              <InputField {...fieldForm.register("label")} required containerClassName="mt-6" label="Label" />
               <InputField
                 required
                 {...fieldForm.register("name")}
@@ -374,6 +390,15 @@ export const FormBuilder = function FormBuilder({
                 }
                 label="Name"
               />
+              <InputField {...fieldForm.register("label")} required containerClassName="mt-6" label="Label" />
+              {fieldType?.isTextType ? (
+                <InputField
+                  {...fieldForm.register("placeholder")}
+                  containerClassName="mt-6"
+                  label="Placeholder"
+                />
+              ) : null}
+
               {fieldType?.needsOptions ? (
                 <Controller
                   name="options"
@@ -420,17 +445,16 @@ const WithLabel = ({
   readOnly: boolean;
   children: React.ReactNode;
 }) => {
-  const { t } = useLocale();
   return (
     <div>
-      <div className="mb-2 flex items-center">
-        {field.type !== "boolean" && <Label className="!mb-0">{field.label}</Label>}
-        {!readOnly && !field.required && (
-          <Badge className="ml-2" variant="gray">
-            {t("optional")}
-          </Badge>
-        )}
-      </div>
+      {field.type !== "boolean" && field.type !== "multiemail" && (
+        <div className="mb-2 flex items-center">
+          <Label className="!mb-0 flex items-center">{field.label}</Label>
+          <span className="ml-1 -mb-1 text-sm font-medium leading-none">
+            {!readOnly && field.required ? "*" : ""}
+          </span>
+        </div>
+      )}
       {children}
     </div>
   );
@@ -463,21 +487,16 @@ export const ComponentForField = ({
   setValue,
   readOnly,
 }: {
-  field: {
+  field: RhfFormField & {
     // Label is optional because radioInput doesn't have a label
     label?: string;
-    required?: boolean;
-    name?: string;
-    options?: RhfFormField["options"];
-    optionsInputs?: RhfFormField["optionsInputs"];
-    type: RhfFormField["type"];
   };
   readOnly: boolean;
 } & ValueProps) => {
   const fieldType = field.type;
   const componentConfig = Components[fieldType];
   const isObjectiveWithInputValue = (value: any): value is { value: string } => {
-    return typeof value === "object" ? "value" in value : false;
+    return typeof value === "object" && value !== null ? "value" in value : false;
   };
 
   if (componentConfig.propsType === "text" || componentConfig.propsType === "boolean") {
@@ -499,6 +518,7 @@ export const ComponentForField = ({
             readOnly={readOnly}
             value={value}
             setValue={setValue}
+            placeholder={field.placeholder}
           />
         </WithLabel>
       );
@@ -507,9 +527,33 @@ export const ComponentForField = ({
     if (value !== undefined && typeof value !== "string") {
       throw new Error(`${value}: Value is not of type string for field ${field.name}`);
     }
+
     return (
       <WithLabel field={field} readOnly={readOnly}>
-        <componentConfig.factory label={field.label} readOnly={readOnly} value={value} setValue={setValue} />
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          label={field.label}
+          readOnly={readOnly}
+          value={value}
+          setValue={setValue}
+        />
+      </WithLabel>
+    );
+  }
+
+  if (componentConfig.propsType === "textList") {
+    if (value !== undefined && !(value instanceof Array)) {
+      throw new Error(`${value}: Value is not of type array for ${field.name}`);
+    }
+    return (
+      <WithLabel field={field} readOnly={readOnly}>
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          label={field.label}
+          readOnly={readOnly}
+          value={value}
+          setValue={setValue}
+        />
       </WithLabel>
     );
   }
@@ -527,6 +571,7 @@ export const ComponentForField = ({
         <componentConfig.factory
           readOnly={readOnly}
           value={value}
+          placeholder={field.placeholder}
           setValue={setValue}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
@@ -544,6 +589,7 @@ export const ComponentForField = ({
     return (
       <WithLabel field={field} readOnly>
         <componentConfig.factory
+          placeholder={field.placeholder}
           readOnly={readOnly}
           value={value}
           setValue={setValue as (value: string[]) => void}
@@ -566,6 +612,7 @@ export const ComponentForField = ({
     return field.options.length ? (
       <WithLabel field={field} readOnly>
         <componentConfig.factory
+          placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
           value={value}
@@ -579,7 +626,6 @@ export const ComponentForField = ({
   throw new Error(`Field ${field.name} does not have a valid propsType`);
 };
 
-//TODO: ManageBookings: Move it along FormBuilder - Also create a story for it.
 export const FormBuilderField = ({
   field,
   readOnly,
@@ -594,7 +640,7 @@ export const FormBuilderField = ({
     window.form = form;
   }
   return (
-    <div className="reloading mb-4">
+    <div data-form-builder-field-name={field.name} className="reloading mb-4">
       <Controller
         control={control}
         // Make it a variable
@@ -607,7 +653,7 @@ export const FormBuilderField = ({
                 value={value}
                 // Choose b/w disabled and readOnly
                 readOnly={readOnly}
-                setValue={(val: any) => {
+                setValue={(val: unknown) => {
                   onChange(val);
                 }}
               />
@@ -620,7 +666,6 @@ export const FormBuilderField = ({
                   if (name !== field.name) {
                     return null;
                   }
-                  // console.error(name, field.name, message, "ErrorMesg");
 
                   message = message.replace(/\{[^}]+\}(.*)/, "$1");
                   return (
