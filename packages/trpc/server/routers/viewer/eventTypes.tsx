@@ -202,9 +202,14 @@ export const eventTypesRouter = router({
           },
         },
       },
-      availability: {
+      schedule: {
         select: {
           id: true,
+          availability: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
       ...baseEventTypeSelect,
