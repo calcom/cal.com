@@ -162,6 +162,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -200,6 +201,7 @@ if (isSAMLLoginEnabled) {
       clientId: "dummy",
       clientSecret: "dummy",
     },
+    allowDangerousEmailAccountLinking: true,
   });
 }
 
@@ -470,19 +472,17 @@ export default NextAuth({
           }
 
           // User signup with email and password and
-          // then tries to login with Google using the same email
+          // then tries to login with Google/SAML using the same email
           if (
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            const linkAccountNewUserData = { ...account, userId: existingUserWithEmail.id };
-            await calcomAdapter.linkAccount(linkAccountNewUserData);
-
             return true;
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+            return "/auth/error?error=use-password-login";
           }
 
-          return "/auth/error?error=use-password-login";
-          //return "/auth/error?error=use-identity-login";
+          return "/auth/error?error=use-identity-login";
         }
 
         const newUser = await prisma.user.create({
