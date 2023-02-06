@@ -525,7 +525,7 @@ export default function Success(props: SuccessProps) {
                           <>
                             {eventTypeCustomFound?.type === "RADIO" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
                                   {eventTypeCustomFound.label}
                                 </div>
                                 <div className="col-span-3 mt-1 mb-2">
@@ -549,7 +549,9 @@ export default function Success(props: SuccessProps) {
                             )}
                             {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {key}
+                                </div>
                                 <div className="col-span-3 mt-2 mb-2">
                                   {typeof customInput === "boolean" ? (
                                     <p>{customInput ? "true" : "false"}</p>
