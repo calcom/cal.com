@@ -6,6 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
+import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
 
 export type HorizontalTabItemProps = {
@@ -15,12 +16,14 @@ export type HorizontalTabItemProps = {
   href: string;
   linkProps?: Omit<ComponentProps<typeof Link>, "href">;
   icon?: SVGComponent;
+  avatar?: string;
 };
 
-const HorizontalTabItem = function ({ name, href, linkProps, ...props }: HorizontalTabItemProps) {
+const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
   const { asPath } = useRouter();
-  const isCurrent = asPath.startsWith(href);
+
+  const isCurrent = asPath === href;
 
   return (
     <Link
@@ -28,8 +31,8 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
       href={href}
       {...linkProps}
       className={classNames(
-        isCurrent ? "bg-gray-200 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
+        isCurrent ? "bg-gray-100 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] py-[10px] px-2 text-sm font-medium leading-4 md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
@@ -45,7 +48,13 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
           aria-hidden="true"
         />
       )}
-      {isLocaleReady ? t(name) : <SkeletonText className="h-4 w-24" />}
+      {isLocaleReady ? (
+        <div className="flex items-center gap-x-2">
+          {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" />} {t(name)}
+        </div>
+      ) : (
+        <SkeletonText className="h-4 w-24" />
+      )}
     </Link>
   );
 };

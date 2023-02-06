@@ -1,6 +1,5 @@
 import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
@@ -128,7 +127,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: ((typeof user.eventTypes)[number] & {
+  const [eventType]: (typeof user.eventTypes[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {

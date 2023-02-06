@@ -156,6 +156,7 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsPerSlotTimeSlot?: number | null;
   seatsShowAttendees?: boolean | null;
+  seatsPerTimeSlot?: number | null;
 }
 
 export interface EntryPoint {

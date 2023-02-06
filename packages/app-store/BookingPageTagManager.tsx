@@ -22,10 +22,11 @@ export default function BookingPageTagManager({
           return null;
         }
         const parseValue = <T extends string | undefined>(val: T): T =>
+          //TODO: Support more template variables.
           val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
 
         return tag.scripts.map((script, index) => {
-          const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};
+          const parsedAttributes: NonNullable<typeof tag.scripts[number]["attrs"]> = {};
           const attrs = script.attrs || {};
           Object.entries(attrs).forEach(([name, value]) => {
             if (typeof value === "string") {

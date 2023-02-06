@@ -19,7 +19,6 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -586,12 +585,14 @@ const loggedInViewerRouter = router({
         locale: z.string().optional(),
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
+        metadata: userMetadata.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
+        metadata: input.metadata as Prisma.InputJsonValue,
       };
       let isPremiumUsername = false;
       if (input.username) {
@@ -1129,7 +1130,7 @@ const loggedInViewerRouter = router({
         roomName: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { roomName } = input;
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);

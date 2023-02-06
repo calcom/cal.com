@@ -299,6 +299,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: typeof user["username"];
         name: typeof user["name"];
+        image?: string;
       };
       metadata: {
         membershipCount: number;
@@ -676,7 +677,13 @@ export const eventTypesRouter = router({
     }),
   duplicate: eventOwnerProcedure.input(EventTypeDuplicateInput.strict()).mutation(async ({ ctx, input }) => {
     try {
-      const { id: originalEventTypeId, title: newEventTitle, slug: newSlug } = input;
+      const {
+        id: originalEventTypeId,
+        title: newEventTitle,
+        slug: newSlug,
+        description: newDescription,
+        length: newLength,
+      } = input;
       const eventType = await ctx.prisma.eventType.findUnique({
         where: {
           id: originalEventTypeId,
@@ -735,6 +742,8 @@ export const eventTypesRouter = router({
         ...rest,
         title: newEventTitle,
         slug: newSlug,
+        description: newDescription,
+        length: newLength,
         locations: locations ?? undefined,
         teamId: team ? team.id : undefined,
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
@@ -761,20 +770,12 @@ export const eventTypesRouter = router({
       }
 
       if (workflows.length > 0) {
-        const workflowIds = workflows.map((workflow) => {
-          return { id: workflow.workflowId };
+        const relationCreateData = workflows.map((workflow) => {
+          return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
         });
 
-        const eventUpdateData: Prisma.EventTypeUpdateInput = {
-          workflows: {
-            connect: workflowIds,
-          },
-        };
-        await ctx.prisma.eventType.update({
-          where: {
-            id: newEventType.id,
-          },
-          data: eventUpdateData,
+        await ctx.prisma.workflowsOnEventTypes.createMany({
+          data: relationCreateData,
         });
       }
 
