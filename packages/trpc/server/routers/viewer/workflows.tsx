@@ -918,72 +918,72 @@ export const workflowsRouter = router({
     }
 
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
-const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
-if (!hasTeamPlan) {
-  throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
-}
-}
+    const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+    if (!hasTeamPlan) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+    }
+  }
 
-const booking = await ctx.prisma.booking.findFirst({
-orderBy: {
-  createdAt: "desc",
-},
-where: {
-  userId: ctx.user.id,
-},
-include: {
-  attendees: true,
-  user: true,
-},
-});
-
-let evt: BookingInfo;
-if (booking) {
-evt = {
-  uid: booking?.uid,
-  attendees:
-    booking?.attendees.map((attendee) => {
-      return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-    }) || [],
-  organizer: {
-    language: {
-      locale: booking?.user?.locale || "",
+  const booking = await ctx.prisma.booking.findFirst({
+    orderBy: {
+      createdAt: "desc",
     },
-    name: booking?.user?.name || "",
-    email: booking?.user?.email || "",
-    timeZone: booking?.user?.timeZone || "",
-  },
-  startTime: booking?.startTime.toISOString() || "",
-  endTime: booking?.endTime.toISOString() || "",
-  title: booking?.title || "",
-  location: booking?.location || null,
-  additionalNotes: booking?.description || null,
-  customInputs: booking?.customInputs,
-};
-} else {
-//if no booking exists create an example booking
-evt = {
-  attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-  organizer: {
-    language: {
-      locale: ctx.user.locale,
+    where: {
+      userId: ctx.user.id,
     },
-    name: ctx.user.name || "",
-    email: ctx.user.email,
-    timeZone: ctx.user.timeZone,
-  },
-  startTime: dayjs().add(10, "hour").toISOString(),
-  endTime: dayjs().add(11, "hour").toISOString(),
-  title: "Example Booking",
-  location: "Office",
-  additionalNotes: "These are additional notes",
-};
-}
+    include: {
+      attendees: true,
+      user: true,
+    },
+  });
 
-if (
-action === WorkflowActions.EMAIL_ATTENDEE ||
-action === WorkflowActions.EMAIL_HOST /*||
-action === WorkflowActions.EMAIL_ADDRESS*/
+  let evt: BookingInfo;
+  if (booking) {
+    evt = {
+      uid: booking?.uid,
+      attendees:
+        booking?.attendees.map((attendee) => {
+          return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+        }) || [],
+      organizer: {
+        language: {
+          locale: booking?.user?.locale || "",
+        },
+        name: booking?.user?.name || "",
+        email: booking?.user?.email || "",
+        timeZone: booking?.user?.timeZone || "",
+      },
+      startTime: booking?.startTime.toISOString() || "",
+      endTime: booking?.endTime.toISOString() || "",
+      title: booking?.title || "",
+      location: booking?.location || null,
+      additionalNotes: booking?.description || null,
+      customInputs: booking?.customInputs,
+    };
+  } else {
+    //if no booking exists create an example booking
+    evt = {
+      attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+      organizer: {
+        language: {
+          locale: ctx.user.locale,
+        },
+        name: ctx.user.name || "",
+        email: ctx.user.email,
+        timeZone: ctx.user.timeZone,
+      },
+      startTime: dayjs().add(10, "hour").toISOString(),
+      endTime: dayjs().add(11, "hour").toISOString(),
+      title: "Example Booking",
+      location: "Office",
+      additionalNotes: "These are additional notes",
+    };
+  }
+
+  if (
+    action === WorkflowActions.EMAIL_ATTENDEE ||
+    action === WorkflowActions.EMAIL_HOST /*||
+    action === WorkflowActions.EMAIL_ADDRESS*/
   /*) {
       scheduleEmailReminder(
         evt,
