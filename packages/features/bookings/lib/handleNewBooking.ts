@@ -117,6 +117,12 @@ const isWithinAvailableHours = (
   return false;
 };
 
+/**
+ * Function to check if a certain timeslot is between the date overrides an user has.
+ *
+ * @param timeSlot
+ * @param dateOverrides
+ */
 const isWithinDateOverrides = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
@@ -132,7 +138,6 @@ const isWithinDateOverrides = (
   const timeSlotEnd = dayjs(timeSlot.end).utc();
 
   for (const dateOverride of dateOverrides) {
-    console.log(dateOverride.start.getUTCDate());
     const startTime = timeSlotStart
       .startOf("day")
       .add(dateOverride.start.getUTCHours(), "hour")
@@ -144,7 +149,8 @@ const isWithinDateOverrides = (
 
     if (
       timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
-      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
+      timeSlotEnd.isBetween(startTime, endTime, null, "(]") &&
+      timeSlotStart.day === startTime.day
     ) {
       return true;
     }
