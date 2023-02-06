@@ -246,17 +246,6 @@ const BookingPage = ({
   };
 
   const defaultValues = () => {
-    console.log("🚀 ~ file: BookingPage.tsx:218 ~ defaultUserValues", defaultUserValues);
-    console.log(
-      booking?.attendees.find((attendee) => {
-        if (
-          "bookingSeatReference" in attendee &&
-          attendee.bookingSeatReference[0].referenceUId === router.query.seatReferenceUId
-        )
-          return attendee;
-      })
-    );
-
     if (!rescheduleUid) {
       return {
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
