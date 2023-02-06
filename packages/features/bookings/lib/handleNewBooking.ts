@@ -117,6 +117,42 @@ const isWithinAvailableHours = (
   return false;
 };
 
+const isWithinDateOverrides = (
+  timeSlot: { start: ConfigType; end: ConfigType },
+  {
+    dateOverrides,
+  }: {
+    dateOverrides: {
+      start: Date;
+      end: Date;
+    }[];
+  }
+) => {
+  const timeSlotStart = dayjs(timeSlot.start).utc();
+  const timeSlotEnd = dayjs(timeSlot.end).utc();
+
+  for (const dateOverride of dateOverrides) {
+    console.log(dateOverride.start.getUTCDate());
+    const startTime = timeSlotStart
+      .startOf("day")
+      .add(dateOverride.start.getUTCHours(), "hour")
+      .add(dateOverride.start.getUTCMinutes(), "minute");
+    const endTime = timeSlotEnd
+      .startOf("day")
+      .add(dateOverride.end.getUTCHours(), "hour")
+      .add(dateOverride.end.getUTCMinutes(), "minute");
+
+    if (
+      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
+      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 // if true, there are conflicts.
 function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
   // Early return
@@ -237,7 +273,11 @@ async function ensureAvailableUsers(
   const availableUsers: IsFixedAwareUser[] = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const {
+      busy: bufferedBusyTimes,
+      workingHours,
+      dateOverrides,
+    } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -252,6 +292,12 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
+        }
+      ) &&
+      !isWithinDateOverrides(
+        { start: input.dateFrom, end: input.dateTo },
+        {
+          dateOverrides,
         }
       )
     ) {
