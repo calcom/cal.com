@@ -15,15 +15,15 @@ interface OptionsProps<T extends Option> {
   searchBoxRef: React.RefObject<HTMLInputElement>;
 }
 
-type FlatternedOption = Option & { current: number; groupedIndex?: number };
+type FlattenedOption = Option & { current: number; groupedIndex?: number };
 
-const flatternOptions = (options: Option[], groupCount?: number): FlatternedOption[] => {
+const flatternOptions = (options: Option[], groupCount?: number): FlattenedOption[] => {
   return options.reduce((acc, option, current) => {
     if (option.options) {
       return [...acc, ...flatternOptions(option.options, current + (groupCount || 0))];
     }
     return [...acc, { ...option, current, groupedIndex: groupCount }];
-  }, [] as FlatternedOption[]);
+  }, [] as FlattenedOption[]);
 };
 
 function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsProps<T>) {
@@ -33,11 +33,11 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
   const upPress = useKeyPress("ArrowUp", searchBoxRef);
   const enterPress = useKeyPress("Enter", searchBoxRef);
 
-  const flatternedList = useMemo(() => flatternOptions(list), [list]);
+  const flattenedList = useMemo(() => flatternOptions(list), [list]);
 
   const totalOptionsLength = useMemo(() => {
-    return flatternedList.length;
-  }, [flatternedList]);
+    return flattenedList.length;
+  }, [flattenedList]);
 
   useEffect(() => {
     if (downPress) {
@@ -63,25 +63,25 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enterPress, keyboardFocus, list]);
 
-  const search = useCallback((optionsArray: FlatternedOption[], searchTerm: string) => {
+  const search = useCallback((optionsArray: FlattenedOption[], searchTerm: string) => {
     // search options by label, or group label or options.options
-    return optionsArray.reduce((acc: FlatternedOption[], option: FlatternedOption) => {
-      // @TODO: add search by lavbel group gets awkward as it doesnt exist in the flatterned list
+    return optionsArray.reduce((acc: FlattenedOption[], option: FlattenedOption) => {
+      // @TODO: add search by lavbel group gets awkward as it doesnt exist in the flattened list
       if (option.label.toLowerCase().includes(searchTerm.toLowerCase())) {
         acc.push(option);
       }
 
       return acc;
-    }, [] as FlatternedOption[]);
+    }, [] as FlattenedOption[]);
   }, []);
 
   const filteredList = useMemo(() => {
     if (inputValue.length > 0) {
-      return search(flatternedList, inputValue);
+      return search(flattenedList, inputValue);
     }
 
-    return flatternedList;
-  }, [inputValue, flatternedList, search]);
+    return flattenedList;
+  }, [inputValue, flattenedList, search]);
 
   return (
     <div

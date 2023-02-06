@@ -5,13 +5,13 @@ export function useKeyPress(targetKey: string, ref?: RefObject<HTMLInputElement>
   const [keyPressed, setKeyPressed] = useState(false);
   const placeHolderRef = ref?.current;
   // If pressed key is our target key then set to true
-  function downHandler({ key }: { key: string }): void {
+  function downHandler({ key }: { key: string }) {
     if (key === targetKey) {
       setKeyPressed(true);
     }
   }
   // If released key is our target key then set to false
-  const upHandler = ({ key }: { key: string }): void => {
+  const upHandler = ({ key }: { key: string }) => {
     if (key === targetKey) {
       setKeyPressed(false);
     }
