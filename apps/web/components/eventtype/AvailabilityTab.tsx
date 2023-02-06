@@ -155,7 +155,7 @@ const EventTypeScheduleDetails = () => {
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
         <Button
-          href={`/availability/${schedule?.schedule.id}`}
+          href={`/availability/${schedule?.id}`}
           color="minimal"
           EndIcon={FiExternalLink}
           target="_blank"
