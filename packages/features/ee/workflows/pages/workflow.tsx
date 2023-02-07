@@ -87,6 +87,7 @@ function WorkflowPage() {
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
+  const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before teams workflows existed
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -112,6 +113,9 @@ function WorkflowPage() {
 
   useEffect(() => {
     if (workflow && (workflow.steps.length === 0 || workflow.steps[0].stepNumber === 1)) {
+      if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
+        setIsMixedEventType(true);
+      }
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -276,6 +280,7 @@ function WorkflowPage() {
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
                     teamId={workflow ? workflow.teamId || undefined : undefined}
+                    isMixedEventType={isMixedEventType}
                   />
                 </>
               ) : (

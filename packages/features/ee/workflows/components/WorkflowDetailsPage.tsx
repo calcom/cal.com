@@ -22,10 +22,11 @@ interface Props {
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
   teamId?: number;
+  isMixedEventType: boolean;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -58,6 +59,18 @@ export default function WorkflowDetailsPage(props: Props) {
         ) || [],
     [data]
   );
+
+  let allEventTypeOptions = eventTypeOptions;
+  const distinctEventTypes = new Set();
+
+  if (!teamId && isMixedEventType) {
+    allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
+    allEventTypeOptions = allEventTypeOptions.filter((option) => {
+      const duplicate = distinctEventTypes.has(option.value);
+      distinctEventTypes.add(option.value);
+      return !duplicate;
+    });
+  }
 
   const addAction = (
     action: WorkflowActions,
@@ -111,7 +124,7 @@ export default function WorkflowDetailsPage(props: Props) {
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={eventTypeOptions}
+                  options={allEventTypeOptions}
                   isLoading={isLoading}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
