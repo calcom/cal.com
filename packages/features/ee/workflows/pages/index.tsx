@@ -89,6 +89,18 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       title={t("workflows")}
+      CTA={
+        allWorkflowsData?.workflows &&
+        allWorkflowsData.workflows.length > 0 && (
+          <CreateButton
+            subtitle={t("new_workflow_subtitle").toUpperCase()}
+            canAdd={true}
+            options={query.data.profiles}
+            createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+            isLoading={createMutation.isLoading}
+          />
+        )
+      }
       subtitle={t("workflows_to_automate_notifications")}>
       <LicenseRequired>
         {isLoading ? (
@@ -96,21 +108,12 @@ function WorkflowsPage() {
         ) : (
           <>
             {allWorkflowsData?.workflows && allWorkflowsData.workflows.length > 0 && (
-              <div className="mb-4 flex">
+              <div className="mb-4">
                 <Filter
                   profiles={query.data.profiles}
                   checked={checkedFilterItems}
                   setChecked={setCheckedFilterItems}
                 />
-                <div className="ml-auto">
-                  <CreateButton
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    canAdd={true}
-                    options={query.data.profiles}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isLoading={createMutation.isLoading}
-                  />
-                </div>
               </div>
             )}
             <WorkflowList
