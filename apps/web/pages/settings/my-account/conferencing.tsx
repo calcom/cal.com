@@ -21,7 +21,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { FiAlertCircle, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 
@@ -43,6 +43,8 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
+  const { data: usersMetadata } = trpc.viewer.getUserMetadata.useQuery();
+
   const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "conferencing", onlyInstalled: true },
     {
@@ -58,6 +60,13 @@ const ConferencingLayout = () => {
     onError: () => {
       showToast("Error deleting app", "error");
       setDeleteAppModal(false);
+    },
+  });
+
+  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
+    onSuccess: () => {
+      showToast("Default app updated successfully", "success");
+      utils.viewer.getUserMetadata.invalidate();
     },
   });
 
@@ -80,7 +89,7 @@ const ConferencingLayout = () => {
                 title={app.title}
                 logo={app.logo}
                 key={app.title}
-                isDefault={app.isGlobal}
+                isDefault={app.slug === usersMetadata?.defaultConferencingApp}
                 actions={
                   <div>
                     <Dropdown>
@@ -88,6 +97,20 @@ const ConferencingLayout = () => {
                         <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            color="secondary"
+                            disabled={app.slug === usersMetadata?.defaultConferencingApp}
+                            StartIcon={FiVideo}
+                            onClick={() => {
+                              updateDefaultAppMutation.mutate({
+                                appSlug: app.slug,
+                              });
+                            }}>
+                            {t("change_default_conferencing_app")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>
                           <DropdownItem
                             type="button"
