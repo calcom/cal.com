@@ -17,10 +17,10 @@ interface OptionsProps<T extends Option> {
 
 type FlattenedOption = Option & { current: number; groupedIndex?: number };
 
-const flatternOptions = (options: Option[], groupCount?: number): FlattenedOption[] => {
+const flattenOptions = (options: Option[], groupCount?: number): FlattenedOption[] => {
   return options.reduce((acc, option, current) => {
     if (option.options) {
-      return [...acc, ...flatternOptions(option.options, current + (groupCount || 0))];
+      return [...acc, ...flattenOptions(option.options, current + (groupCount || 0))];
     }
     return [...acc, { ...option, current, groupedIndex: groupCount }];
   }, [] as FlattenedOption[]);
@@ -65,7 +65,7 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
   const upPress = useKeyPress("ArrowUp", searchBoxRef);
   const enterPress = useKeyPress("Enter", searchBoxRef);
 
-  const flattenedList = useMemo(() => flatternOptions(list), [list]);
+  const flattenedList = useMemo(() => flattenOptions(list), [list]);
 
   const totalOptionsLength = useMemo(() => {
     return flattenedList.length;
