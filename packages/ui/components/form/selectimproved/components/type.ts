@@ -8,17 +8,17 @@ export interface Option {
 }
 
 export interface ClassNames {
-  menuButton?: ({ isDisabled }: { isDisabled: boolean }) => string;
+  menuButton?: (args: { isDisabled: boolean }) => string;
   menu?: string;
-  tagItem?: ({ isDisabled }: { isDisabled: boolean }) => string;
+  tagItem?: (args: { isDisabled: boolean }) => string;
   tagItemText?: string;
   tagItemIconContainer?: string;
   tagItemIcon?: string;
   list?: string;
   listGroupLabel?: string;
-  listItem?: ({ isSelected }: { isSelected: boolean }) => string;
+  listItem?: (args: { isSelected: boolean }) => string;
   listDisabledItem?: string;
-  ChevronIcon?: ({ open }: { open: boolean }) => string;
+  ChevronIcon?: (args: { open: boolean }) => string;
   searchContainer?: string;
   searchBox?: string;
   searchIcon?: string;
