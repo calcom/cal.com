@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
+import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { Dispatch, FC, SetStateAction, useReducer, useState } from "react";
+import { FC, useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -148,11 +149,10 @@ const querySchema = z.object({
 const AdminAppsList = ({
   baseURL,
   className,
-  fromAdmin,
-  currentStep,
-  setIsLoading,
   useQueryParam = false,
   classNames,
+  onSubmit = noop,
+  ...rest
 }: {
   baseURL: string;
   classNames?: {
@@ -161,21 +161,16 @@ const AdminAppsList = ({
     verticalTabsItem?: string;
   };
   className?: string;
-  fromAdmin?: boolean;
-  currentStep?: number;
-  setIsLoading?: Dispatch<SetStateAction<boolean>>;
   useQueryParam?: boolean;
-}) => {
-  const router = useRouter();
+  onSubmit?: () => void;
+} & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
   return (
     <form
-      id={`wizard-step-${currentStep}`}
-      name={`wizard-step-${currentStep}`}
+      {...rest}
       className="max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       onSubmit={(e) => {
         e.preventDefault();
-        setIsLoading && setIsLoading(true);
-        router.replace("/");
+        onSubmit();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}

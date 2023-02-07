@@ -86,14 +86,15 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       title: t("enable_apps"),
       description: t("enable_apps_description"),
       contentClassname: "!pb-0 mb-[-1px]",
-      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
-        <AdminAppsList
-          classNames={{
-            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
-            verticalTabsItem: "!w-48",
-          }}
-          fromAdmin
-          /*
+      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
+        const currentStep = (props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2;
+        return (
+          <AdminAppsList
+            classNames={{
+              appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
+              verticalTabsItem: "!w-48",
+            }}
+            /*
             | userCount === 0 | isFreeLicense | maxSteps |
             |-----------------|---------------|----------|
             | T               | T             |        3 |
@@ -101,14 +102,16 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             | F               | T             |        2 |
             | F               | F             |        3 |
           */
-          currentStep={(props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2}
-          baseURL={`/auth/setup?step=${
-            (props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2
-          }`}
-          setIsLoading={setIsLoading}
-          useQueryParam={true}
-        />
-      ),
+
+            baseURL={`/auth/setup?step=${currentStep}`}
+            useQueryParam={true}
+            onSubmit={() => {
+              setIsLoading(true);
+              router.replace("/");
+            }}
+          />
+        );
+      },
     },
   ];
 
