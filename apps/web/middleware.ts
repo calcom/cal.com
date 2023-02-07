@@ -1,3 +1,4 @@
+import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import { NextMiddleware, NextResponse, userAgent } from "next/server";
 
@@ -7,6 +8,19 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
+  try {
+    // Check whether the maintenance page should be shown
+    const isInMaintenanceMode = await get<boolean>("isInMaintenanceMode");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isInMaintenanceMode) {
+      req.nextUrl.pathname = `/maintenance`;
+      return NextResponse.rewrite(req.nextUrl);
+    }
+  } catch (error) {
+    // show the default page if EDGE_CONFIG env var is missing,
+    // but log the error to the console
+    console.error(error);
+  }
 
   if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
     const callbackUrl = url.searchParams.get("callbackUrl");
@@ -48,16 +62,6 @@ const middleware: NextMiddleware = async (req) => {
   }
 
   return NextResponse.next();
-};
-
-export const config = {
-  matcher: [
-    "/api/collect-events/:path*",
-    "/api/auth/:path*",
-    "/apps/routing_forms/:path*",
-    "/:path*/embed",
-    "/auth/login",
-  ],
 };
 
 export default collectEvents({
