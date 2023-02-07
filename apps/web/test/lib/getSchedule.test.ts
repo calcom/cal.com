@@ -1209,9 +1209,9 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             const statusIn = where.OR[0].status?.in || [];
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             const firstConditionMatches =
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
 
             // ~~ SECOND CONDITION checks whether this user is a host of this Event Type
