@@ -67,21 +67,15 @@ export default trpcNext.createNextApiHandler({
 
     // Our cache can change depending on our current paths value. Since paths is an array,
     // we want to create a map that can match potential paths with their desired cache value
-    const cacheRules: Array<Array<Array<string> | string>> = [
-      [
-        ["viewer.public.i18n"], // The paths value to match
-        `maxage=${TWO_HOURS_IN_SECONDS}, stale-while-revalidate=30`, // The resulting cache when there's a match
-      ],
-    ];
-
-    // Making our paths a sorted string for easier comparison within our loop
-    const pathsVal = paths.sort().join(",");
+    const cacheRules = {
+      "viewer.public.i18n": `maxage=${TWO_HOURS_IN_SECONDS}, stale-while-revalidate=30`,
+    } as const;
 
     // Find which element above is an exact match for this group of paths
-    const matchingIdx = cacheRules.findIndex((v) => (v[0] as Array<string>).sort().join(",") === pathsVal);
+    const matchedPath = paths.find((v) => v in cacheRules) as keyof typeof cacheRules;
 
     // Get the cache value of the matching element, if any
-    if (matchingIdx > -1) cacheValue = cacheRules[matchingIdx][1] as string;
+    if (matchedPath) cacheValue = cacheRules[matchedPath];
 
     // Finally we respond with our resolved cache value
     return {

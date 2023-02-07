@@ -3,9 +3,8 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
