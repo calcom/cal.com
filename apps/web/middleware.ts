@@ -8,18 +8,21 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
-  try {
-    // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await get<boolean>("isInMaintenanceMode");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      req.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(req.nextUrl);
+
+  if (!url.pathname.startsWith("/api")) {
+    try {
+      // Check whether the maintenance page should be shown
+      const isInMaintenanceMode = await get<boolean>("isInMaintenanceMode");
+      // If is in maintenance mode, point the url pathname to the maintenance page
+      if (isInMaintenanceMode) {
+        req.nextUrl.pathname = `/maintenance`;
+        return NextResponse.rewrite(req.nextUrl);
+      }
+    } catch (error) {
+      // show the default page if EDGE_CONFIG env var is missing,
+      // but log the error to the console
+      // console.error(error);
     }
-  } catch (error) {
-    // show the default page if EDGE_CONFIG env var is missing,
-    // but log the error to the console
-    // console.error(error);
   }
 
   if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
@@ -62,6 +65,19 @@ const middleware: NextMiddleware = async (req) => {
   }
 
   return NextResponse.next();
+};
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
 
 export default collectEvents({
