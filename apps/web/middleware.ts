@@ -19,7 +19,7 @@ const middleware: NextMiddleware = async (req) => {
   } catch (error) {
     // show the default page if EDGE_CONFIG env var is missing,
     // but log the error to the console
-    console.error(error);
+    // console.error(error);
   }
 
   if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
