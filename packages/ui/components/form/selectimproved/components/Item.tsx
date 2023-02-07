@@ -19,10 +19,11 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
     (isMultiple && selectedItems?.some((selection) => selection.value === item.value)) ||
     (!isMultiple && selectedItems?.value === item.value);
 
+  // TODO: FIgure out whats going on
   if (item.disabled) {
     <li
       className={cn(
-        "flex cursor-not-allowed select-none justify-between truncate px-2.5 py-2 text-gray-400",
+        "flex cursor-not-allowed select-none justify-between truncate rounded-[4px] px-3 py-2 text-gray-300",
         focused ? "bg-gray-50" : "hover:bg-gray-100"
       )}>
       <>
@@ -31,11 +32,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
           <p>{item.label}</p>
         </div>
         {isMultiple ? (
-          <div
-            className={cn(
-              "text-primary-600 h-4 w-4 rounded-[4px] border border-gray-300 bg-gray-50 ltr:mr-2 rtl:ml-2 "
-            )}
-          />
+          <div className={cn("text-primary-600 h-4 w-4 rounded-[4px] bg-gray-300 ltr:mr-2 rtl:ml-2 ")} />
         ) : (
           isSelected && <FiCheck className="h-3 w-3 text-black" strokeWidth={2} />
         )}
@@ -50,9 +47,9 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
       role="option"
       onClick={() => handleValueChange(item)}
       className={cn(
-        "block flex cursor-pointer select-none items-center justify-between truncate px-2.5 py-2 transition duration-200 ",
+        "block flex cursor-pointer select-none items-center justify-between truncate border-transparent px-3 py-2 transition duration-200",
         isSelected ? "bg-gray-200 text-gray-900" : "text-gray-700 hover:bg-gray-100",
-        focused && "border border-gray-300 bg-gray-100",
+        focused && "bg-gray-100",
         classNames?.listItem
       )}>
       <div className="flex space-x-2">

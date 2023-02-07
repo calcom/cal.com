@@ -41,7 +41,7 @@ export const options = [
 export const SelectWithState = (...args) => {
   const [value, setValue] = React.useState(options[0].options[0]);
   return (
-    <Select options={options} selectedItems={value} onChange={(e) => setValue(e)} isSearchable isClearable />
+    <Select options={options} selectedItems={value} onChange={(e) => setValue(e)}  isClearable />
   );
 };
 

@@ -124,6 +124,8 @@ function Select<T extends Option>({
         }
       }
 
+      if (selected.disabled) return;
+
       if (selected !== selectedItems) {
         update();
       }
@@ -230,7 +232,7 @@ function Select<T extends Option>({
             tabIndex={-1}
             className={
               classNames?.menu ??
-              "absolute z-10 mt-1.5 w-full rounded border bg-white py-1 text-sm text-gray-700 shadow-lg"
+              "absolute z-10 mt-1.5 w-full rounded border bg-white py-1 text-sm text-gray-700 shadow-sm"
             }>
             {isSearchable && (
               <SearchInput

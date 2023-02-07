@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 
 import { Label } from "../../inputs/Label";
@@ -49,9 +50,18 @@ function FilteredItem<T extends Option>({
   }, [ref, focused]);
 
   return (
-    <div className="px-2.5" key={index} ref={ref}>
+    <div className="" key={index} ref={ref}>
       {item.current === 0 && item.groupedIndex !== undefined && !inputValue && (
-        <Label>{list[item.groupedIndex].label}</Label>
+        <div className="">
+          {index !== 0 && <hr className="mt-2" />}
+          <Label
+            className={classNames(
+              "mb-2 pl-3 text-xs font-normal uppercase leading-none text-gray-600",
+              index !== 0 ? "mt-5" : "mt-4" // rest, first
+            )}>
+            {list[item.groupedIndex].label}
+          </Label>
+        </div>
       )}
       <Item item={item} index={index} focused={focused} />
     </div>
