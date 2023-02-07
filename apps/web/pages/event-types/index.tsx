@@ -622,7 +622,7 @@ const CTA = () => {
 
   return (
     <CreateButton
-      subtitle={t("new_event_subtitle")}
+      subtitle={t("create_event_on").toUpperCase()}
       canAdd={true}
       options={query.data.profiles}
       createDialog={CreateEventTypeDialog}
