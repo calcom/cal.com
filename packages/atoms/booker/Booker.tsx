@@ -30,7 +30,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const schedule = useSchedule({
     username,
     eventSlug,
-    browsingMonth: browsingMonthStart,
+    browsingMonth: browsingMonthStart.toDate(),
     timezone,
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
@@ -47,7 +47,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   );
 
   useEffect(() => {
-    initializeStore(username, eventSlug, browsingMonthStart);
+    initializeStore(username, eventSlug, browsingMonthStart.toDate());
   }, [initializeStore, username, eventSlug, browsingMonthStart]);
 
   // Custom breakpoint to make calendar fit.
@@ -81,7 +81,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
     <>
       {/* @TODO: This is imported because the DatePicker relies on it. Perhaps
       rewrite the datepicker as well? */}
-      <CustomBranding />
+      <CustomBranding lightVal={null} darkVal={null} />
       {/*
         If we would render this on mobile, it would unset the mobile variant,
         since that's not a valid option, so it would set the layout to null.

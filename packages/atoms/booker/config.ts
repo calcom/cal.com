@@ -1,4 +1,4 @@
-import { Variant } from "framer-motion";
+import { TargetAndTransition } from "framer-motion";
 
 import { BookerLayout, BookerState } from "./types";
 
@@ -32,7 +32,7 @@ export const fadeInUp = {
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
     variants: {
-      [key in BookerState | "default"]?: Variant;
+      [key in BookerState | "default"]?: TargetAndTransition;
     };
     style?: MotionStyleWithCssVar;
   };

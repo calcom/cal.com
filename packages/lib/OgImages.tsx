@@ -99,7 +99,6 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
       tw="flex absolute left-0 top-0 w-full h-[110%]"
       style={rotateBackground ? { transform: "rotate(180deg)" } : undefined}
       src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
-      style={rotateBackground ? { transform: "rotate(180deg)" } : undefined}
       alt="background"
       width="1200"
       height="600"

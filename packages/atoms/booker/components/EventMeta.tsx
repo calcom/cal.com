@@ -25,7 +25,8 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
       )}
       {!isLoading && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          <EventMembers meetingType={event.meetingType} users={event.users} />
+          {/* @TODO: Fix meeting type */}
+          <EventMembers meetingType={null} users={event.users} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-5">
             <EventDetails event={event} />

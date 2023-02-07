@@ -1,4 +1,3 @@
 import { RouterOutputs } from "@calcom/trpc/react";
 
-export type Schedule = RouterOutputs["viewer"]["public"]["slots"]["getSchedule"];
-export type Slots = Schedule["slots"];
+export type Slots = RouterOutputs["viewer"]["public"]["slots"]["getSchedule"]["slots"];

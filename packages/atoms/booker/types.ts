@@ -28,7 +28,7 @@ export interface AtomsGlobalConfigProps {
    * API endpoint for the Booker component to fetch data from,
    * defaults to https://cal.com
    */
-  webAp`pU`rl?: string;
+  webAppUrl?: string;
 }
 
 export interface BookerProps extends OptionalServersideSettings, AtomsGlobalConfigProps {

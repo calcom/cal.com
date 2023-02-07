@@ -23,7 +23,8 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect }: AvailableTimeSlo
     eventSlug,
     browsingMonth: month,
     timezone,
-  });
+    // @TODO: Fix types
+  } as { username: string; eventSlug: string; browsingMonth: Date; timezone: string });
 
   const slots = useSlotsForDate(
     // typeof dayOffset === "undefined"
