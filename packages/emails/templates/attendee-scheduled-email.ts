@@ -27,11 +27,6 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     if (!this.showAttendees) {
       this.calEvent.attendees = [this.attendee];
     }
-
-    console.log(
-      "🚀 ~ file: attendee-scheduled-email.ts:23 ~ AttendeeScheduledEmail ~ constructor ~ this.calEvent",
-      this.calEvent
-    );
   }
 
   protected getiCalEventAsString(): string | undefined {

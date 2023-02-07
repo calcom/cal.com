@@ -160,7 +160,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
     // NOTE this isn't triggering
-    console.log("🚀 ~ file: book.tsx:161 ~ getServerSideProps ~ bookingSeatReference", bookingSeatReference);
     if (bookingSeatReference) {
       rescheduleUid = bookingSeatReference.booking.uid;
       attendeeEmail = bookingSeatReference.attendee.email;

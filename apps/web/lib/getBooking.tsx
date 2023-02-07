@@ -15,7 +15,6 @@ const bookingSelect = {
 };
 
 async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: string) {
-  console.log("🚀 ~ file: getBooking.tsx:18 ~ getBooking ~ seatReferenceUId", seatReferenceUId);
   const booking = await prisma.booking.findFirst({
     where: {
       uid,
@@ -27,7 +26,6 @@ async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: 
       }),
     },
   });
-  console.log("🚀 ~ file: getBooking.tsx:24 ~ getBooking ~ booking", booking);
 
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]
