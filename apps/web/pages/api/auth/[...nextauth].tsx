@@ -360,9 +360,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      const deployment = await prisma.deployment.findFirst({ where: { id: 1 } });
-      const licenseKey = process.env.CALCOM_LICENSE_KEY || deployment?.licenseKey || "";
-      const hasValidLicense = await checkLicense(licenseKey);
+      const hasValidLicense = await checkLicense(prisma);
       const calendsoSession: Session = {
         ...session,
         hasValidLicense,
