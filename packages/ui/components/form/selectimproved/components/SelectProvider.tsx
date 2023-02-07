@@ -20,7 +20,7 @@ interface Props {
 export const SelectContext = createContext<Store>({
   selectedItems: null,
   handleValueChange: (selected) => {
-    console.log("selected:", selected);
+    return selected;
   },
   classNames: undefined,
 });
