@@ -27,7 +27,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
         focused ? "bg-gray-50" : "hover:bg-gray-100"
       )}>
       <>
-        <div className="flex space-x-2">
+        <div className="space-x flex items-center">
           {item.leftNode && item.leftNode}
           <p>{item.label}</p>
         </div>
@@ -52,7 +52,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
         focused && "bg-gray-50",
         classNames?.listItem
       )}>
-      <div className="flex space-x-2">
+      <div className="flex items-center space-x-2">
         {item.leftNode && item.leftNode}
         <p>{item.label}</p>
       </div>
