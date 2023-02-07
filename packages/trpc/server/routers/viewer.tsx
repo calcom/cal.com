@@ -336,7 +336,7 @@ const loggedInViewerRouter = router({
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-      const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", credentialId, email } = connectedCalendars[0].primary ?? {};
       user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
         data: {
           userId: user.id,
@@ -345,7 +345,7 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
-      destinationCalendarEmail = user.destinationCalendar?.externalId;
+      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -368,12 +368,7 @@ const loggedInViewerRouter = router({
           },
         });
       }
-      destinationCalendarEmail = user.destinationCalendar?.externalId;
-
-      // in case of office_365 external id is not email
-      if (user.destinationCalendar?.integration === "office365_calendar") {
-        destinationCalendarEmail = destinationCal?.email;
-      }
+      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
     }
 
     return {
