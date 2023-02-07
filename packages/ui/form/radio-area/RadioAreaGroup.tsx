@@ -34,7 +34,6 @@ const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: 
   const childrenWithProps = React.Children.map(children, (child) => {
     if (onChange && React.isValidElement(child)) {
       return React.cloneElement(child, {
-        // @ts-expect-error FIXME: fix type
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
           onChange(e.target.value);
         },

@@ -21,8 +21,6 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
-  // To avoid unexpected step jumps after admin creating
-  const [userCount] = useState(props.userCount);
   const isFreeLicense = value === "FREE";
   const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
   const setStep = (newStep: number) => {
@@ -61,7 +59,6 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             onSubmit={() => {
               setIsLoading(true);
               setStep(3);
-              // router.replace(`/auth/setup?step=3${isFreeLicense ? "&category=calendar" : ""}`);
             }}
           />
         );
@@ -74,7 +71,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       title: t("step_enterprise_license"),
       description: t("step_enterprise_license_description"),
       content: (setIsLoading) => {
-        const currentStep = userCount !== 0 ? 2 : 3;
+        const currentStep = 3;
         return (
           <EnterpriseLicense
             id={`wizard-step-${currentStep}`}
@@ -84,7 +81,6 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             }}
             onSuccess={() => {
               setStep(currentStep + 1);
-              // router.replace(`/auth/setup?step=${currentStep + 1}`);
             }}
             onSuccessValidate={() => {
               setIsEnabledEE(true);
@@ -101,21 +97,14 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     description: t("enable_apps_description"),
     contentClassname: "!pb-0 mb-[-1px]",
     content: (setIsLoading) => {
-      const currentStep = (userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2;
+      const currentStep = isFreeLicense ? 3 : 4;
       return (
         <AdminAppsList
           classNames={{
-            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
-            verticalTabsItem: "!w-48",
+            form: "mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full",
+            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto md:p-4",
+            verticalTabsItem: "!w-48 md:p-4",
           }}
-          /*
-            | userCount === 0 | isFreeLicense | maxSteps |
-            |-----------------|---------------|----------|
-            | T               | T             |        3 |
-            | T               | F             |        4 |
-            | F               | T             |        2 |
-            | F               | F             |        3 |
-          */
           baseURL={`/auth/setup?step=${currentStep}`}
           useQueryParam={true}
           onSubmit={() => {
@@ -138,6 +127,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
           finishLabel={t("finish")}
           prevLabel={t("prev_step")}
           stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
+          containerClassname="md:w-[800px]"
         />
       </main>
     </>

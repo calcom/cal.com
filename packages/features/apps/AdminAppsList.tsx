@@ -156,6 +156,7 @@ const AdminAppsList = ({
 }: {
   baseURL: string;
   classNames?: {
+    form?: string;
     appCategoryNavigationRoot?: string;
     appCategoryNavigationContainer?: string;
     verticalTabsItem?: string;
@@ -167,7 +168,9 @@ const AdminAppsList = ({
   return (
     <form
       {...rest}
-      className="max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+      className={
+        classNames?.form ?? "max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+      }
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
