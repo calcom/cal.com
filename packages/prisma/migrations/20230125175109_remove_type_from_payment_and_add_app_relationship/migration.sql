@@ -13,3 +13,7 @@ DROP TYPE "PaymentType";
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_appId_fkey" FOREIGN KEY ("appId") REFERENCES "App"("slug") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- At this point all payments are from stripe. We update existing values to reflect this.
+UPDATE "Payment" SET "appId" = 'stripe';
+
