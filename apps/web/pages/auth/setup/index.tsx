@@ -15,7 +15,7 @@ import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
-  const [isFreeLicense, setIsFreeLicense] = useState(props.licenseKey === true);
+  const [isFreeLicense, setIsFreeLicense] = useState(props.licenseKey === null);
   const [isEnabledEE, setIsEnabledEE] = useState(props?.licenseKey === true);
 
   const steps = [
@@ -119,12 +119,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const envLicenseKey = process.env.CALCOM_LICENSE_KEY;
+
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
-  if (process.env.CALCOM_LICENSE_KEY !== "" && deployment?.licenseKey !== "") {
+  if (envLicenseKey && envLicenseKey !== "" && deployment?.licenseKey !== "") {
     deployment = await prisma.deployment.create({
       data: {
         id: 1,
-        licenseKey: process.env.CALCOM_LICENSE_KEY,
+        licenseKey: envLicenseKey,
         agreedLicenseAt: new Date(),
       },
     });
@@ -133,7 +135,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       userCount,
-      licenseKey: typeof deployment?.licenseKey === "string" || deployment?.licenseKey,
+      licenseKey: typeof deployment?.licenseKey === "string" || (deployment?.licenseKey ?? null),
     },
   };
 };
