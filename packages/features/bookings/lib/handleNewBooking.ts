@@ -854,7 +854,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
       location: evt.location,
       eventType: eventTypeRel,
-      smsReminderNumber: smsReminderNumber,
+      smsReminderNumber,
+      metadata: bookingData.metadata,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -1251,7 +1252,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
         uid: booking.uid,
       },
       data: {
-        metadata,
+        metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
         references: {
           createMany: {
             data: referencesToCreate,

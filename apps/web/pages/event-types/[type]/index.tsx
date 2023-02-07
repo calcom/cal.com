@@ -62,7 +62,7 @@ export type FormValues = {
     phone?: string;
   }[];
   customInputs: CustomInputParsed[];
-  schedule: number;
+  schedule: number | null;
   periodType: PeriodType;
   periodDays: number;
   periodCountCalendarDays: "1" | "0";

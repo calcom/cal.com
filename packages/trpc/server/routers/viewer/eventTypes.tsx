@@ -92,7 +92,7 @@ const EventTypeUpdateInput = _EventTypeModel
         })
       )
       .optional(),
-    schedule: z.number().optional(),
+    schedule: z.number().nullable().optional(),
     hashedLink: z.string(),
   })
   .partial()
@@ -564,6 +564,12 @@ export const eventTypesRouter = router({
         };
       }
     }
+    // allows unsetting a schedule through { schedule: null, ... }
+    else if (null === schedule) {
+      data.schedule = {
+        disconnect: true,
+      };
+    }
 
     if (users) {
       data.users = {
@@ -771,20 +777,12 @@ export const eventTypesRouter = router({
       }
 
       if (workflows.length > 0) {
-        const workflowIds = workflows.map((workflow) => {
-          return { id: workflow.workflowId };
+        const relationCreateData = workflows.map((workflow) => {
+          return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
         });
 
-        const eventUpdateData: Prisma.EventTypeUpdateInput = {
-          workflows: {
-            connect: workflowIds,
-          },
-        };
-        await ctx.prisma.eventType.update({
-          where: {
-            id: newEventType.id,
-          },
-          data: eventUpdateData,
+        await ctx.prisma.workflowsOnEventTypes.createMany({
+          data: relationCreateData,
         });
       }
 
