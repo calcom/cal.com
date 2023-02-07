@@ -61,8 +61,6 @@ function FilteredItem<T extends Option>({
 function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsProps<T>) {
   const { classNames, handleValueChange } = useContext(SelectContext);
   const [keyboardFocus, setKeyboardFocus] = useState(-1);
-  const downPress = useKeyPress("ArrowDown", searchBoxRef);
-  const upPress = useKeyPress("ArrowUp", searchBoxRef);
   const enterPress = useKeyPress("Enter", searchBoxRef);
 
   const flattenedList = useMemo(() => flattenOptions(list), [list]);
@@ -71,19 +69,10 @@ function Options<T extends Option>({ list, inputValue, searchBoxRef }: OptionsPr
     return flattenedList.length;
   }, [flattenedList]);
 
-  useEffect(() => {
-    if (downPress) {
-      // Cycle to start of list if at end
-      setKeyboardFocus((prev) => (prev + 1) % totalOptionsLength);
-    }
-  }, [downPress, totalOptionsLength]);
-
-  useEffect(() => {
-    if (upPress) {
-      // Cycle to end of list if at start
-      setKeyboardFocus((prev) => (prev - 1 + totalOptionsLength) % totalOptionsLength);
-    }
-  }, [upPress, totalOptionsLength]);
+  useKeyPress("ArrowDown", searchBoxRef, () => setKeyboardFocus((prev) => (prev + 1) % totalOptionsLength));
+  useKeyPress("ArrowUp", searchBoxRef, () =>
+    setKeyboardFocus((prev) => (prev - 1 + totalOptionsLength) % totalOptionsLength)
+  );
 
   useEffect(() => {
     if (enterPress) {

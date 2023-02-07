@@ -59,7 +59,7 @@ function Select<T extends Option>({
   const [inputValue, setInputValue] = useState<string>("");
   const ref = useRef<HTMLDivElement>(null);
   const searchBoxRef = useRef<HTMLInputElement>(null);
-  const escapePressed = useKeyPress("Escape");
+
   const isMultipleValue = Array.isArray(selectedItems) && isMultiple;
 
   const toggle = useCallback(() => {
@@ -76,11 +76,9 @@ function Select<T extends Option>({
     closeDropDown();
   });
 
-  useEffect(() => {
-    if (escapePressed) {
-      closeDropDown();
-    }
-  }, [escapePressed, closeDropDown]);
+  useKeyPress("Escape", undefined, () => {
+    closeDropDown();
+  });
 
   const onPressEnterOrSpace = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {

@@ -1,6 +1,10 @@
 import { useState, useEffect, RefObject, useRef } from "react";
 
-export function useKeyPress(targetKey: string, ref?: RefObject<HTMLInputElement>): boolean {
+export function useKeyPress(
+  targetKey: string,
+  ref?: RefObject<HTMLInputElement>,
+  handler?: () => void
+): boolean {
   // State for keeping track of whether key is pressed
   const [keyPressed, setKeyPressed] = useState(false);
   const placeHolderRef = ref?.current;
@@ -8,6 +12,7 @@ export function useKeyPress(targetKey: string, ref?: RefObject<HTMLInputElement>
   function downHandler({ key }: { key: string }) {
     if (key === targetKey) {
       setKeyPressed(true);
+      handler && handler();
     }
   }
   // If released key is our target key then set to false
@@ -36,5 +41,6 @@ export function useKeyPress(targetKey: string, ref?: RefObject<HTMLInputElement>
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty array ensures that effect is only run on mount and unmount
+
   return keyPressed;
 }
