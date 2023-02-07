@@ -8,7 +8,7 @@ import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
+import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -16,6 +16,7 @@ type ChangePasswordSessionFormValues = {
   oldPassword: string;
   newPassword: string;
   sessionTimeout?: number;
+  apiError: string;
 };
 
 const PasswordView = () => {
@@ -70,7 +71,12 @@ const PasswordView = () => {
       }
     },
     onError: (error) => {
-      showToast(`${t("error_updating_password")}, ${error.message}`, "error");
+      showToast(`${t("error_updating_password")}, ${t(error.message)}`, "error");
+
+      formMethods.setError("apiError", {
+        message: t(error.message),
+        type: "custom",
+      });
     },
   });
 
@@ -123,6 +129,12 @@ const PasswordView = () => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
+          {formMethods.formState.errors.apiError && (
+            <div className="pb-6">
+              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+            </div>
+          )}
+
           <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
             <div>
               <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
@@ -143,7 +155,9 @@ const PasswordView = () => {
               />
             </div>
           </div>
-          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">{t("invalid_password_hint")}</p>
+          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
+            {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+          </p>
           <div className="mt-8 border-t border-gray-200 py-8">
             <SettingsToggle
               title={t("session_timeout")}
