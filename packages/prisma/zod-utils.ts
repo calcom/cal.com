@@ -209,6 +209,7 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
+    defaultConferencingApp: z.string().default("daily-video").optional(),
   })
   .nullable();
 
