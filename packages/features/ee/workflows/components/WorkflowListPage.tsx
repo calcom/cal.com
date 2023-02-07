@@ -25,7 +25,11 @@ import { DeleteDialog } from "./DeleteDialog";
 import EmptyScreen from "./EmptyScreen";
 
 export type WorkflowType = Workflow & {
-  team: Team;
+  team: {
+    id: number;
+    slug: string | null;
+    name?: string | null;
+  } | null;
   steps: WorkflowStep[];
   activeOn: {
     eventType: {
@@ -117,7 +121,7 @@ export default function WorkflowListPage({ workflows, profiles, hasNoWorkflows }
                         {workflow.teamId && (
                           <li>
                             <Badge variant="gray">
-                              <>{workflow.team.name}</>
+                              <>{workflow.team?.name}</>
                             </Badge>
                           </li>
                         )}

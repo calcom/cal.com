@@ -155,7 +155,7 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.workflows.filteredList.useQuery();
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 
@@ -164,7 +164,7 @@ function EventWorkflowsTab(props: Props) {
       const activeWorkflows = workflows.map((workflowOnEventType) => {
         return workflowOnEventType;
       });
-      const disabledWorkflows = data.workflows.filter(
+      const disabledWorkflows: WorkflowType[] = data.workflows.filter(
         (workflow) =>
           !workflows
             .map((workflow) => {
@@ -176,7 +176,7 @@ function EventWorkflowsTab(props: Props) {
     }
   }, [isLoading]);
 
-  const createMutation = trpc.viewer.workflows.createV2.useMutation({
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },
@@ -212,7 +212,7 @@ function EventWorkflowsTab(props: Props) {
                 <Button
                   target="_blank"
                   color="secondary"
-                  onClick={() => createMutation.mutate()}
+                  onClick={() => createMutation.mutate({})}
                   loading={createMutation.isLoading}>
                   {t("create_workflow")}
                 </Button>
