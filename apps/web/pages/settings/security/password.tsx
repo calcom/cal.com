@@ -101,6 +101,8 @@ const PasswordView = () => {
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
+  const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
+  const isUser = data?.user.role === "USER";
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
@@ -121,12 +123,24 @@ const PasswordView = () => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="max-w-[38rem] sm:flex sm:space-x-4">
-            <div className="flex-grow">
+          <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+            <div>
               <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
             </div>
-            <div className="flex-grow">
-              <PasswordField {...formMethods.register("newPassword")} label={t("new_password")} />
+            <div>
+              <PasswordField
+                {...formMethods.register("newPassword", {
+                  minLength: {
+                    message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                    value: passwordMinLength,
+                  },
+                  pattern: {
+                    message: "Should contain a number, uppercase and lowercase letters",
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]*$/,
+                  },
+                })}
+                label={t("new_password")}
+              />
             </div>
           </div>
           <p className="mt-4 max-w-[38rem] text-sm text-gray-600">{t("invalid_password_hint")}</p>
