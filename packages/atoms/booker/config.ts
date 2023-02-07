@@ -1,4 +1,6 @@
-import { BookerState } from "./types";
+import { Variants, MotionStyle } from "framer-motion";
+
+import { BookerLayout, BookerState } from "./types";
 
 // Why any? :( -> https://www.framer.com/motion/component/#%23%23animating-css-variables)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,49 +26,80 @@ export const fadeInUp = {
   initial: "hidden",
   exit: "hidden",
   animate: "visible",
-  transition: { ease: "easeInOut" },
+  transition: { ease: "easeInOut", delay: 0.1 },
 };
 
-export const cssVariableConfig = {
-  // Since loading state probably isn't that heigh, we give it a initial height so the animation
-  // so the animation won't looks smoother.
-  "--booker-initial-height": "412px",
-  // Width of the columns:
-  "--booker-meta-width": "280px",
-  "--booker-calendar-width": "425px",
-  "--booker-form-width": "425px",
-  "--booker-timeslots-width": "280px",
-  // Animated variables by framer motion
-  "--booker-max-width": "var(--booker-default-width)",
-  "--booker-max-height": "var(--booker-initial-height)",
-  // Infinite values are used to let the animation grow to the max size of the content.
-  // This means that the value of these infinite vlaues should be a value that's never reached (on desktop).
-  // Making it an unneccessary large value could cause a VERY fast animation though.
-  "--booker-infinite-width": "2000px",
-  "--booker-infinite-height": "2000px",
-} as MotionStyleWithCssVar;
+type ResizeAnimationConfig = {
+  [key in BookerLayout]: {
+    [key in BookerState]?: {
+      variants: Variants;
+    } & {
+      style?: MotionStyleWithCssVar;
+    };
+  };
+};
 
-// Width without the timeslots being visible (taking up extra room);
-cssVariableConfig["--booker-default-width"] =
-  parseInt(cssVariableConfig["--booker-meta-width"]) +
-  parseInt(cssVariableConfig["--booker-calendar-width"]) +
-  "px";
-
-export const resizeAnimationConfig = {
-  [BookerState.LOADING]: {
-    "--booker-max-width": "var(--booker-default-width)",
-    "--booker-max-height": "var(--booker-initial-height)",
-  } as MotionStyleWithCssVar,
-  [BookerState.SELECTING_DATE]: {
-    "--booker-max-width": "var(--booker-default-width)",
-    "--booker-max-height": "var(--booker-infinite-height)",
-  } as MotionStyleWithCssVar,
-  [BookerState.SELECTING_TIME]: {
-    "--booker-max-width": "var(--booker-infinite-width)",
-    "--booker-max-height": "var(--booker-infinite-height)",
-  } as MotionStyleWithCssVar,
-  [BookerState.BOOKING]: {
-    "--booker-max-width": "var(--booker-default-width)",
-    "--booker-max-height": "var(--booker-infinite-height)",
-  } as MotionStyleWithCssVar,
+export const resizeAnimationConfig: ResizeAnimationConfig = {
+  mobile: {
+    variants: {
+      default: {
+        gridTemplateAreas: `
+          "meta"
+          "calendar"
+          "main"
+          "timeslots"
+        `,
+        gridTemplateColumns: "1fr",
+      },
+    },
+  },
+  small_calendar: {
+    style: {
+      "--booker-meta-width": "280px",
+      "--booker-main-width": "425px",
+      "--booker-timeslots-width": "280px",
+      width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
+    },
+    variants: {
+      default: {
+        width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
+        gridTemplateAreas: `
+          "meta main"
+        `,
+        gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
+      },
+      selecting_time: {
+        width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
+        gridTemplateAreas: `
+          "meta main timeslots"
+        `,
+        gridTemplateColumns:
+          "var(--booker-meta-width) var(--booker-main-width) var(--booker-timeslots-width)",
+      },
+    },
+  },
+  large_calendar: {
+    variants: {
+      default: {
+        width: "100vw",
+        gridTemplateAreas: `
+        "meta main"
+        "calendar main"
+      `,
+        gridTemplateColumns: "280px 1fr",
+      },
+    },
+  },
+  large_timeslots: {
+    variants: {
+      default: {
+        width: "100vw",
+        gridTemplateAreas: `
+          "meta main"
+          "calendar main"
+        `,
+        gridTemplateColumns: "280px 1fr",
+      },
+    },
+  },
 };
