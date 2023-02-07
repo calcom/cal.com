@@ -17,7 +17,7 @@ type EnterpriseLicenseFormValues = {
 
 const EnterpriseLicense = (props: {
   currentStep: number;
-  licenseKey?: string;
+  licenseKey?: true | null | undefined;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   setIsEnabled: Dispatch<SetStateAction<boolean>>;
 }) => {
@@ -55,7 +55,7 @@ const EnterpriseLicense = (props: {
 
   const formMethods = useForm<EnterpriseLicenseFormValues>({
     defaultValues: {
-      licenseKey: props.licenseKey || "",
+      licenseKey: "",
     },
     resolver: zodResolver(schemaLicenseKey),
   });
@@ -92,36 +92,41 @@ const EnterpriseLicense = (props: {
             name="licenseKey"
             control={formMethods.control}
             render={({ field: { onBlur, onChange, value } }) => (
-              <TextField
-                {...formMethods.register("licenseKey")}
-                className={classNames(
-                  "mb-0 group-hover:border-gray-400",
-                  (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
+              <>
+                <TextField
+                  {...formMethods.register("licenseKey")}
+                  className={classNames(
+                    "mb-0 group-hover:border-gray-400",
+                    (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
+                  )}
+                  placeholder="c73bcdcc-2669-4bf6-81d3-e4ae73fb11fd"
+                  labelSrOnly={true}
+                  value={value}
+                  addOnFilled={false}
+                  addOnClassname={classNames(
+                    "hover:border-gray-300",
+                    errors.licenseKey === undefined && isDirty && "group-hover:border-gray-400"
+                  )}
+                  addOnSuffix={
+                    checkLicenseLoading ? (
+                      <FiLoader className="h-5 w-5 animate-spin" />
+                    ) : errors.licenseKey === undefined && isDirty ? (
+                      <FiCheck className="h-5 w-5 text-green-700" />
+                    ) : undefined
+                  }
+                  color={errors.licenseKey ? "warn" : ""}
+                  onBlur={onBlur}
+                  onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                    onChange(e.target.value);
+                    formMethods.setValue("licenseKey", e.target.value);
+                    await formMethods.trigger("licenseKey");
+                    props.setIsEnabled(errors.licenseKey === undefined);
+                  }}
+                />
+                {props.licenseKey === true && (
+                  <p className="mt-2 text-sm text-gray-600">{t("already_have_key_suggestion")}</p>
                 )}
-                placeholder="c73bcdcc-2669-4bf6-81d3-e4ae73fb11fd"
-                labelSrOnly={true}
-                value={value}
-                addOnFilled={false}
-                addOnClassname={classNames(
-                  "hover:border-gray-300",
-                  errors.licenseKey === undefined && isDirty && "group-hover:border-gray-400"
-                )}
-                addOnSuffix={
-                  checkLicenseLoading ? (
-                    <FiLoader className="h-5 w-5 animate-spin" />
-                  ) : errors.licenseKey === undefined && isDirty ? (
-                    <FiCheck className="h-5 w-5 text-green-700" />
-                  ) : undefined
-                }
-                color={errors.licenseKey ? "warn" : ""}
-                onBlur={onBlur}
-                onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                  onChange(e.target.value);
-                  formMethods.setValue("licenseKey", e.target.value);
-                  await formMethods.trigger("licenseKey");
-                  props.setIsEnabled(errors.licenseKey === undefined);
-                }}
-              />
+              </>
             )}
           />
         </div>

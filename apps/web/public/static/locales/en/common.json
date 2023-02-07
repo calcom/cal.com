@@ -1453,6 +1453,7 @@
   "enable_apps_description": "Enable apps that users can integrate with Cal.com",
   "purchase_license": "Purchase a License",
   "already_have_key": "I already have a key:",
+  "already_have_key_suggestion": "Please copy your existing CALCOM_LICENSE_KEY environment variable here.",
   "app_is_enabled": "{{appName}} is enabled",
   "app_is_disabled": "{{appName}} is disabled",
   "keys_have_been_saved": "Keys have been saved",

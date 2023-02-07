@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 
 const ChooseLicense = (props: {
   currentStep: number;
@@ -15,6 +16,12 @@ const ChooseLicense = (props: {
   const router = useRouter();
   const { isFreeLicense, setIsFreeLicense } = props;
 
+  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
+    onSuccess: () => {
+      router.replace(`/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`);
+    },
+  });
+
   const enterprise_booking_fee = "$99"; // TODO: get this from a new API endpoint
 
   return (
@@ -25,12 +32,16 @@ const ChooseLicense = (props: {
       onSubmit={(e) => {
         e.preventDefault();
         props.setIsLoading(true);
-        router.replace(
-          `/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
-        );
+        if (isFreeLicense) {
+          mutation.mutate({ licenseKey: "" });
+        } else {
+          router.replace(
+            `/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
+          );
+        }
       }}>
       <RadioGroup.Root
-        defaultValue="FREE"
+        value={isFreeLicense ? "FREE" : "EE"}
         aria-label={t("choose_a_license")}
         className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
         onValueChange={(value) => {
@@ -39,7 +50,7 @@ const ChooseLicense = (props: {
         <RadioGroup.Item value="FREE">
           <div
             className={classNames(
-              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
+              "space-y-2 rounded-md border bg-white p-4 hover:border-black",
               isFreeLicense && "border-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("agplv3_license")}</h2>
@@ -55,7 +66,7 @@ const ChooseLicense = (props: {
         <RadioGroup.Item value="EE">
           <div
             className={classNames(
-              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
+              "space-y-2 rounded-md border bg-white p-4 hover:border-black",
               !isFreeLicense && "border-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>

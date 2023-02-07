@@ -14,7 +14,7 @@ export const deploymentSetupRouter = router({
     .mutation(async ({ input }) => {
       const data = {
         agreedLicenseAt: new Date(),
-        ...(input.licenseKey ? { licenseKey: input.licenseKey } : {}),
+        licenseKey: input.licenseKey,
       };
 
       await prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
