@@ -1,57 +1,44 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
-import { useRouter } from "next/router";
-import { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 
-const ChooseLicense = (props: {
-  currentStep: number;
-  isFreeLicense: boolean;
-  setIsLoading: Dispatch<SetStateAction<boolean>>;
-  setIsFreeLicense: Dispatch<SetStateAction<boolean>>;
-}) => {
+const ENTERPRISE_BOOKING_FEE = "$99"; // TODO: get this from a new API endpoint
+
+const ChooseLicense = (
+  props: {
+    value: string;
+    onChange: (value: string) => void;
+    onSubmit: (value: string) => void;
+  } & Omit<JSX.IntrinsicElements["form"], "onSubmit" | "onChange">
+) => {
+  const { value: initialValue = "FREE", onChange, onSubmit, ...rest } = props;
+  const [value, setValue] = useState(initialValue);
   const { t } = useLocale();
-  const router = useRouter();
-  const { isFreeLicense, setIsFreeLicense } = props;
-
-  const mutation = trpc.viewer.deploymentSetup.update.useMutation({
-    onSuccess: () => {
-      router.replace(`/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`);
-    },
-  });
-
-  const enterprise_booking_fee = "$99"; // TODO: get this from a new API endpoint
 
   return (
     <form
-      id={`wizard-step-${props.currentStep}`}
-      name={`wizard-step-${props.currentStep}`}
+      {...rest}
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        props.setIsLoading(true);
-        if (isFreeLicense) {
-          mutation.mutate({ licenseKey: "" });
-        } else {
-          router.replace(
-            `/auth/setup?step=${props.currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
-          );
-        }
+        onSubmit(value);
       }}>
       <RadioGroup.Root
-        value={isFreeLicense ? "FREE" : "EE"}
+        defaultValue={initialValue}
+        value={value}
         aria-label={t("choose_a_license")}
         className="grid grid-rows-2 gap-4 md:grid-cols-2 md:grid-rows-1"
         onValueChange={(value) => {
-          setIsFreeLicense(value === "FREE");
+          onChange(value);
+          setValue(value);
         }}>
         <RadioGroup.Item value="FREE">
           <div
             className={classNames(
-              "space-y-2 rounded-md border bg-white p-4 hover:border-black",
-              isFreeLicense && "border-black"
+              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
+              value === "FREE" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("agplv3_license")}</h2>
             <p className="font-medium text-green-800">{t("free_license_fee")}</p>
@@ -66,12 +53,12 @@ const ChooseLicense = (props: {
         <RadioGroup.Item value="EE">
           <div
             className={classNames(
-              "space-y-2 rounded-md border bg-white p-4 hover:border-black",
-              !isFreeLicense && "border-black"
+              "cursor-pointer space-y-2 rounded-md border bg-white p-4 hover:border-black",
+              value === "EE" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-xl text-black">{t("ee_enterprise_license")}</h2>
             <p className="font-medium text-green-800">
-              {t("enterprise_booking_fee", { enterprise_booking_fee })}
+              {t("enterprise_booking_fee", { enterprise_booking_fee: ENTERPRISE_BOOKING_FEE })}
             </p>
             <p className="text-gray-500">{t("enterprise_license_includes")}</p>
             <ul className="ml-4 list-disc text-left text-xs text-gray-500">

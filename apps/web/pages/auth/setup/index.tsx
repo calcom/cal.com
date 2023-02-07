@@ -1,8 +1,10 @@
 import { UserPermissionRole } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -15,8 +17,10 @@ import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
-  const [isFreeLicense, setIsFreeLicense] = useState(props.licenseKey === null);
-  const [isEnabledEE, setIsEnabledEE] = useState(props?.licenseKey === true);
+  const router = useRouter();
+  const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
+  const isFreeLicense = value === "FREE";
+  const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
 
   const steps = [
     ...(props.userCount === 0
@@ -33,28 +37,47 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     {
       title: t("choose_a_license"),
       description: t("choose_license_description"),
-      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
-        <ChooseLicense
-          currentStep={props.userCount !== 0 ? 1 : 2}
-          isFreeLicense={isFreeLicense}
-          setIsFreeLicense={setIsFreeLicense}
-          setIsLoading={setIsLoading}
-        />
-      ),
+      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
+        const currentStep = props.userCount !== 0 ? 1 : 2;
+        return (
+          <ChooseLicense
+            id={`wizard-step-${currentStep}`}
+            name={`wizard-step-${currentStep}`}
+            value={value}
+            onChange={setValue}
+            onSubmit={() => {
+              setIsLoading(true);
+              router.replace(
+                `/auth/setup?step=${currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
+              );
+            }}
+          />
+        );
+      },
     },
     ...(!isFreeLicense
       ? [
           {
             title: t("step_enterprise_license"),
             description: t("step_enterprise_license_description"),
-            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
-              <EnterpriseLicense
-                currentStep={props.userCount !== 0 ? 2 : 3}
-                setIsEnabled={setIsEnabledEE}
-                setIsLoading={setIsLoading}
-                licenseKey={props.licenseKey}
-              />
-            ),
+            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
+              const currentStep = props.userCount !== 0 ? 2 : 3;
+              return (
+                <EnterpriseLicense
+                  id={`wizard-step-${currentStep}`}
+                  name={`wizard-step-${currentStep}`}
+                  onSubmit={() => {
+                    setIsLoading(true);
+                  }}
+                  onSuccess={() => {
+                    router.replace(`/auth/setup?step=${currentStep + 1}`);
+                  }}
+                  onSuccessValidate={() => {
+                    setIsEnabledEE(true);
+                  }}
+                />
+              );
+            },
             isEnabled: isEnabledEE,
           },
         ]
@@ -65,6 +88,10 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       contentClassname: "!pb-0 mb-[-1px]",
       loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
         <AdminAppsList
+          classNames={{
+            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
+            verticalTabsItem: "!w-48",
+          }}
           fromAdmin
           /*
             | userCount === 0 | isFreeLicense | maxSteps |
@@ -103,10 +130,6 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const userCount = await prisma.user.count();
-  let deployment = await prisma.deployment.findFirst({
-    where: { id: 1 },
-    select: { licenseKey: true },
-  });
   const { req } = context;
   const session = await getSession({ req });
 
@@ -119,23 +142,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const envLicenseKey = process.env.CALCOM_LICENSE_KEY;
+  let deploymentKey = await getDeploymentKey(prisma);
 
   // Check existant CALCOM_LICENSE_KEY env var and acccount for it
-  if (envLicenseKey && envLicenseKey !== "" && deployment?.licenseKey !== "") {
-    deployment = await prisma.deployment.create({
-      data: {
-        id: 1,
-        licenseKey: envLicenseKey,
+  if (!!process.env.CALCOM_LICENSE_KEY && !deploymentKey) {
+    await prisma.deployment.upsert({
+      where: { id: 1 },
+      update: {
+        licenseKey: process.env.CALCOM_LICENSE_KEY,
+        agreedLicenseAt: new Date(),
+      },
+      create: {
+        licenseKey: process.env.CALCOM_LICENSE_KEY,
         agreedLicenseAt: new Date(),
       },
     });
+    deploymentKey = await getDeploymentKey(prisma);
   }
+
+  const isFreeLicense = deploymentKey === "";
 
   return {
     props: {
+      isFreeLicense,
       userCount,
-      licenseKey: typeof deployment?.licenseKey === "string" || (deployment?.licenseKey ?? null),
     },
   };
 };

@@ -1,13 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useReducer, FC, Dispatch, SetStateAction } from "react";
+import { Dispatch, FC, SetStateAction, useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { classNames } from "@calcom/lib";
+import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
@@ -33,9 +33,9 @@ import {
 } from "@calcom/ui";
 import {
   FiAlertCircle,
+  FiCheckCircle,
   FiEdit,
   FiMoreHorizontal,
-  FiCheckCircle,
   FiXCircle,
 } from "@calcom/ui/components/icon";
 
@@ -152,8 +152,14 @@ const AdminAppsList = ({
   currentStep,
   setIsLoading,
   useQueryParam = false,
+  classNames,
 }: {
   baseURL: string;
+  classNames?: {
+    appCategoryNavigationRoot?: string;
+    appCategoryNavigationContainer?: string;
+    verticalTabsItem?: string;
+  };
   className?: string;
   fromAdmin?: boolean;
   currentStep?: number;
@@ -173,13 +179,12 @@ const AdminAppsList = ({
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
-        fromAdmin={fromAdmin}
         useQueryParam={useQueryParam}
-        containerClassname={classNames(
-          "min-w-0 w-full",
-          fromAdmin ? " max-h-[400px] overflow-y-auto" : "max-w-[500px]"
-        )}
-        className={className}>
+        classNames={{
+          root: className,
+          verticalTabsItem: classNames?.verticalTabsItem,
+          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
+        }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
     </form>
