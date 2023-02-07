@@ -175,7 +175,7 @@ ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
-  getManageLink(calEvent)
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
 }
 ${
   calEvent.paymentInfo
