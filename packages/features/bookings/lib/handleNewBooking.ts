@@ -552,6 +552,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -620,10 +621,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
-
-    if (!evt.seatsShowAttendees) {
-      evt.attendees = invitee;
-    }
 
     /**
      * Remember objects are passed into functions as references
@@ -747,6 +744,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       location: evt.location,
       eventType: eventTypeRel,
       smsReminderNumber: reqBody.smsReminderNumber,
+      metadata: reqBody.metadata,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -1143,7 +1141,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: booking.uid,
       },
       data: {
-        metadata,
+        metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
         references: {
           createMany: {
             data: referencesToCreate,

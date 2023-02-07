@@ -42,6 +42,17 @@ const middleware: NextMiddleware = async (req) => {
     return NextResponse.rewrite(url);
   }
 
+  if (url.pathname.startsWith("/auth/login")) {
+    const moreHeaders = new Headers(req.headers);
+    // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
+    moreHeaders.set("x-csp-enforce", "true");
+    return NextResponse.next({
+      request: {
+        headers: moreHeaders,
+      },
+    });
+  }
+
   return NextResponse.next();
 };
 
@@ -52,6 +63,7 @@ export const config = {
     "/apps/routing_forms/:path*",
     "/:path*/embed",
     "/:path*/new-booker/:path*",
+    "/auth/login",
   ],
 };
 

@@ -1,10 +1,11 @@
 import { useRouter } from "next/router";
+import { useReducer } from "react";
 import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
@@ -16,21 +17,28 @@ import {
   List,
   AppSkeletonLoader as SkeletonLoader,
   ShellSubHeading,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  Dropdown,
+  DropdownMenuItem,
+  DropdownItem,
 } from "@calcom/ui";
 import {
   FiBarChart,
   FiCalendar,
   FiCreditCard,
   FiGrid,
+  FiMoreHorizontal,
   FiPlus,
   FiShare2,
+  FiTrash,
   FiVideo,
 } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
+import AppListCard from "@components/AppListCard";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
-import IntegrationListItem from "@components/apps/IntegrationListItem";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
 function ConnectOrDisconnectIntegrationButton(props: {
@@ -39,8 +47,9 @@ function ConnectOrDisconnectIntegrationButton(props: {
   isGlobal?: boolean;
   installed?: boolean;
   invalidCredentialIds?: number[];
+  handleDisconnect: (credentialId: number) => void;
 }) {
-  const { type, credentialIds, isGlobal, installed } = props;
+  const { type, credentialIds, isGlobal, installed, handleDisconnect } = props;
   const { t } = useLocale();
   const [credentialId] = credentialIds;
 
@@ -49,25 +58,24 @@ function ConnectOrDisconnectIntegrationButton(props: {
     utils.viewer.integrations.invalidate();
   };
 
-  if (credentialId) {
-    if (type === "stripe_payment") {
-      return (
-        <DisconnectIntegration
-          credentialId={credentialId}
-          trashIcon
-          onSuccess={handleOpenChange}
-          buttonProps={{ className: "border border-gray-300" }}
-        />
-      );
-    }
-
+  if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
-      <DisconnectIntegration
-        credentialId={credentialId}
-        trashIcon
-        onSuccess={handleOpenChange}
-        buttonProps={{ className: "border border-gray-300" }}
-      />
+      <Dropdown modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>
+            <DropdownItem
+              color="destructive"
+              onClick={() => handleDisconnect(credentialId)}
+              disabled={isGlobal}
+              StartIcon={FiTrash}>
+              {t("remove_app")}
+            </DropdownItem>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </Dropdown>
     );
   }
 
@@ -78,14 +86,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
       </div>
     );
   }
-  /** We don't need to "Connect", just show that it's installed */
-  if (isGlobal) {
-    return (
-      <div className="truncate px-3 py-2">
-        <h3 className="text-sm font-medium text-gray-700">{t("default")}</h3>
-      </div>
-    );
-  }
+
   return (
     <InstallAppButton
       type={type}
@@ -102,48 +103,54 @@ function ConnectOrDisconnectIntegrationButton(props: {
 interface IntegrationsContainerProps {
   variant?: typeof InstalledAppVariants[number];
   exclude?: typeof InstalledAppVariants[number][];
+  handleDisconnect: (credentialId: number) => void;
 }
 
 interface IntegrationsListProps {
   variant?: IntegrationsContainerProps["variant"];
   data: RouterOutputs["viewer"]["integrations"];
+  handleDisconnect: (credentialId: number) => void;
 }
 
-const IntegrationsList = ({ data }: IntegrationsListProps) => {
+const IntegrationsList = ({ data, handleDisconnect }: IntegrationsListProps) => {
   return (
-    <List className="flex flex-col gap-6" noBorderTreatment>
+    <List>
       {data.items
         .filter((item) => item.invalidCredentialIds)
         .map((item) => (
-          <IntegrationListItem
-            name={item.name}
-            slug={item.slug}
-            key={item.title}
-            title={item.title}
-            logo={item.logo}
+          <AppListCard
+            key={item.name}
             description={item.description}
-            separate={true}
-            isTemplate={item.isTemplate}
+            title={item.name}
+            logo={item.logo}
+            isDefault={item.isGlobal}
+            shouldHighlight
+            slug={item.slug}
             invalidCredential={item.invalidCredentialIds.length > 0}
             actions={
-              <div className="flex w-16 justify-end">
+              <div className="flex  justify-end">
                 <ConnectOrDisconnectIntegrationButton
                   credentialIds={item.credentialIds}
                   type={item.type}
                   isGlobal={item.isGlobal}
                   installed
                   invalidCredentialIds={item.invalidCredentialIds}
+                  handleDisconnect={handleDisconnect}
                 />
               </div>
             }>
             <AppSettings slug={item.slug} />
-          </IntegrationListItem>
+          </AppListCard>
         ))}
     </List>
   );
 };
 
-const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps): JSX.Element => {
+const IntegrationsContainer = ({
+  variant,
+  exclude,
+  handleDisconnect,
+}: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
@@ -182,7 +189,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                     </Button>
                   }
                 />
-                <IntegrationsList data={data} variant={variant} />
+                <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
               </div>
             ) : (
               <EmptyScreen
@@ -214,6 +221,11 @@ const querySchema = z.object({
 
 type querySchemaType = z.infer<typeof querySchema>;
 
+type ModalState = {
+  isOpen: boolean;
+  credentialId: null | number;
+};
+
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
@@ -226,14 +238,43 @@ export default function InstalledApps() {
     "web3",
   ];
 
+  const [data, updateData] = useReducer(
+    (data: ModalState, partialData: Partial<ModalState>) => ({ ...data, ...partialData }),
+    {
+      isOpen: false,
+      credentialId: null,
+    }
+  );
+
+  const handleModelClose = () => {
+    updateData({ isOpen: false, credentialId: null });
+  };
+
+  const handleDisconnect = (credentialId: number) => {
+    updateData({ isOpen: true, credentialId });
+  };
+
   return (
-    <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {categoryList.includes(category) && <IntegrationsContainer variant={category} />}
-      {category === "calendar" && <CalendarListContainer />}
-      {category === "other" && (
-        <IntegrationsContainer variant={category} exclude={[...categoryList, "calendar"]} />
-      )}
-    </InstalledAppsLayout>
+    <>
+      <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
+        {categoryList.includes(category) && (
+          <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
+        )}
+        {category === "calendar" && <CalendarListContainer />}
+        {category === "other" && (
+          <IntegrationsContainer
+            handleDisconnect={handleDisconnect}
+            variant={category}
+            exclude={[...categoryList, "calendar"]}
+          />
+        )}
+      </InstalledAppsLayout>
+      <DisconnectIntegrationModal
+        handleModelClose={handleModelClose}
+        isOpen={data.isOpen}
+        credentialId={data.credentialId}
+      />
+    </>
   );
 }
 
