@@ -48,8 +48,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
       onClick={() => handleValueChange(item)}
       className={cn(
         "block flex cursor-pointer select-none items-center justify-between truncate border-transparent px-3 py-2 transition duration-200",
-        isSelected ? "bg-gray-200 text-gray-900" : "text-gray-700 hover:bg-gray-100",
-        focused && "bg-gray-100",
+        isSelected ? "bg-gray-100 text-gray-900" : "text-gray-700 hover:bg-gray-100",
+        focused && "bg-gray-50",
         classNames?.listItem
       )}>
       <div className="flex space-x-2">

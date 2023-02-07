@@ -155,12 +155,12 @@ function Select<T extends Option>({
           onKeyDown={onPressEnterOrSpace}
           onClick={toggle}
           className={cn(
-            "flex max-h-[36px] items-center rounded-md border border-gray-300 text-sm text-gray-400 transition-all duration-300 focus:outline-none",
+            "flex max-h-[36px] items-center justify-between rounded-md border border-gray-300 text-sm text-gray-400 transition-all duration-300 focus:outline-none",
             isDisabled
               ? "border-gray-200 bg-gray-100 text-gray-400 "
               : "bg-white hover:border-gray-600 focus:border-gray-900"
           )}>
-          <div className="flex grow flex-wrap items-center gap-1">
+          <div className="flex w-full grow-0 items-center gap-1 overflow-x-hidden">
             <>
               {((isMultipleValue && selectedItems.length === 0) || selectedItems === null) && (
                 <div className="py-2.5 px-3 text-gray-400">
@@ -169,10 +169,10 @@ function Select<T extends Option>({
               )}
 
               {Array.isArray(selectedItems) ? (
-                <div className="flex gap-1 p-1">
+                <div className="over-flow-x flex gap-1 p-1 ">
                   {selectedItems.map((item, index) => (
                     <div
-                      className={cn("flex items-center space-x-2 rounded-md bg-gray-200 px-2 py-[6px]")}
+                      className={cn("flex items-center space-x-2 rounded bg-gray-200 px-2 py-[6px]")}
                       key={index}>
                       <p
                         className={cn(
@@ -203,27 +203,20 @@ function Select<T extends Option>({
             </>
           </div>
 
-          <div className="flex flex-none items-center py-1.5">
+          <div className="flex flex-none items-center rounded-[6px] bg-white p-1.5 opacity-75">
             {isClearable && !isDisabled && selectedItems !== null && (
-              <div className="cursor-pointer px-1.5" onClick={clearValue}>
+              <div className="cursor-pointer" onClick={clearValue}>
                 <FiX
-                  className={classNames && classNames.closeIcon ? classNames.closeIcon : "h-5 w-5 p-0.5"}
+                  className={
+                    classNames && classNames.closeIcon ? classNames.closeIcon : "h-5 w-5 p-0.5 text-gray-900"
+                  }
                 />
               </div>
             )}
 
-            <div className="h-full">
-              <span className="inline-block h-full w-px bg-gray-300 text-white text-opacity-0" />
-            </div>
-
-            <div className="px-1.5">
-              <FiChevronDown
-                className={cn(
-                  "h-6 w-6 p-0.5 transition duration-300",
-                  open ? " rotate-180 transform text-gray-500" : " text-gray-300"
-                )}
-              />
-            </div>
+            <FiChevronDown
+              className={cn("h-5 w-5 text-gray-900 transition duration-300", open && " rotate-180 transform")}
+            />
           </div>
         </div>
 
