@@ -34,14 +34,12 @@ export const fieldsSchema = z.array(
     placeholder: z.string().optional(),
     required: z.boolean(),
     hidden: z.boolean().optional(),
-    editable: z
-      .enum([
-        "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
-        "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
-        "user", // Fully editable
-        "readonly", //All fields are readOnly.
-      ])
-      .optional(),
+    editable: z.enum([
+      "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
+      "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+      "user", // Fully editable
+      "user-readonly", // All fields are readOnly.
+    ]),
     sources: z
       .array(
         z.object({

@@ -3,18 +3,30 @@ import z from "zod";
 
 import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-export default function getBookingResponsesSchema(
+type EventType = Parameters<typeof preprocess>[0]["eventType"];
+export const getBookingResponsesPartialSchema = (eventType: EventType) => {
+  const schema = bookingResponses.partial().and(z.record(z.any()));
+  return preprocess({ schema, eventType, forgiving: true });
+};
+
+export default function getBookingResponsesSchema(eventType: EventType) {
+  const schema = bookingResponses.and(z.record(z.any()));
+  return preprocess({ schema, eventType, forgiving: false });
+}
+
+function preprocess<T extends z.ZodType>({
+  schema,
+  eventType,
+  forgiving,
+}: {
+  schema: T;
+  forgiving: boolean;
   eventType: {
     bookingFields: z.infer<typeof eventTypeBookingFields> &
       z.infer<typeof eventTypeBookingFields> &
       z.BRAND<"HAS_SYSTEM_FIELDS">;
-  },
-  forgiving = false
-) {
-  const schema = forgiving
-    ? bookingResponses.partial().and(z.record(z.any()))
-    : bookingResponses.and(z.record(z.any()));
-
+  };
+}): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   return z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).parse(responses);

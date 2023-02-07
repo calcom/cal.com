@@ -3,7 +3,7 @@ import { GetServerSidePropsContext } from "next";
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema, customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
@@ -150,16 +150,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(
-      prisma,
-      rescheduleUid,
-      ensureBookingInputsHaveSystemFields({
-        bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
-        disableGuests: eventType.disableGuests,
-        additionalNotesRequired: !!metadata?.additionalNotesRequired,
-        customInputs: customInputSchema.array().parse(eventType.customInputs),
-      })
-    );
+    booking = await getBooking(prisma, rescheduleUid, getBookingFieldsWithSystemFields(eventTypeObject));
   }
 
   return {

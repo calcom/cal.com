@@ -60,7 +60,7 @@ export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string
   listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
 } & CommonProps<TVal>;
 
-export type TextLikeComponentProps<TVal extends string | boolean = string> = CommonProps<TVal>;
+export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal>;
 
 export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
   TextLikeComponentProps<TVal> & {

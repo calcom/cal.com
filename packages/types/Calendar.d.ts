@@ -156,6 +156,8 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsPerTimeSlot?: number | null;
+  responses?: Prisma.JsonObject | null;
+  userFieldsResponses?: Prisma.JsonObject | null;
 }
 
 export interface EntryPoint {

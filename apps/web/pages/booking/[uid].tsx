@@ -26,7 +26,7 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -578,7 +578,8 @@ export default function Success(props: SuccessProps) {
                           <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
                             {field.label}
                           </Label>
-                          <div className="col-span-3 mt-1 mb-2">{response}</div>
+                          {/* Might be a good idea to use the readonly versions of respective components here */}
+                          <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
                         </>
                       );
                     })}
@@ -946,12 +947,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
-    bookingFields: ensureBookingInputsHaveSystemFields({
-      bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
-      disableGuests: eventType.disableGuests,
-      additionalNotesRequired: !!metadata?.additionalNotesRequired,
-      customInputs: customInputSchema.array().parse(eventType.customInputs || []),
-    }),
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
     metadata,
   };
 };

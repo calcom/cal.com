@@ -54,7 +54,8 @@ export const EventTypeMetaDataSchema = z
   .nullable();
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
-
+export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
 // Validation of user added bookingFields's responses happen using getBookingResponsesSchema which requires eventType.
 export const bookingResponses = z.object({
   email: z.string(),

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import { prisma } from "@calcom/prisma";
 import { EventType } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema, customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type Field = z.infer<typeof eventTypeBookingFields>[number];
 
@@ -20,15 +20,10 @@ async function getEventType(eventTypeId: EventType["id"]) {
   if (!rawEventType) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
-  const metadata = EventTypeMetaDataSchema.parse(rawEventType.metadata || {});
+
   const eventType = {
     ...rawEventType,
-    bookingFields: ensureBookingInputsHaveSystemFields({
-      bookingFields: eventTypeBookingFields.parse(rawEventType.bookingFields),
-      disableGuests: rawEventType.disableGuests,
-      additionalNotesRequired: !!metadata?.additionalNotesRequired,
-      customInputs: customInputSchema.array().parse(rawEventType.customInputs || []),
-    }),
+    bookingFields: getBookingFieldsWithSystemFields(rawEventType),
   };
   return eventType;
 }

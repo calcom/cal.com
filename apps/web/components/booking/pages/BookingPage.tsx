@@ -22,11 +22,14 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import getBookingResponsesSchema, {
+  getBookingResponsesPartialSchema,
+} from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -170,8 +173,8 @@ const BookingPage = ({
           createPaymentLink({
             paymentUid,
             date,
-            name: bookingForm.getValues("name"),
-            email: bookingForm.getValues("email"),
+            name: bookingForm.getValues("responses.name"),
+            email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
         );
@@ -181,7 +184,7 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           isSuccessBookingPage: true,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
           formerTime: booking?.startTime.toString(),
         },
@@ -197,7 +200,7 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           allRemainingBookings: true,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
           formerTime: booking?.startTime.toString(),
         },
@@ -208,12 +211,9 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
-  const querySchema = getBookingResponsesSchema(
-    {
-      bookingFields: eventType.bookingFields,
-    },
-    true
-  );
+  const querySchema = getBookingResponsesPartialSchema({
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
+  });
   // string value for - text, textarea, select, radio,
   // string value with , for checkbox and multiselect
   // Object {value:"", optionValue:""} for radioInput
@@ -296,7 +296,9 @@ const BookingPage = ({
 
   const bookingFormSchema = z
     .object({
-      responses: getBookingResponsesSchema(eventType),
+      responses: getBookingResponsesSchema({
+        bookingFields: getBookingFieldsWithSystemFields(eventType),
+      }),
     })
     .passthrough();
 
@@ -399,7 +401,6 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
-        guests: booking.guests?.map((guest) => guest.email),
       });
     }
   };

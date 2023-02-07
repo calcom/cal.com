@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { z } from "zod";
 
 import Widgets, {
@@ -7,33 +7,72 @@ import Widgets, {
 } from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { BookingFieldType } from "@calcom/prisma/zod-utils";
 import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
-import { FiInfo, FiUserPlus, FiX } from "@calcom/ui/components/icon";
+import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
 import { fieldsSchema } from "./FormBuilderFieldsSchema";
 
-export const Components = {
+type Component =
+  | {
+      propsType: "text";
+      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "textList";
+      factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "select";
+      factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "boolean";
+      factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "multiselect";
+      factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "objectiveWithInput";
+      factory: <
+        TProps extends SelectLikeComponentProps<{
+          value: string;
+          optionValue: string;
+        }> & {
+          optionsInputs: NonNullable<z.infer<typeof fieldsSchema>[number]["optionsInputs"]>;
+          value: { value: string; optionValue: string };
+        } & {
+          name?: string;
+        }
+      >(
+        props: TProps
+      ) => JSX.Element;
+    };
+
+export const Components: Record<BookingFieldType, Component> = {
   text: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextWidget {...props} />,
+    factory: (props) => <Widgets.TextWidget {...props} />,
   },
   textarea: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextAreaWidget {...props} />,
+    factory: (props) => <Widgets.TextAreaWidget {...props} />,
   },
   number: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.NumberWidget {...props} />,
+    factory: (props) => <Widgets.NumberWidget {...props} />,
   },
   name: {
     propsType: "text",
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => <Widgets.TextWidget {...props} />,
+    factory: (props) => <Widgets.TextWidget {...props} />,
   },
   phone: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>({ setValue, ...props }: TProps) => {
+    factory: ({ setValue, ...props }) => {
       if (!props) {
         return <div />;
       }
@@ -47,11 +86,10 @@ export const Components = {
         />
       );
     },
-    valuePlaceholder: "Enter Phone Number",
   },
   email: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
+    factory: (props) => {
       if (!props) {
         return <div />;
       }
@@ -62,7 +100,7 @@ export const Components = {
   },
   address: {
     propsType: "text",
-    factory: <TProps extends TextLikeComponentProps>(props: TProps) => {
+    factory: (props) => {
       return (
         <AddressInput
           onChange={(val) => {
@@ -75,12 +113,7 @@ export const Components = {
   },
   multiemail: {
     propsType: "textList",
-    factory: <TProps extends SelectLikeComponentProps<string[]>>({
-      value,
-      label,
-      setValue,
-      ...props
-    }: TProps) => {
+    factory: ({ value, label, setValue, ...props }) => {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
@@ -181,7 +214,7 @@ export const Components = {
   },
   multiselect: {
     propsType: "multiselect",
-    factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => {
+    factory: (props) => {
       const newProps = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
@@ -191,7 +224,7 @@ export const Components = {
   },
   select: {
     propsType: "select",
-    factory: <TProps extends SelectLikeComponentProps>(props: TProps) => {
+    factory: (props) => {
       const newProps = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
@@ -201,12 +234,8 @@ export const Components = {
   },
   checkbox: {
     propsType: "multiselect",
-    factory: <TProps extends SelectLikeComponentProps<string[]>>({
-      options,
-      readOnly,
-      setValue,
-      value,
-    }: TProps) => {
+    factory: ({ options, readOnly, setValue, value }) => {
+      value = value || [];
       return (
         <div>
           {options.map((option, i) => {
@@ -240,7 +269,7 @@ export const Components = {
   },
   radio: {
     propsType: "select",
-    factory: <TProps extends SelectLikeComponentProps>({ setValue, value, options }: TProps) => {
+    factory: ({ setValue, value, options }) => {
       return (
         <Group
           value={value}
@@ -263,17 +292,7 @@ export const Components = {
   },
   radioInput: {
     propsType: "objectiveWithInput",
-    factory: function RadioInputWithLabel<
-      TProps extends SelectLikeComponentProps<{
-        value: string;
-        optionValue: string;
-      }> & {
-        optionsInputs: NonNullable<z.infer<typeof fieldsSchema>[number]["optionsInputs"]>;
-        value: { value: string; optionValue: string };
-      } & {
-        name?: string;
-      }
-    >({ name, options, optionsInputs, value, setValue, readOnly }: TProps) {
+    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
       useEffect(() => {
         setValue({
           value: options[0]?.value,
@@ -347,7 +366,12 @@ export const Components = {
               <div>
                 <ComponentForField
                   readOnly
-                  field={optionField}
+                  field={{
+                    ...optionField,
+                    // Option Input is considered required only. Configuration not supported yet
+                    required: true,
+                    name: "optionField",
+                  }}
                   value={value?.optionValue}
                   setValue={(val: string) => {
                     setValue({
@@ -365,12 +389,7 @@ export const Components = {
   },
   boolean: {
     propsType: "boolean",
-    factory: <TProps extends TextLikeComponentProps<boolean>>({
-      readOnly,
-      label,
-      value,
-      setValue,
-    }: TProps) => {
+    factory: ({ readOnly, label, value, setValue }) => {
       return (
         <div className="flex">
           <input

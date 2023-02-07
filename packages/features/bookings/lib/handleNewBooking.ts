@@ -37,7 +37,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -50,7 +50,6 @@ import prisma, { userSelect } from "@calcom/prisma";
 import {
   bookingCreateSchemaForApiOnly,
   customInputSchema,
-  eventTypeBookingFields,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
 } from "@calcom/prisma/zod-utils";
@@ -226,7 +225,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType.customInputs || []),
     locations: (eventType.locations ?? []) as LocationObject[],
-    bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
 };
 
@@ -315,15 +314,22 @@ function getBookingData({
   const bookingDataSchema = isNotAnApiCall
     ? extendedBookingCreateBody.merge(
         z.object({
-          responses: getBookingResponsesSchema(eventType),
+          responses: getBookingResponsesSchema({
+            bookingFields: eventType.bookingFields,
+          }),
         })
       )
     : extendedBookingCreateBody.merge(bookingCreateSchemaForApiOnly);
 
   const reqBody = bookingDataSchema.parse(req.body);
-
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
+    const userFieldsResponses = {} as typeof responses;
+    eventType.bookingFields.forEach((field) => {
+      if (field.editable === "user" || field.editable === "user-readonly") {
+        userFieldsResponses[field.name] = responses[field.name];
+      }
+    });
     return {
       ...reqBody,
       name: responses.name,
@@ -332,6 +338,7 @@ function getBookingData({
       location: responses.location?.optionValue || responses.location?.value || "",
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes,
+      userFieldsResponses,
     };
   } else {
     // Check if required custom inputs exist
@@ -391,18 +398,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
 
-  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata || {});
-
   eventType = {
     ...eventType,
     // TODO: ManageBookings: Use getEventTypeById which would avoid having to do it again
     // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingFields fixed.
-    bookingFields: ensureBookingInputsHaveSystemFields({
-      bookingFields: eventType.bookingFields,
-      disableGuests: eventType.disableGuests,
-      additionalNotesRequired: !!eventTypeMetadata?.additionalNotesRequired,
-      customInputs: customInputSchema.array().parse(eventType.customInputs || []),
-    }),
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
 
   const {
@@ -421,7 +421,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     location,
     notes: additionalNotes,
     smsReminderNumber,
-    ...reqBody
+    ...bookingData
   } = getBookingData({
     req,
     isNotAnApiCall,
@@ -431,16 +431,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
-  const dynamicUserList = Array.isArray(reqBody.user)
-    ? getGroupName(reqBody.user)
-    : getUsernameList(reqBody.user);
+  const dynamicUserList = Array.isArray(bookingData.user)
+    ? getGroupName(bookingData.user)
+    : getUsernameList(bookingData.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const stripeAppData = getStripeAppData(eventType);
 
   let timeOutOfBounds = false;
   try {
-    timeOutOfBounds = isOutOfBounds(reqBody.start, {
+    timeOutOfBounds = isOutOfBounds(bookingData.start, {
       periodType: eventType.periodType,
       periodDays: eventType.periodDays,
       periodEndDate: eventType.periodEndDate,
@@ -518,7 +518,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   }));
 
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
-    const startAsDate = dayjs(reqBody.start).toDate();
+    const startAsDate = dayjs(bookingData.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
   }
 
@@ -535,8 +535,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
         }),
       },
       {
-        dateFrom: reqBody.start,
-        dateTo: reqBody.end,
+        dateFrom: bookingData.start,
+        dateTo: bookingData.end,
       },
       {
         allRecurringDates,
@@ -573,7 +573,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   // @TODO: use the returned address somewhere in booking creation?
   // const address: string | undefined = await ...
-  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
+  await handleEthSignature(rainbowAppData, bookingData.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
@@ -584,7 +584,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       email: bookerEmail,
       //TODO: ManageBookings: Ensure that name is there in TS as well as runtime
       name: bookerName,
-      timeZone: reqBody.timeZone,
+      timeZone: bookingData.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
@@ -592,16 +592,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   const guests = (reqGuests || []).map((guest) => ({
     email: guest,
     name: "",
-    timeZone: reqBody.timeZone,
+    timeZone: bookingData.timeZone,
     language: { translate: tGuests, locale: "en" },
   }));
 
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const seed = `${organizerUser.username}:${dayjs(bookingData.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(location, eventType.locations);
 
-  const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
+  const customInputs = getCustomInputsResponses(bookingData, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
       ? users.slice(1).map(async function (user) {
@@ -635,19 +635,22 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
   if (rcThreshold) {
-    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+    if (dayjs(dayjs(bookingData.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
       requiresConfirmation = false;
     }
   }
-  console.log("Custom Inputs", customInputs);
+
+  const responses = "responses" in bookingData ? bookingData.responses : null;
+  const userFieldsResponses = "userFieldsResponses" in bookingData ? bookingData.userFieldsResponses : null;
+  console.log("userFieldsResponses", userFieldsResponses);
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
     customInputs,
-    startTime: dayjs(reqBody.start).utc().format(),
-    endTime: dayjs(reqBody.end).utc().format(),
+    startTime: dayjs(bookingData.start).utc().format(),
+    endTime: dayjs(bookingData.end).utc().format(),
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
@@ -655,6 +658,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
     },
+    responses,
+    userFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
@@ -667,14 +672,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (reqBody.bookingUid) {
+  if (bookingData.bookingUid) {
     if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
     }
 
     const booking = await prisma.booking.findUnique({
       where: {
-        uid: reqBody.bookingUid,
+        uid: bookingData.bookingUid,
       },
       select: {
         uid: true,
@@ -717,7 +722,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     }
     await prisma.booking.update({
       where: {
-        uid: reqBody.bookingUid,
+        uid: bookingData.bookingUid,
       },
       data: {
         attendees: {
@@ -770,7 +775,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
     }; // used for invitee emails
   }
 
-  if (reqBody.recurringEventId && eventType.recurringEvent) {
+  if (bookingData.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
@@ -778,7 +783,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   }
 
   // Initialize EventManager with credentials
-  const rescheduleUid = reqBody.rescheduleUid;
+  const rescheduleUid = bookingData.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
     return prisma.booking.findFirst({
       where: {
@@ -836,11 +841,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
         };
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
-    const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
+    const dynamicGroupSlugRef = !eventTypeId ? (bookingData.user as string).toLowerCase() : null;
 
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
-      responses: "responses" in reqBody ? reqBody.responses : [],
+      responses: responses === null ? Prisma.JsonNull : responses,
       title: evt.title,
       startTime: dayjs.utc(evt.startTime).toDate(),
       endTime: dayjs.utc(evt.endTime).toDate(),
@@ -878,8 +883,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
           }
         : undefined,
     };
-    if (reqBody.recurringEventId) {
-      newBookingData.recurringEventId = reqBody.recurringEventId;
+    if (bookingData.recurringEventId) {
+      newBookingData.recurringEventId = bookingData.recurringEventId;
     }
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
@@ -1002,7 +1007,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
-      reqBody.rescheduleReason
+      bookingData.rescheduleReason
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1038,7 +1043,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
           ...evt,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + bookingData.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }
@@ -1179,7 +1184,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
       const subscribers = await getWebhooks(subscriberOptions);
       console.log("evt:", {
         ...evt,
-        metadata: reqBody.metadata,
+        metadata: bookingData.metadata,
       });
       const bookingId = booking?.id;
 
@@ -1204,7 +1209,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
           rescheduleEndTime: originalRescheduledBooking?.endTime
             ? dayjs(originalRescheduledBooking?.endTime).utc().format()
             : undefined,
-          metadata: { ...metadata, ...reqBody.metadata },
+          metadata: { ...metadata, ...bookingData.metadata },
           eventTypeId,
           status: "ACCEPTED",
           smsReminderNumber: booking?.smsReminderNumber || undefined,
@@ -1220,14 +1225,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
-  const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
+  const urlSeed = `${organizerUser.username}:${dayjs(bookingData.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   try {
     if (hasHashedBookingLink) {
       await prisma.hashedLink.update({
         where: {
-          link: reqBody.hashedLink as string,
+          link: bookingData.hashedLink as string,
         },
         data: {
           link: hashedUid,

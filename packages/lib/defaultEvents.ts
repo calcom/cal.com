@@ -9,7 +9,7 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
-import { ensureBookingInputsHaveSystemFields } from "./getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "./getEventTypeById";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -94,11 +94,12 @@ const commons = {
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
-  bookingFields: ensureBookingInputsHaveSystemFields({
-    bookingFields: eventTypeBookingFields.parse([]),
-    disableGuests: true,
-    additionalNotesRequired: false,
-    customInputs: customInputSchema.array().parse([]),
+  bookingFields: getBookingFieldsWithSystemFields({
+    bookingFields: [],
+    customInputs: [],
+    // Default value of disableGuests from DB.
+    disableGuests: false,
+    metadata: {},
   }),
 };
 

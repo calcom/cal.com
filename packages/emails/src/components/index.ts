@@ -2,7 +2,7 @@ export { BaseEmailHtml } from "./BaseEmailHtml";
 export { V2BaseEmailHtml } from "./V2BaseEmailHtml";
 export { CallToAction } from "./CallToAction";
 export { CallToActionTable } from "./CallToActionTable";
-export { CustomInputs } from "./CustomInputs";
+export { UserFieldsResponses } from "./UserFieldsResponses";
 export { Info } from "./Info";
 export { LinkIcon } from "./LinkIcon";
 export { LocationInfo } from "./LocationInfo";

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, EventTypeCustomInput, EventType } from "@prisma/client";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -9,15 +9,18 @@ import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  BookingFieldType,
+  customInputSchema,
+  eventTypeBookingFields,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import slugify from "./slugify";
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
-
-const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
 const EventTypeCustomInputType = {
   TEXT: "TEXT",
   TEXTLONG: "TEXTLONG",
@@ -25,6 +28,29 @@ const EventTypeCustomInputType = {
   BOOL: "BOOL",
   RADIO: "RADIO",
   PHONE: "PHONE",
+};
+
+export const getBookingFieldsWithSystemFields = ({
+  bookingFields,
+  disableGuests,
+  customInputs,
+  metadata,
+}: {
+  bookingFields: Fields | EventType["bookingFields"];
+  disableGuests: boolean;
+  customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
+  metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
+}) => {
+  const parsedMetaData = EventTypeMetaDataSchema.parse(metadata);
+  const parsedBookingFields = eventTypeBookingFields.parse(bookingFields);
+  const parsedCustomInputs = customInputSchema.array().parse(customInputs || []);
+
+  return ensureBookingInputsHaveSystemFields({
+    bookingFields: parsedBookingFields,
+    disableGuests,
+    additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
+    customInputs: parsedCustomInputs,
+  });
 };
 
 export const ensureBookingInputsHaveSystemFields = ({
@@ -172,9 +198,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   // If we are migrating from old system, we need to add custom inputs to the end of the list
   if (handleMigration) {
     customInputs.forEach((input) => {
-      console.log(input.label);
       bookingFields.push({
         label: input.label,
+        editable: "user",
         // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
         name: slugify(input.label),
         placeholder: input.placeholder,
@@ -451,12 +477,7 @@ export default async function getEventTypeById({
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: ensureBookingInputsHaveSystemFields({
-      bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
-      disableGuests: eventType.disableGuests,
-      additionalNotesRequired: !!parsedMetaData.additionalNotesRequired,
-      customInputs: parsedCustomInputs,
-    }),
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
   const teamMembers = eventTypeObject.team

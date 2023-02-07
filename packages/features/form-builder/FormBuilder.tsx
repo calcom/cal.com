@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import {
   Label,
   Badge,
@@ -173,7 +174,7 @@ export const FormBuilder = function FormBuilder({
                     required
                     value={option.label}
                     onChange={(e) => {
-                      value.splice(index, 1, { label: e.target.value, value: option.value });
+                      value.splice(index, 1, { label: e.target.value, value: e.target.value.trim() });
                       onChange(value);
                     }}
                     readOnly={readOnly}
@@ -204,7 +205,7 @@ export const FormBuilder = function FormBuilder({
             <Button
               color="minimal"
               onClick={() => {
-                value.push({ label: "", value: `${value.length + 1}` });
+                value.push({ label: "", value: "" });
                 onChange(value);
               }}
               StartIcon={FiPlus}>
@@ -292,7 +293,7 @@ export const FormBuilder = function FormBuilder({
                     </p>
                   </div>
                 </div>
-                {field.editable !== "readonly" && (
+                {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
                     {field.editable !== "system" && (
                       <Switch
@@ -356,6 +357,7 @@ export const FormBuilder = function FormBuilder({
                       },
                     ],
                   };
+                  field.editable = field.editable || "user";
                   append(field);
                 }
                 setFieldDialog({
@@ -487,7 +489,7 @@ export const ComponentForField = ({
   setValue,
   readOnly,
 }: {
-  field: RhfFormField & {
+  field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
     label?: string;
   };
@@ -495,37 +497,40 @@ export const ComponentForField = ({
 } & ValueProps) => {
   const fieldType = field.type;
   const componentConfig = Components[fieldType];
-  const isObjectiveWithInputValue = (value: any): value is { value: string } => {
-    return typeof value === "object" && value !== null ? "value" in value : false;
+
+  const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
+    if (propsType === "text") {
+      return typeof val === "string";
+    }
+    if (propsType === "boolean") {
+      return typeof val === "boolean";
+    }
+    if (propsType === "textList") {
+      return val instanceof Array && val.every((v) => typeof v === "string");
+    }
+    if (propsType === "select") {
+      return typeof val === "string";
+    }
+    if (propsType === "multiselect") {
+      return val instanceof Array && val.every((v) => typeof v === "string");
+    }
+    if (propsType === "objectiveWithInput") {
+      return typeof value === "object" && value !== null ? "value" in value : false;
+    }
+    throw new Error(`Unknown propsType ${propsType}`);
   };
 
-  if (componentConfig.propsType === "text" || componentConfig.propsType === "boolean") {
-    if (value !== undefined && typeof value !== "boolean" && typeof value !== "string") {
-      throw new Error(`${value}: Value is not of type string or boolean for field ${field.name}`);
-    }
+  // If possible would have wanted `isValueOfPropsType` to narrow the type of `value` and `setValue` accordingly, but can't seem to do it.
+  // So, code following this uses type assertion to tell TypeScript that everything has been validated
+  if (value !== undefined && !isValueOfPropsType(value, componentConfig.propsType)) {
+    throw new Error(
+      `Value ${value} is not valid for type ${componentConfig.propsType} for field ${field.name}`
+    );
+  }
+
+  if (componentConfig.propsType === "text") {
     if (!field.label) {
       throw new Error(`Field ${field.name} doesn't have label`);
-    }
-
-    if (componentConfig.propsType === "boolean") {
-      if (value !== undefined && typeof value !== "boolean") {
-        throw new Error(`${value}: Value is not of type boolean for field type ${field.type}`);
-      }
-      return (
-        <WithLabel field={field} readOnly={readOnly}>
-          <componentConfig.factory
-            label={field.label}
-            readOnly={readOnly}
-            value={value}
-            setValue={setValue}
-            placeholder={field.placeholder}
-          />
-        </WithLabel>
-      );
-    }
-
-    if (value !== undefined && typeof value !== "string") {
-      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
     }
 
     return (
@@ -534,25 +539,40 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           label={field.label}
           readOnly={readOnly}
-          value={value}
-          setValue={setValue}
+          value={value as string}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
+  }
+
+  if (componentConfig.propsType === "boolean") {
+    if (!field.label) {
+      throw new Error(`Field ${field.name} doesn't have label`);
+    }
+    return (
+      <WithLabel field={field} readOnly={readOnly}>
+        <componentConfig.factory
+          label={field.label}
+          readOnly={readOnly}
+          value={value as boolean}
+          setValue={setValue as (arg: typeof value) => void}
+          placeholder={field.placeholder}
         />
       </WithLabel>
     );
   }
 
   if (componentConfig.propsType === "textList") {
-    if (value !== undefined && !(value instanceof Array)) {
-      throw new Error(`${value}: Value is not of type array for ${field.name}`);
-    }
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
           label={field.label}
           readOnly={readOnly}
-          value={value}
-          setValue={setValue}
+          value={value as string[]}
+          // TypeScript: Why you no work ??
+          setValue={setValue as (arg: typeof value) => void}
         />
       </WithLabel>
     );
@@ -563,16 +583,13 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
 
-    if (value !== undefined && typeof value !== "string") {
-      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
-    }
     return (
       <WithLabel field={field} readOnly>
         <componentConfig.factory
           readOnly={readOnly}
-          value={value}
+          value={value as string}
           placeholder={field.placeholder}
-          setValue={setValue}
+          setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>
@@ -580,9 +597,6 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "multiselect") {
-    if (!(value instanceof Array)) {
-      throw new Error(`${value}: Value is not of type string for field ${field.name}`);
-    }
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
@@ -591,8 +605,8 @@ export const ComponentForField = ({
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
-          value={value}
-          setValue={setValue as (value: string[]) => void}
+          value={value as string[]}
+          setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>
@@ -600,9 +614,6 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "objectiveWithInput") {
-    if (value !== undefined && !isObjectiveWithInputValue(value)) {
-      throw new Error("Value is not of type {value: string}");
-    }
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
@@ -615,14 +626,15 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
-          value={value}
-          setValue={setValue as (value: { value: string; optionValue: string }) => void}
+          value={value as { value: string; optionValue: string }}
+          setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
           options={field.options}
         />
       </WithLabel>
     ) : null;
   }
+
   throw new Error(`Field ${field.name} does not have a valid propsType`);
 };
 
@@ -635,10 +647,10 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState, ...form } = useFormContext();
-  if (typeof window !== "undefined") {
-    window.formState = formState;
-    window.form = form;
-  }
+  // if (typeof window !== "undefined") {
+  //   window.formState = formState;
+  //   window.form = form;
+  // }
   return (
     <div data-form-builder-field-name={field.name} className="reloading mb-4">
       <Controller

@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -95,20 +95,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
   };
   const eventTypeObject = [eventType].map((e) => {
-    const metadata = EventTypeMetaDataSchema.parse(e.metadata || {});
-    const customInputs = customInputSchema.array().parse(e.customInputs || []);
     return {
       ...e,
-      metadata,
-      bookingFields: ensureBookingInputsHaveSystemFields({
-        bookingFields: eventTypeBookingFields.parse(eventType.bookingFields || []),
-        disableGuests: eventType.disableGuests,
-        additionalNotesRequired: !!metadata?.additionalNotesRequired,
-        customInputs,
-      }),
+      metadata: EventTypeMetaDataSchema.parse(e.metadata || {}),
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
-      customInputs,
+      customInputs: customInputSchema.array().parse(e.customInputs || []),
       users: eventType.users.map((u) => ({
         id: u.id,
         name: u.name,

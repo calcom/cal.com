@@ -8,11 +8,11 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
-import { ensureBookingInputsHaveSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -111,31 +111,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         });
 
   if (!eventTypeRaw) return { notFound: true };
-  const metadata = EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {});
   const eventType = {
     ...eventTypeRaw,
-    metadata,
-    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
+    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
+    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const eventTypeObject = [eventType].map((e) => {
     let locations = eventTypeRaw.locations || [];
     locations = privacyFilteredLocations(locations as LocationObject[]);
-    const customInputs = customInputSchema.array().parse(e.customInputs || []);
     return {
       ...e,
       locations: locations,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       schedulingType: null,
-      customInputs,
-      bookingFields: ensureBookingInputsHaveSystemFields({
-        bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
-        disableGuests: !!eventTypeRaw.disableGuests,
-        additionalNotesRequired: !!metadata?.additionalNotesRequired,
-        customInputs: customInputs,
-      }),
+      customInputs: customInputSchema.array().parse(e.customInputs || []),
       users: users.map((u) => ({
         id: u.id,
         name: u.name,
