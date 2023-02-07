@@ -1,4 +1,4 @@
-import { Variants, MotionStyle } from "framer-motion";
+import { Variant } from "framer-motion";
 
 import { BookerLayout, BookerState } from "./types";
 
@@ -31,11 +31,10 @@ export const fadeInUp = {
 
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
-    [key in BookerState]?: {
-      variants: Variants;
-    } & {
-      style?: MotionStyleWithCssVar;
+    variants: {
+      [key in BookerState | "default"]?: Variant;
     };
+    style?: MotionStyleWithCssVar;
   };
 };
 
@@ -43,13 +42,14 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
   mobile: {
     variants: {
       default: {
+        width: "100vw",
         gridTemplateAreas: `
           "meta"
           "calendar"
           "main"
           "timeslots"
         `,
-        gridTemplateColumns: "1fr",
+        gridTemplateColumns: "100vw",
       },
     },
   },

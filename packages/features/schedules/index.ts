@@ -1,3 +1,3 @@
 export * from "./components";
-export type { Schedule, Slots } from "./lib/use-schedule";
-export { useScheduleWithCache, useSlotsForDate, useNonEmptyScheduleDays } from "./lib/use-schedule";
+export type { Schedule, Slots, UseScheduleWithCacheResult } from "./lib/use-schedule";
+export { useSchedule, useSlotsForDate, useNonEmptyScheduleDays } from "./lib/use-schedule";

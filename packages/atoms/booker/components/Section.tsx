@@ -1,28 +1,29 @@
-import { m } from "framer-motion";
+import { m, MotionProps } from "framer-motion";
 
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
-import { BookerAreas, BookerLayout, BookerState } from "../types";
+import { BookerAreas, BookerLayout } from "../types";
 
-type GridArea =
-  | BookerAreas
-  // First value in array is default value
-  | [
-      BookerAreas,
-      ...Array<
-        | { area: BookerAreas; layout: BookerLayout; state: BookerState }
-        | { area: BookerAreas; state: BookerState }
-        | { area: BookerAreas; layout: BookerLayout }
-      >
-    ];
+/**
+ * Define what grid area a section should be in.
+ * Value is either a string (in case it's always the same area), or an object
+ * looking like:
+ * {
+ *  // Where default is the required default area.
+ *  default: "calendar",
+ *  // Any optional overrides for different layouts by their layout name.
+ *  large_calendar: "main",
+ * }
+ */
+type GridArea = BookerAreas | ({ [key in BookerLayout]?: BookerAreas } & { default: BookerAreas });
 
 type BookerSectionProps = {
   children: React.ReactNode;
   area: GridArea;
   visible?: boolean;
   className?: string;
-} & React.PropsWithoutRef<m.div>;
+} & MotionProps;
 
 // This map with strings is needed so Tailwind generates all classnames,
 // If we would concatenate them with JS, Tailwind would not generate them.
@@ -33,23 +34,20 @@ const gridAreaClassNameMap: { [key in BookerAreas]: string } = {
   timeslots: "[grid-area:timeslots]",
 };
 
+/**
+ * Small helper compnent that renders a booker section in a specific grid area.
+ */
 export const BookerSection = ({ children, area, visible, className, ...props }: BookerSectionProps) => {
   const layout = useBookerStore((state) => state.layout);
-  const state = useBookerStore((state) => state.state);
   let gridClassName: string;
 
-  if (!Array.isArray(area)) {
+  if (typeof area === "string") {
     gridClassName = gridAreaClassNameMap[area];
   } else {
-    const [defaultArea, ...areas] = area;
-    const match = areas.find(
-      (item) =>
-        (!("layout" in item) || item.layout === layout) && (!("state" in item) || item.state === state)
-    );
-    gridClassName = gridAreaClassNameMap[match?.area || defaultArea];
+    gridClassName = gridAreaClassNameMap[area[layout] || area.default];
   }
 
-  if (!visible) return null;
+  if (!visible && typeof visible !== "undefined") return null;
 
   return (
     <m.div className={classNames(gridClassName, className)} layout {...props}>

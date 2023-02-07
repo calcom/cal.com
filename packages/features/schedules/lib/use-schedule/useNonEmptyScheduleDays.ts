@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 
-import { UseScheduleWithCacheResult } from "../use-schedule";
+import type { Slots } from "../use-schedule";
 
-export const useNonEmptyScheduleDays = (scheduleCache: UseScheduleWithCacheResult) => {
-  const days = useMemo(() => {
-    const schedule = scheduleCache.data;
-    if (typeof schedule === "undefined") return [];
-    return Object.keys(schedule).filter((day) => schedule[day].length > 0);
-  }, [scheduleCache.data]);
+export const getNonEmptyScheduleDays = (slots?: Slots) => {
+  if (typeof slots === "undefined") return [];
+  return Object.keys(slots).filter((day) => slots[day].length > 0);
+};
+
+export const useNonEmptyScheduleDays = (slots?: Slots) => {
+  const days = useMemo(() => getNonEmptyScheduleDays(slots), [slots]);
 
   return days;
 };

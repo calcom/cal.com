@@ -1,29 +1,5 @@
-import { useEffect } from "react";
-import { create } from "zustand";
-
 import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
-
-import { Schedule, Slots } from "./types";
-
-type ScheduleStore = {
-  schedules: Schedule;
-  addScheduleToCache: (monthKey: string, slots: Slots) => void;
-  clearCache: () => void;
-};
-
-const useScheduleStore = create<ScheduleStore>((set) => ({
-  schedules: {},
-  clearCache: () => set({ schedules: {} }),
-  addScheduleToCache: (monthKey: string, slots: Slots) =>
-    set((state) => {
-      state.schedules = {
-        ...state.schedules,
-        [monthKey]: slots,
-      };
-      return state;
-    }),
-}));
 
 type UseScheduleWithCacheArgs = {
   username: string;
@@ -32,39 +8,28 @@ type UseScheduleWithCacheArgs = {
   timezone: string;
 };
 
-export type UseScheduleWithCacheResult = {
-  isLoading?: boolean;
-  data?: Slots;
-};
-
-// @TODO: Clear cache when any of arguments change.
-export const useScheduleWithCache = ({
-  browsingMonth,
-  timezone,
-  username,
-  eventSlug,
-}: UseScheduleWithCacheArgs): UseScheduleWithCacheResult => {
+export const useSchedule = ({ browsingMonth, timezone, username, eventSlug }: UseScheduleWithCacheArgs) => {
   const month = dayjs(browsingMonth);
-  const monthKey = month.format("YYYY-MM");
+  // const monthKey = month.format("YYYY-MM");
 
-  const scheduleFromCache = useScheduleStore((state) => state.schedules[username]?.[monthKey]);
-  const addScheduleToCache = useScheduleStore((state) => state.addScheduleToCache);
-  const clearCache = useScheduleStore((state) => state.clearCache);
+  // const scheduleFromCache = useScheduleStore((state) => state.schedules[username]?.[monthKey]);
+  // const addScheduleToCache = useScheduleStore((state) => state.addScheduleToCache);
+  // const clearCache = useScheduleStore((state) => state.clearCache);
 
-  // Clear cache when any of the props change, to prevent
-  // old data from sticking around.
-  // @TODO: Do we want a smarter cache that can cache multiple events?
-  useEffect(() => {
-    clearCache();
-  }, [timezone, username, eventSlug, clearCache]);
+  // // Clear cache when any of the props change, to prevent
+  // // old data from sticking around.
+  // // @TODO: Do we want a smarter cache that can cache multiple events?
+  // useEffect(() => {
+  //   clearCache();
+  // }, [timezone, username, eventSlug, clearCache]);
 
-  if (scheduleFromCache)
-    return {
-      isLoading: false,
-      data: { slots: scheduleFromCache },
-    };
+  // if (scheduleFromCache)
+  //   return {
+  //     isLoading: false,
+  //     data: { slots: scheduleFromCache },
+  //   };
 
-  const schedule = trpc.viewer.public.slots.getSchedule.useQuery(
+  return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       usernameList: [username],
       eventTypeSlug: eventSlug,
@@ -76,14 +41,16 @@ export const useScheduleWithCache = ({
     },
     {
       refetchOnWindowFocus: false,
-      onSuccess(data) {
-        addScheduleToCache(monthKey, data.slots);
-      },
+      // onSuccess(data) {
+      //   addScheduleToCache(monthKey, data.slots);
+      // },
     }
   );
 
-  return {
-    isLoading: schedule.isLoading,
-    data: schedule.data?.slots,
-  };
+  // return schedule;
+
+  // return {
+  //   isLoading: schedule.isLoading,
+  //   data: schedule.data?.slots,
+  // };
 };

@@ -57,9 +57,9 @@ const defaultEventDetailsBlocks = [
   EventDetailBlocks.PRICE,
 ];
 
-export const EventMeta = ({ icon: Icon, children, highlight, contentClassName }: EventMetaProps) => {
+export const EventMetaBlock = ({ icon: Icon, children, highlight, contentClassName }: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
-  console.log(React.Children.count(children), children);
+
   return (
     <div
       className={classNames(
@@ -86,16 +86,19 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.description) return null;
             // @TODO: Parse markdown
             return (
-              <EventMeta key={block} icon={FiInfo} contentClassName="break-words max-w-full overflow-clip">
+              <EventMetaBlock
+                key={block}
+                icon={FiInfo}
+                contentClassName="break-words max-w-full overflow-clip">
                 {event.description}
-              </EventMeta>
+              </EventMetaBlock>
             );
 
           case EventDetailBlocks.DURATION:
             return (
-              <EventMeta key={block} icon={FiClock}>
+              <EventMetaBlock key={block} icon={FiClock}>
                 <EventDuration event={event} />
-              </EventMeta>
+              </EventMetaBlock>
             );
 
           case EventDetailBlocks.LOCATION:
@@ -104,11 +107,11 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
               <>
                 {/* @TODO: Add correct icons for even ttype */}
                 {event.locations.map((location) => (
-                  <EventMeta key={block} icon={FiMapPin}>
+                  <EventMetaBlock key={block} icon={FiMapPin}>
                     <div key={location.type} className="flex flex-row items-center text-sm font-medium">
                       {t(locationKeyToString(location) ?? "")}
                     </div>
-                  </EventMeta>
+                  </EventMetaBlock>
                 ))}
               </>
             );
@@ -117,27 +120,27 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMeta key={block} icon={FiCheckSquare}>
+              <EventMetaBlock key={block} icon={FiCheckSquare}>
                 {t("requires_confirmation")}
-              </EventMeta>
+              </EventMetaBlock>
             );
 
           case EventDetailBlocks.OCCURENCES:
             if (!event.requiresConfirmation) return null;
 
             return (
-              <EventMeta key={block} icon={FiRefreshCcw}>
+              <EventMetaBlock key={block} icon={FiRefreshCcw}>
                 <EventOccurences event={event} />
-              </EventMeta>
+              </EventMetaBlock>
             );
 
           case EventDetailBlocks.PRICE:
             if (event.price === 0) return null;
 
             return (
-              <EventMeta key={block} icon={FiCreditCard}>
+              <EventMetaBlock key={block} icon={FiCreditCard}>
                 <EventPrice event={event} />
-              </EventMeta>
+              </EventMetaBlock>
             );
         }
       })}
