@@ -268,7 +268,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="radix-state-open:bg-gray-200 group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
@@ -292,10 +292,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="block truncate font-medium text-gray-900">
+                  <span className="mb-1 block truncate font-medium leading-none text-gray-900">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="block truncate font-normal text-gray-900">
+                  <span className="block truncate font-normal leading-none text-gray-600">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -396,13 +396,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   {t("help")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={FiDownload}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="desktop-hidden hidden lg:flex"
-                  href={DESKTOP_APP_LINK}>
+              <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                <DropdownItem StartIcon={FiDownload} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                   {t("download_desktop_app")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -783,7 +778,7 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div className={classNames("mb-6 flex sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
+      <div className={classNames("flex sm:mt-0 md:mb-6", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -804,7 +799,7 @@ export function ShellMain(props: LayoutProps) {
               {props.heading && (
                 <h1
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
                     props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
