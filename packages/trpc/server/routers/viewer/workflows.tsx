@@ -88,12 +88,19 @@ async function isAuthorized(
 }
 
 export const workflowsRouter = router({
-  list: authedProcedure.query(async ({ ctx }) => {
-    const workflows = await ctx.prisma.workflow.findMany({
-      where: {
-        OR: [
-          { userId: ctx.user.id },
-          {
+  list: authedProcedure
+    .input(
+      z
+        .object({
+          teamId: z.number().optional(),
+          userId: z.number().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      if (input && input.teamId) {
+        const workflows = await ctx.prisma.workflow.findMany({
+          where: {
             team: {
               members: {
                 some: {
@@ -102,29 +109,90 @@ export const workflowsRouter = router({
               },
             },
           },
-        ],
-      },
-      include: {
-        activeOn: {
-          select: {
-            eventType: {
+          include: {
+            activeOn: {
               select: {
-                id: true,
-                title: true,
+                eventType: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+            steps: true,
+            team: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+
+        return { workflows };
+      }
+
+      if (input && input.userId) {
+        const workflows = await ctx.prisma.workflow.findMany({
+          where: {
+            userId: ctx.user.id,
+          },
+          include: {
+            activeOn: {
+              select: {
+                eventType: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+            steps: true,
+            team: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+        return { workflows };
+      }
+
+      const workflows = await ctx.prisma.workflow.findMany({
+        where: {
+          OR: [
+            { userId: ctx.user.id },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: ctx.user.id,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          activeOn: {
+            select: {
+              eventType: {
+                select: {
+                  id: true,
+                  title: true,
+                },
               },
             },
           },
+          steps: true,
+          team: true,
         },
-        steps: true,
-        team: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
+        orderBy: {
+          id: "asc",
+        },
+      });
 
-    return { workflows };
-  }),
+      return { workflows };
+    }),
   get: authedProcedure
     .input(
       z.object({

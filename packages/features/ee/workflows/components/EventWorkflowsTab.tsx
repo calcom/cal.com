@@ -145,17 +145,22 @@ const WorkflowListItem = (props: ItemProps) => {
 };
 
 type Props = {
+  teamId?: number;
   eventType: {
     id: number;
     title: string;
+    userId: number | null;
   };
   workflows: WorkflowType[];
 };
 
 function EventWorkflowsTab(props: Props) {
-  const { workflows } = props;
+  const { workflows, teamId, eventType } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
+    teamId,
+    userId: eventType.userId || undefined,
+  });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 
