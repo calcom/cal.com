@@ -88,6 +88,29 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
+export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  const emailsToSend: Promise<unknown>[] = [
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new AttendeeRescheduledEmail(calEvent, attendee);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+      }
+    }),
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
+      }
+    }),
+  ];
+
+  await Promise.all(emailsToSend);
+};
+
 export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
   invitee: Person,

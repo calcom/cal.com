@@ -32,7 +32,9 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
   sendScheduledSeatsEmails,
+  sendRescheduledSeatEmail,
 } from "@calcom/emails";
+import { AttendeeRescheduledEmail } from "@calcom/emails/src/templates";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -756,6 +758,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   // Before comparing make sure that userId is set, otherwise undefined === undefined
   const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
   const isConfirmedByDefault = (!requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+  let seatAttendee;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -787,9 +790,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
      * If eventType has seats and we are rescheduling, we should filter the attendees
      * unless the one rescheduling is the organizer
      */
-    const currentAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
-    if (eventType.seatsPerTimeSlot && currentAttendee && userReschedulingIsOwner) {
-      evt.attendees = [currentAttendee];
+    seatAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
+    // Removed isUserOwner, can add owner rescheduling logic later
+    if (eventType.seatsPerTimeSlot && seatAttendee) {
+      evt.attendees = [seatAttendee];
     }
 
     const attendeesData = evt.attendees.map((attendee) => {
@@ -1031,6 +1035,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         if (eventType?.seatsPerTimeSlot && originalRescheduledBooking.attendees.length > 1) {
           // We should only notify affected attendees (owner and attendee rescheduling)
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
+        }
+
+        if (eventType?.seatsPerTimeSlot && seatAttendee) {
+          await sendRescheduledSeatEmail(copyEvent, seatAttendee);
         }
 
         await sendRescheduledEmails({

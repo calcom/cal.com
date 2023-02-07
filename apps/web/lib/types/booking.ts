@@ -30,6 +30,7 @@ export type BookingCreateBody = {
   hashedLink?: string | null;
   smsReminderNumber?: string;
   ethSignature?: string;
+  seatReferenceUId?: string;
 };
 
 export type BookingResponse = Booking & {

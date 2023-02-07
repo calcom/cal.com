@@ -272,9 +272,6 @@ const BookingPage = ({
 
     const customInputType = booking.customInputs;
 
-    // If rescheduling on a booking with seats, find that attendee
-    console.log(booking);
-
     return {
       name: defaultUserValues.name,
       email: defaultUserValues.email || "",
@@ -450,7 +447,11 @@ const BookingPage = ({
       });
     }
 
+    console.log("This pretriggers");
+
     if (alreadyInvited) return;
+
+    console.log("This should trigger");
 
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
@@ -512,6 +513,7 @@ const BookingPage = ({
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
         guests: booking.guests?.map((guest) => guest.email),
+        seatReferenceUId: router.query.seatReferenceUId as string,
       });
     }
   };
