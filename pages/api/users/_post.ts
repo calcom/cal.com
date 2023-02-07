@@ -46,7 +46,7 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
  *                 type: string
  *               timeZone:
- *                 description: The new user's time zone
+ *                 description: The new user's time zone. Eg: 'EUROPE/PARIS'
  *                 type: string
  *               theme:
  *                 description: Default theme for the new user. Acceptable values are one of [DARK, LIGHT]
@@ -61,15 +61,15 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *              user:
  *                summary: An example of USER
  *                value:
- *                  email: email@example.com
- *                  username: johndoe
- *                  weekStart: MONDAY
- *                  brandColor: #555555
- *                  darkBrandColor: #111111
- *                  timeZone: EUROPE/PARIS
- *                  theme: LIGHT
- *                  timeFormat: TWELVE
- *                  locale: FR
+ *                  email: 'email@example.com'
+ *                  username: 'johndoe'
+ *                  weekStart: 'MONDAY'
+ *                  brandColor: '#555555'
+ *                  darkBrandColor: '#111111'
+ *                  timeZone: 'EUROPE/PARIS'
+ *                  theme: 'LIGHT'
+ *                  timeFormat: 'TWELVE'
+ *                  locale: 'FR'
  *     tags:
  *     - users
  *     responses:

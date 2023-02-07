@@ -29,6 +29,19 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the booking to cancel
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the booking to get
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     tags:
  *       - bookings
  *     responses:
@@ -36,11 +49,25 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: OK, booking cancelled successfuly
  *       400:
  *        description: |
- *          Message | Cause
- *          :--|:--
- *          Booking not found| The provided id didn't correspond to any existing booking.
- *          Cannot cancel past events| The provided id matched an existing booking with a past startDate.
- *          User not found| The userId did not matched an existing user.
+ *          Bad request
+ *           <table>
+ *             <tr>
+ *               <td>Message</td>
+ *               <td>Cause</td>
+ *             </tr>
+ *             <tr>
+ *               <td>Booking not found</td>
+ *               <td>The provided id didn't correspond to any existing booking.</td>
+ *             </tr>
+ *             <tr>
+ *               <td>Cannot cancel past events</td>
+ *               <td>The provided id matched an existing booking with a past startDate.</td>
+ *             </tr>
+ *             <tr>
+ *               <td>User not found</td>
+ *               <td>The userId did not matched an existing user.</td>
+ *             </tr>
+ *           </table>
  *       404:
  *        description: User not found
  */
