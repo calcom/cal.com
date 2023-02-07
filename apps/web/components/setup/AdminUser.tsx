@@ -1,18 +1,32 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
-import { Dispatch, SetStateAction } from "react";
+import React from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField, Label, PasswordField, TextField } from "@calcom/ui";
+import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
+import { FiUserCheck } from "@calcom/ui/components/icon";
 
-const AdminUser = (props: { setIsLoading: Dispatch<SetStateAction<boolean>> }) => {
-  const router = useRouter();
+export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
+  const { t } = useLocale();
+  if (props.userCount > 0)
+    return (
+      <form id="wizard-step-1" name="wizard-step-1" className="space-y-4" onSubmit={props.onSuccess}>
+        <EmptyScreen
+          Icon={FiUserCheck}
+          headline={t("admin_user_created")}
+          description={t("admin_user_created_description")}
+        />
+      </form>
+    );
+  return <AdminUser {...props} />;
+};
+
+export const AdminUser = (props: { onSubmit: () => void; onError: () => void; onSuccess: () => void }) => {
   const { t } = useLocale();
 
   const formSchema = z.object({
@@ -46,11 +60,11 @@ const AdminUser = (props: { setIsLoading: Dispatch<SetStateAction<boolean>> }) =
   });
 
   const onError = () => {
-    props.setIsLoading(false);
+    props.onError();
   };
 
   const onSubmit = formMethods.handleSubmit(async (data: z.infer<typeof formSchema>) => {
-    props.setIsLoading(true);
+    props.onSubmit();
     const response = await fetch("/api/auth/setup", {
       method: "POST",
       body: JSON.stringify({
@@ -70,9 +84,9 @@ const AdminUser = (props: { setIsLoading: Dispatch<SetStateAction<boolean>> }) =
         email: data.email_address.toLowerCase(),
         password: data.password,
       });
-      router.replace(`/auth/setup?step=2`);
+      props.onSuccess();
     } else {
-      router.replace("/auth/setup");
+      props.onError();
     }
   }, onError);
 
@@ -187,5 +201,3 @@ const AdminUser = (props: { setIsLoading: Dispatch<SetStateAction<boolean>> }) =
     </FormProvider>
   );
 };
-
-export default AdminUser;

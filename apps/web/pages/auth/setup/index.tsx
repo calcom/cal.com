@@ -1,7 +1,7 @@
 import { UserPermissionRole } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
@@ -11,90 +11,104 @@ import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
-import AdminUser from "@components/setup/AdminUser";
+import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
+  // To avoid unexpected step jumps after admin creating
+  const [userCount] = useState(props.userCount);
   const isFreeLicense = value === "FREE";
   const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
+  const setStep = (newStep: number) => {
+    router.replace(`/auth/setup?step=${newStep || 1}`, undefined, { shallow: true });
+  };
 
-  const steps = [
-    ...(props.userCount === 0
-      ? [
-          {
-            title: t("administrator_user"),
-            description: t("lets_create_first_administrator_user"),
-            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => (
-              <AdminUser setIsLoading={setIsLoading} />
-            ),
-          },
-        ]
-      : []),
+  const steps: React.ComponentProps<typeof WizardForm>["steps"] = [
+    {
+      title: t("administrator_user"),
+      description: t("lets_create_first_administrator_user"),
+      content: (setIsLoading) => (
+        <AdminUser
+          onSubmit={() => {
+            setIsLoading(true);
+          }}
+          onSuccess={() => {
+            setStep(2);
+          }}
+          onError={() => {
+            setIsLoading(false);
+          }}
+          userCount={props.userCount}
+        />
+      ),
+    },
     {
       title: t("choose_a_license"),
       description: t("choose_license_description"),
-      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
-        const currentStep = props.userCount !== 0 ? 1 : 2;
+      content: (setIsLoading) => {
         return (
           <ChooseLicense
-            id={`wizard-step-${currentStep}`}
-            name={`wizard-step-${currentStep}`}
+            id="wizard-step-2"
+            name="wizard-step-2"
             value={value}
             onChange={setValue}
             onSubmit={() => {
               setIsLoading(true);
-              router.replace(
-                `/auth/setup?step=${currentStep + 1}${isFreeLicense ? "&category=calendar" : ""}`
-              );
+              setStep(3);
+              // router.replace(`/auth/setup?step=3${isFreeLicense ? "&category=calendar" : ""}`);
             }}
           />
         );
       },
     },
-    ...(!isFreeLicense
-      ? [
-          {
-            title: t("step_enterprise_license"),
-            description: t("step_enterprise_license_description"),
-            loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
-              const currentStep = props.userCount !== 0 ? 2 : 3;
-              return (
-                <EnterpriseLicense
-                  id={`wizard-step-${currentStep}`}
-                  name={`wizard-step-${currentStep}`}
-                  onSubmit={() => {
-                    setIsLoading(true);
-                  }}
-                  onSuccess={() => {
-                    router.replace(`/auth/setup?step=${currentStep + 1}`);
-                  }}
-                  onSuccessValidate={() => {
-                    setIsEnabledEE(true);
-                  }}
-                />
-              );
-            },
-            isEnabled: isEnabledEE,
-          },
-        ]
-      : []),
-    {
-      title: t("enable_apps"),
-      description: t("enable_apps_description"),
-      contentClassname: "!pb-0 mb-[-1px]",
-      loadingContent: (setIsLoading: Dispatch<SetStateAction<boolean>>) => {
-        const currentStep = (props.userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2;
+  ];
+
+  if (!isFreeLicense) {
+    steps.push({
+      title: t("step_enterprise_license"),
+      description: t("step_enterprise_license_description"),
+      content: (setIsLoading) => {
+        const currentStep = userCount !== 0 ? 2 : 3;
         return (
-          <AdminAppsList
-            classNames={{
-              appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
-              verticalTabsItem: "!w-48",
+          <EnterpriseLicense
+            id={`wizard-step-${currentStep}`}
+            name={`wizard-step-${currentStep}`}
+            onSubmit={() => {
+              setIsLoading(true);
             }}
-            /*
+            onSuccess={() => {
+              setStep(currentStep + 1);
+              // router.replace(`/auth/setup?step=${currentStep + 1}`);
+            }}
+            onSuccessValidate={() => {
+              setIsEnabledEE(true);
+            }}
+          />
+        );
+      },
+      isEnabled: isEnabledEE,
+    });
+  }
+
+  steps.push({
+    title: t("enable_apps"),
+    description: t("enable_apps_description"),
+    contentClassname: "!pb-0 mb-[-1px]",
+    content: (setIsLoading) => {
+      const currentStep = (userCount === 0) === isFreeLicense ? 3 : !isFreeLicense ? 4 : 2;
+      return (
+        <AdminAppsList
+          classNames={{
+            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto",
+            verticalTabsItem: "!w-48",
+          }}
+          /*
             | userCount === 0 | isFreeLicense | maxSteps |
             |-----------------|---------------|----------|
             | T               | T             |        3 |
@@ -102,18 +116,16 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             | F               | T             |        2 |
             | F               | F             |        3 |
           */
-
-            baseURL={`/auth/setup?step=${currentStep}`}
-            useQueryParam={true}
-            onSubmit={() => {
-              setIsLoading(true);
-              router.replace("/");
-            }}
-          />
-        );
-      },
+          baseURL={`/auth/setup?step=${currentStep}`}
+          useQueryParam={true}
+          onSubmit={() => {
+            setIsLoading(true);
+            router.replace("/");
+          }}
+        />
+      );
     },
-  ];
+  });
 
   return (
     <>
@@ -133,6 +145,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
   const { req } = context;
   const session = await getSession({ req });
@@ -168,6 +181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       isFreeLicense,
       userCount,
     },

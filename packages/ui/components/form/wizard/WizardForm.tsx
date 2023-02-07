@@ -11,8 +11,7 @@ type DefaultStep = {
   containerClassname?: string;
   contentClassname?: string;
   description: string;
-  content?: JSX.Element;
-  loadingContent?: (setIsLoading: Dispatch<SetStateAction<boolean>>) => JSX.Element;
+  content?: ((setIsLoading: Dispatch<SetStateAction<boolean>>) => JSX.Element) | JSX.Element;
   isEnabled?: boolean;
   isLoading?: boolean;
 };
@@ -25,7 +24,7 @@ function WizardForm<T extends DefaultStep>(props: {
   prevLabel?: string;
   nextLabel?: string;
   finishLabel?: string;
-  stepLabel?: (currentStep: number, maxSteps: number) => string;
+  stepLabel?: React.ComponentProps<typeof Steps>["stepLabel"];
 }) {
   const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
   const router = useRouter();
@@ -53,8 +52,8 @@ function WizardForm<T extends DefaultStep>(props: {
       </div>
       <div className={classNames("mb-8 overflow-hidden md:w-[700px]", props.containerClassname)}>
         <div className={classNames("print:p-none max-w-3xl px-8 py-5 sm:p-6", currentStep.contentClassname)}>
-          {currentStep.loadingContent
-            ? currentStep.loadingContent(setCurrentStepIsLoading)
+          {typeof currentStep.content === "function"
+            ? currentStep.content(setCurrentStepIsLoading)
             : currentStep.content}
         </div>
         {!props.disableNavigation && (
