@@ -43,7 +43,10 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: usersMetadata } = trpc.viewer.getUserMetadata.useQuery();
+  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery(
+    undefined,
+    { suspense: true }
+  );
 
   const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
     { variant: "conferencing", onlyInstalled: true },
@@ -73,7 +76,7 @@ const ConferencingLayout = () => {
   const [deleteAppModal, setDeleteAppModal] = useState(false);
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
-  if (isLoading)
+  if (isLoading || metadataLoading)
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
