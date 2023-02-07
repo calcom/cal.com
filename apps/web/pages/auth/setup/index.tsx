@@ -125,6 +125,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
           nextLabel={t("next_step_text")}
           finishLabel={t("finish")}
           prevLabel={t("prev_step")}
+          stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
         />
       </main>
     </>

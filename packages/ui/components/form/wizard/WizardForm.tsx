@@ -25,9 +25,9 @@ function WizardForm<T extends DefaultStep>(props: {
   prevLabel?: string;
   nextLabel?: string;
   finishLabel?: string;
-  stepOfLabel?: (currentStep: number, maxSteps: number) => string;
+  stepLabel?: (currentStep: number, maxSteps: number) => string;
 }) {
-  const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepOfLabel } = props;
+  const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
   const currentStep = steps[step - 1];
@@ -47,12 +47,7 @@ function WizardForm<T extends DefaultStep>(props: {
           <h1 className="font-cal text-2xl text-gray-900">{currentStep.title}</h1>
           <p className="text-sm text-gray-500">{currentStep.description}</p>
           {!props.disableNavigation && (
-            <Steps
-              maxSteps={steps.length}
-              currentStep={step}
-              navigateToStep={noop}
-              stepOfLabel={stepOfLabel}
-            />
+            <Steps maxSteps={steps.length} currentStep={step} navigateToStep={noop} stepLabel={stepLabel} />
           )}
         </div>
       </div>
