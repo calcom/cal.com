@@ -1,3 +1,4 @@
+import { DotsCircleHorizontalIcon } from "@heroicons/react/outline";
 import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
@@ -1141,6 +1142,48 @@ const loggedInViewerRouter = router({
           code: "BAD_REQUEST",
         });
       }
+    }),
+  getUserMetadata: authedProcedure.query(async ({ ctx }) => {
+    const metadata = await ctx.prisma.user.findUnique({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        metadata: true,
+      },
+    });
+    return userMetadata.parse(metadata?.metadata);
+  }),
+  updateUserDefaultConferencingApp: authedProcedure
+    .input(
+      z.object({
+        appSlug: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { appSlug } = input;
+      const metadata = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          metadata: true,
+        },
+      });
+      const currentMetadata = userMetadata.parse(metadata?.metadata);
+
+      await ctx.prisma.user.update({
+        where: {
+          id: ctx.user.id,
+        },
+        data: {
+          metadata: {
+            ...currentMetadata,
+            defaultConferencingApp: appSlug,
+          },
+        },
+      });
+      return appSlug;
     }),
 });
 
