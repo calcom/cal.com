@@ -228,7 +228,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                 />
               </div>
               <hr className="my-6 mr-8" />
-              <div className="rounded-md">
+              <div className="hidden rounded-md md:block">
                 <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
                 <div className="mt-3 flex">
                   <Button href="/availability/troubleshoot" color="secondary">

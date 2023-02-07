@@ -88,6 +88,8 @@ export default function Bookings() {
         return false;
       }
       shownBookings[booking.recurringEventId] = [booking];
+    } else if (status === "upcoming") {
+      return new Date(booking.startTime).toDateString() !== new Date().toDateString();
     }
     return true;
   };
@@ -121,7 +123,7 @@ export default function Bookings() {
                 <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
                 <div className="overflow-hidden rounded-md border border-gray-200">
                   <table className="w-full max-w-full table-fixed">
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="divide-y divide-gray-200 bg-white" data-testid="today-bookings">
                       <Fragment>
                         {bookingsToday.map((booking: BookingOutput) => (
                           <BookingListItem
@@ -138,7 +140,6 @@ export default function Bookings() {
               </div>
             )}
             <div className="pt-2 xl:pt-0">
-              {/* <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("all")}</p> */}
               <div className="overflow-hidden rounded-md border border-gray-200">
                 <table className="w-full max-w-full table-fixed">
                   <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
