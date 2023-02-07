@@ -89,10 +89,11 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
 };
 
 export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  const clonedCalEvent = cloneDeep(calEvent);
   const emailsToSend: Promise<unknown>[] = [
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new AttendeeRescheduledEmail(calEvent, attendee);
+        const scheduledEmail = new AttendeeRescheduledEmail(clonedCalEvent, attendee);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
@@ -100,7 +101,7 @@ export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee
     }),
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
+        const scheduledEmail = new OrganizerRescheduledEmail(clonedCalEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
