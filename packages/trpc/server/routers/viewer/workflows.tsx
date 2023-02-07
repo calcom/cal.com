@@ -184,6 +184,25 @@ export const workflowsRouter = router({
 
       const userId = !teamId ? ctx.user.id : undefined;
 
+      if (teamId) {
+        const team = await ctx.prisma.team.findFirst({
+          where: {
+            id: teamId,
+            members: {
+              some: {
+                userId: ctx.user.id,
+              },
+            },
+          },
+        });
+
+        if (!team) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
+        }
+      }
+
       try {
         const workflow: Workflow = await ctx.prisma.workflow.create({
           data: {
@@ -343,7 +362,7 @@ export const workflowsRouter = router({
         }
       });
 
-      //check if new event types belong to user
+      //check if new event types belong to user or team
       for (const newEventTypeId of newActiveEventTypes) {
         const newEventType = await ctx.prisma.eventType.findFirst({
           where: {
@@ -358,13 +377,19 @@ export const workflowsRouter = router({
             },
           },
         });
-        if (
-          newEventType &&
-          newEventType.userId !== user.id &&
-          !newEventType?.team?.members.find((membership) => membership.userId === user.id) &&
-          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === user.id)
-        ) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        if (newEventType) {
+          if (userWorkflow.teamId && userWorkflow.teamId !== newEventType.teamId) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
+
+          if (
+            userWorkflow.userId &&
+            newEventType.userId !== userWorkflow.userId &&
+            !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userWorkflow.userId)
+          ) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
         }
       }
 
