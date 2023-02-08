@@ -42,6 +42,7 @@ import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
+import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
@@ -322,6 +323,9 @@ const loggedInViewerRouter = router({
     // get all the connected integrations' calendars (from third party)
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
+    // store email of the destination calendar to display
+    let destinationCalendarEmail = null;
+
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
       if (user.destinationCalendar) {
@@ -335,7 +339,7 @@ const loggedInViewerRouter = router({
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-      const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", credentialId, email } = connectedCalendars[0].primary ?? {};
       user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
         data: {
           userId: user.id,
@@ -344,6 +348,7 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
+      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -354,6 +359,7 @@ const loggedInViewerRouter = router({
           cal.externalId === user.destinationCalendar?.externalId &&
           cal.integration === user.destinationCalendar?.integration
       );
+
       if (!destinationCal) {
         // If destinationCalendar is out of date, update it with the first primary connected calendar
         const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
@@ -365,11 +371,13 @@ const loggedInViewerRouter = router({
           },
         });
       }
+      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
     }
 
     return {
       connectedCalendars,
       destinationCalendar: user.destinationCalendar,
+      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
@@ -1157,6 +1165,7 @@ export const viewerRouter = mergeRouters(
     loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
+    deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,

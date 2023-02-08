@@ -1,7 +1,5 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    /** Needed to enable enterprise-only features */
-    readonly CALCOM_LICENSE_KEY: string | undefined;
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
@@ -53,5 +51,10 @@ declare namespace NodeJS {
     readonly NEXT_PUBLIC_APP_NAME: string | "Cal";
     readonly NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS: string | "help@cal.com";
     readonly NEXT_PUBLIC_COMPANY_NAME: string | "Cal.com, Inc.";
+    /**
+     *  "strict" -> Strict CSP
+     *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
+     */
+    readonly CSP_POLICY: "strict" | "non-strict";
   }
 }
