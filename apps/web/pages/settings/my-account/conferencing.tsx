@@ -1,6 +1,7 @@
-import { GetServerSidePropsContext } from "next";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
+import { useForm } from "react-hook-form";
 
+import { EventLocationType, getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -20,6 +21,8 @@ import {
   showToast,
   SkeletonContainer,
   SkeletonText,
+  Form,
+  TextField,
 } from "@calcom/ui";
 import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/components/icon";
 
@@ -67,6 +70,9 @@ const ConferencingLayout = () => {
   });
 
   const [deleteAppModal, setDeleteAppModal] = useState(false);
+  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
+    undefined
+  );
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
   if (isLoading || metadataLoading)
@@ -80,9 +86,8 @@ const ConferencingLayout = () => {
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => {
-              console.log(app);
               const appSlug = app?.slug;
-              const appIsDefault = appSlug === usersMetadata?.defaultConferencingApp;
+              const appIsDefault = appSlug === usersMetadata?.defaultConferencingApp.appSlug;
               return (
                 <AppListCard
                   description={app.description}
@@ -104,9 +109,16 @@ const ConferencingLayout = () => {
                                 color="secondary"
                                 StartIcon={FiVideo}
                                 onClick={() => {
-                                  updateDefaultAppMutation.mutate({
-                                    appSlug,
-                                  });
+                                  const locationType = getEventLocationTypeFromApp(
+                                    app?.locationOption?.value ?? ""
+                                  );
+                                  if (locationType?.linkType === "static") {
+                                    setLocationType({ ...locationType, slug: appSlug });
+                                  } else {
+                                    updateDefaultAppMutation.mutate({
+                                      appSlug,
+                                    });
+                                  }
                                 }}>
                                 {t("change_default_conferencing_app")}
                               </DropdownItem>
@@ -148,9 +160,74 @@ const ConferencingLayout = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {locationType && (
+        <LocationTypeSetLinkDialog locationType={locationType} setLocationType={setLocationType} />
+      )}
     </div>
   );
 };
+
+type LocationTypeSetLinkDialogFormProps = {
+  link?: string;
+  type: EventLocationType["type"];
+};
+
+function LocationTypeSetLinkDialog({
+  locationType,
+  setLocationType,
+}: {
+  locationType: EventLocationType & { slug: string };
+  setLocationType: Dispatch<SetStateAction<(EventLocationType & { slug: string }) | undefined>>;
+}) {
+  const utils = trpc.useContext();
+
+  const { t } = useLocale();
+  const form = useForm<LocationTypeSetLinkDialogFormProps>({});
+
+  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
+    onSuccess: () => {
+      showToast("Default app updated successfully", "success");
+      utils.viewer.getUserMetadata.invalidate();
+    },
+  });
+
+  return (
+    <Dialog open={!!locationType} onOpenChange={() => setLocationType(undefined)}>
+      <DialogContent
+        title={t("default_app_link_title")}
+        description={t("default_app_link_description")}
+        type="creation"
+        Icon={FiAlertCircle}>
+        <Form
+          form={form}
+          handleSubmit={(values) => {
+            updateDefaultAppMutation.mutate({
+              appSlug: locationType.slug,
+              appLink: values.link,
+            });
+          }}>
+          <>
+            <TextField
+              type="text"
+              required
+              {...form.register("link")}
+              placeholder={locationType.organizerInputPlaceholder ?? ""}
+              label={locationType.label ?? ""}
+            />
+
+            <DialogFooter>
+              <Button color="primary" type="submit">
+                {t("save")}
+              </Button>
+              <DialogClose />
+            </DialogFooter>
+          </>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 ConferencingLayout.getLayout = getLayout;
 

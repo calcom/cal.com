@@ -445,7 +445,6 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
-
       let apps = enabledApps.map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
@@ -1158,11 +1157,10 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         appSlug: z.string().optional(),
+        appLink: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { appSlug } = input;
-
       const currentMetadata = userMetadata.parse(ctx.user.metadata);
 
       await ctx.prisma.user.update({
@@ -1172,11 +1170,11 @@ const loggedInViewerRouter = router({
         data: {
           metadata: {
             ...currentMetadata,
-            defaultConferencingApp: appSlug,
+            defaultConferencingApp: input,
           },
         },
       });
-      return appSlug;
+      return input;
     }),
 });
 
