@@ -103,14 +103,15 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
       )}
       <m.div
         layout
-        style={resizeAnimationConfig[layout]?.style}
-        animate={
-          resizeAnimationConfig[layout]?.variants?.[bookerState] ||
-          resizeAnimationConfig[layout]?.variants.default
-        }
+        // @TODO: Can we fix the any please?
+        // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
+        // where there's no styles applied yet (meaning there wouldn't be a grid + widths), which would cause
+        // the layout to jump around on load.
+        style={resizeAnimationConfig.small_calendar.default as any}
+        animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
-          "dark:bg-darkgray-100 grid items-start overflow-x-clip bg-white md:flex-row",
+          "dark:bg-darkgray-100 grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white [--booker-meta-width:280px] [--booker-main-width:425px] [--booker-timeslots-width:280px] md:flex-row",
           layout === "small_calendar" && "dark:border-darkgray-300 mt-20 rounded-md border border-gray-200",
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
@@ -173,7 +174,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             area={{ default: "main", small_calendar: "timeslots" }}
             visible={bookerState === "selecting_time" && layout !== "large_calendar"}
             className={classNames(
-              "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)] md:border-l",
+              "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
               layout === "small_calendar" && "h-full overflow-auto",
               layout !== "small_calendar" && "sticky top-0"
             )}

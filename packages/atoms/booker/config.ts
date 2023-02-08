@@ -31,73 +31,57 @@ export const fadeInUp = {
 
 type ResizeAnimationConfig = {
   [key in BookerLayout]: {
-    variants: {
-      [key in BookerState | "default"]?: TargetAndTransition;
-    };
-    style?: MotionStyleWithCssVar;
+    [key in BookerState | "default"]?: TargetAndTransition;
   };
 };
 
+/**
+ * This configuration is used to animate the grid container for the booker.
+ * The object is structured as following:
+ *
+ * The root property of the object: is the name of the layout
+ * (mobile, small_calendar, large_calendar, large_timeslots)
+ *
+ * The values of these properties are objects that define the animation for each state of the booker.
+ * The animation have the same properties as you could pass to the animate prop of framer-motion:
+ * @see: https://www.framer.com/motion/animation/
+ */
 export const resizeAnimationConfig: ResizeAnimationConfig = {
   mobile: {
-    variants: {
-      default: {
-        width: "100vw",
-        gridTemplateAreas: `
+    default: {
+      width: "100vw",
+      gridTemplateAreas: `
           "meta"
-          "calendar"
           "main"
           "timeslots"
         `,
-        gridTemplateColumns: "100vw",
-      },
+      gridTemplateColumns: "100vw",
     },
   },
   small_calendar: {
-    style: {
-      "--booker-meta-width": "280px",
-      "--booker-main-width": "425px",
-      "--booker-timeslots-width": "280px",
+    default: {
       width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
+      gridTemplateAreas: `"meta main"`,
+      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
     },
-    variants: {
-      default: {
-        width: "calc(var(--booker-meta-width) + var(--booker-main-width))",
-        gridTemplateAreas: `
-          "meta main"
-        `,
-        gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width)",
-      },
-      selecting_time: {
-        width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
-        gridTemplateAreas: `
-          "meta main timeslots"
-        `,
-        gridTemplateColumns:
-          "var(--booker-meta-width) var(--booker-main-width) var(--booker-timeslots-width)",
-      },
+    selecting_time: {
+      width: "calc(var(--booker-meta-width) + var(--booker-main-width) + var(--booker-timeslots-width))",
+      gridTemplateAreas: `"meta main timeslots"`,
+      gridTemplateColumns: "var(--booker-meta-width) var(--booker-main-width) var(--booker-timeslots-width)",
     },
   },
   large_calendar: {
-    variants: {
-      default: {
-        width: "100vw",
-        gridTemplateAreas: `
-        "meta main"
-      `,
-        gridTemplateColumns: "280px 1fr",
-      },
+    default: {
+      width: "100vw",
+      gridTemplateAreas: `"meta main"`,
+      gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },
   },
   large_timeslots: {
-    variants: {
-      default: {
-        width: "100vw",
-        gridTemplateAreas: `
-          "meta main"
-        `,
-        gridTemplateColumns: "280px 1fr",
-      },
+    default: {
+      width: "100vw",
+      gridTemplateAreas: `"meta main"`,
+      gridTemplateColumns: "var(--booker-meta-width) 1fr",
     },
   },
 };
