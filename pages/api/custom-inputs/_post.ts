@@ -8,11 +8,72 @@ import {
   schemaEventTypeCustomInputPublic,
 } from "~/lib/validations/event-type-custom-input";
 
+// id: z.number().int(),
+// eventTypeId: z.number().int(),
+// label: z.string(),
+// type: z.nativeEnum(EventTypeCustomInputType),
+// required: z.boolean(),
+// placeholder: z.string(),
 /**
  * @swagger
  * /custom-inputs:
  *   post:
  *     summary: Creates a new eventTypeCustomInput
+ *     parameters:
+ *        - in: query
+ *          name: apiKey
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: Your API key
+ *     requestBody:
+ *        description: Create a new custom input for an event type
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - eventTypeId
+ *                - label
+ *                - type
+ *                - required
+ *                - placeholder
+ *              properties:
+ *                eventTypeId:
+ *                  type: integer
+ *                  description: 'ID of the event type to which the custom input is being added'
+ *                label:
+ *                  type: string
+ *                  description: 'Label of the custom input'
+ *                type:
+ *                  type: string
+ *                  description: 'Type of the custom input. The value is ENUM; one of [TEXT, TEXTLONG, NUMBER, BOOL, RADIO, PHONE]'
+ *                options:
+ *                  type: object
+ *                  properties:
+ *                    label:
+ *                      type: string
+ *                    type:
+ *                      type: string
+ *                  description: 'Options for the custom input'
+ *                required:
+ *                  type: boolean
+ *                  description: 'If the custom input is required before booking'
+ *                placeholder:
+ *                  type: string
+ *                  description: 'Placeholder text for the custom input'
+ *
+ *            examples:
+ *              custom-inputs:
+ *                summary: An example of custom-inputs
+ *                value:
+ *                  eventTypeID: 1
+ *                  label: "Phone Number"
+ *                  type: "PHONE"
+ *                  required: true
+ *                  placeholder: "100 101 1234"
+ *
  *     tags:
  *     - custom-inputs
  *     responses:

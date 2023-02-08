@@ -10,6 +10,13 @@ import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-c
  * /custom-inputs:
  *   get:
  *     summary: Find all eventTypeCustomInputs
+ *     parameters:
+ *        - in: query
+ *          name: apiKey
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: Your API key
  *     tags:
  *     - custom-inputs
  *     responses:

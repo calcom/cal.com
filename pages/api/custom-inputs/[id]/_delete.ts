@@ -16,6 +16,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the eventTypeCustomInput to delete
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *     tags:
  *     - custom-inputs
  *     responses:

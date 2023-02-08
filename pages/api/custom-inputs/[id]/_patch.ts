@@ -13,6 +13,44 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  * /custom-inputs/{id}:
  *   patch:
  *     summary: Edit an existing eventTypeCustomInput
+ *     requestBody:
+ *        description: Edit an existing eventTypeCustomInput for an event type
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                eventTypeId:
+ *                  type: integer
+ *                  description: 'ID of the event type to which the custom input is being added'
+ *                label:
+ *                  type: string
+ *                  description: 'Label of the custom input'
+ *                type:
+ *                  type: string
+ *                  description: 'Type of the custom input. The value is ENUM; one of [TEXT, TEXTLONG, NUMBER, BOOL, RADIO, PHONE]'
+ *                options:
+ *                  type: object
+ *                  properties:
+ *                    label:
+ *                      type: string
+ *                    type:
+ *                      type: string
+ *                  description: 'Options for the custom input'
+ *                required:
+ *                  type: boolean
+ *                  description: 'If the custom input is required before booking'
+ *                placeholder:
+ *                  type: string
+ *                  description: 'Placeholder text for the custom input'
+ *
+ *            examples:
+ *              custom-inputs:
+ *                summary: Example of patching an existing Custom Input
+ *                value:
+ *                  required: true
+ *
  *     parameters:
  *      - in: path
  *        name: id
@@ -20,6 +58,13 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the eventTypeCustomInput to edit
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
+ *
  *     tags:
  *     - custom-inputs
  *     responses:
