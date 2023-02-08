@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { Person } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -24,7 +25,7 @@ export enum timeUnitLowerCase {
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: { name: string; email: string; timeZone: string }[];
+  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
   organizer: {
     language: { locale: string };
     name: string;
@@ -87,6 +88,11 @@ export const scheduleSMSReminder = async (
   const timeZone =
     action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
+  const locale =
+    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+      ? evt.attendees[0].language?.locale
+      : evt.organizer.language.locale;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
@@ -105,7 +111,7 @@ export const scheduleSMSReminder = async (
         customInputs: evt.customInputs,
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
-      const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
+      const customMessage = await customTemplate(message, variables, locale);
       message = customMessage.text;
       break;
   }

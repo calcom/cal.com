@@ -246,7 +246,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               className={classNames(
                 "inline-flex",
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:ml-2 rtl:mr-2"
               )}
             />
           )}
