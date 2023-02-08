@@ -2,16 +2,8 @@ import { NextMiddleware } from "next-api-middleware";
 import z from "zod";
 
 const withPage = z.object({
-  page: z
-    .string()
-    .optional()
-    .default("1")
-    .transform((n) => parseInt(n)),
-  take: z
-    .string()
-    .optional()
-    .default("10")
-    .transform((n) => parseInt(n)),
+  page: z.coerce.number().min(1).optional().default(1),
+  take: z.coerce.number().min(1).optional().default(10),
 });
 
 export const withPagination: NextMiddleware = async (req, _, next) => {
