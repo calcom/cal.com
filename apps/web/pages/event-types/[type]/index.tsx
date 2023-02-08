@@ -398,10 +398,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   } catch (err) {
-    // TODO: It should be a 500, 404 is very misleading.
-    return {
-      notFound: true,
-    };
+    throw err;
   }
 };
 
