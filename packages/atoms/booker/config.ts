@@ -84,7 +84,6 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
         width: "100vw",
         gridTemplateAreas: `
         "meta main"
-        "calendar main"
       `,
         gridTemplateColumns: "280px 1fr",
       },
@@ -96,7 +95,6 @@ export const resizeAnimationConfig: ResizeAnimationConfig = {
         width: "100vw",
         gridTemplateAreas: `
           "meta main"
-          "calendar main"
         `,
         gridTemplateColumns: "280px 1fr",
       },

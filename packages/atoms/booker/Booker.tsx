@@ -135,7 +135,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
 
           <BookerSection
             area="main"
-            className="sticky top-0 p-6 "
+            className="dark:border-darkgray-300 sticky top-0  ml-[-1px] border-gray-200 p-6 md:border-l"
             {...fadeInUp}
             visible={bookerState === "booking"}>
             <BookEventForm username={username} eventSlug={eventSlug} onCancel={() => setBookingTime(null)} />
@@ -146,7 +146,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
             initial="visible"
-            className="p-6">
+            className="md:dark:border-darkgray-300 ml-[-1px] p-6 md:border-l md:border-gray-200">
             {/* @TODO: Guts of this component aren't touched (yet) */}
             <DatePicker
               isLoading={schedule.isLoading}
@@ -164,7 +164,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
               layout === "large_calendar" &&
               (bookerState === "selecting_date" || bookerState === "selecting_time")
             }
-            className="sticky top-0 h-full"
+            className="dark:border-darkgray-300 sticky top-0  ml-[-1px] h-full border-gray-200 md:border-l"
             {...fadeInUp}>
             <LargeCalendar onDaySelect={onDaySelect} onTimeSelect={onTimeSelect} />
           </BookerSection>
@@ -173,7 +173,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             area={{ default: "main", small_calendar: "timeslots" }}
             visible={bookerState === "selecting_time" && layout !== "large_calendar"}
             className={classNames(
-              "dark:border-darkgray-300 flex w-full flex-row border-l border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)]",
+              "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)] md:border-l",
               layout === "small_calendar" && "h-full overflow-auto",
               layout !== "small_calendar" && "sticky top-0"
             )}
