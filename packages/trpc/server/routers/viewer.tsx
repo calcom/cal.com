@@ -1157,20 +1157,13 @@ const loggedInViewerRouter = router({
   updateUserDefaultConferencingApp: authedProcedure
     .input(
       z.object({
-        appSlug: z.string(),
+        appType: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { appSlug } = input;
-      const metadata = await ctx.prisma.user.findUnique({
-        where: {
-          id: ctx.user.id,
-        },
-        select: {
-          metadata: true,
-        },
-      });
-      const currentMetadata = userMetadata.parse(metadata?.metadata);
+      const { appType } = input;
+
+      const currentMetadata = userMetadata.parse(ctx.user.metadata);
 
       await ctx.prisma.user.update({
         where: {
@@ -1179,11 +1172,11 @@ const loggedInViewerRouter = router({
         data: {
           metadata: {
             ...currentMetadata,
-            defaultConferencingApp: appSlug,
+            defaultConferencingApp: appType,
           },
         },
       });
-      return appSlug;
+      return appType;
     }),
 });
 

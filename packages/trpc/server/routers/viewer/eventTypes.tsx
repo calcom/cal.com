@@ -7,6 +7,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import getApps from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -17,6 +18,7 @@ import {
   CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
+  userMetadata,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -405,7 +407,26 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
+    // Get Users default conferncing app
+    const defaultConferencingAppRaw = ctx.user.metadata;
+    const defaultConferencingApp = userMetadata.parse(defaultConferencingAppRaw)?.defaultConferencingApp;
+
     const appKeys = await getAppKeysFromSlug("daily-video");
+
+    let locations;
+    if (
+      (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
+      typeof appKeys.api_key === "string"
+    ) {
+      locations = [{ type: DailyLocationType }];
+    }
+
+    if (defaultConferencingApp && defaultConferencingApp !== "integrations:daily") {
+      const credentials = ctx.user.credentials.filter((app) => app.type == defaultConferencingApp);
+      const foundAppType = getApps(credentials)[0].type;
+      locations = [{ type: foundAppType }];
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
@@ -414,8 +435,7 @@ export const eventTypesRouter = router({
           id: userId,
         },
       },
-      ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
-        typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
+      locations,
     };
 
     if (teamId && schedulingType) {

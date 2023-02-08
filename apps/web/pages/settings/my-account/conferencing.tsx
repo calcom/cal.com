@@ -86,53 +86,58 @@ const ConferencingLayout = () => {
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
-            .map((app) => (
-              <AppListCard
-                description={app.description}
-                title={app.title}
-                logo={app.logo}
-                key={app.title}
-                isDefault={app.slug === usersMetadata?.defaultConferencingApp}
-                actions={
-                  <div>
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            color="secondary"
-                            disabled={app.slug === usersMetadata?.defaultConferencingApp}
-                            StartIcon={FiVideo}
-                            onClick={() => {
-                              updateDefaultAppMutation.mutate({
-                                appSlug: app.slug,
-                              });
-                            }}>
-                            {t("change_default_conferencing_app")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            color="destructive"
-                            disabled={app.isGlobal}
-                            StartIcon={FiTrash}
-                            onClick={() => {
-                              setDeleteCredentialId(app.credentialIds[0]);
-                              setDeleteAppModal(true);
-                            }}>
-                            {t("remove_app")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </div>
-                }
-              />
-            ))}
+            .map((app) => {
+              const appType = app?.appData?.location?.type;
+              const appIsDefault = appType === usersMetadata?.defaultConferencingApp;
+              return (
+                <AppListCard
+                  description={app.description}
+                  title={app.title}
+                  logo={app.logo}
+                  key={app.title}
+                  isDefault={appIsDefault} // @TODO: Handle when a user doesnt have this value set
+                  actions={
+                    <div>
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {!appIsDefault && (
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                color="secondary"
+                                StartIcon={FiVideo}
+                                onClick={() => {
+                                  updateDefaultAppMutation.mutate({
+                                    appType,
+                                  });
+                                }}>
+                                {t("change_default_conferencing_app")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              color="destructive"
+                              disabled={app.isGlobal}
+                              StartIcon={FiTrash}
+                              onClick={() => {
+                                setDeleteCredentialId(app.credentialIds[0]);
+                                setDeleteAppModal(true);
+                              }}>
+                              {t("remove_app")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
+                  }
+                />
+              );
+            })}
       </List>
 
       <Dialog open={deleteAppModal} onOpenChange={setDeleteAppModal}>
