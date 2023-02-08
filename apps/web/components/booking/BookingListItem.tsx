@@ -53,7 +53,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
-      if (data.status === BookingStatus.REJECTED) {
+      if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
         showToast(t("booking_rejection_success"), "success");
       } else {

@@ -9,7 +9,7 @@
   "calcom_explained": "{{appName}} is het open source Calendly-alternatief waarmee u uw eigen gegevens, werkstroom en uiterlijk in de hand houdt.",
   "have_any_questions": "Heeft u vragen? We zijn er om te helpen.",
   "reset_password_subject": "{{appName}}: Instructies voor het opnieuw instellen van uw wachtwoord",
-  "event_declined_subject": "Afgewezen: {{title}} op {{date}}",
+  "event_declined_subject": "Afgewezen: {{title}}",
   "event_cancelled_subject": "Geannuleerd: {{title}} op {{date}}",
   "event_request_declined": "Uw gebeurtenisverzoek is geweigerd",
   "event_request_declined_recurring": "Uw verzoek voor een terugkerende gebeurtenis is geweigerd",
