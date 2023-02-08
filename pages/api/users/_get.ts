@@ -29,7 +29,7 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
  *       404:
  *         description: No users were found
  */
-async function getHandler(req: NextApiRequest) {
+export async function getHandler(req: NextApiRequest) {
   const {
     userId,
     prisma,
