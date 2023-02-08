@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,6 +13,7 @@ export const TeamsMemberFilter = () => {
   const session = useSession();
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const { data } = trpc.viewer.teams.list.useQuery();
+  const [dropdownTitle, setDropdownTitle] = useState<string>(t("all_bookings_filter_label"));
 
   if (!data || !data.length) return null;
 
@@ -19,8 +21,7 @@ export const TeamsMemberFilter = () => {
   const teamNames = data?.filter((team) => query.teamIds?.includes(team.id)).map((team) => team.name);
 
   return (
-    <AnimatedPopover
-      text={teamNames && teamNames.length > 0 ? `${teamNames.join(", ")}` : t("all_bookings_filter_label")}>
+    <AnimatedPopover text={teamNames && teamNames.length > 0 ? `${teamNames.join(", ")}` : dropdownTitle}>
       <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
         <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
           <FiLayers className="h-5 w-5" />
@@ -36,6 +37,7 @@ export const TeamsMemberFilter = () => {
           type="checkbox"
           checked={!query.teamIds && !query.userIds?.includes(session.data?.user.id || 0)}
           onChange={() => {
+            setDropdownTitle(t("all_bookings_filter_label"));
             removeByKey("teamIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
           }}
           className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
@@ -57,6 +59,7 @@ export const TeamsMemberFilter = () => {
           disabled={session.status === "loading"}
           checked={query.userIds?.includes(session.data?.user.id || 0)}
           onChange={(e) => {
+            setDropdownTitle(t("your_bookings_filter_label"));
             if (e.target.checked) {
               pushItemToKey("userIds", session.data?.user.id || 0);
             } else if (!e.target.checked) {
@@ -91,6 +94,7 @@ export const TeamsMemberFilter = () => {
               type="checkbox"
               checked={query.teamIds?.includes(team.id)}
               onChange={(e) => {
+                setDropdownTitle(team.name);
                 if (e.target.checked) {
                   pushItemToKey("teamIds", team.id);
                 } else if (!e.target.checked) {
