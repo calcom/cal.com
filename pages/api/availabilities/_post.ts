@@ -15,12 +15,12 @@ import {
  *     operationId: addAvailability
  *     summary: Creates a new availability
  *     parameters:
- *        - in: query
- *          name: apiKey
- *          requiried: true
- *          description: Your API key
- *          schema:
- *            type: integer
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     requestBody:
  *       description: Edit an existing availability related to one of your bookings
  *       required: true
