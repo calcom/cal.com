@@ -4,7 +4,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
@@ -29,7 +29,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     [eventType.recurringEvent]
   );
 
-  const stripeAppData = getStripeAppData(eventType);
+  const stripeAppData = getPaymentAppData(eventType);
 
   return (
     <>
@@ -80,7 +80,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
                   <FormattedNumber
                     value={stripeAppData.price / 100.0}
                     style="currency"
-                    currency={stripeAppData.currency.toUpperCase()}
+                    currency={stripeAppData?.currency?.toUpperCase()}
                   />
                 </IntlProvider>
               </Badge>
