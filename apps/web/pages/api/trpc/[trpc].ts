@@ -56,7 +56,7 @@ export default trpcNext.createNextApiHandler({
       return noCacheResponse;
     }
 
-    // Never cache queries
+    // Never cache non-queries (aka mutations)
     if (type !== "query") {
       return noCacheResponse;
     }
