@@ -409,6 +409,7 @@ export const eventTypesRouter = router({
     const userId = ctx.user.id;
     // Get Users default conferncing app
     const defaultConferencingAppRaw = ctx.user.metadata;
+    console.log("defaultConferencingAppRaw", defaultConferencingAppRaw);
     const defaultConferencingApp = userMetadata.parse(defaultConferencingAppRaw)?.defaultConferencingApp;
 
     const appKeys = await getAppKeysFromSlug("daily-video");
@@ -421,7 +422,7 @@ export const eventTypesRouter = router({
       locations = [{ type: DailyLocationType }];
     }
 
-    // If its defaulting to daily no point handling compute as its done above
+    // If its defaulting to daily no point handling compute as its done
     if (defaultConferencingApp && defaultConferencingApp !== "daily-video") {
       const credentials = ctx.user.credentials;
       const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingApp)[0];

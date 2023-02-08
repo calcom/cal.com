@@ -206,6 +206,7 @@ function LocationTypeSetLinkDialog({
               appSlug: locationType.slug,
               appLink: values.link,
             });
+            setLocationType(undefined);
           }}>
           <>
             <TextField
