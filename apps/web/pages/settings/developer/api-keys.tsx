@@ -96,14 +96,4 @@ const ApiKeysView = () => {
 
 ApiKeysView.getLayout = getLayout;
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
-
 export default ApiKeysView;

@@ -679,14 +679,4 @@ const EventTypesPage = () => {
   );
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
-
 export default EventTypesPage;

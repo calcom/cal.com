@@ -117,13 +117,3 @@ export default function AvailabilityPage() {
     </div>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
