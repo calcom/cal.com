@@ -2,6 +2,7 @@ import {
   BookingReference,
   BookingStatus,
   EventType,
+  MembershipRole,
   Prisma,
   SchedulingType,
   User,
@@ -13,9 +14,9 @@ import {
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
+import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
@@ -319,7 +320,7 @@ export const bookingsRouter = router({
 
       const recurringInfo = recurringInfoBasic.map(
         (
-          info: typeof recurringInfoBasic[number]
+          info: (typeof recurringInfoBasic)[number]
         ): {
           recurringEventId: string | null;
           count: number;
@@ -709,6 +710,8 @@ export const bookingsRouter = router({
         eventType: {
           select: {
             id: true,
+            owner: true,
+            teamId: true,
             recurringEvent: true,
             title: true,
             requiresConfirmation: true,
@@ -1074,7 +1077,70 @@ export const bookingsRouter = router({
           },
         });
       } else {
-        await refund(booking, evt); // No payment integration for recurring events for v1
+        const successPayment = booking.payment.find((payment) => payment.success);
+        if (!successPayment) {
+          throw new Error("Cannot reject a booking without a successful payment");
+        }
+
+        let eventTypeOwnerId;
+        if (booking.eventType?.owner) {
+          eventTypeOwnerId = booking.eventType.owner.id;
+        } else if (booking.eventType?.teamId) {
+          const teamOwner = await prisma.membership.findFirst({
+            where: {
+              teamId: booking.eventType.teamId,
+              role: MembershipRole.OWNER,
+            },
+            select: {
+              userId: true,
+            },
+          });
+          eventTypeOwnerId = teamOwner?.userId;
+        }
+
+        if (!eventTypeOwnerId) {
+          throw new Error("Event Type owner not found for obtaining payment app credentials");
+        }
+
+        const paymentAppCredentials = await prisma.credential.findMany({
+          where: {
+            userId: eventTypeOwnerId,
+            appId: successPayment.appId,
+          },
+          select: {
+            key: true,
+            appId: true,
+            app: {
+              select: {
+                categories: true,
+                dirName: true,
+              },
+            },
+          },
+        });
+
+        const paymentAppCredential = paymentAppCredentials.find((credential) => {
+          return credential.appId === successPayment.appId;
+        });
+
+        if (!paymentAppCredential) {
+          throw new Error("Payment app credentials not found");
+        }
+
+        // Posible to refactor TODO:
+        const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+        if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+          console.warn(`payment App service of type ${paymentApp} is not implemented`);
+          return null;
+        }
+
+        const PaymentService = paymentApp.lib.PaymentService;
+        const paymentInstance = new PaymentService(paymentAppCredential);
+        const paymentData = await paymentInstance.refund(successPayment.id);
+        if (!paymentData.refunded) {
+          throw new Error("Payment could not be refunded");
+        }
+
         await prisma.booking.update({
           where: {
             id: bookingId,

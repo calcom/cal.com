@@ -32,7 +32,7 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -122,7 +122,7 @@ const BookingPage = ({
     }),
     {}
   );
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (
@@ -148,6 +148,7 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
+
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -557,14 +558,14 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {stripeAppData.price > 0 && (
+                  {paymentAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
                       <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
-                          value={stripeAppData.price / 100.0}
+                          value={paymentAppData.price / 100.0}
                           style="currency"
-                          currency={stripeAppData.currency.toUpperCase()}
+                          currency={paymentAppData?.currency?.toUpperCase()}
                         />
                       </IntlProvider>
                     </p>
