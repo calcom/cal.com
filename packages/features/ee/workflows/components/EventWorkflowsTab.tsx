@@ -217,7 +217,7 @@ function EventWorkflowsTab(props: Props) {
                 <Button
                   target="_blank"
                   color="secondary"
-                  onClick={() => createMutation.mutate({})}
+                  onClick={() => createMutation.mutate({ teamId })}
                   loading={createMutation.isLoading}>
                   {t("create_workflow")}
                 </Button>
