@@ -32,12 +32,12 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -1263,7 +1263,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   } catch (error) {
     log.error("Error while creating booking references", error);
   }
-  console.log("smsReminderNumber", smsReminderNumber);
+
   try {
     await scheduleWorkflowReminders(
       eventType.workflows,

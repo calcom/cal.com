@@ -32,7 +32,11 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
-import { addBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
+import {
+  addBookingField,
+  removeBookingField,
+  updateBookingField,
+} from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -350,6 +354,7 @@ export const workflowsRouter = router({
           scheduled: boolean;
         }[]
       >[] = [];
+
       removedEventTypes.forEach((eventTypeId) => {
         const reminderToDelete = ctx.prisma.workflowReminder.findMany({
           where: {
@@ -370,8 +375,22 @@ export const workflowsRouter = router({
             scheduled: true,
           },
         });
+
         remindersToDeletePromise.push(reminderToDelete);
       });
+
+      for (const removedEventType of removedEventTypes) {
+        await removeBookingField(
+          {
+            name: "smsReminderNumber",
+          },
+          {
+            id: "" + id,
+            type: "workflow",
+          },
+          removedEventType
+        );
+      }
 
       const remindersToDelete = await Promise.all(remindersToDeletePromise);
 
@@ -512,6 +531,19 @@ export const workflowsRouter = router({
             },
           });
         });
+      }
+
+      for (const eventTypeId of activeOn) {
+        await updateBookingField(
+          {
+            name: "smsReminderNumber",
+          },
+          {
+            id: "" + id,
+            fieldRequired: input.steps.some((s) => s.numberRequired),
+          },
+          eventTypeId
+        );
       }
 
       userWorkflow.steps.map(async (oldStep) => {
@@ -1044,6 +1076,9 @@ export const workflowsRouter = router({
           id: workflowId,
           userId: ctx.user.id,
         },
+        include: {
+          steps: true,
+        },
       });
 
       if (!eventTypeWorkflow)
@@ -1081,18 +1116,23 @@ export const workflowsRouter = router({
             eventTypeId,
           },
         });
+
+        const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
+          return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
+        });
+
         await addBookingField(
           {
             name: "smsReminderNumber",
             type: "phone",
             label: "SMS Reminder Number",
-            required: true,
             editable: "system",
           },
           {
             id: "" + workflowId,
             type: "workflow",
             label: "Workflow",
+            fieldRequired: isSmsReminderNumberRequired,
             editUrl: `/workflows/${workflowId}`,
           },
           eventTypeId

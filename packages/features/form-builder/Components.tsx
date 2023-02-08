@@ -36,6 +36,7 @@ type Component =
       factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
     }
   | {
+      // Objective type question with option having a possible input
       propsType: "objectiveWithInput";
       factory: <
         TProps extends SelectLikeComponentProps<{
@@ -59,7 +60,8 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   textarea: {
     propsType: "text",
-    factory: (props) => <Widgets.TextAreaWidget {...props} />,
+    // TODO: Make rows configurable in the form builder
+    factory: (props) => <Widgets.TextAreaWidget rows={3} {...props} />,
   },
   number: {
     propsType: "text",
@@ -113,7 +115,8 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   multiemail: {
     propsType: "textList",
-    factory: ({ value, label, setValue, ...props }) => {
+    //TODO: Make it a ui component
+    factory: function MultiEmail({ value, label, setValue, ...props }) {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
@@ -122,51 +125,50 @@ export const Components: Record<BookingFieldType, Component> = {
       return (
         <>
           {value.length ? (
-            <div className="mb-4">
-              <div>
-                <label
-                  htmlFor="guests"
-                  className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                  {label}
-                </label>
-                <ul>
-                  {value.map((field, index) => (
-                    <li key={index}>
-                      <EmailField
-                        value={value[index]}
-                        onChange={(e) => {
-                          value[index] = e.target.value;
-                          setValue(value);
-                        }}
-                        className={classNames(
-                          inputClassName,
-                          // bookingForm.formState.errors.guests?.[index] &&
-                          //   "!focus:ring-red-700 !border-red-700",
-                          "border-r-0"
-                        )}
-                        addOnClassname={classNames(
-                          "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 "
-                          // bookingForm.formState.errors.guests?.[index] &&
-                          //   "!focus:ring-red-700 !border-red-700"
-                        )}
-                        placeholder={placeholder}
-                        label={<></>}
-                        required
-                        addOnSuffix={
-                          <Tooltip content="Remove email">
-                            <button
-                              className="m-1 disabled:hover:cursor-not-allowed"
-                              type="button"
-                              onClick={() => {
-                                value.splice(index, 1);
-                                setValue(value);
-                              }}>
-                              <FiX className="text-gray-600" />
-                            </button>
-                          </Tooltip>
-                        }
-                      />
-                      {/* {bookingForm.formState.errors.guests?.[index] && (
+            <div>
+              <label
+                htmlFor="guests"
+                className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                {label}
+              </label>
+              <ul>
+                {value.map((field, index) => (
+                  <li key={index}>
+                    <EmailField
+                      value={value[index]}
+                      onChange={(e) => {
+                        value[index] = e.target.value;
+                        setValue(value);
+                      }}
+                      className={classNames(
+                        inputClassName,
+                        // bookingForm.formState.errors.guests?.[index] &&
+                        //   "!focus:ring-red-700 !border-red-700",
+                        "border-r-0"
+                      )}
+                      addOnClassname={classNames(
+                        "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 "
+                        // bookingForm.formState.errors.guests?.[index] &&
+                        //   "!focus:ring-red-700 !border-red-700"
+                      )}
+                      placeholder={placeholder}
+                      label={<></>}
+                      required
+                      addOnSuffix={
+                        <Tooltip content="Remove email">
+                          <button
+                            className="m-1 disabled:hover:cursor-not-allowed"
+                            type="button"
+                            onClick={() => {
+                              value.splice(index, 1);
+                              setValue(value);
+                            }}>
+                            <FiX className="text-gray-600" />
+                          </button>
+                        </Tooltip>
+                      }
+                    />
+                    {/* {bookingForm.formState.errors.guests?.[index] && (
                         <div className="mt-2 flex items-center text-sm text-red-700 ">
                           <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                           <p className="text-red-700">
@@ -174,22 +176,21 @@ export const Components: Record<BookingFieldType, Component> = {
                           </p>
                         </div>
                       )} */}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  type="button"
-                  color="minimal"
-                  StartIcon={FiUserPlus}
-                  className="my-2.5"
-                  // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
-                  onClick={() => {
-                    value.push("");
-                    setValue(value);
-                  }}>
-                  {t("add_another")}
-                </Button>
-              </div>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                type="button"
+                color="minimal"
+                StartIcon={FiUserPlus}
+                className="my-2.5"
+                // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
+                onClick={() => {
+                  value.push("");
+                  setValue(value);
+                }}>
+                {t("add_another")}
+              </Button>
             </div>
           ) : (
             <></>
@@ -299,25 +300,6 @@ export const Components: Record<BookingFieldType, Component> = {
           optionValue: "",
         });
       }, []);
-      // const getLocationInputField = () => {
-      //   return (
-      //     <div className="mb-4">
-      //       {/* <Label>
-      //       </Label> */}
-      //       {Field ? (
-      //         <div>
-      //           <div className="mt-1">{Field}</div>
-      //           {bookingForm.formState.errors.phone && (
-      //             <div className="mt-2 flex items-center text-sm text-red-700 ">
-      //               <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-      //               <p>{t("invalid_number")}</p>
-      //             </div>
-      //           )}
-      //         </div>
-      //       ) : null}
-      //     </div>
-      //   );
-      // };
 
       return (
         <div>
@@ -345,6 +327,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         //TODO: ManageBookings: What does this location class do?
                         className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
+                        defaultChecked={i === 0}
                       />
                       <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
                         {option.label ?? ""}
@@ -365,7 +348,7 @@ export const Components: Record<BookingFieldType, Component> = {
             return (
               <div>
                 <ComponentForField
-                  readOnly
+                  readOnly={!!readOnly}
                   field={{
                     ...optionField,
                     // Option Input is considered required only. Configuration not supported yet

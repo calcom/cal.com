@@ -14,7 +14,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { EventLocationType, getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import { LocationObject, LocationType } from "@calcom/core/location";
+import { LocationObject } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -22,14 +22,14 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
-  getBookingResponsesPartialSchema,
+  getBookingResponsesQuerySchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -67,10 +67,8 @@ const BookingFields = ({
 }) => {
   const { t } = useLocale();
   return (
-    <>
+    <div>
       {fields.map((field, index) => {
-        // TODO: ManageBookings: Shouldn't we render hidden fields but invisible so that they can be prefilled?
-        if (field.hidden) return null;
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
         //TODO: `rescheduleReason` should be an enum or similar to avoid typos
@@ -80,6 +78,11 @@ const BookingFields = ({
           }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
+        }
+
+        // We don't show notes field during reschedule
+        if (field.name === "notes" && !!rescheduleUid) {
+          return null;
         }
 
         if (field.name === "location" && field.type == "radioInput") {
@@ -98,7 +101,10 @@ const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<typeof options[number]> => !!location
           );
-
+          // We don't want to show location if there is only one option. Location is already visible in the left sidebar
+          if (field.options?.length <= 1) {
+            return null;
+          }
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
@@ -107,11 +113,12 @@ const BookingFields = ({
           );
         }
 
-        field.label = t(field.label);
+        field.label = field.label || t(field.defaultLabel || "");
+        field.placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
-        return <FormBuilderField field={field} readOnly={readOnly} key={index} />;
+        return <FormBuilderField className="mb-4" field={field} readOnly={readOnly} key={index} />;
       })}
-    </>
+    </div>
   );
 };
 
@@ -211,7 +218,7 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
-  const querySchema = getBookingResponsesPartialSchema({
+  const querySchema = getBookingResponsesQuerySchema({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
   // string value for - text, textarea, select, radio,
@@ -219,7 +226,9 @@ const BookingPage = ({
   // Object {value:"", optionValue:""} for radioInput
   const parsedQuery = querySchema.parse({
     ...router.query,
-    guests: router.query.guest,
+    // guest because we are supporting legacy URL with guest in it
+    // guests because the `name` of the corresponding bookingField is guests
+    guests: router.query.guests || router.query.guest,
   });
 
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
@@ -544,7 +553,7 @@ const BookingPage = ({
               </div>
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
-              <Form form={bookingForm} handleSubmit={bookEvent}>
+              <Form form={bookingForm} noValidate handleSubmit={bookEvent}>
                 <BookingFields
                   fields={eventType.bookingFields}
                   locations={locations}
@@ -552,7 +561,14 @@ const BookingPage = ({
                   rescheduleUid={rescheduleUid}
                 />
 
-                <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                <div
+                  className={classNames(
+                    "flex justify-end space-x-2 rtl:space-x-reverse",
+                    // HACK: If the last field is guests, we need to move Cancel, Submit buttons up because "Add Guests" being present on the left and the buttons on the right, spacing is not required
+                    eventType.bookingFields[eventType.bookingFields.length - 1].name === "guests"
+                      ? "-mt-4"
+                      : ""
+                  )}>
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>

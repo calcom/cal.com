@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import {
@@ -253,6 +254,10 @@ export const FormBuilder = function FormBuilder({
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
             const fieldType = FieldTypes.find((f) => f.value === field.type);
+
+            // Hidden fields can't be required
+            const isRequired = field.required && !field.hidden;
+
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
@@ -274,10 +279,11 @@ export const FormBuilder = function FormBuilder({
                   <div>
                     <div className="flex items-center">
                       <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
-                        {field.label}
+                        {field.label || t(field.defaultLabel || "")}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge variant="gray">{field.required ? "Required" : "Optional"}</Badge>
+                        <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
+                        {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
                         {field.sources?.map(
                           (s, key) =>
                             s.type !== "user" && (
@@ -347,13 +353,14 @@ export const FormBuilder = function FormBuilder({
                 if (fieldDialog.fieldIndex !== -1) {
                   update(fieldDialog.fieldIndex, data);
                 } else {
-                  const field = {
+                  const field: RhfFormField = {
                     ...data,
                     sources: [
                       {
                         label: "User",
                         type: "user",
                         id: "user",
+                        fieldRequired: data.required,
                       },
                     ],
                   };
@@ -392,12 +399,19 @@ export const FormBuilder = function FormBuilder({
                 }
                 label="Name"
               />
-              <InputField {...fieldForm.register("label")} required containerClassName="mt-6" label="Label" />
+              <InputField
+                {...fieldForm.register("label")}
+                required
+                placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                containerClassName="mt-6"
+                label="Label"
+              />
               {fieldType?.isTextType ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
                   label="Placeholder"
+                  placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
 
@@ -438,6 +452,7 @@ export const FormBuilder = function FormBuilder({
   );
 };
 
+// TODO: Add consistent label support to all the components and then remove this
 const WithLabel = ({
   field,
   children,
@@ -449,7 +464,9 @@ const WithLabel = ({
 }) => {
   return (
     <div>
-      {field.type !== "boolean" && field.type !== "multiemail" && (
+      {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
+      {/* boolean type doesn't have a label overall, the radio has it's own label */}
+      {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex items-center">{field.label}</Label>
           <span className="ml-1 -mb-1 text-sm font-medium leading-none">
@@ -529,10 +546,6 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "text") {
-    if (!field.label) {
-      throw new Error(`Field ${field.name} doesn't have label`);
-    }
-
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
@@ -547,9 +560,6 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "boolean") {
-    if (!field.label) {
-      throw new Error(`Field ${field.name} doesn't have label`);
-    }
     return (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
@@ -584,7 +594,7 @@ export const ComponentForField = ({
     }
 
     return (
-      <WithLabel field={field} readOnly>
+      <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
@@ -601,7 +611,7 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
     return (
-      <WithLabel field={field} readOnly>
+      <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
@@ -621,7 +631,7 @@ export const ComponentForField = ({
       throw new Error("Field optionsInputs is not defined");
     }
     return field.options.length ? (
-      <WithLabel field={field} readOnly>
+      <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
@@ -641,18 +651,18 @@ export const ComponentForField = ({
 export const FormBuilderField = ({
   field,
   readOnly,
+  className,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
+  className: string;
 }) => {
   const { t } = useLocale();
-  const { control, formState, ...form } = useFormContext();
-  // if (typeof window !== "undefined") {
-  //   window.formState = formState;
-  //   window.form = form;
-  // }
+  const { control, formState } = useFormContext();
   return (
-    <div data-form-builder-field-name={field.name} className="reloading mb-4">
+    <div
+      data-form-builder-field-name={field.name}
+      className={classNames(className, field.hidden ? "hidden" : "")}>
       <Controller
         control={control}
         // Make it a variable
@@ -680,8 +690,13 @@ export const FormBuilderField = ({
                   }
 
                   message = message.replace(/\{[^}]+\}(.*)/, "$1");
+                  if (field.hidden) {
+                    console.error(`Error message for hidden field:${field.name} => ${message}`);
+                  }
                   return (
-                    <div data-field-name={field.name} className="flex items-center text-sm text-red-700 ">
+                    <div
+                      data-field-name={field.name}
+                      className="mt-2 flex items-center text-sm text-red-700 ">
                       <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message)}</p>
                     </div>

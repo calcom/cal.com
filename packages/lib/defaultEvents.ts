@@ -1,15 +1,9 @@
 import { PeriodType, Prisma, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { userSelect } from "@calcom/prisma/selects";
-import {
-  CustomInputSchema,
-  EventTypeMetaDataSchema,
-  customInputSchema,
-  eventTypeBookingFields,
-} from "@calcom/prisma/zod-utils";
-
-import { getBookingFieldsWithSystemFields } from "./getEventTypeById";
+import { CustomInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 

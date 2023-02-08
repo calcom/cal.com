@@ -92,9 +92,8 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      // FIXME: type=email is removed so that RHF validations can work
-      // But, RHF errors are not integrated in Routing Forms form
-      return <TextWidget {...props} />;
+      // TODO: Use EmailField component
+      return <TextWidget type="email" {...props} />;
     },
   },
 };

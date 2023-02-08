@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -8,7 +9,6 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
-import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";

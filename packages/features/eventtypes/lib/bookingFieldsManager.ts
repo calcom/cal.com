@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-import { getBookingFieldsWithSystemFields } from "@calcom/lib/getEventTypeById";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { prisma } from "@calcom/prisma";
 import { EventType } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { Optional } from "@calcom/types/utils";
 
 type Field = z.infer<typeof eventTypeBookingFields>[number];
 
@@ -35,7 +36,7 @@ async function getEventType(eventTypeId: EventType["id"]) {
  * @param eventTypeId
  */
 export async function addBookingField(
-  fieldToAdd: Field,
+  fieldToAdd: Omit<Field, "required">,
   source: NonNullable<Field["sources"]>[number],
   eventTypeId: EventType["id"]
 ) {
@@ -47,12 +48,15 @@ export async function addBookingField(
 
       const currentSources = f.sources ? f.sources : ([] as NonNullable<typeof f.sources>[]);
       if (currentSources.find((s) => s.id === source.id)) {
-        // No need to add the source
+        // No need to add the source - It's already there
         return f;
       }
+      const newSources = [...currentSources, source];
       const newField = {
         ...f,
-        sources: [...currentSources, source],
+        // If any source requires the field, mark the field required
+        required: newSources.some((s) => s.fieldRequired),
+        sources: newSources,
       };
       return newField;
     }
@@ -61,6 +65,7 @@ export async function addBookingField(
   if (!fieldFound) {
     newFields.push({
       ...fieldToAdd,
+      required: source.fieldRequired,
       sources: [source],
     });
   }
@@ -86,12 +91,14 @@ export async function removeBookingField(
       if (f.name === fieldToRemove.name) {
         const currentSources = f.sources ? f.sources : ([] as NonNullable<typeof f.sources>[]);
         if (!currentSources.find((s) => s.id === source.id)) {
-          // No need to remove the source
+          // No need to remove the source - It doesn't exist already
           return f;
         }
+        const newSources = currentSources.filter((s) => s.id !== source.id);
         const newField = {
           ...f,
-          sources: currentSources.filter((s) => s.id !== source.id),
+          required: newSources.some((s) => s.fieldRequired),
+          sources: newSources,
         };
         if (newField.sources.length === 0) {
           return null;
@@ -101,6 +108,54 @@ export async function removeBookingField(
       return f;
     })
     .filter((f): f is Field => !!f);
+
+  await prisma.eventType.update({
+    where: {
+      id: eventTypeId,
+    },
+    data: {
+      bookingFields: newFields,
+    },
+  });
+}
+
+export async function updateBookingField(
+  fieldToUpdate: Pick<Field, "name">,
+  source: Omit<Optional<NonNullable<Field["sources"]>[number], "label" | "fieldRequired">, "type">,
+  eventTypeId: EventType["id"]
+) {
+  const eventType = await getEventType(eventTypeId);
+  const newFields = eventType.bookingFields.map((f) => {
+    if (f.name === fieldToUpdate.name) {
+      const currentSources = f.sources ? f.sources : ([] as NonNullable<typeof f.sources>[]);
+      if (!currentSources.find((s) => s.id === source.id)) {
+        // Nothing to update
+        return f;
+      }
+
+      const newSources = currentSources.map((s) => {
+        if (s.id !== source.id) {
+          // If the source is not found, nothing to update
+          return s;
+        }
+
+        console.log("Updating with", source);
+        return {
+          ...s,
+          ...source,
+        };
+      });
+
+      const newField = {
+        ...f,
+        required: newSources.some((s) => s.fieldRequired),
+        sources: newSources,
+      };
+
+      return newField;
+    }
+    return f;
+  });
 
   await prisma.eventType.update({
     where: {
