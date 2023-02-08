@@ -105,7 +105,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
               {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}

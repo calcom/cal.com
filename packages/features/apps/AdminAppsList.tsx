@@ -1,12 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
+import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { useState, useReducer, FC } from "react";
+import { FC, useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
@@ -32,9 +34,9 @@ import {
 } from "@calcom/ui";
 import {
   FiAlertCircle,
+  FiCheckCircle,
   FiEdit,
   FiMoreHorizontal,
-  FiCheckCircle,
   FiXCircle,
 } from "@calcom/ui/components/icon";
 
@@ -148,26 +150,39 @@ const AdminAppsList = ({
   baseURL,
   className,
   useQueryParam = false,
+  classNames,
+  onSubmit = noop,
+  ...rest
 }: {
   baseURL: string;
+  classNames?: {
+    form?: string;
+    appCategoryNavigationRoot?: string;
+    appCategoryNavigationContainer?: string;
+    verticalTabsItem?: string;
+  };
   className?: string;
   useQueryParam?: boolean;
-}) => {
-  const router = useRouter();
+  onSubmit?: () => void;
+} & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
   return (
     <form
-      id="wizard-step-2"
-      name="wizard-step-2"
+      {...rest}
+      className={
+        classNames?.form ?? "max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+      }
       onSubmit={(e) => {
         e.preventDefault();
-        router.replace("/");
+        onSubmit();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
-        fromAdmin
         useQueryParam={useQueryParam}
-        containerClassname="min-w-0 w-full"
-        className={className}>
+        classNames={{
+          root: className,
+          verticalTabsItem: classNames?.verticalTabsItem,
+          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
+        }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
     </form>
