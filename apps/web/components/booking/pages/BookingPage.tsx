@@ -167,7 +167,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
-          formerTime: booking?.startTime.toString(),
+          ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
     },
