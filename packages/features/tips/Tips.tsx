@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui";
@@ -44,7 +43,7 @@ export const tips = [
     thumbnailUrl: "https://img.youtube.com/vi/0v_nQtpxC_4/0.jpg",
     mediaLink: "https://go.cal.com/payments-video",
     title: "Accept Payments",
-    description: "Charge for your time with " + APP_NAME + "'s Stripe App",
+    description: "Charge for your time with Cal.com's Stripe App",
     href: "https://app.cal.com/apps/stripe",
   },
   {
@@ -55,6 +54,22 @@ export const tips = [
     description: "Learn how to create a recurring schedule",
     href: "https://go.cal.com/recurring-video",
   },
+  {
+    id: 7,
+    thumbnailUrl: "https://img.youtube.com/vi/UVXgo12cY4g/0.jpg",
+    mediaLink: "https://go.cal.com/routing-forms",
+    title: "Routing Forms",
+    description: "Ask questions and route to the correct person",
+    href: "https://go.cal.com/routing-forms",
+  },
+  {
+    id: 8,
+    thumbnailUrl: "https://img.youtube.com/vi/piKlAiibAFo/0.jpg",
+    mediaLink: "https://go.cal.com/workflows",
+    title: "Automate Workflows",
+    description: "Make time work for you and automate tasks",
+    href: "https://go.cal.com/workflows",
+  },  
 ];
 
 export default function Tips() {
