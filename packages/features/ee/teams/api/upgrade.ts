@@ -50,13 +50,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
     /** Legacy teams already have a slug, this will allow them to upgrade as well */
     const slug = prevTeam.slug || metadata?.requestedSlug;
-    if (!slug) throw new HttpError({ statusCode: 400, message: "Missing team slug" });
-    try {
-      /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
-      team = await prisma.team.update({ where: { id }, data: { slug } });
-    } catch (error) {
-      const { message, statusCode } = getRequestedSlugError(error, slug);
-      return res.status(statusCode).json({ message });
+    if (slug) {
+      try {
+        /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
+        team = await prisma.team.update({ where: { id }, data: { slug } });
+      } catch (error) {
+        const { message, statusCode } = getRequestedSlugError(error, slug);
+        return res.status(statusCode).json({ message });
+      }
     }
 
     // Sync Services: Close.com
