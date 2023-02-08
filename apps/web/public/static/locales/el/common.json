@@ -18,7 +18,7 @@
   "refund_failed_subject": "Η επιστροφή χρημάτων απέτυχε: {{name}} - {{date}} - {{eventType}}",
   "refund_failed": "Η επιστροφή χρημάτων για την εκδήλωση {{eventType}} με {{userName}} στις {{date}} απέτυχε.",
   "a_refund_failed": "Αποτυχία επιστροφής χρημάτων",
-  "awaiting_payment_subject": "Σε αναμονή Πληρωμής: {{eventType}} με {{name}} στις {{date}}",
+  "awaiting_payment_subject": "Σε αναμονή Πληρωμής: {{title}} στις {{date}}",
   "meeting_awaiting_payment": "Η πληρωμή της συνάντησής σας εκκρεμεί",
   "help": "Βοήθεια",
   "price": "Τιμή",
