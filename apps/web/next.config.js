@@ -185,8 +185,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // prettier-ignore
-        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        source: "/auth/:path*",
         headers: [
           {
             key: "X-Frame-Options",
