@@ -360,7 +360,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
+      const hasValidLicense = await checkLicense(prisma);
       const calendsoSession: Session = {
         ...session,
         hasValidLicense,
