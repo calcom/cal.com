@@ -119,7 +119,7 @@ const DestinationCalendarSelector = ({
 
   // Get primary calendar, which is shown in the placeholder since this is the calendar that will
   // be used when no destination calendar is selected.
-  const primaryCalendar = query.data.connectedCalendars.filter((cal) => Boolean(cal.primary))[0];
+  const primaryCalendar = query.data.destinationCalendarEmail;
 
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
@@ -130,7 +130,7 @@ const DestinationCalendarSelector = ({
             `${t("select_destination_calendar")}`
           ) : (
             <span>
-              {t("default_calendar_selected")}{" "}
+              {t("default_calendar_selected")} {primaryCalendar && `(${primaryCalendar})`}
               {`(${query.data.destinationCalendar.name || primaryCalendar?.primary?.externalId})`}
             </span>
           )

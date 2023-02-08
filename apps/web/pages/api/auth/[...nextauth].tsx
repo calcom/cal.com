@@ -2,6 +2,7 @@ import { IdentityProvider, UserPermissionRole } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
 import NextAuth, { Session } from "next-auth";
+import { encode } from "next-auth/jwt";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
@@ -17,14 +18,14 @@ import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
-import { randomString } from "@lib/random";
-import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
@@ -60,6 +61,7 @@ const providers: Provider[] = [
           username: true,
           name: true,
           email: true,
+          metadata: true,
           identityProvider: true,
           password: true,
           twoFactorEnabled: true,
@@ -72,8 +74,9 @@ const providers: Provider[] = [
         },
       });
 
+      // Don't leak information about it being username or password that is invalid
       if (!user) {
-        throw new Error(ErrorCode.UserNotFound);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       if (user.identityProvider !== IdentityProvider.CAL) {
@@ -81,12 +84,12 @@ const providers: Provider[] = [
       }
 
       if (!user.password) {
-        throw new Error(ErrorCode.UserMissingPassword);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       const isCorrectPassword = await verifyPassword(credentials.password, user.password);
       if (!isCorrectPassword) {
-        throw new Error(ErrorCode.IncorrectPassword);
+        throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
       if (user.twoFactorEnabled) {
@@ -161,6 +164,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -199,6 +203,7 @@ if (isSAMLLoginEnabled) {
       clientId: "dummy",
       clientSecret: "dummy",
     },
+    allowDangerousEmailAccountLinking: true,
   });
 }
 
@@ -233,13 +238,39 @@ if (true) {
     })
   );
 }
+
+function isNumber(n: string) {
+  return !isNaN(parseFloat(n)) && !isNaN(+n);
+}
+
 const calcomAdapter = CalComAdapter(prisma);
+
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
+  },
+  jwt: {
+    // decorate the native JWT encode function
+    // Impl. detail: We don't pass through as this function is called with encode/decode functions.
+    encode: async ({ token, maxAge, secret }) => {
+      if (token?.sub && isNumber(token.sub)) {
+        const user = await prisma.user.findFirst({
+          where: { id: Number(token.sub) },
+          select: { metadata: true },
+        });
+        // if no user is found, we still don't want to crash here.
+        if (user) {
+          const metadata = userMetadata.parse(user.metadata);
+          if (metadata?.sessionTimeout) {
+            maxAge = metadata.sessionTimeout / 60;
+          }
+        }
+      }
+      return encode({ secret, token, maxAge });
+    },
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
@@ -331,7 +362,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
+      const hasValidLicense = await checkLicense(prisma);
       const calendsoSession: Session = {
         ...session,
         hasValidLicense,
@@ -468,7 +499,13 @@ export default NextAuth({
             return true;
           }
 
-          if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+          // User signs up with email/password and then tries to login with Google/SAML using the same email
+          if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
+            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+          ) {
+            return true;
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
           }
 

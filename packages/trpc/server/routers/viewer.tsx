@@ -6,7 +6,7 @@ import z from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -19,10 +19,10 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -42,6 +42,7 @@ import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
+import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
@@ -163,6 +164,7 @@ const loggedInViewerRouter = router({
       avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
+      defaultScheduleId: user.defaultScheduleId,
       completedOnboarding: user.completedOnboarding,
       twoFactorEnabled: user.twoFactorEnabled,
       disableImpersonation: user.disableImpersonation,
@@ -321,6 +323,9 @@ const loggedInViewerRouter = router({
     // get all the connected integrations' calendars (from third party)
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
+    // store email of the destination calendar to display
+    let destinationCalendarEmail = null;
+
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
       if (user.destinationCalendar) {
@@ -334,7 +339,7 @@ const loggedInViewerRouter = router({
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-      const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", credentialId, email } = connectedCalendars[0].primary ?? {};
       user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
         data: {
           userId: user.id,
@@ -343,6 +348,7 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
+      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -353,6 +359,7 @@ const loggedInViewerRouter = router({
           cal.externalId === user.destinationCalendar?.externalId &&
           cal.integration === user.destinationCalendar?.integration
       );
+
       if (!destinationCal) {
         // If destinationCalendar is out of date, update it with the first primary connected calendar
         const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
@@ -364,6 +371,7 @@ const loggedInViewerRouter = router({
           },
         });
       }
+      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
     }
 
     let destinationCalendarName = undefined;
@@ -384,6 +392,7 @@ const loggedInViewerRouter = router({
         ...user.destinationCalendar,
         ...(destinationCalendarName && { name: destinationCalendarName }),
       } as DestinationCalendar & { name?: string | undefined },
+      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
@@ -601,12 +610,14 @@ const loggedInViewerRouter = router({
         locale: z.string().optional(),
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
+        metadata: userMetadata.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
+        metadata: input.metadata as Prisma.InputJsonValue,
       };
       let isPremiumUsername = false;
       if (input.username) {
@@ -822,11 +833,14 @@ const loggedInViewerRouter = router({
           id: id,
           userId: ctx.user.id,
         },
-        include: {
+        select: {
+          key: true,
+          appId: true,
           app: {
             select: {
               slug: true,
               categories: true,
+              dirName: true,
             },
           },
         },
@@ -843,7 +857,11 @@ const loggedInViewerRouter = router({
         select: {
           id: true,
           locations: true,
-          destinationCalendar: true,
+          destinationCalendar: {
+            include: {
+              credential: true,
+            },
+          },
           price: true,
           currency: true,
           metadata: true,
@@ -887,7 +905,7 @@ const loggedInViewerRouter = router({
 
         // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
-          if (eventType.destinationCalendar?.integration === credential.type) {
+          if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
             const destinationCalendar = await prisma.destinationCalendar.findFirst({
               where: {
                 id: eventType.destinationCalendar?.id,
@@ -925,7 +943,7 @@ const loggedInViewerRouter = router({
 
         const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
-        const stripeAppData = getStripeAppData({ ...eventType, metadata });
+        const stripeAppData = getPaymentAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
@@ -1012,12 +1030,11 @@ const loggedInViewerRouter = router({
                 });
 
                 for (const payment of booking.payment) {
-                  // Right now we only close payments on Stripe
-                  const stripeKeysSchema = z.object({
-                    stripe_user_id: z.string(),
-                  });
-                  const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
-                  await closePayments(payment.externalId, stripe_user_id);
+                  try {
+                    await deletePayment(payment.id, credential);
+                  } catch (e) {
+                    console.error(e);
+                  }
                   await prisma.payment.delete({
                     where: {
                       id: payment.id,
@@ -1144,7 +1161,7 @@ const loggedInViewerRouter = router({
         roomName: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { roomName } = input;
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
@@ -1163,6 +1180,7 @@ export const viewerRouter = mergeRouters(
     loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
+    deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
