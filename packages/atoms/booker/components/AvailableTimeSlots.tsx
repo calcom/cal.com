@@ -13,16 +13,18 @@ type AvailableTimeSlotsProps = {
 };
 
 export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: AvailableTimeSlotsProps) => {
-  const [selectedDate, username, eventSlug, month] = useBookerStore((state) => [
+  const [selectedDate, username, eventSlug, eventId, month] = useBookerStore((state) => [
     state.selectedDate,
     state.username,
     state.eventSlug,
+    state.eventId,
     state.month,
   ]);
   const { timezone } = useTimePrerences();
   const schedule = useSchedule({
     username,
     eventSlug,
+    eventId,
     browsingMonth: month,
     timezone,
     // @TODO: Fix types

@@ -11,8 +11,9 @@ type BookerStore = {
   setSelectedDate: (date: string | null) => void;
   username: string | null;
   eventSlug: string | null;
+  eventId: number | null;
   month: Date | null;
-  initialize: (username: string, eventSlug: string, month: Date) => void;
+  initialize: (username: string, eventSlug: string, month: Date, eventId: number | undefined) => void;
 };
 
 export const useBookerStore = create<BookerStore>((set, get) => ({
@@ -24,9 +25,16 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDate: (date: string | null) => set({ selectedDate: date }),
   username: null,
   eventSlug: null,
+  eventId: null,
   month: null,
-  initialize: (username: string, eventSlug: string, month: Date) => {
-    if (get().username === username && get().eventSlug === eventSlug && get().month === month) return;
-    set({ username, eventSlug, month });
+  initialize: (username: string, eventSlug: string, month: Date, eventId: number | undefined) => {
+    if (
+      get().username === username &&
+      get().eventSlug === eventSlug &&
+      get().month === month &&
+      get().eventId === eventId
+    )
+      return;
+    set({ username, eventSlug, month, eventId });
   },
 }));

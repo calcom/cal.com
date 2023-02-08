@@ -4,30 +4,19 @@ import { trpc } from "@calcom/trpc/react";
 type UseScheduleWithCacheArgs = {
   username: string;
   eventSlug: string;
+  eventId?: number;
   browsingMonth: Date;
   timezone: string;
 };
 
-export const useSchedule = ({ browsingMonth, timezone, username, eventSlug }: UseScheduleWithCacheArgs) => {
+export const useSchedule = ({
+  browsingMonth,
+  timezone,
+  username,
+  eventSlug,
+  eventId,
+}: UseScheduleWithCacheArgs) => {
   const month = dayjs(browsingMonth);
-  // const monthKey = month.format("YYYY-MM");
-
-  // const scheduleFromCache = useScheduleStore((state) => state.schedules[username]?.[monthKey]);
-  // const addScheduleToCache = useScheduleStore((state) => state.addScheduleToCache);
-  // const clearCache = useScheduleStore((state) => state.clearCache);
-
-  // // Clear cache when any of the props change, to prevent
-  // // old data from sticking around.
-  // // @TODO: Do we want a smarter cache that can cache multiple events?
-  // useEffect(() => {
-  //   clearCache();
-  // }, [timezone, username, eventSlug, clearCache]);
-
-  // if (scheduleFromCache)
-  //   return {
-  //     isLoading: false,
-  //     data: { slots: scheduleFromCache },
-  //   };
 
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -38,19 +27,11 @@ export const useSchedule = ({ browsingMonth, timezone, username, eventSlug }: Us
       startTime: month.startOf("month").toISOString(),
       endTime: month.endOf("month").toISOString(),
       timeZone: timezone,
+      eventTypeId: eventId,
     },
     {
       refetchOnWindowFocus: false,
-      // onSuccess(data) {
-      //   addScheduleToCache(monthKey, data.slots);
-      // },
+      enabled: !!eventId,
     }
   );
-
-  // return schedule;
-
-  // return {
-  //   isLoading: schedule.isLoading,
-  //   data: schedule.data?.slots,
-  // };
 };

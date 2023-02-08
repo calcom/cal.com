@@ -32,15 +32,16 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const isMobile = useMediaQuery("(max-width: 800px)");
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
 
+  const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
   const schedule = useSchedule({
     username,
     eventSlug,
+    eventId: event?.data?.id,
     browsingMonth: browsingMonthStart.toDate(),
     timezone,
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
-  const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
   const [bookingTime, setBookingTime] = useState<string | null>(null);
 
   const initializeStore = useBookerStore((state) => state.initialize);
@@ -52,8 +53,8 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   );
 
   useEffect(() => {
-    initializeStore(username, eventSlug, browsingMonthStart.toDate());
-  }, [initializeStore, username, eventSlug, browsingMonthStart]);
+    initializeStore(username, eventSlug, browsingMonthStart.toDate(), event?.data?.id);
+  }, [initializeStore, username, eventSlug, browsingMonthStart, event]);
 
   const onMonthChange = (date: Dayjs) => {
     setBrowsingMonthStart(date);
