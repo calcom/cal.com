@@ -1,6 +1,5 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
-import dayjs, { Dayjs } from "@calcom/dayjs";
-import { getTranslation } from "@calcom/lib/server";
+import { Dayjs } from "@calcom/dayjs";
 import { Prisma } from "@calcom/prisma/client";
 
 export type VariablesType = {
@@ -18,10 +17,12 @@ export type VariablesType = {
 };
 
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
-  const translate = await getTranslation(locale ?? "en", "common");
-  const day = translate(dayjs(variables.eventDate).format("dddd").toLowerCase());
-  const month = translate(dayjs(variables.eventDate).format("MMMM").toLowerCase());
-  const dayYear = dayjs(variables.eventDate).format("D, YYYY");
+  const translatedDate = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(variables.eventDate?.toDate());
 
   const timeWithTimeZone = `${variables.eventTime?.format("HH:mm")} (${variables.timeZone})`;
   let locationString = variables.location || "";
@@ -36,7 +37,7 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{ATTENDEE}", variables.attendeeName || "")
     .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
-    .replaceAll("{EVENT_DATE}", `${day}, ${month} ${dayYear}`)
+    .replaceAll("{EVENT_DATE}", translatedDate)
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
