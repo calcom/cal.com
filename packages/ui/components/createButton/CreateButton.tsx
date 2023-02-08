@@ -30,7 +30,7 @@ interface CreateBtnProps {
   options: Parent[];
 
   createDialog?: () => JSX.Element;
-  dublicateDialog?: () => JSX.Element;
+  duplicateDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
   subtitle?: string;
   className?: string;
@@ -44,7 +44,7 @@ export function CreateButton(props: CreateBtnProps) {
   const router = useRouter();
 
   const CreateDialog = props.createDialog ? props.createDialog() : null;
-  const DublicateDialog = props.dublicateDialog ? props.dublicateDialog() : null;
+  const DuplicateDialog = props.duplicateDialog ? props.duplicateDialog() : null;
 
   const hasTeams = !!props.options.find((option) => option.teamId);
 
@@ -124,7 +124,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {router.query.dialog === "duplicate" && DublicateDialog}
+      {router.query.dialog === "duplicate" && DuplicateDialog}
       {router.query.dialog === "new" && CreateDialog}
     </>
   );

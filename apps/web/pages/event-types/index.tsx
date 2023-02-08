@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -626,6 +627,7 @@ const CTA = () => {
       canAdd={true}
       options={query.data.profiles}
       createDialog={CreateEventTypeDialog}
+      duplicateDialog={DuplicateDialog}
     />
   );
 };
@@ -634,6 +636,7 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
