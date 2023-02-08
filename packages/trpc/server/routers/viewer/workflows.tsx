@@ -102,6 +102,7 @@ export const workflowsRouter = router({
         const workflows = await ctx.prisma.workflow.findMany({
           where: {
             team: {
+              id: input.teamId,
               members: {
                 some: {
                   userId: ctx.user.id,
