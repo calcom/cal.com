@@ -25,8 +25,6 @@ import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/co
 
 import AppListCard from "@components/AppListCard";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -43,17 +41,12 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery(
-    undefined,
-    { suspense: true }
-  );
+  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery();
 
-  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
-    { variant: "conferencing", onlyInstalled: true },
-    {
-      suspense: true,
-    }
-  );
+  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery({
+    variant: "conferencing",
+    onlyInstalled: true,
+  });
   const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
@@ -87,8 +80,9 @@ const ConferencingLayout = () => {
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => {
-              const appType = app?.appData?.location?.type;
-              const appIsDefault = appType === usersMetadata?.defaultConferencingApp;
+              console.log(app);
+              const appSlug = app?.slug;
+              const appIsDefault = appSlug === usersMetadata?.defaultConferencingApp;
               return (
                 <AppListCard
                   description={app.description}
@@ -111,7 +105,7 @@ const ConferencingLayout = () => {
                                 StartIcon={FiVideo}
                                 onClick={() => {
                                   updateDefaultAppMutation.mutate({
-                                    appType,
+                                    appSlug,
                                   });
                                 }}>
                                 {t("change_default_conferencing_app")}
@@ -159,15 +153,5 @@ const ConferencingLayout = () => {
 };
 
 ConferencingLayout.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ConferencingLayout;

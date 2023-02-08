@@ -1157,11 +1157,11 @@ const loggedInViewerRouter = router({
   updateUserDefaultConferencingApp: authedProcedure
     .input(
       z.object({
-        appType: z.string().optional(),
+        appSlug: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { appType } = input;
+      const { appSlug } = input;
 
       const currentMetadata = userMetadata.parse(ctx.user.metadata);
 
@@ -1172,11 +1172,11 @@ const loggedInViewerRouter = router({
         data: {
           metadata: {
             ...currentMetadata,
-            defaultConferencingApp: appType,
+            defaultConferencingApp: appSlug,
           },
         },
       });
-      return appType;
+      return appSlug;
     }),
 });
 

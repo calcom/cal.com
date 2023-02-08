@@ -421,10 +421,12 @@ export const eventTypesRouter = router({
       locations = [{ type: DailyLocationType }];
     }
 
-    if (defaultConferencingApp && defaultConferencingApp !== "integrations:daily") {
-      const credentials = ctx.user.credentials.filter((app) => app.type == defaultConferencingApp);
-      const foundAppType = getApps(credentials)[0].type;
-      locations = [{ type: foundAppType }];
+    // If its defaulting to daily no point handling compute as its done above
+    if (defaultConferencingApp && defaultConferencingApp !== "daily-video") {
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingApp)[0];
+      const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+      locations = [{ type: locationType }];
     }
 
     const data: Prisma.EventTypeCreateInput = {
