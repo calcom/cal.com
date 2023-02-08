@@ -214,7 +214,7 @@ export const userMetadata = z
         appSlug: z.string().default("daily-video").optional(),
         appLink: z.string().optional(),
       })
-      .isOptional(),
+      .optional(),
   })
   .nullable();
 

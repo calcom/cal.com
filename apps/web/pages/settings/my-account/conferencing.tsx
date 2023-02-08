@@ -87,7 +87,9 @@ const ConferencingLayout = () => {
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => {
               const appSlug = app?.slug;
-              const appIsDefault = appSlug === usersMetadata?.defaultConferencingApp.appSlug;
+              const appIsDefault =
+                appSlug === usersMetadata?.defaultConferencingApp?.appSlug ||
+                (appSlug === "daily-video" && !usersMetadata?.defaultConferencingApp?.appSlug); // Default to cal video if the user doesnt have it set (we do this on new account creation but not old)
               return (
                 <AppListCard
                   description={app.description}

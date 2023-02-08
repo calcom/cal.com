@@ -408,13 +408,13 @@ export const eventTypesRouter = router({
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
     // Get Users default conferncing app
-    const defaultConferencingAppRaw = ctx.user.metadata;
-    console.log("defaultConferencingAppRaw", defaultConferencingAppRaw);
-    const defaultConferencingApp = userMetadata.parse(defaultConferencingAppRaw)?.defaultConferencingApp;
+    const usersMetadata = ctx.user.metadata;
 
+    const defaultConferencingData = userMetadata.parse(usersMetadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
 
-    let locations;
+    let locations: { type: string; link?: string }[] = [];
+
     if (
       (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
       typeof appKeys.api_key === "string"
@@ -423,11 +423,11 @@ export const eventTypesRouter = router({
     }
 
     // If its defaulting to daily no point handling compute as its done
-    if (defaultConferencingApp && defaultConferencingApp !== "daily-video") {
+    if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
       const credentials = ctx.user.credentials;
-      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingApp)[0];
+      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
       const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
-      locations = [{ type: locationType }];
+      locations = [{ type: locationType, link: defaultConferencingData.appLink }];
     }
 
     const data: Prisma.EventTypeCreateInput = {

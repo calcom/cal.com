@@ -1171,8 +1171,8 @@ const loggedInViewerRouter = router({
           metadata: {
             ...currentMetadata,
             defaultConferencingApp: {
-              type: input.appSlug,
-              link: input.appLink,
+              appSlug: input.appSlug,
+              appLink: input.appLink,
             },
           },
         },
