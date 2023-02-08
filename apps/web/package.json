@@ -61,6 +61,7 @@
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^4.3.9",
     "@types/turndown": "^5.0.1",
+    "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@vercel/og": "^0.0.21",
     "accept-language-parser": "^1.5.0",

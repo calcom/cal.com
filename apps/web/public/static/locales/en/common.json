@@ -1589,5 +1589,7 @@
   "create_a_one_one_template": "Create a one-one one template for an event type and distribute it to multiple members.",
   "collective_or_roundrobin": "Collective or round-robin",
   "book_your_team_members": "Book your team members together with collective events or cycle through to get the right person with round-robin.",
+  "under_maintenance": "Down for maintenance",
+  "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
   "event_type_seats": "{{numberOfSeats}} seats" 
 }
