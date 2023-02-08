@@ -50,13 +50,13 @@ function FilteredItem<T extends Option>({
   }, [ref, focused]);
 
   return (
-    <div className="" key={index} ref={ref}>
+    <div key={index} ref={ref}>
       {item.current === 0 && item.groupedIndex !== undefined && !inputValue && (
-        <div className="">
+        <div>
           {index !== 0 && <hr className="mt-2" />}
           <Label
             className={classNames(
-              "mb-2 pl-3 text-xs font-normal uppercase leading-none text-gray-600",
+              "dark:text-darkgray-700 mb-2 pl-3 text-xs font-normal uppercase leading-none text-gray-600",
               index !== 0 ? "mt-5" : "mt-4" // rest, first
             )}>
             {list[item.groupedIndex].label}
