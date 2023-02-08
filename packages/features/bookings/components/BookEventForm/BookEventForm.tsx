@@ -74,7 +74,8 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
 
         {!eventType.disableGuests && guestToggle && (
           <div className="mb-4">
-            <div>
+            {/* @TODO: Add in new guest fields */}
+            {/* <div>
               <Label htmlFor="guests">{t("guests")}</Label>
 
               <Controller
@@ -99,7 +100,7 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
                   />
                 )}
               />
-            </div>
+            </div> */}
           </div>
         )}
         {/* @TODO: && selectedLocationType !== LocationType.Phone */}

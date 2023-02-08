@@ -9,7 +9,7 @@ export type BookingFormValues = {
   email: string;
   notes?: string;
   locationType?: EventLocationType["type"];
-  guests?: string[];
+  guests?: { email: string }[];
   address?: string;
   attendeeAddress?: string;
   phone?: string;

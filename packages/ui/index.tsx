@@ -33,7 +33,6 @@ export {
   DateRangePicker,
   MultiSelectCheckbox,
   ToggleGroup,
-  ToggleGroupItem,
   getReactSelectProps,
   ColorPicker,
   FormStep,
