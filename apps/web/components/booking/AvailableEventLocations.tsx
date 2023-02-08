@@ -10,7 +10,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
   const { t } = useLocale();
 
   return locations.length ? (
-    <div className="dark:text-darkgray-600 mr-6 flex w-full flex-col space-y-2 break-words text-sm text-gray-600">
+    <div className="dark:text-darkgray-600 mr-6 flex w-full flex-col space-y-4 break-words text-sm text-gray-600">
       {locations.map((location, index) => {
         const eventLocationType = getEventLocationType(location.type);
         if (!eventLocationType) {
@@ -26,7 +26,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
                 src={eventLocationType.iconUrl}
                 className={classNames(
                   "ml-[2px] h-4 w-4 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
-                  !eventLocationType.iconUrl?.includes("api") ? "dark:invert" : ""
+                  !eventLocationType.iconUrl?.includes("api") ? "dark:invert-[.65]" : ""
                 )}
                 alt={`${eventLocationType.label} icon`}
               />
