@@ -38,7 +38,7 @@ const DuplicateDialog = () => {
   // react hook form
   const form = useForm({
     defaultValues: {
-      slug: t("event_type_duplicate_copy_text", { slug: slug }),
+      slug: t("event_type_duplicate_copy_text", { slug }),
       ...defaultValues,
     },
   });
