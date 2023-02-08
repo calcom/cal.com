@@ -1096,6 +1096,11 @@ const loggedInViewerRouter = router({
           id: id,
         },
       });
+      // Revalidate user calendar cache.
+      if (credential.app?.slug.includes("calendar")) {
+        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+      }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const { prisma, user } = ctx;
