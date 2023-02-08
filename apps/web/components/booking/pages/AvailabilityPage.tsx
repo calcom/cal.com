@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
-import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -30,7 +29,7 @@ import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
-import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -212,41 +211,25 @@ const SlotPicker = ({
 
 function TimezoneDropdown({
   onChangeTimeZone,
-  timeZone,
 }: {
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
 }) {
-  const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-
   const handleSelectTimeZone = (newTimeZone: string) => {
     onChangeTimeZone(newTimeZone);
     localStorageTimeZone(newTimeZone);
-    setIsTimeOptionsOpen(false);
   };
 
   return (
-    <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
-        <p className="flex items-center text-sm font-medium">
-          <FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
-          {timeZone}
-          {isTimeOptionsOpen ? (
-            <FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
-          ) : (
-            <FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
-          )}
-        </p>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          hideWhenDetached
-          align="start"
-          className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
-          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <>
+      <div
+        className="dark:focus-within:bg-darkgray-200 dark:bg-darkgray-100 flex w-fit
+        items-center
+       rounded-[4px] px-1 py-[2px] text-sm font-medium focus-within:bg-gray-200 [&_svg]:focus-within:text-gray-900 dark:[&_svg]:focus-within:text-white [&_p]:focus-within:text-gray-900 dark:[&_p]:focus-within:text-white">
+        <FiGlobe className="dark:text-darkgray-600 flex h-4 w-4 text-gray-500" />
+        <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
+      </div>
+    </>
   );
 }
 
@@ -362,10 +345,10 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isBackgroundTransparent
                   ? ""
                   : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
-                "border-bookinglightest overflow-hidden md:rounded-md md:border",
+                "border-bookinglightest md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
-              <div className="overflow-hidden md:flex">
+              <div className="md:flex">
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
