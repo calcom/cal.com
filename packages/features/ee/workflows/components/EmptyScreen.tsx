@@ -35,7 +35,6 @@ function WorkflowExample(props: WorkflowExampleType) {
 
 export default function EmptyScreen(props: {
   profiles: {
-    membershipCount?: number | undefined;
     readOnly?: boolean | undefined;
     slug: string | null;
     name: string | null;

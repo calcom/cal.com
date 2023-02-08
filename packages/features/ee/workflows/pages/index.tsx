@@ -22,8 +22,7 @@ function WorkflowsPage() {
     teamIds: [],
   });
 
-  const allWorkflowsQuery = trpc.viewer.workflows.list.useQuery();
-  const { data: allWorkflowsData, isLoading } = allWorkflowsQuery;
+  const { data: allWorkflowsData, isLoading } = trpc.viewer.workflows.list.useQuery();
 
   const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowType[]>([]);
 
@@ -69,7 +68,7 @@ function WorkflowsPage() {
 
   useEffect(() => {
     if (session.status !== "loading" && !query.isLoading) {
-      if (!query.data!) return;
+      if (!query.data) return;
       setCheckedFilterItems({
         userId: session.data?.user.id || null,
         teamIds: query.data.profiles
@@ -128,7 +127,6 @@ function WorkflowsPage() {
 
 const Filter = (props: {
   profiles: {
-    membershipCount?: number | undefined;
     readOnly?: boolean | undefined;
     slug: string | null;
     name: string | null;

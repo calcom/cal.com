@@ -636,7 +636,6 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
-  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 

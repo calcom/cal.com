@@ -41,7 +41,6 @@ export type WorkflowType = Workflow & {
 interface Props {
   workflows: WorkflowType[] | undefined;
   profiles: {
-    membershipCount?: number | undefined;
     readOnly?: boolean | undefined;
     slug: string | null;
     name: string | null;

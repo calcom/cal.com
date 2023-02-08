@@ -1342,7 +1342,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
         name: typeof user["name"];
       };
       metadata?: {
-        membershipCount: number;
         readOnly: boolean;
       };
       workflows: typeof userWorkflows;
@@ -1358,7 +1357,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       },
       workflows: userWorkflows,
       metadata: {
-        membershipCount: 1,
         readOnly: false,
       },
     });
@@ -1372,7 +1370,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
           slug: "team/" + membership.team.slug,
         },
         metadata: {
-          membershipCount: membership.team.members.length,
           readOnly: membership.role === MembershipRole.MEMBER,
         },
         workflows: membership.team.workflows,

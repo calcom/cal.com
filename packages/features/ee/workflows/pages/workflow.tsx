@@ -20,8 +20,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Button, Form, showToast } from "@calcom/ui";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -87,7 +87,7 @@ function WorkflowPage() {
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
-  const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before teams workflows existed
+  const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
 
   const form = useForm<FormValues>({
     mode: "onBlur",
