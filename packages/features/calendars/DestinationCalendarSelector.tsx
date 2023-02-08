@@ -121,6 +121,8 @@ const DestinationCalendarSelector = ({
   // be used when no destination calendar is selected.
   const primaryCalendar = query.data.destinationCalendarEmail;
 
+  const queryDestinationCalendar = query.data.destinationCalendar;
+
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
@@ -129,8 +131,10 @@ const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
           ) : (
-            <span>
-              {t("default_calendar_selected")} {primaryCalendar && `(${primaryCalendar})`}
+            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap">
+              {t("default_calendar_selected")}{" "}
+              {queryDestinationCalendar.name &&
+                `(${queryDestinationCalendar?.integration} - ${queryDestinationCalendar.name})`}
             </span>
           )
         }

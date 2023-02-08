@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -374,9 +374,28 @@ const loggedInViewerRouter = router({
       destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
     }
 
+    let destinationCalendarName = user.destinationCalendar?.externalId || "";
+    let destinationCalendarIntegration = "";
+
+    for (const integration of connectedCalendars) {
+      if (integration.calendars) {
+        for (const calendar of integration.calendars) {
+          if (calendar.externalId === user.destinationCalendar?.externalId) {
+            destinationCalendarName = calendar.name || calendar.externalId;
+            destinationCalendarIntegration = integration.integration.title || "";
+            break;
+          }
+        }
+      }
+    }
+
     return {
       connectedCalendars,
-      destinationCalendar: user.destinationCalendar,
+      destinationCalendar: {
+        ...(user.destinationCalendar as DestinationCalendar),
+        name: destinationCalendarName,
+        integration: destinationCalendarIntegration,
+      },
       destinationCalendarEmail,
     };
   }),
