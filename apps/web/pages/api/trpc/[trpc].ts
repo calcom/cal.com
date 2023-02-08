@@ -37,7 +37,6 @@ export default trpcNext.createNextApiHandler({
     // Our response to indicate no caching
     const noCacheResponse = {};
 
-    // TODO: Confirm this is doing what the original code intended
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore ctx.req is available for SSR but not SSG
     const isSSR = !!ctx?.req;
@@ -61,9 +60,8 @@ export default trpcNext.createNextApiHandler({
       return noCacheResponse;
     }
 
-    // TODO: Discuss whether this value achieves what the original comment below describes
     // cache request for 1 day + revalidate once every 5 seconds
-    let cacheValue = `s-maxage=5, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`;
+    let cacheValue = `s-maxage=${ONE_DAY_IN_SECONDS}, stale-while-revalidate=5`;
 
     // Our cache can change depending on our current paths value. Since paths is an array,
     // we want to create a map that can match potential paths with their desired cache value
