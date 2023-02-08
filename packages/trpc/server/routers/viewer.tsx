@@ -41,6 +41,7 @@ import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
+import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
@@ -1150,6 +1151,7 @@ export const viewerRouter = mergeRouters(
     loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
+    deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,
