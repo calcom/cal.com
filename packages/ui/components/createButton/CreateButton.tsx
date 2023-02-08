@@ -36,6 +36,7 @@ interface CreateBtnProps {
   className?: string;
   buttonText?: string;
   isLoading?: boolean;
+  disableMobileButton?: boolean;
 }
 
 export function CreateButton(props: CreateBtnProps) {
@@ -75,7 +76,7 @@ export function CreateButton(props: CreateBtnProps) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={FiPlus}
-          variant="fab"
+          variant={props.disableMobileButton ? "button" : "fab"}
           disabled={!props.canAdd}
           className={props.className}>
           {props.buttonText ? props.buttonText : t("new")}
@@ -83,7 +84,11 @@ export function CreateButton(props: CreateBtnProps) {
       ) : (
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button variant="fab" StartIcon={FiPlus} className={props.className} loading={props.isLoading}>
+            <Button
+              variant={props.disableMobileButton ? "button" : "fab"}
+              StartIcon={FiPlus}
+              className={props.className}
+              loading={props.isLoading}>
               {props.buttonText ? props.buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
