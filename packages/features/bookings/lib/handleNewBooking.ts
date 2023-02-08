@@ -298,6 +298,51 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
+async function getOriginalRescheduledBooking(uid: string) {
+  let bookingUid = uid;
+  // Now rescheduleUid can be bookingSeatsReferences
+  const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
+    where: {
+      referenceUId: uid,
+    },
+    include: {
+      booking: true,
+    },
+  });
+  if (bookingSeatsReferences) {
+    bookingUid = bookingSeatsReferences.booking.uid;
+  }
+
+  return prisma.booking.findFirst({
+    where: {
+      uid: bookingUid,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+      },
+    },
+    include: {
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+          locale: true,
+          timeZone: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          locale: true,
+          timeZone: true,
+        },
+      },
+      payment: true,
+    },
+  });
+}
+
 async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
@@ -681,6 +726,90 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     return booking;
   }
 
+  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+  let originalRescheduledBooking: BookingType = null;
+
+  const rescheduleUid = reqBody.rescheduleUid;
+
+  if (rescheduleUid) {
+    originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
+  }
+
+  const rescheduleSeat = async () => {
+    if (!originalRescheduledBooking) {
+      throw new HttpError({ statusCode: 404, message: "Original booking not found" });
+    }
+    // Check if the host or attendee is rescheduling
+    const host = originalRescheduledBooking.user?.email === req.body.email;
+
+    let seatAttendee;
+    if (!host) {
+      seatAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
+    }
+
+    if (!seatAttendee) {
+      throw new HttpError({ statusCode: 404, message: "Attendee not found" });
+    }
+    /**
+     * Reschedule with seats logic
+     * If eventType has seats and we are rescheduling, we should filter the attendees
+     * unless the one rescheduling is the organizer
+     */
+    // Removed isUserOwner, can add owner rescheduling logic later
+    if (eventType.seatsPerTimeSlot && seatAttendee) {
+      evt.attendees = [seatAttendee];
+    }
+
+    // See if the new date has a booking already
+    const newTimeSlotBooking = await prisma.booking.findFirst({
+      where: {
+        startTime: evt.startTime,
+        eventTypeId: eventType.id,
+      },
+    });
+
+    // If there is no booking then create one as normal
+    if (!newTimeSlotBooking) return;
+
+    // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
+    // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
+
+    // If so then update the old and new calendar events
+
+    // If that was the last attendee of the old booking then delete the old booking
+
+    //   if (booking && booking.id && eventType.seatsPerTimeSlot) {
+    //     const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
+    //     // Save description to bookingSeatsReferences
+
+    //     const uniqueAttendeeId = uuid();
+    //     const seatReference = await prisma.bookingSeatsReferences.create({
+    //       data: {
+    //         referenceUId: uniqueAttendeeId,
+    //         data: {
+    //           description: evt.additionalNotes,
+    //         },
+    //         booking: {
+    //           connect: {
+    //             id: booking.id,
+    //           },
+    //         },
+    //         attendee: {
+    //           connect: {
+    //             id: currentAttendee?.id,
+    //           },
+    //         },
+    //       },
+    //     });
+    //     evt.attendeeSeatId = uniqueAttendeeId;
+    // }
+  };
+
+  // If booking has seats and a user is rescheduling, handle both events
+  if (eventType.seatsPerTimeSlot && rescheduleUid) {
+    rescheduleSeat();
+  }
+
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
       customInputs[label] = value;
@@ -701,64 +830,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.recurringEvent = eventType.recurringEvent;
   }
 
-  // Initialize EventManager with credentials
-  const rescheduleUid = reqBody.rescheduleUid;
-  async function getOriginalRescheduledBooking(uid: string) {
-    let bookingUid = uid;
-    // Now rescheduleUid can be bookingSeatsReferences
-    const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
-      where: {
-        referenceUId: uid,
-      },
-      include: {
-        booking: true,
-      },
-    });
-    if (bookingSeatsReferences) {
-      bookingUid = bookingSeatsReferences.booking.uid;
-    }
-
-    return prisma.booking.findFirst({
-      where: {
-        uid: bookingUid,
-        status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
-        },
-      },
-      include: {
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            locale: true,
-            timeZone: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            locale: true,
-            timeZone: true,
-          },
-        },
-        payment: true,
-      },
-    });
-  }
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-  let originalRescheduledBooking: BookingType = null;
-
-  if (rescheduleUid) {
-    originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
-  }
   // If the user is not the owner of the event, new booking should be always pending.
   // Otherwise, an owner rescheduling should be always accepted.
   // Before comparing make sure that userId is set, otherwise undefined === undefined
   const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
   const isConfirmedByDefault = (!requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
-  let seatAttendee;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -784,17 +860,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
       (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
-
-    /**
-     * Reschedule with seats logic
-     * If eventType has seats and we are rescheduling, we should filter the attendees
-     * unless the one rescheduling is the organizer
-     */
-    seatAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
-    // Removed isUserOwner, can add owner rescheduling logic later
-    if (eventType.seatsPerTimeSlot && seatAttendee) {
-      evt.attendees = [seatAttendee];
-    }
 
     const attendeesData = evt.attendees.map((attendee) => {
       //if attendee is team member, it should fetch their locale not booker's locale
@@ -913,32 +978,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       })
     );
     evt.uid = booking?.uid ?? null;
-
-    if (booking && booking.id && eventType.seatsPerTimeSlot) {
-      const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
-      // Save description to bookingSeatsReferences
-
-      const uniqueAttendeeId = uuid();
-      const seatReference = await prisma.bookingSeatsReferences.create({
-        data: {
-          referenceUId: uniqueAttendeeId,
-          data: {
-            description: evt.additionalNotes,
-          },
-          booking: {
-            connect: {
-              id: booking.id,
-            },
-          },
-          attendee: {
-            connect: {
-              id: currentAttendee?.id,
-            },
-          },
-        },
-      });
-      evt.attendeeSeatId = uniqueAttendeeId;
-    }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);

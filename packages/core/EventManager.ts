@@ -302,6 +302,7 @@ export default class EventManager {
         },
       });
     }
+
     if (shouldUpdateBookingCancellation) {
       // Now we can delete the old booking and its references.
       const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
