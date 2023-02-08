@@ -20,6 +20,7 @@
   },
   "main": "./index",
   "dependencies": {
-    "framer-motion": "^8.5.2"
+    "framer-motion": "^8.5.2",
+    "react-sticky-box": "^2.0.0"
   }
 }

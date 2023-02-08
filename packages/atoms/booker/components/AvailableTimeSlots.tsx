@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useSchedule, useSlotsForDate } from "@calcom/features/schedules";
+import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
 import { useTimePrerences } from "../utils/time";
@@ -8,9 +9,10 @@ import { useTimePrerences } from "../utils/time";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   onTimeSelect: (time: string) => void;
+  limitHeight?: boolean;
 };
 
-export const AvailableTimeSlots = ({ extraDays, onTimeSelect }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: AvailableTimeSlotsProps) => {
   const [selectedDate, username, eventSlug, month] = useBookerStore((state) => [
     state.selectedDate,
     state.username,
@@ -38,7 +40,7 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect }: AvailableTimeSlo
   /* @TODO: eth signature */
   /* @TODO: seats per timeslot */
   return (
-    <div className="flex-grow md:h-[400px]">
+    <div className={classNames(limitHeight && "flex-grow md:h-[400px]", !limitHeight && "[&_header]:top-8")}>
       {slots.length > 0 && selectedDate && (
         <AvailableTimes
           onTimeSelect={onTimeSelect}

@@ -7,8 +7,8 @@ import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from
 import { nameOfDay } from "@calcom/lib/weekday";
 import { ToggleGroup, Button } from "@calcom/ui";
 
-// * Brand color variable?
 // @TODO: from old booker:
+// * Brand color variable?
 
 type AvailableTimesProps = {
   date: Dayjs;
@@ -23,7 +23,7 @@ export const AvailableTimes = ({ date, slots, timezone, onTimeSelect }: Availabl
 
   return (
     <div className="dark:text-white">
-      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-6 flex w-full items-center bg-white before:absolute before:-top-7 before:h-7 before:w-full before:bg-white">
+      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-6 flex w-full items-center bg-white before:absolute before:-top-8 before:h-8 before:w-full before:bg-white">
         <span className="font-semibold text-gray-900 dark:text-white">
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>

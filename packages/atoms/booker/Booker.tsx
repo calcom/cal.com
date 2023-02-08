@@ -1,5 +1,6 @@
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import { Dayjs } from "@calcom/dayjs";
@@ -27,6 +28,10 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { i18n } = useLocale();
   const { timezone } = useTimePrerences();
   const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
+  // Custom breakpoint to make calendar fit.
+  const isMobile = useMediaQuery("(max-width: 800px)");
+  const StickyOnDesktop = isMobile ? Fragment : StickyBox;
+
   const schedule = useSchedule({
     username,
     eventSlug,
@@ -49,9 +54,6 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   useEffect(() => {
     initializeStore(username, eventSlug, browsingMonthStart.toDate());
   }, [initializeStore, username, eventSlug, browsingMonthStart]);
-
-  // Custom breakpoint to make calendar fit.
-  const isMobile = useMediaQuery("(max-width: 800px)");
 
   const onMonthChange = (date: Dayjs) => {
     setBrowsingMonthStart(date);
@@ -87,7 +89,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         since that's not a valid option, so it would set the layout to null.
       */}
       {!isMobile && (
-        <div className="absolute top-2 right-3 z-10 [&>div]:bg-white">
+        <div className="dark:[&>div]:bg-darkgray-100 fixed top-2 right-3 z-10 [&>div]:bg-white">
           <ToggleGroup
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
             defaultValue="small_calendar"
@@ -108,22 +110,40 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         }
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
-          "dark:bg-darkgray-100 grid bg-white md:flex-row",
+          "dark:bg-darkgray-100 grid items-start overflow-x-clip bg-white md:flex-row",
           layout === "small_calendar" && "dark:border-darkgray-300 mt-20 rounded-md border border-gray-200",
-          layout !== "small_calendar" && "h-screen w-screen"
+          layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
         <AnimatePresence>
-          <BookerSection area="meta">
-            <EventMeta event={event.data} isLoading={event.isLoading} />
-          </BookerSection>
+          <StickyOnDesktop>
+            <BookerSection area="meta" className="dark:border-darkgray-300 border-gray-200 md:border-r">
+              <EventMeta event={event.data} isLoading={event.isLoading} />
+              {layout !== "small_calendar" && (
+                <div className=" mt-auto p-6">
+                  <DatePicker
+                    isLoading={schedule.isLoading}
+                    onChange={onDaySelect}
+                    onMonthChange={onMonthChange}
+                    includedDates={nonEmptyScheduleDays}
+                    locale={i18n.language}
+                    browsingDate={browsingMonthStart}
+                  />
+                </div>
+              )}
+            </BookerSection>
+          </StickyOnDesktop>
 
-          <BookerSection area="main" {...fadeInUp} visible={bookerState === "booking"} className="p-6">
+          <BookerSection
+            area="main"
+            className="sticky top-0 p-6 "
+            {...fadeInUp}
+            visible={bookerState === "booking"}>
             <BookEventForm username={username} eventSlug={eventSlug} onCancel={() => setBookingTime(null)} />
           </BookerSection>
 
           <BookerSection
-            area={{ default: "calendar", small_calendar: "main" }}
-            visible={bookerState !== "booking" || layout !== "small_calendar"}
+            area="main"
+            visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
             initial="visible"
             className="p-6">
@@ -140,19 +160,28 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
 
           <BookerSection
             area="main"
-            visible={layout === "large_calendar" && bookerState === "selecting_date"}
+            visible={
+              layout === "large_calendar" &&
+              (bookerState === "selecting_date" || bookerState === "selecting_time")
+            }
+            className="sticky top-0 h-full"
             {...fadeInUp}>
             <LargeCalendar onDaySelect={onDaySelect} onTimeSelect={onTimeSelect} />
           </BookerSection>
 
           <BookerSection
             area={{ default: "main", small_calendar: "timeslots" }}
-            visible={bookerState === "selecting_time"}
-            className="dark:border-darkgray-300 flex w-full flex-row overflow-y-auto border-l border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)]"
+            visible={bookerState === "selecting_time" && layout !== "large_calendar"}
+            className={classNames(
+              "dark:border-darkgray-300 flex w-full flex-row border-l border-gray-200 p-6 pb-0 md:min-w-[var(--booker-timeslots-width)]",
+              layout === "small_calendar" && "h-full overflow-auto",
+              layout !== "small_calendar" && "sticky top-0"
+            )}
             {...fadeInLeft}>
             <AvailableTimeSlots
               extraDays={layout === "large_timeslots" ? 4 : 0}
               onTimeSelect={onTimeSelect}
+              limitHeight={layout === "small_calendar"}
             />
           </BookerSection>
         </AnimatePresence>

@@ -7,11 +7,11 @@ type LargeCalendarProps = {
 
 export const LargeCalendar = ({ onDaySelect, onTimeSelect }: LargeCalendarProps) => {
   return (
-    <div className="flex h-full w-full items-center justify-center dark:text-white">
+    <div className="flex h-full w-full flex-col items-center justify-center dark:text-white">
       Something big is coming...
       <br />
       <button
-        className="underline"
+        className="max-w-[300px] underline"
         type="button"
         onClick={(ev) => {
           ev.preventDefault();

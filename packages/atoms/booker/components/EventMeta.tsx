@@ -17,7 +17,7 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
   const { timezone, setTimezone } = useTimePrerences();
 
   return (
-    <div className="dark:border-darkgray-300 relative z-10 overflow-auto border-gray-200 p-6 md:border-r">
+    <div className="relative z-10 p-6">
       {isLoading && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
