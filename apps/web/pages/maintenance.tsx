@@ -15,7 +15,7 @@ export default function MaintenancePage() {
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="rtl: m-auto rounded-md bg-white p-10 text-right ltr:text-left">
+      <div className="m-auto rounded-md bg-white p-10 text-right ltr:text-left">
         <h1 className="text-2xl font-medium text-black">{t("under_maintenance")}</h1>
         <p className="mt-4 mb-6 max-w-2xl text-sm text-gray-600">
           {t("under_maintenance_description", { appName: APP_NAME })}
