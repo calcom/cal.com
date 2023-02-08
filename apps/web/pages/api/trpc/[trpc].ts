@@ -69,6 +69,8 @@ export default trpcNext.createNextApiHandler({
     // we want to create a map that can match potential paths with their desired cache value
     const cacheRules = {
       "viewer.public.i18n": `maxage=${TWO_HOURS_IN_SECONDS}, stale-while-revalidate=30`,
+      // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
+      "viewer.public.slots.getSchedule": `s-maxage=5, stale-while-revalidate=1`,
     } as const;
 
     // Find which element above is an exact match for this group of paths
