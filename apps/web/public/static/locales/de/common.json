@@ -8,7 +8,7 @@
   "accept_invitation": "Einladung annehmen",
   "have_any_questions": "Haben Sie Fragen? Wir sind hier um Ihnen zu helfen.",
   "reset_password_subject": "{{appName}}: Anleitung zum Zurücksetzen des Passworts",
-  "event_declined_subject": "Abgelehnt: {{eventType}} mit {{name}} am {{date}}",
+  "event_declined_subject": "Abgelehnt: {{title}} am {{date}}",
   "event_cancelled_subject": "Storniert: {{title}} um {{date}}",
   "event_request_declined": "Ihre Event-Anfrage wurde abgelehnt",
   "event_request_declined_recurring": "Ihre wiederkehrende Terminanfrage wurde abgelehnt",
