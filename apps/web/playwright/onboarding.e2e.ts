@@ -24,7 +24,7 @@ test.describe("Onboarding", () => {
         await page.locator("input[name=username]").fill("new user onboarding");
         await page.locator("input[name=name]").fill("new user 2");
         await page.locator("input[role=combobox]").click();
-        await page.locator("text=Eastern Time").click();
+        await page.locator("text=Europe/London GMT +0:00").click();
 
         await page.locator("button[type=submit]").click();
 
@@ -48,7 +48,7 @@ test.describe("Onboarding", () => {
         const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
         await expect(isDisabled).toBe(false);
         // same here, skip this step.
-        await page.locator("button[data-testid=skip-step]").click();
+        await page.locator("button[data-testid=save-availability]").click();
 
         await expect(page).toHaveURL(/.*user-profile/);
       });

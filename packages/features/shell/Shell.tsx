@@ -134,10 +134,6 @@ const Layout = (props: LayoutProps) => {
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
-          nextSeoProps={{
-            nofollow: true,
-            noindex: true,
-          }}
         />
       )}
       <div>
@@ -188,6 +184,7 @@ type LayoutProps = {
   withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
+  smallHeading?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -271,7 +268,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="radix-state-open:bg-gray-200 group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
@@ -295,10 +292,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="block truncate font-medium text-gray-900">
+                  <span className="mb-1 block truncate font-medium leading-none text-gray-900">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="block truncate font-normal text-gray-900">
+                  <span className="block truncate font-normal leading-none text-gray-600">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -399,13 +396,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   {t("help")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={FiDownload}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="desktop-hidden hidden lg:flex"
-                  href={DESKTOP_APP_LINK}>
+              <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                <DropdownItem StartIcon={FiDownload} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                   {t("download_desktop_app")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -783,32 +775,38 @@ function SideBar() {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+
   return (
     <>
-      <div className="mb-6 flex sm:mt-0 lg:mb-10">
+      <div className={classNames("flex sm:mt-0 md:mb-6", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
         {!!props.backPath && (
           <Button
             variant="icon"
+            size="sm"
             color="minimal"
             onClick={() =>
               typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="ltr:mr-2 rtl:ml-2"
+            className="mt-2 rounded-md ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
-          <header className={classNames(props.large && "py-8", "flex w-full max-w-full")}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
+            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
+                <h1
+                  className={classNames(
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
+                    props.smallHeading ? "text-base" : "text-xl"
+                  )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-gray-500 sm:block">
+                <p className="hidden text-sm text-gray-500 md:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -818,8 +816,8 @@ export function ShellMain(props: LayoutProps) {
                 className={classNames(
                   props.backPath
                     ? "relative"
-                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
+                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                 )}>
                 {props.CTA}
               </div>
@@ -844,7 +842,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 py-8 lg:px-12">
+      <div className="max-w-full px-4 py-4 md:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
