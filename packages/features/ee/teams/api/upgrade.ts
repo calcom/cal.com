@@ -38,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
     const metadata = teamMetadataSchema.parse(prevTeam.metadata);
     /** We save the metadata first to prevent duplicate payments */
-    await prisma.team.update({
+    team = await prisma.team.update({
       where: { id },
       data: {
         metadata: {
