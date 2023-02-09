@@ -19,29 +19,34 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
     (isMultiple && selectedItems?.some((selection) => selection.value === item.value)) ||
     (!isMultiple && selectedItems?.value === item.value);
 
-  // TODO: FIgure out whats going on
   if (item.disabled) {
-    <li
-      className={cn(
-        "dark:text-darkgray-400 flex cursor-not-allowed select-none justify-between truncate rounded-[4px] px-3 py-2 text-gray-300",
-        focused ? "dark:bg-darkgray-200 bg-gray-50" : "dark:hover:bg-darkgray-200 hover:bg-gray-100"
-      )}>
-      <>
-        <div className="space-x flex items-center">
-          {item.leftNode && item.leftNode}
-          <p>{item.label}</p>
-        </div>
-        {isMultiple ? (
-          <div
-            className={cn(
-              "dark:text-darkgray-600 h-4 w-4 rounded-[4px] bg-gray-300 text-gray-600 ltr:mr-2 rtl:ml-2"
-            )}
-          />
-        ) : (
-          isSelected && <FiCheck className="h-3 w-3 text-black" strokeWidth={2} />
-        )}
-      </>
-    </li>;
+    return (
+      <li
+        className={cn(
+          "dark:text-darkgray-400 flex cursor-not-allowed select-none justify-between truncate rounded-[4px] px-3 py-2 text-gray-300 ",
+          focused ? "dark:bg-darkgray-200 bg-gray-50" : "dark:hover:bg-darkgray-200 hover:bg-gray-100"
+        )}>
+        <>
+          <div className="space-x flex items-center">
+            {item.leftNode && item.leftNode}
+            <p>{item.label}</p>
+          </div>
+          {isMultiple ? (
+            <div
+              className={cn(
+                "flex h-4 w-4 items-center justify-center rounded-[4px]  border opacity-70 ltr:mr-2 rtl:ml-2",
+                isSelected
+                  ? "dark:bg-darkgray-200 dark:text-darkgray-900 dark:border-darkgray-300 bg-gray-800 text-gray-50"
+                  : "dark:text-darkgray-600 dark:bg-darkgray-200 dark:border-darkgray-300 border-gray-300 bg-gray-50 text-gray-600"
+              )}>
+              {isSelected && <FiCheck className="h-3 w-3 text-current" />}
+            </div>
+          ) : (
+            isSelected && <FiCheck className="h-3 w-3 text-black" strokeWidth={2} />
+          )}
+        </>
+      </li>
+    );
   }
 
   return (
