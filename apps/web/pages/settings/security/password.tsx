@@ -148,7 +148,7 @@ const PasswordView = () => {
                   },
                   pattern: {
                     message: "Should contain a number, uppercase and lowercase letters",
-                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]*$/,
+                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
                   },
                 })}
                 label={t("new_password")}
