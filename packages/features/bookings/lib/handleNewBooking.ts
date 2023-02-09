@@ -820,7 +820,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     // Before comparing make sure that userId is set, otherwise undefined === undefined
     const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
-      (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+      (!eventType.requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
 
     /**
      * Reschedule with seats logic
