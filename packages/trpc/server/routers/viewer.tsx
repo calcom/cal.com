@@ -377,7 +377,7 @@ const loggedInViewerRouter = router({
     let destinationCalendarName = undefined;
 
     for (const integration of connectedCalendars) {
-      if (integration?.calendars) {
+      if (integration?.calendars && integration.credentialId === user.destinationCalendar?.credentialId) {
         for (const calendar of integration?.calendars) {
           if (calendar.externalId === user.destinationCalendar?.externalId)
             destinationCalendarName = calendar.name;
