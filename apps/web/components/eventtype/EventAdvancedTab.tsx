@@ -74,7 +74,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
-  const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
+  const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
   const removeCustom = (index: number) => {
     formMethods.getValues("customInputs").splice(index, 1);
