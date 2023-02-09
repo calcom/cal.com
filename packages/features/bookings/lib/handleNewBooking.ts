@@ -323,10 +323,12 @@ async function getOriginalRescheduledBooking(uid: string) {
     include: {
       attendees: {
         select: {
+          id: true,
           name: true,
           email: true,
           locale: true,
           timeZone: true,
+          bookingSeatReference: true,
         },
       },
       user: {
@@ -603,8 +605,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
-  // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (reqBody.bookingUid) {
+  const rescheduleUid = reqBody.rescheduleUid;
+
+  const handleSeats = async () => {
+    // For seats, if the booking already exists then we want to add the new attendee to the existing booking
+
     if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
     }
@@ -627,120 +632,140 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
-    // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
-    const bookingAttendees = booking.attendees.map((attendee) => {
-      return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
-    });
+    // If rescheduling an exisiting attendee
+    if (rescheduleUid) {
+      // Check if the host or attendee is rescheduling
+      const host = booking.user?.email === req.body.email;
 
-    evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
+      // If it is the host then continue rescheduling as normal
+      if (host) return;
+      return;
+      // Else let's add the new attendee to the existing booking
+    } else {
+      // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
+      const bookingAttendees = booking.attendees.map((attendee) => {
+        return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+      });
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
-      throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
-    }
+      evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
-      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-    }
+      if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
+        throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
+      }
 
-    const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+      if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+        throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+      }
 
-    if (videoCallReference) {
-      evt.videoCallData = {
-        type: videoCallReference.type,
-        id: videoCallReference.meetingId,
-        password: videoCallReference?.meetingPassword,
-        url: videoCallReference.meetingUrl,
-      };
-    }
+      const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
-    const bookingUpdated = await prisma.booking.update({
-      where: {
-        uid: reqBody.bookingUid,
-      },
-      include: {
-        attendees: true,
-      },
-      data: {
-        attendees: {
-          create: {
-            email: invitee[0].email,
-            name: invitee[0].name,
-            timeZone: invitee[0].timeZone,
-            locale: invitee[0].language.locale,
-          },
+      if (videoCallReference) {
+        evt.videoCallData = {
+          type: videoCallReference.type,
+          id: videoCallReference.meetingId,
+          password: videoCallReference?.meetingPassword,
+          url: videoCallReference.meetingUrl,
+        };
+      }
+
+      const bookingUpdated = await prisma.booking.update({
+        where: {
+          uid: reqBody.bookingUid,
         },
-      },
-    });
-
-    // Add entry to bookingSeatsReference table
-    const attendeeUniqueId = uuid();
-    await prisma.bookingSeatsReferences.create({
-      data: {
+        include: {
+          attendees: true,
+        },
         data: {
-          description: additionalNotes,
-        },
-        booking: {
-          connect: {
-            id: booking.id,
+          attendees: {
+            create: {
+              email: invitee[0].email,
+              name: invitee[0].name,
+              timeZone: invitee[0].timeZone,
+              locale: invitee[0].language.locale,
+            },
           },
         },
-        referenceUId: attendeeUniqueId,
-        attendee: {
-          connect: {
-            id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
+      });
+
+      // Add entry to bookingSeatsReference table
+      const attendeeUniqueId = uuid();
+      await prisma.bookingSeatsReferences.create({
+        data: {
+          data: {
+            description: additionalNotes,
+          },
+          booking: {
+            connect: {
+              id: booking.id,
+            },
+          },
+          referenceUId: attendeeUniqueId,
+          attendee: {
+            connect: {
+              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
+            },
           },
         },
-      },
-    });
-    evt.attendeeSeatId = attendeeUniqueId;
+      });
+      evt.attendeeSeatId = attendeeUniqueId;
 
-    const newSeat = booking.attendees.length !== 0;
+      const newSeat = booking.attendees.length !== 0;
 
-    /**
-     * Remember objects are passed into functions as references
-     * so if you modify it in a inner function it will be modified in the outer function
-     * deep cloning evt to avoid this
-     */
-    const copyEvent = cloneDeep(evt);
-    await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+      /**
+       * Remember objects are passed into functions as references
+       * so if you modify it in a inner function it will be modified in the outer function
+       * deep cloning evt to avoid this
+       */
+      const copyEvent = cloneDeep(evt);
+      await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
-    const credentials = await refreshCredentials(organizerUser.credentials);
-    const eventManager = new EventManager({ ...organizerUser, credentials });
-    await eventManager.updateCalendarAttendees(evt, booking);
+      const credentials = await refreshCredentials(organizerUser.credentials);
+      const eventManager = new EventManager({ ...organizerUser, credentials });
+      await eventManager.updateCalendarAttendees(evt, booking);
 
-    if (!Number.isNaN(stripeAppData.price) && stripeAppData.price > 0 && !!booking) {
-      const [firstStripeCredential] = organizerUser.credentials.filter(
-        (cred) => cred.type == "stripe_payment"
-      );
+      if (!Number.isNaN(stripeAppData.price) && stripeAppData.price > 0 && !!booking) {
+        const [firstStripeCredential] = organizerUser.credentials.filter(
+          (cred) => cred.type == "stripe_payment"
+        );
 
-      if (!firstStripeCredential)
-        throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+        if (!firstStripeCredential)
+          throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
 
-      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+        const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+
+        req.statusCode = 201;
+        return { ...booking, message: "Payment required", paymentUid: payment.uid };
+      }
 
       req.statusCode = 201;
-      return { ...booking, message: "Payment required", paymentUid: payment.uid };
+      return booking;
     }
+  };
 
-    req.statusCode = 201;
-    return booking;
+  if (reqBody.bookingUid) {
+    handleSeats();
   }
 
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
 
-  const rescheduleUid = reqBody.rescheduleUid;
+  console.log("🚀 ~ file: handleNewBooking.ts:737 ~ handler ~ rescheduleUid", rescheduleUid);
 
   if (rescheduleUid) {
     originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
   }
 
   const rescheduleSeat = async () => {
+    console.log("This reschedule function is triggering");
     if (!originalRescheduledBooking) {
       throw new HttpError({ statusCode: 404, message: "Original booking not found" });
     }
     // Check if the host or attendee is rescheduling
     const host = originalRescheduledBooking.user?.email === req.body.email;
+
+    // If it is the host then continue rescheduling as normal
+    if (host) return;
+    console.log("Host was found");
 
     let seatAttendee;
     if (!host) {
@@ -767,48 +792,91 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         eventTypeId: eventType.id,
       },
     });
+    console.log(
+      "🚀 ~ file: handleNewBooking.ts:777 ~ rescheduleSeat ~ newTimeSlotBooking",
+      newTimeSlotBooking
+    );
 
     // If there is no booking then create one as normal
     if (!newTimeSlotBooking) return;
 
+    console.log("🚀 ~ file: handleNewBooking.ts:786 ~ rescheduleSeat ~ seatAttendee", seatAttendee);
+
     // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
     // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-
+    await Promise.all([
+      await prisma.attendee.update({
+        where: {
+          id: seatAttendee.id,
+        },
+        data: {
+          bookingId: newTimeSlotBooking.id,
+        },
+      }),
+      await prisma.bookingSeatsReferences.update({
+        where: {
+          id: seatAttendee.bookingSeatReference?.id,
+        },
+        data: {
+          bookingId: newTimeSlotBooking.id,
+        },
+      }),
+    ]);
+    // Promise.all([
+    //   await prisma.attendee.update({
+    //     where: {
+    //       id: seatAttendee.id,
+    //     },
+    //     data: {
+    //       booking: {
+    //         connect: { id: newTimeSlotBooking.id },
+    //       },
+    //     },
+    //   }),
+    // await prisma.bookingSeatsReferences.update({
+    //   where: {
+    //     id: seatAttendee.bookingSeatReference?.id,
+    //   },
+    //   data: {
+    //     booking: {
+    //       connect: { id: newTimeSlotBooking.id },
+    //     },
+    //   },
+    // }),
+    // ]);
     // If so then update the old and new calendar events
 
     // If that was the last attendee of the old booking then delete the old booking
+    if (originalRescheduledBooking.attendees.length === 0) {
+      await prisma.booking.delete({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+      });
+    }
 
-    //   if (booking && booking.id && eventType.seatsPerTimeSlot) {
-    //     const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
-    //     // Save description to bookingSeatsReferences
+    const copyEvent = cloneDeep(evt);
+    await sendRescheduledSeatEmail(copyEvent, seatAttendee);
 
-    //     const uniqueAttendeeId = uuid();
-    //     const seatReference = await prisma.bookingSeatsReferences.create({
-    //       data: {
-    //         referenceUId: uniqueAttendeeId,
-    //         data: {
-    //           description: evt.additionalNotes,
-    //         },
-    //         booking: {
-    //           connect: {
-    //             id: booking.id,
-    //           },
-    //         },
-    //         attendee: {
-    //           connect: {
-    //             id: currentAttendee?.id,
-    //           },
-    //         },
-    //       },
-    //     });
-    //     evt.attendeeSeatId = uniqueAttendeeId;
-    // }
+    return newTimeSlotBooking;
   };
 
   // If booking has seats and a user is rescheduling, handle both events
+  console.log(
+    "🚀 ~ file: handleNewBooking.ts:848 ~ handler ~ eventType.seatsPerTimeSlot",
+    eventType.seatsPerTimeSlot
+  );
+  console.log("🚀 ~ file: handleNewBooking.ts:850 ~ handler ~ rescheduleUid", rescheduleUid);
+
   if (eventType.seatsPerTimeSlot && rescheduleUid) {
-    rescheduleSeat();
+    const rescheduleBooking = rescheduleSeat();
+    if (rescheduleBooking) {
+      req.statusCode = 201;
+      return rescheduleBooking;
+    }
   }
+
+  console.log("This triggers afterwards");
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
@@ -978,6 +1046,32 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       })
     );
     evt.uid = booking?.uid ?? null;
+
+    if (booking && booking.id && eventType.seatsPerTimeSlot) {
+      const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
+      // Save description to bookingSeatsReferences
+
+      const uniqueAttendeeId = uuid();
+      const seatReference = await prisma.bookingSeatsReferences.create({
+        data: {
+          referenceUId: uniqueAttendeeId,
+          data: {
+            description: evt.additionalNotes,
+          },
+          booking: {
+            connect: {
+              id: booking.id,
+            },
+          },
+          attendee: {
+            connect: {
+              id: currentAttendee?.id,
+            },
+          },
+        },
+      });
+      evt.attendeeSeatId = uniqueAttendeeId;
+    }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -1075,10 +1169,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         if (eventType?.seatsPerTimeSlot && originalRescheduledBooking.attendees.length > 1) {
           // We should only notify affected attendees (owner and attendee rescheduling)
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
-        }
-
-        if (eventType?.seatsPerTimeSlot && seatAttendee) {
-          await sendRescheduledSeatEmail(copyEvent, seatAttendee);
         }
 
         await sendRescheduledEmails({
