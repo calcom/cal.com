@@ -423,7 +423,7 @@
   "password_hint_min": "Mínimo 7 caracteres",
   "password_hint_admin_min": "Longitud mínima de 15 caracteres",
   "password_hint_num": "Debe contener al menos 1 número",
-  "invalid_password_hint": "La contraseña debe tener un mínimo de 7 caracteres que contengan al menos un número y una mezcla de letras mayúsculas y minúsculas",
+  "invalid_password_hint": "La contraseña debe tener un mínimo de {{passwordLength}} caracteres que contengan al menos un número y una mezcla de letras mayúsculas y minúsculas",
   "incorrect_password": "La Contraseña es Incorrecta.",
   "24_h": "24hs",
   "use_setting": "Usar Ajuste",
