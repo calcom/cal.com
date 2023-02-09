@@ -1,7 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { Trans } from "next-i18next";
-import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -9,7 +8,7 @@ import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
+import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -17,9 +16,11 @@ type ChangePasswordSessionFormValues = {
   oldPassword: string;
   newPassword: string;
   sessionTimeout?: number;
+  apiError: string;
 };
 
 const PasswordView = () => {
+  const { data } = useSession();
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
@@ -58,9 +59,24 @@ const PasswordView = () => {
       showToast(t("password_has_been_changed"), "success");
       formMethods.resetField("oldPassword");
       formMethods.resetField("newPassword");
+
+      if (data?.user.role === "INACTIVE_ADMIN") {
+        /*
+      AdminPasswordBanner component relies on the role returned from the session.
+      Next-Auth doesn't provide a way to revalidate the session cookie,
+      so this a workaround to hide the banner after updating the password.
+      discussion: https://github.com/nextauthjs/next-auth/discussions/4229
+      */
+        signOut({ callbackUrl: "/auth/login" });
+      }
     },
     onError: (error) => {
-      showToast(`${t("error_updating_password")}, ${error.message}`, "error");
+      showToast(`${t("error_updating_password")}, ${t(error.message)}`, "error");
+
+      formMethods.setError("apiError", {
+        message: t(error.message),
+        type: "custom",
+      });
     },
   });
 
@@ -91,6 +107,8 @@ const PasswordView = () => {
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
+  const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
+  const isUser = data?.user.role === "USER";
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
@@ -111,19 +129,34 @@ const PasswordView = () => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="max-w-[38rem] sm:flex sm:space-x-4">
-            <div className="flex-grow">
+          {formMethods.formState.errors.apiError && (
+            <div className="pb-6">
+              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+            </div>
+          )}
+
+          <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+            <div>
               <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
             </div>
-            <div className="flex-grow">
-              <PasswordField {...formMethods.register("newPassword")} label={t("new_password")} />
+            <div>
+              <PasswordField
+                {...formMethods.register("newPassword", {
+                  minLength: {
+                    message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                    value: passwordMinLength,
+                  },
+                  pattern: {
+                    message: "Should contain a number, uppercase and lowercase letters",
+                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                  },
+                })}
+                label={t("new_password")}
+              />
             </div>
           </div>
           <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
-            <Trans i18nKey="invalid_password_hint">
-              Password must be at least at least 7 characters, mix of uppercase & lowercase letters, and
-              contain at least 1 number.
-            </Trans>
+            {t("invalid_password_hint", { passwordLength: passwordMinLength })}
           </p>
           <div className="mt-8 border-t border-gray-200 py-8">
             <SettingsToggle

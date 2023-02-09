@@ -69,7 +69,7 @@ export const tips = [
     title: "Automate Workflows",
     description: "Make time work for you and automate tasks",
     href: "https://go.cal.com/workflows",
-  },  
+  },
 ];
 
 export default function Tips() {
