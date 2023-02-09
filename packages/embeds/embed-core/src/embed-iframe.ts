@@ -19,7 +19,6 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
-    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
@@ -107,8 +106,6 @@ interface EmbedNonStylesConfig {
     medianColor?: string;
   };
 }
-
-type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedNonStylesConfig>>;
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
@@ -308,7 +305,6 @@ const messageParent = (data: any) => {
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
   let knownIframeWidth: number | null = null;
-  let numDimensionChanges = 0;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
   runAsap(function informAboutScroll() {
@@ -355,7 +351,6 @@ function keepParentInformedAboutDimensionChanges() {
     if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
       knownIframeHeight = iframeHeight;
       knownIframeWidth = iframeWidth;
-      numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
       sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,

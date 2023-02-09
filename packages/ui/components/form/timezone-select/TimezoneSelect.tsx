@@ -21,6 +21,12 @@ export function TimezoneSelect({ className, components, ...props }: SelectProps)
         "America/Asuncion": "Asuncion",
       }}
       {...props}
+      formatOptionLabel={(option) => <p className="truncate">{(option as ITimezoneOption).value}</p>}
+      getOptionLabel={(data) => {
+        const option = data as ITimezoneOption;
+        const formatedLabel = option.label.split(")")[0].replace("(", " ").replace("T", "T ");
+        return `${option.value}${formatedLabel}`;
+      }}
     />
   );
 }

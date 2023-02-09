@@ -11,6 +11,7 @@ export type TeamInvite = {
   to: string;
   teamName: string;
   joinLink: string;
+  isCalcomMember: boolean;
 };
 
 export default class TeamInviteEmail extends BaseEmail {

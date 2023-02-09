@@ -6,9 +6,8 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -33,22 +32,33 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, PhoneInput, Tooltip, Group, RadioField } from "@calcom/ui";
 import {
-  FiAlertTriangle,
+  AddressInput,
+  Button,
+  EmailField,
+  EmailInput,
+  Form,
+  Group,
+  PhoneInput,
+  RadioField,
+  Tooltip,
+} from "@calcom/ui";
+import {
+  FiUserPlus,
   FiCalendar,
-  FiCreditCard,
+  FiX,
   FiInfo,
+  FiCreditCard,
   FiRefreshCw,
   FiUser,
-  FiUserPlus,
+  FiAlertTriangle,
 } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -73,7 +83,7 @@ type BookingFormValues = {
   email: string;
   notes?: string;
   locationType?: EventLocationType["type"];
-  guests?: string[];
+  guests?: { email: string }[];
   address?: string;
   attendeeAddress?: string;
   phone?: string;
@@ -112,10 +122,15 @@ const BookingPage = ({
     }),
     {}
   );
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
-  if (queryDuration && !isNaN(Number(queryDuration))) {
+  if (
+    queryDuration &&
+    !isNaN(Number(queryDuration)) &&
+    eventType.metadata?.multipleDuration &&
+    eventType.metadata?.multipleDuration.includes(Number(queryDuration))
+  ) {
     duration = Number(queryDuration);
   }
 
@@ -133,6 +148,7 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
+
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -151,7 +167,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
-          formerTime: booking?.startTime.toString(),
+          ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
     },
@@ -192,7 +208,9 @@ const BookingPage = ({
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => attendee.email)
+    ? booking?.attendees.slice(1).map((attendee) => {
+        return { email: attendee.email };
+      })
     : [];
 
   // There should only exists one default userData variable for primaryAttendee.
@@ -211,7 +229,9 @@ const BookingPage = ({
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
-        guests: ensureArray(router.query.guest) as string[],
+        guests: ensureArray(router.query.guest).map((guest) => {
+          return { email: guest as string };
+        }),
         customInputs: eventType.customInputs.reduce(
           (customInputs, input) => ({
             ...customInputs,
@@ -253,6 +273,7 @@ const BookingPage = ({
     .object({
       name: z.string().min(1),
       email: z.string().trim().email(),
+      guests: z.array(z.object({ email: z.string().email() })).optional(),
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -270,6 +291,10 @@ const BookingPage = ({
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
+  });
+  const guestsField = useFieldArray({
+    name: "guests",
+    control: bookingForm.control,
   });
 
   const selectedLocationType = useWatch({
@@ -309,6 +334,7 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
+    bookingForm.clearErrors();
     const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
       label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
       value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
@@ -376,6 +402,29 @@ const BookingPage = ({
       }
     }
 
+    // Validate that guests are unique
+    let alreadyInvited = false;
+    booking.guests?.forEach((guest, index) => {
+      if (guest.email === booking.email) {
+        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+        alreadyInvited = true;
+      }
+
+      if (booking.guests) {
+        let guestCount = 0;
+        for (const checkGuest of booking.guests) {
+          if (checkGuest.email === guest.email) guestCount++;
+          if (guestCount > 1) {
+            bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+            alreadyInvited = true;
+            break;
+          }
+        }
+      }
+    });
+
+    if (alreadyInvited) return;
+
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
@@ -406,6 +455,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -434,6 +484,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       });
     }
   };
@@ -507,14 +558,14 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {stripeAppData.price > 0 && (
+                  {paymentAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
                       <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
-                          value={stripeAppData.price / 100.0}
+                          value={paymentAppData.price / 100.0}
                           style="currency"
-                          currency={stripeAppData.currency.toUpperCase()}
+                          currency={paymentAppData?.currency?.toUpperCase()}
                         />
                       </IntlProvider>
                     </p>
@@ -850,60 +901,7 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && guestToggle && (
-                  <div className="mb-4">
-                    <div>
-                      <label
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("guests")}
-                      </label>
-                      {!disableInput && (
-                        <Controller
-                          control={bookingForm.control}
-                          name="guests"
-                          render={({ field: { onChange, value } }) => (
-                            <ReactMultiEmail
-                              className="relative"
-                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                              emails={value}
-                              onChange={onChange}
-                              getLabel={(
-                                email: string,
-                                index: number,
-                                removeEmail: (index: number) => void
-                              ) => {
-                                return (
-                                  <div data-tag key={index} className="cursor-pointer">
-                                    {email}
-                                    {!disableInput && (
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                      )}
-                      {/* Custom code when guest emails should not be editable */}
-                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                        <div data-tag className="react-multi-email">
-                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                          {guestListEmails.map((email, index) => {
-                            return (
-                              <div key={index} className="cursor-pointer">
-                                <span data-tag>{email}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+
                 {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
                   <div className="mb-4">
                     <label
@@ -956,19 +954,84 @@ const BookingPage = ({
                     />
                   )}
                 </div>
+                {!eventType.disableGuests && guestsField.fields.length ? (
+                  <div className="mb-4">
+                    <div>
+                      <label
+                        htmlFor="guests"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("guests")}
+                      </label>
+                      <ul>
+                        {guestsField.fields.map((field, index) => (
+                          <li key={field.id}>
+                            <EmailField
+                              {...bookingForm.register(`guests.${index}.email` as const)}
+                              className={classNames(
+                                inputClassName,
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700",
+                                "border-r-0"
+                              )}
+                              addOnClassname={classNames(
+                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 ",
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700"
+                              )}
+                              placeholder="guest@example.com"
+                              label={<></>}
+                              required
+                              addOnSuffix={
+                                <Tooltip content="Remove guest">
+                                  <button
+                                    className="m-1 disabled:hover:cursor-not-allowed"
+                                    type="button"
+                                    onClick={() => guestsField.remove(index)}>
+                                    <FiX className="text-gray-600" />
+                                  </button>
+                                </Tooltip>
+                              }
+                            />
+                            {bookingForm.formState.errors.guests?.[index] && (
+                              <div className="mt-2 flex items-center text-sm text-red-700 ">
+                                <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                                <p className="text-red-700">
+                                  {bookingForm.formState.errors.guests?.[index]?.message}
+                                </p>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        type="button"
+                        color="minimal"
+                        StartIcon={FiUserPlus}
+                        className="my-2.5"
+                        // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
+                        onClick={() => guestsField.append({ email: "" })}>
+                        {t("add_another")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <></>
+                )}
+
+                {!eventType.disableGuests && !guestsField.fields.length && (
+                  <Button
+                    color="minimal"
+                    variant="button"
+                    StartIcon={FiUserPlus}
+                    onClick={() => {
+                      guestsField.append({ email: "" });
+                    }}
+                    className="mr-auto">
+                    {t("additional_guests")}
+                  </Button>
+                )}
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestToggle && (
-                    <Button
-                      type="button"
-                      color="minimal"
-                      variant="icon"
-                      tooltip={t("additional_guests")}
-                      StartIcon={FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
-                    />
-                  )}
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>

@@ -59,7 +59,6 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         `${t("set_availability_getting_started_subtitle_1")}`,
         `${t("set_availability_getting_started_subtitle_2")}`,
       ],
-      skipText: `${t("set_my_availability_later")}`,
     },
     {
       title: `${t("nearly_there")}`,
@@ -106,7 +105,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
+              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
             </div>
             <StepCard>
               {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}
