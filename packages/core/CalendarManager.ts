@@ -6,6 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -166,9 +167,9 @@ export const getCachedResults = async (
 const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
   let localCache: EventBusyDate[][] = [];
   try {
-    const { NEXT_PUBLIC_WEBAPP_URL, NODE_ENV } = process.env;
+    const { NODE_ENV } = process.env;
     const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
-    const baseUrl = `${NEXT_PUBLIC_WEBAPP_URL}/_next/data/${cacheDir}/en`;
+    const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
     console.log(`${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`);
     localCache = await fetch(
       `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`
@@ -186,8 +187,6 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string
-  // TODO: Make sure it's necessary
-  // selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
   if (dayjs(dateFrom).isSame(dayjs(dateTo), "month")) {
