@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { revalidateCalendarCache } from "pages/api/revalidate-calendar-cache/[username]";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import notEmpty from "@calcom/lib/notEmpty";
+import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 
 import { getSession } from "@lib/auth";

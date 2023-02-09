@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
-import { revalidateCalendarCache } from "pages/api/revalidate-calendar-cache/[username]";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { getSession } from "@calcom/lib/auth";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
