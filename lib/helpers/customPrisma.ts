@@ -37,4 +37,5 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   // We don't need the key from here and on. Prevents unrecognized key errors.
   delete req.query.key;
   await next();
+  await req.prisma.$disconnect();
 };
