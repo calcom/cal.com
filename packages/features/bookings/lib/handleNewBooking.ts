@@ -619,16 +619,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
 
-  console.log("🚀 ~ file: handleNewBooking.ts:737 ~ handler ~ rescheduleUid", rescheduleUid);
-
   if (rescheduleUid) {
     originalRescheduledBooking = await getOriginalRescheduledBooking(
       rescheduleUid,
       !!eventType.seatsPerTimeSlot
-    );
-    console.log(
-      "🚀 ~ file: handleNewBooking.ts:617 ~ handler ~ originalRescheduledBooking",
-      originalRescheduledBooking?.attendees
     );
   }
 
@@ -657,7 +651,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         user: true,
       },
     });
-    console.log("🚀 ~ file: handleNewBooking.ts:631 ~ handleSeats ~ booking", booking);
     if (!booking) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
@@ -679,7 +672,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       if (!seatAttendee) {
         throw new HttpError({ statusCode: 404, message: "Attendee not found" });
       }
-      console.log("🚀 ~ file: handleNewBooking.ts:821 ~ handleSeats ~ seatAttendee", seatAttendee);
 
       seatAttendee.language = { translate: tAttendees, locale: seatAttendee.locale ?? "en" };
 
@@ -692,52 +684,30 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           eventTypeId: eventType.id,
         },
       });
-      console.log(
-        "🚀 ~ file: handleNewBooking.ts:777 ~ rescheduleSeat ~ newTimeSlotBooking",
-        newTimeSlotBooking
-      );
 
       // If there is no booking then create one as normal
       if (!newTimeSlotBooking) return;
 
       // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
       // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-      const updateAttendee = await prisma.attendee.update({
-        where: {
-          id: seatAttendee.id,
-        },
-        data: {
-          bookingId: newTimeSlotBooking.id,
-        },
-      });
-      console.log("🚀 ~ file: handleNewBooking.ts:679 ~ handleSeats ~ updateAttendee", updateAttendee);
-      const updateReference = await prisma.bookingSeatsReferences.update({
-        where: {
-          id: seatAttendee.bookingSeatReference?.id,
-        },
-        data: {
-          bookingId: newTimeSlotBooking.id,
-        },
-      });
-      console.log("🚀 ~ file: handleNewBooking.ts:688 ~ handleSeats ~ updateReference", updateReference);
-      // await Promise.all([
-      //   await prisma.attendee.update({
-      //     where: {
-      //       id: seatAttendee.id,
-      //     },
-      //     data: {
-      //       bookingId: newTimeSlotBooking.id,
-      //     },
-      //   }),
-      //   await prisma.bookingSeatsReferences.update({
-      //     where: {
-      //       id: seatAttendee.bookingSeatReference?.id,
-      //     },
-      //     data: {
-      //       bookingId: newTimeSlotBooking.id,
-      //     },
-      //   }),
-      // ]);
+      await Promise.all([
+        await prisma.attendee.update({
+          where: {
+            id: seatAttendee.id,
+          },
+          data: {
+            bookingId: newTimeSlotBooking.id,
+          },
+        }),
+        await prisma.bookingSeatsReferences.update({
+          where: {
+            id: seatAttendee.bookingSeatReference?.id,
+          },
+          data: {
+            bookingId: newTimeSlotBooking.id,
+          },
+        }),
+      ]);
 
       // If that was the last attendee of the old booking then delete the old booking
       if (booking.attendees.length === 0) {
@@ -754,7 +724,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       return newTimeSlotBooking;
       // Else let's add the new attendee to the existing booking
     } else {
-      console.log("Adding new attendee to existing booking");
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
         return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
@@ -1041,11 +1010,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       });
     }
 
-    console.log(
-      "🚀 ~ file: handleNewBooking.ts:1003 ~ createBooking ~ createBookingObj",
-      createBookingObj.data.attendees?.createMany
-    );
-
     return prisma.booking.create(createBookingObj);
   }
 
@@ -1093,7 +1057,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       evt.attendeeSeatId = uniqueAttendeeId;
     }
   } catch (_err) {
-    console.log("🚀 ~ file: handleNewBooking.ts:1057 ~ handler ~ _err", _err);
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {
