@@ -28,7 +28,13 @@ import {
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
-import { formatTime } from "@calcom/lib/date-fns";
+import {
+  formatLocalizedDateTime,
+  formatTime,
+  formatToLocalizedDate,
+  formatToLocalizedTime,
+  formatToLocalizedTimezone,
+} from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -809,7 +815,10 @@ export function RecurringBookings({
   isCancelled,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
 
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
@@ -832,11 +841,13 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+              {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
               <br />
-              {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-              {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-              <span className="text-bookinglight">({timeZone()})</span>
+              {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
+              {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+              <span className="text-bookinglight">
+                ({formatToLocalizedTimezone(date, language, undefined)})
+              </span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -850,10 +861,10 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+                    {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
                     <br />
-                    {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-                    {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
+                    {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
+                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
                     <span className="text-bookinglight">({timeZone()})</span>
                   </div>
                 ))}
@@ -866,11 +877,11 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {dayjs.tz(date, timeZone()).format("dddd, DD MMMM YYYY")}
+      {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
       <br />
-      {formatTime(date, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-      {formatTime(dayjs(date).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-      <span className="text-bookinglight">({timeZone()})</span>
+      {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
+      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, undefined)})</span>
     </div>
   );
 }
