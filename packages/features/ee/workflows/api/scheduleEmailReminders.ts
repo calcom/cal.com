@@ -95,6 +95,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const locale =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? reminder.booking?.attendees[0].locale
+          : reminder.booking?.user?.locale;
+
       let emailContent = {
         emailSubject: reminder.workflowStep.emailSubject || "",
         emailBody: {
@@ -131,13 +137,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const emailSubject = await customTemplate(
             reminder.workflowStep.emailSubject || "",
             variables,
-            reminder.booking?.user?.locale || ""
+            locale || ""
           );
           emailContent.emailSubject = emailSubject.text;
           emailContent.emailBody = await customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
-            reminder.booking?.user?.locale || ""
+            locale || ""
           );
           break;
       }
