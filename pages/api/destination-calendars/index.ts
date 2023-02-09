@@ -16,9 +16,16 @@ async function createOrlistAllDestinationCalendars(
      * @swagger
      * /destination-calendars:
      *   get:
+     *     parameters:
+     *       - in: query
+     *         name: apiKey
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Your API key
      *     summary: Find all destination calendars
      *     tags:
-     *     - destination-calendars
+     *      - destination-calendars
      *     responses:
      *       200:
      *         description: OK
@@ -43,9 +50,39 @@ async function createOrlistAllDestinationCalendars(
      * @swagger
      * /destination-calendars:
      *   post:
+     *     parameters:
+     *       - in: query
+     *         name: apiKey
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Your API key
      *     summary: Creates a new destination calendar
+     *     requestBody:
+     *       description: Create a new destination calendar for your events
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - integration
+     *               - externalId
+     *             properties:
+     *               integration:
+     *                 type: string
+     *                 description: 'The integration'
+     *               externalId:
+     *                 type: string
+     *                 description: 'The external ID of the integration'
+     *               eventTypeId:
+     *                 type: integer
+     *                 description: 'The ID of the eventType it is associated with'
+     *               bookingId:
+     *                 type: integer
+     *                 description: 'The booking ID it is associated with'
      *     tags:
-     *     - destination-calendars
+     *      - destination-calendars
      *     responses:
      *       201:
      *         description: OK, destination calendar created

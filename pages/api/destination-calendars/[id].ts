@@ -40,8 +40,14 @@ export async function destionationCalendarById(
        *           type: integer
        *         required: true
        *         description: ID of the destination calendar to get
+       *       - in: query
+       *         name: apiKey
+       *         required: true
+       *         schema:
+       *           type: string
+       *         description: Your API key
        *     tags:
-       *     - destination-calendars
+       *      - destination-calendars
        *     responses:
        *       200:
        *         description: OK
@@ -58,8 +64,34 @@ export async function destionationCalendarById(
        *          type: integer
        *        required: true
        *        description: ID of the destination calendar to edit
+       *      - in: query
+       *        name: apiKey
+       *        required: true
+       *        schema:
+       *          type: string
+       *        description: Your API key
+       *     requestBody:
+       *       description: Create a new booking related to one of your event-types
+       *       required: true
+       *       content:
+       *         application/json:
+       *           schema:
+       *             type: object
+       *             properties:
+       *               integration:
+       *                 type: string
+       *                 description: 'The integration'
+       *               externalId:
+       *                 type: string
+       *                 description: 'The external ID of the integration'
+       *               eventTypeId:
+       *                 type: integer
+       *                 description: 'The ID of the eventType it is associated with'
+       *               bookingId:
+       *                 type: integer
+       *                 description: 'The booking ID it is associated with'
        *     tags:
-       *     - destination-calendars
+       *      - destination-calendars
        *     responses:
        *       201:
        *         description: OK, destinationCalendar edited successfuly
@@ -76,8 +108,14 @@ export async function destionationCalendarById(
        *          type: integer
        *        required: true
        *        description: ID of the destination calendar to delete
+       *      - in: query
+       *        name: apiKey
+       *        required: true
+       *        schema:
+       *          type: string
+       *        description: Your API key
        *     tags:
-       *     - destination-calendars
+       *      - destination-calendars
        *     responses:
        *       201:
        *         description: OK, destinationCalendar removed successfuly
@@ -110,8 +148,14 @@ export async function destionationCalendarById(
        *          type: integer
        *        required: true
        *        description: ID of the destination calendar to edit
+       *      - in: query
+       *        name: apiKey
+       *        required: true
+       *        schema:
+       *          type: string
+       *        description: Your API key
        *     tags:
-       *     - destination-calendars
+       *      - destination-calendars
        *     responses:
        *       201:
        *         description: OK, destinationCalendar edited successfuly
@@ -150,8 +194,14 @@ export async function destionationCalendarById(
        *          type: integer
        *        required: true
        *        description: ID of the destination calendar to delete
+       *      - in: query
+       *        name: apiKey
+       *        required: true
+       *        schema:
+       *          type: string
+       *        description: Your API key
        *     tags:
-       *     - destination-calendars
+       *      - destination-calendars
        *     responses:
        *       201:
        *         description: OK, destinationCalendar removed successfuly
