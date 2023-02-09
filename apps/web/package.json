@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.5.7",
+  "version": "2.5.11",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -61,6 +61,7 @@
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^4.3.9",
     "@types/turndown": "^5.0.1",
+    "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@vercel/og": "^0.0.21",
     "accept-language-parser": "^1.5.0",
@@ -74,7 +75,6 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
-    "jose": "^4.11.1",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.10.12",
     "lodash": "^4.17.21",

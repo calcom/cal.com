@@ -11,7 +11,11 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import {
+  getEventLocationValue,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs, { ConfigType } from "@calcom/dayjs";
@@ -34,9 +38,10 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo } from "@calcom/ui";
-import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
+import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -188,16 +193,19 @@ export default function Success(props: SuccessProps) {
     window.scrollTo(0, document.body.scrollHeight);
   }
 
-  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0]
+  const location: ReturnType<typeof getEventLocationValue> = props.bookingInfo.location
+    ? props.bookingInfo.location
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
+
+  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+    props?.bookingInfo?.metadata || {}
+  )?.videoCallUrl;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
     console.error(`No location found `);
   }
-
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
@@ -240,7 +248,7 @@ export default function Success(props: SuccessProps) {
   const giphyAppData = getEventTypeAppData(eventType, "giphy");
   const giphyImage = giphyAppData?.thankYouPage;
 
-  const eventName = getEventName(eventNameObject);
+  const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
   const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
@@ -281,8 +289,8 @@ export default function Success(props: SuccessProps) {
 
   function eventLink(): string {
     const optional: { location?: string } = {};
-    if (location) {
-      optional["location"] = location;
+    if (locationVideoCallUrl) {
+      optional["location"] = locationVideoCallUrl;
     }
 
     const event = createEvent({
@@ -332,12 +340,17 @@ export default function Success(props: SuccessProps) {
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
+    t,
+    bookingInfo.status
+  );
 
   const hasSMSAttendeeAction =
     eventType.workflows.find((workflowEventType) =>
       workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
     ) !== undefined;
+  const providerName = guessEventLocationType(location)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -490,8 +503,14 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3">
                           {locationToDisplay.startsWith("http") ? (
-                            <a title="Meeting Link" href={locationToDisplay}>
-                              {locationToDisplay}
+                            <a
+                              href={locationToDisplay}
+                              target="_blank"
+                              title={locationToDisplay}
+                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
+                              rel="noreferrer">
+                              {providerName || "Link"}
+                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -517,7 +536,7 @@ export default function Success(props: SuccessProps) {
                           <>
                             {eventTypeCustomFound?.type === "RADIO" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
                                   {eventTypeCustomFound.label}
                                 </div>
                                 <div className="col-span-3 mt-1 mb-2">
@@ -541,7 +560,9 @@ export default function Success(props: SuccessProps) {
                             )}
                             {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {key}
+                                </div>
                                 <div className="col-span-3 mt-2 mb-2">
                                   {typeof customInput === "boolean" ? (
                                     <p>{customInput ? "true" : "false"}</p>
@@ -632,8 +653,8 @@ export default function Success(props: SuccessProps) {
                                 .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                                 props.eventType.description
                               }` +
-                              (typeof location === "string"
-                                ? "&location=" + encodeURIComponent(location)
+                              (typeof locationVideoCallUrl === "string"
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "") +
                               (props.eventType.recurringEvent
                                 ? "&recur=" +
@@ -661,7 +682,10 @@ export default function Success(props: SuccessProps) {
                                   date.utc().format() +
                                   "&subject=" +
                                   eventName
-                              ) + (location ? "&location=" + location : "")
+                              ) +
+                              (locationVideoCallUrl
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                : "")
                             }
                             className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
@@ -685,7 +709,10 @@ export default function Success(props: SuccessProps) {
                                   date.utc().format() +
                                   "&subject=" +
                                   eventName
-                              ) + (location ? "&location=" + location : "")
+                              ) +
+                              (locationVideoCallUrl
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                : "")
                             }
                             className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
@@ -984,6 +1011,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       endTime: true,
       location: true,
       status: true,
+      metadata: true,
       cancellationReason: true,
       user: {
         select: {

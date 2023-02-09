@@ -6,7 +6,7 @@
   "keywords": ["react", "typescript", "node", "nextjs", "prisma", "postgres", "trpc"],
   "addons": [
     {
-      "plan": "heroku-postgresql:hobby-dev"
+      "plan": "heroku-postgresql:mini"
     }
   ],
   "env": {
@@ -43,15 +43,18 @@
     },
     "SENDGRID_API_KEY": {
       "description": "Sendgrid api key. Used for email reminders in workflows",
-      "value": ""
+      "value": "",
+      "required": false
     },
     "SENDGRID_SYNC_API_KEY": {
       "description": "Sendgrid internal sync service",
-      "value": ""
+      "value": "",
+      "required": false
     },
     "SENDGRID_EMAIL": {
       "description": "Sendgrid email. Used for email reminders in workflows",
-      "value": ""
+      "value": "",
+      "required": false
     },
     "EMAIL_FROM": {
       "description": "Configures the global From: header whilst sending emails",

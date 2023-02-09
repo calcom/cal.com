@@ -13,18 +13,20 @@ import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
+import { WithNonceProps } from "@lib/withNonce";
 
 const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
   ({ children }) => <>{children}</>
 );
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
-export type AppProps = Omit<NextAppProps, "Component"> & {
+export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown>>, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
+
   /** Will be defined only is there was an error */
   err?: Error;
 };
@@ -77,6 +79,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <ThemeProvider
+              nonce={props.pageProps.nonce}
               enableColorScheme={false}
               storageKey={storageKey}
               forcedTheme={forcedTheme}

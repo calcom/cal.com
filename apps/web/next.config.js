@@ -35,6 +35,12 @@ if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
 
+if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
+  );
+}
+
 if (!process.env.EMAIL_FROM) {
   console.warn(
     "\x1b[33mwarn",
@@ -179,12 +185,33 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // prettier-ignore
-        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        source: "/auth/:path*",
         headers: [
           {
             key: "X-Frame-Options",
             value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/signup",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
         ],
       },
