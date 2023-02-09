@@ -4,10 +4,9 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { FiFileText, FiCheck, FiBookOpen, FiChevronRight } from "@calcom/ui/components/icon";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 import { ssgInit } from "@server/lib/ssg";
 
