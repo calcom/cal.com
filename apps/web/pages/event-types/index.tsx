@@ -136,7 +136,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         )}
       </div>
       <EventTypeDescription
-        // @ts-expect-error FIXME We have a type mismtach here @hariombalhara @sean-brydon
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={type}
       />
     </Link>

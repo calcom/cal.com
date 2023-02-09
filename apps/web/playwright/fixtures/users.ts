@@ -1,6 +1,6 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { Prisma as PrismaType, MembershipRole } from "@prisma/client";
+import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
@@ -34,11 +34,14 @@ const seededForm = {
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
-const createTeamAndAddUser = async ({ user }: { user: { id: number; role?: MembershipRole } }) => {
+const createTeamAndAddUser = async (
+  { user }: { user: { id: number; role?: MembershipRole } },
+  workerInfo: WorkerInfo
+) => {
   const team = await prisma.team.create({
     data: {
       name: "",
-      slug: `team-${Date.now()}`,
+      slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
     },
   });
   if (!team) {
@@ -216,7 +219,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } });
+        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
       }
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);

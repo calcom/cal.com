@@ -286,6 +286,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-gray-100">
                 <DropdownItem
                   type="button"
+                  color="destructive"
                   StartIcon={FiTrash}
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
