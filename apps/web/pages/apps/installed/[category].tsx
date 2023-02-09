@@ -149,14 +149,6 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                         <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <ConnectOrDisconnectIntegrationMenuItem
-                          credentialIds={item.credentialIds}
-                          type={item.type}
-                          isGlobal={item.isGlobal}
-                          installed
-                          invalidCredentialIds={item.invalidCredentialIds}
-                          handleDisconnect={handleDisconnect}
-                        />
                         {!appIsDefault && variant === "conferencing" && (
                           <DropdownMenuItem>
                             <DropdownItem
@@ -179,6 +171,14 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                             </DropdownItem>
                           </DropdownMenuItem>
                         )}
+                        <ConnectOrDisconnectIntegrationMenuItem
+                          credentialIds={item.credentialIds}
+                          type={item.type}
+                          isGlobal={item.isGlobal}
+                          installed
+                          invalidCredentialIds={item.invalidCredentialIds}
+                          handleDisconnect={handleDisconnect}
+                        />
                       </DropdownMenuContent>
                     </Dropdown>
                   </div>
