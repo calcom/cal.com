@@ -19,7 +19,7 @@ import {
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -222,11 +222,8 @@ function TimezoneDropdown({
 
   return (
     <>
-      <div
-        className="dark:focus-within:bg-darkgray-200 dark:bg-darkgray-100 flex w-fit
-        items-center
-       rounded-[4px] px-1 py-[2px] text-sm font-medium focus-within:bg-gray-200 [&_svg]:focus-within:text-gray-900 dark:[&_svg]:focus-within:text-white [&_p]:focus-within:text-gray-900 dark:[&_p]:focus-within:text-white">
-        <FiGlobe className="dark:text-darkgray-600 flex h-4 w-4 text-gray-500" />
+      <div className="dark:focus-within:bg-darkgray-200 dark:bg-darkgray-100 dark:hover:bg-darkgray-200 -mx-[2px] !mt-3 flex w-fit items-center rounded-[4px] px-1 py-[2px] text-sm font-medium focus-within:bg-gray-200 hover:bg-gray-100 [&_svg]:focus-within:text-gray-900 dark:[&_svg]:focus-within:text-white [&_p]:focus-within:text-gray-900 dark:[&_p]:focus-within:text-white">
+        <FiGlobe className="dark:text-darkgray-600 flex h-4 w-4 text-gray-600 ltr:mr-[2px] rtl:ml-[2px]" />
         <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
       </div>
     </>
@@ -294,7 +291,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     () => <TimezoneDropdown timeZone={timeZone} onChangeTimeZone={setTimeZone} />,
     [timeZone]
   );
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -382,14 +379,14 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                           </div>
                         </div>
                       )}
-                      {stripeAppData.price > 0 && (
+                      {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
                           <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           <IntlProvider locale="en">
                             <FormattedNumber
-                              value={stripeAppData.price / 100.0}
+                              value={paymentAppData.price / 100.0}
                               style="currency"
-                              currency={stripeAppData.currency.toUpperCase()}
+                              currency={paymentAppData.currency?.toUpperCase()}
                             />
                           </IntlProvider>
                         </p>

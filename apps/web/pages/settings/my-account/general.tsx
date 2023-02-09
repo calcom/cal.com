@@ -69,7 +69,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate our previous i18n cache
+      await utils.viewer.public.i18n.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },

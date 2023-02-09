@@ -164,6 +164,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -202,6 +203,7 @@ if (isSAMLLoginEnabled) {
       clientId: "dummy",
       clientSecret: "dummy",
     },
+    allowDangerousEmailAccountLinking: true,
   });
 }
 
@@ -497,7 +499,13 @@ export default NextAuth({
             return true;
           }
 
-          if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+          // User signs up with email/password and then tries to login with Google/SAML using the same email
+          if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
+            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+          ) {
+            return true;
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
           }
 
