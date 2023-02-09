@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useReducer, useState } from "react";
 import z from "zod";
 
@@ -158,7 +159,7 @@ const IntegrationsList = ({ data, handleDisconnect }: IntegrationsListProps) => 
                       invalidCredentialIds={item.invalidCredentialIds}
                       handleDisconnect={handleDisconnect}
                     />
-                    {(appIsDefault || metadataLoading) && (
+                    {(appIsDefault || metadataLoading) && item.category === "conferencing" && (
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
