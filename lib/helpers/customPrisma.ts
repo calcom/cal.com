@@ -1,7 +1,7 @@
+import { PrismaClient } from "@prisma/client";
 import { NextMiddleware } from "next-api-middleware";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
-import { customPrisma, prisma } from "@calcom/prisma";
 
 const LOCAL_CONSOLE_URL = process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
 
@@ -12,7 +12,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   }: { query: { key?: string } } = req;
   // If no custom api Id is provided, attach to request the regular cal.com prisma client.
   if (!key) {
-    req.prisma = prisma;
+    req.prisma = new PrismaClient();
     await next();
     return;
   }
@@ -26,13 +26,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     res.status(400).json({ error: "no databaseUrl set up at your instance yet" });
     return;
   }
-  try {
-    /** Attempt to prevent shared connection pools for custom prisma instances */
-    await prisma.$disconnect();
-  } catch (error) {
-    console.error("Couldn't not prisma.$disconnect()");
-  }
-  req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
+  req.prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   /* @note:
     In order to skip verifyApiKey for customPrisma requests, 
     we pass isAdmin true, and userId 0, if we detect them later, 
@@ -44,4 +38,6 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   delete req.query.key;
   await next();
   await req.prisma.$disconnect();
+  // @ts-expect-error testing
+  delete req.prisma;
 };
