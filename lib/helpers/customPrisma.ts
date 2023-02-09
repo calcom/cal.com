@@ -26,6 +26,12 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     res.status(400).json({ error: "no databaseUrl set up at your instance yet" });
     return;
   }
+  try {
+    /** Attempt to prevent shared connection pools for custom prisma instances */
+    await prisma.$disconnect();
+  } catch (error) {
+    console.error("Couldn't not prisma.$disconnect()");
+  }
   req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
   /* @note:
     In order to skip verifyApiKey for customPrisma requests, 
