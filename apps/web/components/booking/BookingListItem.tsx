@@ -246,23 +246,26 @@ function BookingListItem(booking: BookingItemProps) {
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
-          <DialogHeader title={t("rejection_reason_title")} />
+          <div>
+            <DialogHeader title={t("rejection_reason_title")} subtitle={t("rejection_reason_description")} />
 
-          <p className="-mt-4 text-sm text-gray-500">{t("rejection_reason_description")}</p>
-          <p className="mt-6 mb-2 text-sm font-bold text-black">
-            {t("rejection_reason")}
-            <span className="font-normal text-gray-500"> (Optional)</span>
-          </p>
-          <TextArea
-            name={t("rejection_reason")}
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            className="mb-5 sm:mb-6"
-          />
+            <div className="flex flex-col space-y-4">
+              <div>
+                <p className="mb-1 text-sm font-bold text-black">
+                  {t("rejection_reason")}
+                  <span className="font-normal text-gray-500"> (Optional)</span>
+                </p>
+                <TextArea
+                  name={t("rejection_reason")}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
 
           <DialogFooter>
             <DialogClose />
-
             <Button
               disabled={mutation.isLoading}
               onClick={() => {
