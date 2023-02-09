@@ -1,7 +1,9 @@
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
@@ -16,18 +18,28 @@ import {
   TextField,
 } from "@calcom/ui";
 
+const querySchema = z.object({
+  title: z.string(),
+  description: z.string().default(""),
+  slug: z.string(),
+  id: z.coerce.number(),
+  length: z.coerce.number(),
+  pageSlug: z.string(),
+});
+
 const DuplicateDialog = () => {
   const { t } = useLocale();
   const router = useRouter();
 
+  const {
+    data: { pageSlug, slug, ...defaultValues },
+  } = useTypedQuery(querySchema);
+
   // react hook form
   const form = useForm({
     defaultValues: {
-      id: Number(router.query.id as string) || -1,
-      title: (router.query.title as string) || "",
-      slug: t("event_type_duplicate_copy_text", { slug: router.query.slug as string }),
-      description: (router.query.description as string) || "",
-      length: Number(router.query.length) || 30,
+      slug: t("event_type_duplicate_copy_text", { slug }),
+      ...defaultValues,
     },
   });
   const { register } = form;
@@ -55,12 +67,10 @@ const DuplicateDialog = () => {
     },
   });
 
-  const { pageSlug } = router.query;
-
   return (
     <Dialog
       name="duplicate-event-type"
-      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id"]}>
+      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
       <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
         <Form
           form={form}
