@@ -219,7 +219,7 @@ const IntegrationsContainer = ({
     return <SkeletonLoader />;
   }
 
-  if (!data && !isLoading) {
+  if (!(data && data?.items?.length > 0)) {
     return (
       <EmptyScreen
         Icon={emptyIcon[variant || "other"]}
