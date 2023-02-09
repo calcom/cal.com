@@ -36,7 +36,7 @@ export function AppSetDefaultLinkDailog({
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
-      utils.viewer.getUserMetadata.invalidate();
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
     },
   });
 
