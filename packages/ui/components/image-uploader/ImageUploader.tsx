@@ -4,7 +4,7 @@ import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../..";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from "../..";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
 
@@ -163,16 +163,9 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="mb-4 sm:flex sm:items-start">
-          <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
-              {t("upload_target", { target })}
-            </h3>
-          </div>
-        </div>
+      <DialogContent title={t("upload_target", { target })}>
         <div className="mb-4">
-          <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
+          <div className="cropper flex flex-col items-center justify-center pt-8">
             {!result && (
               <div className="flex h-20 max-h-20 w-20 items-center justify-start rounded-full bg-gray-50">
                 {!imageSrc && (
@@ -187,23 +180,27 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="mt-8 rounded-sm border border-gray-300 bg-white px-3 py-1 text-xs font-medium leading-4 text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent dark:text-white dark:hover:bg-gray-900">
-              <input
-                onInput={onInputFile}
-                type="file"
-                name={id}
-                placeholder={t("upload_image")}
-                className="pointer-events-none absolute mt-4 opacity-0"
-                accept="image/*"
-              />
-              {t("choose_a_file")}
-            </label>
+            <Button color="secondary" className="mt-12">
+              <label className="-ml-4 -mr-4 cursor-pointer py-2 px-4">
+                <input
+                  onInput={onInputFile}
+                  type="file"
+                  name={id}
+                  placeholder={t("upload_image")}
+                  className="absolute top-[-9999px] opacity-0"
+                  accept="image/*"
+                />
+                {t("choose_a_file")}
+              </label>
+            </Button>
           </div>
         </div>
-        <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
-          <DialogClose onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</DialogClose>
-          <DialogClose color="secondary">{t("cancel")}</DialogClose>
-        </div>
+        <DialogFooter>
+          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+          <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
+            {t("save")}
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
