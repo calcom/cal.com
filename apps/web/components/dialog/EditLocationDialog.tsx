@@ -207,149 +207,138 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
-      <DialogContent>
-        <div className="flex flex-row space-x-3">
-          <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <FiMapPin className="text-primary-600 h-6 w-6" />
-          </div>
-          <div className="w-full">
-            <div className="mt-3 text-center sm:mt-0 sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-                {t("edit_location")}
-              </h3>
-              {!booking && (
-                <p className="text-sm text-gray-400">
-                  <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
-                    Can&apos;t find the right video app? Visit our
-                    <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
-                      App Store
-                    </Link>
-                    .
-                  </Trans>
-                </p>
-              )}
-            </div>
-            <div className="mt-3 text-center sm:mt-0 sm:text-left" />
+      <DialogContent
+        Icon={FiMapPin}
+        title={t("edit_location")}
+        description={
+          !booking ? (
+            <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
+              Can&apos;t find the right video app? Visit our
+              <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+                App Store
+              </Link>
+              .
+            </Trans>
+          ) : undefined
+        }>
+        {booking && (
+          <>
+            <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
+            <p className="mb-2 ml-1 text-sm text-black">
+              {getHumanReadableLocationValue(booking.location, t)}
+            </p>
+          </>
+        )}
+        <Form
+          className="space-y-4"
+          form={locationFormMethods}
+          handleSubmit={async (values) => {
+            const { locationType: newLocation, displayLocationPublicly } = values;
 
-            {booking && (
-              <>
-                <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
-                <p className="mb-2 ml-1 text-sm text-black">
-                  {getHumanReadableLocationValue(booking.location, t)}
-                </p>
-              </>
-            )}
-            <Form
-              form={locationFormMethods}
-              handleSubmit={async (values) => {
-                const { locationType: newLocation, displayLocationPublicly } = values;
+            let details = {};
+            if (newLocation === LocationType.InPerson) {
+              details = {
+                address: values.locationAddress,
+              };
+            }
+            const eventLocationType = getEventLocationType(newLocation);
 
-                let details = {};
-                if (newLocation === LocationType.InPerson) {
-                  details = {
-                    address: values.locationAddress,
-                  };
-                }
-                const eventLocationType = getEventLocationType(newLocation);
+            // TODO: There can be a property that tells if it is to be saved in `link`
+            if (
+              newLocation === LocationType.Link ||
+              (!eventLocationType?.default && eventLocationType?.linkType === "static")
+            ) {
+              details = { link: values.locationLink };
+            }
 
-                // TODO: There can be a property that tells if it is to be saved in `link`
-                if (
-                  newLocation === LocationType.Link ||
-                  (!eventLocationType?.default && eventLocationType?.linkType === "static")
-                ) {
-                  details = { link: values.locationLink };
-                }
+            if (newLocation === LocationType.UserPhone) {
+              details = { hostPhoneNumber: values.locationPhoneNumber };
+            }
 
-                if (newLocation === LocationType.UserPhone) {
-                  details = { hostPhoneNumber: values.locationPhoneNumber };
-                }
+            if (eventLocationType?.organizerInputType) {
+              details = {
+                ...details,
+                displayLocationPublicly,
+              };
+            }
 
-                if (eventLocationType?.organizerInputType) {
-                  details = {
-                    ...details,
-                    displayLocationPublicly,
-                  };
-                }
-
-                saveLocation(newLocation, details);
-                setShowLocationModal(false);
-                setSelectedLocation?.(undefined);
-                locationFormMethods.unregister([
-                  "locationType",
-                  "locationLink",
-                  "locationAddress",
-                  "locationPhoneNumber",
-                ]);
-              }}>
-              <QueryCell
-                query={locationsQuery}
-                success={({ data: locationOptions }) => {
-                  if (!locationOptions.length) return null;
-                  if (booking) {
-                    locationOptions.forEach((location) => {
-                      if (location.label === "phone") {
-                        location.options.filter((l) => l.value !== "phone");
-                      } else if (location.label === "in person") {
-                        location.options.filter((l) => l.value !== "attendeeInPerson");
-                      }
-                    });
+            saveLocation(newLocation, details);
+            setShowLocationModal(false);
+            setSelectedLocation?.(undefined);
+            locationFormMethods.unregister([
+              "locationType",
+              "locationLink",
+              "locationAddress",
+              "locationPhoneNumber",
+            ]);
+          }}>
+          <QueryCell
+            query={locationsQuery}
+            success={({ data: locationOptions }) => {
+              if (!locationOptions.length) return null;
+              if (booking) {
+                locationOptions.forEach((location) => {
+                  if (location.label === "phone") {
+                    location.options.filter((l) => l.value !== "phone");
+                  } else if (location.label === "in person") {
+                    location.options.filter((l) => l.value !== "attendeeInPerson");
                   }
-                  return (
-                    <Controller
-                      name="locationType"
-                      control={locationFormMethods.control}
-                      render={() => (
-                        <div className="py-4">
-                          <LocationSelect
-                            maxMenuHeight={300}
-                            name="location"
-                            defaultValue={selection}
-                            options={locationOptions}
-                            isSearchable
-                            onChange={(val) => {
-                              if (val) {
-                                locationFormMethods.setValue("locationType", val.value);
-                                locationFormMethods.unregister([
-                                  "locationLink",
-                                  "locationAddress",
-                                  "locationPhoneNumber",
-                                ]);
-                                locationFormMethods.clearErrors([
-                                  "locationLink",
-                                  "locationPhoneNumber",
-                                  "locationAddress",
-                                ]);
-                                setSelectedLocation?.(val);
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
-                    />
-                  );
+                });
+              }
+              return (
+                <Controller
+                  name="locationType"
+                  control={locationFormMethods.control}
+                  render={() => (
+                    <div>
+                      <LocationSelect
+                        maxMenuHeight={300}
+                        name="location"
+                        defaultValue={selection}
+                        options={locationOptions}
+                        isSearchable
+                        onChange={(val) => {
+                          if (val) {
+                            locationFormMethods.setValue("locationType", val.value);
+                            locationFormMethods.unregister([
+                              "locationLink",
+                              "locationAddress",
+                              "locationPhoneNumber",
+                            ]);
+                            locationFormMethods.clearErrors([
+                              "locationLink",
+                              "locationPhoneNumber",
+                              "locationAddress",
+                            ]);
+                            setSelectedLocation?.(val);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                />
+              );
+            }}
+          />
+          {selectedLocation && LocationOptions}
+          <DialogFooter>
+            <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
+              <Button
+                onClick={() => {
+                  setShowLocationModal(false);
+                  setSelectedLocation?.(undefined);
+                  setEditingLocationType?.("");
+                  locationFormMethods.unregister(["locationType", "locationLink"]);
                 }}
-              />
-              {selectedLocation && LocationOptions}
-              <DialogFooter>
-                <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                  <Button
-                    onClick={() => {
-                      setShowLocationModal(false);
-                      setSelectedLocation?.(undefined);
-                      setEditingLocationType?.("");
-                      locationFormMethods.unregister(["locationType", "locationLink"]);
-                    }}
-                    type="button"
-                    color="secondary">
-                    {t("cancel")}
-                  </Button>
+                type="button"
+                color="minimal">
+                {t("cancel")}
+              </Button>
 
-                  <Button type="submit">{t("update")}</Button>
-                </div>
-              </DialogFooter>
-            </Form>
-          </div>
-        </div>
+              <Button type="submit">{t("update")}</Button>
+            </div>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );

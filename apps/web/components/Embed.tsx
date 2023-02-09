@@ -12,7 +12,6 @@ import {
   DialogClose,
   DialogContent,
   HorizontalTabs,
-  InputLeading,
   Label,
   showToast,
   Switch,
@@ -627,15 +626,12 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent type="creation" size="lg">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-          {t("how_you_want_add_cal_site", { appName: APP_NAME })}
-        </h3>
-        <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
-        </div>
-      </div>
+    <DialogContent
+      type="creation"
+      enableOverflow
+      size="lg"
+      title={t("how_you_want_add_cal_site", { appName: APP_NAME })}
+      description={t("choose_ways_put_cal_site", { appName: APP_NAME })}>
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
@@ -806,8 +802,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     },
   ];
 
+  // FIXME: Convert to DialogHeader
   return (
-    <DialogContent size="xl" className="p-0.5" type="creation">
+    <DialogContent enableOverflow size="xl" className="p-0.5" type="creation">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">

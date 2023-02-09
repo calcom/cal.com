@@ -57,13 +57,37 @@ export function Dialog(props: DialogProps) {
 }
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
-  type?: "creation" | "confirmation";
+  type?: "creation" | "confirmation" | "destruction";
   title?: string;
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
   enableOverflow?: boolean;
+};
+
+const Container = ({
+  children,
+  Icon,
+  iconClassName,
+}: React.PropsWithChildren<{
+  Icon?: SVGComponent;
+  iconClassName?: string;
+}>) => {
+  return Icon ? (
+    <div className="flex flex-row space-x-4">
+      <div
+        className={classNames(
+          "mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10",
+          iconClassName
+        )}>
+        <Icon className="h-6 w-6" />
+      </div>
+      <div className="w-full">{children}</div>
+    </div>
+  ) : (
+    <>{children}</>
+  );
 };
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
@@ -88,25 +112,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
-          {type === "creation" && (
-            <div>
-              <DialogHeader title={title} subtitle={props.description} />
-              <div className="flex flex-col space-y-6">{children}</div>
-            </div>
-          )}
-          {type === "confirmation" && (
-            <div className="flex">
-              {Icon && (
-                <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
-                  <Icon className="h-4 w-4 text-black" />
-                </div>
-              )}
-              <div className="w-full">
-                <DialogHeader title={title} subtitle={props.description} />
-                <div className="flex flex-col space-y-6">{children}</div>
-              </div>
-            </div>
-          )}
+          <Container Icon={Icon} iconClassName="bg-red-100 text-red-600">
+            <DialogHeader title={title} subtitle={props.description} subtitleClassName={Icon ? "pt-1" : ""} />
+            <div className="flex flex-col space-y-6">{children}</div>
+          </Container>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     );
@@ -116,18 +125,21 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
 type DialogHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  subtitleClassName?: string;
 };
 
-export function DialogHeader(props: DialogHeaderProps) {
+export function DialogHeader({ subtitleClassName = "", ...props }: DialogHeaderProps) {
   if (!props.title) return null;
 
   return (
-    <div className="mb-8">
-      <h3 className="leading-20 text-semibold font-cal pb-3 text-xl text-gray-900" id="modal-title">
+    <header className={props.subtitle ? "mb-8" : "mb-6"}>
+      <h3 className="text-semibold font-cal text-xl leading-none text-gray-900" id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <div className="text-sm text-gray-500">{props.subtitle}</div>}
-    </div>
+      {props.subtitle && (
+        <div className={classNames("pt-4 text-sm text-gray-500", subtitleClassName)}>{props.subtitle}</div>
+      )}
+    </header>
   );
 }
 

@@ -86,17 +86,19 @@ function CropContainer({
   };
 
   return (
-    <div className="crop-container h-40 max-h-40 w-40 rounded-full">
-      <div className="relative h-40 w-40 rounded-full">
-        <Cropper
-          image={imageSrc}
-          crop={crop}
-          zoom={zoom}
-          aspect={1}
-          onCropChange={setCrop}
-          onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
-          onZoomChange={setZoom}
-        />
+    <div>
+      <div className="crop-container h-40 w-40 rounded-full">
+        <div className="relative h-40 w-40 rounded-full">
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            aspect={1}
+            onCropChange={setCrop}
+            onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
+            onZoomChange={setZoom}
+          />
+        </div>
       </div>
       <Slider
         value={zoom}
@@ -165,7 +167,7 @@ export default function ImageUploader({
       </DialogTrigger>
       <DialogContent title={t("upload_target", { target })}>
         <div className="mb-4">
-          <div className="cropper flex flex-col items-center justify-center pt-8">
+          <div className="cropper flex flex-col items-center justify-center space-y-4 pt-8">
             {!result && (
               <div className="flex h-20 max-h-20 w-20 items-center justify-start rounded-full bg-gray-50">
                 {!imageSrc && (
@@ -180,7 +182,7 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <Button color="secondary" className="mt-12">
+            <Button color="secondary">
               <label className="-ml-4 -mr-4 cursor-pointer py-2 px-4">
                 <input
                   onInput={onInputFile}

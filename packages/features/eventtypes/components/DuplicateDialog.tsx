@@ -71,13 +71,13 @@ const DuplicateDialog = () => {
     <Dialog
       name="duplicate-event-type"
       clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
-      <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
+      <DialogContent enableOverflow type="creation" title="Duplicate Event Type">
         <Form
           form={form}
           handleSubmit={(values) => {
             duplicateMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="space-y-4">
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}

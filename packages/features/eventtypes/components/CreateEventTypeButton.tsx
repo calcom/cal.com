@@ -144,7 +144,7 @@ const CreateEventTypeDialog = () => {
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-6">
+          <div className="space-y-6">
             {teamId && (
               <TextField
                 type="hidden"
