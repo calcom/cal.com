@@ -42,7 +42,7 @@ import AppListCard from "@components/AppListCard";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 
-function ConnectOrDisconnectIntegrationButton(props: {
+function ConnectOrDisconnectIntegrationMenuItem(props: {
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
@@ -61,22 +61,15 @@ function ConnectOrDisconnectIntegrationButton(props: {
 
   if (credentialId || type === "stripe_payment" || isGlobal) {
     return (
-      <Dropdown modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>
-            <DropdownItem
-              color="destructive"
-              onClick={() => handleDisconnect(credentialId)}
-              disabled={isGlobal}
-              StartIcon={FiTrash}>
-              {t("remove_app")}
-            </DropdownItem>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </Dropdown>
+      <DropdownMenuItem>
+        <DropdownItem
+          color="destructive"
+          onClick={() => handleDisconnect(credentialId)}
+          disabled={isGlobal}
+          StartIcon={FiTrash}>
+          {t("remove_app")}
+        </DropdownItem>
+      </DropdownMenuItem>
     );
   }
 
@@ -113,8 +106,8 @@ interface IntegrationsListProps {
   handleDisconnect: (credentialId: number) => void;
 }
 
-const IntegrationsList = ({ data, handleDisconnect }: IntegrationsListProps) => {
-  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery();
+const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
+  const { data: usersMetadata } = trpc.viewer.getUserMetadata.useQuery();
   const utils = trpc.useContext();
 
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
@@ -145,42 +138,49 @@ const IntegrationsList = ({ data, handleDisconnect }: IntegrationsListProps) => 
                 description={item.description}
                 title={item.name}
                 logo={item.logo}
-                isDefault={metadataLoading ? false : appIsDefault}
+                isDefault={appIsDefault}
                 shouldHighlight
                 slug={item.slug}
                 invalidCredential={item.invalidCredentialIds.length > 0}
                 actions={
                   <div className="flex  justify-end">
-                    <ConnectOrDisconnectIntegrationButton
-                      credentialIds={item.credentialIds}
-                      type={item.type}
-                      isGlobal={item.isGlobal}
-                      installed
-                      invalidCredentialIds={item.invalidCredentialIds}
-                      handleDisconnect={handleDisconnect}
-                    />
-                    {(appIsDefault || metadataLoading) && item.category === "conferencing" && (
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          color="secondary"
-                          StartIcon={FiVideo}
-                          onClick={() => {
-                            const locationType = getEventLocationTypeFromApp(
-                              item?.locationOption?.value ?? ""
-                            );
-                            if (locationType?.linkType === "static") {
-                              setLocationType({ ...locationType, slug: appSlug });
-                            } else {
-                              updateDefaultAppMutation.mutate({
-                                appSlug,
-                              });
-                            }
-                          }}>
-                          {t("change_default_conferencing_app")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    )}
+                    <Dropdown modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <ConnectOrDisconnectIntegrationMenuItem
+                          credentialIds={item.credentialIds}
+                          type={item.type}
+                          isGlobal={item.isGlobal}
+                          installed
+                          invalidCredentialIds={item.invalidCredentialIds}
+                          handleDisconnect={handleDisconnect}
+                        />
+                        {!appIsDefault && variant === "conferencing" && (
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              color="secondary"
+                              StartIcon={FiVideo}
+                              onClick={() => {
+                                const locationType = getEventLocationTypeFromApp(
+                                  item?.locationOption?.value ?? ""
+                                );
+                                if (locationType?.linkType === "static") {
+                                  setLocationType({ ...locationType, slug: appSlug });
+                                } else {
+                                  updateDefaultAppMutation.mutate({
+                                    appSlug,
+                                  });
+                                }
+                              }}>
+                              {t("change_default_conferencing_app")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </Dropdown>
                   </div>
                 }>
                 <AppSettings slug={item.slug} />

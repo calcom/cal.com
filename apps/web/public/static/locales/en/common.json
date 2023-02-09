@@ -1566,5 +1566,6 @@
   "collective_or_roundrobin": "Collective or round-robin",
   "book_your_team_members": "Book your team members together with collective events or cycle through to get the right person with round-robin.",
   "default_app_link_title":"Set a default app link",
-  "default_app_link_description":"Setting a default app link allows all newly created event types to use the app link you set."
+  "default_app_link_description":"Setting a default app link allows all newly created event types to use the app link you set.",
+  "change_default_conferencing_app":"Set as default"
 }
