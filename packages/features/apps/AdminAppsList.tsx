@@ -217,7 +217,7 @@ const EditKeysModal: FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={handleModelClose}>
-      <DialogContent title={t("edit_keys")} type="creation">
+      <DialogContent title={t("edit_keys")}>
         {!!keys && typeof keys === "object" && (
           <Form
             id="edit-keys"

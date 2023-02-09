@@ -38,7 +38,6 @@ function WarningDialog(props: DialogProps) {
   return (
     <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
-        type="creation"
         title={t("using_meet_requires_calendar")}
         description={googleCalendarPresent ? "" : t("continue_to_install_google_calendar")}>
         <DialogFooter>

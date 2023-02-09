@@ -11,6 +11,7 @@ import {
   DialogHeader,
   showToast,
   TextArea,
+  TextAreaField,
 } from "@calcom/ui";
 import { FiClock } from "@calcom/ui/components/icon";
 
@@ -40,42 +41,40 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent>
-        <div className="flex flex-row space-x-3">
-          <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <FiClock className="m-auto h-6 w-6" />
-          </div>
-          <div className="pt-1">
-            <DialogHeader title={t("send_reschedule_request")} />
-            <p className="text-sm text-gray-500">{t("reschedule_modal_description")}</p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">
-              {t("reason_for_reschedule_request")}
-              <span className="font-normal text-gray-500"> (Optional)</span>
-            </p>
-            <TextArea
-              data-testid="reschedule_reason"
-              name={t("reschedule_reason")}
-              value={rescheduleReason}
-              onChange={(e) => setRescheduleReason(e.target.value)}
-              className="mb-5 sm:mb-6"
-            />
-
-            <DialogFooter>
-              <DialogClose />
-              <Button
-                data-testid="send_request"
-                disabled={isLoading}
-                onClick={() => {
-                  rescheduleApi({
-                    bookingId,
-                    rescheduleReason,
-                  });
-                }}>
-                {t("send_reschedule_request")}
-              </Button>
-            </DialogFooter>
-          </div>
+      <DialogContent
+        Icon={FiClock}
+        title={t("send_reschedule_request")}
+        description={t("reschedule_modal_description")}>
+        <div>
+          <TextAreaField
+            data-testid="reschedule_reason"
+            name={t("reschedule_reason")}
+            label={
+              <>
+                {t("reason_for_reschedule_request")}
+                <span className="font-normal text-gray-500"> (Optional)</span>
+              </>
+            }
+            value={rescheduleReason}
+            onChange={(e) => setRescheduleReason(e.target.value)}
+            className="mb-5 sm:mb-6"
+          />
         </div>
+
+        <DialogFooter>
+          <DialogClose />
+          <Button
+            data-testid="send_request"
+            disabled={isLoading}
+            onClick={() => {
+              rescheduleApi({
+                bookingId,
+                rescheduleReason,
+              });
+            }}>
+            {t("send_reschedule_request")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

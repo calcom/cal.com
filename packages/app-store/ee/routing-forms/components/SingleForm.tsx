@@ -377,8 +377,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         </FormActionsProvider>
       </Form>
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent enableOverflow>
-          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+        <DialogContent enableOverflow title={t("test_routing_form")} subtitle={t("test_preview_description")}>
           <div>
             <form
               onSubmit={(e) => {

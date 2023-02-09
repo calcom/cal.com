@@ -111,10 +111,7 @@ export const SearchDialog = (props: ISearchDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent>
-        <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
-          {t("add_gif_to_confirmation")}
-        </h3>
+      <DialogContent title={t("add_gif_to_confirmation")}>
         <p className="mb-3 text-sm font-light text-gray-500">{t("find_gif_spice_confirmation")}</p>
         <div className="flex items-center border-b border-solid">
           {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}

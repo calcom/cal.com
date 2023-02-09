@@ -65,7 +65,7 @@ export default function DisconnectIntegration({
         <DialogContent
           title={t("remove_app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
-          type="confirmation"
+          type="destruction"
           Icon={FiAlertCircle}>
           <DialogFooter>
             <DialogClose onClick={() => setModalOpen(false)} />

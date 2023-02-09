@@ -78,23 +78,16 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
-        <div className="flex flex-row space-x-3">
-          <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <ClockIcon className="m-auto h-6 w-6" />
-          </div>
-          <div className="pt-1">
-            <DialogHeader title="Wipe My Calendar" />
-            <p className="mt-2 text-sm text-gray-500">
-              This will cancel all upcoming meetings from: <br />{" "}
-              <strong className="text-black">
-                {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
-              </strong>
-            </p>
-            <p className="mt-6 mb-2 text-sm">Are you sure? This can&apos;t be undone</p>
-          </div>
+      <DialogContent Icon={ClockIcon} title="Wipe My Calendar" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <div>
+          <p className="mt-2 text-sm text-gray-500">
+            This will cancel all upcoming meetings from: <br />{" "}
+            <strong className="text-black">
+              {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
+            </strong>
+          </p>
+          <p className="mt-6 mb-2 text-sm">Are you sure? This can&apos;t be undone</p>
         </div>
-
         <DialogFooter>
           <Button color="secondary" onClick={() => setIsOpenDialog(false)}>
             {t("cancel")}

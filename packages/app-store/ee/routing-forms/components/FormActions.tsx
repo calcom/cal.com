@@ -87,15 +87,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const { register } = hookForm;
   return (
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
-      <DialogContent className="overflow-y-auto">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {t("add_new_form")}
-          </h3>
-          <div>
-            <p className="text-sm text-gray-500">{t("form_description")}</p>
-          </div>
-        </div>
+      <DialogContent enableOverflow title={t("add_new_form")} description={t("form_description")}>
         <Form
           form={hookForm}
           handleSubmit={(values) => {

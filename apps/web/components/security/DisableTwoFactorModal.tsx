@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, Form, Label, PasswordField } from "@calcom/ui";
+import { ShieldCheckIcon } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -63,10 +64,11 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
 
   return (
     <Dialog open={true}>
-      <DialogContent>
+      <DialogContent
+        Icon={ShieldCheckIcon}
+        title={t("disable_2fa")}
+        description={t("disable_2fa_recommendation")}>
         <Form form={form} handleSubmit={handleDisable}>
-          <TwoFactorModalHeader title={t("disable_2fa")} description={t("disable_2fa_recommendation")} />
-
           <div className="mb-4">
             <PasswordField
               labelProps={{

@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Form, TextField } from "@calcom/ui";
+import { FiShield } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -130,7 +131,11 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={t("enable_2fa")} description={setupDescriptions[step]} type="creation">
+      <DialogContent
+        Icon={FiShield}
+        title={t("enable_2fa")}
+        description={setupDescriptions[step]}
+        type="creation">
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
@@ -148,7 +153,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
           </form>
         </WithStep>
         <WithStep step={SetupStep.DisplayQrCode} current={step}>
-          <>
+          <div className="-ml-14">
             <div className="flex justify-center">
               {
                 // eslint-disable-next-line @next/next/no-img-element
@@ -156,43 +161,36 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
               }
             </div>
             <p className="text-center font-mono text-xs">{secret}</p>
-          </>
+          </div>
         </WithStep>
         <Form handleSubmit={handleEnable} form={form}>
           <WithStep step={SetupStep.EnterTotpCode} current={step}>
-            <div className="mb-4">
+            <div className="w-96">
               <TwoFactor center />
 
               {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
             </div>
           </WithStep>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          <DialogFooter>
+            <Button color="minimal" onClick={onCancel}>
+              {t("cancel")}
+            </Button>
             <WithStep step={SetupStep.ConfirmPassword} current={step}>
-              <Button
-                type="submit"
-                className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
-                onClick={handleSetup}
-                disabled={password.length === 0 || isSubmitting}>
+              <Button type="submit" onClick={handleSetup} disabled={password.length === 0 || isSubmitting}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.DisplayQrCode} current={step}>
-              <Button
-                type="submit"
-                className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
-                onClick={() => setStep(SetupStep.EnterTotpCode)}>
+              <Button type="submit" onClick={() => setStep(SetupStep.EnterTotpCode)}>
                 {t("continue")}
               </Button>
             </WithStep>
             <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button type="submit" className="ltr:ml-2 ltr:mr-2 rtl:ml-2" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting}>
                 {t("enable")}
               </Button>
             </WithStep>
-            <Button color="secondary" onClick={onCancel}>
-              {t("cancel")}
-            </Button>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

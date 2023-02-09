@@ -9,7 +9,6 @@ export function AccountDialog(props: DialogProps) {
   return (
     <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
-        type="creation"
         title="Connecting with MS Teams requires a work/school Microsoft account."
         description="If you continue with a personal account you will receive an error">
         <DialogFooter>

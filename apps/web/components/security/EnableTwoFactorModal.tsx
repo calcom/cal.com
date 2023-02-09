@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, Form } from "@calcom/ui";
+import { ShieldCheckIcon } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -128,9 +129,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
 
   return (
     <Dialog open={true}>
-      <DialogContent>
-        <TwoFactorModalHeader title={t("enable_2fa")} description={setupDescriptions[step]} />
-
+      <DialogContent Icon={ShieldCheckIcon} title={t("enable_2fa")} description={setupDescriptions[step]}>
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">

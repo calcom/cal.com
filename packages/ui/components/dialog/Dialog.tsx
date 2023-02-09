@@ -112,7 +112,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
-          <Container Icon={Icon} iconClassName="bg-red-100 text-red-600">
+          <Container
+            Icon={Icon}
+            iconClassName={type === "destruction" ? "bg-red-100 text-red-600" : "bg-gray-300"}>
             <DialogHeader title={title} subtitle={props.description} subtitleClassName={Icon ? "pt-1" : ""} />
             <div className="flex flex-col space-y-6">{children}</div>
           </Container>

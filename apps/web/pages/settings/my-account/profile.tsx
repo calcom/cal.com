@@ -241,7 +241,7 @@ const ProfileView = () => {
         <DialogContent
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-          type="creation"
+          type="destruction"
           Icon={FiAlertTriangle}>
           <>
             <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
@@ -282,7 +282,7 @@ const ProfileView = () => {
         <DialogContent
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
-          type="creation"
+          type="destruction"
           Icon={FiAlertTriangle}>
           <>
             <PasswordField

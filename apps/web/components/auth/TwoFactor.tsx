@@ -25,8 +25,8 @@ export default function TwoFactor({ center = true }) {
   const className = "h-12 w-12 !text-xl text-center";
 
   return (
-    <div className={center ? "mx-auto !mt-0 max-w-sm" : "!mt-0 max-w-sm"}>
-      <Label className="mt-4"> {t("2fa_code")}</Label>
+    <div>
+      <Label> {t("2fa_code")}</Label>
 
       <p className="mb-4 text-sm text-gray-500">{t("2fa_enabled_instructions")}</p>
       <input hidden type="hidden" value={value} {...methods.register("totpCode")} />
