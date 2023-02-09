@@ -42,7 +42,8 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery();
+  const { data: defaultConferencingApp, isLoading: defaultConferencingAppLoading } =
+    trpc.viewer.getUsersDefaultConferencingApp.useQuery();
 
   const { data: apps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
@@ -63,7 +64,7 @@ const ConferencingLayout = () => {
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
-      utils.viewer.getUserMetadata.invalidate();
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
     },
   });
 
@@ -73,7 +74,7 @@ const ConferencingLayout = () => {
   );
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
-  if (isLoading || metadataLoading)
+  if (isLoading || defaultConferencingAppLoading)
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
@@ -86,8 +87,8 @@ const ConferencingLayout = () => {
             .map((app) => {
               const appSlug = app?.slug;
               const appIsDefault =
-                appSlug === usersMetadata?.defaultConferencingApp?.appSlug ||
-                (appSlug === "daily-video" && !usersMetadata?.defaultConferencingApp?.appSlug); // Default to cal video if the user doesnt have it set (we do this on new account creation but not old)
+                appSlug === defaultConferencingApp?.appSlug ||
+                (appSlug === "daily-video" && !defaultConferencingApp?.appSlug); // Default to cal video if the user doesnt have it set (we do this on new account creation but not old)
               return (
                 <AppListCard
                   description={app.description}

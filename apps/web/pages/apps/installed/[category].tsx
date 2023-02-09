@@ -107,7 +107,7 @@ interface IntegrationsListProps {
 }
 
 const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
-  const { data: usersMetadata } = trpc.viewer.getUserMetadata.useQuery();
+  const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
 
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
@@ -117,7 +117,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
-      utils.viewer.getUserMetadata.invalidate();
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
     },
   });
 
@@ -130,8 +130,8 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
           .map((item) => {
             const appSlug = item?.slug;
             const appIsDefault =
-              appSlug === usersMetadata?.defaultConferencingApp?.appSlug ||
-              (appSlug === "daily-video" && !usersMetadata?.defaultConferencingApp?.appSlug);
+              appSlug === defaultConferencingApp?.appSlug ||
+              (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
             return (
               <AppListCard
                 key={item.name}
