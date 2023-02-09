@@ -242,7 +242,7 @@ test.describe("Reschedule Tests", async () => {
           id: true,
         },
       });
-      console.log({ bookingAttendees });
+
       const bookingSeatsReferences = [
         { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
         { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },

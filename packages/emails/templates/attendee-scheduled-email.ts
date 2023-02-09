@@ -14,6 +14,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   attendee: Person;
   showAttendees: boolean | undefined;
   t: TFunction;
+  attendees: Person[];
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
@@ -22,9 +23,9 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.attendee = attendee;
     this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
-
+    this.attendees = [...this.calEvent.attendees];
     if (!this.showAttendees) {
-      this.calEvent.attendees = [this.attendee];
+      this.attendees = [this.attendee];
     }
   }
 
@@ -47,7 +48,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
+      attendees: this.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
       })),

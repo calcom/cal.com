@@ -29,10 +29,11 @@ ${calEvent.attendees[0].timeZone}
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
-    calEvent.attendees = [];
+    attendeesFromCalEvent = [];
   }
-  const attendees = calEvent.attendees
+  const attendees = attendeesFromCalEvent
     .map((attendee) => {
       return `
 ${attendee?.name || calEvent.organizer.language.translate("guest")}
