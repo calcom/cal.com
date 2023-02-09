@@ -1,7 +1,5 @@
 import { SelectedCalendar } from "@prisma/client";
-import { createHash } from "crypto";
 import _ from "lodash";
-import cache from "memory-cache";
 import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -115,8 +113,6 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
-const CACHING_TIME = 30_000; // 30 seconds
-
 // here I will fetch the page json file.
 export const getCachedResults = async (
   withCredentials: CredentialPayload[],
@@ -131,24 +127,13 @@ export const getCachedResults = async (
     /** Filter out nulls */
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
-    const { id, type, appId } = calendarCredentials[i];
+    const { type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** We create a unique hash key based on the input data */
-    const cacheKey = JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo });
-    const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
-    /** Check if we already have cached data and return */
-    const cachedAvailability = cache.get(cacheHashedKey);
-
-    if (cachedAvailability) {
-      log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
-      return cachedAvailability;
-    }
-    log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
@@ -158,12 +143,8 @@ export const getCachedResults = async (
       "eventBusyDatesStart",
       "eventBusyDatesEnd"
     );
-    const availability = eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
 
-    /** We save the availability to a few seconds so recurrent calls are nearly instant */
-
-    cache.put(cacheHashedKey, availability, CACHING_TIME);
-    return availability;
+    return eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
   });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");
