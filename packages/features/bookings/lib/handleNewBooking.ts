@@ -54,7 +54,7 @@ import {
   extendedBookingCreateBody,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import { WorkingHours } from "@calcom/types/schedule";
 
@@ -298,7 +298,7 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function getOriginalRescheduledBooking(uid: string) {
+async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
   let bookingUid = uid;
   // Now rescheduleUid can be bookingSeatsReferences
   const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
@@ -323,12 +323,11 @@ async function getOriginalRescheduledBooking(uid: string) {
     include: {
       attendees: {
         select: {
-          id: true,
           name: true,
           email: true,
           locale: true,
           timeZone: true,
-          bookingSeatReference: true,
+          ...(seatsEventType && { bookingSeatReference: true, id: true }),
         },
       },
       user: {
@@ -607,6 +606,26 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const rescheduleUid = reqBody.rescheduleUid;
 
+  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+  let originalRescheduledBooking: BookingType = null;
+
+  console.log("🚀 ~ file: handleNewBooking.ts:737 ~ handler ~ rescheduleUid", rescheduleUid);
+
+  if (rescheduleUid) {
+    originalRescheduledBooking = await getOriginalRescheduledBooking(
+      rescheduleUid,
+      !!eventType.seatsPerTimeSlot
+    );
+    console.log(
+      "🚀 ~ file: handleNewBooking.ts:617 ~ handler ~ originalRescheduledBooking",
+      originalRescheduledBooking?.attendees
+    );
+  }
+
+  if (!originalRescheduledBooking && rescheduleUid) {
+    throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+  }
+
   const handleSeats = async () => {
     // For seats, if the booking already exists then we want to add the new attendee to the existing booking
 
@@ -628,6 +647,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         user: true,
       },
     });
+    console.log("🚀 ~ file: handleNewBooking.ts:631 ~ handleSeats ~ booking", booking);
     if (!booking) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
@@ -639,9 +659,92 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
       // If it is the host then continue rescheduling as normal
       if (host) return;
-      return;
+
+      let seatAttendee: Partial<Person> | null = null;
+      if (!host) {
+        seatAttendee =
+          originalRescheduledBooking?.attendees.find((attendee) => attendee.email === req.body.email) || null;
+      }
+
+      if (!seatAttendee) {
+        throw new HttpError({ statusCode: 404, message: "Attendee not found" });
+      }
+      console.log("🚀 ~ file: handleNewBooking.ts:821 ~ handleSeats ~ seatAttendee", seatAttendee);
+
+      seatAttendee.language = { translate: tAttendees, locale: seatAttendee.locale ?? "en" };
+
+      evt.attendees = [seatAttendee as Person];
+
+      // See if the new date has a booking already
+      const newTimeSlotBooking = await prisma.booking.findFirst({
+        where: {
+          startTime: evt.startTime,
+          eventTypeId: eventType.id,
+        },
+      });
+      console.log(
+        "🚀 ~ file: handleNewBooking.ts:777 ~ rescheduleSeat ~ newTimeSlotBooking",
+        newTimeSlotBooking
+      );
+
+      // If there is no booking then create one as normal
+      if (!newTimeSlotBooking) return;
+
+      // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
+      // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
+      const updateAttendee = await prisma.attendee.update({
+        where: {
+          id: seatAttendee.id,
+        },
+        data: {
+          bookingId: newTimeSlotBooking.id,
+        },
+      });
+      console.log("🚀 ~ file: handleNewBooking.ts:679 ~ handleSeats ~ updateAttendee", updateAttendee);
+      const updateReference = await prisma.bookingSeatsReferences.update({
+        where: {
+          id: seatAttendee.bookingSeatReference?.id,
+        },
+        data: {
+          bookingId: newTimeSlotBooking.id,
+        },
+      });
+      console.log("🚀 ~ file: handleNewBooking.ts:688 ~ handleSeats ~ updateReference", updateReference);
+      // await Promise.all([
+      //   await prisma.attendee.update({
+      //     where: {
+      //       id: seatAttendee.id,
+      //     },
+      //     data: {
+      //       bookingId: newTimeSlotBooking.id,
+      //     },
+      //   }),
+      //   await prisma.bookingSeatsReferences.update({
+      //     where: {
+      //       id: seatAttendee.bookingSeatReference?.id,
+      //     },
+      //     data: {
+      //       bookingId: newTimeSlotBooking.id,
+      //     },
+      //   }),
+      // ]);
+
+      // If that was the last attendee of the old booking then delete the old booking
+      if (booking.attendees.length === 0) {
+        await prisma.booking.delete({
+          where: {
+            id: booking.id,
+          },
+        });
+      }
+
+      const copyEvent = cloneDeep(evt);
+      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+
+      return newTimeSlotBooking;
       // Else let's add the new attendee to the existing booking
     } else {
+      console.log("Adding new attendee to existing booking");
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
         return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
@@ -743,140 +846,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   };
 
   if (reqBody.bookingUid) {
-    handleSeats();
-  }
-
-  type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-  let originalRescheduledBooking: BookingType = null;
-
-  console.log("🚀 ~ file: handleNewBooking.ts:737 ~ handler ~ rescheduleUid", rescheduleUid);
-
-  if (rescheduleUid) {
-    originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
-  }
-
-  const rescheduleSeat = async () => {
-    console.log("This reschedule function is triggering");
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Original booking not found" });
-    }
-    // Check if the host or attendee is rescheduling
-    const host = originalRescheduledBooking.user?.email === req.body.email;
-
-    // If it is the host then continue rescheduling as normal
-    if (host) return;
-    console.log("Host was found");
-
-    let seatAttendee;
-    if (!host) {
-      seatAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
-    }
-
-    if (!seatAttendee) {
-      throw new HttpError({ statusCode: 404, message: "Attendee not found" });
-    }
-    /**
-     * Reschedule with seats logic
-     * If eventType has seats and we are rescheduling, we should filter the attendees
-     * unless the one rescheduling is the organizer
-     */
-    // Removed isUserOwner, can add owner rescheduling logic later
-    if (eventType.seatsPerTimeSlot && seatAttendee) {
-      evt.attendees = [seatAttendee];
-    }
-
-    // See if the new date has a booking already
-    const newTimeSlotBooking = await prisma.booking.findFirst({
-      where: {
-        startTime: evt.startTime,
-        eventTypeId: eventType.id,
-      },
-    });
-    console.log(
-      "🚀 ~ file: handleNewBooking.ts:777 ~ rescheduleSeat ~ newTimeSlotBooking",
-      newTimeSlotBooking
-    );
-
-    // If there is no booking then create one as normal
-    if (!newTimeSlotBooking) return;
-
-    console.log("🚀 ~ file: handleNewBooking.ts:786 ~ rescheduleSeat ~ seatAttendee", seatAttendee);
-
-    // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
-    // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-    await Promise.all([
-      await prisma.attendee.update({
-        where: {
-          id: seatAttendee.id,
-        },
-        data: {
-          bookingId: newTimeSlotBooking.id,
-        },
-      }),
-      await prisma.bookingSeatsReferences.update({
-        where: {
-          id: seatAttendee.bookingSeatReference?.id,
-        },
-        data: {
-          bookingId: newTimeSlotBooking.id,
-        },
-      }),
-    ]);
-    // Promise.all([
-    //   await prisma.attendee.update({
-    //     where: {
-    //       id: seatAttendee.id,
-    //     },
-    //     data: {
-    //       booking: {
-    //         connect: { id: newTimeSlotBooking.id },
-    //       },
-    //     },
-    //   }),
-    // await prisma.bookingSeatsReferences.update({
-    //   where: {
-    //     id: seatAttendee.bookingSeatReference?.id,
-    //   },
-    //   data: {
-    //     booking: {
-    //       connect: { id: newTimeSlotBooking.id },
-    //     },
-    //   },
-    // }),
-    // ]);
-    // If so then update the old and new calendar events
-
-    // If that was the last attendee of the old booking then delete the old booking
-    if (originalRescheduledBooking.attendees.length === 0) {
-      await prisma.booking.delete({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-      });
-    }
-
-    const copyEvent = cloneDeep(evt);
-    await sendRescheduledSeatEmail(copyEvent, seatAttendee);
-
-    return newTimeSlotBooking;
-  };
-
-  // If booking has seats and a user is rescheduling, handle both events
-  console.log(
-    "🚀 ~ file: handleNewBooking.ts:848 ~ handler ~ eventType.seatsPerTimeSlot",
-    eventType.seatsPerTimeSlot
-  );
-  console.log("🚀 ~ file: handleNewBooking.ts:850 ~ handler ~ rescheduleUid", rescheduleUid);
-
-  if (eventType.seatsPerTimeSlot && rescheduleUid) {
-    const rescheduleBooking = rescheduleSeat();
-    if (rescheduleBooking) {
+    const newBooking = handleSeats();
+    if (newBooking) {
       req.statusCode = 201;
-      return rescheduleBooking;
+      return newBooking;
     }
   }
-
-  console.log("This triggers afterwards");
 
   if (reqBody.customInputs.length > 0) {
     reqBody.customInputs.forEach(({ label, value }) => {
@@ -1026,6 +1001,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       });
     }
 
+    console.log(
+      "🚀 ~ file: handleNewBooking.ts:1003 ~ createBooking ~ createBookingObj",
+      createBookingObj.data.attendees?.createMany
+    );
+
     return prisma.booking.create(createBookingObj);
   }
 
@@ -1073,6 +1053,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       evt.attendeeSeatId = uniqueAttendeeId;
     }
   } catch (_err) {
+    console.log("🚀 ~ file: handleNewBooking.ts:1057 ~ handler ~ _err", _err);
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {

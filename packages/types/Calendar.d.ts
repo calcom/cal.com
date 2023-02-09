@@ -25,7 +25,7 @@ export type Person = {
   id?: number;
   bookingId?: number | null;
   locale?: string | null;
-  bookingSeatReference?: BookingSeatsReferences;
+  bookingSeatReference?: BookingSeatsReferences | null;
 };
 
 export type EventBusyDate = {
