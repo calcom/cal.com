@@ -85,7 +85,7 @@ export default trpcNext.createNextApiHandler({
     // Get the cache value of the matching element, if any
     if (matchedPath) cacheValue = cacheRules[matchedPath];
 
-    defaultHeaders.headers["Cache-Control"] = cacheValue;
+    if (cacheValue) defaultHeaders.headers["Cache-Control"] = cacheValue;
 
     // Finally we respond with our resolved cache value
     return defaultHeaders;
