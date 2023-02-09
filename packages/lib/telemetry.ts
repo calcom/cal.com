@@ -18,6 +18,9 @@ export const telemetryEventTypes = {
   samlConfig: "saml_config",
   embedView: "embed_view",
   embedBookingConfirmed: "embed_booking_confirmed",
+  onboardingFinished: "onboarding_finished",
+  signup: "signup",
+  team_created: "team_created",
   website: {
     pageView: "website_page_view",
   },
