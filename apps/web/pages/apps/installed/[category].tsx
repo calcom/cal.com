@@ -153,6 +153,7 @@ const IntegrationsContainer = ({
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
   const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
+  const { data: usersMetadata, isLoading: metadataLoading } = trpc.viewer.getUserMetadata.useQuery();
   const emptyIcon = {
     calendar: FiCalendar,
     conferencing: FiVideo,
