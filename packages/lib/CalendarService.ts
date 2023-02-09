@@ -370,10 +370,13 @@ export default abstract class BaseCalendarService implements Calendar {
         let currentStart = null;
         let currentError;
 
-        while (maxIterations > 0 && (currentStart === null || currentStart.isAfter(end) === false) &&
+        while (
+          maxIterations > 0 &&
+          (currentStart === null || currentStart.isAfter(end) === false) &&
           // this iterator was poorly implemented, normally done is expected to be
           // returned
-          (current = iterator.next())) {
+          (current = iterator.next())
+        ) {
           maxIterations -= 1;
 
           try {
