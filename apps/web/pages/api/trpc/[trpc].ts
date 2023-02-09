@@ -1,6 +1,8 @@
 /**
  * This file contains tRPC's HTTP response handler
  */
+import { z } from "zod";
+
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -35,29 +37,35 @@ export default trpcNext.createNextApiHandler({
     const TWO_HOURS_IN_SECONDS = 60 * 60 * 2;
 
     // Our response to indicate no caching
-    const noCacheResponse = {};
+    const defaultHeaders: Record<"headers", Record<string, string>> = {
+      headers: {},
+    };
+
+    if (!!ctx?.req) {
+      const timezone = z.string().safeParse(ctx.req.headers["x-vercel-ip-timezone"]);
+      if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
+    }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore ctx.req is available for SSR but not SSG
-    const isSSR = !!ctx?.req;
-    if (isSSR) {
-      return noCacheResponse;
+    if (!!ctx?.req) {
+      return defaultHeaders;
     }
 
     // No caching if we have a non-public path
     // Assuming we have all our public routes in `viewer.public`
     if (!paths || !paths.every((path) => path.startsWith("viewer.public."))) {
-      return noCacheResponse;
+      return defaultHeaders;
     }
 
     // No caching if we have any procedures errored
     if (errors.length !== 0) {
-      return noCacheResponse;
+      return defaultHeaders;
     }
 
     // Never cache non-queries (aka mutations)
     if (type !== "query") {
-      return noCacheResponse;
+      return defaultHeaders;
     }
 
     // cache request for 1 day + revalidate once every 5 seconds
@@ -77,11 +85,9 @@ export default trpcNext.createNextApiHandler({
     // Get the cache value of the matching element, if any
     if (matchedPath) cacheValue = cacheRules[matchedPath];
 
+    if (cacheValue) defaultHeaders.headers["Cache-Control"] = cacheValue;
+
     // Finally we respond with our resolved cache value
-    return {
-      headers: {
-        "Cache-Control": cacheValue,
-      },
-    };
+    return defaultHeaders;
   },
 });
