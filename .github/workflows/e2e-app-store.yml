@@ -93,6 +93,8 @@ jobs:
         run: yarn playwright install --with-deps
       - name: Run Tests
         run: yarn test-e2e:app-store
+        env:
+          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
 
       - name: Upload Test Results
         if: ${{ always() }}
