@@ -1,7 +1,7 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 import { EventLocationType, getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,8 +21,6 @@ import {
   showToast,
   SkeletonContainer,
   SkeletonText,
-  Form,
-  TextField,
 } from "@calcom/ui";
 import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/components/icon";
 
@@ -164,73 +162,11 @@ const ConferencingLayout = () => {
       </Dialog>
 
       {locationType && (
-        <LocationTypeSetLinkDialog locationType={locationType} setLocationType={setLocationType} />
+        <AppSetDefaultLinkDailog locationType={locationType} setLocationType={setLocationType} />
       )}
     </div>
   );
 };
-
-type LocationTypeSetLinkDialogFormProps = {
-  link?: string;
-  type: EventLocationType["type"];
-};
-
-function LocationTypeSetLinkDialog({
-  locationType,
-  setLocationType,
-}: {
-  locationType: EventLocationType & { slug: string };
-  setLocationType: Dispatch<SetStateAction<(EventLocationType & { slug: string }) | undefined>>;
-}) {
-  const utils = trpc.useContext();
-
-  const { t } = useLocale();
-  const form = useForm<LocationTypeSetLinkDialogFormProps>({});
-
-  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
-    onSuccess: () => {
-      showToast("Default app updated successfully", "success");
-      utils.viewer.getUserMetadata.invalidate();
-    },
-  });
-
-  return (
-    <Dialog open={!!locationType} onOpenChange={() => setLocationType(undefined)}>
-      <DialogContent
-        title={t("default_app_link_title")}
-        description={t("default_app_link_description")}
-        type="creation"
-        Icon={FiAlertCircle}>
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            updateDefaultAppMutation.mutate({
-              appSlug: locationType.slug,
-              appLink: values.link,
-            });
-            setLocationType(undefined);
-          }}>
-          <>
-            <TextField
-              type="text"
-              required
-              {...form.register("link")}
-              placeholder={locationType.organizerInputPlaceholder ?? ""}
-              label={locationType.label ?? ""}
-            />
-
-            <DialogFooter>
-              <Button color="primary" type="submit">
-                {t("save")}
-              </Button>
-              <DialogClose />
-            </DialogFooter>
-          </>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 ConferencingLayout.getLayout = getLayout;
 
