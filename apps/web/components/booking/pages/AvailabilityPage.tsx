@@ -74,6 +74,7 @@ const useSlots = ({
     },
     {
       enabled: !!startTime && !!endTime,
+      refetchInterval: 3000,
     }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
