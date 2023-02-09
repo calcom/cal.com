@@ -423,7 +423,7 @@
   "password_hint_min": "Dugačka minimalno 7 znakova",
   "password_hint_admin_min": "Dugačka minimalno 15 znakova",
   "password_hint_num": "Sadrži barem 1 broj",
-  "invalid_password_hint": "Lozinka mora da bude dugačka najmanje 7 znakova, da sadrži najmanje jedan broj i da ima mešavinu velikih i malih slova",
+  "invalid_password_hint": "Lozinka mora da bude dugačka najmanje {{passwordLength}} znakova, da sadrži najmanje jedan broj i da ima mešavinu velikih i malih slova",
   "incorrect_password": "Lozinka je netačna.",
   "24_h": "24 sata",
   "use_setting": "Koristi podešavanje",
