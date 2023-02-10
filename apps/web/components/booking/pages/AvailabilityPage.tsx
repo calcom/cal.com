@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -52,6 +52,7 @@ const useSlots = ({
   usernameList,
   timeZone,
   duration,
+  enabled = true,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -60,6 +61,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
   duration?: string;
+  enabled?: boolean;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -72,7 +74,7 @@ const useSlots = ({
       duration,
     },
     {
-      enabled: !!startTime && !!endTime,
+      enabled: !!startTime && !!endTime && enabled,
       refetchInterval: 3000,
       trpc: { context: { skipBatch: true } },
     }
@@ -141,15 +143,6 @@ const SlotPicker = ({
   }, [router.isReady, month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-  const { slots: selectedDateSlots, isLoading: isLoadingSelectedDateSlots } = useSlots({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime: selectedDate?.startOf("day"),
-    endTime: selectedDate?.endOf("day"),
-    timeZone,
-    duration,
-  });
   const { slots: monthSlots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
@@ -161,6 +154,17 @@ const SlotPicker = ({
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
+  });
+  const { slots: selectedDateSlots, isLoading: isLoadingSelectedDateSlots } = useSlots({
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
+    timeZone,
+    duration,
+    /** Prevent refetching is we already have this data from month slots */
+    enabled: selectedDate && !monthSlots[selectedDate.format("YYYY-MM-DD")],
   });
 
   return (
@@ -187,7 +191,11 @@ const SlotPicker = ({
       <div ref={slotPickerRef}>
         <AvailableTimes
           isLoading={isLoadingSelectedDateSlots}
-          slots={selectedDate && selectedDateSlots[selectedDate.format("YYYY-MM-DD")]}
+          slots={
+            selectedDate &&
+            (monthSlots[selectedDate.format("YYYY-MM-DD")] ||
+              selectedDateSlots[selectedDate.format("YYYY-MM-DD")])
+          }
           date={selectedDate}
           timeFormat={timeFormat}
           onTimeFormatChange={onTimeFormatChange}
