@@ -74,6 +74,7 @@ const useSlots = ({
     {
       enabled: !!startTime && !!endTime,
       refetchInterval: 3000,
+      trpc: { context: { skipBatch: true } },
     }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
