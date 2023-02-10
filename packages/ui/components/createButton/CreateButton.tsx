@@ -33,7 +33,6 @@ interface CreateBtnProps {
   duplicateDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
   subtitle?: string;
-  className?: string;
   buttonText?: string;
   isLoading?: boolean;
   disableMobileButton?: boolean;
@@ -77,8 +76,7 @@ export function CreateButton(props: CreateBtnProps) {
           data-testid="new-event-type"
           StartIcon={FiPlus}
           variant={props.disableMobileButton ? "button" : "fab"}
-          disabled={!props.canAdd}
-          className={props.className}>
+          disabled={!props.canAdd}>
           {props.buttonText ? props.buttonText : t("new")}
         </Button>
       ) : (
@@ -87,7 +85,6 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={props.disableMobileButton ? "button" : "fab"}
               StartIcon={FiPlus}
-              className={props.className}
               loading={props.isLoading}>
               {props.buttonText ? props.buttonText : t("new")}
             </Button>
