@@ -70,6 +70,8 @@ export default trpcNext.createNextApiHandler({
 
     if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[matchedPath];
 
+    console.log({ defaultHeaders });
+
     return defaultHeaders;
   },
 });
