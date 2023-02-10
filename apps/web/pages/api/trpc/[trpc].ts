@@ -62,7 +62,7 @@ export default trpcNext.createNextApiHandler({
     const cacheRules = {
       "viewer.public.i18n": `max-age=${ONE_DAY_IN_SECONDS}, s-maxage=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
-      "viewer.public.slots.getSchedule": `max-age=0, s-maxage=1, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`,
+      "viewer.public.slots.getSchedule": `max-age=0, s-maxage=1`,
     } as const;
 
     // Find which element above is an exact match for this group of paths
