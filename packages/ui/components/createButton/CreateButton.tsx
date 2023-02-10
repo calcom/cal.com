@@ -22,13 +22,7 @@ export interface Parent {
 }
 
 interface CreateBtnProps {
-  // set true for use on the team settings page
-  canAdd: boolean;
-  // set true when in use on the team settings page
-  isIndividualTeam?: boolean;
-  // EventTypeParent can be a profile (as first option) or a team for the rest.
   options: Parent[];
-
   createDialog?: () => JSX.Element;
   duplicateDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
@@ -70,13 +64,12 @@ export function CreateButton(props: CreateBtnProps) {
 
   return (
     <>
-      {!hasTeams || props.isIndividualTeam ? (
+      {!hasTeams ? (
         <Button
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={FiPlus}
-          variant={props.disableMobileButton ? "button" : "fab"}
-          disabled={!props.canAdd}>
+          variant={props.disableMobileButton ? "button" : "fab"}>
           {props.buttonText ? props.buttonText : t("new")}
         </Button>
       ) : (
@@ -91,7 +84,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={14} align="end">
             <DropdownMenuLabel>
-              <div className="w-48 text-xs">{props.subtitle}</div>
+              <div className="w-48 text-left text-xs">{props.subtitle}</div>
             </DropdownMenuLabel>
             {props.options.map((option) => (
               <DropdownMenuItem key={option.slug}>

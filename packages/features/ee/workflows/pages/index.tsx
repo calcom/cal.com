@@ -26,16 +26,6 @@ function WorkflowsPage() {
 
   const [filteredWorkflows, setFilteredWorkflows] = useState<WorkflowType[]>([]);
 
-  useEffect(() => {
-    if (allWorkflowsData?.workflows) {
-      const filtered = allWorkflowsData?.workflows.filter((workflow) => {
-        if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
-        if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
-      });
-      setFilteredWorkflows(filtered);
-    }
-  }, [allWorkflowsData]);
-
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
@@ -54,6 +44,16 @@ function WorkflowsPage() {
   });
 
   const query = trpc.viewer.workflows.getByViewer.useQuery();
+
+  useEffect(() => {
+    if (allWorkflowsData?.workflows) {
+      const filtered = allWorkflowsData?.workflows.filter((workflow) => {
+        if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
+        if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
+      });
+      setFilteredWorkflows(filtered);
+    }
+  }, [allWorkflowsData]);
 
   useEffect(() => {
     const allWorkflows = allWorkflowsData?.workflows;
@@ -80,7 +80,7 @@ function WorkflowsPage() {
           .filter((teamId) => !!teamId) as number[],
       });
     }
-  }, [session.status, query.isLoading]);
+  }, [session.status, query.isLoading, allWorkflowsData]);
 
   if (!query.data) return null;
 
@@ -104,7 +104,6 @@ function WorkflowsPage() {
                 <div className="ml-auto">
                   <CreateButton
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    canAdd={true}
                     options={query.data.profiles}
                     createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                     isLoading={createMutation.isLoading}

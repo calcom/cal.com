@@ -87,10 +87,9 @@ export default function EmptyScreen(props: {
           <p className="line-clamp-2 mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
             {t("no_workflows_description")}
           </p>
-          <div className="mx-auto mt-8">
+          <div className="mt-8 ">
             <CreateButton
               subtitle={t("new_workflow_subtitle").toUpperCase()}
-              canAdd={true}
               options={props.profiles}
               createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
               buttonText={t("create_workflow")}

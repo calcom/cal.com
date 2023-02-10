@@ -171,7 +171,7 @@ function EventWorkflowsTab(props: Props) {
       const activeWorkflows = workflows.map((workflowOnEventType) => {
         return workflowOnEventType;
       });
-      const disabledWorkflows: WorkflowType[] = data.workflows.filter(
+      const disabledWorkflows = data.workflows.filter(
         (workflow) =>
           !workflows
             .map((workflow) => {
