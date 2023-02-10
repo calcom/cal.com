@@ -711,16 +711,17 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         }),
       ]);
 
-      console.log(booking.attendees);
-
       // If that was the last attendee of the old booking then delete the old booking
-      // if (booking.attendees.length === 0) {
-      //   await prisma.booking.delete({
-      //     where: {
-      //       id: booking.id,
-      //     },
-      //   });
-      // }
+      if (
+        originalRescheduledBooking?.attendees.filter((attendee) => attendee.email !== invitee[0].email)
+          .length === 0
+      ) {
+        await prisma.booking.delete({
+          where: {
+            id: originalRescheduledBooking.id,
+          },
+        });
+      }
 
       const copyEvent = cloneDeep(evt);
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);

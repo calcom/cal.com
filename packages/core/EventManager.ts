@@ -252,7 +252,9 @@ export default class EventManager {
 
     if (booking?.eventType?.seatsPerTimeSlot) {
       // Here we also should remove current attendee from event calendar
-      evt.attendees = evt.attendees.filter((attendee) => attendee.email !== currentAttendeeEmail);
+      evt.attendees = evt.attendees.filter((attendee) => {
+        return attendee.email !== currentAttendeeEmail;
+      });
       if (evt.attendees.length === 0) {
         shouldUpdateBookingCancellation = false;
         // Add reschedule reason to new booking
@@ -266,6 +268,12 @@ export default class EventManager {
         });
       }
     }
+
+    console.log(
+      "🚀 ~ file: EventManager.ts:258 ~ EventManager ~ shouldUpdateBookingCancellation",
+      shouldUpdateBookingCancellation
+    );
+    console.log("🚀 ~ file: EventManager.ts:256 ~ EventManager ~ evt.attendees", evt.attendees);
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const results: Array<EventResult<Event>> = [];
