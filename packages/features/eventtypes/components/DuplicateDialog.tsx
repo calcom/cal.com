@@ -80,7 +80,7 @@ const DuplicateDialog = () => {
 
   return (
     <Dialog
-      name="duplicate-event-type"
+      name="duplicate"
       clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
       <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
         <Form
