@@ -841,12 +841,12 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
+              {formatToLocalizedDate(dayjs.tz(dateStr, timeZone()), language, "full")}
               <br />
-              {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
-              {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h)} -{" "}
+              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h)}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(date, language, undefined)})
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, undefined)})
               </span>
             </div>
           ))}
