@@ -182,8 +182,6 @@ export default function Login({
                     StartIcon={FaGoogle}
                     onClick={async (e) => {
                       e.preventDefault();
-                      // track Google logins. Without personal data/payload
-                      telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
                       await signIn("google");
                     }}>
                     {t("signin_with_google")}
