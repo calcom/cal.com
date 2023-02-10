@@ -86,11 +86,13 @@ function WorkflowsPage() {
           <>
             {allWorkflowsData?.workflows && allWorkflowsData.workflows.length > 0 && (
               <div className="mb-4 flex">
-                <Filter
-                  profiles={query.data.profiles}
-                  checked={checkedFilterItems}
-                  setChecked={setCheckedFilterItems}
-                />
+                {query.data.profiles.length > 1 && (
+                  <Filter
+                    profiles={query.data.profiles}
+                    checked={checkedFilterItems}
+                    setChecked={setCheckedFilterItems}
+                  />
+                )}
                 <div className="ml-auto">
                   <CreateButton
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
