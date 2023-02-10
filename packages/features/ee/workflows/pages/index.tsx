@@ -46,16 +46,6 @@ function WorkflowsPage() {
   const query = trpc.viewer.workflows.getByViewer.useQuery();
 
   useEffect(() => {
-    if (allWorkflowsData?.workflows) {
-      const filtered = allWorkflowsData?.workflows.filter((workflow) => {
-        if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
-        if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
-      });
-      setFilteredWorkflows(filtered);
-    }
-  }, [allWorkflowsData]);
-
-  useEffect(() => {
     const allWorkflows = allWorkflowsData?.workflows;
     if (allWorkflows && allWorkflows.length > 0) {
       const filtered = allWorkflows.filter((workflow) => {
