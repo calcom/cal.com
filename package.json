@@ -65,7 +65,6 @@
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
-    "@deploysentinel/playwright": "^0.3.0",
     "@snaplet/copycat": "^0.3.0",
     "@types/dompurify": "^2.4.0",
     "@types/jest": "^28.1.7",
