@@ -1176,15 +1176,7 @@ const loggedInViewerRouter = router({
       }
     }),
   getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
-    const metadata = await ctx.prisma.user.findUnique({
-      where: {
-        id: ctx.user.id,
-      },
-      select: {
-        metadata: true,
-      },
-    });
-    return userMetadata.parse(metadata?.metadata)?.defaultConferencingApp;
+    return userMetadata.parse(ctx.user.metadata)?.defaultConferencingApp;
   }),
   updateUserDefaultConferencingApp: authedProcedure
     .input(
