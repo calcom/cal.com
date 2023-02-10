@@ -1,6 +1,5 @@
 name: TODO to Issue
 on:
-  push:
   pull_request_target: # So we can test on forks
     branches:
       - main
