@@ -1,13 +1,13 @@
 import { EventTypeSetupProps } from "pages/event-types/[type]";
 
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 
 import RecurringEventController from "./RecurringEventController";
 
 export const EventRecurringTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
 
-  const requirePayment = stripeAppData.price > 0;
+  const requirePayment = paymentAppData.price > 0;
 
   return (
     <div className="">

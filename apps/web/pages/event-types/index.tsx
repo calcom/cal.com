@@ -136,7 +136,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         )}
       </div>
       <EventTypeDescription
-        // @ts-expect-error FIXME We have a type mismtach here @hariombalhara @sean-brydon
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={type}
       />
     </Link>
@@ -386,15 +386,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
-                            <DropdownMenuTrigger
-                              asChild
-                              data-testid={"event-type-options-" + type.id}
-                              className="radix-state-open:rounded-r-md">
+                            <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                               <Button
                                 type="button"
                                 variant="icon"
                                 color="secondary"
                                 StartIcon={FiMoreHorizontal}
+                                className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>

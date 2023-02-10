@@ -67,9 +67,11 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   // errors exist, not custom ones, just show them as is
   if (fieldErrors) {
     return (
-      <div className="text-gray mt-2 flex items-center text-sm text-red-700">
-        <FiInfo className="mr-1 h-3 w-3" />
-        <>{fieldErrors.message}</>
+      <div className="text-gray mt-2 flex items-center gap-x-2 text-sm text-red-700">
+        <div>
+          <FiInfo className="h-3 w-3" />
+        </div>
+        <p>{fieldErrors.message}</p>
       </div>
     );
   }

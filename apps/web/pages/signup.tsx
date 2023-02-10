@@ -56,7 +56,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then(handleErrors)
       .then(async () => {
-        telemetry.event(telemetryEventTypes.login, collectPageParameters());
+        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: router.query.callbackUrl
