@@ -7,10 +7,10 @@
   "main": "index.ts",
   "dependencies": {
     "@tanstack/react-query": "^4.3.9",
-    "@trpc/client": "^10.0.0-rc.6",
-    "@trpc/next": "^10.0.0-rc.6",
-    "@trpc/react-query": "^10.0.0-rc.6",
-    "@trpc/server": "^10.0.0-rc.6",
+    "@trpc/client": "^10.10.0",
+    "@trpc/next": "^10.10.0",
+    "@trpc/react-query": "^10.10.0",
+    "@trpc/server": "^10.10.0",
     "superjson": "1.9.1",
     "zod": "^3.20.2"
   }
