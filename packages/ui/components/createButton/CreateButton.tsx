@@ -66,9 +66,16 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams ? (
         <Button
-          onClick={() => openModal(props.options[0])}
+          onClick={() =>
+            !!CreateDialog
+              ? openModal(props.options[0])
+              : props.createFunction
+              ? props.createFunction(props.options[0].teamId || undefined)
+              : null
+          }
           data-testid="new-event-type"
           StartIcon={FiPlus}
+          loading={props.isLoading}
           variant={props.disableMobileButton ? "button" : "fab"}>
           {props.buttonText ? props.buttonText : t("new")}
         </Button>

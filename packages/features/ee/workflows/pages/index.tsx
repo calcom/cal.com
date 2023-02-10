@@ -78,32 +78,51 @@ function WorkflowsPage() {
     <Shell
       heading={t("workflows")}
       title={t("workflows")}
-      subtitle={t("workflows_to_automate_notifications")}>
+      subtitle={t("workflows_to_automate_notifications")}
+      CTA={
+        query.data.profiles.length === 1 &&
+        session.data?.hasValidLicense &&
+        allWorkflowsData?.workflows &&
+        allWorkflowsData?.workflows.length > 0 ? (
+          <CreateButton
+            subtitle={t("new_workflow_subtitle").toUpperCase()}
+            options={query.data.profiles}
+            createFunction={(teamId?: number) => {
+              console.log("test test");
+              createMutation.mutate({ teamId });
+            }}
+            isLoading={createMutation.isLoading}
+            disableMobileButton={true}
+          />
+        ) : (
+          <></>
+        )
+      }>
       <LicenseRequired>
         {isLoading ? (
           <SkeletonLoader />
         ) : (
           <>
-            {allWorkflowsData?.workflows && allWorkflowsData.workflows.length > 0 && (
-              <div className="mb-4 flex">
-                {query.data.profiles.length > 1 && (
+            {query.data.profiles.length > 1 &&
+              allWorkflowsData?.workflows &&
+              allWorkflowsData.workflows.length > 0 && (
+                <div className="mb-4 flex">
                   <Filter
                     profiles={query.data.profiles}
                     checked={checkedFilterItems}
                     setChecked={setCheckedFilterItems}
                   />
-                )}
-                <div className="ml-auto">
-                  <CreateButton
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    options={query.data.profiles}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isLoading={createMutation.isLoading}
-                    disableMobileButton={true}
-                  />
+                  <div className="ml-auto">
+                    <CreateButton
+                      subtitle={t("new_workflow_subtitle").toUpperCase()}
+                      options={query.data.profiles}
+                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                      isLoading={createMutation.isLoading}
+                      disableMobileButton={true}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             <WorkflowList
               workflows={filteredWorkflows}
               profiles={query.data.profiles}
