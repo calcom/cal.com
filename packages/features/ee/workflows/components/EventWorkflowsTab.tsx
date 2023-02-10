@@ -145,20 +145,22 @@ const WorkflowListItem = (props: ItemProps) => {
 };
 
 type Props = {
-  teamId?: number;
   eventType: {
     id: number;
     title: string;
     userId: number | null;
+    team: {
+      id?: number;
+    } | null;
   };
   workflows: WorkflowType[];
 };
 
 function EventWorkflowsTab(props: Props) {
-  const { workflows, teamId, eventType } = props;
+  const { workflows, eventType } = props;
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
-    teamId,
+    teamId: eventType.team?.id,
     userId: eventType.userId || undefined,
   });
   const router = useRouter();
@@ -217,7 +219,7 @@ function EventWorkflowsTab(props: Props) {
                 <Button
                   target="_blank"
                   color="secondary"
-                  onClick={() => createMutation.mutate({ teamId })}
+                  onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
                   loading={createMutation.isLoading}>
                   {t("create_workflow")}
                 </Button>

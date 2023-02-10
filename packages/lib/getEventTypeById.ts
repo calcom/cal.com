@@ -151,6 +151,13 @@ export default async function getEventTypeById({
         include: {
           workflow: {
             include: {
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                },
+              },
               activeOn: {
                 select: {
                   eventType: {

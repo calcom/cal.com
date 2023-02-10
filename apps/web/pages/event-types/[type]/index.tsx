@@ -249,10 +249,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (
       <EventWorkflowsTab
-        teamId={team?.id}
-        eventType={{ ...eventType, ...{ teamId: team?.id || null } }}
+        eventType={eventType}
         workflows={eventType.workflows.map((workflowOnEventType) => {
-          return { ...workflowOnEventType.workflow, ...{ team } };
+          return workflowOnEventType.workflow;
         })}
       />
     ),
