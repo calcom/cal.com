@@ -44,6 +44,15 @@ function preprocess<T extends z.ZodType>({
           // TODO: What about multiselect and checkbox??
         } else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
           newResponses[field.name] = value instanceof Array ? value : [value];
+        } else if (field.type === "radioInput") {
+          let parsedValue = {
+            optionValue: "",
+            value: "",
+          };
+          try {
+            parsedValue = JSON.parse(value);
+          } catch (e) {}
+          newResponses[field.name] = parsedValue;
         } else {
           newResponses[field.name] = value;
         }

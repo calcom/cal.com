@@ -298,11 +298,13 @@ export const Components: Record<BookingFieldType, Component> = {
     propsType: "objectiveWithInput",
     factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
       useEffect(() => {
-        setValue({
-          value: options[0]?.value,
-          optionValue: "",
-        });
-      }, []);
+        if (!value) {
+          setValue({
+            value: options[0]?.value,
+            optionValue: "",
+          });
+        }
+      }, [options, setValue, value]);
 
       return (
         <div>
@@ -330,7 +332,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         //TODO: ManageBookings: What does this location class do?
                         className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
-                        defaultChecked={i === 0}
+                        defaultChecked={value?.value === option.value}
                       />
                       <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
                         {option.label ?? ""}

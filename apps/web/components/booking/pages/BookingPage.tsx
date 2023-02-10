@@ -241,13 +241,11 @@ const BookingPage = ({
   const querySchema = getBookingResponsesQuerySchema({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
-  // string value for - text, textarea, select, radio,
-  // string value with , for checkbox and multiselect
-  // Object {value:"", optionValue:""} for radioInput
+
   const parsedQuery = querySchema.parse({
     ...router.query,
-    // guest because we are supporting legacy URL with guest in it
-    // guests because the `name` of the corresponding bookingField is guests
+    // `guest` because we need to support legacy URL with `guest` query param support
+    // `guests` because the `name` of the corresponding bookingField is `guests`
     guests: router.query.guests || router.query.guest,
   });
 
@@ -265,14 +263,10 @@ const BookingPage = ({
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
 
-  const getFormBuilderFieldValueFromQuery = (paramName: string) => {
-    return parsedQuery[paramName];
-  };
-
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid ? booking?.attendees[0].email : getFormBuilderFieldValueFromQuery("email"),
-    name: rescheduleUid ? booking?.attendees[0].name : getFormBuilderFieldValueFromQuery("name"),
+    email: rescheduleUid ? booking?.attendees[0].email : parsedQuery["email"],
+    name: rescheduleUid ? booking?.attendees[0].name : parsedQuery["name"],
   };
 
   const defaultValues = () => {
@@ -284,7 +278,7 @@ const BookingPage = ({
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
-          [field.name]: getFormBuilderFieldValueFromQuery(field.name),
+          [field.name]: parsedQuery[field.name],
         };
       }, {});
       defaults.responses = {
@@ -340,23 +334,6 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  useEffect(() => {
-    // window.bookingForm = bookingForm;
-  });
-  const selectedLocationType = useWatch({
-    control: bookingForm.control,
-    name: "locationType",
-    defaultValue: ((): EventLocationType["type"] | undefined => {
-      if (router.query.location) {
-        return router.query.location as EventLocationType["type"];
-      }
-      if (locations.length === 1) {
-        return locations[0]?.type;
-      }
-    })(),
-  });
-
-  const selectedLocation = getEventLocationType(selectedLocationType);
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
