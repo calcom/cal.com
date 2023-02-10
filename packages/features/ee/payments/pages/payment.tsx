@@ -108,6 +108,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     theme: (!eventType.team?.name && user?.theme) || null,
     hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
   };
+  console.log(booking.status);
+  if (booking.status === "REJECTED") {
+    return {
+      redirect: {
+        destination: `/bookings/${booking.uid}/cancelled`,
+        permanent: false,
+      },
+    };
+  }
 
   if (
     ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
