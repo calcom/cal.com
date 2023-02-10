@@ -14,6 +14,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   reporter: [
     [CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },
