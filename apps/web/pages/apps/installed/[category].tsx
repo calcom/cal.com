@@ -38,6 +38,8 @@ import {
   FiVideo,
 } from "@calcom/ui/components/icon";
 
+import { QueryCell } from "@lib/QueryCell";
+
 import AppListCard from "@components/AppListCard";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
@@ -204,7 +206,7 @@ const IntegrationsContainer = ({
   handleDisconnect,
 }: IntegrationsContainerProps): JSX.Element => {
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
+  const query = trpc.viewer.integrations.useQuery({ variant, exclude, onlyInstalled: true });
   const emptyIcon = {
     calendar: FiCalendar,
     conferencing: FiVideo,
@@ -215,47 +217,52 @@ const IntegrationsContainer = ({
     other: FiGrid,
   };
 
-  if (!data && isLoading) {
-    return <SkeletonLoader />;
-  }
-
-  if (!(data && data?.items?.length > 0)) {
-    return (
-      <EmptyScreen
-        Icon={emptyIcon[variant || "other"]}
-        headline={t("no_category_apps", {
-          category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
-        })}
-        description={t(`no_category_apps_description_${variant || "other"}`)}
-        buttonRaw={
-          <Button
-            color="secondary"
-            data-testid={`connect-${variant || "other"}-apps`}
-            href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
-            {t(`connect_${variant || "other"}_apps`)}
-          </Button>
-        }
-      />
-    );
-  }
-
   return (
-    <>
-      <ShellSubHeading
-        title={t(variant || "other")}
-        subtitle={t(`installed_app_${variant || "other"}_description`)}
-        className="mb-6"
-        actions={
-          <Button
-            href={variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"}
-            color="secondary"
-            StartIcon={FiPlus}>
-            {t("add")}
-          </Button>
+    <QueryCell
+      query={query}
+      customLoader={<SkeletonLoader />}
+      success={({ data }) => {
+        if (!data.items.length) {
+          return (
+            <EmptyScreen
+              Icon={emptyIcon[variant || "other"]}
+              headline={t("no_category_apps", {
+                category: (variant && t(variant).toLowerCase()) || t("other").toLowerCase(),
+              })}
+              description={t(`no_category_apps_description_${variant || "other"}`)}
+              buttonRaw={
+                <Button
+                  color="secondary"
+                  data-testid={`connect-${variant || "other"}-apps`}
+                  href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
+                  {t(`connect_${variant || "other"}_apps`)}
+                </Button>
+              }
+            />
+          );
         }
-      />
-      <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
-    </>
+        return (
+          <>
+            <ShellSubHeading
+              title={t(variant || "other")}
+              subtitle={t(`installed_app_${variant || "other"}_description`)}
+              className="mb-6"
+              actions={
+                <Button
+                  href={
+                    variant ? `/apps/categories/${variant === "conferencing" ? "video" : variant}` : "/apps"
+                  }
+                  color="secondary"
+                  StartIcon={FiPlus}>
+                  {t("add")}
+                </Button>
+              }
+            />
+            <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
+          </>
+        );
+      }}
+    />
   );
 };
 
