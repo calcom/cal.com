@@ -18,7 +18,7 @@ import {
   CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
-  userMetadata,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -411,7 +411,7 @@ export const eventTypesRouter = router({
     // Get Users default conferncing app
     const usersMetadata = ctx.user.metadata;
 
-    const defaultConferencingData = userMetadata.parse(usersMetadata)?.defaultConferencingApp;
+    const defaultConferencingData = userMetadataSchema.parse(usersMetadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
 
     let locations: { type: string; link?: string }[] = [];
