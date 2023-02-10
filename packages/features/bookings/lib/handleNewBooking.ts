@@ -655,6 +655,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
+    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+    }
+
     // If rescheduling an exisiting attendee
     if (rescheduleUid) {
       // Check if the host or attendee is rescheduling
@@ -674,8 +678,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
 
       seatAttendee.language = { translate: tAttendees, locale: seatAttendee.locale ?? "en" };
-
-      evt.attendees = [seatAttendee as Person];
 
       // See if the new date has a booking already
       const newTimeSlotBooking = await prisma.booking.findFirst({
@@ -709,14 +711,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         }),
       ]);
 
+      console.log(booking.attendees);
+
       // If that was the last attendee of the old booking then delete the old booking
-      if (booking.attendees.length === 0) {
-        await prisma.booking.delete({
-          where: {
-            id: booking.id,
-          },
-        });
-      }
+      // if (booking.attendees.length === 0) {
+      //   await prisma.booking.delete({
+      //     where: {
+      //       id: booking.id,
+      //     },
+      //   });
+      // }
 
       const copyEvent = cloneDeep(evt);
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
@@ -733,10 +737,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
       if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
         throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
-      }
-
-      if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
-        throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
       }
 
       const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
