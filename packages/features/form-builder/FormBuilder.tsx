@@ -553,6 +553,7 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           label={field.label}
           readOnly={readOnly}
+          name={field.name}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
         />

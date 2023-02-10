@@ -53,10 +53,13 @@ type Component =
       ) => JSX.Element;
     };
 
+// TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
+// There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
+// Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
 export const Components: Record<BookingFieldType, Component> = {
   text: {
     propsType: "text",
-    factory: (props) => <Widgets.TextWidget {...props} />,
+    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
   },
   textarea: {
     propsType: "text",
@@ -70,7 +73,7 @@ export const Components: Record<BookingFieldType, Component> = {
   name: {
     propsType: "text",
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
-    factory: (props) => <Widgets.TextWidget {...props} />,
+    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
   },
   phone: {
     propsType: "text",
@@ -97,7 +100,7 @@ export const Components: Record<BookingFieldType, Component> = {
       }
       // FIXME: type=email is removed so that RHF validations can work
       // But, RHF errors are not integrated in Routing Forms form
-      return <Widgets.TextWidget {...props} />;
+      return <Widgets.TextWidget noLabel={true} {...props} />;
     },
   },
   address: {

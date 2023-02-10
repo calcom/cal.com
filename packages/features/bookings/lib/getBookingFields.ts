@@ -41,8 +41,8 @@ export const getBookingFieldsWithSystemFields = ({
     customInputs: parsedCustomInputs,
   });
 };
-
-export const SystemFieldsEditability: Record<Fields[number]["name"], Fields[number]["editable"]> = {
+export const SystemField = z.enum(["name", "email", "location", "notes", "guests", "rescheduleReason"]);
+export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
   name: "system",
   email: "system",
   location: "system",
@@ -169,8 +169,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "rescheduleReason",
       defaultPlaceholder: "reschedule_placeholder",
       required: false,
-      // Being a FormBuilder field, it is not aware what a booking is and what reschedule is.The BookingPage can take care of showing it on reschedule view only
-      hidden: false,
       sources: [
         {
           label: "Default",
@@ -226,7 +224,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   bookingFields = bookingFields.concat(missingSystemAfterFields);
 
   bookingFields = bookingFields.map((field) => {
-    const foundEditableMap = SystemFieldsEditability[field.name];
+    const foundEditableMap = SystemFieldsEditability[field.name as keyof typeof SystemFieldsEditability];
     if (!foundEditableMap) {
       return field;
     }

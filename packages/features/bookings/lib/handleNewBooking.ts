@@ -347,7 +347,7 @@ function getBookingData({
       guests: responses.guests ? responses.guests : [],
       location: responses.location?.optionValue || responses.location?.value || "",
       smsReminderNumber: responses.smsReminderNumber,
-      notes: responses.notes,
+      notes: responses.notes || "",
       userFieldsResponses,
     };
   } else {
@@ -652,7 +652,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   const responses = "responses" in bookingData ? bookingData.responses : null;
   const userFieldsResponses = "userFieldsResponses" in bookingData ? bookingData.userFieldsResponses : null;
-  console.log("userFieldsResponses", userFieldsResponses);
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately

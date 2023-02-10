@@ -10,7 +10,7 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { Button as CalButton, Input, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
 import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
 export type CommonProps<
@@ -60,13 +60,16 @@ export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string
   listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
 } & CommonProps<TVal>;
 
-export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal>;
+export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal> & {
+  name?: string;
+};
 
 export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: any;
     type?: "text" | "number" | "email" | "tel";
     maxLength?: number;
+    noLabel?: boolean;
   };
 
 const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
@@ -93,12 +96,35 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 const TextWidget = (props: TextLikeComponentPropsRAQB) => {
-  const { value, setValue, readOnly, placeholder, customProps, type = "text", ...remainingProps } = props;
+  const {
+    value,
+    noLabel,
+    setValue,
+    readOnly,
+    placeholder,
+    customProps,
+    type = "text",
+    ...remainingProps
+  } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setValue(val);
   };
   const textValue = value || "";
+  if (noLabel) {
+    return (
+      <Input
+        type={type}
+        className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+        value={textValue}
+        placeholder={placeholder}
+        disabled={readOnly}
+        onChange={onChange}
+        {...remainingProps}
+        {...customProps}
+      />
+    );
+  }
   return (
     <TextField
       containerClassName="w-full"

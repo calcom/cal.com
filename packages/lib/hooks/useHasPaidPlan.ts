@@ -13,7 +13,7 @@ export function useHasPaidPlan() {
 
   const hasPaidPlan = hasTeamPlan?.hasTeamPlan || isCurrentUsernamePremium;
 
-  return { isLoading, hasPaidPlan: true };
+  return { isLoading, hasPaidPlan: hasPaidPlan };
 }
 
 export function useTeamInvites() {

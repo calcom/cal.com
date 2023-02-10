@@ -2,7 +2,44 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import slugify from "@calcom/lib/slugify";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+function getResponsesFromOldBooking(
+  rawBooking: Prisma.BookingGetPayload<{
+    select: {
+      description: true;
+      customInputs: true;
+      attendees: {
+        select: {
+          email: true;
+          name: true;
+        };
+      };
+      location: true;
+      smsReminderNumber: true;
+    };
+  }>
+) {
+  const customInputs = rawBooking.customInputs || {};
+  const responses = Object.keys(customInputs).reduce((acc, key) => {
+    acc[slugify(key) as keyof typeof acc] = customInputs[key as keyof typeof customInputs];
+    return acc;
+  }, {});
+  return {
+    name: rawBooking.attendees[0].name,
+    email: rawBooking.attendees[0].email,
+    guests: rawBooking.attendees.slice(1).map((attendee) => {
+      return attendee.email;
+    }),
+    notes: rawBooking.description || "",
+    location: {
+      value: rawBooking.location || "",
+      optionValue: rawBooking.location || "",
+    },
+    ...responses,
+  };
+}
 
 async function getBooking(
   prisma: PrismaClient,
@@ -32,12 +69,11 @@ async function getBooking(
   if (!rawBooking) {
     return rawBooking;
   }
-
   const booking = {
     ...rawBooking,
     responses: getBookingResponsesSchema({
       bookingFields,
-    }).parse(rawBooking.responses),
+    }).parse(rawBooking.responses || getResponsesFromOldBooking(rawBooking)),
   };
 
   if (booking) {

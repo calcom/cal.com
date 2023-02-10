@@ -9,7 +9,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
         "mb-2 block text-sm font-medium leading-none text-gray-700 dark:text-white",
         props.className
       )}>
-      <div>{props.children}</div>
+      {props.children}
     </label>
   );
 }

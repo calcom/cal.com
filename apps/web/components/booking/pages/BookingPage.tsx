@@ -22,7 +22,10 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import {
+  SystemField,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
   getBookingResponsesQuerySchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -57,22 +60,25 @@ type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps
 const BookingFields = ({
   fields,
   locations,
-  selectedLocation,
   rescheduleUid,
+  isDynamicGroupBooking,
 }: {
   fields: BookingPageProps["eventType"]["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
-  selectedLocation: ReturnType<typeof getEventLocationType>;
+  isDynamicGroupBooking: boolean;
 }) => {
   const { t } = useLocale();
   return (
+    // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     <div>
       {fields.map((field, index) => {
+        // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
+        // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
-        //TODO: `rescheduleReason` should be an enum or similar to avoid typos
-        if (field.name === "rescheduleReason") {
+
+        if (field.name === SystemField.Enum.rescheduleReason) {
           if (!rescheduleUid) {
             return null;
           }
@@ -80,12 +86,18 @@ const BookingFields = ({
           readOnly = false;
         }
 
-        // We don't show notes field during reschedule
-        if (field.name === "notes" && !!rescheduleUid) {
+        if (field.name === SystemField.Enum.guests) {
+          // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
+          field.hidden = isDynamicGroupBooking ? true : field.hidden;
+        }
+
+        // We don't show `notes` field during reschedule
+        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
           return null;
         }
 
-        if (field.name === "location" && field.type == "radioInput") {
+        // Dynamically populate location field options
+        if (field.name === SystemField.Enum.location && field.type == "radioInput") {
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
@@ -563,9 +575,9 @@ const BookingPage = ({
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} noValidate handleSubmit={bookEvent}>
                 <BookingFields
+                  isDynamicGroupBooking={isDynamicGroupBooking}
                   fields={eventType.bookingFields}
                   locations={locations}
-                  selectedLocation={selectedLocation}
                   rescheduleUid={rescheduleUid}
                 />
 

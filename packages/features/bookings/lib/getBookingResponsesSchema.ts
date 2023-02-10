@@ -5,7 +5,7 @@ import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-uti
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
 export const getBookingResponsesQuerySchema = (eventType: EventType) => {
-  const schema = bookingResponses.partial().and(z.record(z.any()));
+  const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
 
   return preprocess({ schema, eventType, forQueryParsing: true });
 };
@@ -30,7 +30,7 @@ function preprocess<T extends z.ZodType>({
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
-      const parsedResponses = z.record(z.any()).parse(responses);
+      const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
       eventType.bookingFields.forEach((field) => {
         const value = parsedResponses[field.name];

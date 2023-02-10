@@ -1,9 +1,9 @@
 import { GetServerSidePropsContext } from "next";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema, customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
