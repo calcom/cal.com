@@ -19,6 +19,7 @@ export const telemetryEventTypes = {
   embedView: "embed_view",
   embedBookingConfirmed: "embed_booking_confirmed",
   onboardingFinished: "onboarding_finished",
+  onboardingStarted: "onboarding_started",
   signup: "signup",
   team_created: "team_created",
   website: {
