@@ -15,12 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import {
-  customInputSchema,
-  eventTypeBookingFields,
-  eventTypeBookingFieldsUpdate,
-  EventTypeMetaDataSchema,
-} from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc, RouterOutputs } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
@@ -221,7 +216,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
-          bookingFields: eventTypeBookingFieldsUpdate,
+          bookingFields: eventTypeBookingFields,
         })
         // TODO: Add schema for other fields later.
         .passthrough()

@@ -706,7 +706,7 @@ export const viewerTeamsRouter = router({
         },
       },
     });
-    return { hasTeamPlan: !!hasTeamPlan };
+    return { hasTeamPlan: hasTeamPlan };
   }),
   listInvites: authedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user.id;

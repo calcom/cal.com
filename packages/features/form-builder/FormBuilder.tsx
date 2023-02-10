@@ -108,6 +108,7 @@ export const FormBuilder = function FormBuilder({
       label: "Radio Input",
       value: "radioInput",
       isTextType: false,
+      systemOnly: true,
     },
     {
       label: "Checkbox Group",

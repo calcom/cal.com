@@ -32,11 +32,7 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
-import {
-  addBookingField,
-  removeBookingField,
-  updateBookingField,
-} from "@calcom/features/eventtypes/lib/bookingFieldsManager";
+import { upsertBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -180,6 +176,7 @@ export const workflowsRouter = router({
           numberVerificationPending: false,
         },
       });
+
       return { workflow };
     } catch (e) {
       throw e;
@@ -380,16 +377,10 @@ export const workflowsRouter = router({
       });
 
       for (const removedEventType of removedEventTypes) {
-        await removeBookingField(
-          {
-            name: "smsReminderNumber",
-          },
-          {
-            id: "" + id,
-            type: "workflow",
-          },
-          removedEventType
-        );
+        await removeSmsReminderFieldForBooking({
+          workflowId: id,
+          eventTypeId: removedEventType,
+        });
       }
 
       const remindersToDelete = await Promise.all(remindersToDeletePromise);
@@ -453,7 +444,12 @@ export const workflowsRouter = router({
                 const bookingInfo = {
                   uid: booking.uid,
                   attendees: booking.attendees.map((attendee) => {
-                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                    return {
+                      name: attendee.name,
+                      email: attendee.email,
+                      timeZone: attendee.timeZone,
+                      language: { locale: attendee.locale || "" },
+                    };
                   }),
                   organizer: booking.user
                     ? {
@@ -534,16 +530,11 @@ export const workflowsRouter = router({
       }
 
       for (const eventTypeId of activeOn) {
-        await updateBookingField(
-          {
-            name: "smsReminderNumber",
-          },
-          {
-            id: "" + id,
-            fieldRequired: input.steps.some((s) => s.numberRequired),
-          },
-          eventTypeId
-        );
+        await upsertSmsReminderFieldForBooking({
+          workflowId: id,
+          isSmsReminderNumberRequired: input.steps.some((s) => s.numberRequired),
+          eventTypeId,
+        });
       }
 
       userWorkflow.steps.map(async (oldStep) => {
@@ -658,7 +649,12 @@ export const workflowsRouter = router({
               const bookingInfo = {
                 uid: booking.uid,
                 attendees: booking.attendees.map((attendee) => {
-                  return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                  return {
+                    name: attendee.name,
+                    email: attendee.email,
+                    timeZone: attendee.timeZone,
+                    language: { locale: attendee.locale || "" },
+                  };
                 }),
                 organizer: booking.user
                   ? {
@@ -779,7 +775,12 @@ export const workflowsRouter = router({
                 const bookingInfo = {
                   uid: booking.uid,
                   attendees: booking.attendees.map((attendee) => {
-                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                    return {
+                      name: attendee.name,
+                      email: attendee.email,
+                      timeZone: attendee.timeZone,
+                      language: { locale: attendee.locale || "" },
+                    };
                   }),
                   organizer: booking.user
                     ? {
@@ -936,72 +937,72 @@ export const workflowsRouter = router({
     }
 
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
-      const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
-      if (!hasTeamPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
-      }
-    }
+const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+if (!hasTeamPlan) {
+  throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+}
+}
 
-    const booking = await ctx.prisma.booking.findFirst({
-      orderBy: {
-        createdAt: "desc",
-      },
-      where: {
-        userId: ctx.user.id,
-      },
-      include: {
-        attendees: true,
-        user: true,
-      },
-    });
+const booking = await ctx.prisma.booking.findFirst({
+orderBy: {
+  createdAt: "desc",
+},
+where: {
+  userId: ctx.user.id,
+},
+include: {
+  attendees: true,
+  user: true,
+},
+});
 
-    let evt: BookingInfo;
-    if (booking) {
-      evt = {
-        uid: booking?.uid,
-        attendees:
-          booking?.attendees.map((attendee) => {
-            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-          }) || [],
-        organizer: {
-          language: {
-            locale: booking?.user?.locale || "",
-          },
-          name: booking?.user?.name || "",
-          email: booking?.user?.email || "",
-          timeZone: booking?.user?.timeZone || "",
-        },
-        startTime: booking?.startTime.toISOString() || "",
-        endTime: booking?.endTime.toISOString() || "",
-        title: booking?.title || "",
-        location: booking?.location || null,
-        additionalNotes: booking?.description || null,
-        customInputs: booking?.customInputs,
-      };
-    } else {
-      //if no booking exists create an example booking
-      evt = {
-        attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-        organizer: {
-          language: {
-            locale: ctx.user.locale,
-          },
-          name: ctx.user.name || "",
-          email: ctx.user.email,
-          timeZone: ctx.user.timeZone,
-        },
-        startTime: dayjs().add(10, "hour").toISOString(),
-        endTime: dayjs().add(11, "hour").toISOString(),
-        title: "Example Booking",
-        location: "Office",
-        additionalNotes: "These are additional notes",
-      };
-    }
+let evt: BookingInfo;
+if (booking) {
+evt = {
+  uid: booking?.uid,
+  attendees:
+    booking?.attendees.map((attendee) => {
+      return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+    }) || [],
+  organizer: {
+    language: {
+      locale: booking?.user?.locale || "",
+    },
+    name: booking?.user?.name || "",
+    email: booking?.user?.email || "",
+    timeZone: booking?.user?.timeZone || "",
+  },
+  startTime: booking?.startTime.toISOString() || "",
+  endTime: booking?.endTime.toISOString() || "",
+  title: booking?.title || "",
+  location: booking?.location || null,
+  additionalNotes: booking?.description || null,
+  customInputs: booking?.customInputs,
+};
+} else {
+//if no booking exists create an example booking
+evt = {
+  attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+  organizer: {
+    language: {
+      locale: ctx.user.locale,
+    },
+    name: ctx.user.name || "",
+    email: ctx.user.email,
+    timeZone: ctx.user.timeZone,
+  },
+  startTime: dayjs().add(10, "hour").toISOString(),
+  endTime: dayjs().add(11, "hour").toISOString(),
+  title: "Example Booking",
+  location: "Office",
+  additionalNotes: "These are additional notes",
+};
+}
 
-    if (
-      action === WorkflowActions.EMAIL_ATTENDEE ||
-      action === WorkflowActions.EMAIL_HOST /*||
-      action === WorkflowActions.EMAIL_ADDRESS*/
+if (
+action === WorkflowActions.EMAIL_ATTENDEE ||
+action === WorkflowActions.EMAIL_HOST /*||
+action === WorkflowActions.EMAIL_ADDRESS*/
   /*) {
       scheduleEmailReminder(
         evt,
@@ -1121,22 +1122,11 @@ export const workflowsRouter = router({
           return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
         });
 
-        await addBookingField(
-          {
-            name: "smsReminderNumber",
-            type: "phone",
-            label: "SMS Reminder Number",
-            editable: "system",
-          },
-          {
-            id: "" + workflowId,
-            type: "workflow",
-            label: "Workflow",
-            fieldRequired: isSmsReminderNumberRequired,
-            editUrl: `/workflows/${workflowId}`,
-          },
-          eventTypeId
-        );
+        await addSmsReminderFieldForBooking({
+          workflowId,
+          isSmsReminderNumberRequired,
+          eventTypeId,
+        });
       }
     }),
   sendVerificationCode: authedProcedure
@@ -1178,3 +1168,78 @@ export const workflowsRouter = router({
     return getWorkflowActionOptions(t, !!hasTeamPlan);
   }),
 });
+
+const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
+
+async function upsertSmsReminderFieldForBooking({
+  workflowId,
+  eventTypeId,
+  isSmsReminderNumberRequired,
+}: {
+  workflowId: number;
+  isSmsReminderNumberRequired: boolean;
+  eventTypeId: number;
+}) {
+  await upsertBookingField(
+    {
+      name: SMS_REMINDER_NUMBER_FIELD,
+      type: "phone",
+      label: "SMS Reminder Number",
+      editable: "system",
+    },
+    {
+      id: "" + workflowId,
+      type: "workflow",
+      label: "Workflow",
+      fieldRequired: isSmsReminderNumberRequired,
+      editUrl: `/workflows/${workflowId}`,
+    },
+    eventTypeId
+  );
+}
+
+async function addSmsReminderFieldForBooking({
+  workflowId,
+  eventTypeId,
+  isSmsReminderNumberRequired,
+}: {
+  workflowId: number;
+  isSmsReminderNumberRequired: boolean;
+  eventTypeId: number;
+}) {
+  await upsertBookingField(
+    {
+      name: SMS_REMINDER_NUMBER_FIELD,
+      type: "phone",
+      label: "SMS Reminder Number",
+      editable: "system",
+    },
+    {
+      id: "" + workflowId,
+      type: "workflow",
+      label: "Workflow",
+      fieldRequired: isSmsReminderNumberRequired,
+      editUrl: `/workflows/${workflowId}`,
+    },
+    eventTypeId
+  );
+}
+
+async function removeSmsReminderFieldForBooking({
+  workflowId,
+  eventTypeId,
+}: {
+  workflowId: number;
+  eventTypeId: number;
+}) {
+  await removeBookingField(
+    {
+      name: SMS_REMINDER_NUMBER_FIELD,
+    },
+    {
+      id: "" + workflowId,
+      type: "workflow",
+    },
+    eventTypeId
+  );
+}

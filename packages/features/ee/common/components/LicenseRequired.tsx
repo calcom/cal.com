@@ -7,7 +7,7 @@ import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
 import { FiAlertTriangle } from "@calcom/ui/components/icon";
@@ -46,6 +46,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
                     consoleUrl: `<a href="https://go.cal.com/console" target="_blank" class="underline">
                 ${APP_NAME}
               </a>`,
+                    setupUrl: `<a href="${WEBAPP_URL}/auth/setup">/auth/setup</a>`,
                     supportMail: `<a href="mailto:sales@cal.com" class="underline">
                 sales@cal.com
               </a>`,

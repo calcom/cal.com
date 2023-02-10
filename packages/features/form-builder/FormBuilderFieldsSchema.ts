@@ -25,6 +25,7 @@ export const EditableSchema = z.enum([
 ]);
 const fieldSchema = z.object({
   name: z.string(),
+  // TODO: We should make atleast one of defaultPlaceholder and placeholder required. Similarly for label
   label: z.string().optional(),
   placeholder: z.string().optional(),
 

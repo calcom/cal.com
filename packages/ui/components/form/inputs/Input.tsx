@@ -117,7 +117,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}

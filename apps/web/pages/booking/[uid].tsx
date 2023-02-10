@@ -11,7 +11,11 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import {
+  getEventLocationValue,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs, { ConfigType } from "@calcom/dayjs";
@@ -21,12 +25,12 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -35,14 +39,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import {
-  customInputSchema,
-  bookingMetadataSchema,
-  eventTypeBookingFields,
-  EventTypeMetaDataSchema,
-} from "@calcom/prisma/zod-utils";
+import { customInputSchema, bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
-import { FiX, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
+import { FiX, FiChevronLeft, FiCheck, FiCalendar, FiExternalLink } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -346,6 +345,12 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const hasSMSAttendeeAction =
+    eventType.workflows.find((workflowEventType) =>
+      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
+    ) !== undefined;
+  const providerName = guessEventLocationType(location)?.label;
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && (
@@ -497,8 +502,14 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3">
                           {locationToDisplay.startsWith("http") ? (
-                            <a title="Meeting Link" href={locationToDisplay}>
-                              {locationToDisplay}
+                            <a
+                              href={locationToDisplay}
+                              target="_blank"
+                              title={locationToDisplay}
+                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
+                              rel="noreferrer">
+                              {providerName || "Link"}
+                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
                             </a>
                           ) : (
                             locationToDisplay
