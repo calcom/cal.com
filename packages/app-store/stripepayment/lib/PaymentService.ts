@@ -55,14 +55,20 @@ export class PaymentService implements IAbstractPaymentService {
       const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
         stripeAppKeys?.keys
       );
-      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
+
+      const defaultCurrency = this.credentials.default_currency;
 
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
-        currency: this.credentials.default_currency,
+        currency: defaultCurrency,
         payment_method_types: ["card"],
-        application_fee_amount: paymentFee,
       };
+
+      // For now stripe account only supports app fee for USD. Revisit later.
+      if (defaultCurrency.toLocaleLowerCase() === "usd") {
+        const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
+        params.application_fee_amount = paymentFee;
+      }
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
         stripeAccount: this.credentials.stripe_user_id,
