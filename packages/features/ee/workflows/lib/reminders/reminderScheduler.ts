@@ -54,6 +54,7 @@ export const scheduleWorkflowReminders = async (
               step.template,
               step.sender || SENDER_ID,
               workflow.userId,
+              workflow.teamId,
               step.numberVerificationPending
             );
           } else if (
@@ -124,6 +125,7 @@ export const sendCancelledReminders = async (
               step.template,
               step.sender || SENDER_ID,
               workflow.userId,
+              workflow.teamId,
               step.numberVerificationPending
             );
           } else if (

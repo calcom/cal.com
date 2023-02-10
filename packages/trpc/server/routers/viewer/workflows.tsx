@@ -632,7 +632,8 @@ export const workflowsRouter = router({
                     step.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id
+                    user.id,
+                    userWorkflow.teamId
                   );
                 }
               });
@@ -682,6 +683,7 @@ export const workflowsRouter = router({
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
           if (
+            !userWorkflow.teamId &&
             !userWorkflow.user?.teams.length &&
             !isSMSAction(oldStep.action) &&
             isSMSAction(newStep.action)
@@ -829,7 +831,8 @@ export const workflowsRouter = router({
                   newStep.id || 0,
                   newStep.template,
                   newStep.sender || SENDER_ID,
-                  user.id
+                  user.id,
+                  userWorkflow.teamId
                 );
               }
             });
@@ -956,7 +959,8 @@ export const workflowsRouter = router({
                     createdStep.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id
+                    user.id,
+                    userWorkflow.teamId
                   );
                 }
               });
@@ -1058,63 +1062,63 @@ export const workflowsRouter = router({
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
 const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
 if (!hasTeamPlan) {
-  throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
 }
 }
 
 const booking = await ctx.prisma.booking.findFirst({
 orderBy: {
-  createdAt: "desc",
+createdAt: "desc",
 },
 where: {
-  userId: ctx.user.id,
+userId: ctx.user.id,
 },
 include: {
-  attendees: true,
-  user: true,
+attendees: true,
+user: true,
 },
 });
 
 let evt: BookingInfo;
 if (booking) {
 evt = {
-  uid: booking?.uid,
-  attendees:
-    booking?.attendees.map((attendee) => {
-      return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-    }) || [],
-  organizer: {
-    language: {
-      locale: booking?.user?.locale || "",
-    },
-    name: booking?.user?.name || "",
-    email: booking?.user?.email || "",
-    timeZone: booking?.user?.timeZone || "",
-  },
-  startTime: booking?.startTime.toISOString() || "",
-  endTime: booking?.endTime.toISOString() || "",
-  title: booking?.title || "",
-  location: booking?.location || null,
-  additionalNotes: booking?.description || null,
-  customInputs: booking?.customInputs,
+uid: booking?.uid,
+attendees:
+booking?.attendees.map((attendee) => {
+  return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+}) || [],
+organizer: {
+language: {
+  locale: booking?.user?.locale || "",
+},
+name: booking?.user?.name || "",
+email: booking?.user?.email || "",
+timeZone: booking?.user?.timeZone || "",
+},
+startTime: booking?.startTime.toISOString() || "",
+endTime: booking?.endTime.toISOString() || "",
+title: booking?.title || "",
+location: booking?.location || null,
+additionalNotes: booking?.description || null,
+customInputs: booking?.customInputs,
 };
 } else {
 //if no booking exists create an example booking
 evt = {
-  attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-  organizer: {
-    language: {
-      locale: ctx.user.locale,
-    },
-    name: ctx.user.name || "",
-    email: ctx.user.email,
-    timeZone: ctx.user.timeZone,
-  },
-  startTime: dayjs().add(10, "hour").toISOString(),
-  endTime: dayjs().add(11, "hour").toISOString(),
-  title: "Example Booking",
-  location: "Office",
-  additionalNotes: "These are additional notes",
+attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+organizer: {
+language: {
+  locale: ctx.user.locale,
+},
+name: ctx.user.name || "",
+email: ctx.user.email,
+timeZone: ctx.user.timeZone,
+},
+startTime: dayjs().add(10, "hour").toISOString(),
+endTime: dayjs().add(11, "hour").toISOString(),
+title: "Example Booking",
+location: "Office",
+additionalNotes: "These are additional notes",
 };
 }
 
@@ -1257,24 +1261,31 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       z.object({
         phoneNumber: z.string(),
         code: z.string(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, code } = input;
+      const { phoneNumber, code, teamId } = input;
       const { user } = ctx;
-      const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id);
+      const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id, teamId);
       return verifyStatus;
     }),
-  getVerifiedNumbers: authedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx;
-    const verifiedNumbers = await ctx.prisma.verifiedNumber.findMany({
-      where: {
-        userId: user.id,
-      },
-    });
+  getVerifiedNumbers: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const verifiedNumbers = await ctx.prisma.verifiedNumber.findMany({
+        where: {
+          OR: [{ userId: user.id }, { teamId: input.teamId }],
+        },
+      });
 
-    return verifiedNumbers;
-  }),
+      return verifiedNumbers;
+    }),
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
     const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
     const t = await getTranslation(ctx.user.locale, "common");

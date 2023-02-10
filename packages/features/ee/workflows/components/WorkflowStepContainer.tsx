@@ -51,17 +51,17 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
+  teamId?: number;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { step, form, reload, setReload } = props;
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+  const { step, form, reload, setReload, teamId } = props;
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery({ teamId });
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
-  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
 
@@ -455,6 +455,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 verifyPhoneNumberMutation.mutate({
                                   phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
                                   code: verificationCode,
+                                  teamId,
                                 });
                               }}>
                               Verify

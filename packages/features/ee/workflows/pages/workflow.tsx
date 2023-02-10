@@ -102,6 +102,7 @@ function WorkflowPage() {
     isError,
     error,
     dataUpdatedAt,
+    isLoading,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -109,7 +110,12 @@ function WorkflowPage() {
     }
   );
 
-  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+    { teamId: workflow?.team?.id },
+    {
+      enabled: !isLoading,
+    }
+  );
 
   useEffect(() => {
     if (workflow && (workflow.steps.length === 0 || workflow.steps[0].stepNumber === 1)) {

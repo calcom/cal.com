@@ -152,7 +152,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} teamId={teamId} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -165,6 +165,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    teamId={teamId}
                   />
                 );
               })}
