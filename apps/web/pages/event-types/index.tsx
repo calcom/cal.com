@@ -454,7 +454,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
-                        <DropdownMenuItem className="outline-none">
+                        <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                           <Link href={calLink} target="_blank">
                             <Button
                               color="minimal"
@@ -464,7 +464,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </Button>
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
+                        <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                           <Button
                             type="button"
                             color="minimal"
@@ -479,7 +479,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </Button>
                         </DropdownMenuItem>
                         {isNativeShare ? (
-                          <DropdownMenuItem className="outline-none">
+                          <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                             <Button
                               type="button"
                               color="minimal"
@@ -500,7 +500,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             </Button>
                           </DropdownMenuItem>
                         ) : null}
-                        <DropdownMenuItem className="outline-none">
+                        <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                           <Button
                             type="button"
                             onClick={() => router.push("/event-types/" + type.id)}
@@ -510,7 +510,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             {t("edit")}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="outline-none">
+                        <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                           <Button
                             type="button"
                             color="minimal"
@@ -522,7 +522,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </Button>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="outline-none">
+                        <DropdownMenuItem className="first-of-type:rounded-t-0 outline-none last-of-type:rounded-b-[inherit] hover:ring-0">
                           <Button
                             onClick={() => {
                               setDeleteDialogOpen(true);
