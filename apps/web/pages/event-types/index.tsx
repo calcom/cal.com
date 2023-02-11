@@ -530,7 +530,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             }}
                             color="destructive"
                             StartIcon={FiTrash}
-                            className="w-full rounded-none">
+                            className="w-full rounded-none border-0">
                             {t("delete")}
                           </Button>
                         </DropdownMenuItem>
