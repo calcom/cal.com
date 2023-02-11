@@ -1,9 +1,11 @@
-import * as fetch from "@lib/core/http/fetch-wrapper";
-import { BookingCreateBody, BookingResponse } from "@lib/types/booking";
+import { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
-type BookingCreateBodyForQuery = Omit<BookingCreateBody, "location">;
-const createBooking = async (data: BookingCreateBodyForQuery) => {
-  const response = await fetch.post<BookingCreateBodyForQuery, BookingResponse>("/api/book/event", data);
+import * as fetch from "@lib/core/http/fetch-wrapper";
+import { BookingResponse } from "@lib/types/booking";
+
+type BookingCreateBodyForMutation = Omit<BookingCreateBody, "location">;
+const createBooking = async (data: BookingCreateBodyForMutation) => {
+  const response = await fetch.post<BookingCreateBodyForMutation, BookingResponse>("/api/book/event", data);
 
   return response;
 };

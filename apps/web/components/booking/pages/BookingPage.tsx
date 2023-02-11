@@ -5,7 +5,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -562,7 +562,8 @@ const BookingPage = ({
                   className={classNames(
                     "flex justify-end space-x-2 rtl:space-x-reverse",
                     // HACK: If the last field is guests, we need to move Cancel, Submit buttons up because "Add Guests" being present on the left and the buttons on the right, spacing is not required
-                    eventType.bookingFields[eventType.bookingFields.length - 1].name === "guests"
+                    eventType.bookingFields[eventType.bookingFields.length - 1].name ===
+                      SystemField.Enum.guests
                       ? "-mt-4"
                       : ""
                   )}>

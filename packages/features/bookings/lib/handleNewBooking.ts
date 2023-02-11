@@ -402,7 +402,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
   const { userId } = req;
 
   // handle dynamic user
-  // TODO: ManageBookings: Test with dynamic bookings
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
@@ -410,8 +409,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }, is
 
   eventType = {
     ...eventType,
-    // TODO: ManageBookings: Use getEventTypeById which would avoid having to do it again
-    // TODO: How to ensure that getBookingResponsesSchema receive an eventType which has bookingFields fixed.
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
 

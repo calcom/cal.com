@@ -5,6 +5,7 @@ import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingR
 import slugify from "@calcom/lib/slugify";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
+// Backward Compatibility for booking created before we had managed booking questions
 function getResponsesFromOldBooking(
   rawBooking: Prisma.BookingGetPayload<{
     select: {

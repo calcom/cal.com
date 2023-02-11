@@ -5,7 +5,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema, customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";

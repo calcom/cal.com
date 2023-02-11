@@ -25,7 +25,11 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import {
+  SystemField,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/features/bookings/lib/getBookingFields";
+import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -50,8 +54,6 @@ import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
-
-import getBookingResponsesSchema from "../../../../packages/features/bookings/lib/getBookingResponsesSchema";
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
@@ -195,7 +197,6 @@ export default function Success(props: SuccessProps) {
     window.scrollTo(0, document.body.scrollHeight);
   }
 
-  //TODO: Remove this comment, this is just during the review to mention that location shouldn't be an array and it should have been a string. It was causing wrong Where to be shown on booking success page
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
@@ -525,63 +526,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {/* {customInputs &&
-                      Object.keys(customInputs).map((key) => {
-                        // This breaks if you have two label that are the same.
-                        // TODO: Fix this in another PR
-                        const customInput = customInputs[key as keyof typeof customInputs];
-                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
-                        return (
-                          <>
-                            {eventTypeCustomFound?.type === "RADIO" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {eventTypeCustomFound.label}
-                                </div>
-                                <div className="col-span-3 mt-1 mb-2">
-                                  {eventTypeCustomFound.options &&
-                                    eventTypeCustomFound.options.map((option) => {
-                                      const selected = option.label == customInput;
-                                      return (
-                                        <div
-                                          key={option.label}
-                                          className={classNames(
-                                            "flex space-x-1",
-                                            !selected && "text-gray-500"
-                                          )}>
-                                          <p>{option.label}</p>
-                                          <span>{option.label === customInput && "✅"}</span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </>
-                            )}
-                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {key}
-                                </div>
-                                <div className="col-span-3 mt-2 mb-2">
-                                  {typeof customInput === "boolean" ? (
-                                    <p>{customInput ? "true" : "false"}</p>
-                                  ) : (
-                                    <p>{customInput}</p>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })} */}
-                    {/* {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
-                      <>
-                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
-                        <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.smsReminderNumber}</p>
-                        </div>
-                      </>
-                    )} */}
+
                     {Object.entries(bookingInfo.responses).map(([name, response]) => {
                       const field = eventType.bookingFields.find((field) => field.name === name);
                       // We show location in the "where" section
@@ -589,11 +534,11 @@ export default function Success(props: SuccessProps) {
                       // We show notes in additional notes section
                       if (
                         !field ||
-                        field.name === "location" ||
-                        field.name === "guests" ||
-                        field.name === "notes" ||
-                        field.name === "name" ||
-                        field.name === "email"
+                        field.name === SystemField.Enum.location ||
+                        field.name === SystemField.Enum.name ||
+                        field.name === SystemField.Enum.email ||
+                        field.name === SystemField.Enum.guests ||
+                        field.name === SystemField.Enum.notes
                       ) {
                         return null;
                       }
@@ -602,7 +547,7 @@ export default function Success(props: SuccessProps) {
                           <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
                             {field.label}
                           </Label>
-                          {/* Might be a good idea to use the readonly versions of respective components here */}
+                          {/* Might be a good idea to use the readonly variant of respective components here */}
                           <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
                         </>
                       );

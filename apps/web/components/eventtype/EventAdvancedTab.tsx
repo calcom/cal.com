@@ -71,6 +71,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
   }, [eventType.users, hashedUrl, team?.id]);
 
+  const toggleGuests = (enabled: boolean) => {
+    const bookingFields = formMethods.getValues("bookingFields");
+    const newBookingFieldsWithGuestsDisabled = bookingFields.map((field) => {
+      if (field.name === "guests") {
+        return {
+          ...field,
+          hidden: !enabled,
+        };
+      }
+      return field;
+    });
+    formMethods.setValue("bookingFields", newBookingFieldsWithGuestsDisabled);
+  };
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -135,9 +148,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr />
       <FormBuilder
-        title="Booking questions"
-        description="Customize the questions asked on the booking page"
-        addFieldLabel="Add a question"
+        title={t("booking_questions_title")}
+        description={t("booking_questions_description")}
+        addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
       />
       <hr />
@@ -262,13 +275,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             onCheckedChange={(e) => {
               // Enabling seats will disable guests and requiring confirmation until fully supported
               if (e) {
-                formMethods.setValue("disableGuests", true);
+                toggleGuests(false);
                 formMethods.setValue("requiresConfirmation", false);
                 setRequiresConfirmation(false);
                 formMethods.setValue("seatsPerTimeSlot", 2);
               } else {
                 formMethods.setValue("seatsPerTimeSlot", null);
-                formMethods.setValue("disableGuests", false);
+                toggleGuests(true);
               }
               onChange(e);
             }}>
