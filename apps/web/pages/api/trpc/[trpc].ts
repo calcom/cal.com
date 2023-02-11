@@ -34,60 +34,42 @@ export default trpcNext.createNextApiHandler({
   responseMeta({ ctx, paths, type, errors }) {
     // Some helpers relevant to this function only
     const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
-    const TWO_HOURS_IN_SECONDS = 60 * 60 * 2;
+    // assuming you have all your public routes with the keyword `public` in them
+    const allPublic = paths && paths.every((path) => path.startsWith("viewer.public."));
+    // checking that no procedures errored
+    const allOk = errors.length === 0;
+    // checking we're doing a query request
+    const isQuery = type === "query";
+    const noHeaders = {};
 
-    // Our response to indicate no caching
+    // We cannot set headers on SSG queries
+    if (!ctx?.res) return noHeaders;
+
     const defaultHeaders: Record<"headers", Record<string, string>> = {
       headers: {},
     };
 
-    if (!!ctx?.req) {
-      const timezone = z.string().safeParse(ctx.req.headers["x-vercel-ip-timezone"]);
-      if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
-    }
+    const timezone = z.string().safeParse(ctx.req?.headers["x-vercel-ip-timezone"]);
+    if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore ctx.req is available for SSR but not SSG
-    if (!!ctx?.req) {
-      return defaultHeaders;
-    }
+    // We need all these conditions to be true to set cache headers
+    if (!(allPublic && allOk && isQuery)) return defaultHeaders;
 
-    // No caching if we have a non-public path
-    // Assuming we have all our public routes in `viewer.public`
-    if (!paths || !paths.every((path) => path.startsWith("viewer.public."))) {
-      return defaultHeaders;
-    }
-
-    // No caching if we have any procedures errored
-    if (errors.length !== 0) {
-      return defaultHeaders;
-    }
-
-    // Never cache non-queries (aka mutations)
-    if (type !== "query") {
-      return defaultHeaders;
-    }
-
-    // cache request for 1 day + revalidate once every 5 seconds
-    let cacheValue = `s-maxage=${ONE_DAY_IN_SECONDS}, stale-while-revalidate=5`;
+    defaultHeaders.headers["cache-control"] = `s-maxage=1, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`;
 
     // Our cache can change depending on our current paths value. Since paths is an array,
     // we want to create a map that can match potential paths with their desired cache value
     const cacheRules = {
-      "viewer.public.i18n": `maxage=${TWO_HOURS_IN_SECONDS}, stale-while-revalidate=30`,
+      "viewer.public.i18n": `max-age=${ONE_DAY_IN_SECONDS}, s-maxage=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
-      "viewer.public.slots.getSchedule": `s-maxage=5, stale-while-revalidate=1`,
+      "viewer.public.slots.getSchedule": `max-age=0, s-maxage=1`,
     } as const;
 
     // Find which element above is an exact match for this group of paths
     const matchedPath = paths.find((v) => v in cacheRules) as keyof typeof cacheRules;
 
-    // Get the cache value of the matching element, if any
-    if (matchedPath) cacheValue = cacheRules[matchedPath];
+    if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[matchedPath];
 
-    if (cacheValue) defaultHeaders.headers["Cache-Control"] = cacheValue;
-
-    // Finally we respond with our resolved cache value
     return defaultHeaders;
   },
 });
