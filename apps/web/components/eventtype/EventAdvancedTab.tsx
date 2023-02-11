@@ -73,16 +73,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const toggleGuests = (enabled: boolean) => {
     const bookingFields = formMethods.getValues("bookingFields");
-    const newBookingFieldsWithGuestsDisabled = bookingFields.map((field) => {
-      if (field.name === "guests") {
-        return {
-          ...field,
-          hidden: !enabled,
-        };
-      }
-      return field;
-    });
-    formMethods.setValue("bookingFields", newBookingFieldsWithGuestsDisabled);
+    formMethods.setValue(
+      "bookingFields",
+      bookingFields.map((field) => {
+        if (field.name === "guests") {
+          return {
+            ...field,
+            hidden: !enabled,
+          };
+        }
+        return field;
+      })
+    );
   };
   return (
     <div className="flex flex-col space-y-8">

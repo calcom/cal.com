@@ -398,7 +398,14 @@ function getCustomInputsResponses(
   return customInputsResponses;
 }
 
-async function handler(req: NextApiRequest & { userId?: number | undefined }, isNotAnApiCall = false) {
+async function handler(
+  req: NextApiRequest & { userId?: number | undefined },
+  {
+    isNotAnApiCall = false,
+  }: {
+    isNotAnApiCall?: boolean;
+  }
+) {
   const { userId } = req;
 
   // handle dynamic user
