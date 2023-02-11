@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { nameOfDay } from "@calcom/lib/weekday";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -20,7 +21,6 @@ import {
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
-import { nameOfDay } from "@lib/core/i18n/weekday";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -69,7 +69,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate our previous i18n cache
+      await utils.viewer.public.i18n.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },

@@ -18,6 +18,7 @@ import {
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
 import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -32,16 +33,20 @@ import {
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
 
-function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
+function getSender(
+  step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
+) {
+  return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
 export const workflowsRouter = router({
@@ -166,7 +171,7 @@ export const workflowsRouter = router({
           action: WorkflowActions.EMAIL_HOST,
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
-          sender: SENDER_ID,
+          sender: SENDER_NAME,
           numberVerificationPending: false,
         },
       });
@@ -244,6 +249,7 @@ export const workflowsRouter = router({
             template: z.enum(WORKFLOW_TEMPLATES),
             numberRequired: z.boolean().nullable(),
             sender: z.string().optional().nullable(),
+            senderName: z.string().optional().nullable(),
           })
           .array(),
         trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -427,7 +433,12 @@ export const workflowsRouter = router({
                 const bookingInfo = {
                   uid: booking.uid,
                   attendees: booking.attendees.map((attendee) => {
-                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                    return {
+                      name: attendee.name,
+                      email: attendee.email,
+                      timeZone: attendee.timeZone,
+                      language: { locale: attendee.locale || "" },
+                    };
                   }),
                   organizer: booking.user
                     ? {
@@ -472,7 +483,8 @@ export const workflowsRouter = router({
                     step.emailSubject || "",
                     step.reminderBody || "",
                     step.id,
-                    step.template
+                    step.template,
+                    step.senderName || SENDER_NAME
                   );
                 } else if (step.action === WorkflowActions.SMS_NUMBER) {
                   await scheduleSMSReminder(
@@ -561,7 +573,11 @@ export const workflowsRouter = router({
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
-              sender: newStep.sender || SENDER_ID,
+              sender: getSender({
+                action: newStep.action,
+                sender: newStep.sender || null,
+                senderName: newStep.senderName,
+              }),
               numberVerificationPending: false,
             },
           });
@@ -614,7 +630,12 @@ export const workflowsRouter = router({
               const bookingInfo = {
                 uid: booking.uid,
                 attendees: booking.attendees.map((attendee) => {
-                  return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                  return {
+                    name: attendee.name,
+                    email: attendee.email,
+                    timeZone: attendee.timeZone,
+                    language: { locale: attendee.locale || "" },
+                  };
                 }),
                 organizer: booking.user
                   ? {
@@ -659,7 +680,8 @@ export const workflowsRouter = router({
                   newStep.emailSubject || "",
                   newStep.reminderBody || "",
                   newStep.id,
-                  newStep.template
+                  newStep.template,
+                  newStep.senderName || SENDER_NAME
                 );
               } else if (newStep.action === WorkflowActions.SMS_NUMBER) {
                 await scheduleSMSReminder(
@@ -701,10 +723,14 @@ export const workflowsRouter = router({
         });
         addedSteps.forEach(async (step) => {
           if (step) {
-            const newStep = step;
-            newStep.sender = step.sender || SENDER_ID;
+            const { senderName, ...newStep } = step;
+            newStep.sender = getSender({
+              action: newStep.action,
+              sender: newStep.sender || null,
+              senderName: senderName,
+            });
             const createdStep = await ctx.prisma.workflowStep.create({
-              data: { ...step, numberVerificationPending: false },
+              data: { ...newStep, numberVerificationPending: false },
             });
             if (
               (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -730,7 +756,12 @@ export const workflowsRouter = router({
                 const bookingInfo = {
                   uid: booking.uid,
                   attendees: booking.attendees.map((attendee) => {
-                    return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+                    return {
+                      name: attendee.name,
+                      email: attendee.email,
+                      timeZone: attendee.timeZone,
+                      language: { locale: attendee.locale || "" },
+                    };
                   }),
                   organizer: booking.user
                     ? {
@@ -776,7 +807,8 @@ export const workflowsRouter = router({
                     step.emailSubject || "",
                     step.reminderBody || "",
                     createdStep.id,
-                    step.template
+                    step.template,
+                    step.senderName || SENDER_NAME
                   );
                 } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
                   await scheduleSMSReminder(
@@ -886,72 +918,72 @@ export const workflowsRouter = router({
     }
 
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
-      const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
-      if (!hasTeamPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
-      }
-    }
+const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+if (!hasTeamPlan) {
+  throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+}
+}
 
-    const booking = await ctx.prisma.booking.findFirst({
-      orderBy: {
-        createdAt: "desc",
-      },
-      where: {
-        userId: ctx.user.id,
-      },
-      include: {
-        attendees: true,
-        user: true,
-      },
-    });
+const booking = await ctx.prisma.booking.findFirst({
+orderBy: {
+  createdAt: "desc",
+},
+where: {
+  userId: ctx.user.id,
+},
+include: {
+  attendees: true,
+  user: true,
+},
+});
 
-    let evt: BookingInfo;
-    if (booking) {
-      evt = {
-        uid: booking?.uid,
-        attendees:
-          booking?.attendees.map((attendee) => {
-            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-          }) || [],
-        organizer: {
-          language: {
-            locale: booking?.user?.locale || "",
-          },
-          name: booking?.user?.name || "",
-          email: booking?.user?.email || "",
-          timeZone: booking?.user?.timeZone || "",
-        },
-        startTime: booking?.startTime.toISOString() || "",
-        endTime: booking?.endTime.toISOString() || "",
-        title: booking?.title || "",
-        location: booking?.location || null,
-        additionalNotes: booking?.description || null,
-        customInputs: booking?.customInputs,
-      };
-    } else {
-      //if no booking exists create an example booking
-      evt = {
-        attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-        organizer: {
-          language: {
-            locale: ctx.user.locale,
-          },
-          name: ctx.user.name || "",
-          email: ctx.user.email,
-          timeZone: ctx.user.timeZone,
-        },
-        startTime: dayjs().add(10, "hour").toISOString(),
-        endTime: dayjs().add(11, "hour").toISOString(),
-        title: "Example Booking",
-        location: "Office",
-        additionalNotes: "These are additional notes",
-      };
-    }
+let evt: BookingInfo;
+if (booking) {
+evt = {
+  uid: booking?.uid,
+  attendees:
+    booking?.attendees.map((attendee) => {
+      return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+    }) || [],
+  organizer: {
+    language: {
+      locale: booking?.user?.locale || "",
+    },
+    name: booking?.user?.name || "",
+    email: booking?.user?.email || "",
+    timeZone: booking?.user?.timeZone || "",
+  },
+  startTime: booking?.startTime.toISOString() || "",
+  endTime: booking?.endTime.toISOString() || "",
+  title: booking?.title || "",
+  location: booking?.location || null,
+  additionalNotes: booking?.description || null,
+  customInputs: booking?.customInputs,
+};
+} else {
+//if no booking exists create an example booking
+evt = {
+  attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+  organizer: {
+    language: {
+      locale: ctx.user.locale,
+    },
+    name: ctx.user.name || "",
+    email: ctx.user.email,
+    timeZone: ctx.user.timeZone,
+  },
+  startTime: dayjs().add(10, "hour").toISOString(),
+  endTime: dayjs().add(11, "hour").toISOString(),
+  title: "Example Booking",
+  location: "Office",
+  additionalNotes: "These are additional notes",
+};
+}
 
-    if (
-      action === WorkflowActions.EMAIL_ATTENDEE ||
-      action === WorkflowActions.EMAIL_HOST /*||
-      action === WorkflowActions.EMAIL_ADDRESS*/
+if (
+action === WorkflowActions.EMAIL_ATTENDEE ||
+action === WorkflowActions.EMAIL_HOST /*||
+action === WorkflowActions.EMAIL_ADDRESS*/
   /*) {
       scheduleEmailReminder(
         evt,

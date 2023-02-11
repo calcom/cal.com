@@ -2,7 +2,8 @@ import { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Icon, Tooltip } from "@calcom/ui";
+import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
+import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -59,7 +60,7 @@ const DateOverrideList = ({
               ))
             )}
           </div>
-          <div className="space-x-2 rtl:space-x-reverse">
+          <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
               excludedDates={excludedDates}
               workingHours={workingHours}
@@ -75,8 +76,8 @@ const DateOverrideList = ({
                     tooltip={t("edit")}
                     className="text-gray-700"
                     color="minimal"
-                    size="icon"
-                    StartIcon={Icon.FiEdit2}
+                    variant="icon"
+                    StartIcon={FiEdit2}
                   />
                 </DialogTrigger>
               }
@@ -85,8 +86,8 @@ const DateOverrideList = ({
               <Button
                 className="text-gray-700"
                 color="destructive"
-                size="icon"
-                StartIcon={Icon.FiTrash2}
+                variant="icon"
+                StartIcon={FiTrash2}
                 onClick={() => remove(index)}
               />
             </Tooltip>

@@ -7,9 +7,10 @@ import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui";
+import { FiAlertTriangle } from "@calcom/ui/components/icon";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -35,18 +36,19 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         children
       ) : (
         <EmptyScreen
-          Icon={Icon.FiAlertTriangle}
+          Icon={FiAlertTriangle}
           headline={t("enterprise_license")}
           description={
             <div
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(
                   t("enterprise_license_description", {
-                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                    consoleUrl: `<a href="https://go.cal.com/console" target="_blank" class="underline">
                 ${APP_NAME}
               </a>`,
-                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
-                ${SUPPORT_MAIL_ADDRESS}
+                    setupUrl: `<a href="${WEBAPP_URL}/auth/setup">/auth/setup</a>`,
+                    supportMail: `<a href="mailto:sales@cal.com" class="underline">
+                sales@cal.com
               </a>`,
                   })
                 ),
@@ -60,7 +62,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
 };
 
 export const withLicenseRequired =
-  <T,>(Component: ComponentType<T>) =>
+  <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (

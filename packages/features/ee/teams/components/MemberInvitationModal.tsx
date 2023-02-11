@@ -7,7 +7,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
-  CheckboxField,
+  Checkbox as CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -153,7 +153,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               color="primary"
               className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
               data-testid="invite-new-member-button">
-              {t("invite_new_member")}
+              {t("invite")}
             </Button>
           </DialogFooter>
         </Form>

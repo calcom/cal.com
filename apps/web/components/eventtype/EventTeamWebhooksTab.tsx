@@ -1,4 +1,4 @@
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
 
@@ -9,7 +9,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@calcom/ui";
+import { Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
   eventType,
@@ -84,7 +85,7 @@ export const EventTeamWebhooksTab = ({
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Icon.FiPlus}
+        StartIcon={FiPlus}
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -99,7 +100,7 @@ export const EventTeamWebhooksTab = ({
               <>
                 {webhooks.length ? (
                   <>
-                    <div className="mt-4 mb-8 rounded-md border">
+                    <div className="mb-8 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
                           <WebhookListItem
@@ -130,7 +131,10 @@ export const EventTeamWebhooksTab = ({
 
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent title={t("create_webhook")} description={t("create_webhook_team_event_type")}>
+            <DialogContent
+              enableOverflow
+              title={t("create_webhook")}
+              description={t("create_webhook_team_event_type")}>
               <WebhookForm
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}

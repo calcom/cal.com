@@ -5,7 +5,8 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, Icon, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { FiEye, FiEyeOff, FiX } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -116,7 +117,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}
@@ -142,7 +143,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...passThrough}
             {...(type == "search" && {
               onChange: (e) => {
-                console.log(e.target.value);
                 setInputValue(e.target.value);
                 props.onChange && props.onChange(e);
               },
@@ -162,7 +162,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <Icon.FiX
+            <FiX
               className="absolute top-2.5 h-4 w-4 cursor-pointer text-gray-500 ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
@@ -220,9 +220,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <Icon.FiEyeOff className="h-4 stroke-[2.5px]" />
+                <FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <Icon.FiEye className="h-4 stroke-[2.5px]" />
+                <FiEye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>

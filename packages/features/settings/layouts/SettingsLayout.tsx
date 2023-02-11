@@ -15,18 +15,31 @@ import {
   Badge,
   Button,
   ErrorBoundary,
-  Icon,
   VerticalTabItemProps,
   VerticalTabItem,
   Skeleton,
   useMeta,
 } from "@calcom/ui";
+import {
+  FiUser,
+  FiKey,
+  FiCreditCard,
+  FiTerminal,
+  FiUsers,
+  FiLock,
+  FiArrowLeft,
+  FiChevronDown,
+  FiChevronRight,
+  FiPlus,
+  FiMenu,
+  FiExternalLink,
+} from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
   {
     name: "my_account",
     href: "/settings/my-account",
-    icon: Icon.FiUser,
+    icon: FiUser,
     children: [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
@@ -40,7 +53,7 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "security",
     href: "/settings/security",
-    icon: Icon.FiKey,
+    icon: FiKey,
     children: [
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
@@ -50,13 +63,13 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "billing",
     href: "/settings/billing",
-    icon: Icon.FiCreditCard,
+    icon: FiCreditCard,
     children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: Icon.FiTerminal,
+    icon: FiTerminal,
     children: [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
@@ -68,18 +81,19 @@ const tabs: VerticalTabItemProps[] = [
   {
     name: "teams",
     href: "/settings/teams",
-    icon: Icon.FiUsers,
+    icon: FiUsers,
     children: [],
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: Icon.FiLock,
+    icon: FiLock,
     children: [
       //
+      { name: "license", href: "/auth/setup?step=1" },
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
-      { name: "users", href: "/settings/admin/users" },
+      { name: "users", href: "https://console.cal.com" },
     ],
   },
 ];
@@ -121,7 +135,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/event-types"
       className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
       data-testid={`vertical-tab-${name}`}>
-      <Icon.FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
+      <FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>
@@ -165,7 +179,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed bottom-0 left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed bottom-0 left-0 top-0 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -178,7 +192,7 @@ const SettingsSidebarContainer = ({
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                   )}
@@ -210,7 +224,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                 <Link href={tab.href}>
-                  <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                  <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
@@ -247,11 +261,7 @@ const SettingsSidebarContainer = ({
                                 ])
                               }>
                               <div className="ltr:mr-3 rtl:ml-3">
-                                {teamMenuState[index].teamMenuOpen ? (
-                                  <Icon.FiChevronDown />
-                                ) : (
-                                  <Icon.FiChevronRight />
-                                )}
+                                {teamMenuState[index].teamMenuOpen ? <FiChevronDown /> : <FiChevronRight />}
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
@@ -319,8 +329,8 @@ const SettingsSidebarContainer = ({
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 text-gray-900 font-medium text-sm"
-                  icon={Icon.FiPlus}
+                  textClassNames="px-3 items-center mt-2 text-gray-900 font-medium text-sm"
+                  icon={FiPlus}
                   disableChevron
                 />
               </div>
@@ -339,14 +349,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="sticky top-0 z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button StartIcon={Icon.FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen}>
+          <Button StartIcon={FiMenu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <a
             href="/"
             className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200 rtl:space-x-reverse">
-            <Icon.FiArrowLeft className="text-gray-700" />
+            <FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>
           </a>
         </div>
@@ -423,15 +433,17 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
+      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
-            <Icon.FiArrowLeft className="mr-7" />
+            <FiArrowLeft className="mr-7" />
           </a>
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">{t(meta.title)}</h1>
+            <h1 className="font-cal mb-1 text-xl font-bold leading-5 tracking-wide text-black">
+              {t(meta.title)}
+            </h1>
           ) : (
             <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
           )}

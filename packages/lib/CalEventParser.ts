@@ -17,13 +17,21 @@ ${calEvent.type}
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
-  return `
+  return calEvent.seatsPerTimeSlot
+    ? `
+${calEvent.organizer.language.translate("organizer_timezone")}:
+${calEvent.organizer.timeZone}
+  `
+    : `
 ${calEvent.organizer.language.translate("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
+    calEvent.attendees = [];
+  }
   const attendees = calEvent.attendees
     .map((attendee) => {
       return `

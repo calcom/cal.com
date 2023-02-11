@@ -7,7 +7,8 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import { Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
+import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -90,7 +91,7 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
+    <div className="flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
       <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
         {getActionIcon(
           workflow.steps,
@@ -125,7 +126,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
           <Button type="button" color="minimal" className="mr-4">
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+            <FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
           </Button>
         </Link>
       </div>
@@ -196,7 +197,7 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="mt-4">
+          <div className="space-y-4">
             {sortedWorkflows.map((workflow) => {
               return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}
@@ -204,7 +205,7 @@ function EventWorkflowsTab(props: Props) {
         ) : (
           <div className="pt-4 before:border-0">
             <EmptyScreen
-              Icon={Icon.FiZap}
+              Icon={FiZap}
               headline={t("workflows")}
               description={t("no_workflows_description")}
               buttonRaw={
