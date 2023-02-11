@@ -231,7 +231,7 @@ export async function getUserAvailability(
       ? { ...eventType?.schedule }
       : {
           ...userSchedule,
-          availability: userSchedule.availability.map((a) => ({
+          availability: userSchedule?.availability.map((a) => ({
             ...a,
             userId: currentUser.id,
           })),
