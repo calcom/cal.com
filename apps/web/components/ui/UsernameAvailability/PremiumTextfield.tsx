@@ -1,3 +1,4 @@
+import { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
@@ -12,7 +13,7 @@ import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Input, Label } from "@calcom/ui";
-import { FiCheck, FiEdit2, FiExternalLink, StarIconSolid } from "@calcom/ui/components/icon";
+import { FiCheck, FiEdit2, FiExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",

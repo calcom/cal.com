@@ -23,6 +23,7 @@
     "@radix-ui/react-popover": "^1.0.2",
     "@radix-ui/react-portal": "^1.0.0",
     "@radix-ui/react-select": "^0.1.1",
+    "@react-icons/all-files": "^4.1.0",
     "@tanstack/react-query": "^4.3.9",
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "class-variance-authority": "^0.4.0",

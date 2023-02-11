@@ -97,7 +97,9 @@ const nextConfig = {
   },
   modularizeImports: {
     "@calcom/ui/components/icon": {
-      transform: "react-icons/fi",
+      transform: "@react-icons/all-files/fi/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
     },
     // TODO: We need to have all components in `@calcom/ui/components` in order to use this
     // "@calcom/ui": {

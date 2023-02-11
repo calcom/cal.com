@@ -1,3 +1,4 @@
+import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
@@ -27,8 +28,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { HeadSeo, AvatarGroup, Avatar } from "@calcom/ui";
-import { BadgeCheckIcon, FiArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
