@@ -19,8 +19,8 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
   const LENGTH = props.items.length;
   const truncateAfter = props.truncateAfter || 4;
   /**
-   * First, filter all the avatars with image included
-   * Then, slice it until`truncateAfter` index
+   * First, filter all the avatars object that have image
+   * Then, slice it until before `truncateAfter` index
    */
   const displayedAvatars = props.items.filter((avatar) => avatar.image).slice(0, truncateAfter);
   const numTruncatedAvatars = LENGTH - displayedAvatars.length;
