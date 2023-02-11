@@ -131,9 +131,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventType.schedule = null;
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
-  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata || {});
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),

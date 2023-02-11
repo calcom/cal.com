@@ -14,6 +14,7 @@ export default function getBookingResponsesSchema(eventType: EventType) {
   const schema = bookingResponses.and(z.record(z.any()));
   return preprocess({ schema, eventType, forQueryParsing: false });
 }
+
 // TODO: Move it to FormBuilder schema
 function preprocess<T extends z.ZodType>({
   schema,
@@ -41,10 +42,13 @@ function preprocess<T extends z.ZodType>({
         // Turn a boolean in string to a real boolean
         if (field.type === "boolean") {
           newResponses[field.name] = value === "true" || value === true;
-          // TODO: What about multiselect and checkbox??
-        } else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
+        }
+        // Make sure that the value is an array
+        else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
           newResponses[field.name] = value instanceof Array ? value : [value];
-        } else if (field.type === "radioInput") {
+        }
+        // Parse JSON
+        else if (field.type === "radioInput" && typeof value === "string") {
           let parsedValue = {
             optionValue: "",
             value: "",

@@ -352,8 +352,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const res = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
-  const { data, isLoading } = res;
+  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
   if (isLoading || !data) return null;
   return <EventTypePage {...data} />;
 };

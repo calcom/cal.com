@@ -534,11 +534,15 @@ export default function Success(props: SuccessProps) {
                       // We show notes in additional notes section
                       if (
                         !field ||
-                        field.name === SystemField.Enum.location ||
-                        field.name === SystemField.Enum.name ||
-                        field.name === SystemField.Enum.email ||
-                        field.name === SystemField.Enum.guests ||
-                        field.name === SystemField.Enum.notes
+                        (
+                          [
+                            SystemField.Enum.location,
+                            SystemField.Enum.name,
+                            SystemField.Enum.email,
+                            SystemField.Enum.guests,
+                            SystemField.Enum.notes,
+                          ] as string[]
+                        ).includes(field.name)
                       ) {
                         return null;
                       }

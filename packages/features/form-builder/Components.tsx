@@ -309,17 +309,7 @@ export const Components: Record<BookingFieldType, Component> = {
       return (
         <div>
           <div>
-            <div
-              className="mb-4"
-              onChange={(e) => {
-                setValue({
-                  // TODO: ManageBookings: onChange fires on parent of radio inputs but onChange isn't allowed to have a value for div in TS
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
-                  value: e.target.value || "",
-                  optionValue: "",
-                });
-              }}>
+            <div className="mb-4">
               {options.length > 1 ? (
                 options.map((option, i) => {
                   return (
@@ -328,11 +318,15 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        // disabled={!!disableLocations}
-                        //TODO: ManageBookings: What does this location class do?
-                        className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
-                        defaultChecked={value?.value === option.value}
+                        onChange={(e) => {
+                          setValue({
+                            value: e.target.value,
+                            optionValue: "",
+                          });
+                        }}
+                        checked={value?.value === option.value}
                       />
                       <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
                         {option.label ?? ""}
