@@ -114,13 +114,13 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           ) : (
             <></>
           )}
-          {eventType.seatsPerTimeSlot && (
+          {eventType?.seatsPerTimeSlot ? (
             <li>
               <Badge variant="gray" size="lg" StartIcon={FiUser}>
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
               </Badge>
             </li>
-          )}
+          ) : null}
         </ul>
       </div>
     </>
