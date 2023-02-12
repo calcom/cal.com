@@ -124,13 +124,13 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           {t("is_required")}
         </label>
       </div>
-      <input
+      <TextField
         type="hidden"
         id="eventTypeId"
         value={selectedCustomInput?.eventTypeId || -1}
         {...register("eventTypeId", { valueAsNumber: true })}
       />
-      <input
+      <TextField
         type="hidden"
         id="id"
         value={selectedCustomInput?.id || -1}

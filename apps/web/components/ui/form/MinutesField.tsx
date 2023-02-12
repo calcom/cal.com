@@ -2,6 +2,8 @@ import classNames from "classnames";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import React, { forwardRef } from "react";
 
+import { TextField } from "@calcom/ui";
+
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: ReactNode;
 };
@@ -18,7 +20,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
       )}
       <div className="w-full">
         <div className="relative rounded-sm">
-          <input
+          <TextField
             {...rest}
             ref={ref}
             type="number"

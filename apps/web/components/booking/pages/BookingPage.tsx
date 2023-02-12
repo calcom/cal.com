@@ -49,6 +49,7 @@ import {
   Group,
   PhoneInput,
   RadioField,
+  TextField,
   Tooltip,
 } from "@calcom/ui";
 import {
@@ -650,21 +651,18 @@ const BookingPage = ({
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} handleSubmit={bookEvent}>
                 <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("your_name")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...bookingForm.register("name", { required: true })}
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      className={inputClassName}
-                      placeholder={t("example_name")}
-                      disabled={disableInput}
-                    />
-                  </div>
+                  <TextField
+                    {...bookingForm.register("name", { required: true })}
+                    label={t("your_name")}
+                    labelClassName="block text-sm font-medium text-gray-700 dark:text-white"
+                    type="text"
+                    name="name"
+                    id="name"
+                    required
+                    className={inputClassName}
+                    placeholder={t("example_name")}
+                    disabled={disableInput}
+                  />
                 </div>
                 <div className="mb-4">
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
@@ -811,7 +809,7 @@ const BookingPage = ({
                         />
                       )}
                       {input.type === EventTypeCustomInputType.TEXT && (
-                        <input
+                        <TextField
                           type="text"
                           {...bookingForm.register(`customInputs.${input.id}`, {
                             required: input.required,
@@ -824,7 +822,7 @@ const BookingPage = ({
                         />
                       )}
                       {input.type === EventTypeCustomInputType.NUMBER && (
-                        <input
+                        <TextField
                           type="number"
                           {...bookingForm.register(`customInputs.${input.id}`, {
                             required: input.required,

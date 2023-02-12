@@ -3,7 +3,7 @@ import type { z } from "zod";
 import type { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import { Select } from "@calcom/ui";
+import { Select, TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
 
@@ -44,7 +44,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
         </div>
         <div className="w-full">
           <div className="relative mt-1 rounded-sm">
-            <input
+            <TextField
               type="text"
               className="block w-full rounded-sm border-gray-300 text-sm "
               placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}

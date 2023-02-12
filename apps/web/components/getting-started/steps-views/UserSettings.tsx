@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TimezoneSelect } from "@calcom/ui";
+import { Button, TextField, TimezoneSelect } from "@calcom/ui";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -63,11 +63,10 @@ const UserSettings = (props: IUserSettingsProps) => {
 
         {/* Full name textfield */}
         <div className="w-full">
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
-            {t("full_name")}
-          </label>
-          <input
+          <TextField
             {...register("name", defaultOptions)}
+            label={t("full_name")}
+            labelClassName="mb-2 block text-sm font-medium text-gray-700"
             id="name"
             name="name"
             type="text"

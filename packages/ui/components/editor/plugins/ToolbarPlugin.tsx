@@ -26,6 +26,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
+import { TextField } from "../../form";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
 import { FiChevronDown } from "../../icon";
 import type { TextEditorProps } from "../Editor";
@@ -157,7 +158,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
   return (
     <div ref={editorRef} className="link-editor">
       {isEditMode ? (
-        <input
+        <TextField
           ref={inputRef}
           className="link-input"
           value={linkUrl}

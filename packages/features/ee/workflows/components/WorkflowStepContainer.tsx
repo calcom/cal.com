@@ -470,9 +470,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isSenderIdNeeded ? (
                   <>
                     <div className="pt-4">
-                      <Label>{t("sender_id")}</Label>
-                      <Input
+                      <TextField
                         type="text"
+                        label={t("sender_id")}
                         placeholder={SENDER_ID}
                         maxLength={11}
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
@@ -486,9 +486,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 ) : (
                   <>
                     <div className="pt-4">
-                      <Label>{t("sender_name")}</Label>
-                      <Input
+                      <TextField
                         type="text"
+                        label={t("sender_name")}
                         placeholder={SENDER_NAME}
                         {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
                       />

@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
+import { TextField } from "@calcom/ui";
 import { FiEdit2 } from "@calcom/ui/components/icon";
 
 const EditableHeading = function EditableHeading({
@@ -23,7 +24,7 @@ const EditableHeading = function EditableHeading({
           {!isEditing && isReady && (
             <FiEdit2 className=" ml-1 -mt-px inline h-3 w-3  text-gray-500 group-hover:text-gray-500" />
           )}
-          <input
+          <TextField
             {...passThroughProps}
             type="text"
             value={value}

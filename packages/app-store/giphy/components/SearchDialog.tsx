@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
+import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter, TextField } from "@calcom/ui";
 
 interface ISearchDialog {
   isOpenDialog: boolean;
@@ -125,7 +125,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           className="flex w-full justify-center space-x-2 space-y-2 rtl:space-x-reverse"
           onSubmit={handleFormSubmit}>
           <div className="relative block w-full pt-2">
-            <input
+            <TextField
               type="text"
               className="block w-full rounded-sm border-gray-300 shadow-sm sm:text-sm"
               placeholder={

@@ -22,6 +22,7 @@ import {
   Label,
   PhoneInput,
   Select,
+  TextField,
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
@@ -202,8 +203,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 </>
               ) : (
                 <div className="mt-5">
-                  <Label>{t("sender_name")}</Label>
-                  <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
+                  <TextField label={t("sender_id")} placeholder={SENDER_ID} {...form.register("senderId")} />
                 </div>
               )}
               {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (

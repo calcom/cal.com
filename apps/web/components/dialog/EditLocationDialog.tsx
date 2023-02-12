@@ -15,9 +15,8 @@ import {
   LocationType,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput, TextField } from "@calcom/ui";
 import { FiMapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -51,7 +50,11 @@ const LocationInput = (props: {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
   if (eventLocationType?.organizerInputType === "text") {
     return (
-      <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
+      <TextField
+        {...locationFormMethods.register(eventLocationType.variable)}
+        type="text"
+        {...remainingProps}
+      />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     return (

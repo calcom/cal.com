@@ -2,6 +2,7 @@ import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { TextField } from "@calcom/ui";
 
 import InfoBadge from "@components/ui/InfoBadge";
 
@@ -45,7 +46,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               },
               <>
                 <div className="flex h-5 items-center">
-                  <input
+                  <TextField
                     {...rest}
                     ref={ref}
                     type="checkbox"

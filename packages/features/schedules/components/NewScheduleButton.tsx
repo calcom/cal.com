@@ -13,6 +13,7 @@ import {
   DialogTrigger,
   Form,
   showToast,
+  TextField,
 } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";
 
@@ -69,19 +70,16 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
             createMutation.mutate(values);
           }}>
           <div className="space-y-2">
-            <label htmlFor="label" className="block text-sm font-medium text-gray-700">
-              {t("name")}
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                id="name"
-                required
-                className="block w-full rounded-sm border-gray-300 text-sm"
-                placeholder={t("default_schedule_name")}
-                {...register("name")}
-              />
-            </div>
+            <TextField
+              label={t("name")}
+              labelClassName="mb-2 block text-sm font-medium text-gray-700"
+              type="text"
+              id="name"
+              required
+              className="block w-full rounded-sm border-gray-300 text-sm"
+              placeholder={t("default_schedule_name")}
+              {...register("name")}
+            />
           </div>
           <DialogFooter>
             <DialogClose />

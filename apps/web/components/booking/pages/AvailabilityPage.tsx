@@ -23,7 +23,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { HeadSeo } from "@calcom/ui";
+import { HeadSeo, TextField } from "@calcom/ui";
 import { FiCreditCard, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
@@ -179,9 +179,9 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
-                            <input
+                            <TextField
                               type="number"
-                              min="1"
+                              min={1}
                               max={eventType.recurringEvent.count}
                               className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
                               defaultValue={eventType.recurringEvent.count}

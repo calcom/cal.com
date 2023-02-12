@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, showToast } from "@calcom/ui";
+import { Button, showToast, TextField } from "@calcom/ui";
 
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
@@ -66,38 +66,32 @@ const ChangePasswordSection = () => {
           </div>
           <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0">
             <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-1/2">
-              <label htmlFor="current_password" className="block text-sm font-medium text-gray-700">
-                {t("current_password")}
-              </label>
-              <div className="mt-1">
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onInput={(e) => setOldPassword(e.currentTarget.value)}
-                  name="current_password"
-                  id="current_password"
-                  required
-                  className="block w-full rounded-sm border-gray-300 text-sm"
-                  placeholder={t("your_old_password")}
-                />
-              </div>
+              <TextField
+                labelClassName="block text-sm font-medium text-gray-700"
+                className="block w-full rounded-sm border-gray-300 text-sm"
+                label={t("current_password")}
+                type="password"
+                placeholder={t("your_old_password")}
+                name="current_password"
+                id="current_password"
+                required
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.currentTarget.value)}
+              />
             </div>
             <div className="w-full sm:w-1/2">
-              <label htmlFor="new_password" className="block text-sm font-medium text-gray-700">
-                {t("new_password")}
-              </label>
-              <div className="mt-1">
-                <input
-                  type="password"
-                  name="new_password"
-                  id="new_password"
-                  value={newPassword}
-                  required
-                  onInput={(e) => setNewPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 text-sm"
-                  placeholder={t("super_secure_new_password")}
-                />
-              </div>
+              <TextField
+                labelClassName="block text-sm font-medium text-gray-700"
+                className="block w-full rounded-sm border-gray-300 text-sm"
+                label={t("new_password")}
+                placeholder={t("super_secure_new_password")}
+                type="password"
+                name="new_password"
+                id="new_password"
+                value={newPassword}
+                required
+                onChange={(e) => setNewPassword(e.currentTarget.value)}
+              />
             </div>
           </div>
           {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}

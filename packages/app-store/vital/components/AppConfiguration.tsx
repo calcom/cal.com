@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button, Select, showToast } from "@calcom/ui";
+import { Button, Select, showToast, TextField } from "@calcom/ui";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];
@@ -128,7 +128,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
           </label>
         </div>
         <div className="mx-2 mt-0 inline-flex w-24 items-baseline">
-          <input
+          <TextField
             id="value"
             type="text"
             pattern="\d*"

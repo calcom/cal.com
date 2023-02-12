@@ -4,6 +4,7 @@ import ReactSelect, { components } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { TextField } from "@calcom/ui";
 
 export type SelectProps<
   Option,
@@ -75,8 +76,9 @@ function Select<
 
   // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
   // if (!isReady) {
-  //   return <input type="text" className={className} />;
+  //   return <TextField type="text" className={className} />;
   // }
+
   return (
     <ReactSelect
       theme={(theme) => ({
