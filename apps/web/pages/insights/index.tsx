@@ -1,4 +1,3 @@
-// TODO: extract strings into i18n keys
 import {
   Card,
   Metric,
@@ -24,151 +23,220 @@ import { DateRangePicker } from "@tremor/react";
 import { useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
-import { Avatar, Button, ButtonGroup, EmptyScreen, Tooltip } from "@calcom/ui";
-import { FiSettings, FiDownload, FiClock, FiFilter } from "@calcom/ui/components/icon";
+import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Avatar, Button, ButtonGroup, Tooltip } from "@calcom/ui";
+import {
+  FiSettings,
+  FiDownload,
+  FiFilter,
+  FiUsers,
+  FiRefreshCcw,
+  FiUserPlus,
+  FiMail,
+  FiVideo,
+  FiEyeOff,
+} from "@calcom/ui/components/icon";
+
+import { UpgradeTip } from "../../../../packages/features/tips";
 
 export default function InsightsPage() {
-  const isEmpty = false;
+  const { t } = useLocale();
+
+  const features = [
+    {
+      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+    },
+    {
+      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+    },
+    {
+      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+    },
+    {
+      icon: <FiMail className="h-5 w-5 text-orange-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+    },
+    {
+      icon: <FiVideo className="h-5 w-5 text-purple-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+    },
+    {
+      icon: <FiEyeOff className="h-5 w-5 text-indigo-500" />,
+      title: t("Lorem Ipsum"),
+      description: t("dolor sit amet, consetetur sadipscing elitr,", { appName: APP_NAME }),
+    },
+  ];
   return (
     <div>
-      <Shell
-        heading="Insights"
-        subtitle="View your Insights"
-        CTA={
-          <div className="flex">
-            <ButtonGroup combined containerProps={{ className: "hidden lg:flex mx-2" }}>
-              <Tooltip content="Filter">
+      <Shell heading="Insights" subtitle="View your Insights">
+        <UpgradeTip
+          dark
+          title={t("teams_plan_required")}
+          description={t(
+            "Insights help you learn more about the booking statistics of you and your team members and make better decisions."
+          )}
+          features={features}
+          background="/routing-form-banner-background.jpg"
+          buttons={
+            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <ButtonGroup>
+                <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("upgrade")}
+                </Button>
                 <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiFilter}
-                />
-              </Tooltip>
-              <Tooltip content="Settings">
-                <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiSettings}
-                />
-              </Tooltip>
-              <Tooltip content="Download *.csv">
-                <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiDownload}
-                />
-              </Tooltip>
-            </ButtonGroup>
-            <DateSelect />
-          </div>
-        }>
-        {isEmpty ? (
-          <EmptyScreen Icon={FiClock} headline="Coming soon" description="We're working on this feature" />
-        ) : (
-          <>
-            <div className="space-y-6">
-              <KPICards />
-              <Line
-                title="Events trends"
-                data={[
-                  {
-                    Month: "Dec 15",
-                    Created: 2890,
-                    Completed: 2390,
-                    Rescheduled: 500,
-                    Cancelled: 100,
-                  },
-                  {
-                    Month: "Dec 22",
-                    Created: 1890,
-                    Completed: 1590,
-                    Rescheduled: 300,
-                    Cancelled: 120,
-                  },
-                  {
-                    Month: "Dec 29",
-                    Created: 4890,
-                    Completed: 4290,
-                    Rescheduled: 800,
-                    Cancelled: 300,
-                  },
-                  {
-                    Month: "Jan 06",
-                    Created: 3890,
-                    Completed: 2400,
-                    Rescheduled: 500,
-                    Cancelled: 200,
-                  },
-                  {
-                    Month: "Jan 13",
-                    Created: 1890,
-                    Completed: 1590,
-                    Rescheduled: 200,
-                    Cancelled: 50,
-                  },
-                ]}
-              />
-              <TeamTable />
-              <div className="grid grid-cols-2 gap-5">
-                <Bar
-                  title="Average event duration"
-                  data={[
-                    {
-                      Month: "Jan 21",
-                      Sales: 2890,
-                      Profit: 2400,
-                    },
-                    {
-                      Month: "Feb 21",
-                      Sales: 1890,
-                      Profit: 1398,
-                    },
-                    {
-                      Month: "Jan 22",
-                      Sales: 3890,
-                      Profit: 2980,
-                    },
-                  ]}
-                />
-                <Bar
-                  title="Popular days"
-                  data={[
-                    {
-                      Month: "Jan 21",
-                      Sales: 2890,
-                      Profit: 2400,
-                    },
-                    {
-                      Month: "Feb 21",
-                      Sales: 1890,
-                      Profit: 1398,
-                    },
-                    {
-                      Month: "Jan 22",
-                      Sales: 3890,
-                      Profit: 2980,
-                    },
-                  ]}
-                />
-              </div>
-              <small className="block text-center text-gray-600">
-                Looking for more analytics?{" "}
-                <a
-                  className="text-blue-500 hover:underline"
-                  href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
-                  Let us know
-                </a>
-                .
-              </small>
+                  color="minimal"
+                  className="!bg-transparent text-white opacity-50 hover:opacity-100"
+                  href="https://go.cal.com/insights"
+                  target="_blank">
+                  {t("learn_more")}
+                </Button>
+              </ButtonGroup>
             </div>
+          }>
+          <>
+            <Shell
+              heading={t("insights")}
+              subtitle={t("view_your_insights")}
+              CTA={
+                <div className="flex">
+                  <ButtonGroup combined containerProps={{ className: "hidden lg:flex mx-2" }}>
+                    <Tooltip content={t("filter") /* Filter */}>
+                      <Button
+                        variant="icon"
+                        color="secondary"
+                        target="_blank"
+                        rel="noreferrer"
+                        StartIcon={FiFilter}
+                      />
+                    </Tooltip>
+                    <Tooltip content={t("settings")}>
+                      <Button
+                        variant="icon"
+                        color="secondary"
+                        target="_blank"
+                        rel="noreferrer"
+                        StartIcon={FiSettings}
+                      />
+                    </Tooltip>
+                    <Tooltip content={t("download_csv") /*"Download *.csv*/}>
+                      <Button
+                        variant="icon"
+                        color="secondary"
+                        target="_blank"
+                        rel="noreferrer"
+                        StartIcon={FiDownload}
+                      />
+                    </Tooltip>
+                  </ButtonGroup>
+                  <DateSelect />
+                </div>
+              }>
+              <div className="space-y-6">
+                <KPICards />
+                <Line
+                  title={t("event_trends" /* "Events trends" */)}
+                  data={[
+                    {
+                      Month: "Dec 15",
+                      Created: 2890,
+                      Completed: 2390,
+                      Rescheduled: 500,
+                      Cancelled: 100,
+                    },
+                    {
+                      Month: "Dec 22",
+                      Created: 1890,
+                      Completed: 1590,
+                      Rescheduled: 300,
+                      Cancelled: 120,
+                    },
+                    {
+                      Month: "Dec 29",
+                      Created: 4890,
+                      Completed: 4290,
+                      Rescheduled: 800,
+                      Cancelled: 300,
+                    },
+                    {
+                      Month: "Jan 06",
+                      Created: 3890,
+                      Completed: 2400,
+                      Rescheduled: 500,
+                      Cancelled: 200,
+                    },
+                    {
+                      Month: "Jan 13",
+                      Created: 1890,
+                      Completed: 1590,
+                      Rescheduled: 200,
+                      Cancelled: 50,
+                    },
+                  ]}
+                />
+                <TeamTable />
+                <div className="grid grid-cols-2 gap-5">
+                  <Bar
+                    title={t("average_event_duration" /* "Average event duration" */)}
+                    data={[
+                      {
+                        Month: "Jan 21",
+                        Sales: 2890,
+                        Profit: 2400,
+                      },
+                      {
+                        Month: "Feb 21",
+                        Sales: 1890,
+                        Profit: 1398,
+                      },
+                      {
+                        Month: "Jan 22",
+                        Sales: 3890,
+                        Profit: 2980,
+                      },
+                    ]}
+                  />
+                  <Bar
+                    title={t("popular_days" /* "Popular days" */)}
+                    data={[
+                      {
+                        Month: "Jan 21",
+                        Sales: 2890,
+                        Profit: 2400,
+                      },
+                      {
+                        Month: "Feb 21",
+                        Sales: 1890,
+                        Profit: 1398,
+                      },
+                      {
+                        Month: "Jan 22",
+                        Sales: 3890,
+                        Profit: 2980,
+                      },
+                    ]}
+                  />
+                </div>
+                <small className="block text-center text-gray-600">
+                  t{"looking_for_more_analytics" /* Looking for more analytics? */}{" "}
+                  <a
+                    className="text-blue-500 hover:underline"
+                    href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+                    {t("contact_support")}
+                  </a>
+                </small>
+              </div>
+            </Shell>
           </>
-        )}
+        </UpgradeTip>
       </Shell>
     </div>
   );
