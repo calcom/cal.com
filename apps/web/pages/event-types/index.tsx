@@ -60,6 +60,8 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 import { ssrInit } from "@server/lib/ssr";
 
+import { UpgradeTeamsBadge } from "../../../../packages/ui/components/badge/UpgradeTeamsBadge";
+
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
@@ -126,11 +128,17 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           data-testid={"event-type-title-" + type.id}>
           {type.title}
         </span>
-        <small
-          className="hidden font-normal leading-4 text-gray-600 sm:inline"
-          data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+        {group.profile.slug ? (
+          <small
+            className="hidden font-normal leading-4 text-gray-600 sm:inline"
+            data-testid={"event-type-slug-" + type.id}>
+            {`/${group.profile.slug}/${type.slug}`}
+          </small>
+        ) : (
+          <UpgradeTeamsBadge />
+        )}
         {readOnly && (
-          <span className="rtl:ml-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2">
+          <span className="inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
             {t("readonly")}
           </span>
         )}
