@@ -57,6 +57,7 @@ import {
   FiFileText,
   FiZap,
   FiSettings,
+  FiBarChart,
   FiArrowRight,
   FiArrowLeft,
 } from "@calcom/ui/components/icon";
@@ -526,7 +527,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "Insights",
     href: "/insights",
-    icon: Icon.FiBarChart,
+    icon: FiBarChart,
   },
   {
     name: "settings",

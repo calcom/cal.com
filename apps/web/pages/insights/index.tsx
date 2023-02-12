@@ -24,7 +24,8 @@ import { DateRangePicker } from "@tremor/react";
 import { useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
-import { Avatar, Button, ButtonGroup, EmptyScreen, Icon, Tooltip } from "@calcom/ui";
+import { Avatar, Button, ButtonGroup, EmptyScreen, Tooltip } from "@calcom/ui";
+import { FiSettings, FiDownload, FiClock, FiFilter } from "@calcom/ui/components/icon";
 
 export default function InsightsPage() {
   const isEmpty = false;
@@ -35,32 +36,32 @@ export default function InsightsPage() {
         subtitle="View your Insights"
         CTA={
           <div className="flex">
-            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex mx-2" }}>
+            <ButtonGroup combined containerProps={{ className: "hidden lg:flex mx-2" }}>
               <Tooltip content="Filter">
                 <Button
+                  variant="icon"
                   color="secondary"
                   target="_blank"
-                  size="icon"
                   rel="noreferrer"
-                  StartIcon={Icon.FiFilter}
+                  StartIcon={FiFilter}
                 />
               </Tooltip>
               <Tooltip content="Settings">
                 <Button
+                  variant="icon"
                   color="secondary"
                   target="_blank"
-                  size="icon"
                   rel="noreferrer"
-                  StartIcon={Icon.FiSettings}
+                  StartIcon={FiSettings}
                 />
               </Tooltip>
               <Tooltip content="Download *.csv">
                 <Button
+                  variant="icon"
                   color="secondary"
                   target="_blank"
-                  size="icon"
                   rel="noreferrer"
-                  StartIcon={Icon.FiDownload}
+                  StartIcon={FiDownload}
                 />
               </Tooltip>
             </ButtonGroup>
@@ -68,11 +69,7 @@ export default function InsightsPage() {
           </div>
         }>
         {isEmpty ? (
-          <EmptyScreen
-            Icon={Icon.FiClock}
-            headline="Coming soon"
-            description="We're working on this feature"
-          />
+          <EmptyScreen Icon={FiClock} headline="Coming soon" description="We're working on this feature" />
         ) : (
           <>
             <div className="space-y-6">
