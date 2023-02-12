@@ -40,7 +40,6 @@
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
    <a href="https://console.algora.io/org/cal/bounties?status=open"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fcal%2Fbounties%3Fstatus%3Dopen" /></a>
- <a href="https://console.algora.io/org/cal/bounties?status=completed"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fcal%2Fbounties%3Fstatus%3Dcompleted" /></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->
@@ -77,8 +76,6 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
     src="https://hackernews-badge.vercel.app/api?id=26817795"
   />
 </a>
-
-
 
 #### [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
@@ -342,7 +339,18 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 ### Good First Issues
 
 We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+  
+<!-- BOUNTIES -->
 
+### Bounties
+  
+<a href="https://console.algora.io/org/cal/bounties?status=open">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=dark">
+    <img alt="Bounties of cal" src="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=light">
+  </picture>
+</a>  
+  
 
 <!-- TRANSLATIONS -->
 
