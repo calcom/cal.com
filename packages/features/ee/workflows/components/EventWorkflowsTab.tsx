@@ -54,8 +54,6 @@ const WorkflowListItem = (props: ItemProps) => {
         offOn = "on";
       }
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
-      await utils.viewer.eventTypes.get.invalidate();
-      await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(
         t("workflow_turned_on_successfully", {
           workflowName: workflow.name,

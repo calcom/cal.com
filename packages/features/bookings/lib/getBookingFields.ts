@@ -62,7 +62,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
 }) => {
-  // If bookingFields is set already, the migration is done. The very first time for an EventType bookingFields would be empty
+  // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
   const CustomInputTypeToFieldType = {
     [EventTypeCustomInputType.TEXT]: BookingFieldType.text,
@@ -189,7 +189,7 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
-  // If we are migrating from old system, we need to add custom inputs to the end of the list
+  // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
     customInputs.forEach((input) => {
       bookingFields.push({
@@ -201,13 +201,13 @@ export const ensureBookingInputsHaveSystemFields = ({
         type: CustomInputTypeToFieldType[input.type],
         required: input.required,
         options: input.options
-          ? input.options.reduce((newOptions, o) => {
-              newOptions.push({
+          ? input.options.map((o) => {
+              return {
                 ...o,
-                value: `${newOptions.length + 1}`,
-              });
-              return newOptions;
-            }, [] as NonNullable<Fields[number]["options"]>)
+                // Send the label as the value without any trimming or lowercase as this is what customInput are doing. It maintains backward compatibility
+                value: o.label,
+              };
+            })
           : [],
       });
     });
@@ -228,8 +228,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     if (!foundEditableMap) {
       return field;
     }
-    // Ensure that system fields editability, even if modified to something else, get's reset to what's in the code.
-    // This allows us to change the editability of any system field easily in future
+    // Ensure that system fields editability, even if modified to something else in DB(accidentally), get's reset to what's in the code.
     return {
       ...field,
       editable: foundEditableMap,

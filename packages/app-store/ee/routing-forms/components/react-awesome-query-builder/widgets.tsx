@@ -4,10 +4,7 @@ import {
   ButtonProps,
   ConjsProps,
   FieldProps,
-  NumberWidgetProps,
   ProviderProps,
-  SelectWidgetProps,
-  TextWidgetProps,
 } from "react-awesome-query-builder";
 
 import { Button as CalButton, Input, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
@@ -82,7 +79,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 
   const textValue = value || "";
   return (
-    <TextArea
+    <textarea
       value={textValue}
       placeholder={placeholder}
       disabled={readOnly}

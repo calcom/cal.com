@@ -92,7 +92,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      // TODO: Use EmailField component
+      // TODO: Use EmailField component for Routing Form Email field
       return <TextWidget type="email" {...props} />;
     },
   },

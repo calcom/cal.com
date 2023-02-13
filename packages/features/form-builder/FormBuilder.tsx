@@ -176,7 +176,12 @@ export const FormBuilder = function FormBuilder({
                     required
                     value={option.label}
                     onChange={(e) => {
-                      value.splice(index, 1, { label: e.target.value, value: e.target.value.trim() });
+                      // Right now we use label of the option as the value of the option. It allows us to not separately lookup the optionId to know the optionValue
+                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                      value.splice(index, 1, {
+                        label: e.target.value,
+                        value: e.target.value.toLowerCase().trim(),
+                      });
                       onChange(value);
                     }}
                     readOnly={readOnly}
