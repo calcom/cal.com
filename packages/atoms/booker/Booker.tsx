@@ -179,7 +179,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             area={{ default: "main", small_calendar: "timeslots" }}
             visible={
               (bookerState === "selecting_time" && layout === "small_calendar") ||
-              layout === "large_timeslots"
+              (layout === "large_timeslots" && bookerState !== "booking")
             }
             className={classNames(
               "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
