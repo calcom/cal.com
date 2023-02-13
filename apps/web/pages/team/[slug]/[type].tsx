@@ -100,6 +100,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               availability: true,
             },
           },
+          team: {
+            select: {
+              members: {
+                where: {
+                  role: "OWNER",
+                },
+                select: {
+                  user: {
+                    select: {
+                      weekStart: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -148,6 +164,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     booking = await getBooking(prisma, rescheduleUid);
   }
 
+  const weekStart = eventType.team?.members?.[0]?.user?.weekStart;
+
   return {
     props: {
       profile: {
@@ -155,7 +173,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         slug: team.slug,
         image: team.logo,
         theme: team.theme,
-        weekStart: "Sunday",
+        weekStart: weekStart ?? "Sunday",
         brandColor: team.brandColor,
         darkBrandColor: team.darkBrandColor,
       },
