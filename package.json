@@ -115,6 +115,7 @@
     "semverRange": ""
   },
   "nextBundleAnalysis": {
+    "buildOutputDirectory": "apps/web/.next",
     "budget": 358400,
     "budgetPercentIncreaseRed": 20,
     "showDetails": true

@@ -74,9 +74,7 @@ jobs:
         env:
           cache-name: cache-next-build
         with:
-          # if you use a custom build directory, replace all instances of `.next` in this file with your build directory
-          # ex: if your app builds to `dist`, replace `.next` with `dist`
-          path: .next/cache
+          path: apps/web/.next/cache
           # change this if you prefer a more strict cache
           key: ${{ runner.os }}-build-${{ env.cache-name }}
 
@@ -93,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: bundle
-          path: .next/analyze/__bundle_analysis.json
+          path: apps/web/.next/analyze/__bundle_analysis.json
 
       - name: Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
@@ -101,7 +99,7 @@ jobs:
         with:
           workflow: nextjs_bundle_analysis.yml
           branch: ${{ github.event.pull_request.base.ref }}
-          path: .next/analyze/base
+          path: apps/web/.next/analyze/base
 
       # And here's the second place - this runs after we have both the current and
       # base branch bundle stats, and will compare them to determine what changed.
@@ -118,13 +116,13 @@ jobs:
       # entry in your package.json file.
       - name: Compare with base branch bundle
         if: success() && github.event.number
-        run: ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
+        run: ls -laR apps/web/.next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
         if: success() && github.event.number
         run: |
-          body=$(cat .next/analyze/__bundle_analysis_comment.txt)
+          body=$(cat apps/web/.next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
