@@ -207,6 +207,7 @@ const BookingPage = ({
   }, [router.query.guest]);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
+  const seatsBookingOwner = !!(eventType.seatsPerTimeSlot && booking?.user?.id === session?.user?.id);
   const guestListEmails = !isDynamicGroupBooking
     ? booking?.attendees.slice(1).map((attendee) => {
         return { email: attendee.email };
@@ -515,6 +516,7 @@ const BookingPage = ({
         ethSignature: gateState.rainbowToken,
         guests: booking.guests?.map((guest) => guest.email),
         seatReferenceUId: router.query.seatReferenceUId as string,
+        seatsOwnerRescheduling: seatsBookingOwner,
       });
     }
   };

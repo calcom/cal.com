@@ -12,6 +12,11 @@ const bookingSelect = {
       name: true,
     },
   },
+  user: {
+    select: {
+      id: true,
+    },
+  },
 };
 
 async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: string) {

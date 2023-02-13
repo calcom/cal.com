@@ -630,6 +630,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
   }
 
+  // TODO reschedule the whole event if the event owner is rescheduling. Current it was auto filling the first attendee
   const handleSeats = async () => {
     // For seats, if the booking already exists then we want to add the new attendee to the existing booking
 
@@ -639,7 +640,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     const booking = await prisma.booking.findUnique({
       where: {
-        uid: reqBody.bookingUid,
+        uid: reqBody.bookingUid || rescheduleUid,
       },
       select: {
         uid: true,
@@ -653,6 +654,22 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
     if (!booking) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
+
+    // If owner reschedules the event we want to update the entire booking
+    if (reqBody.seatsOwnerRescheduling) {
+      const newBooking = await prisma.booking.update({
+        where: {
+          id: booking.id,
+        },
+        data: {
+          startTime: evt.startTime,
+          cancellationReason: reqBody.rescheduleReason,
+        },
+      });
+      console.log("🚀 ~ file: handleNewBooking.ts:678 ~ handleSeats ~ newBooking", newBooking);
+
+      return newBooking;
     }
 
     if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
@@ -855,7 +872,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
   };
 
-  if (reqBody.bookingUid) {
+  if (reqBody.bookingUid || (rescheduleUid && eventType.seatsPerTimeSlot)) {
     const newBooking = handleSeats();
     if (newBooking) {
       req.statusCode = 201;

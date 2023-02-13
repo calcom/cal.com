@@ -178,6 +178,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    seatsOwnerRescheduling: z.boolean().optional(),
   })
 );
 

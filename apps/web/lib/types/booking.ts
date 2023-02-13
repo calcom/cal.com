@@ -31,6 +31,7 @@ export type BookingCreateBody = {
   smsReminderNumber?: string;
   ethSignature?: string;
   seatReferenceUId?: string;
+  seatsOwnerRescheduling?: boolean;
 };
 
 export type BookingResponse = Booking & {
