@@ -88,7 +88,7 @@ const withQuery = <
   TInput = inferProcedureInput<TQuery>,
   TOutput = inferProcedureOutput<TQuery>
 >(
-  queryProcedure: DecorateProcedure<TQuery, any>,
+  queryProcedure: DecorateProcedure<TQuery, any, any>,
   input?: TInput,
   params?: UseTRPCQueryOptions<any, TInput, TOutput, TOutput, TError>
 ) => {

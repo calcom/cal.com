@@ -992,11 +992,15 @@ export const workflowsRouter = router({
               eventType: true,
             },
           },
-          steps: true,
           team: {
             select: {
               id: true,
               slug: true,
+            },
+          },
+          steps: {
+            orderBy: {
+              stepNumber: "asc",
             },
           },
         },
