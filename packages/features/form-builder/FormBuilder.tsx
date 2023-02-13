@@ -270,6 +270,17 @@ export const FormBuilder = function FormBuilder({
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
+            const sources = field.sources || [];
+            const groupedBySourceLabel = sources.reduce((groupBy, source) => {
+              const item = groupBy[source.label] || [];
+              if (source.type === "user" || source.type === "default") {
+                return groupBy;
+              }
+              item.push(source);
+              groupBy[source.label] = item;
+              return groupBy;
+            }, {} as Record<string, NonNullable<typeof field["sources"]>>);
+
             return (
               <li key={index} className="group relative flex justify-between border-b p-4 last:border-b-0">
                 <button
@@ -293,14 +304,12 @@ export const FormBuilder = function FormBuilder({
                       <div className="flex items-center space-x-2">
                         <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
                         {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
-                        {field.sources?.map(
-                          (s, key) =>
-                            s.type !== "user" && (
-                              <Badge key={key} variant="blue">
-                                {s.label}
-                              </Badge>
-                            )
-                        )}
+                        {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
+                          // We don't know how to pluralize `sourceLabel` because it can be anything
+                          <Badge key={key} variant="blue">
+                            {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
                     <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
@@ -410,7 +419,6 @@ export const FormBuilder = function FormBuilder({
               />
               <InputField
                 {...fieldForm.register("label")}
-                required
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
                 label="Label"

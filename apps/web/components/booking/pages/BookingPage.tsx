@@ -86,6 +86,11 @@ const BookingFields = ({
           readOnly = false;
         }
 
+        if (field.name === "smsReminderNumber") {
+          // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          readOnly = false;
+        }
+
         if (field.name === SystemField.Enum.guests) {
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
           field.hidden = isDynamicGroupBooking ? true : field.hidden;

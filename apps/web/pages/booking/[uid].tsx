@@ -346,10 +346,6 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
-  const hasSMSAttendeeAction =
-    eventType.workflows.find((workflowEventType) =>
-      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
-    ) !== undefined;
   const providerName = guessEventLocationType(location)?.label;
 
   return (
@@ -557,11 +553,12 @@ export default function Success(props: SuccessProps) {
                       ) {
                         return null;
                       }
+
+                      const label = field.label || t(field.defaultLabel || "");
+
                       return (
                         <>
-                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                            {field.label}
-                          </Label>
+                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{label}</Label>
                           {/* Might be a good idea to use the readonly variant of respective components here */}
                           <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
                         </>

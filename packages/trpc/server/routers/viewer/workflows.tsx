@@ -1190,7 +1190,8 @@ async function upsertSmsReminderFieldForBooking({
     {
       name: SMS_REMINDER_NUMBER_FIELD,
       type: "phone",
-      label: "SMS Reminder Number",
+      defaultLabel: "number_sms_notifications",
+      defaultPlaceholder: "enter_phone_number",
       editable: "system",
     },
     {
