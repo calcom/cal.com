@@ -63,7 +63,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { teamId },
     { enabled: !!teamId }
   );
-  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
+  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -80,11 +80,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   useEffect(() => {
     setNumberVerified(
-      !!step && verifiedNumbers
-        ? !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
-        : false
+      !!step &&
+        !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
     );
-  }, [verifiedNumbers]);
+  }, [verifiedNumbers.length]);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -127,9 +126,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const [numberVerified, setNumberVerified] = useState(
-    verifiedNumbers && step
-      ? !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
-      : false
+    step &&
+      !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
   );
 
   const addVariableBody = (variable: string) => {
