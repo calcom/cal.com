@@ -9,10 +9,17 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  * @swagger
  * /booking-references:
  *   get:
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *     operationId: listBookingReferences
  *     summary: Find all booking references
  *     tags:
- *     - booking-references
+ *      - booking-references
  *     responses:
  *       200:
  *         description: OK

@@ -12,16 +12,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *   delete:
  *     summary: Booking cancellation
  *     operationId: cancelBookingById
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               allRemainingBookings:
- *                 type: boolean
- *               reason:
- *                 type: string
+ *
  *     parameters:
  *      - in: path
  *        name: id
@@ -29,24 +20,29 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the booking to cancel
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the booking to get
- *       - in: query
- *         name: apiKey
- *         required: true
- *         schema:
- *           type: string
- *         description: Your API key
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
+ *      - in: query
+ *        name: allRemainingBookings
+ *        required: false
+ *        schema:
+ *          type: boolean
+ *        description: Delete all remaining bookings
+ *      - in: query
+ *        name: reason
+ *        required: false
+ *        schema:
+ *          type: string
+ *        description: The reason for cancellation of the booking
  *     tags:
  *       - bookings
  *     responses:
  *       200:
- *         description: OK, booking cancelled successfuly
+ *         description: OK, booking cancelled successfully
  *       400:
  *        description: |
  *          Bad request
@@ -72,11 +68,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: User not found
  */
 async function handler(req: NextApiRequest) {
-  const { id } = schemaQueryIdParseInt.parse(req.query);
-  const { allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse({
-    ...req.body,
-    cancellationReason: req.body.reason,
-  });
+  const { id, allRemainingBookings, cancellationReason } = schemaQueryIdParseInt
+    .merge(schemaBookingCancelParams.pick({ allRemainingBookings: true, cancellationReason: true }))
+    .parse({
+      ...req.query,
+      allRemainingBookings: req.query.allRemainingBookings === "true",
+    });
   // Normalizing for universal handler
   req.body = { id, allRemainingBookings, cancellationReason };
   return await handleCancelBooking(req);

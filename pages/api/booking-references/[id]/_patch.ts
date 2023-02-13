@@ -23,16 +23,25 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *           schema:
  *             type: object
  *             properties:
- *               days:
- *                 type: array
- *                 example: email@example.com
- *               startTime:
+ *               type:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
- *               endTime:
+ *               meetingId:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
+ *               meetingPassword:
+ *                 type: string
+ *               externalCalendarId:
+ *                 type: string
+ *               deleted:
+ *                 type: boolean
+ *               credentialId:
+ *                 type: integer
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *      - in: path
  *        name: id
  *        schema:
@@ -40,10 +49,10 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        required: true
  *        description: ID of the booking reference to edit
  *     tags:
- *     - booking-references
+ *      - booking-references
  *     responses:
  *       201:
- *         description: OK, safeBody.data edited successfully
+ *         description: OK, BookingReference edited successfully
  *       400:
  *        description: Bad request. BookingReference body is invalid.
  *       401:

@@ -19,21 +19,16 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         schema:
  *           type: string
  *         description: Your API key
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           oneOf:
+ *            - type: integer
+ *            - type: array
+ *              items:
+ *                type: integer
  *     operationId: listBookings
- *     requestBody:
- *       description: Find all bookings
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                description: 'The user(s) to get the booking for, if the request is by an Admin'
- *                oneOf:
- *                 - type: integer
- *                 - type: array
- *                   items:
- *                     type: integer
  *     tags:
  *     - bookings
  *     responses:

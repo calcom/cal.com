@@ -18,8 +18,14 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *           type: integer
  *         required: true
  *         description: ID of the booking reference to get
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     tags:
- *     - booking-references
+ *      - booking-references
  *     responses:
  *       200:
  *         description: OK

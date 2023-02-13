@@ -12,6 +12,13 @@ import {
  * @swagger
  * /booking-references:
  *   post:
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *     operationId: addBookingReference
  *     summary: Creates a new  booking reference
  *     requestBody:
@@ -24,27 +31,27 @@ import {
  *             required:
  *              - type
  *              - uid
- *              - meetingId
- *              - bookingId
- *              - deleted
  *             properties:
- *               deleted:
- *                 type: boolean
- *                 example: false
- *               uid:
- *                 type: string
- *                 example: '123456789'
  *               type:
  *                 type: string
- *                 example: email@example.com
- *               bookingId:
- *                 type: number
- *                 example: 1
+ *               uid:
+ *                 type: string
  *               meetingId:
  *                 type: string
- *                 example: 'meeting-id'
+ *               meetingPassword:
+ *                 type: string
+ *               meetingUrl:
+ *                 type: string
+ *               bookingId:
+ *                 type: boolean
+ *               externalCalendarId:
+ *                 type: string
+ *               deleted:
+ *                 type: boolean
+ *               credentialId:
+ *                 type: integer
  *     tags:
- *     - booking-references
+ *      - booking-references
  *     responses:
  *       201:
  *         description: OK,  booking reference created
