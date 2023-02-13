@@ -36,7 +36,8 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
               </span>
               {/* @TODO: When old booking page is gone, hopefully we can improve the select component itself :)  */}
               <TimezoneSelect
-                className="[&_.cal-react-select\_\_control]:h-auto [&_.cal-react-select\_\_control]:min-h-0 [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px]"
+                menuPosition="fixed"
+                className="[&_.cal-react-select\_\_control]:h-auto [&_.cal-react-select\_\_control]:min-h-0 [&_.cal-react-select\_\_control]:cursor-pointer [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px] [&_.cal-react-select\_\_menu-portal]:z-30"
                 value={timezone}
                 onChange={(tz) => setTimezone(tz.value)}
               />
