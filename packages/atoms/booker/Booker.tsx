@@ -113,12 +113,13 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
           "dark:bg-darkgray-100 grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white [--booker-meta-width:280px] [--booker-main-width:425px] [--booker-timeslots-width:280px] md:flex-row",
-          layout === "small_calendar" && "dark:border-darkgray-300 mt-20 rounded-md border border-gray-200",
+          layout === "small_calendar" &&
+            "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
         <AnimatePresence>
           <StickyOnDesktop>
-            <BookerSection area="meta" className="dark:border-darkgray-300 border-gray-200 md:border-r">
+            <BookerSection area="meta">
               <EventMeta event={event.data} isLoading={event.isLoading} />
               {layout !== "small_calendar" && (
                 <div className=" mt-auto p-6">
@@ -137,7 +138,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
 
           <BookerSection
             area="main"
-            className="dark:border-darkgray-300 sticky top-0  ml-[-1px] border-gray-200 p-6 md:border-l"
+            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:border-l"
             {...fadeInUp}
             visible={bookerState === "booking"}>
             <BookEventForm username={username} eventSlug={eventSlug} onCancel={() => setBookingTime(null)} />
@@ -148,7 +149,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
             initial="visible"
-            className="md:dark:border-darkgray-300 ml-[-1px] p-6 md:border-l md:border-gray-200">
+            className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:border-l md:border-gray-200">
             {/* @TODO: Guts of this component aren't touched (yet) */}
             <DatePicker
               isLoading={schedule.isLoading}
