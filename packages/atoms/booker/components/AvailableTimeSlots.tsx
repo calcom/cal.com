@@ -1,6 +1,9 @@
+import { useMemo } from "react";
+
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
-import { useSchedule, useSlotsForDate } from "@calcom/features/schedules";
+import { useSchedule } from "@calcom/features/schedules";
+import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
@@ -30,27 +33,46 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
     // @TODO: Fix types
   } as { username: string; eventSlug: string; browsingMonth: Date; timezone: string });
 
-  const slots = useSlotsForDate(
-    // typeof dayOffset === "undefined"
-    selectedDate,
-    // : dayjs(selectedDate).add(dayOffset, "days").format("YYYY-MM-DD"),
-    schedule?.data?.slots
+  // Creates an array of dates to fetch slots for.
+  // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
+  const dates = useMemo(
+    () =>
+      !extraDays
+        ? [selectedDate]
+        : [
+            selectedDate,
+            ...Array.from({ length: extraDays }).map((_, index) =>
+              dayjs(selectedDate)
+                .add(index + 1, "day")
+                .format("YYYY-MM-DD")
+            ),
+          ],
+    [selectedDate, extraDays]
   );
+
+  const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   /* @TODO: Weekstart day */
   /* @TODO: recurring event count */
   /* @TODO: eth signature */
   /* @TODO: seats per timeslot */
   return (
-    <div className={classNames(limitHeight && "flex-grow md:h-[400px]", !limitHeight && "[&_header]:top-8")}>
-      {slots.length > 0 && selectedDate && (
-        <AvailableTimes
-          onTimeSelect={onTimeSelect}
-          date={dayjs(selectedDate)}
-          slots={slots}
-          timezone={timezone}
-        />
-      )}
+    <div
+      className={classNames(
+        limitHeight && "flex-grow md:h-[400px]",
+        !limitHeight && "flex flex-row gap-4 [&_header]:top-8"
+      )}>
+      {slotsPerDay.length > 0 &&
+        selectedDate &&
+        slotsPerDay.map((slots) => (
+          <AvailableTimes
+            key={slots.date}
+            onTimeSelect={onTimeSelect}
+            date={dayjs(slots.date)}
+            slots={slots.slots}
+            timezone={timezone}
+          />
+        ))}
     </div>
   );
 };
