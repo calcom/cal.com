@@ -10,6 +10,8 @@ import {
   Workflow,
   WorkflowsOnEventTypes,
   WorkflowStep,
+  PrismaPromise,
+  WorkflowMethods,
 } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
@@ -18,11 +20,14 @@ import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import {
   sendDeclinedEmails,
   sendLocationChangeEmails,
@@ -405,6 +410,8 @@ export const bookingsRouter = router({
           dynamicGroupSlugRef: true,
           destinationCalendar: true,
           smsReminderNumber: true,
+          scheduledJobs: true,
+          workflowReminders: true,
         },
         where: {
           uid: bookingId,
@@ -471,6 +478,30 @@ export const bookingsRouter = router({
             updatedAt: dayjs().toISOString(),
           },
         });
+
+        // delete scheduled jobs of cancelled bookings
+        cancelScheduledJobs(bookingToReschedule);
+
+        //cancel workflow reminders
+        const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
+
+        bookingToReschedule.workflowReminders.forEach((reminder) => {
+          if (reminder.scheduled && reminder.referenceId) {
+            if (reminder.method === WorkflowMethods.EMAIL) {
+              deleteScheduledEmailReminder(reminder.referenceId);
+            } else if (reminder.method === WorkflowMethods.SMS) {
+              deleteScheduledSMSReminder(reminder.referenceId);
+            }
+          }
+          const reminderToDelete = prisma.workflowReminder.deleteMany({
+            where: {
+              id: reminder.id,
+            },
+          });
+          remindersToDelete.push(reminderToDelete);
+        });
+
+        await Promise.all(remindersToDelete);
 
         const [mainAttendee] = bookingToReschedule.attendees;
         // @NOTE: Should we assume attendees language?
