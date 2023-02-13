@@ -877,7 +877,11 @@ export const workflowsRouter = router({
               eventType: true,
             },
           },
-          steps: true,
+          steps: {
+            orderBy: {
+              stepNumber: "asc",
+            },
+          },
         },
       });
 
