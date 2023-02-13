@@ -1,12 +1,14 @@
 import { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
+
+import { BookingStatus } from ".prisma/client";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -28,6 +30,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       uid: true,
       refunded: true,
       bookingId: true,
+      appId: true,
       booking: {
         select: {
           id: true,
@@ -43,6 +46,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
           eventTypeId: true,
           location: true,
+          status: true,
+          rejectionReason: true,
+          cancellationReason: true,
           eventType: {
             select: {
               id: true,
@@ -81,7 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
     ...restPayment,
-    data: data as unknown as PaymentData,
+    data: data as unknown as StripePaymentData,
   };
 
   if (!_booking) return { notFound: true };
@@ -102,6 +108,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     theme: (!eventType.team?.name && user?.theme) || null,
     hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
   };
+
+  if (
+    ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
+      booking.status as BookingStatus
+    )
+  ) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
 
   return {
     props: {

@@ -202,6 +202,7 @@ export const eventTypesRouter = router({
           },
         },
       },
+      seatsPerTimeSlot: true,
       ...baseEventTypeSelect,
     });
 
