@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui";
+import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { EventMeta } from "./components/EventMeta";
@@ -95,9 +96,10 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
             defaultValue="small_calendar"
             options={[
-              { value: "small_calendar", label: "Small calendar" },
-              { value: "large_calendar", label: "Weekview" },
-              { value: "large_timeslots", label: "Timeslots" },
+              // @TODO: Find right icon for grid, plus add a11y labels and tooltips.
+              { value: "small_calendar", label: <FiCalendar /> },
+              { value: "large_calendar", label: <FiGrid /> },
+              { value: "large_timeslots", label: <FiColumns /> },
             ]}
           />
         </div>

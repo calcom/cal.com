@@ -1,10 +1,10 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string; disabled?: boolean }[];
+  options: { value: string; label: string | ReactNode; disabled?: boolean }[];
   isFullWidth?: boolean;
 }
 
