@@ -4,8 +4,12 @@ on:
   pull_request:
   push:
     branches:
-      - main # change this if your default branch is named differently
+      - main
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
