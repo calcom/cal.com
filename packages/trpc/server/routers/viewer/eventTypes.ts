@@ -409,9 +409,8 @@ export const eventTypesRouter = router({
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
     // Get Users default conferncing app
-    const usersMetadata = ctx.user.metadata;
 
-    const defaultConferencingData = userMetadataSchema.parse(usersMetadata)?.defaultConferencingApp;
+    const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
 
     let locations: { type: string; link?: string }[] = [];
