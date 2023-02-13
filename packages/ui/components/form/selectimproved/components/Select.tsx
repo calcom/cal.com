@@ -228,7 +228,7 @@ function Select<T extends Option>({
             tabIndex={-1}
             className={
               classNames?.menu ??
-              "dark:bg-darkgray-100 dark:border-darkgray-300 absolute z-10 mt-1.5 w-full rounded border bg-white py-1 text-sm text-gray-700 shadow-sm"
+              "dark:bg-darkgray-100 dark:border-darkgray-300 absolute z-10 mt-1.5 w-full max-w-[256px] overflow-x-hidden rounded border bg-white py-1 text-sm text-gray-700 shadow-sm"
             }>
             {isSearchable && (
               <SearchInput
