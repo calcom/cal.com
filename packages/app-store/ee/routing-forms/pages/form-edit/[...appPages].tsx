@@ -139,6 +139,15 @@ function Field({
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
             />
           </div>
+          <div className="mb-6 w-full">
+            <TextField
+              disabled={!!router}
+              label="Placeholder"
+              placeholder="This will be the placeholder"
+              defaultValue={routerField?.placeholder}
+              {...hookForm.register(`${hookFieldNamespace}.placeholder`)}
+            />
+          </div>
           <div className="mb-6 w-full ">
             <Controller
               name={`${hookFieldNamespace}.type`}
