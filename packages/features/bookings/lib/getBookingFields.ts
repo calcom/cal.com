@@ -18,7 +18,7 @@ const EventTypeCustomInputType = {
   BOOL: "BOOL",
   RADIO: "RADIO",
   PHONE: "PHONE",
-};
+} as const;
 
 export const SystemField = z.enum(["name", "email", "location", "notes", "guests", "rescheduleReason"]);
 
