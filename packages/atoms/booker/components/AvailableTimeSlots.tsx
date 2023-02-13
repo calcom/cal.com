@@ -40,9 +40,10 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
       !extraDays
         ? [selectedDate]
         : [
-            selectedDate,
+            // If NO date is selected yet, we show by default the upcomming `nextDays` days.
+            selectedDate || dayjs().format("YYYY-MM-DD"),
             ...Array.from({ length: extraDays }).map((_, index) =>
-              dayjs(selectedDate)
+              dayjs(selectedDate || new Date())
                 .add(index + 1, "day")
                 .format("YYYY-MM-DD")
             ),
@@ -63,7 +64,6 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
         !limitHeight && "flex flex-row gap-4 [&_header]:top-8"
       )}>
       {slotsPerDay.length > 0 &&
-        selectedDate &&
         slotsPerDay.map((slots) => (
           <AvailableTimes
             key={slots.date}
