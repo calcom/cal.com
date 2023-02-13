@@ -331,12 +331,18 @@ export default NextAuth({
           ...token,
         };
       };
-
       if (!user) {
         return await autoMergeIdentities();
       }
-
-      if (account && account.type === "credentials" && account.provider !== "saml-idp") {
+      if (!account) {
+        return token;
+      }
+      if (account.type === "credentials") {
+        // return token if credentials,saml-idp
+        if (account.provider === "saml-idp") {
+          return token;
+        }
+        // any other credentials, add user info
         return {
           ...token,
           id: user.id,
@@ -351,11 +357,11 @@ export default NextAuth({
 
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
-      if (account && account.type === "oauth" && account.provider && account.providerAccountId) {
-        let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml") {
-          idP = IdentityProvider.SAML;
+      if (account.type === "oauth") {
+        if (!account.provider || !account.providerAccountId) {
+          return token;
         }
+        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
 
         const existingUser = await prisma.user.findFirst({
           where: {
