@@ -797,13 +797,13 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className={classNames("w-full ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
               {props.heading && (
-                <h1
+                <h3
                   className={classNames(
                     "font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
                     props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                </h1>
+                </h3>
               )}
               {props.subtitle && (
                 <p className="hidden text-sm text-gray-500 md:block">
