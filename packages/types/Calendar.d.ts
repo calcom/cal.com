@@ -160,7 +160,7 @@ export interface CalendarEvent {
   // It has responses to all the fields(system + user)
   responses?: Prisma.JsonObject | null;
 
-  // It maps to customInputs to get access to only the user fields. It allows to easily iterate over to show only user fields
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
   userFieldsResponses?: Prisma.JsonObject | null;
 }
 

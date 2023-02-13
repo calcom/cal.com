@@ -128,15 +128,18 @@ export const FormBuilder = function FormBuilder({
       isTextType: false,
     },
   ];
-  // I would have like to give Form Builder it's own Form but nested Forms aren't something that browsers support.
+
+  // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
+
+  // It allows any property name to be used for instead of `fields` property name
   const rhfFormPropName = formProp as unknown as "fields";
+
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
-    // TODO: Not sure how to make it configurable and keep TS happy
     name: rhfFormPropName,
   });
 
@@ -447,7 +450,6 @@ export const FormBuilder = function FormBuilder({
               />
               <DialogFooter>
                 <DialogClose color="secondary">Cancel</DialogClose>
-                {/* TODO: i18n missing */}
                 <Button type="submit">{isFieldEditMode ? t("save") : t("add")}</Button>
               </DialogFooter>
             </Form>
@@ -458,7 +460,8 @@ export const FormBuilder = function FormBuilder({
   );
 };
 
-// TODO: Add consistent label support to all the components and then remove this
+// TODO: Add consistent `label` support to all the components and then remove the usage of WithLabel.
+// Label should be handled by each Component itself.
 const WithLabel = ({
   field,
   children,
@@ -472,6 +475,7 @@ const WithLabel = ({
     <div>
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
       {/* boolean type doesn't have a label overall, the radio has it's own label */}
+      {/* Component itself managing it's label should remove these checks */}
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex items-center">{field.label}</Label>
@@ -588,7 +592,6 @@ export const ComponentForField = ({
           label={field.label}
           readOnly={readOnly}
           value={value as string[]}
-          // TypeScript: Why you no work ??
           setValue={setValue as (arg: typeof value) => void}
         />
       </WithLabel>
@@ -680,7 +683,6 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={field}
                 value={value}
-                // Choose b/w disabled and readOnly
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
                   onChange(val);
@@ -696,7 +698,7 @@ export const FormBuilderField = ({
                     return null;
                   }
 
-                  message = message.replace(/\{[^}]+\}(.*)/, "$1");
+                  message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
                   if (field.hidden) {
                     console.error(`Error message for hidden field:${field.name} => ${message}`);
                   }

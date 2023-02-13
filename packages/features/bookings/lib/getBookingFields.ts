@@ -10,6 +10,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
+
 const EventTypeCustomInputType = {
   TEXT: "TEXT",
   TEXTLONG: "TEXTLONG",
@@ -19,6 +20,20 @@ const EventTypeCustomInputType = {
   PHONE: "PHONE",
 };
 
+export const SystemField = z.enum(["name", "email", "location", "notes", "guests", "rescheduleReason"]);
+
+export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
+  name: "system",
+  email: "system",
+  location: "system",
+  notes: "system-but-optional",
+  guests: "system-but-optional",
+  rescheduleReason: "system",
+};
+
+/**
+ * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields
+ */
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
@@ -40,15 +55,6 @@ export const getBookingFieldsWithSystemFields = ({
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
   });
-};
-export const SystemField = z.enum(["name", "email", "location", "notes", "guests", "rescheduleReason"]);
-export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
-  name: "system",
-  email: "system",
-  location: "system",
-  notes: "system-but-optional",
-  guests: "system-but-optional",
-  rescheduleReason: "system",
 };
 
 export const ensureBookingInputsHaveSystemFields = ({

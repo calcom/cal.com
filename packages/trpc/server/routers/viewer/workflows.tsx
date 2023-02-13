@@ -532,7 +532,9 @@ export const workflowsRouter = router({
       for (const eventTypeId of activeOn) {
         await upsertSmsReminderFieldForBooking({
           workflowId: id,
-          isSmsReminderNumberRequired: input.steps.some((s) => s.numberRequired),
+          isSmsReminderNumberRequired: input.steps.some(
+            (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+          ),
           eventTypeId,
         });
       }
@@ -1122,7 +1124,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
           return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
         });
 
-        await addSmsReminderFieldForBooking({
+        await upsertSmsReminderFieldForBooking({
           workflowId,
           isSmsReminderNumberRequired,
           eventTypeId,
@@ -1172,33 +1174,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
 const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
 async function upsertSmsReminderFieldForBooking({
-  workflowId,
-  eventTypeId,
-  isSmsReminderNumberRequired,
-}: {
-  workflowId: number;
-  isSmsReminderNumberRequired: boolean;
-  eventTypeId: number;
-}) {
-  await upsertBookingField(
-    {
-      name: SMS_REMINDER_NUMBER_FIELD,
-      type: "phone",
-      label: "SMS Reminder Number",
-      editable: "system",
-    },
-    {
-      id: "" + workflowId,
-      type: "workflow",
-      label: "Workflow",
-      fieldRequired: isSmsReminderNumberRequired,
-      editUrl: `/workflows/${workflowId}`,
-    },
-    eventTypeId
-  );
-}
-
-async function addSmsReminderFieldForBooking({
   workflowId,
   eventTypeId,
   isSmsReminderNumberRequired,

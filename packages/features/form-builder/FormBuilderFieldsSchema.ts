@@ -25,7 +25,7 @@ export const EditableSchema = z.enum([
 ]);
 const fieldSchema = z.object({
   name: z.string(),
-  // TODO: We should make at least one of defaultPlaceholder and placeholder required. Do the same for label.
+  // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
   label: z.string().optional(),
   placeholder: z.string().optional(),
 
@@ -68,7 +68,7 @@ const fieldSchema = z.object({
         type: z.union([z.literal("user"), z.literal("system"), z.string()]),
         label: z.string(),
         editUrl: z.string().optional(),
-        // Mark if a field is required by this source or not. This allows us to set field.required based on all the sources' fieldRequired value
+        // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
         fieldRequired: z.boolean().optional(),
       })
     )

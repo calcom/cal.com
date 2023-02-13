@@ -15,7 +15,8 @@ export default function getBookingResponsesSchema(eventType: EventType) {
   return preprocess({ schema, eventType, forQueryParsing: false });
 }
 
-// TODO: Move it to FormBuilder schema
+// TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
+// It allows anyone using FormBuilder to get the same preprocessing automatically
 function preprocess<T extends z.ZodType>({
   schema,
   eventType,
@@ -79,28 +80,36 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (isRequired && !forQueryParsing && !value)
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`Required`) });
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
 
         if (bookingField.type === "email") {
           // Email RegExp to validate if the input is a valid email
           if (!emailSchema.safeParse(value).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              //TODO: How to do translation in booker language here?
-              message: m("That doesn't look like an email address"),
+              message: m("email_validation_error"),
             });
           }
           return;
         }
 
         if (bookingField.type === "multiemail") {
-          if (!emailSchema.array().safeParse(value).success) {
+          const emailsParsed = emailSchema.array().safeParse(value);
+          if (!emailsParsed.success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              //TODO: How to do translation in booker language here?
-              message: m("That doesn't look like an email address"),
+              message: m("email_validation_error"),
             });
+            return;
           }
+
+          const emails = emailsParsed.data;
+          emails.sort().some((item, i) => {
+            if (item === emails[i + 1]) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("duplicate_email") });
+              return true;
+            }
+          });
           return;
         }
 
@@ -113,7 +122,7 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "phone") {
           if (!phoneSchema.safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid Phone") });
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           return;
         }
@@ -130,20 +139,14 @@ function preprocess<T extends z.ZodType>({
           if (bookingField.optionsInputs) {
             // Also, if the option is there with one input, we need to show just the input and not radio
             if (isRequired && bookingField.optionsInputs[value?.value]?.required && !value?.optionValue) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Required Option Value") });
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
             }
           }
           return;
         }
 
         if (
-          bookingField.type === "address" ||
-          bookingField.type === "text" ||
-          bookingField.type === "select" ||
-          bookingField.type === "name" ||
-          bookingField.type === "number" ||
-          bookingField.type === "radio" ||
-          bookingField.type === "textarea"
+          ["address", "text", "select", "name", "number", "radio", "textarea"].includes(bookingField.type)
         ) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {

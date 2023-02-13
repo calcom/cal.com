@@ -98,9 +98,7 @@ export const Components: Record<BookingFieldType, Component> = {
       if (!props) {
         return <div />;
       }
-      // FIXME: type=email is removed so that RHF validations can work
-      // But, RHF errors are not integrated in Routing Forms form
-      return <Widgets.TextWidget noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="email" noLabel={true} {...props} />;
     },
   },
   address: {
@@ -143,16 +141,9 @@ export const Components: Record<BookingFieldType, Component> = {
                         value[index] = e.target.value;
                         setValue(value);
                       }}
-                      className={classNames(
-                        inputClassName,
-                        // bookingForm.formState.errors.guests?.[index] &&
-                        //   "!focus:ring-red-700 !border-red-700",
-                        "border-r-0"
-                      )}
+                      className={classNames(inputClassName, "border-r-0")}
                       addOnClassname={classNames(
                         "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 "
-                        // bookingForm.formState.errors.guests?.[index] &&
-                        //   "!focus:ring-red-700 !border-red-700"
                       )}
                       placeholder={placeholder}
                       label={<></>}
@@ -171,14 +162,6 @@ export const Components: Record<BookingFieldType, Component> = {
                         </Tooltip>
                       }
                     />
-                    {/* {bookingForm.formState.errors.guests?.[index] && (
-                        <div className="mt-2 flex items-center text-sm text-red-700 ">
-                          <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                          <p className="text-red-700">
-                            {bookingForm.formState.errors.guests?.[index]?.message}
-                          </p>
-                        </div>
-                      )} */}
                   </li>
                 ))}
               </ul>
@@ -187,7 +170,6 @@ export const Components: Record<BookingFieldType, Component> = {
                 color="minimal"
                 StartIcon={FiUserPlus}
                 className="my-2.5"
-                // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
                 onClick={() => {
                   value.push("");
                   setValue(value);
