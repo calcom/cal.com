@@ -155,7 +155,7 @@ const SlotPicker = ({
     timeZone,
     duration,
   });
-  const { slots: selectedDateSlots, isLoading: isLoadingSelectedDateSlots } = useSlots({
+  const { slots: selectedDateSlots, isLoading: _isLoadingSelectedDateSlots } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
@@ -164,8 +164,16 @@ const SlotPicker = ({
     timeZone,
     duration,
     /** Prevent refetching is we already have this data from month slots */
-    enabled: selectedDate && !monthSlots[selectedDate.format("YYYY-MM-DD")],
+    enabled: !!selectedDate,
   });
+
+  /** Hide skeleton if we have the slot loaded in the month query */
+  const isLoadingSelectedDateSlots = (() => {
+    if (!selectedDate) return _isLoadingSelectedDateSlots;
+    if (!!selectedDateSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    if (!!monthSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    return false;
+  })();
 
   return (
     <>
@@ -193,8 +201,8 @@ const SlotPicker = ({
           isLoading={isLoadingSelectedDateSlots}
           slots={
             selectedDate &&
-            (monthSlots[selectedDate.format("YYYY-MM-DD")] ||
-              selectedDateSlots[selectedDate.format("YYYY-MM-DD")])
+            (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+              monthSlots[selectedDate.format("YYYY-MM-DD")])
           }
           date={selectedDate}
           timeFormat={timeFormat}
