@@ -532,7 +532,9 @@ export const workflowsRouter = router({
       for (const eventTypeId of activeOn) {
         await upsertSmsReminderFieldForBooking({
           workflowId: id,
-          isSmsReminderNumberRequired: input.steps.some((s) => s.numberRequired),
+          isSmsReminderNumberRequired: input.steps.some(
+            (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+          ),
           eventTypeId,
         });
       }

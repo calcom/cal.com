@@ -1594,5 +1594,6 @@
   "event_type_seats": "{{numberOfSeats}} seats",
   "booking_questions_title": "Booking questions",
   "booking_questions_description": "Customize the questions asked on the booking page",
-  "add_a_booking_question": "Add a question"
+  "add_a_booking_question": "Add a question",
+  "duplicate_email": "Email is duplicate"
 }

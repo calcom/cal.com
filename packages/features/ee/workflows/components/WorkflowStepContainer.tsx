@@ -401,6 +401,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               id={`steps.${step.stepNumber - 1}.sendTo`}
                               className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
                               required
+                              value={value}
                               onChange={(val) => {
                                 const isAlreadyVerified = !!verifiedNumbers
                                   ?.concat([])

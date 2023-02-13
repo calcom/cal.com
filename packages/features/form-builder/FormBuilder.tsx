@@ -696,7 +696,7 @@ export const FormBuilderField = ({
                     return null;
                   }
 
-                  message = message.replace(/\{[^}]+\}(.*)/, "$1");
+                  message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
                   if (field.hidden) {
                     console.error(`Error message for hidden field:${field.name} => ${message}`);
                   }
