@@ -339,7 +339,6 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
-              console.log(err);
               // FIXME: Booking Pages don't have toast, so this error is never shown
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
