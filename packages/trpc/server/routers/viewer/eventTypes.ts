@@ -416,6 +416,7 @@ export const eventTypesRouter = router({
 
     let locations: { type: string; link?: string }[] = [];
 
+    // If no locations are passed in and the user has a daily api key then default to daily
     if (
       (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
       typeof appKeys.api_key === "string"
