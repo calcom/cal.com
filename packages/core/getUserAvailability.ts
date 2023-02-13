@@ -121,8 +121,7 @@ export async function getUserAvailability(
   if (username) where.username = username;
   if (userId) where.id = userId;
 
-  let user: User | null = initialData?.user || null;
-  if (!user) user = await getUser(where);
+  const user = initialData?.user || (await getUser(where));
   if (!user) throw new HttpError({ statusCode: 404, message: "No user found" });
 
   let eventType: EventType | null = initialData?.eventType || null;
@@ -137,15 +136,13 @@ export async function getUserAvailability(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
 
-  const { selectedCalendars, ...currentUser } = user;
-
   const busyTimes = await getBusyTimes({
-    credentials: currentUser.credentials,
+    credentials: user.credentials,
     startTime: dateFrom.toISOString(),
     endTime: dateTo.toISOString(),
     eventTypeId,
-    userId: currentUser.id,
-    selectedCalendars,
+    userId: user.id,
+    username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
   });
@@ -222,8 +219,8 @@ export async function getUserAvailability(
     }
   }
 
-  const userSchedule = currentUser.schedules.filter(
-    (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
   const schedule =
@@ -233,17 +230,16 @@ export async function getUserAvailability(
           ...userSchedule,
           availability: userSchedule?.availability.map((a) => ({
             ...a,
-            userId: currentUser.id,
+            userId: user.id,
           })),
         };
 
   const startGetWorkingHours = performance.now();
 
-  const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
+  const timeZone = schedule.timeZone || eventType?.timeZone || user.timeZone;
 
   const availability =
-    schedule.availability ||
-    (eventType?.availability.length ? eventType.availability : currentUser.availability);
+    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability);
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

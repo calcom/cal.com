@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -52,6 +52,7 @@ const useSlots = ({
   usernameList,
   timeZone,
   duration,
+  enabled = true,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -60,6 +61,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
   duration?: string;
+  enabled?: boolean;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -72,19 +74,14 @@ const useSlots = ({
       duration,
     },
     {
-      enabled: !!startTime && !!endTime,
+      enabled: !!startTime && !!endTime && enabled,
+      refetchInterval: 3000,
+      trpc: { context: { skipBatch: true } },
     }
   );
-  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
-
-  useEffect(() => {
-    if (data?.slots) {
-      setCachedSlots((c) => ({ ...c, ...data?.slots }));
-    }
-  }, [data]);
 
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isPaused };
+  return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
@@ -146,16 +143,7 @@ const SlotPicker = ({
   }, [router.isReady, month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-  const { slots: _1 } = useSlots({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime: selectedDate?.startOf("day"),
-    endTime: selectedDate?.endOf("day"),
-    timeZone,
-    duration,
-  });
-  const { slots: _2, isLoading } = useSlots({
+  const { slots: monthSlots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
@@ -167,8 +155,25 @@ const SlotPicker = ({
     timeZone,
     duration,
   });
+  const { slots: selectedDateSlots, isLoading: _isLoadingSelectedDateSlots } = useSlots({
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
+    timeZone,
+    duration,
+    /** Prevent refetching is we already have this data from month slots */
+    enabled: !!selectedDate,
+  });
 
-  const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
+  /** Hide skeleton if we have the slot loaded in the month query */
+  const isLoadingSelectedDateSlots = (() => {
+    if (!selectedDate) return _isLoadingSelectedDateSlots;
+    if (!!selectedDateSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    if (!!monthSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    return false;
+  })();
 
   return (
     <>
@@ -178,7 +183,7 @@ const SlotPicker = ({
           "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
           selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
-        includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
+        includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
         onChange={(newDate) => {
@@ -193,8 +198,12 @@ const SlotPicker = ({
 
       <div ref={slotPickerRef}>
         <AvailableTimes
-          isLoading={isLoading}
-          slots={selectedDate && slots[selectedDate.format("YYYY-MM-DD")]}
+          isLoading={isLoadingSelectedDateSlots}
+          slots={
+            selectedDate &&
+            (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+              monthSlots[selectedDate.format("YYYY-MM-DD")])
+          }
           date={selectedDate}
           timeFormat={timeFormat}
           onTimeFormatChange={onTimeFormatChange}
