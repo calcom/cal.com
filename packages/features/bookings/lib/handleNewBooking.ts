@@ -352,7 +352,6 @@ function getBookingData({
     };
   } else {
     // Check if required custom inputs exist
-    // TODO: Run it conditionally for API.
     handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
 
     return {
@@ -384,7 +383,7 @@ function getCustomInputsResponses(
     }
   } else {
     const responses = reqBody.responses || {};
-    // Map new responses format to old customInputs format so that webhooks can still receive same values.
+    // Backward Compatibility: Map new `responses` to old `customInputs` format so that webhooks can still receive same values.
     for (const [fieldName, fieldValue] of Object.entries(responses)) {
       const foundACustomInputForTheResponse = eventTypeCustomInputs.find(
         (input) => slugify(input.label) === fieldName
@@ -594,9 +593,7 @@ async function handler(
 
   const invitee = [
     {
-      // TODO: ManageBookings: Ensure that email is there in TS as well as runtime. Right now I can save an attendee without email
       email: bookerEmail,
-      //TODO: ManageBookings: Ensure that name is there in TS as well as runtime
       name: bookerName,
       timeZone: bookingData.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
