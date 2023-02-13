@@ -3,7 +3,7 @@ import { Fragment, useEffect, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
-import { Dayjs } from "@calcom/dayjs";
+import dayjs, { Dayjs } from "@calcom/dayjs";
 import { BookEventForm } from "@calcom/features/bookings";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays, useSchedule } from "@calcom/features/schedules";
@@ -160,6 +160,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
               includedDates={nonEmptyScheduleDays}
               locale={i18n.language}
               browsingDate={browsingMonthStart}
+              selected={dayjs(selectedDate)}
             />
           </BookerSection>
 
