@@ -12,12 +12,16 @@ export const telemetryEventTypes = {
   bookingConfirmed: "booking_confirmed",
   bookingCancelled: "booking_cancelled",
   importSubmitted: "import_submitted",
-  googleLogin: "google_login",
   login: "login",
-  samlLogin: "saml_login",
-  samlConfig: "saml_config",
   embedView: "embed_view",
   embedBookingConfirmed: "embed_booking_confirmed",
+  onboardingFinished: "onboarding_finished",
+  onboardingStarted: "onboarding_started",
+  signup: "signup",
+  team_created: "team_created",
+  website: {
+    pageView: "website_page_view",
+  },
 };
 
 export function collectPageParameters(
