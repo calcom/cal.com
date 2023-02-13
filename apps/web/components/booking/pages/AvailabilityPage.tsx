@@ -75,16 +75,9 @@ const useSlots = ({
       enabled: !!startTime && !!endTime,
     }
   );
-  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
-
-  useEffect(() => {
-    if (data?.slots) {
-      setCachedSlots((c) => ({ ...c, ...data?.slots }));
-    }
-  }, [data]);
 
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isPaused };
+  return { slots: data?.slots, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
