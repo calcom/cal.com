@@ -112,7 +112,7 @@ function WorkflowPage() {
   const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: !isLoading,
+      enabled: !!workflow?.id,
     }
   );
 

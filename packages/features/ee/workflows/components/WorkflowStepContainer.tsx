@@ -5,7 +5,7 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@prisma/client";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState, useEffect } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
@@ -59,7 +59,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const utils = trpc.useContext();
 
   const { step, form, reload, setReload, teamId } = props;
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery({ teamId });
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+    { teamId },
+    { enabled: !!teamId }
+  );
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
@@ -74,6 +77,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       ? true
       : false
   );
+
+  useEffect(() => {
+    setNumberVerified(
+      !!step && verifiedNumbers
+        ? !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
+        : false
+    );
+  }, [verifiedNumbers]);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
