@@ -115,6 +115,13 @@ export interface BookingLimit {
   PER_YEAR?: number | undefined;
 }
 
+export interface DurationLimit {
+  PER_DAY?: number | undefined;
+  PER_WEEK?: number | undefined;
+  PER_MONTH?: number | undefined;
+  PER_YEAR?: number | undefined;
+}
+
 export type AppsStatus = {
   appName: string;
   type: typeof App["type"];
