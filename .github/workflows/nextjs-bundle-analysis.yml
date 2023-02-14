@@ -57,7 +57,7 @@ jobs:
           - 5432:5432
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up node
         uses: actions/setup-node@v3
@@ -97,7 +97,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         if: success() && github.event.number
         with:
-          workflow: nextjs_bundle_analysis.yml
+          workflow: nextjs-bundle-analysis.yml
           branch: ${{ github.event.pull_request.base.ref }}
           path: apps/web/.next/analyze/base
 
