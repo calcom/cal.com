@@ -2,4 +2,4 @@
 // import "../globals.css";
 
 export { Booker } from "./Booker";
-export * from "./types";
+export * from "../types";
