@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Button } from "@calcom/ui";
+
+import { useLocale } from "@lib/hooks/useLocale";
 
 import DisableTwoFactorModal from "./DisableTwoFactorModal";
 import EnableTwoFactorModal from "./EnableTwoFactorModal";
