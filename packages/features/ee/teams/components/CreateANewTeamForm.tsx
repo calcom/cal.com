@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
@@ -18,7 +19,7 @@ const querySchema = z.object({
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
 
   const returnToParam =
@@ -29,6 +30,7 @@ export const CreateANewTeamForm = () => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
+      telemetry.event(telemetryEventTypes.team_created);
       router.push(`/settings/teams/${data.id}/onboard-members`);
     },
   });

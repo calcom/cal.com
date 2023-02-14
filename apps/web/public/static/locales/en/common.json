@@ -1594,7 +1594,14 @@
   "attendee_no_longer_attending_subject": "An attendee is no longer attending {{title}} at {{date}}",
   "attendee_no_longer_attending": "An attendee is no longer attending your event",
   "attendee_no_longer_attending_subtitle": "{{name}} has cancelled. This means a seat has opened up for this time slot",
+  "default_app_link_title":"Set a default app link",
+  "default_app_link_description":"Setting a default app link allows all newly created event types to use the app link you set.",
+  "change_default_conferencing_app":"Set as default",
   "under_maintenance": "Down for maintenance",
   "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
-  "event_type_seats": "{{numberOfSeats}} seats" 
+  "event_type_seats": "{{numberOfSeats}} seats",
+  "booking_with_payment_cancelled": "Paying for this event is no longer possible",
+  "booking_with_payment_cancelled_already_paid": "A refund for this booking payment it's on the way.",
+  "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",
+  "booking_confirmation_failed": "Booking confirmation failed"
 }

@@ -204,6 +204,11 @@ export const deleteScheduledEmailReminder = async (referenceId: string) => {
         status: "cancel",
       },
     });
+
+    await client.request({
+      url: `/v3/user/scheduled_sends/${referenceId}`,
+      method: "DELETE",
+    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }
