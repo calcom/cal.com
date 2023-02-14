@@ -1195,7 +1195,7 @@ const loggedInViewerRouter = router({
       const credentials = ctx.user.credentials;
       const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
 
-      if (!foundApp) throw new TRPCError({ code: "BAD_REQUEST", message: "App not found" });
+      if (!foundApp) throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
 
       if (foundApp.appData?.location?.linkType === "static" && !input.appLink) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
