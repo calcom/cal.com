@@ -1,6 +1,8 @@
 /**
  * This file contains tRPC's HTTP response handler
  */
+import { z } from "zod";
+
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -30,34 +32,46 @@ export default trpcNext.createNextApiHandler({
    * @link https://trpc.io/docs/caching#api-response-caching
    */
   responseMeta({ ctx, paths, type, errors }) {
-    // assuming we have all our public routes in `viewer.public`
+    // Some helpers relevant to this function only
+    const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+    // assuming you have all your public routes with the keyword `public` in them
     const allPublic = paths && paths.every((path) => path.startsWith("viewer.public."));
     // checking that no procedures errored
     const allOk = errors.length === 0;
     // checking we're doing a query request
     const isQuery = type === "query";
+    const noHeaders = {};
 
-    // i18n response depends on request header
-    const nonCacheableQueries = ["viewer.public.i18n"];
-    const isThereANonCacheableQuery = paths?.some((path) => nonCacheableQueries.includes(path));
-    const isThereACacheableQuery = paths?.some((path) => !nonCacheableQueries.includes(path));
-    if (isThereANonCacheableQuery && isThereACacheableQuery) {
-      console.warn(
-        "Cacheable and Non-cacheable queries are mixed in the same request. Not going to cache the request"
-      );
-    }
+    // We cannot set headers on SSG queries
+    if (!ctx?.res) return noHeaders;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore ctx.req is available for SSR but not SSG
-    if (!!ctx?.req && allPublic && allOk && isQuery && !isThereANonCacheableQuery) {
-      // cache request for 1 day + revalidate once every 5 seconds
-      const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
-      return {
-        headers: {
-          "cache-control": `s-maxage=5, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`,
-        },
-      };
-    }
-    return {};
+    const defaultHeaders: Record<"headers", Record<string, string>> = {
+      headers: {},
+    };
+
+    const timezone = z.string().safeParse(ctx.req?.headers["x-vercel-ip-timezone"]);
+    if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
+
+    // We need all these conditions to be true to set cache headers
+    if (!(allPublic && allOk && isQuery)) return defaultHeaders;
+
+    // No cache by default
+    defaultHeaders.headers["cache-control"] = `no-cache`;
+
+    // Our cache can change depending on our current paths value. Since paths is an array,
+    // we want to create a map that can match potential paths with their desired cache value
+    const cacheRules = {
+      "viewer.public.session": `no-cache`,
+      "viewer.public.i18n": `no-cache`,
+      // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
+      "viewer.public.slots.getSchedule": `max-age=0, s-maxage=1`,
+    } as const;
+
+    // Find which element above is an exact match for this group of paths
+    const matchedPath = paths.find((v) => v in cacheRules) as keyof typeof cacheRules;
+
+    if (matchedPath) defaultHeaders.headers["cache-control"] = cacheRules[matchedPath];
+
+    return defaultHeaders;
   },
 });
