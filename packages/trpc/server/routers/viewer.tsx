@@ -1194,17 +1194,19 @@ const loggedInViewerRouter = router({
       const currentMetadata = userMetadata.parse(ctx.user.metadata);
       const credentials = ctx.user.credentials;
       const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
+      const appLocation = foundApp?.appData?.location;
 
-      if (!foundApp) throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
+      if (!foundApp || !appLocation)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
 
-      if (foundApp.appData?.location?.linkType === "static" && !input.appLink) {
+      if (appLocation.linkType === "static" && !input.appLink) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
       }
 
-      if (foundApp.appData?.location?.linkType === "static" && foundApp.appData.location.urlRegExp) {
+      if (appLocation.linkType === "static" && appLocation.urlRegExp) {
         const validLink = z
           .string()
-          .regex(new RegExp(foundApp.appData?.location?.urlRegExp), "Invalid App Link")
+          .regex(new RegExp(appLocation.urlRegExp), "Invalid App Link")
           .parse(input.appLink);
         if (!validLink) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid app link" });
