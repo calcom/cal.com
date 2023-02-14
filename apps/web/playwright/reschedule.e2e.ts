@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, waitFor } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
