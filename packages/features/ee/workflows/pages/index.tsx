@@ -53,8 +53,10 @@ function WorkflowsPage() {
         if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
       });
       setFilteredWorkflows(filtered);
+    } else {
+      setFilteredWorkflows([]);
     }
-  }, [checkedFilterItems]);
+  }, [checkedFilterItems, allWorkflowsData]);
 
   useEffect(() => {
     if (session.status !== "loading" && !query.isLoading) {
