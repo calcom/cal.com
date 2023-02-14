@@ -1,4 +1,4 @@
-import { useState, useEffect, RefObject, useRef } from "react";
+import { useState, useEffect, RefObject } from "react";
 
 export function useKeyPress(
   targetKey: string,
