@@ -94,6 +94,8 @@ model EventType {
   workflows               WorkflowsOnEventTypes[]
   /// @zod.custom(imports.bookingLimitsType)
   bookingLimits           Json?
+  /// @zod.custom(imports.durationLimitsType)
+  durationLimits          Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
