@@ -121,6 +121,9 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
     },
+    onError: (error) => {
+      showToast(`Error: ${error.message}`, "error");
+    },
   });
 
   const { t } = useLocale();
