@@ -472,7 +472,6 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
-
       let apps = enabledApps.map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
@@ -1180,6 +1179,35 @@ const loggedInViewerRouter = router({
           code: "BAD_REQUEST",
         });
       }
+    }),
+  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
+    return userMetadata.parse(ctx.user.metadata)?.defaultConferencingApp;
+  }),
+  updateUserDefaultConferencingApp: authedProcedure
+    .input(
+      z.object({
+        appSlug: z.string().optional(),
+        appLink: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const currentMetadata = userMetadata.parse(ctx.user.metadata);
+
+      await ctx.prisma.user.update({
+        where: {
+          id: ctx.user.id,
+        },
+        data: {
+          metadata: {
+            ...currentMetadata,
+            defaultConferencingApp: {
+              appSlug: input.appSlug,
+              appLink: input.appLink,
+            },
+          },
+        },
+      });
+      return input;
     }),
 });
 
