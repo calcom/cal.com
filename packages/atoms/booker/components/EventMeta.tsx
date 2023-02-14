@@ -1,8 +1,8 @@
 import { m } from "framer-motion";
 
+import { PublicEvent } from "@calcom/features/booking/types";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
-import { PublicEvent } from "@calcom/features/bookings/components/types";
 import { TimezoneSelect } from "@calcom/ui";
 import { FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 

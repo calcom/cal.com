@@ -25,6 +25,8 @@ import { BookerLayout, BookerProps } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
 import { useTimePrerences } from "./utils/time";
 
+// @TODO: Test embed view
+
 const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { i18n } = useLocale();
   const { timezone } = useTimePrerences();

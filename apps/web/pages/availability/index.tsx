@@ -4,12 +4,12 @@ import { GetServerSidePropsContext } from "next";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { EmptyScreen, showToast } from "@calcom/ui";
 import { FiClock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
-import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 

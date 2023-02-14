@@ -1,6 +1,9 @@
+import { ErrorOption } from "react-hook-form";
+
 import { RouterOutputs } from "@calcom/trpc/react";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
+export type ValidationErrors = { key: string; error: ErrorOption }[];
 
 export enum EventDetailBlocks {
   DESCRIPTION,

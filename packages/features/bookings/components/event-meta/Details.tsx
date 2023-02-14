@@ -13,7 +13,7 @@ import {
   FiCreditCard,
 } from "@calcom/ui/components/icon";
 
-import { PublicEvent, EventDetailBlocks } from "../types";
+import { PublicEvent, EventDetailBlocks } from "../../types";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
 import { EventPrice } from "./Price";

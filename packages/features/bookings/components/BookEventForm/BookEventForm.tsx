@@ -1,12 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { ReactMultiEmail } from "react-multi-email";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextField, Label, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
+import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
 import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
 
+import { mapBookingToMutationInput } from "../../lib/book-event-form/booking-to-mutation-input-mapper";
+import { validateCustomInputs } from "../../lib/book-event-form/validate-custom-inputs";
+import createBooking from "../../lib/create-booking";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { BookingFormValues, bookingFormSchema } from "./form-config";
@@ -24,7 +27,8 @@ type BookEventFormProps = {
 export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormProps) => {
   const { t } = useLocale();
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
-
+  const createBookingMutation = useMutation(createBooking);
+  console.log(createBookingMutation.isLoading);
   const defaultValues = () => {
     return {};
   };
@@ -33,14 +37,29 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
   const disableInput = false;
   const guestToggle = false;
   const rescheduleUid = null;
-  const bookEvent = () => {
-    return {};
-  };
 
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+
+  const bookEvent = (values: BookingFormValues) => {
+    // @TODO: Shouldn't be possible, but do we want to warn for this?
+    if (!event?.data) return;
+    const errors = validateCustomInputs(event.data, values);
+    // @TODO: "validate that guests are unique" step
+
+    if (errors) {
+      errors.forEach((error) => bookingForm.setError(error.key, error.error));
+      return;
+    }
+
+    createBookingMutation.mutate(
+      mapBookingToMutationInput(values, event.data, "2023-02-15 12:00", 30, "Europe/Amsterdam", "nl-nl", [])
+    );
+
+    return {};
+  };
 
   // @TODO: Loading and or error states.
   if (!event?.data) return null;

@@ -4,12 +4,13 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
 
-import { PublicEvent } from "../types";
+import { PublicEvent } from "../../types";
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
   // @TODO: save in form state
   const [selectedDuration, setSelectedDuration] = useState(`${event.length}`);
+
   // @TODO: mins should be a translation?
   if (!event?.metadata?.multipleDuration) return <>{event.length} mins</>;
 
