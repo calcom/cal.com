@@ -225,6 +225,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
       return privacyFilteredLocation;
     }
   });
+  console.log("locationsAfterPrivacyFilter", locationsAfterPrivacyFilter);
   return locationsAfterPrivacyFilter;
 };
 

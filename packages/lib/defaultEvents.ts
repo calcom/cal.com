@@ -146,6 +146,7 @@ export const getUsernameSlugLink = ({ users, slug }: UsernameSlugLinkProps): str
   let slugLink = ``;
   if (users.length > 1) {
     const combinedUsername = users.map((user) => user.username).join("+");
+    console.log({ users, combinedUsername });
     slugLink = `/${combinedUsername}/${slug}`;
   } else {
     slugLink = `/${users[0].username}/${slug}`;
