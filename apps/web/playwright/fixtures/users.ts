@@ -105,6 +105,12 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
               id: _user.id,
             },
           },
+          hosts: {
+            create: {
+              isFixed: true,
+              userId: _user.id,
+            },
+          },
           title: "Seats",
           slug: "seats",
           seatsPerTimeSlot: 10,

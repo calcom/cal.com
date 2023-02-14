@@ -478,7 +478,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   await handleEthSignature(rainbowAppData, reqBody.ethSignature);
 
   const [organizerUser] = users;
-  const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
+  const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
 
   const invitee = [
     {
@@ -714,9 +714,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       req.statusCode = 201;
       return { ...booking, message: "Payment required", paymentUid: payment?.uid };
     }
-
-    req.statusCode = 201;
-    return booking;
   }
 
   if (reqBody.customInputs.length > 0) {
