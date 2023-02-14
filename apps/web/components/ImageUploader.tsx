@@ -1,11 +1,11 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import Slider from "@components/Slider";
 
