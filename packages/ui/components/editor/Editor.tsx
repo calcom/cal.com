@@ -30,6 +30,7 @@ export type TextEditorProps = {
   excludedToolbarItems?: string[];
   variables?: string[];
   height?: string;
+  placeholder?: string;
 };
 
 const editorConfig = {
@@ -67,7 +68,7 @@ export const Editor = (props: TextEditorProps) => {
           <div className="editor-inner" style={{ height: props.height }}>
             <RichTextPlugin
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
-              placeholder=""
+              placeholder={props.placeholder || ""}
             />
             <AutoFocusPlugin />
             <ListPlugin />
