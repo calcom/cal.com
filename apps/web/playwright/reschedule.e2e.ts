@@ -231,7 +231,7 @@ test.describe("Reschedule Tests", async () => {
           },
         },
       });
-      console.log({ booking });
+
       const bookingAttendees = await prisma.attendee.findMany({
         where: { bookingId: booking.id },
         select: {
