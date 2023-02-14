@@ -8,6 +8,8 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
 
+import { BookingStatus } from ".prisma/client";
+
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
 const querySchema = z.object({
@@ -44,6 +46,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
           eventTypeId: true,
           location: true,
+          status: true,
+          rejectionReason: true,
+          cancellationReason: true,
           eventType: {
             select: {
               id: true,
@@ -103,6 +108,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     theme: (!eventType.team?.name && user?.theme) || null,
     hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
   };
+
+  if (
+    ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
+      booking.status as BookingStatus
+    )
+  ) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
 
   return {
     props: {
