@@ -43,7 +43,7 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

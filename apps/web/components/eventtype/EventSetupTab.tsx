@@ -29,7 +29,7 @@ import LocationSelect, {
   LocationOption,
 } from "@components/ui/form/LocationSelect";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const getLocationFromType = (
   type: EventLocationType["type"],

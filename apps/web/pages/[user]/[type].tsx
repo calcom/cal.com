@@ -117,7 +117,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
-  const md = new MarkdownIt("default", { html: true, breaks: false, linkify: true });
+  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
