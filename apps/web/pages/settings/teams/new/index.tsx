@@ -1,12 +1,9 @@
-import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { getLayout } from "@components/layouts/WizardLayout";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const CreateNewTeamPage = () => {
   const { t } = useLocale();

@@ -1,4 +1,3 @@
-import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
@@ -6,8 +5,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta, TextField } from "@calcom/ui";
 
 import { getLayout } from "@components/auth/layouts/AdminLayout";
-
-import { ssrInit } from "@server/lib/ssr";
 
 function AdminView() {
   const { t } = useLocale();

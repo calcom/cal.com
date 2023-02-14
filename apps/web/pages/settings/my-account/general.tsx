@@ -1,4 +1,3 @@
-import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -21,8 +20,6 @@ import {
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

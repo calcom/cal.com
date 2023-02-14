@@ -1,4 +1,3 @@
-import { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -29,8 +28,6 @@ import { FiPlus, FiCalendar } from "@calcom/ui/components/icon";
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarSwitch } from "@components/settings/CalendarSwitch";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = () => {
   return (

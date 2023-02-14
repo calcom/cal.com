@@ -1,7 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { BaseSyntheticEvent, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -40,8 +39,6 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
 

@@ -1,4 +1,3 @@
-import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -8,8 +7,6 @@ import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText } 
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = () => {
   return (
