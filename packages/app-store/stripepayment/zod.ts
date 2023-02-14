@@ -6,6 +6,8 @@ export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     price: z.number(),
     currency: z.string(),
+    require_upfront_payment: z.boolean(),
+    use_checkout: z.boolean(),
   })
 );
 

@@ -7,7 +7,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, TextField } from "@calcom/ui";
+import { Alert, TextField, Switch, Label, Skeleton } from "@calcom/ui";
 
 import { appDataSchema } from "../zod";
 
@@ -16,6 +16,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
+  const useCheckout = getAppData("use_checkout");
+  const requireUpfrontPayment = getAppData("require_upfront_payment");
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -54,22 +56,56 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
         ) : (
           requirePayment && (
-            <div className="mt-2 block items-center sm:flex">
-              <TextField
-                label=""
-                addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
-                step="0.01"
-                min="0.5"
-                type="number"
-                required
-                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                placeholder="Price"
-                onChange={(e) => {
-                  setAppData("price", Number(e.target.value) * 100);
-                }}
-                value={price > 0 ? price / 100 : undefined}
-              />
-            </div>
+            <>
+              <div className="mt-2 block items-center sm:flex">
+                <TextField
+                  label=""
+                  addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
+                  step="0.01"
+                  min="0.5"
+                  type="number"
+                  required
+                  className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
+                  placeholder="Price"
+                  onChange={(e) => {
+                    setAppData("price", Number(e.target.value) * 100);
+                  }}
+                  value={price > 0 ? price / 100 : undefined}
+                />
+              </div>
+
+              <div className="mt-2 flex">
+                <Switch
+                  id="requireUpfrontPayment"
+                  defaultChecked={requireUpfrontPayment === undefined ? true : false}
+                  onCheckedChange={(value) => {
+                    setAppData("require_upfront_payment", Boolean(value));
+                  }}
+                />
+                <Skeleton
+                  as={Label}
+                  htmlFor="requireUpfrontPayment"
+                  className="ml-2 mt-2 cursor-pointer self-center font-normal text-gray-600">
+                  Require upfront payment
+                </Skeleton>
+              </div>
+
+              <div className="mt-2 flex">
+                <Switch
+                  id="useStripeCheckout"
+                  defaultChecked={useCheckout === undefined ? false : true}
+                  onCheckedChange={(value) => {
+                    setAppData("use_checkout", Boolean(value));
+                  }}
+                />
+                <Skeleton
+                  as={Label}
+                  htmlFor="useStripeCheckout"
+                  className="ml-2 mt-2 cursor-pointer self-center font-normal text-gray-600">
+                  Use Stripe Checkout intead of Stripe Elements
+                </Skeleton>
+              </div>
+            </>
           )
         )}
       </>
