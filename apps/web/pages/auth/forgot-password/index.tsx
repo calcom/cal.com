@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { SyntheticEvent } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
 
 import { getSession } from "@lib/auth";
+import { useLocale } from "@lib/hooks/useLocale";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
