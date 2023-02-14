@@ -1192,6 +1192,26 @@ const loggedInViewerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const currentMetadata = userMetadata.parse(ctx.user.metadata);
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
+      const appLocation = foundApp?.appData?.location;
+
+      if (!foundApp || !appLocation)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
+
+      if (appLocation.linkType === "static" && !input.appLink) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
+      }
+
+      if (appLocation.linkType === "static" && appLocation.urlRegExp) {
+        const validLink = z
+          .string()
+          .regex(new RegExp(appLocation.urlRegExp), "Invalid App Link")
+          .parse(input.appLink);
+        if (!validLink) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid app link" });
+        }
+      }
 
       await ctx.prisma.user.update({
         where: {
