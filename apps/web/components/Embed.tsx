@@ -12,16 +12,15 @@ import {
   DialogClose,
   DialogContent,
   HorizontalTabs,
-  InputLeading,
   Label,
   showToast,
   Switch,
   TextArea,
   TextField,
+  ColorPicker,
 } from "@calcom/ui";
 import { FiCode, FiTrello, FiSun, FiArrowLeft, FiChevronRight } from "@calcom/ui/components/icon";
 
-import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
