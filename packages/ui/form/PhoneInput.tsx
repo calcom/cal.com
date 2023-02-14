@@ -1,29 +1,24 @@
-import BasePhoneInput, { Props } from "react-phone-number-input/react-hook-form";
+import dynamic from "next/dynamic";
+import { Props } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-export type PhoneInputProps<FormValues> = Props<
-  {
-    value: string;
-    id: string;
-    placeholder: string;
-    required: boolean;
-  },
-  FormValues
-> & { onChange?: (e: any) => void };
+const BasePhoneInput = dynamic(() => import("react-phone-number-input"));
 
-function PhoneInput<FormValues>({
-  control,
-  name,
-  className,
-  onChange,
-  ...rest
-}: PhoneInputProps<FormValues>) {
+export type PhoneInputProps = Props<{
+  value: string;
+  id?: string;
+  placeholder?: string;
+  required?: boolean;
+  className?: string;
+  name?: string;
+}>;
+
+function PhoneInput({ name, className, onChange, ...rest }: PhoneInputProps) {
   return (
     <BasePhoneInput
       {...rest}
       international
       name={name}
-      control={control}
       onChange={onChange}
       countrySelectProps={{ className: "text-black" }}
       numberInputProps={{
