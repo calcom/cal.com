@@ -196,6 +196,12 @@ export const EventSetupTab = (
               if (!eventLocationType) {
                 return null;
               }
+              // We dont want to translate the string link - it doesnt exist in common.json and it gets prefixed/suffixed with __ or //
+              const eventLabel =
+                eventLocationType.defaultValueVariable === "link"
+                  ? location[eventLocationType.defaultValueVariable]
+                  : t(location[eventLocationType.defaultValueVariable] || eventLocationType.label);
+
               return (
                 <li
                   key={`${location.type}${index}`}
@@ -207,9 +213,7 @@ export const EventSetupTab = (
                         className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
-                      </span>
+                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
