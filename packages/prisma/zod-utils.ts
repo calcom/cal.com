@@ -99,6 +99,15 @@ export const bookingLimitsType = z
   })
   .nullable();
 
+export const durationLimitsType = z
+  .object({
+    PER_DAY: z.number().optional(),
+    PER_WEEK: z.number().optional(),
+    PER_MONTH: z.number().optional(),
+    PER_YEAR: z.number().optional(),
+  })
+  .nullable();
+
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
 export const stringToDate = z.string().transform((a) => new Date(a));
