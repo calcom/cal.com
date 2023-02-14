@@ -66,6 +66,9 @@ const ConferencingLayout = () => {
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
     },
+    onError: (error) => {
+      showToast(`Error: ${error.message}`, "error");
+    },
   });
 
   const [deleteAppModal, setDeleteAppModal] = useState(false);
