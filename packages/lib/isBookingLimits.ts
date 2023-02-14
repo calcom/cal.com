@@ -1,3 +1,4 @@
+import { validateLimitOrder } from "@calcom/lib/validateLimitOrder";
 import { bookingLimitsType } from "@calcom/prisma/zod-utils";
 import { BookingLimit } from "@calcom/types/Calendar";
 
@@ -13,17 +14,5 @@ export function parseBookingLimit(obj: unknown): BookingLimit | null {
 
 export const validateBookingLimitOrder = (input: BookingLimit) => {
   const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
-
-  // Sort booking limits by validationOrder
-  const sorted = Object.entries(input)
-    .sort(([, value], [, valuetwo]) => {
-      return value - valuetwo;
-    })
-    .map(([key]) => key);
-
-  const validationOrderWithoutMissing = validationOrderKeys.filter((key) => sorted.includes(key));
-
-  const isValid = sorted.every((key, index) => validationOrderWithoutMissing[index] === key);
-
-  return isValid;
+  return validateLimitOrder(input, validationOrderKeys);
 };
