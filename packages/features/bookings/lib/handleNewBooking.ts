@@ -519,7 +519,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
-  console.log("bookingLocation", bookingLocation);
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =

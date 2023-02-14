@@ -296,7 +296,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     }),
   };
 
-  console.log("eventTypeLocations", eventTypeObject.locations);
 
   return {
     props: {
