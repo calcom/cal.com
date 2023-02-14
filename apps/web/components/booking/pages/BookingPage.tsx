@@ -5,7 +5,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -69,6 +69,9 @@ const BookingFields = ({
   isDynamicGroupBooking: boolean;
 }) => {
   const { t } = useLocale();
+  const { watch, setValue } = useFormContext();
+  const locationResponse = watch("responses.location");
+
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     <div>
@@ -77,7 +80,8 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
-
+        let noLabel = false;
+        let hidden = false;
         if (field.name === SystemField.Enum.rescheduleReason) {
           if (!rescheduleUid) {
             return null;
@@ -86,14 +90,20 @@ const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === "smsReminderNumber") {
+        if (field.name === SystemField.Enum.smsReminderNumber) {
+          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
+          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
+          if (locationResponse?.value === "phone") {
+            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            hidden = true;
+          }
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
           readOnly = false;
         }
 
         if (field.name === SystemField.Enum.guests) {
           // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
-          field.hidden = isDynamicGroupBooking ? true : field.hidden;
+          hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
 
         // We don't show `notes` field during reschedule
@@ -131,16 +141,24 @@ const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<typeof options[number]> => !!location
           );
-          // We don't want to show location if there is only one option. Location is already visible in the left sidebar
-          if (field.options?.length <= 1) {
-            return null;
+          // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
+          // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
+          if (field.options.length === 1) {
+            if (field.optionsInputs[field.options[0].value]) {
+              noLabel = true;
+            } else {
+              // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
+              hidden = true;
+            }
           }
         }
 
-        field.label = field.label || t(field.defaultLabel || "");
+        field.label = noLabel ? "" : field.label || t(field.defaultLabel || "");
         field.placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
-        return <FormBuilderField className="mb-4" field={field} readOnly={readOnly} key={index} />;
+        return (
+          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+        );
       })}
     </div>
   );
@@ -318,7 +336,6 @@ const BookingPage = ({
       name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
       email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
     };
-    console.log(defaults);
     return defaults;
   };
 

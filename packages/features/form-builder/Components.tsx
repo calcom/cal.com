@@ -291,7 +291,7 @@ export const Components: Record<BookingFieldType, Component> = {
       return (
         <div>
           <div>
-            <div className="mb-4">
+            <div className="mb-2">
               {options.length > 1 ? (
                 options.map((option, i) => {
                   return (
@@ -317,7 +317,9 @@ export const Components: Record<BookingFieldType, Component> = {
                   );
                 })
               ) : (
-                <span className="text-sm">{options[0].label}</span>
+                // Show option itself as label because there is just one option
+                // TODO: Support asterisk for required fields
+                <Label>{options[0].label}</Label>
               )}
             </div>
           </div>
@@ -332,8 +334,6 @@ export const Components: Record<BookingFieldType, Component> = {
                   readOnly={!!readOnly}
                   field={{
                     ...optionField,
-                    // Option Input is considered required only. Configuration not supported yet
-                    required: true,
                     name: "optionField",
                   }}
                   value={value?.optionValue}

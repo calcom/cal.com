@@ -912,6 +912,7 @@ const getEventTypesFromDB = async (id: number) => {
         select: {
           workflow: {
             select: {
+              id: true,
               steps: true,
             },
           },

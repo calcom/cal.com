@@ -4,7 +4,6 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { prisma } from "@calcom/prisma";
 import { EventType } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { Optional } from "@calcom/types/utils";
 
 type Field = z.infer<typeof eventTypeBookingFields>[number];
 
@@ -15,6 +14,16 @@ async function getEventType(eventTypeId: EventType["id"]) {
     },
     include: {
       customInputs: true,
+      workflows: {
+        select: {
+          workflow: {
+            select: {
+              id: true,
+              steps: true,
+            },
+          },
+        },
+      },
     },
   });
 

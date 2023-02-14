@@ -137,8 +137,12 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "radioInput") {
           if (bookingField.optionsInputs) {
-            // Also, if the option is there with one input, we need to show just the input and not radio
-            if (isRequired && bookingField.optionsInputs[value?.value]?.required && !value?.optionValue) {
+            if (
+              // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
+              (isRequired || value?.value) &&
+              bookingField.optionsInputs[value?.value]?.required &&
+              !value?.optionValue
+            ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
             }
           }

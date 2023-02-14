@@ -104,6 +104,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               availability: true,
             },
           },
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  id: true,
+                  steps: true,
+                },
+              },
+            },
+          },
         },
       },
     },

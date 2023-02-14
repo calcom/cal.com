@@ -1,4 +1,4 @@
-import { EventTypeCustomInput, EventType } from "@prisma/client";
+import { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
@@ -8,6 +8,31 @@ import {
   eventTypeBookingFields,
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
+
+export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
+
+export const getSmsReminderNumberField = () =>
+  ({
+    name: SMS_REMINDER_NUMBER_FIELD,
+    type: "phone",
+    defaultLabel: "number_sms_notifications",
+    defaultPlaceholder: "enter_phone_number",
+    editable: "system",
+  } as const);
+
+export const getSmsReminderNumberSource = ({
+  workflowId,
+  isSmsReminderNumberRequired,
+}: {
+  workflowId: Workflow["id"];
+  isSmsReminderNumberRequired: boolean;
+}) => ({
+  id: "" + workflowId,
+  type: "workflow",
+  label: "Workflow",
+  fieldRequired: isSmsReminderNumberRequired,
+  editUrl: `/workflows/${workflowId}`,
+});
 
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -20,7 +45,15 @@ const EventTypeCustomInputType = {
   PHONE: "PHONE",
 } as const;
 
-export const SystemField = z.enum(["name", "email", "location", "notes", "guests", "rescheduleReason"]);
+export const SystemField = z.enum([
+  "name",
+  "email",
+  "location",
+  "notes",
+  "guests",
+  "rescheduleReason",
+  "smsReminderNumber",
+]);
 
 export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
   name: "system",
@@ -29,6 +62,7 @@ export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields
   notes: "system-but-optional",
   guests: "system-but-optional",
   rescheduleReason: "system",
+  smsReminderNumber: "system",
 };
 
 /**
@@ -39,21 +73,37 @@ export const getBookingFieldsWithSystemFields = ({
   disableGuests,
   customInputs,
   metadata,
+  workflows,
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
+  workflows: Prisma.EventTypeGetPayload<{
+    select: {
+      workflows: {
+        select: {
+          workflow: {
+            select: {
+              id: true;
+              steps: true;
+            };
+          };
+        };
+      };
+    };
+  }>["workflows"];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
   const parsedBookingFields = eventTypeBookingFields.parse(bookingFields || []);
   const parsedCustomInputs = customInputSchema.array().parse(customInputs || []);
-
+  workflows = workflows || [];
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
+    workflows,
   });
 };
 
@@ -62,11 +112,26 @@ export const ensureBookingInputsHaveSystemFields = ({
   disableGuests,
   additionalNotesRequired,
   customInputs,
+  workflows,
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
+  workflows: Prisma.EventTypeGetPayload<{
+    select: {
+      workflows: {
+        select: {
+          workflow: {
+            select: {
+              id: true;
+              steps: true;
+            };
+          };
+        };
+      };
+    };
+  }>["workflows"];
 }) => {
   // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
@@ -78,6 +143,21 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.RADIO]: BookingFieldType.radio,
     [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
   };
+
+  const smsNumberSources = [] as NonNullable<typeof bookingFields[number]["sources"]>;
+  workflows.forEach((workflow) => {
+    workflow.workflow.steps.forEach((step) => {
+      if (step.action === "SMS_ATTENDEE") {
+        const workflowId = workflow.workflow.id;
+        smsNumberSources.push(
+          getSmsReminderNumberSource({
+            workflowId,
+            isSmsReminderNumberRequired: !!step.numberRequired,
+          })
+        );
+      }
+    });
+  });
 
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
@@ -138,6 +218,14 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
+
+  // Backward Compatibility for SMS Reminder Number
+  if (smsNumberSources.length) {
+    systemBeforeFields.push({
+      ...getSmsReminderNumberField(),
+      sources: smsNumberSources,
+    });
+  }
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [

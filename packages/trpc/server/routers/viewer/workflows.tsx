@@ -10,6 +10,11 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  getSmsReminderNumberField,
+  getSmsReminderNumberSource,
+} from "@calcom/features/bookings/lib/getBookingFields";
 // import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
@@ -1175,8 +1180,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
   }),
 });
 
-const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
-
 async function upsertSmsReminderFieldForBooking({
   workflowId,
   eventTypeId,
@@ -1187,20 +1190,11 @@ async function upsertSmsReminderFieldForBooking({
   eventTypeId: number;
 }) {
   await upsertBookingField(
-    {
-      name: SMS_REMINDER_NUMBER_FIELD,
-      type: "phone",
-      defaultLabel: "number_sms_notifications",
-      defaultPlaceholder: "enter_phone_number",
-      editable: "system",
-    },
-    {
-      id: "" + workflowId,
-      type: "workflow",
-      label: "Workflow",
-      fieldRequired: isSmsReminderNumberRequired,
-      editUrl: `/workflows/${workflowId}`,
-    },
+    getSmsReminderNumberField(),
+    getSmsReminderNumberSource({
+      workflowId,
+      isSmsReminderNumberRequired,
+    }),
     eventTypeId
   );
 }

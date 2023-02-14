@@ -94,6 +94,7 @@ const commons = {
     // Default value of disableGuests from DB.
     disableGuests: false,
     metadata: {},
+    workflows: [],
   }),
 };
 
