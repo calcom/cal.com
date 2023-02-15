@@ -335,8 +335,8 @@ export const FormBuilder = function FormBuilder({
                     </Button>
                     {field.editable !== "system" && field.editable !== "system-but-optional" && (
                       <Button
-                        className="!p-0"
                         color="minimal"
+                        variant="icon"
                         onClick={() => {
                           removeField(index);
                         }}
