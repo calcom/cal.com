@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.5.15",
+  "version": "2.6.0",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -170,6 +170,7 @@
   "nextBundleAnalysis": {
     "budget": 358400,
     "budgetPercentIncreaseRed": 20,
+    "minimumChangeThreshold": 500,
     "showDetails": true
   }
 }
