@@ -311,35 +311,6 @@ export default class EventManager {
       });
     }
 
-    if (shouldUpdateBookingCancellation) {
-      // Now we can delete the old booking and its references.
-      const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-      const attendeeDeletes = prisma.attendee.deleteMany({
-        where: {
-          bookingId: booking.id,
-        },
-      });
-
-      const bookingDeletes = prisma.booking.delete({
-        where: {
-          id: booking.id,
-        },
-      });
-
-      // Wait for all deletions to be applied.
-      await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
-    } else {
-      await prisma.attendee.deleteMany({
-        where: {
-          bookingId: booking.id,
-          email: currentAttendeeEmail,
-        },
-      });
-    }
     return {
       results,
       referencesToCreate: [...booking.references],
