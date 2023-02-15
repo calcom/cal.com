@@ -538,6 +538,7 @@ export const eventTypesRouter = router({
 
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
+      bookingFields,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
     };
     data.locations = locations ?? undefined;
@@ -825,7 +826,6 @@ export const eventTypesRouter = router({
 });
 
 function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
-  console.log("Ensure unique booking fields", fields);
   if (!fields) {
     return;
   }

@@ -1,4 +1,4 @@
-import { BookingStatus, WorkflowActions } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
