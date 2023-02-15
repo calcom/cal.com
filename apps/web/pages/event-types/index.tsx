@@ -60,8 +60,6 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 import { ssrInit } from "@server/lib/ssr";
 
-import { UpgradeTeamsBadge } from "../../../../packages/ui/components/badge/UpgradeTeamsBadge";
-
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
@@ -135,7 +133,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
             {`/${group.profile.slug}/${type.slug}`}
           </small>
         ) : (
-          <UpgradeTeamsBadge />
+          <></>
         )}
         {readOnly && (
           <span className="inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
@@ -563,6 +561,18 @@ const EventTypeListHeading = ({
   membershipCount,
   teamId,
 }: EventTypeListHeadingProps): JSX.Element => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
@@ -594,6 +604,13 @@ const EventTypeListHeading = ({
           </Link>
         )}
       </div>
+      {!profile?.slug && !!teamId && (
+        <button onClick={() => publishTeamMutation.mutate({ teamId })}>
+          <Badge variant="gray" className="mb-1 -ml-2">
+            {t("upgrade")}
+          </Badge>
+        </button>
+      )}
     </div>
   );
 };
