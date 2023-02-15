@@ -20,6 +20,7 @@ export default function useTheme(theme?: Maybe<string>) {
     if (currentTheme !== activeTheme && typeof currentTheme === "string") {
       setTheme(currentTheme);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
   }, [currentTheme, setTheme]);
 
   return {
