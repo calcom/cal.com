@@ -438,7 +438,7 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
-    ...bookingData
+    ...reqBody
   } = getBookingData({
     req,
     isNotAnApiCall,
@@ -448,16 +448,16 @@ async function handler(
   const tAttendees = await getTranslation(language ?? "en", "common");
   const tGuests = await getTranslation("en", "common");
   log.debug(`Booking eventType ${eventTypeId} started`);
-  const dynamicUserList = Array.isArray(bookingData.user)
-    ? getGroupName(bookingData.user)
-    : getUsernameList(bookingData.user);
+  const dynamicUserList = Array.isArray(reqBody.user)
+    ? getGroupName(reqBody.user)
+    : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const paymentAppData = getPaymentAppData(eventType);
 
   let timeOutOfBounds = false;
   try {
-    timeOutOfBounds = isOutOfBounds(bookingData.start, {
+    timeOutOfBounds = isOutOfBounds(reqBody.start, {
       periodType: eventType.periodType,
       periodDays: eventType.periodDays,
       periodEndDate: eventType.periodEndDate,
@@ -541,7 +541,7 @@ async function handler(
   }));
 
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
-    const startAsDate = dayjs(bookingData.start).toDate();
+    const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
   }
 
@@ -558,8 +558,8 @@ async function handler(
         }),
       },
       {
-        dateFrom: bookingData.start,
-        dateTo: bookingData.end,
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
       },
       {
         allRecurringDates,
@@ -596,7 +596,7 @@ async function handler(
 
   // @TODO: use the returned address somewhere in booking creation?
   // const address: string | undefined = await ...
-  await handleEthSignature(rainbowAppData, bookingData.ethSignature);
+  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
@@ -605,7 +605,7 @@ async function handler(
     {
       email: bookerEmail,
       name: bookerName,
-      timeZone: bookingData.timeZone,
+      timeZone: reqBody.timeZone,
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
@@ -613,11 +613,11 @@ async function handler(
   const guests = (reqGuests || []).map((guest) => ({
     email: guest,
     name: "",
-    timeZone: bookingData.timeZone,
+    timeZone: reqBody.timeZone,
     language: { translate: tGuests, locale: "en" },
   }));
 
-  const seed = `${organizerUser.username}:${dayjs(bookingData.start).utc().format()}:${new Date().getTime()}`;
+  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   let locationBodyString = reqBody.location;
@@ -635,7 +635,7 @@ async function handler(
   }
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
-  const customInputs = getCustomInputsResponses(bookingData, eventType.customInputs);
+  const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
       ? users.slice(1).map(async function (user) {
@@ -669,21 +669,21 @@ async function handler(
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
   if (rcThreshold) {
-    if (dayjs(dayjs(bookingData.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
       requiresConfirmation = false;
     }
   }
 
-  const responses = "responses" in bookingData ? bookingData.responses : null;
-  const userFieldsResponses = "userFieldsResponses" in bookingData ? bookingData.userFieldsResponses : null;
+  const responses = "responses" in reqBody ? reqBody.responses : null;
+  const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
     customInputs,
-    startTime: dayjs(bookingData.start).utc().format(),
-    endTime: dayjs(bookingData.end).utc().format(),
+    startTime: dayjs(reqBody.start).utc().format(),
+    endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
@@ -705,14 +705,14 @@ async function handler(
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (bookingData.bookingUid) {
+  if (reqBody.bookingUid) {
     if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
     }
 
     const booking = await prisma.booking.findUnique({
       where: {
-        uid: bookingData.bookingUid,
+        uid: reqBody.bookingUid,
       },
       select: {
         uid: true,
@@ -755,7 +755,7 @@ async function handler(
     }
     await prisma.booking.update({
       where: {
-        uid: bookingData.bookingUid,
+        uid: reqBody.bookingUid,
       },
       data: {
         attendees: {
@@ -838,7 +838,7 @@ async function handler(
     }; // used for invitee emails
   }
 
-  if (bookingData.recurringEventId && eventType.recurringEvent) {
+  if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
@@ -846,7 +846,7 @@ async function handler(
   }
 
   // Initialize EventManager with credentials
-  const rescheduleUid = bookingData.rescheduleUid;
+  const rescheduleUid = reqBody.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
     return prisma.booking.findFirst({
       where: {
@@ -904,7 +904,7 @@ async function handler(
         };
 
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
-    const dynamicGroupSlugRef = !eventTypeId ? (bookingData.user as string).toLowerCase() : null;
+    const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
@@ -918,7 +918,7 @@ async function handler(
       location: evt.location,
       eventType: eventTypeRel,
       smsReminderNumber,
-      metadata: bookingData.metadata,
+      metadata: reqBody.metadata,
       attendees: {
         createMany: {
           data: evt.attendees.map((attendee) => {
@@ -947,8 +947,8 @@ async function handler(
           }
         : undefined,
     };
-    if (bookingData.recurringEventId) {
-      newBookingData.recurringEventId = bookingData.recurringEventId;
+    if (reqBody.recurringEventId) {
+      newBookingData.recurringEventId = reqBody.recurringEventId;
     }
     if (originalRescheduledBooking) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
@@ -1277,7 +1277,7 @@ async function handler(
       const subscribers = await getWebhooks(subscriberOptions);
       console.log("evt:", {
         ...evt,
-        metadata: bookingData.metadata,
+        metadata: reqBody.metadata,
       });
       const bookingId = booking?.id;
 
@@ -1302,7 +1302,7 @@ async function handler(
           rescheduleEndTime: originalRescheduledBooking?.endTime
             ? dayjs(originalRescheduledBooking?.endTime).utc().format()
             : undefined,
-          metadata: { ...metadata, ...bookingData.metadata },
+          metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
           smsReminderNumber: booking?.smsReminderNumber || undefined,
@@ -1318,14 +1318,14 @@ async function handler(
 
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
-  const urlSeed = `${organizerUser.username}:${dayjs(bookingData.start).utc().format()}`;
+  const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   try {
     if (hasHashedBookingLink) {
       await prisma.hashedLink.update({
         where: {
-          link: bookingData.hashedLink as string,
+          link: reqBody.hashedLink as string,
         },
         data: {
           link: hashedUid,
