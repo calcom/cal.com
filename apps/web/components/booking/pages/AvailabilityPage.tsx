@@ -44,6 +44,22 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
+const getRefetchInterval = (refetchCount: number): number => {
+  switch (refetchCount) {
+    case 0:
+    case 1:
+      return 3000;
+    case 2:
+      return 5000;
+    case 3:
+      return 10000;
+    case 4:
+      return 20000;
+    default:
+      return 30000;
+  }
+};
+
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
@@ -63,7 +79,9 @@ const useSlots = ({
   duration?: string;
   enabled?: boolean;
 }) => {
-  const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
+  const [refetchCount, setRefetchCount] = useState(0);
+  const refetchInterval = getRefetchInterval(refetchCount);
+  const { data, isLoading, isPaused, fetchStatus } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       eventTypeId,
       eventTypeSlug,
@@ -75,10 +93,16 @@ const useSlots = ({
     },
     {
       enabled: !!startTime && !!endTime && enabled,
-      refetchInterval: 3000,
+      refetchInterval,
       trpc: { context: { skipBatch: true } },
     }
   );
+  useEffect(() => {
+    if (!!data && fetchStatus === "idle") {
+      setRefetchCount(refetchCount + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchStatus, data]);
 
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
   return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
