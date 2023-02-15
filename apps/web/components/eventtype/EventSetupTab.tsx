@@ -199,7 +199,7 @@ export const EventSetupTab = (
               // We dont want to translate the string link - it doesnt exist in common.json and it gets prefixed/suffixed with __ or //
               const eventLabel =
                 eventLocationType.defaultValueVariable === "link"
-                  ? location[eventLocationType.defaultValueVariable]
+                  ? eventLocationType.label
                   : t(location[eventLocationType.defaultValueVariable] || eventLocationType.label);
 
               return (

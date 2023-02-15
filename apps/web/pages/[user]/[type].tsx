@@ -3,13 +3,18 @@ import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
 import { User } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  teamMetadataSchema,
+  userMetadata as userMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -215,6 +220,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       darkBrandColor: true,
       defaultScheduleId: true,
       allowDynamicBooking: true,
+      metadata: true,
       away: true,
       schedules: {
         select: {
@@ -233,7 +239,32 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     };
   }
 
-  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+  // sort and be in the same order as usernameList so first user is the first user in the list
+  let sortedUsers: typeof users = [];
+  if (users.length > 1) {
+    sortedUsers = users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
+
+  let locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+
+  // Get the prefered location type from the first user
+  const firstUsersMetadata = userMetadataSchema.parse(sortedUsers[0].metadata || {});
+  const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
+
+  if (preferedLocationType?.appSlug) {
+    const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+    const appType = foundApp?.appData?.location?.type;
+    if (appType) {
+      // Replace the location with the prefered location type
+      // This will still be default to daily if the app is not found
+      locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
+    }
+  }
+
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
