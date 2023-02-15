@@ -1,15 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
+import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import {
+  useTimePreferences,
+  mapBookingToMutationInput,
+  validateCustomInputs,
+  createBooking,
+  createRecurringBooking,
+  mapRecurringBookingToMutationInput,
+} from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
 import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
 
-import { mapBookingToMutationInput } from "../../lib/book-event-form/booking-to-mutation-input-mapper";
-import { validateCustomInputs } from "../../lib/book-event-form/validate-custom-inputs";
-import createBooking from "../../lib/create-booking";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { BookingFormValues, bookingFormSchema } from "./form-config";
@@ -18,35 +25,101 @@ type BookEventFormProps = {
   username: string;
   eventSlug: string;
   onCancel?: () => void;
+  // Duration and recurring event count need to be passed in as a prop, since form does not use booker context,
+  // so form can also be used outside of booker component.
+  duration?: number | null;
+  recurringEventCount?: number | null;
+  timeslot?: string | null;
 };
 
-/**
- * @TODO: Full form HTML is copied from original /book page in order to break
- * as little as possible. I think we want to optimise this bit by bit later one as well.
- */
-export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormProps) => {
-  const { t } = useLocale();
+const getSuccessPath = ({
+  uid,
+  email,
+  slug,
+  formerTime,
+  isRecurring,
+}: {
+  uid: string;
+  email: string;
+  slug: string;
+  formerTime?: string;
+  isRecurring: boolean;
+}) => ({
+  pathname: `/booking/${uid}`,
+  query: {
+    [isRecurring ? "allRemainingBookings" : "isSuccessBookingPage"]: true,
+    email: email,
+    eventTypeSlug: slug,
+    formerTime: formerTime,
+  },
+});
+
+export const BookEventForm = ({
+  username,
+  eventSlug,
+  onCancel,
+  duration,
+  timeslot,
+  recurringEventCount,
+}: BookEventFormProps) => {
+  const router = useRouter();
+  const { t, i18n } = useLocale();
+  const { timezone } = useTimePreferences();
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
-  const createBookingMutation = useMutation(createBooking);
-  console.log(createBookingMutation.isLoading);
   const defaultValues = () => {
     return {};
   };
+
+  const bookingForm = useForm<BookingFormValues>({
+    defaultValues: defaultValues(),
+    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
+  });
+  const createBookingMutation = useMutation(createBooking, {
+    onSuccess: async (responseData) => {
+      const { uid, paymentUid } = responseData;
+      if (paymentUid) {
+        return await router.push(
+          createPaymentLink({
+            paymentUid,
+            date: timeslot,
+            name: bookingForm.getValues("name"),
+            email: bookingForm.getValues("email"),
+            absolute: false,
+          })
+        );
+      }
+
+      // @TODO: add "formertime"
+      return await router.push(
+        getSuccessPath({ uid, email: bookingForm.getValues("email"), slug: eventSlug, isRecurring: false })
+      );
+    },
+  });
+  const createRecurringBookingMutation = useMutation(createRecurringBooking, {
+    onSuccess: async (responseData) => {
+      const { uid } = responseData[0] || {};
+      return await router.push(
+        getSuccessPath({ uid, email: bookingForm.getValues("email"), slug: eventSlug, isRecurring: true })
+      );
+    },
+  });
 
   // @TODO: Add reschedule layout.
   const disableInput = false;
   const guestToggle = false;
   const rescheduleUid = null;
 
-  const bookingForm = useForm<BookingFormValues>({
-    defaultValues: defaultValues(),
-    resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
-  });
+  // @TODO: Loading and or error states.
+  if (!event?.data) return null;
+  if (!timeslot) return null;
 
   const bookEvent = (values: BookingFormValues) => {
+    bookingForm.clearErrors();
+
     // @TODO: Shouldn't be possible, but do we want to warn for this?
     if (!event?.data) return;
     const errors = validateCustomInputs(event.data, values);
+    // @TODO: Validate duration is valid option. + default to event.length if not passed in
     // @TODO: "validate that guests are unique" step
 
     if (errors) {
@@ -54,15 +127,23 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
       return;
     }
 
-    createBookingMutation.mutate(
-      mapBookingToMutationInput(values, event.data, "2023-02-15 12:00", 30, "Europe/Amsterdam", "nl-nl", [])
-    );
+    const bookingInput = {
+      values,
+      duration,
+      event: event.data,
+      date: timeslot,
+      timeZone: timezone,
+      language: i18n.language,
+    };
 
-    return {};
+    if (event.data?.recurringEvent?.freq && recurringEventCount) {
+      createRecurringBookingMutation.mutate(
+        mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
+      );
+    } else {
+      createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
+    }
   };
-
-  // @TODO: Loading and or error states.
-  if (!event?.data) return null;
 
   const eventType = event.data;
 
@@ -151,9 +232,6 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
         <TextAreaField
           label={t("additional_notes")}
           {...bookingForm.register("notes")}
-          // @TODO: Types
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           required={!!eventType.metadata?.additionalNotesRequired}
           id="notes"
           name="notes"
@@ -177,21 +255,22 @@ export const BookEventForm = ({ username, eventSlug, onCancel }: BookEventFormPr
           )}
           {!!onCancel && (
             <Button color="minimal" type="button" onClick={onCancel}>
-              {/* @TODO: I feel in this new layout the text 'back' will make more sense. */}
-              {t("cancel")}
+              {t("back")}
             </Button>
           )}
           <Button
             type="submit"
-            // loading={mutation.isLoading || recurringMutation.isLoading}>
+            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
             data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
             {rescheduleUid ? t("reschedule") : t("confirm")}
           </Button>
         </div>
       </Form>
-      {/* {(mutation.isError || recurringMutation.isError) && (
-        <ErrorMessage error={mutation.error || recurringMutation.error} />
-      )} */}
+      {/* @TODO: Error */}
+      {(createBookingMutation.isError || createRecurringBookingMutation.isError) && (
+        <div>An error occured</div>
+        // <div>{createBookingMutation?.error?.message || createRecurringBookingMutation?.error?.message}</div>
+      )}
     </div>
   );
 };

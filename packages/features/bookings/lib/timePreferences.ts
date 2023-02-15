@@ -29,4 +29,4 @@ export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
   },
 }));
 
-export const useTimePrerences = timePreferencesStore;
+export const useTimePreferences = timePreferencesStore;

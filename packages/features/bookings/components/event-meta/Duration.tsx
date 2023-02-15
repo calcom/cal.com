@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect } from "react";
 
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
@@ -8,8 +9,15 @@ import { PublicEvent } from "../../types";
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
-  // @TODO: save in form state
-  const [selectedDuration, setSelectedDuration] = useState(`${event.length}`);
+  const [selectedDuration, setSelectedDuration] = useBookerStore((state) => [
+    state.selectedDuration,
+    state.setSelectedDuration,
+  ]);
+
+  // Sets initial value of selected duration to the default duration.
+  useEffect(() => {
+    if (!selectedDuration) setSelectedDuration(event.length);
+  }, [selectedDuration, setSelectedDuration, event.length]);
 
   // @TODO: mins should be a translation?
   if (!event?.metadata?.multipleDuration) return <>{event.length} mins</>;
@@ -20,12 +28,11 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
         <Badge
           variant="gray"
           className={classNames(
-            selectedDuration === `${duration}` &&
-              "bg-darkgray-200 dark:bg-darkgray-900 text-white dark:text-black"
+            selectedDuration === duration && "bg-darkgray-200 dark:bg-darkgray-900 text-white dark:text-black"
           )}
           size="lg"
           key={duration}
-          onClick={() => setSelectedDuration(`${duration}`)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
+          onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 import { CAL_URL } from "@calcom/lib/constants";
 import { AvatarGroup } from "@calcom/ui";
 
-import { PublicEvent } from "../types";
+import { PublicEvent } from "../../types";
 
 export interface EventMembersProps {
   /**

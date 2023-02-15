@@ -1,6 +1,6 @@
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 
-import { PublicEvent } from "../types";
+import { PublicEvent } from "../../types";
 
 export const EventPrice = ({ event }: { event: PublicEvent }) => {
   const stripeAppData = getStripeAppData(event);

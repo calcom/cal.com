@@ -1,13 +1,14 @@
-import { BookingFormValues } from "../../components/BookEventForm/form-config";
+import { BookingFormValues } from "../../BookEventForm/form-config";
 import { PublicEvent, ValidationErrors } from "../../types";
 
 /**
- *
+ * Validates all custom input fields, then either returns
+ * an array of all fields with errors, or null if there are no errors.
  */
 export const validateCustomInputs = (
   event: PublicEvent,
   formValues: BookingFormValues
-): ValidationErrors | null => {
+): ValidationErrors<BookingFormValues> | null => {
   const requiredCustomInputs = event.customInputs.filter((input) => input.required);
   const missingRequiredCustomInputs = requiredCustomInputs.filter(
     (input) => !formValues?.customInputs?.[input.id]

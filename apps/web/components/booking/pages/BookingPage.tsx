@@ -29,6 +29,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { createRecurringBooking, createBooking } from "@calcom/features/bookings/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -36,6 +37,7 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -65,9 +67,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import createBooking from "@lib/mutations/bookings/create-booking";
-import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
-import { parseDate, parseRecurringDates } from "@lib/parseDate";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
@@ -328,7 +327,7 @@ const BookingPage = ({
         recurringEvent: eventType.recurringEvent,
         recurringCount: parseInt(recurringEventCount.toString()),
       },
-      i18n
+      i18n.language
     );
   }
 
@@ -584,7 +583,8 @@ const BookingPage = ({
                   <div className="text-bookinghighlight flex items-start text-sm">
                     <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
+                      {(rescheduleUid || !eventType.recurringEvent?.freq) &&
+                        `${parseDate(date, i18n.language)}`}
                       {!rescheduleUid &&
                         eventType.recurringEvent?.freq &&
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
@@ -611,7 +611,8 @@ const BookingPage = ({
                       </p>
                       <p className="line-through ">
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                        {typeof booking.startTime === "string" &&
+                          parseDate(dayjs(booking.startTime), i18n.language)}
                       </p>
                     </div>
                   )}

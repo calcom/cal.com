@@ -1,20 +1,20 @@
 import { m } from "framer-motion";
 
-import { PublicEvent } from "@calcom/features/booking/types";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { PublicEvent } from "@calcom/features/bookings/types";
 import { TimezoneSelect } from "@calcom/ui";
 import { FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
-import { useTimePrerences } from "../utils/time";
 
 type EventMetaProps = {
   event?: PublicEvent | null;
   isLoading?: boolean;
 };
 export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
-  const { timezone, setTimezone } = useTimePrerences();
+  const { timezone, setTimezone } = useTimePreferences();
 
   return (
     <div className="relative z-10 p-6">

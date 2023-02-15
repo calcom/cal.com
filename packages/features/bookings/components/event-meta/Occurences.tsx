@@ -1,15 +1,16 @@
-import { useState } from "react";
-
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { Input } from "@calcom/ui";
 
-import { PublicEvent } from "../types";
+import { PublicEvent } from "../../types";
 
 export const EventOccurences = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
-  // @TODO: Save in form state.
-  const [recurringEventCount, setRecurringEventCount] = useState(event?.recurringEvent?.count);
+  const [setRecurringEventCount, recurringEventCount] = useBookerStore((state) => [
+    state.setRecurringEventCount,
+    state.recurringEventCount,
+  ]);
 
   if (!event.recurringEvent) return null;
 
@@ -25,7 +26,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
         }}
       />
       {t("occurrence", {
-        count: recurringEventCount,
+        count: recurringEventCount || event.recurringEvent.count,
       })}
     </>
   );

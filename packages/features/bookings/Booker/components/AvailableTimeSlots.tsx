@@ -2,12 +2,12 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useSchedule } from "@calcom/features/schedules";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
-import { useTimePrerences } from "../utils/time";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -23,7 +23,7 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
     state.eventId,
     state.month,
   ]);
-  const { timezone } = useTimePrerences();
+  const { timezone } = useTimePreferences();
   const schedule = useSchedule({
     username,
     eventSlug,

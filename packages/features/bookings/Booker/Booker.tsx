@@ -4,7 +4,8 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { BookEventForm } from "@calcom/features/bookings";
+import { BookEventForm } from "@calcom/features/bookings/BookEventForm";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays, useSchedule } from "@calcom/features/schedules";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -23,13 +24,12 @@ import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore } from "./store";
 import { BookerLayout, BookerProps } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
-import { useTimePrerences } from "./utils/time";
 
 // @TODO: Test embed view
 
 const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { i18n } = useLocale();
-  const { timezone } = useTimePrerences();
+  const { timezone } = useTimePreferences();
   const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
   // Custom breakpoint to make calendar fit.
   const isMobile = useMediaQuery("(max-width: 800px)");
@@ -54,7 +54,9 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
     (state) => [state.selectedDate, state.setSelectedDate],
     shallow
   );
-
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
+  console.log(recurringEventCount);
   useEffect(() => {
     initializeStore(username, eventSlug, browsingMonthStart.toDate(), event?.data?.id);
   }, [initializeStore, username, eventSlug, browsingMonthStart, event]);
@@ -145,7 +147,14 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:border-l"
             {...fadeInUp}
             visible={bookerState === "booking"}>
-            <BookEventForm username={username} eventSlug={eventSlug} onCancel={() => setBookingTime(null)} />
+            <BookEventForm
+              username={username}
+              eventSlug={eventSlug}
+              onCancel={() => setBookingTime(null)}
+              duration={selectedDuration}
+              timeslot={bookingTime}
+              recurringEventCount={recurringEventCount}
+            />
           </BookerSection>
 
           <BookerSection

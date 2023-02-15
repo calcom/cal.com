@@ -16,6 +16,8 @@ type BookerStore = {
   initialize: (username: string, eventSlug: string, month: Date, eventId: number | undefined) => void;
   selectedDuration: number | null;
   setSelectedDuration: (duration: number | null) => void;
+  recurringEventCount: number | null;
+  setRecurringEventCount(count: number | null): void;
 };
 
 export const useBookerStore = create<BookerStore>((set, get) => ({
@@ -24,7 +26,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   layout: "small_calendar",
   setLayout: (layout: BookerLayout) => set({ layout }),
   selectedDate: null,
-  setSelectedDate: (date: string | null) => set({ selectedDate: date }),
+  setSelectedDate: (selectedDate: string | null) => set({ selectedDate }),
   username: null,
   eventSlug: null,
   eventId: null,
@@ -40,5 +42,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ username, eventSlug, month, eventId });
   },
   selectedDuration: null,
-  setSelectedDuration: (duration: number | null) => set({ selectedDuration: duration }),
+  setSelectedDuration: (selectedDuration: number | null) => set({ selectedDuration }),
+  recurringEventCount: null,
+  setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
 }));
