@@ -367,7 +367,8 @@ export const FormBuilder = function FormBuilder({
             <Form
               form={fieldForm}
               handleSubmit={(data) => {
-                if (fields.some((f) => f.name === data.name)) {
+                const isNewField = fieldDialog.fieldIndex == -1;
+                if (isNewField && fields.some((f) => f.name === data.name)) {
                   showToast(t("form_builder_field_already_exists"), "error");
                   return;
                 }
