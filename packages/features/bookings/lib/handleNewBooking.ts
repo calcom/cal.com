@@ -512,10 +512,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
       return aIndex - bIndex;
     });
-    const firstUsers = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsers?.defaultConferencingApp?.appSlug);
+    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
+    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
     locationBodyString = app?.appData?.location?.type || locationBodyString;
-    defaultLocationUrl = firstUsers?.defaultConferencingApp?.appLink;
+    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
