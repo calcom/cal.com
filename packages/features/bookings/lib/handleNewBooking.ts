@@ -640,7 +640,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     const booking = await prisma.booking.findUnique({
       where: {
-        uid: reqBody.bookingUid || rescheduleUid,
+        uid: rescheduleUid || reqBody.bookingUid,
       },
       select: {
         uid: true,
@@ -654,26 +654,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
     if (!booking) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
-
-    // If owner reschedules the event we want to update the entire booking
-    if (reqBody.seatsOwnerRescheduling) {
-      const newBooking = await prisma.booking.update({
-        where: {
-          id: booking.id,
-        },
-        data: {
-          startTime: evt.startTime,
-          cancellationReason: reqBody.rescheduleReason,
-        },
-      });
-      console.log("🚀 ~ file: handleNewBooking.ts:678 ~ handleSeats ~ newBooking", newBooking);
-
-      return newBooking;
-    }
-
-    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
-      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
     // If rescheduling an exisiting attendee
@@ -702,7 +682,87 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           startTime: evt.startTime,
           eventTypeId: eventType.id,
         },
+        select: {
+          id: true,
+          attendees: true,
+        },
       });
+
+      // If owner reschedules the event we want to update the entire booking
+      if (reqBody.seatsOwnerRescheduling) {
+        // If there is no booking during the new time slot then update the current booking to the new date
+        if (!newTimeSlotBooking) {
+          const newBooking = await prisma.booking.update({
+            where: {
+              id: booking.id,
+            },
+            data: {
+              startTime: evt.startTime,
+              cancellationReason: reqBody.rescheduleReason,
+            },
+          });
+
+          return newBooking;
+        }
+
+        const attendeesToMove = [],
+          attendeesToDelete = [];
+
+        for (const attendee of booking.attendees) {
+          if (
+            newTimeSlotBooking.attendees.some(
+              (newBookingAttendee) => newBookingAttendee.email === attendee.email
+            )
+          ) {
+            attendeesToDelete.push(attendee.id);
+          } else {
+            attendeesToMove.push(attendee.id);
+          }
+        }
+
+        // Confirm that the new event will have enough available seats
+        if (attendeesToMove.length + newTimeSlotBooking.attendees.length > eventType.seatsPerTimeSlot) {
+          throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
+        }
+
+        await Promise.all([
+          // Move attendees to the new time slot booking
+          await prisma.attendee.updateMany({
+            where: {
+              id: {
+                in: attendeesToMove,
+              },
+            },
+            data: {
+              bookingId: newTimeSlotBooking.id,
+            },
+          }),
+          // Delete any attendees that are already a part of that new time slot booking
+          await prisma.attendee.deleteMany({
+            where: {
+              id: {
+                in: attendeesToDelete,
+              },
+            },
+          }),
+          // Delete the old booking
+          await prisma.booking.delete({
+            where: {
+              id: booking.id,
+            },
+          }),
+        ]);
+
+        const updatedNewBooking = await prisma.booking.findUnique({
+          where: {
+            id: newTimeSlotBooking.id,
+          },
+        });
+
+        // TODO send reschedule emails to new attendees
+
+        return updatedNewBooking;
+      }
 
       // If there is no booking then create one as normal
       if (!newTimeSlotBooking) return;
@@ -746,6 +806,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       return newTimeSlotBooking;
       // Else let's add the new attendee to the existing booking
     } else {
+      // See if attendee is already signed up for timeslot
+      if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+        throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+      }
+
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
         return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };

@@ -107,7 +107,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             if (slot.attendees && seatsPerTimeSlot) slotFull = slot.attendees >= seatsPerTimeSlot;
             if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
-              notEnoughSeats = slot.attendees + bookingAttendees >= seatsPerTimeSlot;
+              notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
 
             return (
               <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
