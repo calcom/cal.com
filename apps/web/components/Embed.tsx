@@ -12,7 +12,6 @@ import {
   DialogClose,
   DialogContent,
   HorizontalTabs,
-  InputLeading,
   Label,
   showToast,
   Switch,
