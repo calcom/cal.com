@@ -7,7 +7,7 @@ import {
   ProviderProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, Input, SelectWithValidation as Select, TextField } from "@calcom/ui";
+import { Button as CalButton, SelectWithValidation as Select, TextField } from "@calcom/ui";
 import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
 export type CommonProps<

@@ -21,6 +21,7 @@ import {
   SelectField,
   InputField,
   Input,
+  showToast,
 } from "@calcom/ui";
 import { Switch } from "@calcom/ui";
 import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
@@ -257,9 +258,7 @@ export const FormBuilder = function FormBuilder({
     <div>
       <div>
         <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{title}</div>
-        <p className=" max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
-          {description}
-        </p>
+        <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
             const fieldType = FieldTypes.find((f) => f.value === field.type);
@@ -282,40 +281,40 @@ export const FormBuilder = function FormBuilder({
             }, {} as Record<string, NonNullable<typeof field["sources"]>>);
 
             return (
-              <li key={index} className="group relative flex justify-between border-b p-4 last:border-b-0">
+              <li
+                key={index}
+                className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
                 <button
                   type="button"
-                  className="invisible absolute -left-[12px] ml-0 flex  h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
+                  className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                   onClick={() => swap(index, index - 1)}>
                   <FiArrowUp className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
-                  className="invisible absolute -left-[12px] mt-8 ml-0 flex  h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100"
+                  className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                   onClick={() => swap(index, index + 1)}>
                   <FiArrowDown className="h-5 w-5" />
                 </button>
-                <div className="flex">
-                  <div>
-                    <div className="flex items-center">
-                      <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
-                        {field.label || t(field.defaultLabel || "")}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
-                        {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
-                        {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
-                          // We don't know how to pluralize `sourceLabel` because it can be anything
-                          <Badge key={key} variant="blue">
-                            {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
-                          </Badge>
-                        ))}
-                      </div>
+                <div>
+                  <div className="flex flex-col lg:flex-row lg:items-center">
+                    <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
+                      {field.label || t(field.defaultLabel || "")}
                     </div>
-                    <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
-                      {fieldType.label}
-                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
+                      {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
+                      {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
+                        // We don't know how to pluralize `sourceLabel` because it can be anything
+                        <Badge key={key} variant="blue">
+                          {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
+                  <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+                    {fieldType.label}
+                  </p>
                 </div>
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
@@ -363,11 +362,15 @@ export const FormBuilder = function FormBuilder({
           })
         }>
         <DialogContent>
-          <DialogHeader title="Add a question" subtitle="Customize the questions asked on the booking page" />
+          <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
               form={fieldForm}
               handleSubmit={(data) => {
+                if (fields.some((f) => f.name === data.name)) {
+                  showToast(t("form_builder_field_already_exists"), "error");
+                  return;
+                }
                 if (fieldDialog.fieldIndex !== -1) {
                   update(fieldDialog.fieldIndex, data);
                 } else {
@@ -419,6 +422,8 @@ export const FormBuilder = function FormBuilder({
               />
               <InputField
                 {...fieldForm.register("label")}
+                // System fields have a defaultLabel, so there a label is not required
+                required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
                 label="Label"

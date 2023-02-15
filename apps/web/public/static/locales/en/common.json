@@ -1602,5 +1602,7 @@
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
   "booking_with_payment_cancelled_already_paid": "A refund for this booking payment it's on the way.",
   "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",
-  "booking_confirmation_failed": "Booking confirmation failed"
+  "booking_confirmation_failed": "Booking confirmation failed",
+  "form_builder_field_already_exists": "A field with this name already exists",
+  "form_builder_field_add_subtitle": "Customize the questions asked on the booking page"
 }

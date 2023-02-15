@@ -137,13 +137,25 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "radioInput") {
           if (bookingField.optionsInputs) {
+            const optionValue = value?.optionValue;
+            const optionField = bookingField.optionsInputs[value?.value];
+            const typeOfOptionInput = optionField?.type;
             if (
               // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
               (isRequired || value?.value) &&
-              bookingField.optionsInputs[value?.value]?.required &&
-              !value?.optionValue
+              optionField?.required &&
+              !optionValue
             ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+            }
+
+            if (optionValue) {
+              // `typeOfOptionInput` can be any of the main types. So, we the same validations should run for `optionValue`
+              if (typeOfOptionInput === "phone") {
+                if (!phoneSchema.safeParse(optionValue).success) {
+                  ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+                }
+              }
             }
           }
           return;

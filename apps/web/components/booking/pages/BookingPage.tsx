@@ -95,7 +95,8 @@ const BookingFields = ({
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
           if (locationResponse?.value === "phone") {
             setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
-            hidden = true;
+            // Just don't render the field now, as the value is already connected to attendee phone location
+            return null;
           }
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
           readOnly = false;
