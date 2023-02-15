@@ -702,6 +702,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
             },
           });
 
+          const copyEvent = cloneDeep(evt);
+
+          await sendRescheduledEmails({
+            ...copyEvent,
+            // additionalInformation: metadata,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          });
+
           return newBooking;
         }
 
@@ -757,9 +766,42 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           where: {
             id: newTimeSlotBooking.id,
           },
+          include: {
+            attendees: true,
+            references: true,
+          },
         });
 
+        if (!updatedNewBooking) {
+          throw new HttpError({ statusCode: 404, message: "Updated booking not found" });
+        }
+
+        // const metadata: AdditionalInformation = {};
+
+        // Update the metadata to send with data from the new time slot booking
+        // for (const reference of updatedNewBooking.references) {
+        //   if (reference.type.includes("_video")) {
+        //     if ()
+        //   }
+        // }
+
+        // Update the evt object with the new attendees
+        const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
+          const evtAttendee = { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+          return evtAttendee;
+        });
+
+        evt.attendees = updatedBookingAttendees;
+
+        const copyEvent = cloneDeep(evt);
+
         // TODO send reschedule emails to new attendees
+        await sendRescheduledEmails({
+          ...copyEvent,
+          // additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+        });
 
         return updatedNewBooking;
       }
