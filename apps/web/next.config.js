@@ -100,6 +100,11 @@ const nextConfig = {
   //     transform: "@calcom/ui/components/{{member}}",
   //   },
   // },
+  modularizeImports: {
+    "@calcom/dayjs/plugins": {
+      transform: "dayjs/plugins/{{member}}",
+    },
+  },
   images: {
     unoptimized: true,
   },
