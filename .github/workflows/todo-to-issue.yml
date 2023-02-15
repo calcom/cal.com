@@ -1,7 +1,5 @@
 name: TODO to Issue
 on:
-  push:
-    branches: [add-todo-to-issue-action] # FIXME: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
