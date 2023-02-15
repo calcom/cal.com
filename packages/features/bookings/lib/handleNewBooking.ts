@@ -6,6 +6,7 @@ import {
   Prisma,
   SchedulingType,
   WebhookTriggerEvents,
+  BookingReference,
 } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -630,10 +631,23 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
   }
 
+  /* Used for seats bookings to update evt object with video data */
+  const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
+    const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
+
+    if (videoCallReference) {
+      evt.videoCallData = {
+        type: videoCallReference.type,
+        id: videoCallReference.meetingId,
+        password: videoCallReference?.meetingPassword,
+        url: videoCallReference.meetingUrl,
+      };
+    }
+  };
+
   // TODO reschedule the whole event if the event owner is rescheduling. Current it was auto filling the first attendee
   const handleSeats = async () => {
     // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-
     if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
     }
@@ -700,7 +714,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               startTime: evt.startTime,
               cancellationReason: reqBody.rescheduleReason,
             },
+            include: {
+              references: true,
+            },
           });
+
+          addVideoCallDataToEvt(newBooking.references);
 
           const copyEvent = cloneDeep(evt);
 
