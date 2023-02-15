@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import * as React from "react";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -23,8 +22,8 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import {
-  SystemField,
   getBookingFieldsWithSystemFields,
+  SystemField,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
   getBookingResponsesQuerySchema,
@@ -40,7 +39,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Button, Form, Tooltip } from "@calcom/ui";
-import { FiCalendar, FiCreditCard, FiRefreshCw, FiUser, FiAlertTriangle } from "@calcom/ui/components/icon";
+import { FiAlertTriangle, FiCalendar, FiCreditCard, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
