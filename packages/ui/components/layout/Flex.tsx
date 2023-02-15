@@ -51,6 +51,13 @@ export const flex = cva("flex", {
       8: "space-y-8",
       10: "space-y-10",
     },
+    flex: {
+      1: "flex-1",
+    },
+  },
+  defaultVariants: {
+    direction: "horizontal",
+    wrap: false,
   },
 });
 
@@ -61,6 +68,7 @@ export const Flex = ({
   direction,
   wrap,
   align,
+  justify,
   self,
   spaceX,
   spaceY,
@@ -68,7 +76,7 @@ export const Flex = ({
   ...rest
 }: FlexProps) => {
   return (
-    <div className={flex({ direction, wrap, align, self, spaceX, spaceY, className })} {...rest}>
+    <div className={flex({ direction, wrap, align, justify, self, spaceX, spaceY, className })} {...rest}>
       {children}
     </div>
   );

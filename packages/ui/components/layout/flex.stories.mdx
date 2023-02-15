@@ -12,73 +12,95 @@ import {
   CustomArgsTable,
 } from "@calcom/storybook/components";
 
-import { Tooltip } from "../";
+import { Tooltip } from "../tooltip";
 import { FiPlus, FiX } from "../icon";
-import { Flex } from "./Flex";
+import { Flex,Vertical } from "./Flex";
 
-<Meta title="Layout/Spacing" component={Flex} />
+<Meta title="Layout/Flex" />
 
-<Title title="Spacing" suffix="Brief" subtitle="Version 2.0 — Last Update: 15 Feb 2023" />
+<Title title="Flex" suffix="Brief" subtitle="Version 2.0 — Last Update: 15 Feb 2023" />
 
 ## Definition
 
-Defines the spacing guide used in Cal.coms design system
+Defined flex components with our our correct spacing and sizing.
 
-## Structure
 
-<Examples title="Spacing">
-  <TooltipPrimitive.Provider>
-    <Example title="0"></Example>
-    <Example title="px">
-      <Tooltip content="1px">
-        <div className="h-4 w-px bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="0.5">
-      <Tooltip content="1px">
-        <div className="h-4 w-0.5 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="1">
-      <Tooltip content="1px">
-        <div className="h-4 w-1 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="2">
-      <Tooltip content="1px">
-        <div className="h-4 w-2 bg-gray-900"> </div>
-      </Tooltip>
+<CustomArgsTable of={Flex} />
 
-    </Example>
-    <Example title="3">
-      <Tooltip content="1px">
-        <div className="h-4 w-3 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="4">
-      <Tooltip content="1px">
-        <div className="h-4 w-4 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="5">
-      <Tooltip content="1px">
-        <div className="h-4 w-5 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="6">
-      <Tooltip content="1px">
-        <div className="h-4 w-6 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="8">
-      <Tooltip content="1px">
-        <div className="h-4 w-8 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-    <Example title="10">
-      <Tooltip content="1px">
-        <div className="h-4 w-10 bg-gray-900"> </div>
-      </Tooltip>
-    </Example>
-  </TooltipPrimitive.Provider>
+
+## Examples
+<Examples title="Vertical">
+  <Example title="Default" >
+    <Flex className="p-2" direction="vertical">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
+  <Example title="SpaceX=3" >
+    <Flex className="p-2" spaceY="3" direction="vertical">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
+  <Example title="Center" >
+    <Flex className="p-2" spaceY="3" align="center" justify="center" direction="vertical">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
 </Examples>
+
+<Examples title="Horizontal">
+  <Example title="Default" >
+    <Flex className="p-2">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
+  <Example title="SpaceX=3" >
+    <Flex className="p-2" spaceX="3">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
+  <Example title="Center" >
+    <Flex className="p-2" spaceX="3" align="center" justify="center">
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+      <div className="bg-gray-200 rounded-md p-2">One</div>
+    </Flex>
+  </Example>
+</Examples>
+
+### Usage
+
+Using the Flex component - Defaults to horizontal
+
+```jsx
+<Flex className="p-2">
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+</Flex>
+```
+
+There is also Horizontal and Vertical wrappers to save you some typing
+
+```jsx
+<Vertical className="p-2">
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+</Vertical>
+
+<Horizontal className="p-2">
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+  <div className="bg-gray-200 rounded-md p-2">One</div>
+</Horizontal>
+```
