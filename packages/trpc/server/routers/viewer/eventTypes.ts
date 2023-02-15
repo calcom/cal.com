@@ -7,6 +7,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import getApps from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -17,6 +18,7 @@ import {
   CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -406,7 +408,29 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
+    // Get Users default conferncing app
+
+    const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
+
+    let locations: { type: string; link?: string }[] = [];
+
+    // If no locations are passed in and the user has a daily api key then default to daily
+    if (
+      (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
+      typeof appKeys.api_key === "string"
+    ) {
+      locations = [{ type: DailyLocationType }];
+    }
+
+    // If its defaulting to daily no point handling compute as its done
+    if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
+      const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+      locations = [{ type: locationType, link: defaultConferencingData.appLink }];
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
@@ -415,8 +439,7 @@ export const eventTypesRouter = router({
           id: userId,
         },
       },
-      ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
-        typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
+      locations,
     };
 
     if (teamId && schedulingType) {
