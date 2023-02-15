@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -35,14 +36,15 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import Gates, { Gate, GateState } from "@components/Gates";
-import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+
+const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
 const useSlots = ({
   eventTypeId,
@@ -197,22 +199,24 @@ const SlotPicker = ({
       />
 
       <div ref={slotPickerRef}>
-        <AvailableTimes
-          isLoading={isLoadingSelectedDateSlots}
-          slots={
-            selectedDate &&
-            (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
-              monthSlots[selectedDate.format("YYYY-MM-DD")])
-          }
-          date={selectedDate}
-          timeFormat={timeFormat}
-          onTimeFormatChange={onTimeFormatChange}
-          eventTypeId={eventType.id}
-          eventTypeSlug={eventType.slug}
-          seatsPerTimeSlot={seatsPerTimeSlot}
-          recurringCount={recurringEventCount}
-          ethSignature={ethSignature}
-        />
+        {selectedDate ? (
+          <AvailableTimes
+            isLoading={isLoadingSelectedDateSlots}
+            slots={
+              selectedDate &&
+              (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+                monthSlots[selectedDate.format("YYYY-MM-DD")])
+            }
+            date={selectedDate}
+            timeFormat={timeFormat}
+            onTimeFormatChange={onTimeFormatChange}
+            eventTypeId={eventType.id}
+            eventTypeSlug={eventType.slug}
+            seatsPerTimeSlot={seatsPerTimeSlot}
+            recurringCount={recurringEventCount}
+            ethSignature={ethSignature}
+          />
+        ) : null}
       </div>
     </>
   );
