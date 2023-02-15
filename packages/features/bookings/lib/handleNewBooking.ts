@@ -645,7 +645,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
   };
 
-  // TODO reschedule the whole event if the event owner is rescheduling. Current it was auto filling the first attendee
   const handleSeats = async () => {
     // For seats, if the booking already exists then we want to add the new attendee to the existing booking
     if (!eventType.seatsPerTimeSlot) {
@@ -795,15 +794,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           throw new HttpError({ statusCode: 404, message: "Updated booking not found" });
         }
 
-        // const metadata: AdditionalInformation = {};
-
-        // Update the metadata to send with data from the new time slot booking
-        // for (const reference of updatedNewBooking.references) {
-        //   if (reference.type.includes("_video")) {
-        //     if ()
-        //   }
-        // }
-
         // Update the evt object with the new attendees
         const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
           const evtAttendee = { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
@@ -812,9 +802,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
         evt.attendees = updatedBookingAttendees;
 
+        addVideoCallDataToEvt(updatedNewBooking.references);
+
         const copyEvent = cloneDeep(evt);
 
-        // TODO send reschedule emails to new attendees
+        // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
           // additionalInformation: metadata,
@@ -825,8 +817,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         return updatedNewBooking;
       }
 
-      // If there is no booking then create one as normal
-      if (!newTimeSlotBooking) return;
+      // If there is no booking then remove the attendee from the old booking and create a new one
+      if (!newTimeSlotBooking) {
+        await prisma.attendee.delete({
+          where: {
+            id: seatAttendee.id,
+          },
+        });
+
+        return;
+      }
 
       // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
       // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
@@ -999,7 +999,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   };
 
   if (reqBody.bookingUid || (rescheduleUid && eventType.seatsPerTimeSlot)) {
-    const newBooking = handleSeats();
+    const newBooking = await handleSeats();
     if (newBooking) {
       req.statusCode = 201;
       return newBooking;
@@ -1299,6 +1299,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
         }
 
+        console.log("🚀 ~ file: handleNewBooking.ts:1279 ~ handler ~ metadata", metadata);
+
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
@@ -1564,6 +1566,21 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     );
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
+  }
+
+  // On seats, if a new booking was created, delete the old booking if empty
+  if (eventType.seatsPerTimeSlot && originalRescheduledBooking) {
+    const oldBookingAttendees = originalRescheduledBooking?.attendees.filter(
+      (attendee) => attendee.email !== reqBody.email
+    );
+
+    if (oldBookingAttendees.length < 1) {
+      await prisma.booking.delete({
+        where: {
+          uid: originalRescheduledBooking.uid,
+        },
+      });
+    }
   }
 
   // booking successful
