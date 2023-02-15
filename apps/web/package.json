@@ -170,6 +170,7 @@
   "nextBundleAnalysis": {
     "budget": 358400,
     "budgetPercentIncreaseRed": 20,
+    "minimumChangeThreshold": 500,
     "showDetails": true
   }
 }
