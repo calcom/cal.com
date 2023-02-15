@@ -158,16 +158,18 @@ export const FormBuilder = function FormBuilder({
     readOnly?: boolean;
   }) {
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
-    value = value || [
-      {
-        label: "Option 1",
-        value: "1",
-      },
-      {
-        label: "Option 2",
-        value: "2",
-      },
-    ];
+    if (!value) {
+      onChange([
+        {
+          label: "Option 1",
+          value: "1",
+        },
+        {
+          label: "Option 2",
+          value: "2",
+        },
+      ]);
+    }
     return (
       <div className={className}>
         <Label>{label}</Label>
