@@ -10,7 +10,7 @@ export type PhoneInputProps = Props<{
   name?: string;
 }>;
 
-function PhoneInput({ name, className, onChange, ...rest }: PhoneInputProps) {
+function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps) {
   return (
     <BasePhoneInput
       {...rest}

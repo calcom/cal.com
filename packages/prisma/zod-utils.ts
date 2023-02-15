@@ -72,6 +72,7 @@ export const bookingResponses = z
       })
       .optional(),
     smsReminderNumber: z.string().optional(),
+    rescheduleReason: z.string().optional(),
   })
   .nullable();
 
@@ -148,6 +149,7 @@ export const bookingCreateSchemaForApiOnly = z.object({
   location: z.string().optional(),
   guests: z.array(z.string()).optional(),
   notes: z.string().optional(),
+  rescheduleReason: z.string().optional(),
   customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
 });
 
@@ -190,7 +192,6 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     recurringCount: z.number().optional(),
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
-    rescheduleReason: z.string().optional(),
     smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(

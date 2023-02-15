@@ -77,13 +77,14 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   phone: {
     propsType: "text",
-    factory: ({ setValue, ...props }) => {
+    factory: ({ setValue, readOnly, ...props }) => {
       if (!props) {
         return <div />;
       }
 
       return (
         <PhoneInput
+          disabled={readOnly}
           onChange={(val: string) => {
             setValue(val);
           }}
@@ -117,7 +118,7 @@ export const Components: Record<BookingFieldType, Component> = {
   multiemail: {
     propsType: "textList",
     //TODO: Make it a ui component
-    factory: function MultiEmail({ value, label, setValue, ...props }) {
+    factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
@@ -136,6 +137,7 @@ export const Components: Record<BookingFieldType, Component> = {
                 {value.map((field, index) => (
                   <li key={index}>
                     <EmailField
+                      disabled={readOnly}
                       value={value[index]}
                       onChange={(e) => {
                         value[index] = e.target.value;
@@ -149,39 +151,43 @@ export const Components: Record<BookingFieldType, Component> = {
                       label={<></>}
                       required
                       addOnSuffix={
-                        <Tooltip content="Remove email">
-                          <button
-                            className="m-1 disabled:hover:cursor-not-allowed"
-                            type="button"
-                            onClick={() => {
-                              value.splice(index, 1);
-                              setValue(value);
-                            }}>
-                            <FiX className="text-gray-600" />
-                          </button>
-                        </Tooltip>
+                        !readOnly ? (
+                          <Tooltip content="Remove email">
+                            <button
+                              className="m-1 disabled:hover:cursor-not-allowed"
+                              type="button"
+                              onClick={() => {
+                                value.splice(index, 1);
+                                setValue(value);
+                              }}>
+                              <FiX className="text-gray-600" />
+                            </button>
+                          </Tooltip>
+                        ) : null
                       }
                     />
                   </li>
                 ))}
               </ul>
-              <Button
-                type="button"
-                color="minimal"
-                StartIcon={FiUserPlus}
-                className="my-2.5"
-                onClick={() => {
-                  value.push("");
-                  setValue(value);
-                }}>
-                {t("add_another")}
-              </Button>
+              {!readOnly && (
+                <Button
+                  type="button"
+                  color="minimal"
+                  StartIcon={FiUserPlus}
+                  className="my-2.5"
+                  onClick={() => {
+                    value.push("");
+                    setValue(value);
+                  }}>
+                  {t("add_another")}
+                </Button>
+              )}
             </div>
           ) : (
             <></>
           )}
 
-          {!value.length && (
+          {!value.length && !readOnly && (
             <Button
               color="minimal"
               variant="button"

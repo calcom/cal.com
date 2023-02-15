@@ -349,6 +349,7 @@ function getBookingData({
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes || "",
       userFieldsResponses,
+      rescheduleReason: responses.rescheduleReason,
     };
   } else {
     // Check if required custom inputs exist
@@ -362,6 +363,7 @@ function getBookingData({
       location: reqBody.location || "",
       smsReminderNumber: reqBody.smsReminderNumber,
       notes: reqBody.notes,
+      rescheduleReason: reqBody.rescheduleReason,
     };
   }
 }
@@ -434,6 +436,7 @@ async function handler(
     location,
     notes: additionalNotes,
     smsReminderNumber,
+    rescheduleReason,
     ...bookingData
   } = getBookingData({
     req,
@@ -1041,14 +1044,13 @@ async function handler(
   }
 
   let videoCallUrl;
-
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
-      bookingData.rescheduleReason
+      rescheduleReason
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1084,7 +1086,7 @@ async function handler(
           ...evt,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + bookingData.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }

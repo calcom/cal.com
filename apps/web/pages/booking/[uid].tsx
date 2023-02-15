@@ -539,6 +539,7 @@ export default function Success(props: SuccessProps) {
                       // We show location in the "where" section
                       // We show Booker Name, Emails and guests in Who section
                       // We show notes in additional notes section
+                      // We show rescheduleReason at the top
                       if (
                         !field ||
                         (
@@ -548,6 +549,7 @@ export default function Success(props: SuccessProps) {
                             SystemField.Enum.email,
                             SystemField.Enum.guests,
                             SystemField.Enum.notes,
+                            SystemField.Enum.rescheduleReason,
                           ] as string[]
                         ).includes(field.name)
                       ) {
