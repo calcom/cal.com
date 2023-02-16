@@ -540,21 +540,9 @@ export default function Success(props: SuccessProps) {
                       // We show Booker Name, Emails and guests in Who section
                       // We show notes in additional notes section
                       // We show rescheduleReason at the top
-                      if (
-                        !field ||
-                        (
-                          [
-                            SystemField.Enum.location,
-                            SystemField.Enum.name,
-                            SystemField.Enum.email,
-                            SystemField.Enum.guests,
-                            SystemField.Enum.notes,
-                            SystemField.Enum.rescheduleReason,
-                          ] as string[]
-                        ).includes(field.name)
-                      ) {
-                        return null;
-                      }
+                      if (!field) return null;
+                      const isSystemField = SystemField.safeParse(field.name);
+                      if (isSystemField.success) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
