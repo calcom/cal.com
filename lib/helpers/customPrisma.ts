@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 

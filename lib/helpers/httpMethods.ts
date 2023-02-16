@@ -1,4 +1,4 @@
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 export const httpMethod = (allowedHttpMethod: "GET" | "POST" | "PATCH" | "DELETE"): NextMiddleware => {
   return async function (req, res, next) {

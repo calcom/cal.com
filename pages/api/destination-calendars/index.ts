@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
-import { DestinationCalendarResponse, DestinationCalendarsResponse } from "~/lib/types";
+import type { DestinationCalendarResponse, DestinationCalendarsResponse } from "~/lib/types";
 import {
   schemaDestinationCalendarCreateBodyParams,
   schemaDestinationCalendarReadPublic,

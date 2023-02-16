@@ -1,4 +1,4 @@
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";

@@ -1,5 +1,5 @@
 import type { EventLocationType } from "@calcom/app-store/locations";
-import {
+import type {
   Attendee,
   Availability,
   Booking,

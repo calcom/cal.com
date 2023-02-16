@@ -1,4 +1,4 @@
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 export const extendRequest: NextMiddleware = async (req, res, next) => {
   req.pagination = {

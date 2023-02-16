@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 
 import dayjs from "@calcom/dayjs";

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";

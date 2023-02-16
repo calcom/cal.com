@@ -1,14 +1,11 @@
 import type { NextApiRequest } from "next";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import {
-  schemaEventTypeEditBodyParams,
-  schemaEventTypeBaseBodyParams,
-  schemaEventTypeReadPublic,
-} from "~/lib/validations/event-type";
+import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
+import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission";

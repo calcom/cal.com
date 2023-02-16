@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 export const addRequestId: NextMiddleware = async (_req, res, next) => {
   // Apply header with unique ID to every request

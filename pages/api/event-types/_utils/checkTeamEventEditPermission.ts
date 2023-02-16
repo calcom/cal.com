@@ -1,9 +1,9 @@
 import type { NextApiRequest } from "next";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
+import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
 
 export default async function checkTeamEventEditPermission(
   req: NextApiRequest,

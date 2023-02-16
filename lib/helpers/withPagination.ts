@@ -1,4 +1,4 @@
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 import z from "zod";
 
 const withPage = z.object({

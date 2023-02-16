@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { NextMiddleware } from "next-api-middleware";
+import type { NextMiddleware } from "next-api-middleware";
 
 export const captureErrors: NextMiddleware = async (_req, res, next) => {
   try {

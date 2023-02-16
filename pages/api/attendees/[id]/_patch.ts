@@ -1,5 +1,5 @@
 import type { NextApiRequest } from "next";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";

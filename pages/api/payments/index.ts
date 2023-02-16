@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
-import { PaymentsResponse } from "~/lib/types";
+import type { PaymentsResponse } from "~/lib/types";
 import { schemaPaymentPublic } from "~/lib/validations/payment";
 
 /**
