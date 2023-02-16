@@ -38,6 +38,7 @@ import {
   HeadSeo,
   showToast,
   SkeletonText,
+  Tooltip,
 } from "@calcom/ui";
 import {
   FiMoreVertical,
@@ -60,6 +61,7 @@ import {
   FiArrowRight,
   FiArrowLeft,
 } from "@calcom/ui/components/icon";
+import { FiBell } from "@calcom/ui/components/icon";
 
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
@@ -741,6 +743,16 @@ function SideBar() {
                 className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
                 <FiArrowRight className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               </button>
+
+              {/* TODO: Discuss if we want to have the notification button in sidebar or in /booking */}
+              <Tooltip side="right" content="Enable Notifications">
+                <button
+                  color="minimal"
+                  className="group flex rounded-md py-2 px-3 text-sm font-medium hover:bg-gray-100 lg:p-1 lg:hover:bg-gray-200 lg:hover:text-gray-900">
+                  <FiBell className="h-4 w-4 flex-shrink-0 text-inherit" />
+                </button>
+              </Tooltip>
+
               <KBarTrigger />
             </div>
           </header>
