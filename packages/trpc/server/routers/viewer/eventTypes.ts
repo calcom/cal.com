@@ -7,6 +7,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import getApps from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -17,6 +18,7 @@ import {
   CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -92,7 +94,7 @@ const EventTypeUpdateInput = _EventTypeModel
         })
       )
       .optional(),
-    schedule: z.number().optional(),
+    schedule: z.number().nullable().optional(),
     hashedLink: z.string(),
   })
   .partial()
@@ -202,6 +204,7 @@ export const eventTypesRouter = router({
           },
         },
       },
+      seatsPerTimeSlot: true,
       ...baseEventTypeSelect,
     });
 
@@ -299,6 +302,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: typeof user["username"];
         name: typeof user["name"];
+        image?: string;
       };
       metadata: {
         membershipCount: number;
@@ -404,7 +408,29 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
+    // Get Users default conferncing app
+
+    const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
+
+    let locations: { type: string; link?: string }[] = [];
+
+    // If no locations are passed in and the user has a daily api key then default to daily
+    if (
+      (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
+      typeof appKeys.api_key === "string"
+    ) {
+      locations = [{ type: DailyLocationType }];
+    }
+
+    // If its defaulting to daily no point handling compute as its done
+    if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
+      const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+      locations = [{ type: locationType, link: defaultConferencingData.appLink }];
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
@@ -413,8 +439,7 @@ export const eventTypesRouter = router({
           id: userId,
         },
       },
-      ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
-        typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
+      locations,
     };
 
     if (teamId && schedulingType) {
@@ -563,6 +588,12 @@ export const eventTypesRouter = router({
         };
       }
     }
+    // allows unsetting a schedule through { schedule: null, ... }
+    else if (null === schedule) {
+      data.schedule = {
+        disconnect: true,
+      };
+    }
 
     if (users) {
       data.users = {
@@ -676,7 +707,13 @@ export const eventTypesRouter = router({
     }),
   duplicate: eventOwnerProcedure.input(EventTypeDuplicateInput.strict()).mutation(async ({ ctx, input }) => {
     try {
-      const { id: originalEventTypeId, title: newEventTitle, slug: newSlug } = input;
+      const {
+        id: originalEventTypeId,
+        title: newEventTitle,
+        slug: newSlug,
+        description: newDescription,
+        length: newLength,
+      } = input;
       const eventType = await ctx.prisma.eventType.findUnique({
         where: {
           id: originalEventTypeId,
@@ -735,6 +772,8 @@ export const eventTypesRouter = router({
         ...rest,
         title: newEventTitle,
         slug: newSlug,
+        description: newDescription,
+        length: newLength,
         locations: locations ?? undefined,
         teamId: team ? team.id : undefined,
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
@@ -761,20 +800,12 @@ export const eventTypesRouter = router({
       }
 
       if (workflows.length > 0) {
-        const workflowIds = workflows.map((workflow) => {
-          return { id: workflow.workflowId };
+        const relationCreateData = workflows.map((workflow) => {
+          return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
         });
 
-        const eventUpdateData: Prisma.EventTypeUpdateInput = {
-          workflows: {
-            connect: workflowIds,
-          },
-        };
-        await ctx.prisma.eventType.update({
-          where: {
-            id: newEventType.id,
-          },
-          data: eventUpdateData,
+        await ctx.prisma.workflowsOnEventTypes.createMany({
+          data: relationCreateData,
         });
       }
 

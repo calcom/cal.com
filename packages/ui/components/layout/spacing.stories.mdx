@@ -1,0 +1,85 @@
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  RowTitles,
+  CustomArgsTable,
+} from "@calcom/storybook/components";
+
+import { Tooltip } from "../tooltip";
+import { FiPlus, FiX } from "../icon";
+import { Flex } from "./Flex";
+
+<Meta title="Layout/Spacing" />
+
+<Title title="Spacing" suffix="Brief" subtitle="Version 2.0 — Last Update: 15 Feb 2023" />
+
+## Definition
+
+Defines the spacing guide used in Cal.coms design system
+
+## Structure
+
+<Examples title="Spacing">
+  <TooltipPrimitive.Provider>
+    <>
+      <Example title="0"></Example>
+      <Example title="px">
+        <Tooltip content="1px">
+          <div className="h-4 w-px bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="0.5">
+        <Tooltip content="2px">
+          <div className="h-4 w-0.5 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="1">
+        <Tooltip content="4px">
+          <div className="h-4 w-1 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="2">
+        <Tooltip content="8px">
+          <div className="h-4 w-2 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="3">
+        <Tooltip content="12px">
+          <div className="h-4 w-3 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="4">
+        <Tooltip content="16px">
+          <div className="h-4 w-4 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="5">
+        <Tooltip content="20px">
+          <div className="h-4 w-5 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="6">
+        <Tooltip content="24px">
+          <div className="h-4 w-6 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="8">
+        <Tooltip content="32px">
+          <div className="h-4 w-8 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+      <Example title="10">
+        <Tooltip content="48px">
+          <div className="h-4 w-10 bg-gray-900 rounded-sm"> </div>
+        </Tooltip>
+      </Example>
+    </>
+  </TooltipPrimitive.Provider>
+</Examples>

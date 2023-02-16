@@ -188,6 +188,10 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
+export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
+  return ALL_APPS.find((app) => app.slug === slug);
+}
+
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
   eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
   appId: T,

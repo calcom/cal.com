@@ -22,6 +22,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.attendee = attendee;
     this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
+
+    if (!this.showAttendees) {
+      this.calEvent.attendees = [this.attendee];
+    }
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -101,7 +105,7 @@ ${getRichDescription(this.calEvent)}
     return this.getRecipientTime(this.calEvent.endTime, format);
   }
 
-  protected getFormattedDate() {
+  public getFormattedDate() {
     return `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
       this.getInviteeStart("dddd").toLowerCase()
     )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;

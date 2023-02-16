@@ -101,24 +101,47 @@ async function getUserFromSession({
   };
 }
 
+type CreateInnerContextOptions = {
+  session: Session | null;
+  locale: string;
+  user: Awaited<ReturnType<typeof getUserFromSession>>;
+  i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
+} & Partial<CreateContextOptions>;
+
+/**
+ * Inner context. Will always be available in your procedures, in contrast to the outer context.
+ *
+ * Also useful for:
+ * - testing, so you don't have to mock Next.js' `req`/`res`
+ * - tRPC's `createSSGHelpers` where we don't have `req`/`res`
+ *
+ * @see https://trpc.io/docs/context#inner-and-outer-context
+ */
+export async function createContextInner(opts: CreateInnerContextOptions) {
+  return {
+    prisma,
+    ...opts,
+  };
+}
+
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req }: CreateContextOptions, sessionGetter = getSession) => {
+export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter = getSession) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await sessionGetter({ req });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
+
+  const contextInner = await createContextInner({ session, i18n, locale, user });
   return {
-    i18n,
-    prisma,
-    session,
-    user,
-    locale,
+    ...contextInner,
+    req,
+    res,
   };
 };
 
-export type Context = trpc.inferAsyncReturnType<typeof createContext>;
+export type Context = trpc.inferAsyncReturnType<typeof createContextInner>;
