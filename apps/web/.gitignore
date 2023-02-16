@@ -70,3 +70,9 @@ public/embed
 public/app-store
 # Sentry
 .sentryclirc
+
+
+# next-pwa
+**/public/workbox-*.js
+**/public/sw.js
+**/public/worker-*.js
