@@ -143,7 +143,7 @@
     "@types/micro": "7.3.7",
     "@types/mime-types": "^2.1.1",
     "@types/module-alias": "^2.0.1",
-    "@types/node": "18.11.15",
+    "@types/node": "16.9.1",
     "@types/nodemailer": "^6.4.5",
     "@types/qrcode": "^1.4.3",
     "@types/react": "18.0.26",
