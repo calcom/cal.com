@@ -1,3 +1,4 @@
+import { UserPermissionRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
@@ -6,8 +7,6 @@ import React, { useEffect } from "react";
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import type Shell from "@calcom/features/shell/Shell";
 import { ErrorBoundary } from "@calcom/ui";
-
-import { UserPermissionRole } from ".prisma/client";
 
 export default function AdminLayout({
   children,

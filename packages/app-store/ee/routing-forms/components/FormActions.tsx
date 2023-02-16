@@ -1,3 +1,4 @@
+import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useContext, useState } from "react";
@@ -34,7 +35,6 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import type { SerializableForm } from "../types/types";
-import type { App_RoutingForms_Form } from ".prisma/client";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
