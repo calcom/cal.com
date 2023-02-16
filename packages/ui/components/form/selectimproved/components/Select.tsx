@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";

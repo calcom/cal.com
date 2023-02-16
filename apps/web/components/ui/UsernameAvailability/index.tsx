@@ -1,3 +1,5 @@
+import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -22,7 +24,13 @@ export const UsernameAvailabilityField = ({
   onErrorMutation,
   user,
 }: UsernameAvailabilityFieldProps) => {
-  const { username: currentUsername, setQuery: setCurrentUsername } = useRouterQuery("username");
+  const router = useRouter();
+  const [currentUsernameState, setCurrentUsernameState] = useState(user.username || "");
+  const { username: usernameFromQuery, setQuery: setUsernameFromQuery } = useRouterQuery("username");
+  const { username: currentUsername, setQuery: setCurrentUsername } =
+    router.query["username"] && user.username === null
+      ? { username: usernameFromQuery, setQuery: setUsernameFromQuery }
+      : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
       username: currentUsername,

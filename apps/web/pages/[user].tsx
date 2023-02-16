@@ -291,6 +291,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const isDynamicGroup = users.length > 1;
 
+  if (isDynamicGroup) {
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
+
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {
         return user.name || "";
