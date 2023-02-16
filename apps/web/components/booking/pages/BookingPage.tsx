@@ -112,7 +112,7 @@ const BookingFields = ({
         }
 
         // Dynamically populate location field options
-        if (field.name === SystemField.Enum.location && field.type == "radioInput") {
+        if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
