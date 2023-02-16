@@ -32,6 +32,12 @@ module.exports = {
       extends: ["plugin:@typescript-eslint/recommended", "plugin:@calcom/eslint/recommended"],
       plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
+      rules: {
+        "@typescript-eslint/consistent-type-imports": [
+          "warn",
+          { prefer: "type-imports", fixStyle: "inline-type-imports" },
+        ],
+      },
       overrides: [
         {
           files: ["playwright/**/*.{tsx,ts}"],
