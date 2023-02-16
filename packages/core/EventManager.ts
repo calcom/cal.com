@@ -1,9 +1,10 @@
-import { DestinationCalendar } from "@prisma/client";
+import { DestinationCalendar, Booking } from "@prisma/client";
 import { cloneDeep } from "lodash";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
@@ -247,16 +248,12 @@ export default class EventManager {
       throw new Error("booking not found");
     }
 
-    // If rescheduling and it's not the last attendee of a booking with seats we shouldn't update the booking cancellation
-    let shouldUpdateBookingCancellation = true;
-
     if (booking?.eventType?.seatsPerTimeSlot) {
       // Here we also should remove current attendee from event calendar
       evt.attendees = evt.attendees.filter((attendee) => {
         return attendee.email !== currentAttendeeEmail;
       });
       if (evt.attendees.length === 0) {
-        shouldUpdateBookingCancellation = false;
         // Add reschedule reason to new booking
         await prisma.booking.update({
           where: {
@@ -269,18 +266,13 @@ export default class EventManager {
       }
     }
 
-    console.log(
-      "🚀 ~ file: EventManager.ts:258 ~ EventManager ~ shouldUpdateBookingCancellation",
-      shouldUpdateBookingCancellation
-    );
-    console.log("🚀 ~ file: EventManager.ts:256 ~ EventManager ~ evt.attendees", evt.attendees);
-
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const results: Array<EventResult<Event>> = [];
     // If and only if event type is a dedicated meeting, update the dedicated video meeting.
     if (isDedicated) {
       const result = await this.updateVideoEvent(evt, booking);
       const [updatedEvent] = Array.isArray(result.updatedEvent) ? result.updatedEvent : [result.updatedEvent];
+
       if (updatedEvent) {
         evt.videoCallData = updatedEvent;
         evt.location = updatedEvent.url;
@@ -291,7 +283,7 @@ export default class EventManager {
     // There was a case that booking didn't had any reference and we don't want to throw error on function
     if (booking.references.find((reference) => reference.type.includes("_calendar"))) {
       // Update all calendar events.
-      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+      results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
     }
 
     const bookingPayment = booking?.payment;
@@ -452,13 +444,29 @@ export default class EventManager {
    */
   private async updateAllCalendarEvents(
     event: CalendarEvent,
-    booking: PartialBooking
+    booking: PartialBooking,
+    newBookingId?: number
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference | undefined = undefined,
       credential;
     try {
-      // Bookings should only have one calendar reference
-      calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
+      // If a newBookingId is given, update that calendar event
+      const newBooking = await prisma.booking.findUnique({
+        where: {
+          id: newBookingId,
+        },
+        select: {
+          references: true,
+        },
+      });
+
+      if (newBooking) {
+        calendarReference = newBooking.references.find((reference) => reference.type.includes("_calendar"));
+      } else {
+        // Bookings should only have one calendar reference
+        calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+      }
+
       if (!calendarReference) {
         throw new Error("bookingRef");
       }
@@ -480,6 +488,22 @@ export default class EventManager {
         );
         for (const credential of credentials) {
           result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
+        }
+      }
+
+      // If we are merging two calendar events we should delete the old calendar event
+      if (newBookingId) {
+        const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
+
+        if (oldCalendarEvent?.credentialId) {
+          const calendarCredential = await prisma.credential.findUnique({
+            where: {
+              id: oldCalendarEvent.credentialId,
+            },
+          });
+          const calendar = getCalendar(calendarCredential);
+
+          await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }
 
@@ -556,7 +580,11 @@ export default class EventManager {
     await this.updateAllCalendarEvents(event, booking);
   }
 
-  public async rescheduleBookingWithSeats() {
+  public async rescheduleBookingWithSeats(
+    originalBooking: Booking,
+    newTimeSlotBooking?: Booking,
+    owner?: boolean
+  ) {
     // Get originalBooking
     // If originalBooking has only one attendee we should do normal reschedule
     // Change current event attendees in everyone calendar

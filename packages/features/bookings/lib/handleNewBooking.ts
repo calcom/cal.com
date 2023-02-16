@@ -701,6 +701,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       });
 
+      const credentials = await refreshCredentials(organizerUser.credentials);
+      const eventManager = new EventManager({ ...organizerUser, credentials });
+
       // If owner reschedules the event we want to update the entire booking
       if (reqBody.seatsOwnerRescheduling) {
         // If there is no booking during the new time slot then update the current booking to the new date
@@ -722,6 +725,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
           const copyEvent = cloneDeep(evt);
 
+          const updateManager = eventManager.reschedule(
+            copyEvent,
+            rescheduleUid,
+            newBooking.id,
+            reqBody.rescheduleReason
+          );
+
           await sendRescheduledEmails({
             ...copyEvent,
             // additionalInformation: metadata,
@@ -732,6 +742,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           return newBooking;
         }
 
+        // Merge two bookings together
         const attendeesToMove = [],
           attendeesToDelete = [];
 
@@ -772,12 +783,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               },
             },
           }),
-          // Delete the old booking
-          await prisma.booking.delete({
-            where: {
-              id: booking.id,
-            },
-          }),
         ]);
 
         const updatedNewBooking = await prisma.booking.findUnique({
@@ -806,12 +811,26 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
         const copyEvent = cloneDeep(evt);
 
+        const updateManager = await eventManager.reschedule(
+          copyEvent,
+          rescheduleUid,
+          newTimeSlotBooking.id,
+          reqBody.rescheduleReason
+        );
+
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
           // additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
           cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+        });
+
+        // Delete the old booking
+        await prisma.booking.delete({
+          where: {
+            id: booking.id,
+          },
         });
 
         return updatedNewBooking;
@@ -849,6 +868,19 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         }),
       ]);
 
+      const copyEvent = cloneDeep(evt);
+
+      console.log("🚀 ~ file: handleNewBooking.ts:1024 ~ handleSeats ~ rescheduleUid", rescheduleUid);
+
+      const updateManager = await eventManager.reschedule(
+        copyEvent,
+        rescheduleUid,
+        newTimeSlotBooking.id,
+        reqBody.rescheduleReason
+      );
+
+      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+
       // If that was the last attendee of the old booking then delete the old booking
       if (
         originalRescheduledBooking?.attendees.filter((attendee) => attendee.email !== invitee[0].email)
@@ -860,9 +892,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         });
       }
-
-      const copyEvent = cloneDeep(evt);
-      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
 
       return newTimeSlotBooking;
       // Else let's add the new attendee to the existing booking
@@ -1036,7 +1065,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
-      evt.location = originalRescheduledBooking?.location;
+      evt.location = originalRescheduledBooking?.location || evt.location;
     }
 
     const eventTypeRel = !eventTypeId
