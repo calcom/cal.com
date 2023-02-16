@@ -658,7 +658,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       select: {
         uid: true,
         id: true,
-        attendees: true,
+        attendees: { include: { bookingSeatReference: true } },
         userId: true,
         references: true,
         startTime: true,
@@ -754,7 +754,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ) {
             attendeesToDelete.push(attendee.id);
           } else {
-            attendeesToMove.push(attendee.id);
+            attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeatReference?.id });
           }
         }
 
@@ -763,20 +763,35 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
         }
 
-        await Promise.all([
-          // Move attendees to the new time slot booking
-          await prisma.attendee.updateMany({
-            where: {
-              id: {
-                in: attendeesToMove,
+        const moveAttendeeCalls = [];
+        for (const attendeeToMove of attendeesToMove) {
+          moveAttendeeCalls.push(
+            prisma.attendee.update({
+              where: {
+                id: attendeeToMove.id,
               },
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-            },
-          }),
+              data: {
+                bookingId: newTimeSlotBooking.id,
+                bookingSeatReference: {
+                  upsert: {
+                    create: {
+                      referenceUId: uuid(),
+                      bookingId: newTimeSlotBooking.id,
+                    },
+                    update: {
+                      bookingId: newTimeSlotBooking.id,
+                    },
+                  },
+                },
+              },
+            })
+          );
+        }
+
+        await Promise.all([
+          ...moveAttendeeCalls,
           // Delete any attendees that are already a part of that new time slot booking
-          await prisma.attendee.deleteMany({
+          prisma.attendee.deleteMany({
             where: {
               id: {
                 in: attendeesToDelete,
