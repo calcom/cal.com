@@ -105,7 +105,7 @@ function Select<T extends Option>({
         update();
       }
     },
-    [isMultiple, onChange, selectedItems, removeItem]
+    [closeDropDown, isMultiple, onChange, selectedItems, removeItem]
   );
 
   const clearValue = useCallback(
