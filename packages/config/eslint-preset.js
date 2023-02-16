@@ -5,7 +5,7 @@ module.exports = {
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./tsconfig.json", "./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
+    project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
   },
   settings: {
     next: {
@@ -33,7 +33,7 @@ module.exports = {
       parser: "@typescript-eslint/parser",
       rules: {
         "@typescript-eslint/consistent-type-imports": [
-          "warn",
+          "error",
           { prefer: "type-imports", fixStyle: "inline-type-imports" },
         ],
       },
