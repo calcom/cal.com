@@ -859,6 +859,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         });
 
+        // We don't want to trigger rescheduling logic of the original booking
+        originalRescheduledBooking = null;
+
         return;
       }
 
@@ -884,8 +887,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       ]);
 
       const copyEvent = cloneDeep(evt);
-
-      console.log("🚀 ~ file: handleNewBooking.ts:1024 ~ handleSeats ~ rescheduleUid", rescheduleUid);
 
       const updateManager = await eventManager.reschedule(
         copyEvent,
@@ -1143,6 +1144,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           }
         : undefined,
     };
+
     if (reqBody.recurringEventId) {
       newBookingData.recurringEventId = reqBody.recurringEventId;
     }
@@ -1342,8 +1344,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           // We should only notify affected attendees (owner and attendee rescheduling)
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
         }
-
-        console.log("🚀 ~ file: handleNewBooking.ts:1279 ~ handler ~ metadata", metadata);
 
         await sendRescheduledEmails({
           ...copyEvent,

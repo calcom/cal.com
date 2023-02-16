@@ -208,11 +208,12 @@ const BookingPage = ({
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const seatsBookingOwner = !!(eventType.seatsPerTimeSlot && booking?.user?.id === session?.user?.id);
-  const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => {
-        return { email: attendee.email };
-      })
-    : [];
+  const guestListEmails =
+    !isDynamicGroupBooking && !eventType.seatsPerTimeSlot
+      ? booking?.attendees.slice(1).map((attendee) => {
+          return { email: attendee.email };
+        })
+      : [];
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
@@ -449,11 +450,7 @@ const BookingPage = ({
       });
     }
 
-    console.log("This pretriggers");
-
     if (alreadyInvited) return;
-
-    console.log("This should trigger");
 
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
