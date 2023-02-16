@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
+import dynamic from "next/dynamic";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
@@ -16,7 +16,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
-import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
+const AvailabilityPage = dynamic(() => import("@components/booking/pages/AvailabilityPage"), { ssr: true });
 
 export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
 
