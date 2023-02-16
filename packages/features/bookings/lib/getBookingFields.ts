@@ -193,7 +193,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "location",
       type: "radioInput",
       name: "location",
-      // Even though it should be required it is optional in production with backend choosing CalVideo as the fallback
       required: false,
       // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
       // options: `eventType.locations`

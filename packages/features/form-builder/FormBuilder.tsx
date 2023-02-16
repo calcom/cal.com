@@ -166,11 +166,11 @@ export const FormBuilder = function FormBuilder({
       onChange([
         {
           label: "Option 1",
-          value: "1",
+          value: "Option 1",
         },
         {
           label: "Option 2",
-          value: "2",
+          value: "Option 2",
         },
       ]);
     }

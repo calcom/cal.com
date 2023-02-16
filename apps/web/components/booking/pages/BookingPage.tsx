@@ -295,7 +295,7 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       const defaults = {
-        responses: {} as z.infer<typeof bookingFormSchema>["responses"],
+        responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
       };
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
@@ -322,7 +322,7 @@ const BookingPage = ({
     }
 
     const defaults = {
-      responses: {} as z.infer<typeof bookingFormSchema>["responses"],
+      responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
 
     const responses = eventType.bookingFields.reduce((responses, field) => {

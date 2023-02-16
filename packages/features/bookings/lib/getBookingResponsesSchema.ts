@@ -7,7 +7,7 @@ type EventType = Parameters<typeof preprocess>[0]["eventType"];
 export const getBookingResponsesPartialSchema = (eventType: EventType) => {
   const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
 
-  return preprocess({ schema, eventType, forQueryParsing: true });
+  return preprocess({ schema, eventType, isPartialSchema: true });
 };
 
 // Should be used when we know that not all fields responses are present
@@ -15,7 +15,7 @@ export const getBookingResponsesPartialSchema = (eventType: EventType) => {
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
 export default function getBookingResponsesSchema(eventType: EventType) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, eventType, forQueryParsing: false });
+  return preprocess({ schema, eventType, isPartialSchema: false });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -23,14 +23,12 @@ export default function getBookingResponsesSchema(eventType: EventType) {
 function preprocess<T extends z.ZodType>({
   schema,
   eventType,
-  forQueryParsing,
+  isPartialSchema,
 }: {
   schema: T;
-  forQueryParsing: boolean;
+  isPartialSchema: boolean;
   eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields> &
-      z.infer<typeof eventTypeBookingFields> &
-      z.BRAND<"HAS_SYSTEM_FIELDS">;
+    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
   };
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
@@ -71,18 +69,18 @@ function preprocess<T extends z.ZodType>({
       eventType.bookingFields.forEach((bookingField) => {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
-        const emailSchema = forQueryParsing ? z.string() : z.string().email();
-        const phoneSchema = forQueryParsing
+        const emailSchema = isPartialSchema ? z.string() : z.string().email();
+        const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine((val) => isValidPhoneNumber(val));
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string) => `{${bookingField.name}}${message}`;
         const isRequired = bookingField.required;
-        if ((forQueryParsing || !isRequired) && value === undefined) {
+        if ((isPartialSchema || !isRequired) && value === undefined) {
           return;
         }
 
-        if (isRequired && !forQueryParsing && !value)
+        if (isRequired && !isPartialSchema && !value)
           ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
 
         if (bookingField.type === "email") {
@@ -178,7 +176,7 @@ function preprocess<T extends z.ZodType>({
       });
     })
   );
-  if (forQueryParsing) {
+  if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
     return preprocessed.catch(() => {
       console.error("Failed to preprocess query params, prefilling will be skipped");

@@ -407,6 +407,8 @@ async function handler(
     isNotAnApiCall = false,
   }: {
     isNotAnApiCall?: boolean;
+  } = {
+    isNotAnApiCall: false,
   }
 ) {
   const { userId } = req;

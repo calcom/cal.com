@@ -5,26 +5,28 @@ import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/
 import slugify from "@calcom/lib/slugify";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
+type BookingSelect = {
+  description: true;
+  customInputs: true;
+  attendees: {
+    select: {
+      email: true;
+      name: true;
+    };
+  };
+  location: true;
+  smsReminderNumber: true;
+};
+
 // Backward Compatibility for booking created before we had managed booking questions
 function getResponsesFromOldBooking(
   rawBooking: Prisma.BookingGetPayload<{
-    select: {
-      description: true;
-      customInputs: true;
-      attendees: {
-        select: {
-          email: true;
-          name: true;
-        };
-      };
-      location: true;
-      smsReminderNumber: true;
-    };
+    select: BookingSelect;
   }>
 ) {
   const customInputs = rawBooking.customInputs || {};
-  const responses = Object.keys(customInputs).reduce((acc, key) => {
-    acc[slugify(key) as keyof typeof acc] = customInputs[key as keyof typeof customInputs];
+  const responses = Object.keys(customInputs).reduce((acc, label) => {
+    acc[slugify(label) as keyof typeof acc] = customInputs[label as keyof typeof customInputs];
     return acc;
   }, {});
   return {
@@ -70,12 +72,10 @@ async function getBooking(
   if (!rawBooking) {
     return rawBooking;
   }
-  const booking = {
-    ...rawBooking,
-    responses: getBookingResponsesPartialSchema({
-      bookingFields,
-    }).parse(rawBooking.responses || getResponsesFromOldBooking(rawBooking)),
-  };
+
+  const booking = getBookingWithResponses(rawBooking, {
+    bookingFields,
+  });
 
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]
@@ -88,4 +88,23 @@ async function getBooking(
 
 export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
 
+export const getBookingWithResponses = <
+  T extends Prisma.BookingGetPayload<{
+    select: BookingSelect & {
+      responses: true;
+    };
+  }>
+>(
+  booking: T,
+  eventType: {
+    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+  }
+) => {
+  return {
+    ...booking,
+    responses: getBookingResponsesPartialSchema({
+      bookingFields: eventType.bookingFields,
+    }).parse(booking.responses || getResponsesFromOldBooking(booking)),
+  };
+};
 export default getBooking;
