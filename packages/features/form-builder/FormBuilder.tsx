@@ -542,25 +542,16 @@ export const ComponentForField = ({
   const componentConfig = Components[fieldType];
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
-    if (propsType === "text") {
-      return typeof val === "string";
-    }
-    if (propsType === "boolean") {
-      return typeof val === "boolean";
-    }
-    if (propsType === "textList") {
-      return val instanceof Array && val.every((v) => typeof v === "string");
-    }
-    if (propsType === "select") {
-      return typeof val === "string";
-    }
-    if (propsType === "multiselect") {
-      return val instanceof Array && val.every((v) => typeof v === "string");
-    }
-    if (propsType === "objectiveWithInput") {
-      return typeof value === "object" && value !== null ? "value" in value : false;
-    }
-    throw new Error(`Unknown propsType ${propsType}`);
+    const propsTypeConditionMap = {
+      boolean: typeof val === "boolean",
+      multiselect: val instanceof Array && val.every((v) => typeof v === "string"),
+      objectiveWithInput: typeof val === "object" && val !== null ? "value" in val : false,
+      select: typeof val === "string",
+      text: typeof val === "string",
+      textList: val instanceof Array && val.every((v) => typeof v === "string"),
+    } as const;
+    if (!propsTypeConditionMap[propsType]) throw new Error(`Unknown propsType ${propsType}`);
+    return propsTypeConditionMap[propsType];
   };
 
   // If possible would have wanted `isValueOfPropsType` to narrow the type of `value` and `setValue` accordingly, but can't seem to do it.
