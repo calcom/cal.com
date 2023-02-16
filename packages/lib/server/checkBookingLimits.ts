@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { BookingLimit } from "@calcom/types/Calendar";
+import type { BookingLimit } from "@calcom/types/Calendar";
 
 import { HttpError } from "../http-error";
 import { parseBookingLimit } from "../isBookingLimits";

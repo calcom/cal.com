@@ -1,6 +1,6 @@
-import { ResetPasswordRequest } from "@prisma/client";
+import type { ResetPasswordRequest } from "@prisma/client";
 import debounce from "lodash/debounce";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import React, { useMemo } from "react";

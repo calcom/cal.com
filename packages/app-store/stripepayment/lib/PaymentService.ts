@@ -1,16 +1,16 @@
-import { Booking, Payment, Prisma } from "@prisma/client";
+import type { Booking, Payment, Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
-import { IAbstractPaymentService } from "@calcom/lib/PaymentService";
+import type { IAbstractPaymentService } from "@calcom/lib/PaymentService";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { createPaymentLink } from "./client";
-import { StripePaymentData } from "./server";
+import type { StripePaymentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),

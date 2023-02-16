@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext } from "next";
 
 import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
 

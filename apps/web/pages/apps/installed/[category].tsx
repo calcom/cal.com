@@ -4,14 +4,16 @@ import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { EventLocationType, getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { App } from "@calcom/types/App";
-import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { App } from "@calcom/types/App";
+import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import {
   Alert,
   Button,
@@ -97,8 +99,8 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: typeof InstalledAppVariants[number];
-  exclude?: typeof InstalledAppVariants[number][];
+  variant?: (typeof InstalledAppVariants)[number];
+  exclude?: (typeof InstalledAppVariants)[number][];
   handleDisconnect: (credentialId: number) => void;
 }
 

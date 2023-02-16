@@ -1,14 +1,16 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import type { ReactNode } from "react";
+import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Button, ButtonProps } from "../../components/button";
+import type { ButtonProps } from "../../components/button";
+import { Button } from "../../components/button";
 
-export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
+export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
@@ -55,7 +57,7 @@ export function Dialog(props: DialogProps) {
 
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
-type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
+type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
@@ -142,7 +144,7 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 
 export function DialogClose(
   props: {
-    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
+    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;

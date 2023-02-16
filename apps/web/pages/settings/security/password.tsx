@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 

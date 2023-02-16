@@ -1,8 +1,8 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import { AppFrontendPayload as App } from "@calcom/types/App";
-import { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 export async function getAppWithMetadata(app: { dirName: string }) {
   const appMetadata: App | null = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;

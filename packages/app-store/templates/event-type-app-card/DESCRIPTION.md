@@ -6,4 +6,3 @@ items:
 ---
 
 {DESCRIPTION}
-

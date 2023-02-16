@@ -1,4 +1,4 @@
-import { CalWindow } from "../embed";
+import type { CalWindow } from "../embed";
 import getFloatingButtonHtml from "./FloatingButtonHtml";
 
 export class FloatingButton extends HTMLElement {
