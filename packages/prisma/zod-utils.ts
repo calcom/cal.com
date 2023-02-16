@@ -143,16 +143,6 @@ export const stringOrNumber = z.union([
 
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
-export const bookingCreateSchemaForApiOnly = z.object({
-  name: z.string(),
-  email: z.string(),
-  location: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  notes: z.string().optional(),
-  rescheduleReason: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
-});
-
 export const bookingCreateBodySchema = z.object({
   end: z.string(),
   eventTypeId: z.number(),
@@ -186,13 +176,13 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
 });
 
+// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
-    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -206,6 +196,23 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
   })
+);
+
+// It has only the legacy props that are part of `responses` now. The API can still hit old props
+export const bookingCreateSchemaLegacyPropsForApi = z.object({
+  email: z.string(),
+  name: z.string(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  location: z.string().optional(),
+  smsReminderNumber: z.string().optional().nullable(),
+  rescheduleReason: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+});
+
+// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
+export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
+  bookingCreateSchemaLegacyPropsForApi
 );
 
 export const schemaBookingCancelParams = z.object({

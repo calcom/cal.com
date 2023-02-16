@@ -49,7 +49,8 @@ import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import {
-  bookingCreateSchemaForApiOnly,
+  bookingCreateBodySchemaForApi,
+  bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
@@ -330,7 +331,7 @@ function getBookingData({
           }),
         })
       )
-    : extendedBookingCreateBody.merge(bookingCreateSchemaForApiOnly);
+    : bookingCreateBodySchemaForApi;
 
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
@@ -372,7 +373,7 @@ function getBookingData({
 function getCustomInputsResponses(
   reqBody: {
     responses?: Record<string, any>;
-    customInputs?: z.infer<typeof bookingCreateSchemaForApiOnly>["customInputs"];
+    customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
   },
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
 ) {
@@ -1359,7 +1360,7 @@ async function handler(
   try {
     await scheduleWorkflowReminders(
       eventType.workflows,
-      smsReminderNumber as string | null,
+      smsReminderNumber || null,
       { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
