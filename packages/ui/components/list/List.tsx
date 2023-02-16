@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { createElement } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
 export type ListProps = {
   roundContainer?: boolean;
-  // @TODO: Do we still need this? Coming from old v2 component. Prefer to delete it :)
-  noBorderTreatment?: boolean;
 } & JSX.IntrinsicElements["ul"];
 
 export function List(props: ListProps) {
@@ -14,10 +12,9 @@ export function List(props: ListProps) {
     <ul
       {...props}
       className={classNames(
-        "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
+        "-mx-4 divide-y divide-gray-200 rounded-sm rounded-md border border-l border-r sm:mx-0 sm:overflow-hidden ",
         // Add rounded top and bottome if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
-        !props.noBorderTreatment && "divide-y divide-gray-200 rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -25,60 +22,25 @@ export function List(props: ListProps) {
   );
 }
 
-export type ListItemProps = { expanded?: boolean; rounded?: boolean } & ({
-  href?: never;
-} & JSX.IntrinsicElements["li"]);
-
-export function ListItem(props: ListItemProps) {
-  const { href, expanded, rounded = true, ...passThroughProps } = props;
-
-  const elementType = href ? "a" : "li";
-
-  const element = createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      className: classNames(
-        "items-center bg-white min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
-        expanded ? "my-2 border" : "border -mb-px last:mb-0",
-        // Pass rounded false to not round the corners -> Usefull when used in list we can use roundedContainer to create the right design
-        rounded ? "rounded-md" : "rounded-none",
-        props.className,
-        (props.onClick || href) && "hover:bg-neutral-50"
-      ),
-    },
-    props.children
-  );
-
-  return href ? (
-    <Link passHref href={href} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
-    element
-  );
-}
-
-export type ListLinkItemProps = {
-  href: string;
+export type ListItemProps = {
+  href?: string;
   heading: string;
   subHeading: string;
+  leftNode?: ReactNode;
+  badgePosition: "heading" | "subheading" | "below";
+  badges: ReactNode;
   disabled?: boolean;
-  actions?: JSX.Element;
-} & JSX.IntrinsicElements["li"];
+  actions?: ReactNode;
+  expanded?: ReactNode;
+} & Omit<JSX.IntrinsicElements["li"], "children">;
 
-export function ListLinkItem(props: ListLinkItemProps) {
-  const { href, heading = "", children, disabled = false, actions = <div /> } = props;
-  let subHeading = props.subHeading;
-  if (!subHeading) {
-    subHeading = "";
-  }
-  return (
-    <li
-      className={classNames(
-        "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
-        disabled ? "hover:bg-white" : ""
-      )}>
+export function ListItem(props: ListItemProps) {
+  const { href, heading, subHeading, expanded, disabled = false, actions, leftNode } = props;
+
+  const Wrapper = ({ children }: { children: ReactNode }) => {
+    if (!href) return <div className="flex-grow truncate text-sm"> {children} </div>;
+
+    return (
       <Link
         passHref
         href={href}
@@ -86,44 +48,80 @@ export function ListLinkItem(props: ListLinkItemProps) {
           "flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <h1 className="text-sm font-semibold leading-none">{heading}</h1>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
-          {subHeading.substring(0, 100)}
-          {subHeading.length > 100 && "..."}
-        </h2>
-        <div className="mt-2">{children}</div>
+        {children}
       </Link>
-      {actions}
+    );
+  };
+
+  return (
+    <li className={classNames("group px-4 py-5 hover:bg-neutral-50", disabled ? "hover:bg-white" : "")}>
+      <>
+        <Wrapper>
+          <div className="flex space-x-3">
+            {leftNode ? <div className="max-w-9 max-h-9">{leftNode} </div> : null}
+            <div className="item-center flex flex-grow flex-col">
+              <BadgeHandler
+                as="h3"
+                className="inline-flex items-center text-sm font-semibold leading-none"
+                componentPosition="heading"
+                badges={props.badges}
+                badgePosition={props.badgePosition}>
+                {heading}
+              </BadgeHandler>
+              <BadgeHandler
+                as="h4"
+                className="inline-flex items-center text-sm font-normal text-gray-600"
+                componentPosition="subheading"
+                badges={props.badges}
+                badgePosition={props.badgePosition}>
+                {subHeading.substring(0, 100)}
+                {subHeading.length > 100 && "..."}
+              </BadgeHandler>
+              <BadgeHandler
+                componentPosition="below"
+                badges={props.badges}
+                badgePosition={props.badgePosition}
+              />
+            </div>
+            {actions ? <div className="ml-auto">{actions}</div> : null}
+          </div>
+        </Wrapper>
+        {expanded ? (
+          <>
+            <div className="-mx-5 my-4 h-px bg-gray-200" />
+            <div>{expanded}</div>
+          </>
+        ) : null}
+      </>
     </li>
   );
 }
 
-export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "span">(
-  props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }
-) {
-  const { component = "span", ...passThroughProps } = props;
+type BadgeHandlerProps = {
+  badgePosition?: "heading" | "subheading" | "below";
+  badges?: ReactNode;
+  componentPosition?: "heading" | "subheading" | "below";
+  as?: React.ElementType;
+  className?: string;
+};
 
-  return createElement(
-    component,
-    {
-      ...passThroughProps,
-      className: classNames("text-sm font-medium text-gray-900 truncate", props.className),
-    },
-    props.children
-  );
-}
+function BadgeHandler(props: PropsWithChildren<BadgeHandlerProps>) {
+  const Component = props.as || "div";
 
-export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "span">(
-  props: JSX.IntrinsicElements[TComponent] & { component?: TComponent }
-) {
-  const { component = "span", ...passThroughProps } = props;
+  if (props.badgePosition === props.componentPosition) {
+    return (
+      <div className="item-center flex">
+        <Component className={props.className}>{props.children}</Component>
+        <div
+          className={classNames(
+            "flex",
+            props.badgePosition === "below" ? "mt-1 [&>*]:mr-2" : "ml-2 space-x-2"
+          )}>
+          {props.badges}
+        </div>
+      </div>
+    );
+  }
 
-  return createElement(
-    component,
-    {
-      ...passThroughProps,
-      className: classNames("text-sm text-gray-500 truncate", props.className),
-    },
-    props.children
-  );
+  return <Component className={props.className}>{props.children}</Component>;
 }
