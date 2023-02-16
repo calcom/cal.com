@@ -51,97 +51,100 @@ export const FormBuilder = function FormBuilder({
   description: string;
   addFieldLabel: string;
 }) {
-  const FieldTypes: {
-    value: RhfForm["fields"][number]["type"];
-    label: string;
-    needsOptions?: boolean;
-    systemOnly?: boolean;
-    isTextType?: boolean;
-  }[] = [
+  const FieldTypesMap: Record<
+    string,
     {
+      value: RhfForm["fields"][number]["type"];
+      label: string;
+      needsOptions?: boolean;
+      systemOnly?: boolean;
+      isTextType?: boolean;
+    }
+  > = {
+    name: {
       label: "Name",
       value: "name",
       isTextType: true,
     },
-    {
+    email: {
       label: "Email",
       value: "email",
       isTextType: true,
     },
-    {
+    phone: {
       label: "Phone",
       value: "phone",
       isTextType: true,
     },
-    {
+    text: {
       label: "Short Text",
       value: "text",
       isTextType: true,
     },
-    {
+    number: {
       label: "Number",
       value: "number",
       isTextType: true,
     },
-    {
+    textarea: {
       label: "Long Text",
       value: "textarea",
       isTextType: true,
     },
-    {
+    select: {
       label: "Select",
       value: "select",
       needsOptions: true,
       isTextType: true,
     },
-    {
+    multiselect: {
       label: "MultiSelect",
       value: "multiselect",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    multiemail: {
       label: "Multiple Emails",
       value: "multiemail",
       isTextType: true,
     },
-    {
+    radioInput: {
       label: "Radio Input",
       value: "radioInput",
       isTextType: false,
       systemOnly: true,
     },
-    {
+    checkbox: {
       label: "Checkbox Group",
       value: "checkbox",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    radio: {
       label: "Radio Group",
       value: "radio",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    boolean: {
       label: "Checkbox",
       value: "boolean",
       isTextType: false,
     },
-  ];
+  };
+  const FieldTypes = Object.values(FieldTypesMap);
 
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
 
-  // It allows any property name to be used for instead of `fields` property name
-  const rhfFormPropName = formProp as unknown as "fields";
 
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
-    name: rhfFormPropName,
+    // HACK: It allows any property name to be used for instead of `fields` property name
+    name: formProp as unknown as "fields",
   });
 
   function OptionsField({
@@ -254,7 +257,7 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = FieldTypes.find((f) => f.value === fieldForm.watch("type"));
+  const fieldType = FieldTypesMap[fieldForm.watch("type")];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
@@ -263,7 +266,7 @@ export const FormBuilder = function FormBuilder({
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
-            const fieldType = FieldTypes.find((f) => f.value === field.type);
+            const fieldType = FieldTypesMap[field.type];
 
             // Hidden fields can't be required
             const isRequired = field.required && !field.hidden;
@@ -409,7 +412,7 @@ export const FormBuilder = function FormBuilder({
                   }
                   fieldForm.setValue("type", value);
                 }}
-                value={FieldTypes.find((fieldType) => fieldType.value === fieldForm.getValues("type"))}
+                value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label="Input Type"
               />
