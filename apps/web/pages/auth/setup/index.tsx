@@ -1,5 +1,5 @@
 import { UserPermissionRole } from "@prisma/client";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -8,7 +8,7 @@ import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeployme
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";

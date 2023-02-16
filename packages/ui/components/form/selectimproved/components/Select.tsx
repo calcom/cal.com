@@ -8,7 +8,7 @@ import { FiX, FiChevronDown } from "../../../icon";
 import Options from "./Options";
 import SearchInput from "./SearchInput";
 import SelectProvider from "./SelectProvider";
-import { Option } from "./type";
+import type { Option } from "./type";
 
 interface SelectProps<T extends Option> {
   options: T[];

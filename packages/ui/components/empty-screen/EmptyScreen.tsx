@@ -1,7 +1,8 @@
-import React, { ReactNode } from "react";
-import { IconType } from "react-icons";
+import type { ReactNode } from "react";
+import React from "react";
+import type { IconType } from "react-icons";
 
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button } from "../../components/button";
 

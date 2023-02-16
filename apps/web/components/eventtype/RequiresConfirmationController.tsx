@@ -1,13 +1,14 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import { Trans } from "next-i18next";
 import type { FormValues } from "pages/event-types/[type]";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import z from "zod";
+import type z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Input, Label, SettingsToggle } from "@calcom/ui";
 
 type RequiresConfirmationControllerProps = {

@@ -1,4 +1,4 @@
-import { CalWindow } from "./embed";
+import type { CalWindow } from "./embed";
 
 const WEBAPP_URL =
   import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
