@@ -34,7 +34,12 @@ module.exports = {
       rules: {
         "@typescript-eslint/consistent-type-imports": [
           "error",
-          { prefer: "type-imports", fixStyle: "inline-type-imports" },
+          {
+            prefer: "type-imports",
+            // TODO: enable this once prettier supports it
+            // fixStyle: "inline-type-imports",
+            fixStyle: "separate-type-imports",
+          },
         ],
       },
       overrides: [
