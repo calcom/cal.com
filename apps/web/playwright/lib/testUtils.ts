@@ -1,5 +1,7 @@
-import { expect, Page, test } from "@playwright/test";
-import { createServer, IncomingMessage, ServerResponse } from "http";
+import type { Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import type { IncomingMessage, ServerResponse } from "http";
+import { createServer } from "http";
 import noop from "lodash/noop";
 
 export function todo(title: string) {

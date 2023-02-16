@@ -1,9 +1,10 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { BaseSyntheticEvent, useRef, useState } from "react";
+import type { BaseSyntheticEvent } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -11,9 +12,9 @@ import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import turndown from "@calcom/lib/turndownService";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
   Avatar,

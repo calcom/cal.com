@@ -1,20 +1,15 @@
-import { GetServerSidePropsContext } from "next";
-import { ChangeEventHandler, useState } from "react";
+import type { GetServerSidePropsContext } from "next";
+import type { ChangeEventHandler } from "react";
+import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabItemProps,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-} from "@calcom/ui";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { HorizontalTabItemProps } from "@calcom/ui";
+import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
 import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";

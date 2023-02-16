@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

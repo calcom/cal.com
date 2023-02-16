@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { User } from "@calcom/prisma/client";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { User } from "@calcom/prisma/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 

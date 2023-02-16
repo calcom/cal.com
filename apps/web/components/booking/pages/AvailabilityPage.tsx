@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { EventType } from "@prisma/client";
+import type { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
@@ -9,7 +9,8 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -27,7 +28,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
 import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
@@ -35,7 +36,8 @@ import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon"
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import Gates, { Gate, GateState } from "@components/Gates";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
 
