@@ -22,6 +22,7 @@ import {
   InputField,
   Input,
   showToast,
+  Tooltip,
 } from "@calcom/ui";
 import { Switch } from "@calcom/ui";
 import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
@@ -323,14 +324,14 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
-                    {field.editable !== "system" && (
-                      <Switch
-                        checked={!field.hidden}
-                        onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
-                        }}
-                      />
-                    )}
+                    <Switch
+                      disabled={field.editable === "system"}
+                      tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
+                      checked={!field.hidden}
+                      onCheckedChange={(checked) => {
+                        update(index, { ...field, hidden: !checked });
+                      }}
+                    />
                     <Button
                       color="secondary"
                       onClick={() => {
@@ -338,16 +339,20 @@ export const FormBuilder = function FormBuilder({
                       }}>
                       Edit
                     </Button>
-                    {field.editable !== "system" && field.editable !== "system-but-optional" && (
-                      <Button
-                        color="minimal"
-                        variant="icon"
-                        onClick={() => {
-                          removeField(index);
-                        }}
-                        StartIcon={FiTrash2}
-                      />
-                    )}
+                    <Button
+                      color="minimal"
+                      tooltip={
+                        field.editable === "system" || field.editable === "system-but-optional"
+                          ? t("form_builder_system_field_cant_delete")
+                          : ""
+                      }
+                      disabled={field.editable === "system" || field.editable === "system-but-optional"}
+                      variant="icon"
+                      onClick={() => {
+                        removeField(index);
+                      }}
+                      StartIcon={FiTrash2}
+                    />
                   </div>
                 )}
               </li>
