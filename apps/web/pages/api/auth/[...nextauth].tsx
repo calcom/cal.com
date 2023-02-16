@@ -508,9 +508,6 @@ export default NextAuth({
               where: { email: existingUserWithEmail.email },
               data: { password: null },
             });
-            console.log(
-              "User signs up with email/password and then tries to login with Google/SAML using the same email"
-            );
             return true;
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
