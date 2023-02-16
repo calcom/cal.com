@@ -195,7 +195,6 @@ function EventTypeSingleLayout({
       backPath="/event-types"
       title={eventType.title + " | " + t("event_type")}
       heading={eventType.title}
-      subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
           <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
@@ -287,6 +286,7 @@ function EventTypeSingleLayout({
               <DropdownMenuItem className="focus:ring-gray-100">
                 <DropdownItem
                   type="button"
+                  color="destructive"
                   StartIcon={FiTrash}
                   disabled={!hasPermsToDelete}
                   onClick={() => setDeleteDialogOpen(true)}>
@@ -323,7 +323,7 @@ function EventTypeSingleLayout({
         </div>
       }>
       <Suspense fallback={<FiLoader />}>
-        <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
+        <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs
               className="primary-navigation"
@@ -339,7 +339,7 @@ function EventTypeSingleLayout({
             <div
               className={classNames(
                 "mt-4 rounded-md  border-gray-200 bg-white sm:mx-0 xl:mt-0",
-                disableBorder ? "border-0 xl:-mt-4 " : "p-2 md:border md:p-6"
+                disableBorder ? "border-0 " : "p-2 md:border md:p-6"
               )}>
               {children}
             </div>

@@ -2,11 +2,11 @@ import { GetServerSidePropsContext } from "next";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
+import { getWorkingHours } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
@@ -43,6 +43,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: true,
       logo: true,
       hideBranding: true,
+      brandColor: true,
+      darkBrandColor: true,
+      theme: true,
       eventTypes: {
         where: {
           slug: typeParam,
@@ -68,6 +71,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               },
             },
           },
+
           title: true,
           availability: true,
           description: true,
@@ -94,6 +98,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             select: {
               timeZone: true,
               availability: true,
+            },
+          },
+          team: {
+            select: {
+              members: {
+                where: {
+                  role: "OWNER",
+                },
+                select: {
+                  user: {
+                    select: {
+                      weekStart: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -144,16 +164,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     booking = await getBooking(prisma, rescheduleUid);
   }
 
+  const weekStart = eventType.team?.members?.[0]?.user?.weekStart;
+
   return {
     props: {
       profile: {
         name: team.name || team.slug,
         slug: team.slug,
         image: team.logo,
-        theme: null as string | null,
-        weekStart: "Sunday",
-        brandColor: "" /* TODO: Add a way to set a brand color for Teams */,
-        darkBrandColor: "" /* TODO: Add a way to set a brand color for Teams */,
+        theme: team.theme,
+        weekStart: weekStart ?? "Sunday",
+        brandColor: team.brandColor,
+        darkBrandColor: team.darkBrandColor,
       },
       date: dateParam,
       eventType: eventTypeObject,

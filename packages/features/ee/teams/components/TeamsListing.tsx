@@ -68,6 +68,8 @@ export function TeamsListing() {
       <UpgradeTip
         title="calcom_is_better_with_team"
         description="add_your_team_members"
+        emptyTitle="no_teams"
+        emptyDescription="no_teams_description"
         features={features}
         background="/team-banner-background.jpg"
         buttons={

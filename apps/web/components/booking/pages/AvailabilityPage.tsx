@@ -1,8 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
-import * as Popover from "@radix-ui/react-popover";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -20,29 +20,31 @@ import {
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
-import { FiChevronDown, FiChevronUp, FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import Gates, { Gate, GateState } from "@components/Gates";
-import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+
+const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
 const useSlots = ({
   eventTypeId,
@@ -52,6 +54,7 @@ const useSlots = ({
   usernameList,
   timeZone,
   duration,
+  enabled = true,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -60,6 +63,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
   duration?: string;
+  enabled?: boolean;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -72,19 +76,14 @@ const useSlots = ({
       duration,
     },
     {
-      enabled: !!startTime && !!endTime,
+      enabled: !!startTime && !!endTime && enabled,
+      refetchInterval: 3000,
+      trpc: { context: { skipBatch: true } },
     }
   );
-  const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
-
-  useEffect(() => {
-    if (data?.slots) {
-      setCachedSlots((c) => ({ ...c, ...data?.slots }));
-    }
-  }, [data]);
 
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isPaused };
+  return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
@@ -98,7 +97,10 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<
+    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
+    "id" | "schedulingType" | "slug" | "length" | "metadata"
+  >;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -110,10 +112,14 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  const { duration } = useRouterQuery("duration");
+  let { duration = eventType.length.toString() } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
+
+  if (!eventType.metadata?.multipleDuration) {
+    duration = eventType.length.toString();
+  }
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -139,16 +145,7 @@ const SlotPicker = ({
   }, [router.isReady, month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
-  const { slots: _1 } = useSlots({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime: selectedDate?.startOf("day"),
-    endTime: selectedDate?.endOf("day"),
-    timeZone,
-    duration,
-  });
-  const { slots: _2, isLoading } = useSlots({
+  const { slots: monthSlots, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
@@ -160,8 +157,25 @@ const SlotPicker = ({
     timeZone,
     duration,
   });
+  const { slots: selectedDateSlots, isLoading: _isLoadingSelectedDateSlots } = useSlots({
+    eventTypeId: eventType.id,
+    eventTypeSlug: eventType.slug,
+    usernameList: users,
+    startTime: selectedDate?.startOf("day"),
+    endTime: selectedDate?.endOf("day"),
+    timeZone,
+    duration,
+    /** Prevent refetching is we already have this data from month slots */
+    enabled: !!selectedDate,
+  });
 
-  const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
+  /** Hide skeleton if we have the slot loaded in the month query */
+  const isLoadingSelectedDateSlots = (() => {
+    if (!selectedDate) return _isLoadingSelectedDateSlots;
+    if (!!selectedDateSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    if (!!monthSlots[selectedDate.format("YYYY-MM-DD")]) return false;
+    return false;
+  })();
 
   return (
     <>
@@ -171,7 +185,7 @@ const SlotPicker = ({
           "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
           selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
-        includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
+        includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
         selected={selectedDate}
         onChange={(newDate) => {
@@ -185,18 +199,24 @@ const SlotPicker = ({
       />
 
       <div ref={slotPickerRef}>
-        <AvailableTimes
-          isLoading={isLoading}
-          slots={selectedDate && slots[selectedDate.format("YYYY-MM-DD")]}
-          date={selectedDate}
-          timeFormat={timeFormat}
-          onTimeFormatChange={onTimeFormatChange}
-          eventTypeId={eventType.id}
-          eventTypeSlug={eventType.slug}
-          seatsPerTimeSlot={seatsPerTimeSlot}
-          recurringCount={recurringEventCount}
-          ethSignature={ethSignature}
-        />
+        {selectedDate ? (
+          <AvailableTimes
+            isLoading={isLoadingSelectedDateSlots}
+            slots={
+              selectedDate &&
+              (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+                monthSlots[selectedDate.format("YYYY-MM-DD")])
+            }
+            date={selectedDate}
+            timeFormat={timeFormat}
+            onTimeFormatChange={onTimeFormatChange}
+            eventTypeId={eventType.id}
+            eventTypeSlug={eventType.slug}
+            seatsPerTimeSlot={seatsPerTimeSlot}
+            recurringCount={recurringEventCount}
+            ethSignature={ethSignature}
+          />
+        ) : null}
       </div>
     </>
   );
@@ -204,41 +224,22 @@ const SlotPicker = ({
 
 function TimezoneDropdown({
   onChangeTimeZone,
-  timeZone,
 }: {
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
 }) {
-  const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-
   const handleSelectTimeZone = (newTimeZone: string) => {
     onChangeTimeZone(newTimeZone);
     localStorageTimeZone(newTimeZone);
-    setIsTimeOptionsOpen(false);
   };
 
   return (
-    <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
-        <p className="flex items-center text-sm font-medium">
-          <FiGlobe className="min-h-4 min-w-4 ml-[2px] -mt-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]" />
-          {timeZone}
-          {isTimeOptionsOpen ? (
-            <FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
-          ) : (
-            <FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
-          )}
-        </p>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          hideWhenDetached
-          align="start"
-          className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
-          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <>
+      <div className="dark:focus-within:bg-darkgray-200 dark:bg-darkgray-100 dark:hover:bg-darkgray-200 -mx-[2px] !mt-3 flex w-fit items-center rounded-[4px] px-1 py-[2px] text-sm font-medium focus-within:bg-gray-200 hover:bg-gray-100 [&_svg]:focus-within:text-gray-900 dark:[&_svg]:focus-within:text-white [&_p]:focus-within:text-gray-900 dark:[&_p]:focus-within:text-white">
+        <FiGlobe className="dark:text-darkgray-600 flex h-4 w-4 text-gray-600 ltr:mr-[2px] rtl:ml-[2px]" />
+        <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
+      </div>
+    </>
   );
 }
 
@@ -303,7 +304,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     () => <TimezoneDropdown timeZone={timeZone} onChangeTimeZone={setTimeZone} />,
     [timeZone]
   );
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -354,10 +355,10 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isBackgroundTransparent
                   ? ""
                   : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
-                "border-bookinglightest overflow-hidden md:rounded-md md:border",
+                "border-bookinglightest md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
-              <div className="overflow-hidden md:flex">
+              <div className="md:flex">
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
@@ -391,14 +392,14 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                           </div>
                         </div>
                       )}
-                      {stripeAppData.price > 0 && (
+                      {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
                           <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           <IntlProvider locale="en">
                             <FormattedNumber
-                              value={stripeAppData.price / 100.0}
+                              value={paymentAppData.price / 100.0}
                               style="currency"
-                              currency={stripeAppData.currency.toUpperCase()}
+                              currency={paymentAppData.currency?.toUpperCase()}
                             />
                           </IntlProvider>
                         </p>

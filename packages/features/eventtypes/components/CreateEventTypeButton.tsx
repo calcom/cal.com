@@ -202,7 +202,7 @@ const CreateEventTypeDialog = () => {
                 min="10"
                 placeholder="15"
                 label={t("length")}
-                className="pr-20"
+                className="pr-4"
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />

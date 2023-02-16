@@ -4,9 +4,10 @@ import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
-import { FiCheck } from "@calcom/ui/components/icon";
 
 import { Maybe } from "@trpc/server";
+
+import { FiCheck } from "../icon";
 
 export type AvatarProps = {
   className?: string;
@@ -36,9 +37,9 @@ export function Avatar(props: AvatarProps) {
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        sizesPropsBySize[size],
         "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
-        props.className
+        props.className,
+        sizesPropsBySize[size]
       )}>
       <>
         <AvatarPrimitive.Image

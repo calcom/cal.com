@@ -27,6 +27,7 @@ import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, router } from "../../trpc";
 
+const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure
@@ -124,6 +125,9 @@ export const viewerTeamsRouter = router({
         slug: z.string().optional(),
         hideBranding: z.boolean().optional(),
         hideBookATeamMember: z.boolean().optional(),
+        brandColor: z.string().optional(),
+        darkBrandColor: z.string().optional(),
+        theme: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -152,6 +156,9 @@ export const viewerTeamsRouter = router({
         bio: input.bio,
         hideBranding: input.hideBranding,
         hideBookATeamMember: input.hideBookATeamMember,
+        brandColor: input.brandColor,
+        darkBrandColor: input.darkBrandColor,
+        theme: input.theme,
       };
 
       if (
@@ -278,11 +285,8 @@ export const viewerTeamsRouter = router({
         },
       });
 
-      let inviteeUserId: number | undefined = invitee?.id;
-
       if (!invitee) {
         // liberal email match
-        const isEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 
         if (!isEmail(input.usernameOrEmail))
           throw new TRPCError({
@@ -291,7 +295,7 @@ export const viewerTeamsRouter = router({
           });
 
         // valid email given, create User and add to team
-        const user = await ctx.prisma.user.create({
+        await ctx.prisma.user.create({
           data: {
             email: input.usernameOrEmail,
             invitedTo: input.teamId,
@@ -303,7 +307,6 @@ export const viewerTeamsRouter = router({
             },
           },
         });
-        inviteeUserId = user.id;
 
         const token: string = randomBytes(32).toString("hex");
 
@@ -314,7 +317,6 @@ export const viewerTeamsRouter = router({
             expires: new Date(new Date().setHours(168)), // +1 week
           },
         });
-
         if (ctx?.user?.name && team?.name) {
           await sendTeamInviteEmail({
             language: translation,
@@ -322,6 +324,7 @@ export const viewerTeamsRouter = router({
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+            isCalcomMember: false,
           });
         }
       } else {
@@ -345,14 +348,19 @@ export const viewerTeamsRouter = router({
           } else throw e;
         }
 
+        let sendTo = input.usernameOrEmail;
+        if (!isEmail(input.usernameOrEmail)) {
+          sendTo = invitee.email;
+        }
         // inform user of membership by email
         if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
           await sendTeamInviteEmail({
             language: translation,
             from: ctx.user.name,
-            to: input.usernameOrEmail,
+            to: sendTo,
             teamName: team.name,
             joinLink: WEBAPP_URL + "/settings/teams",
+            isCalcomMember: true,
           });
         }
       }

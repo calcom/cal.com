@@ -108,13 +108,14 @@ export const scheduleEmailReminder = async (
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
 
-      const emailSubjectTemplate = await customTemplate(
-        emailSubject,
-        variables,
-        evt.organizer.language.locale
-      );
+      const locale =
+        action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+          ? evt.attendees[0].language?.locale
+          : evt.organizer.language.locale;
+
+      const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
       emailContent.emailSubject = emailSubjectTemplate.text;
-      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language.locale);
+      emailContent.emailBody = await customTemplate(emailBody, variables, locale);
       break;
   }
 
@@ -202,6 +203,11 @@ export const deleteScheduledEmailReminder = async (referenceId: string) => {
         batch_id: referenceId,
         status: "cancel",
       },
+    });
+
+    await client.request({
+      url: `/v3/user/scheduled_sends/${referenceId}`,
+      method: "DELETE",
     });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
