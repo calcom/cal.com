@@ -4,12 +4,15 @@ import z from "zod";
 import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
-export const getBookingResponsesQuerySchema = (eventType: EventType) => {
+export const getBookingResponsesPartialSchema = (eventType: EventType) => {
   const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
 
   return preprocess({ schema, eventType, forQueryParsing: true });
 };
 
+// Should be used when we know that not all fields responses are present
+// - Can happen when we are parsing the prefill query string
+// - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
 export default function getBookingResponsesSchema(eventType: EventType) {
   const schema = bookingResponses.and(z.record(z.any()));
   return preprocess({ schema, eventType, forQueryParsing: false });

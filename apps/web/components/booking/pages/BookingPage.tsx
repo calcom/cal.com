@@ -26,7 +26,7 @@ import {
   SystemField,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
-  getBookingResponsesQuerySchema,
+  getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -261,7 +261,7 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
-  const querySchema = getBookingResponsesQuerySchema({
+  const querySchema = getBookingResponsesPartialSchema({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 

@@ -29,7 +29,7 @@ import {
   SystemField,
   getBookingFieldsWithSystemFields,
 } from "@calcom/features/bookings/lib/getBookingFields";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -1029,7 +1029,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const bookingInfo = {
     ...bookingInfoRaw,
-    responses: getBookingResponsesSchema(eventTypeRaw).parse(bookingInfoRaw.responses),
+    responses: getBookingResponsesPartialSchema(eventTypeRaw).parse(bookingInfoRaw.responses),
   };
 
   // @NOTE: had to do this because Server side cant return [Object objects]

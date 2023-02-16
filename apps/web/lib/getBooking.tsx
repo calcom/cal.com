@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
@@ -72,7 +72,7 @@ async function getBooking(
   }
   const booking = {
     ...rawBooking,
-    responses: getBookingResponsesSchema({
+    responses: getBookingResponsesPartialSchema({
       bookingFields,
     }).parse(rawBooking.responses || getResponsesFromOldBooking(rawBooking)),
   };
