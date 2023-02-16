@@ -62,7 +62,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
       },
     },
   });
-  const { metadata: usersRawMetadata } = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -71,7 +71,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
     },
   });
 
-  const usersDefaultApp = userMetadata.parse(usersRawMetadata)?.defaultConferencingApp?.appSlug;
+  const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
     credentials: Credential[];
     isDefault?: boolean;
