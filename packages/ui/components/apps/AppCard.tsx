@@ -17,7 +17,7 @@ interface AppCardProps {
   searchText?: string;
 }
 
-export function AppCard({ app, credentials, searchText }: AppCardProps) {
+export function AppCard({ app, credentials, searchText, isDefault }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
@@ -149,7 +149,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
 
-        {app.isGlobal && (
+        {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
           </span>
