@@ -5,6 +5,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -27,7 +28,7 @@ import { FiCreditCard, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
-import { GateState } from "@components/Gates";
+import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
@@ -73,7 +74,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     setIs24hClockInLocalStorage(is24Hours);
   };
 
-  const [gateState] = useReducer(
+  const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
       ...state,
       ...newState,
@@ -106,22 +107,22 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     [timeZone]
   );
   const paymentAppData = getPaymentAppData(eventType);
-  // const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
 
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   // Define conditional gates here
-  /*const gates = [
+  const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
     rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
-  ];*/
+  ];
 
   return (
-    <>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -254,7 +255,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         </main>
       </div>
       <Toaster position="bottom-right" />
-    </>
+    </Gates>
   );
 };
 
