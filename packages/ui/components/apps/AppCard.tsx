@@ -17,7 +17,7 @@ interface AppCardProps {
   searchText?: string;
 }
 
-export function AppCard({ app, credentials, searchText, isDefault }: AppCardProps) {
+export function AppCard({ app, credentials, searchText }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
