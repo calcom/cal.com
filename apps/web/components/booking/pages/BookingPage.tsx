@@ -80,7 +80,7 @@ const BookingFields = ({
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
         let noLabel = false;
-        let hidden = false;
+        let hidden = !!field.hidden;
         if (field.name === SystemField.Enum.rescheduleReason) {
           if (!rescheduleUid) {
             return null;
