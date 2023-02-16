@@ -69,7 +69,7 @@
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
     "dotenv-cli": "^6.0.0",
-    "eslint-config-next": "^13.1.1",
+    "eslint-config-next": "^13.1.6",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
