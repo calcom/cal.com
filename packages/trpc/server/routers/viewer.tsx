@@ -1108,6 +1108,7 @@ const loggedInViewerRouter = router({
         });
         await prisma.webhook.deleteMany({
           where: {
+            userId: ctx.user.id,
             appId: "zapier",
           },
         });
