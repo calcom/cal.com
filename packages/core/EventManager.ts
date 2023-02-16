@@ -451,14 +451,17 @@ export default class EventManager {
       credential;
     try {
       // If a newBookingId is given, update that calendar event
-      const newBooking = await prisma.booking.findUnique({
-        where: {
-          id: newBookingId,
-        },
-        select: {
-          references: true,
-        },
-      });
+      let newBooking;
+      if (newBookingId) {
+        newBooking = await prisma.booking.findUnique({
+          where: {
+            id: newBookingId,
+          },
+          select: {
+            references: true,
+          },
+        });
+      }
 
       if (newBooking) {
         calendarReference = newBooking.references.find((reference) => reference.type.includes("_calendar"));

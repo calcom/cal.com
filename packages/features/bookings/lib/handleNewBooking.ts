@@ -351,6 +351,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
         },
       },
       payment: true,
+      references: true,
     },
   });
 }
@@ -858,6 +859,49 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
             id: seatAttendee.id,
           },
         });
+
+        // Update the original calendar event by removing the attendee that is rescheduling
+        if (originalRescheduledBooking) {
+          const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
+            (filteredAttendees, attendee) => {
+              if (attendee.email !== reqBody.email) {
+                filteredAttendees.push({
+                  name: attendee.name,
+                  email: attendee.email,
+                  timeZone: attendee.timeZone,
+                  language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+                });
+              }
+              return filteredAttendees;
+            },
+            [] as Person[]
+          );
+
+          // If original booking has video reference we need to add the videoCallData to the new evt
+          const videoReference = originalRescheduledBooking.references.find((reference) =>
+            reference.type.includes("_video")
+          );
+
+          eventManager.updateCalendarAttendees(
+            {
+              ...evt,
+              title: originalRescheduledBooking.title,
+              startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
+              endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
+              attendees: updatedBookingAttendees,
+              // If the location is a video integration then include the videoCallData
+              ...(videoReference && {
+                videoCallData: {
+                  type: videoReference.type,
+                  id: videoReference.meetingId,
+                  password: videoReference.meetingPassword,
+                  url: videoReference.meetingUrl,
+                },
+              }),
+            },
+            originalRescheduledBooking
+          );
+        }
 
         // We don't want to trigger rescheduling logic of the original booking
         originalRescheduledBooking = null;
