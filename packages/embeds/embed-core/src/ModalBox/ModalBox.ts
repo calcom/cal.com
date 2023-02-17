@@ -1,4 +1,3 @@
-import type { CalWindow } from "../embed";
 import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
@@ -100,9 +99,7 @@ export class ModalBox extends HTMLElement {
 
   constructor() {
     super();
-    const modalHtml = `<style>${
-      (window as CalWindow).Cal!.__css
-    }</style><style>${loaderCss}</style>${modalBoxHtml}`;
+    const modalHtml = `<style>${window.Cal!.__css}</style><style>${loaderCss}</style>${modalBoxHtml}`;
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";

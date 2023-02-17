@@ -23,7 +23,7 @@ type Config = {
   uiDebug?: boolean;
 };
 
-const globalCal = (window as CalWindow).Cal;
+const globalCal = window.Cal;
 if (!globalCal || !globalCal.q) {
   throw new Error("Cal is not defined. This shouldn't happen");
 }
@@ -530,6 +530,12 @@ export interface GlobalCal {
   __css?: string;
   fingerprint?: string;
   __logQueue?: any[];
+}
+
+declare global {
+  interface Window {
+    Cal?: GlobalCal;
+  }
 }
 
 export interface CalWindow extends Window {
