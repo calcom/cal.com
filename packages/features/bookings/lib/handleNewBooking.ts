@@ -42,7 +42,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
-import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
+import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -189,6 +189,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: true,
       seatsShowAttendees: true,
       bookingLimits: true,
+      durationLimits: true,
       workflows: {
         include: {
           workflow: {
@@ -421,6 +422,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+  }
+
+  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
+    const startAsDate = dayjs(reqBody.start).toDate();
+    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
   }
 
   if (!eventType.seatsPerTimeSlot) {
