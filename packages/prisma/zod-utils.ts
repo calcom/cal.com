@@ -90,16 +90,7 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
-export const bookingLimitsType = z
-  .object({
-    PER_DAY: z.number().optional(),
-    PER_WEEK: z.number().optional(),
-    PER_MONTH: z.number().optional(),
-    PER_YEAR: z.number().optional(),
-  })
-  .nullable();
-
-export const durationLimitsType = z
+export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
     PER_WEEK: z.number().optional(),

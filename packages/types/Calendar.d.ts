@@ -4,6 +4,7 @@ import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 
+import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Ensure } from "./utils";
@@ -108,14 +109,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export interface BookingLimit {
-  PER_DAY?: number | undefined;
-  PER_WEEK?: number | undefined;
-  PER_MONTH?: number | undefined;
-  PER_YEAR?: number | undefined;
-}
-
-export interface DurationLimit {
+export interface IntervalLimit {
   PER_DAY?: number | undefined;
   PER_WEEK?: number | undefined;
   PER_MONTH?: number | undefined;
