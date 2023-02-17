@@ -720,6 +720,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
+    if (dayjs(booking.startTime).utc().format() === evt.startTime) {
+      return booking;
+    }
+
     // If rescheduling an exisiting attendee
     if (rescheduleUid) {
       // Check if the host or attendee is rescheduling
