@@ -1,5 +1,5 @@
-import SendmailTransport from "nodemailer/lib/sendmail-transport";
-import SMTPConnection from "nodemailer/lib/smtp-connection";
+import type SendmailTransport from "nodemailer/lib/sendmail-transport";
+import type SMTPConnection from "nodemailer/lib/smtp-connection";
 
 import { isENVDev } from "@calcom/lib/env";
 

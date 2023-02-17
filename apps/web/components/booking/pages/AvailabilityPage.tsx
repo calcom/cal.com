@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { EventType } from "@prisma/client";
+import type { EventType } from "@prisma/client";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -8,7 +9,8 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -26,7 +28,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
 import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
@@ -34,15 +36,17 @@ import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon"
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import Gates, { Gate, GateState } from "@components/Gates";
-import AvailableTimes from "@components/booking/AvailableTimes";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+
+const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
 const useSlots = ({
   eventTypeId,
@@ -197,22 +201,24 @@ const SlotPicker = ({
       />
 
       <div ref={slotPickerRef}>
-        <AvailableTimes
-          isLoading={isLoadingSelectedDateSlots}
-          slots={
-            selectedDate &&
-            (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
-              monthSlots[selectedDate.format("YYYY-MM-DD")])
-          }
-          date={selectedDate}
-          timeFormat={timeFormat}
-          onTimeFormatChange={onTimeFormatChange}
-          eventTypeId={eventType.id}
-          eventTypeSlug={eventType.slug}
-          seatsPerTimeSlot={seatsPerTimeSlot}
-          recurringCount={recurringEventCount}
-          ethSignature={ethSignature}
-        />
+        {selectedDate ? (
+          <AvailableTimes
+            isLoading={isLoadingSelectedDateSlots}
+            slots={
+              selectedDate &&
+              (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+                monthSlots[selectedDate.format("YYYY-MM-DD")])
+            }
+            date={selectedDate}
+            timeFormat={timeFormat}
+            onTimeFormatChange={onTimeFormatChange}
+            eventTypeId={eventType.id}
+            eventTypeSlug={eventType.slug}
+            seatsPerTimeSlot={seatsPerTimeSlot}
+            recurringCount={recurringEventCount}
+            ethSignature={ethSignature}
+          />
+        ) : null}
       </div>
     </>
   );

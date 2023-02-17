@@ -1,5 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -218,6 +218,12 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
+    defaultConferencingApp: z
+      .object({
+        appSlug: z.string().default("daily-video").optional(),
+        appLink: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 

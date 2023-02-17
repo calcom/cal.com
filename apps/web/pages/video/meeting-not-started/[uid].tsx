@@ -1,4 +1,4 @@
-import { NextPageContext } from "next";
+import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

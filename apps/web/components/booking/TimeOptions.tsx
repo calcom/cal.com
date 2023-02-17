@@ -1,7 +1,9 @@
-import { FC, useEffect, useState } from "react";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { ITimezoneOption, TimezoneSelect } from "@calcom/ui";
+import type { ITimezoneOption } from "@calcom/ui";
+import { TimezoneSelect } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

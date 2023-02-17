@@ -1,9 +1,9 @@
-import { App_RoutingForms_Form } from "@prisma/client";
-import { Dispatch, SetStateAction } from "react";
+import type { App_RoutingForms_Form } from "@prisma/client";
+import type { Dispatch, SetStateAction } from "react";
 
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import { SerializableForm, Response } from "../types/types";
+import type { SerializableForm, Response } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;

@@ -1,5 +1,6 @@
-import { createEvent, DateArray } from "ics";
-import { TFunction } from "next-i18next";
+import type { DateArray } from "ics";
+import { createEvent } from "ics";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -105,7 +106,7 @@ ${getRichDescription(this.calEvent)}
     return this.getRecipientTime(this.calEvent.endTime, format);
   }
 
-  protected getFormattedDate() {
+  public getFormattedDate() {
     return `${this.getInviteeStart("h:mma")} - ${this.getInviteeEnd("h:mma")}, ${this.t(
       this.getInviteeStart("dddd").toLowerCase()
     )}, ${this.t(this.getInviteeStart("MMMM").toLowerCase())} ${this.getInviteeStart("D, YYYY")}`;

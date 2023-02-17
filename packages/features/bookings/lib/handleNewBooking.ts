@@ -1,12 +1,5 @@
-import {
-  App,
-  BookingStatus,
-  Credential,
-  EventTypeCustomInput,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -16,15 +9,18 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { EventTypeAppsList, getEventTypeAppData } from "@calcom/app-store/utils";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -50,13 +46,15 @@ import {
   customInputSchema,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 
-import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import sendPayload from "../../webhooks/lib/sendPayload";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -377,7 +375,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               in: dynamicUserList,
             },
           },
-          ...userSelect,
+          select: {
+            ...userSelect.select,
+            metadata: true,
+          },
         })
       : !!eventType.hosts?.length
       ? eventType.hosts.map(({ user, isFixed }) => ({
@@ -386,7 +387,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         }))
       : eventType.users;
   // loadUsers allows type inferring
-  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & { isFixed?: boolean })[] = await loadUsers();
+  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
+    isFixed?: boolean;
+    metadata?: Prisma.JsonValue;
+  })[] = await loadUsers();
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -503,8 +507,21 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
+  let locationBodyString = reqBody.location;
+  let defaultLocationUrl = undefined;
+  if (dynamicUserList.length > 1) {
+    users = users.sort((a, b) => {
+      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
+    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
+    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
+  }
 
+  const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
@@ -1046,7 +1063,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
-        videoCallUrl = metadata.hangoutLink || videoCallUrl;
+        videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
         await sendScheduledEmails({

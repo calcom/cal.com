@@ -1,6 +1,6 @@
 import { validateLimitOrder } from "@calcom/lib/validateLimitOrder";
 import { bookingLimitsType } from "@calcom/prisma/zod-utils";
-import { BookingLimit } from "@calcom/types/Calendar";
+import type { BookingLimit } from "@calcom/types/Calendar";
 
 export function isBookingLimit(obj: unknown): obj is BookingLimit {
   return bookingLimitsType.safeParse(obj).success;

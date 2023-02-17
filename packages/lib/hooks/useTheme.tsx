@@ -2,7 +2,7 @@ import { useTheme as useNextTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
-import { Maybe } from "@calcom/trpc/server";
+import type { Maybe } from "@calcom/trpc/server";
 
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {

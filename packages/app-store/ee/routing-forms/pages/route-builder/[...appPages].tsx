@@ -3,11 +3,11 @@ import Link from "next/link";
 import React, { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
-import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
 import { trpc } from "@calcom/trpc/react";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   SelectField,
   FormCard,
@@ -25,7 +25,12 @@ import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import { GlobalRoute, LocalRoute, QueryBuilderUpdatedConfig, SerializableRoute } from "../../types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  QueryBuilderUpdatedConfig,
+  SerializableRoute,
+} from "../../types/types";
 
 export { getServerSideProps };
 

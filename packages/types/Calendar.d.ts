@@ -124,7 +124,7 @@ export interface DurationLimit {
 
 export type AppsStatus = {
   appName: string;
-  type: typeof App["type"];
+  type: (typeof App)["type"];
   success: number;
   failures: number;
   errors: string[];

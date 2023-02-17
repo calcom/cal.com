@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import stringify from "qs-stringify";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
