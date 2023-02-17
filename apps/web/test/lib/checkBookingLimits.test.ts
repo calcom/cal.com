@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { validateBookingLimitOrder } from "@calcom/lib/isBookingLimits";
-import { checkBookingLimits, checkLimit } from "@calcom/lib/server";
-import { BookingLimit } from "@calcom/types/Calendar";
+import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server";
+import type { BookingLimit } from "@calcom/types/Calendar";
 
 import { prismaMock } from "../../../../tests/config/singleton";
 
@@ -63,7 +63,7 @@ describe("Check Booking Limits Tests", () => {
   it("Should handle mutiple limits correctly", async () => {
     prismaMock.booking.count.mockResolvedValue(1);
     expect(
-      checkLimit({
+      checkBookingLimit({
         key: "PER_DAY",
         limitingNumber: 2,
         eventStartDate: MOCK_DATA.startDate,
@@ -72,7 +72,7 @@ describe("Check Booking Limits Tests", () => {
     ).resolves.not.toThrow();
     prismaMock.booking.count.mockResolvedValue(3);
     expect(
-      checkLimit({
+      checkBookingLimit({
         key: "PER_WEEK",
         limitingNumber: 2,
         eventStartDate: MOCK_DATA.startDate,
@@ -83,7 +83,7 @@ describe("Check Booking Limits Tests", () => {
   it("Should return busyTimes when set", async () => {
     prismaMock.booking.count.mockResolvedValue(2);
     expect(
-      checkLimit({
+      checkBookingLimit({
         key: "PER_DAY",
         limitingNumber: 2,
         eventStartDate: MOCK_DATA.startDate,

@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { BookingLimit } from "@calcom/types/Calendar";
+import type { BookingLimit } from "@calcom/types/Calendar";
 
 import { HttpError } from "../http-error";
 import { parseBookingLimit } from "../isBookingLimits";
@@ -15,7 +15,7 @@ export async function checkBookingLimits(
   if (parsedBookingLimits) {
     const limitCalculations = Object.entries(parsedBookingLimits).map(
       async ([key, limitingNumber]) =>
-        await checkLimit({ key, limitingNumber, eventStartDate, eventId, returnBusyTimes })
+        await checkBookingLimit({ key, limitingNumber, eventStartDate, eventId, returnBusyTimes })
     );
     await Promise.all(limitCalculations)
       .then((res) => {
@@ -31,7 +31,7 @@ export async function checkBookingLimits(
   return false;
 }
 
-export async function checkLimit({
+export async function checkBookingLimit({
   eventStartDate,
   eventId,
   key,
@@ -77,7 +77,7 @@ export async function checkLimit({
       },
     });
     if (bookingsInPeriod >= limitingNumber) {
-      // This is used when getting availbility
+      // This is used when getting availability
       if (returnBusyTimes) {
         return {
           start: startDate,
