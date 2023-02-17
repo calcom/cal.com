@@ -1,4 +1,3 @@
-import type { CalWindow } from "../embed";
 import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";
@@ -26,7 +25,7 @@ export class Inline extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.shadowRoot!.innerHTML = `<style>${
-      (window as CalWindow).Cal!.__css
+      window.Cal!.__css
     }</style><style>${loaderCss}</style>${inlineHtml}`;
   }
 }

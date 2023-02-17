@@ -39,14 +39,6 @@ class MyDocument extends Document<Props> {
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="#ffffff" />
-          <link
-            rel="preload"
-            href="/fonts/Inter-roman.var.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-          <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
           <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
         </Head>
 
