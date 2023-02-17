@@ -41,15 +41,14 @@ const CheckedHostField = ({
   options = [],
   isFixed,
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onChange = () => {},
+  onChange,
   ...rest
 }: {
   labelText: string;
   placeholder: string;
   isFixed: boolean;
   value: { isFixed: boolean; userId: number }[];
-  onChange: (options: { isFixed: boolean; userId: number }[]) => void;
+  onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
   options?: Options<CheckedSelectOption>;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
@@ -59,12 +58,13 @@ const CheckedHostField = ({
         <CheckedTeamSelect
           isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
           onChange={(options) => {
-            onChange(
-              options.map((option) => ({
-                isFixed,
-                userId: parseInt(option.value, 10),
-              }))
-            );
+            onChange &&
+              onChange(
+                options.map((option) => ({
+                  isFixed,
+                  userId: parseInt(option.value, 10),
+                }))
+              );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
