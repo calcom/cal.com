@@ -739,7 +739,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
-    if (dayjs(booking.startTime).utc().format() === evt.startTime) {
+    if (rescheduleUid && dayjs(booking.startTime).utc().format() === evt.startTime) {
       return booking;
     }
 
@@ -845,7 +845,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
           await sendRescheduledEmails({
             ...copyEvent,
-            // additionalInformation: metadata,
             additionalNotes, // Resets back to the additionalNote input and not the override value
             cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
           });
@@ -858,12 +857,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           attendeesToDelete = [];
 
         for (const attendee of booking.attendees) {
+          // If the attendee already exists on the new booking then delete the attendee record of the old booking
           if (
             newTimeSlotBooking.attendees.some(
               (newBookingAttendee) => newBookingAttendee.email === attendee.email
             )
           ) {
             attendeesToDelete.push(attendee.id);
+            // If the attendee does not exist on the new booking then move that attendee record to the new booking
           } else {
             attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeatReference?.id });
           }
@@ -947,7 +948,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
-          // additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
           cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
@@ -1719,8 +1719,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
   }
-
-  console.log("🚀 ~ file: handleNewBooking.ts:1719 ~ handler ~ booking", booking);
 
   // booking successful
   req.statusCode = 201;

@@ -92,21 +92,6 @@ function BookingListItem(booking: BookingItemProps) {
     mutation.mutate(body);
   };
 
-  // const getSeatReferenceUId = () => {
-  //   const attendee = booking.attendees.find((attendee) => {
-  //     if (attendee.email === user?.email) return attendee;
-  //   });
-
-  //   if (attendee) {
-  //     const attendeeSeatReference = booking.seatsReferences.find(
-  //       (attendeeSeatReference) => attendeeSeatReference.attendeeId === attendee.id
-  //     );
-
-  //     if (attendeeSeatReference) return attendeeSeatReference.referenceUId;
-  //   }
-
-  //   return "";
-  // };
   const getSeatReferenceUId = () => {
     if (booking.seatsReferences.length > 0) {
       return booking.seatsReferences[0].referenceUId;

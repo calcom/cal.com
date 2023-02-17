@@ -195,7 +195,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
-    // NOTE this isn't triggering
     if (bookingSeatReference) {
       rescheduleUid = bookingSeatReference.booking.uid;
       attendeeEmail = bookingSeatReference.attendee.email;

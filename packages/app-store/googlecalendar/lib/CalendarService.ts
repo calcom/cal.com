@@ -94,11 +94,6 @@ export default class GoogleCalendarService implements Calendar {
             organizer: true,
             responseStatus: "accepted",
           },
-          // eslint-disable-next-line
-          // ...calEventRaw.attendees.map(({ id, ...rest }) => ({
-          //   ...rest,
-          //   responseStatus: "accepted",
-          // })),
           ...eventAttendees,
         ],
         reminders: {
