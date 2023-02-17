@@ -24,10 +24,6 @@ const calFont = localFont({
   display: "swap",
 });
 
-if (typeof document !== "undefined") {
-  document.body.classList.add(interFont.variable, calFont.variable);
-}
-
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
@@ -60,6 +56,12 @@ function MyApp(props: AppProps) {
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
+      <style jsx global>{`
+        :root {
+          --font-inter: ${interFont.style.fontFamily};
+          --font-cal: ${calFont.style.fontFamily};
+        }
+      `}</style>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
