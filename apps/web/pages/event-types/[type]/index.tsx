@@ -299,7 +299,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             ...input
           } = values;
 
-          const hosts: ((typeof hostsInput)[number] & { isFixed?: boolean })[] = [];
+          const hosts: (typeof hostsInput[number] & { isFixed?: boolean })[] = [];
           if (hostsInput || hostsFixed) {
             hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
           }
