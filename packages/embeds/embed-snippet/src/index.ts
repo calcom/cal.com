@@ -4,7 +4,7 @@
  * As we want to keep control on the size of this snippet but we want some portion of it to be still readable.
  * So, write the code that you need directly but keep it short.
  */
-import { CalWindow } from "@calcom/embed-core";
+import type { CalWindow } from "@calcom/embed-core";
 
 const WEBAPP_URL =
   import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;

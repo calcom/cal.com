@@ -1,7 +1,7 @@
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 const badgeClassNameByVariant = {
   default: "bg-orange-100 text-orange-800",
