@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";

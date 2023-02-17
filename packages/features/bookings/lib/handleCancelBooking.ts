@@ -77,6 +77,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           price: true,
           currency: true,
           length: true,
+          seatsPerTimeSlot: true,
           workflows: {
             include: {
               workflow: {
@@ -357,15 +358,23 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
+    const updateBookingData = {
+      status: BookingStatus.CANCELLED,
+      cancellationReason: cancellationReason,
+    };
+    if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
+      await prisma.attendee.deleteMany({
+        where: {
+          bookingId: bookingToDelete.id,
+        },
+      });
+    }
     const updatedBooking = await prisma.booking.update({
       where: {
         id,
         uid,
       },
-      data: {
-        status: BookingStatus.CANCELLED,
-        cancellationReason: cancellationReason,
-      },
+      data: updateBookingData,
       select: {
         startTime: true,
         endTime: true,

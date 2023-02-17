@@ -1,15 +1,11 @@
 import { expect } from "@playwright/test";
 import { BookingStatus } from "@prisma/client";
-import { includes } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import {
-  selectFirstAvailableTimeSlotNextMonth,
-  selectSecondAvailableTimeSlotNextMonth,
-} from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -170,7 +166,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     await payment.delete();
   });
@@ -188,7 +184,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
@@ -235,7 +231,7 @@ test.describe("Reschedule Tests", async () => {
           },
         },
       });
-      console.log({ booking });
+
       const bookingAttendees = await prisma.attendee.findMany({
         where: { bookingId: booking.id },
         select: {
@@ -268,7 +264,7 @@ test.describe("Reschedule Tests", async () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await expect(page).toHaveURL(/.*success/);
+      await expect(page).toHaveURL(/.*booking/);
 
       // Should expect old booking to be accepted with two attendees
       const oldBooking = await prisma.booking.findFirst({
@@ -334,9 +330,57 @@ test.describe("Reschedule Tests", async () => {
 
     await page.goto(`/reschedule/${references[1].referenceUId}`);
 
-    await selectSecondAvailableTimeSlotNextMonth(page);
+    await selectFirstAvailableTimeSlotNextMonth(page);
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await page.waitForNavigation({
+      url(url) {
+        return url.pathname.indexOf("/booking") > -1;
+      },
+    });
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    await page.waitForLoadState("networkidle");
+
+    // Should expect old booking to be cancelled
+    const oldBooking = await prisma.booking.findFirst({
+      where: { uid: booking.uid },
+      include: {
+        seatsReferences: true,
+        attendees: true,
+        eventType: {
+          include: { users: true, hosts: true },
+        },
+      },
+    });
+
+    expect(oldBooking?.attendees).toBeFalsy();
+  });
+
+  test("Should cancel with seats and have no attendees and cancelled", async ({ page, users, bookings }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+      // startTime with 1 day from now and endTime half hour after
+      startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+      attendees: {
+        createMany: {
+          data: [
+            { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+            { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+          ],
+        },
+      },
+    });
+
+    // Now we cancel the booking as the organizer
+    await page.goto(`/booking/${booking.uid}?cancel=true`);
+
+    await page.locator('[data-testid="cancel"]').click();
 
     await expect(page).toHaveURL(/.*booking/);
 
@@ -347,6 +391,7 @@ test.describe("Reschedule Tests", async () => {
       include: { seatsReferences: true, attendees: true },
     });
 
+    expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);
     expect(oldBooking?.attendees.length).toBe(0);
   });
 });

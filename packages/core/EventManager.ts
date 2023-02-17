@@ -11,12 +11,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type {
-  AdditionalInformation,
-  CalendarEvent,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
@@ -239,6 +234,7 @@ export default class EventManager {
         eventType: {
           select: {
             seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
           },
         },
       },
@@ -246,24 +242,6 @@ export default class EventManager {
 
     if (!booking) {
       throw new Error("booking not found");
-    }
-
-    if (booking?.eventType?.seatsPerTimeSlot) {
-      // Here we also should remove current attendee from event calendar
-      evt.attendees = evt.attendees.filter((attendee) => {
-        return attendee.email !== currentAttendeeEmail;
-      });
-      if (evt.attendees.length === 0) {
-        // Add reschedule reason to new booking
-        await prisma.booking.update({
-          where: {
-            id: newBookingId,
-          },
-          data: {
-            cancellationReason: rescheduleReason,
-          },
-        });
-      }
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
