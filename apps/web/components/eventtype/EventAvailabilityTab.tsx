@@ -1,5 +1,4 @@
-import type { FormValues } from "pages/event-types/[type]";
-import { EventTypeSetup } from "pages/event-types/[type]";
+import type { FormValues, EventTypeSetup } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
