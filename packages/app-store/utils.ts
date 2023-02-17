@@ -1,13 +1,14 @@
 import { Prisma } from "@prisma/client";
-import { TFunction } from "next-i18next";
-import { z } from "zod";
+import type { TFunction } from "next-i18next";
+import type { z } from "zod";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
-import { EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { defaultLocations } from "@calcom/app-store/locations";
+import type { EventTypeModel } from "@calcom/prisma/zod";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
 type LocationOption = {
@@ -148,7 +149,7 @@ function getApps(userCredentials: CredentialData[]) {
       };
     }
 
-    const credential: typeof credentials[number] | null = credentials[0] || null;
+    const credential: (typeof credentials)[number] | null = credentials[0] || null;
     return {
       ...appMeta,
       /**

@@ -1,3 +1,4 @@
+import type { App_RoutingForms_Form } from "@prisma/client";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useContext, useState } from "react";
@@ -10,9 +11,9 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { ButtonProps } from "@calcom/ui";
 import {
   Button,
-  ButtonProps,
   ConfirmationDialogContent,
   Dialog,
   DialogClose,
@@ -33,8 +34,7 @@ import { FiMoreHorizontal } from "@calcom/ui/components/icon";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import { SerializableForm } from "../types/types";
-import { App_RoutingForms_Form } from ".prisma/client";
+import type { SerializableForm } from "../types/types";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 

@@ -2,14 +2,17 @@ import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
@@ -20,7 +23,6 @@ import {
   MeetingTimeInTimezones,
   showToast,
   Tooltip,
-  ActionType,
   TableActions,
   TextAreaField,
 } from "@calcom/ui";

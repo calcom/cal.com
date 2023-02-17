@@ -1,5 +1,6 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
-import { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import { getWorkingHours } from "./availability";
 
@@ -175,7 +176,7 @@ const getSlots = ({
   const computedLocalAvailability: TimeFrame[] = [];
   let tempComputeTimeFrame: TimeFrame | undefined;
   const computeLength = localWorkingHours.length - 1;
-  const makeTimeFrame = (item: typeof localWorkingHours[0]): TimeFrame => ({
+  const makeTimeFrame = (item: (typeof localWorkingHours)[0]): TimeFrame => ({
     userIds: item.userId ? [item.userId] : [],
     startTime: item.startTime,
     endTime: item.endTime,

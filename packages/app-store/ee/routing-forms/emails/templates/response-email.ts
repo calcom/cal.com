@@ -1,8 +1,9 @@
+import type { App_RoutingForms_Form } from "@prisma/client";
+
 import { renderEmail } from "@calcom/emails";
 import BaseEmail from "@calcom/emails/templates/_base-email";
 
-import { Response } from "../../types/types";
-import { App_RoutingForms_Form } from ".prisma/client";
+import type { Response } from "../../types/types";
 
 type Form = Pick<App_RoutingForms_Form, "id" | "name">;
 export default class ResponseEmail extends BaseEmail {

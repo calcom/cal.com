@@ -91,6 +91,7 @@ const ImpersonationProvider = CredentialsProvider({
           select: {
             teamId: true,
             disableImpersonation: true,
+            role: true,
           },
         },
       },
@@ -135,11 +136,19 @@ const ImpersonationProvider = CredentialsProvider({
               },
             ],
           },
+          select: {
+            role: true,
+          },
         },
       },
     });
 
     if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
+      throw new Error("You do not have permission to do this.");
+    }
+
+    // We find team by ID so we know there is only one team in the array
+    if (sessionUserFromDb?.teams[0].role === "ADMIN" && impersonatedUser.teams[0].role === "OWNER") {
       throw new Error("You do not have permission to do this.");
     }
 
