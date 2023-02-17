@@ -1,4 +1,4 @@
-import { BookingLimit, DurationLimit } from "@calcom/types/Calendar";
+import type { BookingLimit, DurationLimit } from "@calcom/types/Calendar";
 
 export const validateLimitOrder = (input: BookingLimit | DurationLimit, validationOrderKeys: string[]) => {
   // Sort limits by validationOrder

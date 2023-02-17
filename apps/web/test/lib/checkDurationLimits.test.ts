@@ -1,9 +1,9 @@
-import { Booking } from "@prisma/client";
+import type { Booking } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { validateDurationLimitOrder } from "@calcom/lib";
 import { checkDurationLimit, checkDurationLimits } from "@calcom/lib/server";
-import { DurationLimit } from "@calcom/types/Calendar";
+import type { DurationLimit } from "@calcom/types/Calendar";
 
 import { prismaMock } from "../../../../tests/config/singleton";
 

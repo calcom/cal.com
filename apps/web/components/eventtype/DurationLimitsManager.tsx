@@ -2,11 +2,11 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DurationLimit } from "@calcom/types/Calendar";
+import type { DurationLimit } from "@calcom/types/Calendar";
 import { Button, Select, TextField } from "@calcom/ui";
 import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
-import { FormValues } from "../../pages/event-types/[type]";
+import type { FormValues } from "../../pages/event-types/[type]";
 
 const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
 type DurationLimitsKey = keyof DurationLimit;

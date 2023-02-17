@@ -1,6 +1,6 @@
 import { validateLimitOrder } from "@calcom/lib/validateLimitOrder";
 import { durationLimitsType } from "@calcom/prisma/zod-utils";
-import { DurationLimit } from "@calcom/types/Calendar";
+import type { DurationLimit } from "@calcom/types/Calendar";
 
 export function isDurationLimit(obj: unknown): obj is DurationLimit {
   return durationLimitsType.safeParse(obj).success;
