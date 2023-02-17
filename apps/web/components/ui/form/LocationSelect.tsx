@@ -39,6 +39,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
   return (
     <Select<LocationOption>
       name="location"
+      id="location-select"
       components={{
         Option: (props) => (
           <components.Option {...props}>
