@@ -1,10 +1,11 @@
 import { Prisma } from "@prisma/client";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { defaultLocations } from "@calcom/app-store/locations";
 import type { App, AppMeta } from "@calcom/types/App";
 
 export * from "./_utils/getEventTypeAppData";
@@ -144,7 +145,7 @@ function getApps(userCredentials: CredentialData[]) {
       };
     }
 
-    const credential: typeof credentials[number] | null = credentials[0] || null;
+    const credential: (typeof credentials)[number] | null = credentials[0] || null;
     return {
       ...appMeta,
       /**

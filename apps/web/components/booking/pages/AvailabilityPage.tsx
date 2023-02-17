@@ -5,7 +5,7 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -28,7 +28,8 @@ import { FiCreditCard, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
-import Gates, { Gate, GateState } from "@components/Gates";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 import { SlotPicker } from "@components/booking/SlotPicker";
 

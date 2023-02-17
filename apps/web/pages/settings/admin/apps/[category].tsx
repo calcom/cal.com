@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

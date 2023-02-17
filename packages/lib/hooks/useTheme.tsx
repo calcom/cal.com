@@ -1,29 +1,33 @@
 import { useTheme as useNextTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
 import type { Maybe } from "@calcom/trpc/server";
 
+import useMountedState from "./useMountedState";
+
 // makes sure the ui doesn't flash
 export default function useTheme(theme?: Maybe<string>) {
-  theme = theme || "system";
-  const { resolvedTheme, setTheme, forcedTheme } = useNextTheme();
-  const [isReady, setIsReady] = useState<boolean>(false);
+  let currentTheme: Maybe<string> = theme || "system";
+
+  const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
+  const isMounted = useMountedState();
   // Embed UI configuration takes more precedence over App Configuration
-  theme = embedTheme || theme;
+  currentTheme = embedTheme || theme;
 
   useEffect(() => {
-    if (theme) {
-      setTheme(theme);
+    if (currentTheme !== activeTheme && typeof currentTheme === "string") {
+      setTheme(currentTheme);
     }
-    setIsReady(true);
-  }, [theme, setTheme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
+  }, [currentTheme, setTheme]);
 
   return {
     resolvedTheme,
     setTheme,
-    isReady,
     forcedTheme,
+    activeTheme,
+    isReady: isMounted(),
   };
 }

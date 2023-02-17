@@ -1,5 +1,5 @@
 import { ImageResponse } from "@vercel/og";
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 

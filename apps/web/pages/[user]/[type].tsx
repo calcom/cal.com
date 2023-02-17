@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticPropsContext } from "next";
+import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -131,7 +131,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: (typeof user.eventTypes[number] & {
+  const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
