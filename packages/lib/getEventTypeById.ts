@@ -1,9 +1,10 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
-import { LocationObject } from "@calcom/core/location";
-import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
+import type { LocationObject } from "@calcom/core/location";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -97,6 +98,7 @@ export default async function getEventTypeById({
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,
+      durationLimits: true,
       successRedirectUrl: true,
       currency: true,
       team: {
@@ -223,6 +225,7 @@ export default async function getEventTypeById({
     schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
+    durationLimits: parseDurationLimit(restEventType.durationLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
