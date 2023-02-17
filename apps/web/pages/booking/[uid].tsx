@@ -252,7 +252,11 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
-  const isCancelled = status === "CANCELLED" || status === "REJECTED";
+  const isCancelled =
+    status === "CANCELLED" ||
+    status === "REJECTED" ||
+    (isCancellationMode &&
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUId === seatReferenceUId));
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -1049,6 +1053,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         select: {
           eventName: true,
           slug: true,
+        },
+      },
+      seatsReferences: {
+        select: {
+          referenceUId: true,
         },
       },
     },
