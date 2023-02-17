@@ -937,7 +937,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
         const copyEvent = cloneDeep(evt);
 
-        const updateManager = await eventManager.reschedule(
+        await eventManager.reschedule(
           copyEvent,
           rescheduleUid,
           newTimeSlotBooking.id,
