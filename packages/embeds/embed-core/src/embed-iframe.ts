@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
-import { useState, useEffect, CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { useState, useEffect } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 

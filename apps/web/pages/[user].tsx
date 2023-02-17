@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -30,8 +30,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, AvatarGroup, Avatar } from "@calcom/ui";
 import { BadgeCheckIcon, FiArrowRight } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -290,6 +290,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const isDynamicGroup = users.length > 1;
+
+  if (isDynamicGroup) {
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
 
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {

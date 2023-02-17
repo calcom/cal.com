@@ -1,6 +1,7 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { NextMiddleware, NextResponse, userAgent } from "next/server";
+import type { NextMiddleware } from "next/server";
+import { NextResponse, userAgent } from "next/server";
 
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { isIpInBanlist } from "@calcom/lib/getIP";

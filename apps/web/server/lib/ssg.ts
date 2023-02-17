@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext } from "next";
 import { i18n } from "next-i18next.config";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";

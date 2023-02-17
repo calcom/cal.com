@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
