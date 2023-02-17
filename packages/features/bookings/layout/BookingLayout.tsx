@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ComponentProps } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HorizontalTabs } from "@calcom/ui";
 import { VerticalTabItemProps, HorizontalTabItemProps, Button } from "@calcom/ui";
 
@@ -92,14 +93,20 @@ export default function BookingLayout({
     });
   };
 
+  const { t } = useLocale();
+
   return (
     <Shell
       {...rest}
       CTA={
         isSubscribed ? (
-          <Button onClick={unsubscribeButtonOnClick}>Disable Notifications</Button>
+          <Button color="primary" onClick={unsubscribeButtonOnClick}>
+            {t("disable_notifications")}
+          </Button>
         ) : (
-          <Button onClick={subscribeButtonOnClick}>Enable Notifications</Button>
+          <Button color="secondary" onClick={subscribeButtonOnClick}>
+            {t("enable_notifications")}
+          </Button>
         )
       }>
       <div className="flex max-w-6xl flex-col">
