@@ -46,19 +46,8 @@ import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 const getRefetchInterval = (refetchCount: number): number => {
-  switch (refetchCount) {
-    case 0:
-    case 1:
-      return 3000;
-    case 2:
-      return 5000;
-    case 3:
-      return 10000;
-    case 4:
-      return 20000;
-    default:
-      return 30000;
-  }
+  const intervals = [3000, 3000, 5000, 10000, 20000, 30000] as const;
+  return intervals[refetchCount] || intervals[intervals.length - 1];
 };
 
 const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
