@@ -1,4 +1,4 @@
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";

@@ -1,4 +1,4 @@
-import { CalWindow } from "../embed";
+import type { CalWindow } from "../embed";
 import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
 import inlineHtml from "./inlineHtml";

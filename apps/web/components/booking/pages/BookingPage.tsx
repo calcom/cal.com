@@ -10,10 +10,11 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { EventLocationType, getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import { LocationObject } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -48,12 +49,13 @@ import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 
-import Gates, { Gate, GateState } from "@components/Gates";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 
-import { BookPageProps } from "../../../pages/[user]/book";
-import { HashLinkPageProps } from "../../../pages/d/[link]/book";
-import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import type { BookPageProps } from "../../../pages/[user]/book";
+import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
+import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({

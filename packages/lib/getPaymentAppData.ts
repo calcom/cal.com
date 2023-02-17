@@ -1,8 +1,9 @@
-import { z } from "zod";
+import type { z } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { appDataSchema } from "@calcom/app-store/stripepayment/zod";
-import { EventTypeAppsList, getEventTypeAppData } from "@calcom/app-store/utils";
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import type { appDataSchema } from "@calcom/app-store/stripepayment/zod";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 
 export default function getPaymentAppData(
   eventType: Parameters<typeof getEventTypeAppData>[0],

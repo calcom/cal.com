@@ -1,9 +1,9 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import { z } from "zod";
+import type { Prisma, PrismaClient } from "@prisma/client";
+import type { z } from "zod";
 
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type BookingSelect = {
   description: true;

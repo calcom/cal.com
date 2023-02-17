@@ -2,10 +2,10 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Credential } from "@calcom/prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
