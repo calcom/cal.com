@@ -507,6 +507,10 @@ export default NextAuth({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              data: { password: null },
+            });
             return true;
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
