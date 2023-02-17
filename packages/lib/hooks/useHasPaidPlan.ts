@@ -25,4 +25,10 @@ export function useTeamInvites() {
   return { isLoading: listInvites.isLoading, listInvites: listInvites.data };
 }
 
+export function useHasTeamPlan() {
+  const { data: hasTeamPlan, isLoading } = trpc.viewer.teams.hasTeamPlan.useQuery();
+
+  return { isLoading, hasTeamPlan: hasTeamPlan?.hasTeamPlan };
+}
+
 export default useHasPaidPlan;
