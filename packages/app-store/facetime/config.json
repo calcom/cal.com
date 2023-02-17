@@ -18,8 +18,8 @@
       "linkType": "static",
       "type": "integrations:facetime_video",
       "label": "Facetime",
-      "organizerInputPlaceholder": "https://facetime.apple.com/join... or facetime:<contact>",
-      "urlRegExp": "^(facetime:.+)|(facetime-audio:.+)|(https?:\\/\\/facetime\\.apple\\.com\\/join.+)$"
+      "organizerInputPlaceholder": "https://facetime.apple.com/join... link copied from the FaceTime app",
+      "urlRegExp": "^https?:\\/\\/facetime\\.apple\\.com\\/join.+$"
     }
   },
   "isTemplate": false
