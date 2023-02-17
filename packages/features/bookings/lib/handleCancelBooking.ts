@@ -185,7 +185,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       }),
     ]);
 
-    // If there are references then we should update them as well
+    /* If there are references then we should update them as well */
     const lastAttendee =
       bookingToDelete.attendees.filter((bookingAttendee) => attendee.email !== bookingAttendee.email).length <
       0;

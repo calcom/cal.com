@@ -713,6 +713,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         references: true,
         startTime: true,
         user: true,
+        status: true,
       },
     });
     if (!booking) {
@@ -1038,6 +1039,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               locale: invitee[0].language.locale,
             },
           },
+          ...(booking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
         },
       });
 
@@ -1056,7 +1058,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           referenceUId: attendeeUniqueId,
           attendee: {
             connect: {
-              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
+              id: bookingUpdated.attendees.find((attendee) => attendee.email === reqBody.email)?.id,
             },
           },
         },
