@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
-import { validateBookingLimitOrder, validateDurationLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +19,7 @@ import prisma from "@calcom/prisma";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { BookingLimit, DurationLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -83,8 +83,8 @@ export type FormValues = {
     externalId: string;
   };
   successRedirectUrl: string;
-  bookingLimits?: BookingLimit;
-  durationLimits?: DurationLimit;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
 };
@@ -304,12 +304,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }
 
           if (bookingLimits) {
-            const isValid = validateBookingLimitOrder(bookingLimits);
+            const isValid = validateIntervalLimitOrder(bookingLimits);
             if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
           }
 
           if (durationLimits) {
-            const isValid = validateDurationLimitOrder(durationLimits);
+            const isValid = validateIntervalLimitOrder(durationLimits);
             if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
           }
 

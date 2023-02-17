@@ -1,6 +1,7 @@
-import type { BookingLimit, DurationLimit } from "@calcom/types/Calendar";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
-export const validateLimitOrder = (input: BookingLimit | DurationLimit, validationOrderKeys: string[]) => {
+const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
+export const validateIntervalLimitOrder = (input: IntervalLimit) => {
   // Sort limits by validationOrder
   const sorted = Object.entries(input)
     .sort(([, value], [, valuetwo]) => {

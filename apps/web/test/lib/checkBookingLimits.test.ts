@@ -1,14 +1,14 @@
 import dayjs from "@calcom/dayjs";
-import { validateBookingLimitOrder } from "@calcom/lib/isBookingLimits";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { checkBookingLimits, checkBookingLimit } from "@calcom/lib/server";
-import type { BookingLimit } from "@calcom/types/Calendar";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { prismaMock } from "../../../../tests/config/singleton";
 
 type Mockdata = {
   id: number;
   startDate: Date;
-  bookingLimits: BookingLimit;
+  bookingLimits: IntervalLimit;
 };
 
 const MOCK_DATA: Mockdata = {
@@ -99,21 +99,21 @@ describe("Check Booking Limits Tests", () => {
 
 describe("Booking limit validation", () => {
   it("Should validate a correct limit", () => {
-    expect(validateBookingLimitOrder({ PER_DAY: 3, PER_MONTH: 5 })).toBe(true);
+    expect(validateIntervalLimitOrder({ PER_DAY: 3, PER_MONTH: 5 })).toBe(true);
   });
 
   it("Should invalidate an incorrect limit", () => {
-    expect(validateBookingLimitOrder({ PER_DAY: 9, PER_MONTH: 5 })).toBe(false);
+    expect(validateIntervalLimitOrder({ PER_DAY: 9, PER_MONTH: 5 })).toBe(false);
   });
 
   it("Should validate a correct limit with 'gaps' ", () => {
-    expect(validateBookingLimitOrder({ PER_DAY: 9, PER_YEAR: 25 })).toBe(true);
+    expect(validateIntervalLimitOrder({ PER_DAY: 9, PER_YEAR: 25 })).toBe(true);
   });
 
   it("Should validate a correct limit with equal values ", () => {
-    expect(validateBookingLimitOrder({ PER_DAY: 1, PER_YEAR: 1 })).toBe(true);
+    expect(validateIntervalLimitOrder({ PER_DAY: 1, PER_YEAR: 1 })).toBe(true);
   });
   it("Should validate a correct with empty", () => {
-    expect(validateBookingLimitOrder({})).toBe(true);
+    expect(validateIntervalLimitOrder({})).toBe(true);
   });
 });

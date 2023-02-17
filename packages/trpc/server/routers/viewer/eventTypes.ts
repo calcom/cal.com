@@ -8,7 +8,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps from "@calcom/app-store/utils";
-import { validateBookingLimitOrder, validateDurationLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
@@ -567,14 +567,14 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
     }
 
     if (durationLimits) {
-      const isValid = validateDurationLimitOrder(durationLimits);
+      const isValid = validateIntervalLimitOrder(durationLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
       data.durationLimits = durationLimits;
