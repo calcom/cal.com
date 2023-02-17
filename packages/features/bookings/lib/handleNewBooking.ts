@@ -17,6 +17,7 @@ import { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
@@ -26,6 +27,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
@@ -646,6 +648,53 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
   };
 
+  /* Check if the original booking has no more attendees, if so delete the booking 
+  and any calendar or video integrations */
+  const lastAttendeeDeleteBooking = async (
+    originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>,
+    originalBookingEvt?: CalendarEvent
+  ) => {
+    if (
+      originalRescheduledBooking?.attendees.filter((attendee) => {
+        return attendee.email !== reqBody.email;
+      }).length === 0
+    ) {
+      const integrationsToDelete = [];
+
+      for (const reference of originalRescheduledBooking.references) {
+        if (reference.credentialId) {
+          const credential = await prisma.credential.findUnique({
+            where: {
+              id: reference.credentialId,
+            },
+          });
+
+          if (credential) {
+            if (reference.type.includes("_video")) {
+              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
+            }
+            if (reference.type.includes("_calendar") && originalBookingEvt) {
+              const calendar = getCalendar(credential);
+              if (calendar) {
+                integrationsToDelete.push(
+                  calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)
+                );
+              }
+            }
+          }
+        }
+      }
+
+      await Promise.all(integrationsToDelete).then(async () => {
+        await prisma.booking.delete({
+          where: {
+            id: originalRescheduledBooking.id,
+          },
+        });
+      });
+    }
+  };
+
   const handleSeats = async () => {
     // For seats, if the booking already exists then we want to add the new attendee to the existing booking
     if (!eventType.seatsPerTimeSlot) {
@@ -705,6 +754,48 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const credentials = await refreshCredentials(organizerUser.credentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
 
+      // This is passed to the event manager to update the original calendar event
+      let originalBookingEvt;
+
+      if (originalRescheduledBooking) {
+        const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
+          (filteredAttendees, attendee) => {
+            if (attendee.email !== reqBody.email) {
+              filteredAttendees.push({
+                name: attendee.name,
+                email: attendee.email,
+                timeZone: attendee.timeZone,
+                language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+              });
+            }
+            return filteredAttendees;
+          },
+          [] as Person[]
+        );
+
+        // If original booking has video reference we need to add the videoCallData to the new evt
+        const videoReference = originalRescheduledBooking.references.find((reference) =>
+          reference.type.includes("_video")
+        );
+
+        originalBookingEvt = {
+          ...evt,
+          title: originalRescheduledBooking.title,
+          startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
+          endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
+          attendees: updatedBookingAttendees,
+          // If the location is a video integration then include the videoCallData
+          ...(videoReference && {
+            videoCallData: {
+              type: videoReference.type,
+              id: videoReference.meetingId,
+              password: videoReference.meetingPassword,
+              url: videoReference.meetingUrl,
+            },
+          }),
+        };
+      }
+
       // If owner reschedules the event we want to update the entire booking
       if (reqBody.seatsOwnerRescheduling) {
         // If there is no booking during the new time slot then update the current booking to the new date
@@ -726,12 +817,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
           const copyEvent = cloneDeep(evt);
 
-          const updateManager = eventManager.reschedule(
-            copyEvent,
-            rescheduleUid,
-            newBooking.id,
-            reqBody.rescheduleReason
-          );
+          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id, reqBody.rescheduleReason);
 
           await sendRescheduledEmails({
             ...copyEvent,
@@ -861,54 +947,17 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         });
 
         // Update the original calendar event by removing the attendee that is rescheduling
-        if (originalRescheduledBooking) {
-          const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
-            (filteredAttendees, attendee) => {
-              if (attendee.email !== reqBody.email) {
-                filteredAttendees.push({
-                  name: attendee.name,
-                  email: attendee.email,
-                  timeZone: attendee.timeZone,
-                  language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-                });
-              }
-              return filteredAttendees;
-            },
-            [] as Person[]
-          );
-
-          // If original booking has video reference we need to add the videoCallData to the new evt
-          const videoReference = originalRescheduledBooking.references.find((reference) =>
-            reference.type.includes("_video")
-          );
-
-          eventManager.updateCalendarAttendees(
-            {
-              ...evt,
-              title: originalRescheduledBooking.title,
-              startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
-              endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
-              attendees: updatedBookingAttendees,
-              // If the location is a video integration then include the videoCallData
-              ...(videoReference && {
-                videoCallData: {
-                  type: videoReference.type,
-                  id: videoReference.meetingId,
-                  password: videoReference.meetingPassword,
-                  url: videoReference.meetingUrl,
-                },
-              }),
-            },
-            originalRescheduledBooking
-          );
+        if (originalBookingEvt && originalRescheduledBooking) {
+          eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
         }
+
+        await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
 
         // We don't want to trigger rescheduling logic of the original booking
         originalRescheduledBooking = null;
 
         return;
       }
-
       // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
       // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
       await Promise.all([
@@ -932,7 +981,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
       const copyEvent = cloneDeep(evt);
 
-      const updateManager = await eventManager.reschedule(
+      await eventManager.reschedule(
         copyEvent,
         rescheduleUid,
         newTimeSlotBooking.id,
@@ -941,17 +990,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
 
-      // If that was the last attendee of the old booking then delete the old booking
-      if (
-        originalRescheduledBooking?.attendees.filter((attendee) => attendee.email !== invitee[0].email)
-          .length === 0
-      ) {
-        await prisma.booking.delete({
-          where: {
-            id: originalRescheduledBooking.id,
-          },
-        });
-      }
+      await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
 
       return newTimeSlotBooking;
       // Else let's add the new attendee to the existing booking
@@ -1656,20 +1695,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     log.error("Error while scheduling workflow reminders", error);
   }
 
-  // On seats, if a new booking was created, delete the old booking if empty
-  if (eventType.seatsPerTimeSlot && originalRescheduledBooking) {
-    const oldBookingAttendees = originalRescheduledBooking?.attendees.filter(
-      (attendee) => attendee.email !== reqBody.email
-    );
-
-    if (oldBookingAttendees.length < 1) {
-      await prisma.booking.delete({
-        where: {
-          uid: originalRescheduledBooking.uid,
-        },
-      });
-    }
-  }
+  console.log("🚀 ~ file: handleNewBooking.ts:1719 ~ handler ~ booking", booking);
 
   // booking successful
   req.statusCode = 201;
