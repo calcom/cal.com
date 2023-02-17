@@ -1,15 +1,16 @@
 import type { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { z } from "zod";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -17,19 +18,8 @@ import useRouterQuery from "@lib/hooks/useRouterQuery";
 const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
 const getRefetchInterval = (refetchCount: number): number => {
-  switch (refetchCount) {
-    case 0:
-    case 1:
-      return 3000;
-    case 2:
-      return 5000;
-    case 3:
-      return 10000;
-    case 4:
-      return 20000;
-    default:
-      return 30000;
-  }
+  const intervals = [3000, 3000, 5000, 10000, 20000, 30000] as const;
+  return intervals[refetchCount] || intervals[intervals.length - 1];
 };
 
 const useSlots = ({
