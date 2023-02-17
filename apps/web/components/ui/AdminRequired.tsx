@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
-import { FC, Fragment } from "react";
+import type { FC } from "react";
+import { Fragment } from "react";
 
 type AdminRequiredProps = {
   as?: keyof JSX.IntrinsicElements;

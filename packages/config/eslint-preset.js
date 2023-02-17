@@ -5,7 +5,6 @@ module.exports = {
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./tsconfig.json"],
     project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
   },
   settings: {
@@ -32,6 +31,18 @@ module.exports = {
       extends: ["plugin:@typescript-eslint/recommended", "plugin:@calcom/eslint/recommended"],
       plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
+      rules: {
+        "@typescript-eslint/consistent-type-imports": [
+          "error",
+          {
+            prefer: "type-imports",
+            // TODO: enable this once prettier supports it
+            // fixStyle: "inline-type-imports",
+            fixStyle: "separate-type-imports",
+            disallowTypeAnnotations: false,
+          },
+        ],
+      },
       overrides: [
         {
           files: ["playwright/**/*.{tsx,ts}"],

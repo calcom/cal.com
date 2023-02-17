@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
 import { createEvent } from "ics";
+import type { DAVAccount } from "tsdav";
 import {
   createAccount,
   createCalendarObject,
-  DAVAccount,
   deleteCalendarObject,
   fetchCalendarObjects,
   fetchCalendars,
@@ -26,7 +26,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
