@@ -13,6 +13,7 @@ import routing_forms_config_json from "./ee/routing-forms/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
+import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
@@ -68,6 +69,7 @@ export const appStoreMetadata = {
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
+  facetime: facetime_config_json,
   fathom: fathom_config_json,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
