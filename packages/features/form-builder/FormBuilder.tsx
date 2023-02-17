@@ -2,11 +2,10 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import slugify from "@calcom/lib/slugify";
 import {
   Label,
   Badge,
@@ -22,13 +21,12 @@ import {
   InputField,
   Input,
   showToast,
-  Tooltip,
 } from "@calcom/ui";
 import { Switch } from "@calcom/ui";
 import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
-import { fieldsSchema } from "./FormBuilderFieldsSchema";
+import type { fieldsSchema } from "./FormBuilderFieldsSchema";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -138,7 +136,6 @@ export const FormBuilder = function FormBuilder({
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
-
 
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
@@ -284,7 +281,7 @@ export const FormBuilder = function FormBuilder({
               item.push(source);
               groupBy[source.label] = item;
               return groupBy;
-            }, {} as Record<string, NonNullable<typeof field["sources"]>>);
+            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
             return (
               <li
