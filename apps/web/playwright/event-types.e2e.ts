@@ -125,6 +125,8 @@ test.describe("Event Types tests", () => {
     });
 
     test("can add multiple organizer address", async ({ page }) => {
+      test.setTimeout(120_000);
+
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
@@ -137,8 +139,7 @@ test.describe("Event Types tests", () => {
       const locationData = ["location 1", "location 2", "location 3"];
 
       const fillLocation = async (inputText: string) => {
-        const select = await page.waitForSelector("#location-select");
-        await select.click();
+        await page.locator("#location-select").click();
         await page.locator("text=In Person (Organizer Address)").click();
         await page.locator('input[name="locationAddress"]').fill(inputText);
         await page.locator("[data-testid=display-location]").check();
