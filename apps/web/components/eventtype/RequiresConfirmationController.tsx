@@ -1,13 +1,14 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
 import { Trans } from "next-i18next";
-import type { FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Input, Label, SettingsToggle } from "@calcom/ui";
 
@@ -16,10 +17,12 @@ type RequiresConfirmationControllerProps = {
   requiresConfirmation: boolean;
   onRequiresConfirmation: Dispatch<SetStateAction<boolean>>;
   seatsEnabled: boolean;
+  eventType: EventTypeSetup;
 };
 
 export default function RequiresConfirmationController({
   metadata,
+  eventType,
   requiresConfirmation,
   onRequiresConfirmation,
   seatsEnabled,
@@ -37,6 +40,8 @@ export default function RequiresConfirmationController({
     }
   }, [requiresConfirmation]);
 
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType);
+
   return (
     <div className="block items-start sm:flex">
       <div className={!seatsEnabled ? "w-full" : ""}>
@@ -50,6 +55,7 @@ export default function RequiresConfirmationController({
               <SettingsToggle
                 title={t("requires_confirmation")}
                 description={t("requires_confirmation_description")}
+                {...shouldLockDisableProps("requiresConfirmation", t("locked_fields_description"))}
                 checked={requiresConfirmation}
                 onCheckedChange={(val) => {
                   formMethods.setValue("requiresConfirmation", val);

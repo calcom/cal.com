@@ -6,6 +6,7 @@ import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCard
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen } from "@calcom/ui";
 import { FiGrid } from "@calcom/ui/components/icon";
@@ -55,6 +56,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
+  const { shouldLockDisable } = lockedFieldsManager(eventType);
+
   return (
     <>
       <div>
@@ -82,22 +85,24 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ))}
         </div>
       </div>
-      <div>
-        {!isLoading && notInstalledApps?.length ? (
-          <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
-        ) : null}
-        <div className="before:border-0">
-          {notInstalledApps?.map((app) => (
-            <EventTypeAppCard
-              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-              key={app.slug}
-              app={app}
-              eventType={eventType}
-            />
-          ))}
+      {!shouldLockDisable("apps") && (
+        <div>
+          {!isLoading && notInstalledApps?.length ? (
+            <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{t("available_apps")}</h2>
+          ) : null}
+          <div className="before:border-0">
+            {notInstalledApps?.map((app) => (
+              <EventTypeAppCard
+                getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                key={app.slug}
+                app={app}
+                eventType={eventType}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

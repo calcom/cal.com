@@ -11,6 +11,7 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -101,6 +102,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     }
   }, [eventType.customInputs]);
 
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType);
+
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -141,6 +144,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
+          {...shouldLockDisableProps("eventName", t("locked_fields_description"))}
           placeholder={t("meeting_with_user")}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName", {
@@ -167,6 +171,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       <div className="">
         <SettingsToggle
           title={t("additional_inputs")}
+          {...shouldLockDisableProps("customInputs", t("locked_fields_description"))}
           description={t("additional_input_description")}
           checked={customInputs.length > 0}
           onCheckedChange={(e) => {
@@ -208,6 +213,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       </div>
       <hr />
       <RequiresConfirmationController
+        eventType={eventType}
         seatsEnabled={seatsEnabled}
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}

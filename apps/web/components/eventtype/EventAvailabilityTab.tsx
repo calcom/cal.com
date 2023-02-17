@@ -4,9 +4,9 @@ import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
-import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -174,14 +174,14 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const lmf = new LockedFieldsManager(eventType);
+  const { shouldLockDisable } = lockedFieldsManager(eventType);
   return (
     <div className="space-y-4">
       <div>
         <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
           <>
             {t("availability")}
-            {lmf.shouldLockDisable("availability", t("locked_fields_description"))}
+            {shouldLockDisable("availability", t("locked_fields_description"))}
           </>
         </label>
         <Controller
@@ -190,7 +190,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
             <AvailabilitySelect
               value={field.value}
               onBlur={field.onBlur}
-              isDisabled={lmf.shouldLockDisable("availability")}
+              isDisabled={!!shouldLockDisable("availability")}
               name={field.name}
               onChange={(selected) => {
                 field.onChange(selected?.value || null);

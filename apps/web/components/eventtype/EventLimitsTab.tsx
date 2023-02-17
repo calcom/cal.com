@@ -6,10 +6,10 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
-import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import convertToNewDurationType, { DurationType } from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import type { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
@@ -136,7 +136,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     defaultValue: periodType?.type,
   });
 
-  const lfm = new LockedFieldsManager(eventType);
+  const { shouldLockDisable, shouldLockDisableProps } = lockedFieldsManager(eventType);
 
   return (
     <div className="space-y-8">
@@ -145,7 +145,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <div className="w-full">
             <Label htmlFor="beforeBufferTime">
               {t("before_event")}
-              {lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
+              {shouldLockDisable("bookingLimits", t("locked_fields_description"))}
             </Label>
             <Controller
               name="beforeBufferTime"
@@ -165,7 +165,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={lfm.shouldLockDisable("bookingLimits")}
+                    isDisabled={!!shouldLockDisable("bookingLimits")}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -181,7 +181,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <div className="w-full">
             <Label htmlFor="afterBufferTime">
               {t("after_event")}
-              {lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
+              {shouldLockDisable("bookingLimits", t("locked_fields_description"))}
             </Label>
             <Controller
               name="afterBufferTime"
@@ -201,7 +201,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={lfm.shouldLockDisable("bookingLimits")}
+                    isDisabled={!!shouldLockDisable("bookingLimits")}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -219,17 +219,17 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <div className="w-full">
             <Label htmlFor="minimumBookingNotice">
               {t("minimum_booking_notice")}
-              {lfm.shouldLockDisable("minimumBookingNotice", t("locked_fields_description"))}
+              {shouldLockDisable("minimumBookingNotice", t("locked_fields_description"))}
             </Label>
             <MinimumBookingNoticeInput
-              disabled={lfm.shouldLockDisable("minimumBookingNotice")}
+              disabled={!!shouldLockDisable("minimumBookingNotice")}
               {...formMethods.register("minimumBookingNotice")}
             />
           </div>
           <div className="w-full">
             <Label htmlFor="slotInterval">
               {t("slot_interval")}
-              {lfm.shouldLockDisable("slotInterval", t("locked_fields_description"))}
+              {shouldLockDisable("slotInterval", t("locked_fields_description"))}
             </Label>
             <Controller
               name="slotInterval"
@@ -248,7 +248,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
-                    isDisabled={lfm.shouldLockDisable("slotInterval")}
+                    isDisabled={!!shouldLockDisable("slotInterval")}
                     onChange={(val) => {
                       formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
                     }}
@@ -271,8 +271,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         render={({ field: { value } }) => (
           <SettingsToggle
             title={t("limit_booking_frequency")}
-            disabled={lfm.shouldLockDisable("bookingLimits")}
-            isLocked={lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
+            {...shouldLockDisableProps("bookingLimits", t("locked_fields_description"))}
             description={t("limit_booking_frequency_description")}
             checked={Object.keys(value ?? {}).length > 0}
             onCheckedChange={(active) => {
@@ -296,8 +295,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <SettingsToggle
             title={t("limit_future_bookings")}
             description={t("limit_future_bookings_description")}
-            disabled={lfm.shouldLockDisable("periodType")}
-            isLocked={lfm.shouldLockDisable("periodType", t("locked_fields_description"))}
+            {...shouldLockDisableProps("periodType", t("locked_fields_description"))}
             checked={value && value !== "UNLIMITED"}
             onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
             <RadioGroup.Root
