@@ -16,9 +16,11 @@ import {
   MeetLocationType,
   LocationType,
 } from "@calcom/app-store/locations";
+import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { slugify } from "@calcom/lib/slugify";
+import { Prisma } from "@calcom/prisma/client";
 import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
@@ -145,7 +147,7 @@ export const EventSetupTab = (
     resolver: zodResolver(locationFormSchema),
   });
 
-  const Locations = () => {
+  const Locations = ({ isDisabled }: { isDisabled: boolean }) => {
     const { t } = useLocale();
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -169,6 +171,7 @@ export const EventSetupTab = (
               defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
+              isDisabled={isDisabled}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
               menuPlacement="auto"
@@ -265,18 +268,22 @@ export const EventSetupTab = (
     );
   };
 
+  const lmf = new LockedFieldsManager(eventType);
+
   return (
     <div>
       <div className="space-y-8">
         <TextField
           required
           label={t("title")}
+          {...lmf.shouldLockDisableProps("title", t("locked_fields_description"))}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
         <TextField
           label={t("description")}
           placeholder={t("quick_video_meeting")}
+          {...lmf.shouldLockDisableProps("description", t("locked_fields_description"))}
           defaultValue={eventType.description ?? ""}
           {...formMethods.register("description")}
         />
@@ -284,6 +291,7 @@ export const EventSetupTab = (
           <TextField
             required
             label={t("URL")}
+            {...lmf.shouldLockDisableProps("slug", t("locked_fields_description"))}
             defaultValue={eventType.slug}
             addOnLeading={
               <>
@@ -345,12 +353,14 @@ export const EventSetupTab = (
             <div>
               <Skeleton as={Label} loadingClassName="w-16">
                 {t("default_duration")}
+                {lmf.shouldLockDisable("length", t("locked_fields_description"))}
               </Skeleton>
               <Select
                 value={defaultDuration}
                 isSearchable={false}
                 name="length"
                 className="text-sm"
+                isDisabled={lmf.shouldLockDisable("length")}
                 noOptionsMessage={() => t("default_duration_no_options")}
                 options={selectedMultipleDuration}
                 onChange={(option) => {
@@ -366,6 +376,7 @@ export const EventSetupTab = (
           <TextField
             required
             type="number"
+            {...lmf.shouldLockDisableProps("length", t("locked_fields_description"))}
             label={t("duration")}
             defaultValue={eventType.length ?? 15}
             {...formMethods.register("length")}
@@ -392,13 +403,14 @@ export const EventSetupTab = (
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
+            {lmf.shouldLockDisable("location", t("locked_fields_description"))}
           </Skeleton>
 
           <Controller
             name="locations"
             control={formMethods.control}
             defaultValue={eventType.locations || []}
-            render={() => <Locations />}
+            render={() => <Locations isDisabled={lmf.shouldLockDisable("location")} />}
           />
         </div>
       </div>

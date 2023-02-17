@@ -1,8 +1,10 @@
-import { FormValues } from "pages/event-types/[type]";
+import { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import { useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { components, OptionProps, SingleValueProps } from "react-select";
 
 import dayjs from "@calcom/dayjs";
+import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -56,6 +58,7 @@ const AvailabilitySelect = ({
   className?: string;
   name: string;
   value: number;
+  isDisabled?: boolean;
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
@@ -84,6 +87,7 @@ const AvailabilitySelect = ({
     <Select
       placeholder={t("select")}
       options={options}
+      isDisabled={props.isDisabled}
       isSearchable={false}
       onChange={props.onChange}
       className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
@@ -168,13 +172,17 @@ const EventTypeScheduleDetails = () => {
   );
 };
 
-const EventTypeSchedule = () => {
+const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
+  const lmf = new LockedFieldsManager(eventType);
   return (
     <div className="space-y-4">
       <div>
         <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
-          {t("availability")}
+          <>
+            {t("availability")}
+            {lmf.shouldLockDisable("availability", t("locked_fields_description"))}
+          </>
         </label>
         <Controller
           name="schedule"
@@ -182,6 +190,7 @@ const EventTypeSchedule = () => {
             <AvailabilitySelect
               value={field.value}
               onBlur={field.onBlur}
+              isDisabled={lmf.shouldLockDisable("availability")}
               name={field.name}
               onChange={(selected) => {
                 field.onChange(selected?.value || null);
@@ -195,7 +204,7 @@ const EventTypeSchedule = () => {
   );
 };
 
-const UseCommonScheduleSettingsToggle = () => {
+const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const { resetField, setValue } = useFormContext<FormValues>();
   return (
@@ -214,13 +223,23 @@ const UseCommonScheduleSettingsToggle = () => {
           }}
           title={t("choose_common_schedule_team_event")}
           description={t("choose_common_schedule_team_event_description")}>
-          <EventTypeSchedule />
+          <EventTypeSchedule eventType={eventType} />
         </SettingsToggle>
       )}
     />
   );
 };
 
-export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
-  return isTeamEvent ? <UseCommonScheduleSettingsToggle /> : <EventTypeSchedule />;
+export const EventAvailabilityTab = ({
+  eventType,
+  isTeamEvent,
+}: {
+  eventType: EventTypeSetup;
+  isTeamEvent: boolean;
+}) => {
+  return isTeamEvent ? (
+    <UseCommonScheduleSettingsToggle eventType={eventType} />
+  ) : (
+    <EventTypeSchedule eventType={eventType} />
+  );
 };

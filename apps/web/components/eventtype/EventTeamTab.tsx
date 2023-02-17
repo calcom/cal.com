@@ -7,6 +7,9 @@ import { Options } from "react-select";
 import CheckedTeamSelect, {
   CheckedSelectOption,
 } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import CheckedUserSelect, {
+  CheckedUserSelectOption,
+} from "@calcom/features/eventtypes/components/CheckedUserSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";
@@ -33,6 +36,53 @@ const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof 
     return 1;
   }
   return 0;
+};
+
+const Users = ({
+  control,
+  labelText,
+  placeholder,
+  options = [],
+  ...rest
+}: {
+  control: Control<FormValues>;
+  labelText: string;
+  placeholder: string;
+  schedulingType?: SchedulingType;
+  options?: Options<CheckedUserSelectOption>;
+} & Partial<ComponentProps<typeof CheckedTeamSelect>>) => {
+  return (
+    <div className="flex flex-col space-y-5">
+      <div>
+        <Label>{labelText}</Label>
+        <Controller
+          name="users"
+          control={control}
+          render={({ field: { onChange, value } }) => {
+            return (
+              <CheckedUserSelect
+                isDisabled={false}
+                onChange={(options) => {
+                  onChange(options.map((option) => parseInt(option.value, 10)));
+                }}
+                value={value
+                  .map(
+                    (user) =>
+                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                      options.find((member) => member.value === user.toString())!
+                  )
+                  .filter(Boolean)}
+                controlShouldRenderValue={false}
+                options={options}
+                placeholder={placeholder}
+                {...rest}
+              />
+            );
+          }}
+        />
+      </div>
+    </div>
+  );
 };
 
 const FixedHosts = ({
@@ -117,23 +167,25 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
     <div>
       {team && (
         <div className="space-y-5">
-          <div className="flex flex-col">
-            <Label>{t("scheduling_type")}</Label>
-            <Controller
-              name="schedulingType"
-              control={formMethods.control}
-              render={({ field: { value, onChange } }) => (
-                <Select
-                  options={schedulingTypeOptions}
-                  value={schedulingTypeOptions.find((opt) => opt.value === value)}
-                  className="w-full"
-                  onChange={(val) => {
-                    onChange(val?.value);
-                  }}
-                />
-              )}
-            />
-          </div>
+          {schedulingType !== SchedulingType.MANAGED && (
+            <div className="flex flex-col">
+              <Label>{t("scheduling_type")}</Label>
+              <Controller
+                name="schedulingType"
+                control={formMethods.control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    options={schedulingTypeOptions}
+                    value={schedulingTypeOptions.find((opt) => opt.value === value)}
+                    className="w-full"
+                    onChange={(val) => {
+                      onChange(val?.value);
+                    }}
+                  />
+                )}
+              />
+            </div>
+          )}
 
           {schedulingType === SchedulingType.COLLECTIVE && (
             <FixedHosts
@@ -142,6 +194,16 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
               labelText={t("team")}
               control={formMethods.control}
             />
+          )}
+          {schedulingType === SchedulingType.MANAGED && (
+            <>
+              <Users
+                options={teamMembersOptions.sort(sortByLabel)}
+                placeholder={t("add_members")}
+                labelText={t("assign_to")}
+                control={formMethods.control}
+              />
+            </>
           )}
           {schedulingType === SchedulingType.ROUND_ROBIN && (
             <>

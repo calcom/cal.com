@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { lockedManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -34,7 +35,6 @@ import {
   showToast,
   TextAreaField,
   TextField,
-  Checkbox,
 } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";
 
@@ -97,7 +97,14 @@ const CreateEventTypeDialog = (props: { membershipRole: MembershipRole | null | 
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      metadata: {
+        managedEventConfig: {
+          lockedFields: lockedManagedEventTypeProps,
+        },
+      },
+    },
   });
 
   const schedulingTypeWatch = form.watch("schedulingType");
@@ -212,31 +219,34 @@ const CreateEventTypeDialog = (props: { membershipRole: MembershipRole | null | 
               </div>
             )}
 
-            <TextAreaField
-              label={t("description")}
-              placeholder={t("quick_video_meeting")}
-              {...register("description")}
-            />
-
-            <div className="relative">
-              <TextField
-                type="number"
-                required
-                min="10"
-                placeholder="15"
-                label={t("length")}
-                className="pr-4"
-                {...register("length", { valueAsNumber: true })}
-                addOnSuffix={t("minutes")}
-              />
-            </div>
+            {!teamId && (
+              <>
+                <TextAreaField
+                  label={t("description")}
+                  placeholder={t("quick_video_meeting")}
+                  {...register("description")}
+                />
+                <div className="relative">
+                  <TextField
+                    type="number"
+                    required
+                    min="10"
+                    placeholder="15"
+                    label={t("length")}
+                    className="pr-4"
+                    {...register("length", { valueAsNumber: true })}
+                    addOnSuffix={t("minutes")}
+                  />
+                </div>
+              </>
+            )}
 
             {teamId && (
               <div className="mb-4">
                 <label
                   htmlFor="schedulingType"
                   className="mb-2 block text-sm font-medium leading-none text-gray-700">
-                  {t("scheduling_type")}
+                  {t("assignment")}
                 </label>
                 {form.formState.errors.schedulingType && (
                   <Alert

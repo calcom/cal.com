@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Controller, useFormContext, UseFormRegisterReturn, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
+import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import convertToNewDurationType, { DurationType } from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -65,6 +66,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
       <div className="w-1/2 md:w-full">
         <InputField
           required
+          disabled={passThroughProps.disabled}
           defaultValue={minimumBookingNoticeDisplayValues.value}
           onChange={(e) =>
             setMinimumBookingNoticeDisplayValues({
@@ -81,6 +83,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
       </div>
       <Select
         isSearchable={false}
+        isDisabled={passThroughProps.disabled}
         className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
         defaultValue={durationTypeOptions.find(
           (option) => option.value === minimumBookingNoticeDisplayValues.type
@@ -132,12 +135,17 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     defaultValue: periodType?.type,
   });
 
+  const lfm = new LockedFieldsManager(eventType);
+
   return (
     <div className="space-y-8">
       <div className="space-y-4 lg:space-y-8">
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
           <div className="w-full">
-            <Label htmlFor="beforeBufferTime">{t("before_event")} </Label>
+            <Label htmlFor="beforeBufferTime">
+              {t("before_event")}
+              {lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
+            </Label>
             <Controller
               name="beforeBufferTime"
               control={formMethods.control}
@@ -156,6 +164,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
+                    isDisabled={lfm.shouldLockDisable("bookingLimits")}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -169,7 +178,10 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
           <div className="w-full">
-            <Label htmlFor="afterBufferTime">{t("after_event")} </Label>
+            <Label htmlFor="afterBufferTime">
+              {t("after_event")}
+              {lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
+            </Label>
             <Controller
               name="afterBufferTime"
               control={formMethods.control}
@@ -188,6 +200,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
+                    isDisabled={lfm.shouldLockDisable("bookingLimits")}
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
@@ -203,11 +216,20 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         </div>
         <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
           <div className="w-full">
-            <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
-            <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
+            <Label htmlFor="minimumBookingNotice">
+              {t("minimum_booking_notice")}
+              {lfm.shouldLockDisable("minimumBookingNotice", t("locked_fields_description"))}
+            </Label>
+            <MinimumBookingNoticeInput
+              disabled={lfm.shouldLockDisable("minimumBookingNotice")}
+              {...formMethods.register("minimumBookingNotice")}
+            />
           </div>
           <div className="w-full">
-            <Label htmlFor="slotInterval">{t("slot_interval")} </Label>
+            <Label htmlFor="slotInterval">
+              {t("slot_interval")}
+              {lfm.shouldLockDisable("slotInterval", t("locked_fields_description"))}
+            </Label>
             <Controller
               name="slotInterval"
               control={formMethods.control}
@@ -225,6 +247,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <Select
                     isSearchable={false}
+                    isDisabled={lfm.shouldLockDisable("slotInterval")}
                     onChange={(val) => {
                       formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
                     }}
@@ -247,6 +270,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         render={({ field: { value } }) => (
           <SettingsToggle
             title={t("limit_booking_frequency")}
+            disabled={lfm.shouldLockDisable("bookingLimits")}
+            isLocked={lfm.shouldLockDisable("bookingLimits", t("locked_fields_description"))}
             description={t("limit_booking_frequency_description")}
             checked={Object.keys(value ?? {}).length > 0}
             onCheckedChange={(active) => {
@@ -270,6 +295,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <SettingsToggle
             title={t("limit_future_bookings")}
             description={t("limit_future_bookings_description")}
+            disabled={lfm.shouldLockDisable("periodType")}
+            isLocked={lfm.shouldLockDisable("periodType", t("locked_fields_description"))}
             checked={value && value !== "UNLIMITED"}
             onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
             <RadioGroup.Root

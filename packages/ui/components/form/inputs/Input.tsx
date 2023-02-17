@@ -1,3 +1,4 @@
+import { TFunction } from "next-i18next";
 import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
@@ -39,6 +40,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 
 type InputFieldProps = {
   label?: ReactNode;
+  isLocked?: React.ReactNode;
   hint?: ReactNode;
   hintErrors?: string[];
   addOnLeading?: ReactNode;
@@ -84,6 +86,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     label = t(name),
     labelProps,
     labelClassName,
+    disabled,
+    isLocked,
     placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
@@ -113,7 +117,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           loadingClassName="w-16"
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
-          {label}
+          <>
+            {label}
+            {isLocked}
+          </>
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
@@ -148,7 +155,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               },
               value: inputValue,
             })}
-            readOnly={readOnly}
+            readOnly={readOnly || disabled}
             ref={ref}
           />
           {addOnSuffix && (

@@ -24,10 +24,10 @@ import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/eventtype/EventAppsTab";
+import { EventAvailabilityTab } from "@components/eventtype/EventAvailabilityTab";
 import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
@@ -82,6 +82,7 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
+  users: (number | string)[];
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
 };
@@ -106,6 +107,7 @@ const querySchema = z.object({
 });
 
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
+export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
@@ -195,6 +197,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
+      users: eventType.users.map((user) => user.id),
       hosts: !!eventType.hosts?.length
         ? eventType.hosts.filter((host) => !host.isFixed)
         : eventType.users
@@ -241,7 +244,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         teamMembers={teamMembers}
       />
     ),
-    availability: <AvailabilityTab isTeamEvent={!!team} />,
+    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
     team: <EventTeamTab teamMembers={teamMembers} team={team} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
@@ -284,6 +287,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             metadata,
             customInputs,
             hosts: hostsInput,
+            users,
             hostsFixed,
             // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -329,6 +333,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsShowAttendees,
             metadata,
             customInputs,
+            users,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">

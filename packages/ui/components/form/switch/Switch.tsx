@@ -12,6 +12,7 @@ const Switch = (
       className?: string;
     };
     fitToHeight?: boolean;
+    disabled?: boolean;
   }
 ) => {
   const { label, fitToHeight, ...primitiveProps } = props;

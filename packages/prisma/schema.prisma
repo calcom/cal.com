@@ -64,6 +64,9 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  parentId                Int?
+  parent                  EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                EventType[]             @relation("managed_eventtype")
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -98,6 +101,7 @@ model EventType {
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
+  @@unique([userId, parentId])
 }
 
 model Credential {

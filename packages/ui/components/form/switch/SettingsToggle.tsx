@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { TFunction } from "next-i18next";
 import { ReactNode } from "react";
 
 import { Label } from "..";
@@ -10,6 +11,7 @@ type Props = {
   description?: string;
   checked: boolean;
   disabled?: boolean;
+  isLocked?: React.ReactNode;
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
 };
@@ -18,6 +20,7 @@ function SettingsToggle({
   checked,
   onCheckedChange,
   description,
+  isLocked,
   title,
   children,
   disabled,
@@ -39,7 +42,10 @@ function SettingsToggle({
             />
 
             <div className="">
-              <Label className="text-sm font-semibold leading-none text-black">{title}</Label>
+              <Label className="text-sm font-semibold leading-none text-black">
+                {title}
+                {isLocked}
+              </Label>
               {description && <p className="-mt-1.5 text-sm leading-normal text-gray-600">{description}</p>}
             </div>
           </div>

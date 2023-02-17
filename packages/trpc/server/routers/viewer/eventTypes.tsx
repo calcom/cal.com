@@ -10,6 +10,7 @@ import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
+import updateChildrenEventTypes, { allManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
@@ -408,17 +409,15 @@ export const eventTypesRouter = router({
     });
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
-    const { schedulingType, teamId, ...rest } = input;
+    const { schedulingType, teamId, metadata, ...rest } = input;
     const userId = ctx.user.id;
     const appKeys = await getAppKeysFromSlug("daily-video");
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
-      users: {
-        connect: {
-          id: userId,
-        },
-      },
+      metadata: metadata as Prisma.InputJsonObject,
+      // Only connecting the current user for non-managed event type
+      users: schedulingType === SchedulingType.MANAGED ? undefined : { connect: { id: userId } },
       ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
         typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
     };
@@ -505,6 +504,7 @@ export const eventTypesRouter = router({
       hosts,
       id,
       hashedLink,
+      schedulingType,
       // Extract this from the input so it doesn't get saved in the db
       // eslint-disable-next-line
       userId,
@@ -654,11 +654,31 @@ export const eventTypesRouter = router({
         });
       }
     }
+    const [oldEventType, eventType] = await ctx.prisma.$transaction([
+      ctx.prisma.eventType.findFirst({
+        where: { id },
+        select: allManagedEventTypeProps,
+      }),
+      ctx.prisma.eventType.update({
+        where: { id },
+        data,
+      }),
+    ]);
 
-    const eventType = await ctx.prisma.eventType.update({
-      where: { id },
-      data,
-    });
+    // Handling updates to managed events
+    if (schedulingType === SchedulingType.MANAGED) {
+      try {
+        await updateChildrenEventTypes({
+          eventTypeId: id,
+          currentUserId: ctx.user.id,
+          oldEventType,
+          updatedEventType: eventType,
+          prisma: ctx.prisma,
+        });
+      } catch (e) {
+        console.log(e);
+      }
+    }
 
     return { eventType };
   }),

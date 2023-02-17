@@ -1,4 +1,4 @@
-import { EventTypeCustomInputType } from "@prisma/client";
+import { EventType, EventTypeCustomInputType, Prisma } from "@prisma/client";
 import { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
@@ -38,6 +38,11 @@ export const EventTypeMetaDataSchema = z
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
+    managedEventConfig: z
+      .object({
+        lockedFields: z.custom<{ [k in keyof Prisma.EventTypeSelect]: true }>().optional(),
+      })
+      .optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),

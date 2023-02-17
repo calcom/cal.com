@@ -172,7 +172,10 @@ function EventTypeSingleLayout({
         name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
-        info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
+        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
+          eventType.schedulingType === "MANAGED" &&
+          ` - ${t("count_members", { count: eventType.users.length || 0 })}`
+        }`,
       });
       navigation.push({
         name: "webhooks",
