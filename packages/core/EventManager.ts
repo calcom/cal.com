@@ -397,7 +397,7 @@ export default class EventManager {
 
     let videoCredential = this.videoCredentials
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
-      // Because you can't rely on having them in the higgest first order here, ensure this by sorting in DESC order
+      // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
       .sort((a, b) => {
         return b.id - a.id;
       })

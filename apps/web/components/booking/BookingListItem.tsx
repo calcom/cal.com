@@ -41,7 +41,6 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  console.log("🚀 ~ file: BookingListItem.tsx:45 ~ BookingListItem ~ booking", booking);
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
