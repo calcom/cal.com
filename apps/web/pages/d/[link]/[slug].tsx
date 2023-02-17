@@ -1,16 +1,17 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
+import { privacyFilteredLocations } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { GetBookingType } from "@lib/getBooking";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { GetBookingType } from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 

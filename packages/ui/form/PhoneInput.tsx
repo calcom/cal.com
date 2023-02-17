@@ -1,4 +1,5 @@
-import BasePhoneInput, { Props } from "react-phone-number-input";
+import BasePhoneInput from "react-phone-number-input";
+import type { Props } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 export type PhoneInputProps = Props<{
