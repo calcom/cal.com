@@ -165,23 +165,21 @@ const Hosts = ({
     <Controller<FormValues>
       name="hosts"
       render={({ field: { onChange, value } }) => {
-        switch (schedulingType) {
-          case "COLLECTIVE":
-            return (
-              <CheckedHostField
-                value={value}
-                onChange={onChange}
-                isFixed={true}
-                options={teamMembers.sort(sortByLabel)}
-                placeholder={t("add_attendees")}
-                labelText={t("team")}
-              />
-            );
-          case "ROUND_ROBIN":
-            return (
-              <>
-                <RoundRobinHosts teamMembers={teamMembers} onChange={onChange} value={value} />
-                {/*<TextField
+        const schedulingTypeRender = {
+          COLLECTIVE: (
+            <CheckedHostField
+              value={value}
+              onChange={onChange}
+              isFixed={true}
+              options={teamMembers.sort(sortByLabel)}
+              placeholder={t("add_attendees")}
+              labelText={t("team")}
+            />
+          ),
+          ROUND_ROBIN: (
+            <>
+              <RoundRobinHosts teamMembers={teamMembers} onChange={onChange} value={value} />
+              {/*<TextField
         required
         type="number"
         label={t("minimum_round_robin_hosts_count")}
@@ -189,10 +187,10 @@ const Hosts = ({
         {...formMethods.register("minimumHostCount")}
         addOnSuffix={<>{t("hosts")}</>}
                 />*/}
-              </>
-            );
-        }
-        return <></>;
+            </>
+          ),
+        };
+        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
       }}
     />
   );
