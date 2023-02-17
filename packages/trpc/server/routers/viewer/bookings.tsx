@@ -478,10 +478,10 @@ export const bookingsRouter = router({
           },
         });
 
-        // delete scheduled jobs of cancelled bookings
+        // delete scheduled jobs of previous booking
         cancelScheduledJobs(bookingToReschedule);
 
-        //cancel workflow reminders
+        //cancel workflow reminders of previous booking
         bookingToReschedule.workflowReminders.forEach((reminder) => {
           if (reminder.method === WorkflowMethods.EMAIL) {
             deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);

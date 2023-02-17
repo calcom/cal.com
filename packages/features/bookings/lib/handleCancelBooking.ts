@@ -481,7 +481,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     cancelScheduledJobs(booking);
   });
 
-  //Workflows - cancel all reminders for bookings
+  //Workflows - cancel all reminders for cancelled bookings
   updatedBookings.forEach((booking) => {
     booking.workflowReminders.forEach((reminder) => {
       if (reminder.method === WorkflowMethods.EMAIL) {

@@ -207,6 +207,7 @@ export const workflowsRouter = router({
           },
         });
 
+        //cancel workflow reminders of deleted workflow
         scheduledReminders.forEach((reminder) => {
           if (reminder.method === WorkflowMethods.EMAIL) {
             deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
@@ -370,8 +371,8 @@ export const workflowsRouter = router({
 
       const remindersToDelete = await Promise.all(remindersToDeletePromise);
 
+      //cancel workflow reminders for all bookings from event types that got disabled
       remindersToDelete.flat().forEach((reminder) => {
-        //already scheduled reminders
         if (reminder.method === WorkflowMethods.EMAIL) {
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
@@ -512,7 +513,7 @@ export const workflowsRouter = router({
         });
         //step was deleted
         if (!newStep) {
-          //delete already scheduled reminders
+          // cancel all workflow reminders from delted steps
           if (remindersFromStep.length > 0) {
             remindersFromStep.forEach((reminder) => {
               if (reminder.method === WorkflowMethods.EMAIL) {
@@ -567,6 +568,8 @@ export const workflowsRouter = router({
               return reminder;
             }
           });
+
+          //cancel all workflow reminders from steps that were edited
           remindersToUpdate.forEach(async (reminder) => {
             if (reminder.method === WorkflowMethods.EMAIL) {
               deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
