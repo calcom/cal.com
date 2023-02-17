@@ -1,5 +1,4 @@
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import dynamic from "next/dynamic";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -8,10 +7,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
-const AvailabilityPage = dynamic(() => import("@components/booking/pages/AvailabilityPage"), { ssr: true });
+import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
 
@@ -55,9 +54,9 @@ export default function Type(props: AvailabilityPageProps) {
 
 Type.isThemeSupported = true;
 
+const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies
-  const { z } = await import("zod");
   const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
@@ -318,8 +317,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     revalidate: 10, // seconds
   };
 }
-
-const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const { user: userParam } = paramsSchema.parse(context.params);

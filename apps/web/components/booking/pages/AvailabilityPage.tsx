@@ -30,17 +30,19 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import PoweredByCal from "@components/ui/PoweredByCal";
+import { SlotPicker } from "@components/booking/SlotPicker";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
+const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
+
 const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
-const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
+/*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
   ssr: false,
   loading: () => <div className="mt-8 px-4 pb-4 sm:mt-0 sm:p-4 md:min-w-[300px] md:px-5 lg:min-w-[455px]" />,
-});
+});*/
 const TimezoneDropdown = dynamic(() => import("../TimezoneDropdown").then((mod) => mod.TimezoneDropdown), {
   ssr: false,
 });

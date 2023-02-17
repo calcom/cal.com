@@ -1,8 +1,8 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { EventType } from "@prisma/client";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import DatePicker from "@calcom/features/calendars/DatePicker";
@@ -14,7 +14,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import AvailableTimes from "@components/booking/AvailableTimes";
+const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
 const getRefetchInterval = (refetchCount: number): number => {
   switch (refetchCount) {
@@ -115,8 +115,6 @@ export const SlotPicker = ({
     duration = eventType.length.toString();
   }
 
-  const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
-
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -191,25 +189,22 @@ export const SlotPicker = ({
         browsingDate={browsingDate}
         weekStart={weekStart}
       />
-
-      <div ref={slotPickerRef}>
-        <AvailableTimes
-          isLoading={isLoadingSelectedDateSlots}
-          slots={
-            selectedDate &&
-            (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
-              monthSlots[selectedDate.format("YYYY-MM-DD")])
-          }
-          date={selectedDate}
-          timeFormat={timeFormat}
-          onTimeFormatChange={onTimeFormatChange}
-          eventTypeId={eventType.id}
-          eventTypeSlug={eventType.slug}
-          seatsPerTimeSlot={seatsPerTimeSlot}
-          recurringCount={recurringEventCount}
-          ethSignature={ethSignature}
-        />
-      </div>
+      <AvailableTimes
+        isLoading={isLoadingSelectedDateSlots}
+        slots={
+          selectedDate &&
+          (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
+            monthSlots[selectedDate.format("YYYY-MM-DD")])
+        }
+        date={selectedDate}
+        timeFormat={timeFormat}
+        onTimeFormatChange={onTimeFormatChange}
+        eventTypeId={eventType.id}
+        eventTypeSlug={eventType.slug}
+        seatsPerTimeSlot={seatsPerTimeSlot}
+        recurringCount={recurringEventCount}
+        ethSignature={ethSignature}
+      />
     </>
   );
 };
