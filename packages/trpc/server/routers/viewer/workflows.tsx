@@ -1,6 +1,5 @@
+import type { Prisma, PrismaPromise } from "@prisma/client";
 import {
-  Prisma,
-  PrismaPromise,
   WorkflowTemplates,
   WorkflowActions,
   WorkflowTriggerEvents,
@@ -32,11 +31,11 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowStep } from "@calcom/prisma/client";
+import type { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1127,6 +1126,6 @@ action === WorkflowActions.EMAIL_ADDRESS*/
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
     const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
     const t = await getTranslation(ctx.user.locale, "common");
-    return getWorkflowActionOptions(t, !!hasTeamPlan);
+    return getWorkflowActionOptions(t, IS_SELF_HOSTED || !!hasTeamPlan);
   }),
 });
