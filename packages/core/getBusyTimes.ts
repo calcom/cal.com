@@ -10,20 +10,20 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;
+  username: string;
   eventTypeId?: number;
   startTime: string;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   endTime: string;
-  selectedCalendars: SelectedCalendar[];
 }) {
   const {
     credentials,
     userId,
+    username,
     eventTypeId,
     startTime,
     endTime,
-    selectedCalendars,
     beforeEventBuffer,
     afterEventBuffer,
   } = params;
@@ -129,7 +129,7 @@ export async function getBusyTimes(params: {
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
-    const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
+    const calendarBusyTimes = await getBusyCalendarTimes(username, credentials, startTime, endTime);
     busyTimes.push(
       ...calendarBusyTimes.map((value) => ({
         ...value,

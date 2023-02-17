@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { TFunction } from "next-i18next";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Label } from "..";
 import Switch from "./Switch";

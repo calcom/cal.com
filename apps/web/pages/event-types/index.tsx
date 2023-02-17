@@ -1,8 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, useEffect, useState, memo } from "react";
+import type { FC } from "react";
+import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
 import {
@@ -14,7 +15,8 @@ import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Avatar,
   AvatarGroup,
@@ -455,37 +457,30 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
                         <DropdownMenuItem className="outline-none">
-                          <Link href={calLink} target="_blank">
-                            <Button
-                              color="minimal"
-                              StartIcon={FiExternalLink}
-                              className="w-full rounded-none">
-                              {t("preview")}
-                            </Button>
-                          </Link>
+                          <DropdownItem
+                            href={calLink}
+                            target="_blank"
+                            StartIcon={FiExternalLink}
+                            className="w-full rounded-none">
+                            {t("preview")}
+                          </DropdownItem>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="outline-none">
-                          <Button
-                            type="button"
-                            color="minimal"
-                            className="w-full rounded-none text-left"
+                          <DropdownItem
                             data-testid={"event-type-duplicate-" + type.id}
-                            StartIcon={FiClipboard}
                             onClick={() => {
                               navigator.clipboard.writeText(calLink);
                               showToast(t("link_copied"), "success");
-                            }}>
+                            }}
+                            StartIcon={FiClipboard}
+                            className="w-full rounded-none text-left">
                             {t("copy_link")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                         {isNativeShare ? (
                           <DropdownMenuItem className="outline-none">
-                            <Button
-                              type="button"
-                              color="minimal"
-                              className="w-full rounded-none"
+                            <DropdownItem
                               data-testid={"event-type-duplicate-" + type.id}
-                              StartIcon={FiUpload}
                               onClick={() => {
                                 navigator
                                   .share({
@@ -495,44 +490,41 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   })
                                   .then(() => showToast(t("link_shared"), "success"))
                                   .catch(() => showToast(t("failed"), "error"));
-                              }}>
+                              }}
+                              StartIcon={FiUpload}
+                              className="w-full rounded-none">
                               {t("share")}
-                            </Button>
+                            </DropdownItem>
                           </DropdownMenuItem>
                         ) : null}
                         <DropdownMenuItem className="outline-none">
-                          <Button
-                            type="button"
+                          <DropdownItem
                             onClick={() => router.push("/event-types/" + type.id)}
-                            color="minimal"
-                            className="w-full rounded-none"
-                            StartIcon={FiEdit}>
+                            StartIcon={FiEdit}
+                            className="w-full rounded-none">
                             {t("edit")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="outline-none">
-                          <Button
-                            type="button"
-                            color="minimal"
-                            className="w-full rounded-none"
-                            data-testid={"event-type-duplicate-" + type.id}
+                          <DropdownItem
+                            onClick={() => openDuplicateModal(type, group)}
                             StartIcon={FiCopy}
-                            onClick={() => openDuplicateModal(type, group)}>
+                            data-testid={"event-type-duplicate-" + type.id}>
                             {t("duplicate")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="outline-none">
-                          <Button
+                          <DropdownItem
+                            color="destructive"
                             onClick={() => {
                               setDeleteDialogOpen(true);
                               setDeleteDialogTypeId(type.id);
                             }}
-                            color="destructive"
                             StartIcon={FiTrash}
                             className="w-full rounded-none">
                             {t("delete")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenuPortal>

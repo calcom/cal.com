@@ -35,7 +35,7 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
-    await expect(page.locator('[id="modal-title"]')).not.toBeVisible();
+    await expect(page.locator('[id="modal-title"]')).toBeHidden();
 
     const updatedBooking = await booking.self();
 

@@ -1,7 +1,7 @@
 import { EventTypeSetup, FormValues } from "pages/event-types/[type]";
-import { useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { components, OptionProps, SingleValueProps } from "react-select";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import LockedFieldsManager from "@calcom/lib/LockedFieldsManager";

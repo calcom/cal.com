@@ -3,7 +3,7 @@ import Script from "next/script";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 
-import { appDataSchemas } from "./apps.schemas.generated";
+import type { appDataSchemas } from "./apps.schemas.generated";
 
 export default function BookingPageTagManager({
   eventType,
@@ -26,7 +26,7 @@ export default function BookingPageTagManager({
           val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
 
         return tag.scripts.map((script, index) => {
-          const parsedAttributes: NonNullable<typeof tag.scripts[number]["attrs"]> = {};
+          const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};
           const attrs = script.attrs || {};
           Object.entries(attrs).forEach(([name, value]) => {
             if (typeof value === "string") {

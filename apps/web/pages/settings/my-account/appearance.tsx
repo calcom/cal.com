@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { Controller, useForm } from "react-hook-form";
 
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";

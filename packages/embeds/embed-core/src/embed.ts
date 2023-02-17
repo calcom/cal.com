@@ -1,7 +1,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import { methods, UiConfig } from "./embed-iframe";
+import type { methods, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
 import allCss from "./tailwind.generated.css";
@@ -428,7 +428,7 @@ export class Cal {
     method,
     arg,
   }: // TODO: Need some TypeScript magic here to remove hardcoded types
-  | { method: "ui"; arg: Parameters<typeof methods["ui"]>[0] }
+  | { method: "ui"; arg: Parameters<(typeof methods)["ui"]>[0] }
     | { method: "parentKnowsIframeReady"; arg: undefined }) {
     if (!this.iframeReady) {
       this.iframeDoQueue.push({ method, arg });

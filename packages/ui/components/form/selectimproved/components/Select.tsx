@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
 import { classNames as cn } from "@calcom/lib";
 import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
@@ -8,7 +8,7 @@ import { FiX, FiChevronDown } from "../../../icon";
 import Options from "./Options";
 import SearchInput from "./SearchInput";
 import SelectProvider from "./SelectProvider";
-import { Option } from "./type";
+import type { Option } from "./type";
 
 interface SelectProps<T extends Option> {
   options: T[];

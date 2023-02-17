@@ -339,18 +339,18 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 ### Good First Issues
 
 We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
-  
+
 <!-- BOUNTIES -->
 
 ### Bounties
-  
+
 <a href="https://console.algora.io/org/cal/bounties?status=open">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=dark">
     <img alt="Bounties of cal" src="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=light">
   </picture>
 </a>  
-  
+
 
 <!-- TRANSLATIONS -->
 

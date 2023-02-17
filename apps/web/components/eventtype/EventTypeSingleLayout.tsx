@@ -1,8 +1,8 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { TbWebhook } from "react-icons/tb";
 
 import Shell from "@calcom/features/shell/Shell";

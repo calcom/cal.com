@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import qrcode from "qrcode";
 

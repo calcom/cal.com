@@ -1,6 +1,6 @@
-import { z } from "zod";
+import type { z } from "zod";
 
-import { zodRouterRouteView, zodRoute, zodRouterRoute, zodRouteView } from "../zod";
+import type { zodRouterRouteView, zodRoute, zodRouterRoute, zodRouteView } from "../zod";
 
 export default function isRouter(
   route: z.infer<typeof zodRouteView> | z.infer<typeof zodRoute>
