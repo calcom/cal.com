@@ -1,8 +1,8 @@
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
 
 import { HttpError } from "../http-error";
 import { parseDurationLimit } from "../isDurationLimits";
+import { getTotalBookingDuration } from "./queries";
 
 export async function checkDurationLimits(durationLimits: any, eventStartDate: Date, eventId: number) {
   const parsedDurationLimits = parseDurationLimit(durationLimits);
@@ -41,34 +41,7 @@ export async function checkDurationLimit({
     const startDate = dayjs(eventStartDate).startOf(filter).toDate();
     const endDate = dayjs(startDate).endOf(filter).toDate();
 
-    const bookingTimes = await prisma.booking.findMany({
-      select: {
-        startTime: true,
-        endTime: true,
-      },
-      where: {
-        status: "ACCEPTED",
-        eventType: {
-          AND: [
-            {
-              id: eventId,
-              bookings: {
-                every: {
-                  startTime: {
-                    gte: startDate,
-                  },
-                  endTime: {
-                    lte: endDate,
-                  },
-                },
-              },
-            },
-          ],
-        },
-      },
-    });
-
-    const totalBookingDuration = sumDuration(bookingTimes);
+    const totalBookingDuration = await getTotalBookingDuration({ eventId, startDate, endDate });
     if (totalBookingDuration >= limitingNumber) {
       // This is used when getting availability
       if (returnBusyTimes) {
@@ -85,11 +58,3 @@ export async function checkDurationLimit({
     }
   }
 }
-
-// This is a helper function to sum the duration of all bookings
-const sumDuration = (bookings: { startTime: Date; endTime: Date }[]) => {
-  return bookings.reduce((acc, booking) => {
-    const duration = dayjs(booking.endTime).diff(booking.startTime, "minute");
-    return acc + duration;
-  }, 0);
-};
