@@ -40,7 +40,7 @@ import { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
+import { router, authedProcedure } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
 
 function getSender(
