@@ -1,10 +1,12 @@
-import { cva, VariantProps } from "class-variance-authority";
-import Link, { LinkProps } from "next/link";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import type { LinkProps } from "next/link";
+import Link from "next/link";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { FiPlus } from "../icon";
 import { Tooltip } from "../tooltip";

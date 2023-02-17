@@ -1,14 +1,16 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
-import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { FiCalendar } from "@calcom/ui/components/icon";
 

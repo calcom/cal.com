@@ -25,14 +25,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import {
-  FiClock,
-  FiExternalLink,
-  FiMoreHorizontal,
-  FiEdit2,
-  FiLock,
-  FiTrash,
-} from "@calcom/ui/components/icon";
+import { FiExternalLink, FiMoreHorizontal, FiEdit2, FiLock, FiTrash } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -130,7 +123,8 @@ export default function MemberListItem(props: Props) {
         {props.team.membership.accepted && (
           <div className="flex items-center justify-center">
             <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
-              <Tooltip
+              {/* TODO: bring availability back. right now its ugly and broken
+               <Tooltip
                 content={
                   props.member.accepted
                     ? t("team_view_user_availability")
@@ -143,7 +137,7 @@ export default function MemberListItem(props: Props) {
                   variant="icon"
                   StartIcon={FiClock}
                 />
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip content={t("view_public_page")}>
                 <Button
                   target="_blank"
@@ -205,13 +199,6 @@ export default function MemberListItem(props: Props) {
                   <Button type="button" variant="icon" color="minimal" StartIcon={FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {props.member.accepted && (
-                    <DropdownMenuItem className="outline-none">
-                      <DropdownItem type="button" StartIcon={FiClock}>
-                        {t("team_view_user_availability")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem type="button" StartIcon={FiExternalLink}>
                       {t("view_public_page")}

@@ -1,8 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, useEffect, useState, memo } from "react";
+import type { FC } from "react";
+import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
 import {
@@ -14,7 +15,8 @@ import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Avatar,
   AvatarGroup,

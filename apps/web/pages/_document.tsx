@@ -1,4 +1,5 @@
-import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps } from "next/document";
+import type { DocumentContext, DocumentProps } from "next/document";
+import Document, { Head, Html, Main, NextScript } from "next/document";
 import Script from "next/script";
 import { z } from "zod";
 

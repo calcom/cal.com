@@ -6,15 +6,11 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
-import { MultiValue } from "react-select";
+import type { MultiValue } from "react-select";
 import { z } from "zod";
 
-import {
-  EventLocationType,
-  getEventLocationType,
-  MeetLocationType,
-  LocationType,
-} from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { slugify } from "@calcom/lib/slugify";
@@ -22,10 +18,8 @@ import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@cal
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import LocationSelect, {
-  SingleValueLocationOption,
-  LocationOption,
-} from "@components/ui/form/LocationSelect";
+import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
+import LocationSelect from "@components/ui/form/LocationSelect";
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -81,7 +75,7 @@ export const EventSetupTab = (
     setShowLocationModal(true);
   };
 
-  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
+  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
     formMethods.setValue(
       "locations",
       formMethods.getValues("locations").filter((location) => {
