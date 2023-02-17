@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/lib/auth";
 import slugify from "@calcom/lib/slugify";

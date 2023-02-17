@@ -1,12 +1,12 @@
 import type { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { ComponentProps, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import type { ComponentProps } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
-import CheckedTeamSelect, {
-  CheckedSelectOption,
-} from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";

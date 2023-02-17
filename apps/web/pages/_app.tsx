@@ -6,7 +6,8 @@ import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
 
-import AppProviders, { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@lib/app-providers";
+import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";

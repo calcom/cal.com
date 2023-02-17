@@ -1,4 +1,5 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -1108,6 +1109,7 @@ const loggedInViewerRouter = router({
         });
         await prisma.webhook.deleteMany({
           where: {
+            userId: ctx.user.id,
             appId: "zapier",
           },
         });

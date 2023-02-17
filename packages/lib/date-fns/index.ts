@@ -1,4 +1,5 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 
 // converts a date to 2022-04-25 for example.
 export const yyyymmdd = (date: Date | Dayjs) =>
@@ -27,6 +28,61 @@ export const formatTime = (
         .tz(timeZone)
         .format(timeFormat === 12 ? "h:mma" : "HH:mm")
     : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+};
+
+/**
+ * Returns a localized and translated date or time, based on the native
+ * Intl.DateTimeFormat available to JS. Undefined values mean the browser's
+ * locale will be used.
+ */
+export const formatLocalizedDateTime = (
+  date: Date | Dayjs,
+  options: Intl.DateTimeFormatOptions = {},
+  locale: string | undefined = undefined
+) => {
+  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
+  return Intl.DateTimeFormat(locale, options).format(theDate);
+};
+
+/**
+ * Returns a localized and translated calendar day based on the
+ * given Date object and locale. Undefined values mean the defaults
+ * associated with the browser's current locale will be used.
+ */
+export const formatToLocalizedDate = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long"
+) => formatLocalizedDateTime(date, { dateStyle }, locale);
+
+/**
+ * Returns a localized and translated time of day based on the
+ * given Date object and locale. Undefined values mean the defaults
+ * associated with the browser's current locale will be used.
+ */
+export const formatToLocalizedTime = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
+  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined
+) => formatLocalizedDateTime(date, { timeStyle, hour12 }, locale);
+
+/**
+ * Returns a translated timezone based on the given Date object and
+ * locale. Undefined values mean the browser's current locale
+ * will be used.
+ */
+export const formatToLocalizedTimezone = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
+) => {
+  // Intl.DateTimeFormat doesn't format into a timezone only, so we must
+  //  formatToParts() and return the piece we want
+  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
+  return Intl.DateTimeFormat(locale, { timeZoneName })
+    .formatToParts(theDate)
+    .find((d) => d.type == "timeZoneName")?.value;
 };
 
 /**

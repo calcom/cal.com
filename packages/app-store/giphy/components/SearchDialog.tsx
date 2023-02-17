@@ -1,5 +1,6 @@
 import { LinkIcon, SearchIcon } from "@heroicons/react/outline";
-import { Dispatch, SetStateAction, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

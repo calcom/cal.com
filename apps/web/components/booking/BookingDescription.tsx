@@ -1,5 +1,6 @@
 import { SchedulingType } from "@prisma/client";
-import { FC, ReactNode, useEffect } from "react";
+import type { FC, ReactNode } from "react";
+import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";

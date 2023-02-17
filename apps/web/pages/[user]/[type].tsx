@@ -1,15 +1,16 @@
 import MarkdownIt from "markdown-it";
-import { GetStaticPaths, GetStaticPropsContext } from "next";
+import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
-import { User } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 import {
   EventTypeMetaDataSchema,
   teamMetadataSchema,
@@ -17,8 +18,8 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
@@ -132,7 +133,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: (typeof user.eventTypes[number] & {
+  const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {

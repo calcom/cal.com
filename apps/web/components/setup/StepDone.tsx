@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { FiCheck } from "@calcom/ui/components/icon";
