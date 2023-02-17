@@ -3,6 +3,10 @@ import loaderCss from "../loader.css";
 import { getErrorString } from "../utils";
 import modalBoxHtml from "./ModalBoxHtml";
 
+type ShadowRootWithStyle = ShadowRoot & {
+  host: HTMLElement & { style: CSSStyleDeclaration };
+};
+
 export class ModalBox extends HTMLElement {
   static htmlOverflow: string;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -11,9 +15,16 @@ export class ModalBox extends HTMLElement {
     return ["state"];
   }
 
+  assertHasShadowRoot(): asserts this is HTMLElement & { shadowRoot: ShadowRootWithStyle } {
+    if (!this.shadowRoot) {
+      throw new Error("No shadow root");
+    }
+  }
+
   show(show: boolean) {
+    this.assertHasShadowRoot();
     // We can't make it display none as that takes iframe width and height calculations to 0
-    (this.shadowRoot!.host as unknown as any).style.visibility = show ? "visible" : "hidden";
+    this.shadowRoot.host.style.visibility = show ? "visible" : "hidden";
     if (!show) {
       document.body.style.overflow = ModalBox.htmlOverflow;
     }
@@ -23,27 +34,50 @@ export class ModalBox extends HTMLElement {
     this.show(false);
   }
 
+  getLoaderElement() {
+    this.assertHasShadowRoot();
+    const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
+
+    if (!loaderEl) {
+      throw new Error("No loader element");
+    }
+
+    return loaderEl;
+  }
+
+  getErrorElement() {
+    this.assertHasShadowRoot();
+    const element = this.shadowRoot.querySelector<HTMLElement>("#error");
+
+    if (!element) {
+      throw new Error("No error element");
+    }
+
+    return element;
+  }
+
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name !== "state") {
       return;
     }
 
     if (newValue == "loaded") {
-      (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
+      this.getLoaderElement().style.display = "none";
     } else if (newValue === "started") {
       this.show(true);
     } else if (newValue == "closed") {
       this.show(false);
     } else if (newValue === "failed") {
-      (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
-      (this.shadowRoot!.querySelector("#error")! as HTMLElement).style.display = "inline-block";
+      this.getLoaderElement().style.display = "none";
+      this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
-      (this.shadowRoot!.querySelector("#error")! as HTMLElement).innerText = errorString;
+      this.getErrorElement().innerText = errorString;
     }
   }
 
   connectedCallback() {
-    const closeEl = this.shadowRoot!.querySelector(".close") as HTMLElement;
+    this.assertHasShadowRoot();
+    const closeEl = this.shadowRoot.querySelector(".close") as HTMLElement;
     document.addEventListener(
       "keydown",
       (e) => {
@@ -55,7 +89,7 @@ export class ModalBox extends HTMLElement {
         once: true,
       }
     );
-    this.shadowRoot!.host.addEventListener("click", () => {
+    this.shadowRoot.host.addEventListener("click", () => {
       this.close();
     });
 
@@ -72,6 +106,8 @@ export class ModalBox extends HTMLElement {
     this.attachShadow({ mode: "open" });
     ModalBox.htmlOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    this.shadowRoot!.innerHTML = modalHtml;
+
+    this.assertHasShadowRoot();
+    this.shadowRoot.innerHTML = modalHtml;
   }
 }
