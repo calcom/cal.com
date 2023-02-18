@@ -10,7 +10,44 @@ concurrency:
   group: prod-build-${{ github.sha }}
 
 env:
-  staleBuildFilesFindArgs: -maxdepth 1 -type f -regextype posix-egrep -regex ".*\.(json|js|css|map|txt)$"
+  DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+  NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+  NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
+  NEXTAUTH_SECRET: secret
+  GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+  GOOGLE_LOGIN_ENABLED: true
+  # CRON_API_KEY: xxx
+  CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+  NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
+  NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
+  NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
+  NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE: ${{ secrets.NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE }}
+  NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN: 1
+  STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+  STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  STRIPE_PRO_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PRO_PLAN_PRODUCT_ID }}
+  STRIPE_PREMIUM_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PREMIUM_PLAN_PRODUCT_ID }}
+  STRIPE_FREE_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_FREE_PLAN_PRODUCT_ID }}
+  PAYMENT_FEE_PERCENTAGE: 0.005
+  PAYMENT_FEE_FIXED: 10
+  SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+  SAML_ADMINS: pro@example.com
+  NEXTAUTH_URL: http://localhost:3000/api/auth
+  NEXT_PUBLIC_IS_E2E: 1
+  # EMAIL_FROM: e2e@cal.com
+  # EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+  # EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+  # EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+  # EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
+  # MS_GRAPH_CLIENT_ID: xxx
+  # MS_GRAPH_CLIENT_SECRET: xxx
+  # ZOOM_CLIENT_ID: xxx
+  # ZOOM_CLIENT_SECRET: xxx
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   build:
     name: Build
@@ -55,6 +92,6 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
 
-      - name: Gatsby production build
+      - name: Next.js production build
         if: steps.prod-build-cache.outputs.cache-hit != 'true'
         run: yarn build
