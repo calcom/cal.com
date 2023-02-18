@@ -62,14 +62,7 @@ jobs:
             ports:
               - 5432:5432
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v3
-        name: Set nodeJs version
-        with:
-          node-version: ${{ secrets.NODE_VERSION }}
-
+      - uses: ./.github/workflows/yarn-install.yml
       - name: Cache production build
         id: prod-build-cache
         uses: actions/cache@v3
@@ -81,20 +74,9 @@ jobs:
           path: |
             apps/web/.next
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
-          restore-keys: |-
+          restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
-
-      - name: Restore node_modules from cache
-        # skip build on exact cache hit
-        if: steps.prod-build-cache.outputs.cache-hit != 'true'
-        uses: actions/cache@v3
-        env:
-          cache-name: node-modules-yarn
-          cache-key: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
 
       - name: Next.js production build
         if: steps.prod-build-cache.outputs.cache-hit != 'true'

@@ -62,19 +62,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: ./.github/workflows/yarn-install.yml
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
         with:
-          node-version: ${{ env.node_version }}
-      - name: Restore node_modules from cache
-        uses: actions/cache@v3
-        env:
-          cache-name: node-modules-yarn
-          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
-      - run: yarn playwright install
+          path: |
+            ~/Library/Caches/ms-playwright
+            ~/.cache/ms-playwright
+            ${{ github.workspace }}/node_modules/playwright
+          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: cache-playwright-
+      - name: Install playwright deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: yarn playwright install
       - name: Cache production build
         id: prod-build-cache
         uses: actions/cache@v3
@@ -86,7 +87,7 @@ jobs:
           path: |
             apps/web/.next
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
-          restore-keys: |-
+          restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
       - name: Run tests

@@ -26,18 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.node_version }}
-      - name: Restore node_modules from cache
-        uses: actions/cache@v3
-        env:
-          cache-name: node-modules-yarn
-          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
+      - uses: ./.github/workflows/yarn-install.yml
       - run: yarn lint
   build:
     name: Production build
@@ -83,7 +72,7 @@ jobs:
           path: |
             apps/web/.next
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
-          restore-keys: |-
+          restore-keys: |
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
       # Here's the first place where next-bundle-analysis' own script is used
