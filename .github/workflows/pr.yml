@@ -9,8 +9,6 @@ env:
   pr_id: ${{ github.event.number }}
   # last_commit_sha: ${{ github.event.pull_request.head.sha }}
   gh_action_name: pull_request
-  bsr_filename_txt: bundle-size-report.txt
-  stale_build_files_find_args: -maxdepth 1 -type f -regextype posix-egrep -regex ".*\.(json|js|css|map|txt)$"
   merge_base_cmd: git merge-base origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }}
 
 concurrency:
@@ -48,8 +46,6 @@ jobs:
     name: Production build
     needs: setup
     uses: ./.github/workflows/production_build.yml
-    with:
-      pr_id: ${{ github.event.number }}
     secrets:
       node_version: ${{ env.node_version }}
 
