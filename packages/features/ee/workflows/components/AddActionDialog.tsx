@@ -203,7 +203,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 </>
               ) : (
                 <div className="mt-5">
-                  <TextField label={t("sender_id")} placeholder={SENDER_ID} {...form.register("senderId")} />
+                  <TextField
+                    label={t("sender_name")}
+                    placeholder={SENDER_NAME}
+                    {...form.register("senderName")}
+                  />
                 </div>
               )}
               {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
