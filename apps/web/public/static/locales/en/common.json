@@ -205,6 +205,7 @@
   "hope_to_see_you_soon": "We hope to see you again soon!",
   "logged_out": "Logged out",
   "please_try_again_and_contact_us": "Please try again and contact us if the issue persists.",
+  "signing_in_community": "Signing in to community",
   "incorrect_2fa_code": "Two-factor code is incorrect.",
   "no_account_exists": "No account exists matching that email address.",
   "2fa_enabled_instructions": "Two-factor authentication enabled. Please enter the six-digit code from your authenticator app.",

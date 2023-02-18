@@ -6,11 +6,12 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
+import z from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, getSession } from "@calcom/lib/auth";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { COMMUNITY_URL, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -36,6 +37,12 @@ interface LoginValues {
   csrfToken: string;
 }
 
+const querySchema = z.object({
+  sso: z.string().optional(),
+  sig: z.string().optional(),
+  callbackUrl: z.string().optional().default(""),
+});
+
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
@@ -51,6 +58,7 @@ export default function Login({
 
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
@@ -59,22 +67,23 @@ export default function Login({
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+    [ErrorCode.InvalidCommunityLogin]: `${t("something_went_wrong")} ${t("signing_in_community")}`,
   };
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = typeof router.query?.callbackUrl === "string" ? router.query.callbackUrl : "";
+  const queryParams = querySchema.parse(router.query);
 
-  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
+  if (/"\//.test(queryParams.callbackUrl)) queryParams.callbackUrl = queryParams.callbackUrl.substring(1);
 
   // If not absolute URL, make it absolute
-  if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
+  if (!/^https?:\/\//.test(queryParams.callbackUrl)) {
+    queryParams.callbackUrl = `${WEBAPP_URL}/${queryParams.callbackUrl}`;
   }
 
-  const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
+  const safeCallbackUrl = getSafeRedirectUrl(queryParams.callbackUrl);
 
-  callbackUrl = safeCallbackUrl || "";
+  queryParams.callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
     <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
@@ -94,17 +103,22 @@ export default function Login({
     </Button>
   );
 
+  const communityLogin = queryParams.sso !== undefined && queryParams.sig !== undefined;
+
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
     const res = await signIn<"credentials">("credentials", {
       ...values,
-      callbackUrl,
-      redirect: false,
+      callbackUrl: communityLogin
+        ? `${COMMUNITY_URL}?sso=${queryParams.sso}&sig=${queryParams.sig}`
+        : queryParams.callbackUrl,
+      redirect: communityLogin,
     });
+    if (!res && communityLogin) return setSuccessMessage("Success! Redirecting...");
     if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
     // we're logged in! let's do a hard refresh to the desired url
-    else if (!res.error) router.push(callbackUrl);
+    else if (!res.error) router.push(queryParams.callbackUrl);
     // reveal two factor input if required
     else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     // fallback if error not found
@@ -162,6 +176,7 @@ export default function Login({
               {twoFactorRequired && <TwoFactor center />}
 
               {errorMessage && <Alert severity="error" title={errorMessage} />}
+              {successMessage && <Alert severity="info" title={successMessage} />}
               <Button
                 type="submit"
                 color="primary"

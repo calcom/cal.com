@@ -1,11 +1,13 @@
-import type { UserPermissionRole } from "@prisma/client";
-import { IdentityProvider } from "@prisma/client";
+import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import discourseSso from "discourse-sso";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import type { Session } from "next-auth";
+import type { Session, User } from "next-auth";
 import NextAuth from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
+import type { CredentialInput } from "next-auth/providers/credentials";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -18,7 +20,13 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
-import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMMUNITY_URL,
+  IS_TEAM_BILLING_ENABLED,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { randomString } from "@calcom/lib/random";
@@ -62,6 +70,7 @@ const providers: Provider[] = [
           role: true,
           id: true,
           username: true,
+          bio: true,
           name: true,
           email: true,
           metadata: true,
@@ -144,6 +153,7 @@ const providers: Provider[] = [
           username: user.username,
           email: user.email,
           name: user.name,
+          bio: user.bio,
           role: "INACTIVE_ADMIN",
           belongsToActiveTeam: hasActiveTeams,
         };
@@ -153,6 +163,7 @@ const providers: Provider[] = [
         id: user.id,
         username: user.username,
         email: user.email,
+        bio: user.bio,
         name: user.name,
         role: user.role,
         belongsToActiveTeam: hasActiveTeams,
@@ -247,6 +258,38 @@ function isNumber(n: string) {
 }
 
 const calcomAdapter = CalComAdapter(prisma);
+
+const checkCommunityLogin = (
+  user: User | AdapterUser,
+  credentials: Record<string, CredentialInput> | undefined
+): string | boolean => {
+  if (!credentials?.callbackUrl) return true;
+  const callbackUrl = new URL(credentials.callbackUrl as string);
+  if (callbackUrl.hostname !== new URL(COMMUNITY_URL).hostname) return true;
+  const params = new URLSearchParams(callbackUrl.searchParams);
+  const ssoParam = params.get("sso");
+  const sigParam = params.get("sig");
+  const sso = new discourseSso("discourse_connect_secret");
+  if (ssoParam === null || sigParam === null) return "/auth/error?error=invalid-community-login";
+  if (!sso.validate(ssoParam, sigParam)) return "/auth/error?error=invalid-community-login";
+  const nonce = sso.getNonce(ssoParam);
+  const userparams = {
+    // Required, will throw exception otherwise
+    nonce: nonce,
+    external_id: user.id.toString(),
+    email: user.email!,
+    // Optional
+    admin: user.role === UserPermissionRole.ADMIN,
+    username: user.username ?? undefined,
+    name: user.name ?? undefined,
+    bio: user.bio,
+    avatar_force_update: true,
+    avatar_url: `${WEBAPP_URL}/${user.username}/avatar.png`,
+    website: `${WEBSITE_URL}/${user.username}`,
+  };
+  const q = sso.buildLoginString(userparams);
+  return `https://cal.community/session/sso_login?${q}`;
+};
 
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -382,7 +425,7 @@ export default NextAuth({
       return calendsoSession;
     },
     async signIn(params) {
-      const { user, account, profile } = params;
+      const { user, account, profile, credentials } = params;
 
       if (account?.provider === "email") {
         return true;
@@ -390,7 +433,7 @@ export default NextAuth({
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       if (account?.type === "credentials") {
-        return true;
+        return checkCommunityLogin(user, credentials);
       }
 
       if (account?.type !== "oauth") {

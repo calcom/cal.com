@@ -88,6 +88,7 @@ export enum ErrorCode {
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
   RateLimitExceeded = "rate-limit-exceeded",
   SocialIdentityProviderRequired = "social-identity-provider-required",
+  InvalidCommunityLogin = "invalid-community-login",
 }
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
