@@ -12,8 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PeriodType } from "@calcom/prisma/client";
 import { DateRangePicker, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
 
-import { BookingLimitsManager } from "@components/eventtype/BookingLimitsManager";
-import { DurationLimitsManager } from "@components/eventtype/DurationLimitsManager";
+import { IntervalLimitsManager } from "@components/eventtype/IntervalLimitsManager";
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
@@ -260,7 +259,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 formMethods.setValue("bookingLimits", {});
               }
             }}>
-            <BookingLimitsManager />
+            <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
           </SettingsToggle>
         )}
       />
@@ -282,7 +281,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 formMethods.setValue("durationLimits", {});
               }
             }}>
-            <DurationLimitsManager />
+            <IntervalLimitsManager
+              propertyName="durationLimits"
+              defaultLimit={60}
+              step={15}
+              textFieldSuffix={t("minutes")}
+            />
           </SettingsToggle>
         )}
       />

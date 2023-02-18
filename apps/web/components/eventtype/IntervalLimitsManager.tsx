@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { ChangeEvent, Key } from "react";
+import type { Key } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
@@ -13,80 +13,85 @@ import { INTERVAL_LIMIT_OPTIONS, intervalOrderKeys } from "@lib/types/intervalLi
 
 import type { FormValues } from "../../pages/event-types/[type]";
 
-type DurationLimitItemProps = {
+type IntervalLimitItemProps = {
   key: Key;
-  intervalLimitKey: IntervalLimitsKey;
-  intervalSelectOptions: { value: keyof IntervalLimit; label: string }[];
-  durationAmount: number;
+  limitKey: IntervalLimitsKey;
+  step: number;
+  value: number;
+  textFieldSuffix?: string;
+  selectOptions: { value: keyof IntervalLimit; label: string }[];
   hasDeleteButton?: boolean;
   onDelete: (intervalLimitsKey: IntervalLimitsKey) => void;
-  onLimitChange: (intervalLimitsKey: IntervalLimitsKey, durationAmount: number) => void;
+  onLimitChange: (intervalLimitsKey: IntervalLimitsKey, limit: number) => void;
   onIntervalSelect: (interval: SingleValue<{ value: keyof IntervalLimit; label: string }>) => void;
 };
 
-const DurationLimitItem = ({
-  intervalLimitKey,
-  intervalSelectOptions,
-  durationAmount,
+const IntervalLimitItem = ({
+  limitKey,
+  step,
+  value,
+  textFieldSuffix,
+  selectOptions,
   hasDeleteButton,
   onDelete,
   onLimitChange,
   onIntervalSelect,
-}: DurationLimitItemProps) => {
-  const { t } = useLocale();
-
-  const handleDelete = () => {
-    onDelete(intervalLimitKey);
-  };
-
-  const handleDurationChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    onLimitChange(intervalLimitKey, parseInt(val));
-  };
-
+}: IntervalLimitItemProps) => {
   return (
-    <div className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse" key={intervalLimitKey}>
+    <div className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
       <TextField
         required
         type="number"
-        containerClassName="-mb-1 w-36"
-        placeholder="60"
-        min={15}
-        step={15}
-        defaultValue={durationAmount}
-        addOnSuffix={<>{t("minutes")}</>}
-        onChange={handleDurationChange}
+        containerClassName={`${textFieldSuffix ? "w-36" : "w-16"} -mb-1`}
+        placeholder={`${value}`}
+        min={step}
+        step={step}
+        defaultValue={value}
+        addOnSuffix={textFieldSuffix}
+        onChange={(e) => onLimitChange(limitKey, parseInt(e.target.value))}
       />
       <Select
-        options={intervalSelectOptions}
+        options={selectOptions}
         isSearchable={false}
-        defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === intervalLimitKey)}
+        defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
         onChange={onIntervalSelect}
       />
       {hasDeleteButton && (
-        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={handleDelete} />
+        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={() => onDelete(limitKey)} />
       )}
     </div>
   );
 };
 
-export const DurationLimitsManager = () => {
+type IntervalLimitsManagerProps = {
+  propertyName: "durationLimits" | "bookingLimits";
+  defaultLimit: number;
+  step: number;
+  textFieldSuffix?: string;
+};
+
+export const IntervalLimitsManager = ({
+  propertyName,
+  defaultLimit,
+  step,
+  textFieldSuffix,
+}: IntervalLimitsManagerProps) => {
   const { watch, setValue, control } = useFormContext<FormValues>();
-  const watchDurationLimits = watch("durationLimits");
+  const watchIntervalLimits = watch(propertyName);
   const { t } = useLocale();
 
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
     <Controller
-      name="durationLimits"
+      name={propertyName}
       control={control}
       render={({ field: { value, onChange } }) => {
-        const currentDurationLimits = value;
+        const currentIntervalLimits = value;
 
         const addLimit = () => {
-          if (!currentDurationLimits || !watchDurationLimits) return;
-          const currentKeys = Object.keys(watchDurationLimits);
+          if (!currentIntervalLimits || !watchIntervalLimits) return;
+          const currentKeys = Object.keys(watchIntervalLimits);
 
           const rest = Object.values(INTERVAL_LIMIT_OPTIONS).filter(
             (option) => !currentKeys.includes(option.value)
@@ -94,48 +99,50 @@ export const DurationLimitsManager = () => {
           if (!rest || !currentKeys) return;
           //currentDurationLimits is always defined so can be casted
 
-          setValue("durationLimits", {
-            ...watchDurationLimits,
-            [rest[0].value]: 60,
+          setValue(propertyName, {
+            ...watchIntervalLimits,
+            [rest[0].value]: defaultLimit,
           });
         };
 
         return (
           <ul ref={animateRef}>
-            {currentDurationLimits &&
-              watchDurationLimits &&
-              Object.entries(currentDurationLimits)
+            {currentIntervalLimits &&
+              watchIntervalLimits &&
+              Object.entries(currentIntervalLimits)
                 .sort(([limitKeyA], [limitKeyB]) => {
                   return (
                     intervalOrderKeys.indexOf(limitKeyA as IntervalLimitsKey) -
                     intervalOrderKeys.indexOf(limitKeyB as IntervalLimitsKey)
                   );
                 })
-                .map(([key, durationAmount]) => {
-                  const intervalLimitKey = key as IntervalLimitsKey;
+                .map(([key, value]) => {
+                  const limitKey = key as IntervalLimitsKey;
                   return (
-                    <DurationLimitItem
+                    <IntervalLimitItem
                       key={key}
-                      durationAmount={durationAmount}
-                      hasDeleteButton={Object.keys(currentDurationLimits).length > 1}
-                      intervalLimitKey={intervalLimitKey}
-                      intervalSelectOptions={INTERVAL_LIMIT_OPTIONS.filter(
-                        (option) => !Object.keys(currentDurationLimits).includes(option.value)
+                      limitKey={limitKey}
+                      step={step}
+                      value={value}
+                      textFieldSuffix={textFieldSuffix}
+                      hasDeleteButton={Object.keys(currentIntervalLimits).length > 1}
+                      selectOptions={INTERVAL_LIMIT_OPTIONS.filter(
+                        (option) => !Object.keys(currentIntervalLimits).includes(option.value)
                       )}
                       onLimitChange={(intervalLimitKey, val) =>
-                        setValue(`durationLimits.${intervalLimitKey}`, val)
+                        setValue(`${propertyName}.${intervalLimitKey}`, val)
                       }
                       onDelete={(intervalLimitKey) => {
-                        const current = currentDurationLimits;
+                        const current = currentIntervalLimits;
                         delete current[intervalLimitKey];
                         onChange(current);
                       }}
                       onIntervalSelect={(interval) => {
-                        const current = currentDurationLimits;
-                        const currentValue = watchDurationLimits[intervalLimitKey];
+                        const current = currentIntervalLimits;
+                        const currentValue = watchIntervalLimits[limitKey];
 
                         // Removes limit from previous selected value (eg when changed from per_week to per_month, we unset per_week here)
-                        delete current[intervalLimitKey];
+                        delete current[limitKey];
                         const newData = {
                           ...current,
                           // Set limit to new selected value (in the example above this means we set the limit to per_week here).
@@ -146,7 +153,7 @@ export const DurationLimitsManager = () => {
                     />
                   );
                 })}
-            {currentDurationLimits && Object.keys(currentDurationLimits).length <= 3 && (
+            {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && (
               <Button color="minimal" StartIcon={FiPlus} onClick={addLimit}>
                 {t("add_limit")}
               </Button>
