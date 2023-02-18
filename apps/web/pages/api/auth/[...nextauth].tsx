@@ -26,6 +26,7 @@ import {
   IS_TEAM_BILLING_ENABLED,
   WEBAPP_URL,
   WEBSITE_URL,
+  IS_SELF_HOSTED,
 } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -263,6 +264,7 @@ const checkCommunityLogin = (
   user: User | AdapterUser,
   credentials: Record<string, CredentialInput> | undefined
 ): string | boolean => {
+  if (IS_SELF_HOSTED) return true;
   if (!credentials?.callbackUrl) return true;
   const callbackUrl = new URL(credentials.callbackUrl as string);
   if (callbackUrl.hostname !== new URL(COMMUNITY_URL).hostname) return true;
