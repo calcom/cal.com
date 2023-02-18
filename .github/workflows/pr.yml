@@ -26,10 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        name: Set nodeJs version
         with:
           node-version: ${{ env.node_version }}
       - name: Restore node_modules from cache
@@ -40,8 +38,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
-      - name: lint the code
-        run: yarn lint
+      - run: yarn lint
   build:
     name: Production build
     needs: setup
@@ -51,22 +48,14 @@ jobs:
 
   e2e-test:
     name: E2E tests
-
     runs-on: ubuntu-latest
-
     needs: [lint, build]
-
     timeout-minutes: 10
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        name: Set nodeJs version
         with:
           node-version: ${{ env.node_version }}
-
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
@@ -75,10 +64,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
-
-        # figure the better way supporting all the packages
-      - name: Fake yarn postinstall
-        run: yarn playwright install
+      - run: yarn playwright install
       - name: Run tests
         run: yarn e2e
   analyze:
@@ -89,6 +75,31 @@ jobs:
         # change this if your nextjs app does not live at the root of the repo
         working-directory: ./apps/web/
     steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+      - name: Restore node_modules from cache
+        uses: actions/cache@v3
+        env:
+          cache-name: node-modules-yarn
+          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
+      - name: Restore production build from cache
+        uses: actions/cache@v3
+        env:
+          cache-name: prod-build
+          key-1: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/web/next.config.js') }}
+        with:
+          path: |
+            apps/web/.next
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+          restore-keys: |-
+            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
+            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
       # Here's the first place where next-bundle-analysis' own script is used
       # This step pulls the raw bundle stats for the current bundle
       - name: Analyze bundle

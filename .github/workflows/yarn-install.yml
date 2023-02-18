@@ -9,23 +9,15 @@ on:
 jobs:
   setup:
     name: Yarn install & cache
-
     runs-on: ubuntu-latest
-
     concurrency:
       group: yarn-install-${{ github.sha }}
-
     timeout-minutes: 10
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-        name: Set nodeJs version
         with:
           node-version: ${{ secrets.NODE_VERSION }}
-
       # node_module cache helps to avoid 1 minute copying from yarn cache on every job run
       - name: node_modules cache
         id: node-modules-cache
@@ -37,7 +29,6 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
           restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
-
       - name: Yarn install
         if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: yarn install --prefer-offline --frozen-lockfile

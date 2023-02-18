@@ -79,8 +79,7 @@ jobs:
           key-2: ${{ hashFiles('apps/web/next.config.js') }}
         with:
           path: |
-            public
-            .cache
+            apps/web/.next
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
           restore-keys: |-
             ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
