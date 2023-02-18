@@ -1,10 +1,13 @@
 import { MembershipRole } from "@prisma/client";
 
-import CloseCom, { CloseComFieldOptions, CloseComLead } from "@calcom/lib/CloseCom";
+import type { CloseComFieldOptions, CloseComLead } from "@calcom/lib/CloseCom";
+import CloseCom from "@calcom/lib/CloseCom";
 import { getCloseComContactIds, getCloseComLeadId, getCustomFieldsIds } from "@calcom/lib/CloseComeUtils";
 import logger from "@calcom/lib/logger";
-import SyncServiceCore, { TeamInfoType } from "@calcom/lib/sync/ISyncService";
-import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
+import type { TeamInfoType } from "@calcom/lib/sync/ISyncService";
+import SyncServiceCore from "@calcom/lib/sync/ISyncService";
+import type { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
+import type ISyncService from "@calcom/lib/sync/ISyncService";
 
 // Cal.com Custom Contact Fields
 const calComCustomContactFields: CloseComFieldOptions = [

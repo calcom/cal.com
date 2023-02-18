@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -16,11 +17,11 @@ import {
 } from "@calcom/ui";
 import { FiPlus, FiFileText } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
-  RoutingFormWithResponseCount,
 } from "../../components/SingleForm";
 
 export { getServerSideProps };

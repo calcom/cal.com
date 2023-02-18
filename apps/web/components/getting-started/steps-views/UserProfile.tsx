@@ -1,7 +1,8 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import MarkdownIt from "markdown-it";
 import { useRouter } from "next/router";
-import { FormEvent, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

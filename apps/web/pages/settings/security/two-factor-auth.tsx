@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";

@@ -12,5 +12,3 @@ items:
 - Track the entire sales process and performance with powerful activity and funnel reporting
 
 Close.com subscriptions range from $29 - $149 per month. <a href="https://www.close.com/pricing" target="_blank">See pricing page</a>
-
-

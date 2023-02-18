@@ -1,8 +1,11 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { NextRouter, useRouter } from "next/router";
-import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
+import type { MutableRefObject, RefObject } from "react";
+import { createRef, forwardRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
 
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -675,7 +678,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
-  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -719,7 +722,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const calLink = decodeURIComponent(embedUrl);
 
-  const addToPalette = (update: typeof previewState["palette"]) => {
+  const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -1060,7 +1063,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             defaultValue="#000000"
                             onChange={(color) => {
                               addToPalette({
-                                [palette.name as keyof typeof previewState["palette"]]: color,
+                                [palette.name as keyof (typeof previewState)["palette"]]: color,
                               });
                             }}
                           />

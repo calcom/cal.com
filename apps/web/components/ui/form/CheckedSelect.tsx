@@ -1,5 +1,5 @@
 import React from "react";
-import { Props } from "react-select";
+import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui";

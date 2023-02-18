@@ -1,6 +1,8 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
@@ -47,7 +49,7 @@ test.describe("Routing Forms", () => {
 
       await page.reload();
 
-      expect(await page.inputValue(`[data-testid="description"]`), description);
+      expect(await page.inputValue(`[data-testid="description"]`)).toMatch(description);
       expect(await page.locator('[data-testid="field"]').count()).toBe(1);
 
       await expectCurrentFormToHaveFields(page, { 0: field }, types);
@@ -340,14 +342,9 @@ async function expectCurrentFormToHaveFields(
 ) {
   for (const [index, field] of Object.entries(fields)) {
     expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
-    expect(
-      await page
-        .locator(".data-testid-field-type")
-        .nth(+index)
-        .locator("div")
-        .nth(1)
-        .innerText()
-    ).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
   }
 }
 
