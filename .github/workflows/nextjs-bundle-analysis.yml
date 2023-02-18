@@ -16,7 +16,21 @@ defaults:
     # change this if your nextjs app does not live at the root of the repo
     working-directory: ./apps/web/
 
+env:
+  node_version: ${{ secrets.NODE_VERSION }}
+
 jobs:
+  setup:
+      name: Yarn install & cache
+      uses: ./.github/workflows/yarn-install.yml
+      secrets:
+        node_version: ${{ secrets.NODE_VERSION }}
+  build:
+        name: Production build
+        needs: setup
+        uses: ./.github/workflows/production-build.yml
+        secrets:
+          node_version: ${{ secrets.NODE_VERSION }}
   analyze:
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -56,32 +70,14 @@ jobs:
         ports:
           - 5432:5432
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up node
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
-
-      - name: Restore next build
-        uses: actions/cache@v2
-        id: restore-build-cache
-        env:
-          cache-name: cache-next-build
-        with:
-          path: apps/web/.next/cache
-          # change this if you prefer a more strict cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
-
-      - name: Build next.js app
-        # change this if your site requires a custom build command
-        run: cd ../.. && yarn db-seed && yarn build
-
+          node-version: ${{ env.node_version }}
       # Here's the first place where next-bundle-analysis' own script is used
       # This step pulls the raw bundle stats for the current bundle
       - name: Analyze bundle

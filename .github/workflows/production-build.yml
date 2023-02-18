@@ -94,4 +94,6 @@ jobs:
 
       - name: Next.js production build
         if: steps.prod-build-cache.outputs.cache-hit != 'true'
-        run: yarn build
+        run: |
+          yarn db-seed
+          yarn build
