@@ -315,9 +315,6 @@ const getBusyTimesFromDurationLimits = async (
   const busyTimes: EventBusyDetails[] = [];
   // Start check from larger time periods to smaller time periods, to skip unnecessary checks
   for (const [key, limit] of Object.entries(durationLimits).reverse()) {
-    // If we have already found a busy time, we can skip the rest of the checks
-    if (busyTimes.length) return busyTimes;
-
     // Use aggregate sql query if we are checking PER_YEAR
     if (key === "PER_YEAR") {
       const totalBookingDuration = await getTotalBookingDuration({
