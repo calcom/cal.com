@@ -45,7 +45,7 @@ jobs:
   build:
     name: Production build
     needs: setup
-    uses: ./.github/workflows/production_build.yml
+    uses: ./.github/workflows/production-build.yml
     secrets:
       node_version: ${{ env.node_version }}
 
