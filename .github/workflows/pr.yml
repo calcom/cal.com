@@ -46,8 +46,6 @@ jobs:
     name: Production build
     needs: setup
     uses: ./.github/workflows/production-build.yml
-    with:
-      pr_id: ${{ github.event.number }}
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
 
