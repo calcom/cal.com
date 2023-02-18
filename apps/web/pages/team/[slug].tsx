@@ -13,8 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
-import { FiArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, Button, HeadSeo, AvatarGroup, EmptyScreen } from "@calcom/ui";
+import { FiArrowRight, FiAlertCircle } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -82,8 +82,10 @@ function TeamPage({ team }: TeamPageProps) {
 
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
+  const isPublished = true; // TODO: check for team.published or something
+
   return (
-    <div>
+    <>
       <HeadSeo
         title={teamName}
         description={teamName}
@@ -92,55 +94,66 @@ function TeamPage({ team }: TeamPageProps) {
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
-      <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
-        <div className="max-w-96 mx-auto mb-8 text-center">
-          <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-          <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
-            {teamName}
-          </p>
-          {!isBioEmpty && (
-            <>
-              <div
-                className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
-              />
-            </>
-          )}
-        </div>
-        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-        {!showMembers.isOn && team.eventTypes.length > 0 && (
-          <div className="mx-auto max-w-3xl ">
-            <EventTypes />
 
-            {!team.hideBookATeamMember && (
-              <div>
-                <div className="relative mt-12">
-                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
-                      {t("or")}
-                    </span>
-                  </div>
-                </div>
-
-                <aside className="mt-8 flex justify-center text-center dark:text-white">
-                  <Button
-                    color="minimal"
-                    EndIcon={FiArrowRight}
-                    className="dark:hover:bg-darkgray-200"
-                    href={`/team/${team.slug}?members=1`}
-                    shallow={true}>
-                    {t("book_a_team_member")}
-                  </Button>
-                </aside>
-              </div>
+      {isPublished ? (
+        <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
+          <div className="max-w-96 mx-auto mb-8 text-center">
+            <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
+            <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
+              {teamName}
+            </p>
+            {!isBioEmpty && (
+              <>
+                <div
+                  className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                />
+              </>
             )}
           </div>
-        )}
-      </main>
-    </div>
+          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+          {!showMembers.isOn && team.eventTypes.length > 0 && (
+            <div className="mx-auto max-w-3xl ">
+              <EventTypes />
+
+              {!team.hideBookATeamMember && (
+                <div>
+                  <div className="relative mt-12">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
+                        {t("or")}
+                      </span>
+                    </div>
+                  </div>
+                  <aside className="mt-8 flex justify-center text-center dark:text-white">
+                    <Button
+                      color="minimal"
+                      EndIcon={FiArrowRight}
+                      className="dark:hover:bg-darkgray-200"
+                      href={`/team/${team.slug}?members=1`}
+                      shallow={true}>
+                      {t("book_a_team_member")}
+                    </Button>
+                  </aside>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      ) : (
+        <div className="m-8 flex items-center justify-center">
+          <EmptyScreen
+            headline={t("ACME, Inc. is unpublished")}
+            Icon={FiAlertCircle}
+            description="This team link is currently not available. Please contact the team owner to publish it."
+            buttonRaw={<Button color="secondary">Contact Team Owner</Button>}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
