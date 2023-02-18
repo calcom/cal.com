@@ -64,6 +64,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ secrets.NODE_VERSION }}
       - uses: ./.github/workflows/yarn-install.yml
       - name: Cache production build
         id: prod-build-cache
