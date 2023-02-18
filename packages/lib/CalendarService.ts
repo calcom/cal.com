@@ -425,7 +425,7 @@ export default abstract class BaseCalendarService implements Calendar {
         account,
         headers: this.headers,
       })) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<DAVCalendar, "displayName"> & {
-        displayName: string | Record<string, unknown>;
+        displayName?: string | Record<string, unknown>;
       })[];
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
