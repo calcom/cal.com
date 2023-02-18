@@ -1,13 +1,14 @@
-import { App_RoutingForms_Form } from "@prisma/client";
+import type { App_RoutingForms_Form } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useForm, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
+import type {
   AppGetServerSidePropsContext,
   AppPrisma,
   AppSsrInit,
@@ -38,7 +39,7 @@ import { FiExternalLink, FiLink, FiDownload, FiCode, FiTrash } from "@calcom/ui/
 import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
-import { Response, Route, SerializableForm } from "../types/types";
+import type { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";

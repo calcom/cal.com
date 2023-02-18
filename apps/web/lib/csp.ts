@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { IncomingMessage, OutgoingMessage } from "http";
+import type { IncomingMessage, OutgoingMessage } from "http";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";

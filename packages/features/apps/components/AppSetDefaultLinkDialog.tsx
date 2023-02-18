@@ -1,7 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { EventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -31,12 +33,21 @@ export function AppSetDefaultLinkDailog({
   const utils = trpc.useContext();
 
   const { t } = useLocale();
-  const form = useForm<LocationTypeSetLinkDialogFormProps>({});
+  const eventLocationTypeOptions = getEventLocationType(locationType.type);
+
+  const form = useForm<LocationTypeSetLinkDialogFormProps>({
+    resolver: zodResolver(
+      z.object({ link: z.string().regex(new RegExp(eventLocationTypeOptions?.urlRegExp ?? "")) })
+    ),
+  });
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    },
+    onError: () => {
+      showToast(`Invalid App Link Format`, "error");
     },
   });
 

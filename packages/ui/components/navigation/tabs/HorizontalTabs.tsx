@@ -1,4 +1,5 @@
-import HorizontalTabItem, { HorizontalTabItemProps } from "./HorizontalTabItem";
+import type { HorizontalTabItemProps } from "./HorizontalTabItem";
+import HorizontalTabItem from "./HorizontalTabItem";
 
 export interface NavTabProps {
   tabs: HorizontalTabItemProps[];

@@ -1,6 +1,6 @@
-import prisma from "@calcom/prisma";
+import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import { App_RoutingForms_Form, User } from ".prisma/client";
+import prisma from "@calcom/prisma";
 
 export async function isFormEditAllowed({
   userId,
