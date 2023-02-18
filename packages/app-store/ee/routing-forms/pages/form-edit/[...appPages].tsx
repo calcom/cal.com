@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   BooleanToggleGroupField,
   Button,
@@ -85,6 +86,7 @@ function Field({
   appUrl: string;
 }) {
   const [identifier, _setIdentifier] = useState(hookForm.getValues(`${hookFieldNamespace}.identifier`));
+  const { t } = useLocale();
 
   const setUserChangedIdentifier = (val: string) => {
     _setIdentifier(val);
@@ -118,7 +120,7 @@ function Field({
             <TextField
               disabled={!!router}
               label="Label"
-              placeholder="This is what your users would see"
+              placeholder={t("This is what your users would see")}
               /**
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
                * For other fields, value property is used because it exists and would take precedence
@@ -134,7 +136,7 @@ function Field({
               label="Identifier"
               name="identifier"
               required
-              placeholder="Identifies field by this name."
+              placeholder={t("Identifies field by this name.")}
               value={identifier}
               defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
@@ -143,8 +145,8 @@ function Field({
           <div className="mb-6 w-full">
             <TextField
               disabled={!!router}
-              label="Placeholder"
-              placeholder="This will be the placeholder"
+              label={t("Placeholder")}
+              placeholder={t("This will be the placeholder")}
               defaultValue={routerField?.placeholder}
               {...hookForm.register(`${hookFieldNamespace}.placeholder`)}
             />
@@ -182,7 +184,7 @@ function Field({
                   rows={3}
                   label="Options"
                   defaultValue={routerField?.selectText}
-                  placeholder="Add 1 option per line"
+                  placeholder={t("Add 1 option per line")}
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
               </div>
@@ -198,7 +200,7 @@ function Field({
                 return (
                   <BooleanToggleGroupField
                     disabled={!!router}
-                    label="Required"
+                    label={t("Required")}
                     value={value}
                     onValueChange={onChange}
                   />
