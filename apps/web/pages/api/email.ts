@@ -35,6 +35,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     uid: "xxyPr4cg2xx4XoS2KeMEQy",
     metadata: {},
     recurringEvent: null,
+    team: {
+      name: "Team example",
+      members: [
+        { name: "team member 1", email: "team@example.com" },
+        { name: "team member 2", email: "team2@example.com" },
+        { name: "team member 3", email: "team3@example.com" },
+        { name: "team member 4", email: "team4@example.com" },
+        { name: "team member 5", email: "team5@example.com" },
+        { name: "team member 6", email: "team6@example.com" },
+      ],
+    },
     appsStatus: [
       {
         appName: "Outlook Calendar",
