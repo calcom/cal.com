@@ -46,10 +46,9 @@ jobs:
     name: Production build
     needs: setup
     uses: ./.github/workflows/production-build.yml
-    env:
-      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
 
   e2e-test:
     name: E2E tests
