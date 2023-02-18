@@ -84,6 +84,10 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     needs: build
+    defaults:
+      run:
+        # change this if your nextjs app does not live at the root of the repo
+        working-directory: ./apps/web/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -123,13 +127,13 @@ jobs:
       # entry in your package.json file.
       - name: Compare with base branch bundle
         if: success() && github.event.number
-        run: ls -laR ./apps/web/.next/analyze/base && npx -p nextjs-bundle-analysis compare
+        run: ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
         if: success() && github.event.number
         run: |
-          body=$(cat ./apps/web/.next/analyze/__bundle_analysis_comment.txt)
+          body=$(cat .next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
