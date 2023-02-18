@@ -35,11 +35,11 @@ jobs:
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
-          cache_name: node-modules-yarn
-          cache_fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
+          cache-name: node-modules-yarn
+          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
         with:
           path: node_modules
-          key: ${{ runner.os }}-${{ env.cache_name }}-${{ env.cache_fingerprint }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
       - name: lint the code
         run: yarn lint
   build:
@@ -70,11 +70,11 @@ jobs:
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
-          cache_name: node-modules-yarn
-          cache_fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
+          cache-name: node-modules-yarn
+          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
         with:
           path: node_modules
-          key: ${{ runner.os }}-${{ env.cache_name }}-${{ env.cache_fingerprint }}
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
 
         # figure the better way supporting all the packages
       - name: Fake yarn postinstall
