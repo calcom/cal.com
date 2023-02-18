@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { Props } from "react-phone-number-input";
+import type { Props } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 const BasePhoneInput = dynamic(() => import("react-phone-number-input"));
