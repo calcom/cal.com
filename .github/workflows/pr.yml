@@ -48,7 +48,6 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
-      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
 
   e2e-test:
     name: E2E tests
