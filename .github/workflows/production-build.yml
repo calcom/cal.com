@@ -62,6 +62,8 @@ jobs:
             ports:
               - 5432:5432
     steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
       - uses: ./.github/workflows/yarn-install.yml
       - name: Cache production build
         id: prod-build-cache
