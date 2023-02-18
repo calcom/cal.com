@@ -21,7 +21,7 @@ concurrency:
 jobs:
   setup:
     name: Yarn install & cache
-    uses: ./.github/workflows/yarn_install.yml
+    uses: ./.github/workflows/yarn-install.yml
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
 
