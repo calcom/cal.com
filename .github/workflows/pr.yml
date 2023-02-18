@@ -1,15 +1,16 @@
 name: PR Update
 
 on:
-  push:
   pull_request:
   workflow_dispatch:
 
 env:
   node_version: ${{ secrets.NODE_VERSION }}
   pr_id: ${{ github.event.number }}
-  # last_commit_sha: ${{ github.event.pull_request.head.sha }}
+# last_commit_sha: ${{ github.event.pull_request.head.sha }}
   gh_action_name: pull_request
+  bsr_filename_txt: bundle-size-report.txt
+  stale_build_files_find_args: -maxdepth 1 -type f -regextype posix-egrep -regex ".*\.(json|js|css|map|txt)$"
   merge_base_cmd: git merge-base origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }}
 
 concurrency:
@@ -19,9 +20,10 @@ concurrency:
 jobs:
   setup:
     name: Yarn install & cache
-    uses: ./.github/workflows/yarn-install.yml
+    uses: ./.github/workflows/yarn_install.yml
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
+
   lint:
     name: Linters
     runs-on: ubuntu-latest
@@ -47,21 +49,29 @@ jobs:
     name: Production build
     needs: setup
     uses: ./.github/workflows/production-build.yml
+    with:
+      pr_id: ${{ github.event.number }}
     secrets:
-      node_version: ${{ env.node_version }}
+      node_version: ${{ secrets.NODE_VERSION }}
 
   e2e-test:
     name: E2E tests
+
     runs-on: ubuntu-latest
+
     needs: [lint, build]
+
     timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         name: Set nodeJs version
         with:
           node-version: ${{ env.node_version }}
+
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
@@ -70,54 +80,9 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ env.cache_name }}-${{ env.cache_fingerprint }}
+
         # figure the better way supporting all the packages
       - name: Fake yarn postinstall
         run: yarn playwright install
       - name: Run tests
-        run: yarn test-e2e
-
-  bundle-size-report:
-    name: Bundle size report
-
-    runs-on: ubuntu-latest
-
-    needs: [build]
-
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 20
-
-      - run: git fetch --no-tags --prune --depth=20 origin main
-
-      - uses: actions/setup-node@v3
-        name: Set nodeJs version
-        with:
-          node-version: ${{ env.node_version }}
-
-      - name: Restore node_modules from cache
-        uses: actions/cache@v3
-        env:
-          cache_name: node-modules-yarn
-          cache_fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache_name }}-${{ env.cache_fingerprint }}
-
-      - name: Restore exact production build from cache
-        uses: actions/cache@v3
-        env:
-          cache_name: prod-build
-          key_1: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-          key_2: ${{ hashFiles('gatsby.config.ts','gatsby.node.ts','gatsby-ssr.tsx','src/html.tsx','src/gatsby-hooks/*.*') }}
-        with:
-          path: |
-            public
-            .cache
-          key: ${{ runner.os }}-${{ env.cache_name }}-${{ env.key_1 }}-${{ env.key_2 }}-${{ github.sha }}
-
-      - name: Find the "merge-base" between target branch and last PR commit
-        run: echo "merge_base_sha=$(${{ env.merge_base_cmd }})" >> $GITHUB_ENV
+        run: yarn e2e
