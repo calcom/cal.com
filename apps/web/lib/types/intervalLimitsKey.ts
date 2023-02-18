@@ -8,5 +8,5 @@ export const INTERVAL_LIMIT_OPTIONS: {
   label: string;
 }[] = intervalOrderKeys.map((key) => ({
   value: key as keyof IntervalLimit,
-  label: `Per ${key.toLowerCase().replace("_", " ")}`,
+  label: `Per ${key.split("_")[1].toLocaleLowerCase()}`,
 }));
