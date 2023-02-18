@@ -338,7 +338,7 @@ export const eventTypesRouter = router({
         profile: {
           name: membership.team.name,
           image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-          slug: "team/" + membership.team.slug,
+          slug: membership.team.slug ? "team/" + membership.team.slug : null,
         },
         metadata: {
           membershipCount: membership.team.members.length,
