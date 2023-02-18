@@ -51,11 +51,16 @@ env:
 jobs:
   build:
     name: Build
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 30
-
+    services:
+          postgres:
+            image: postgres:12.1
+            env:
+              POSTGRES_USER: postgres
+              POSTGRES_DB: calendso
+            ports:
+              - 5432:5432
     steps:
       - name: Checkout
         uses: actions/checkout@v3
