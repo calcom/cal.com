@@ -7,7 +7,8 @@ on:
 
 env:
   node_version: ${{ secrets.NODE_VERSION }}
-  pr_id: ${{ github.event.number }}
+  # pr_id: ${{ github.event.number }}
+  pr_id: 1
 
 concurrency:
   group: pr-update-${{ github.event.number }}
