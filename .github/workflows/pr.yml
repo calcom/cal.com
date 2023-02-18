@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  node_version: 16.x
+  node_version: ${{ secrets.NODE_VERSION }}
   pr_id: ${{ github.event.number }}
   # last_commit_sha: ${{ github.event.pull_request.head.sha }}
   gh_action_name: pull_request
@@ -20,7 +20,7 @@ jobs:
     name: Yarn install & cache
     uses: ./.github/workflows/yarn-install.yml
     secrets:
-      node_version: ${{ env.node_version }}
+      node_version: ${{ secrets.NODE_VERSION }}
   lint:
     name: Linters
     runs-on: ubuntu-latest
