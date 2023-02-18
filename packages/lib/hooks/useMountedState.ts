@@ -15,10 +15,6 @@ export default function useMountedState(): () => boolean {
     if (mount) return;
     mountedRef.current = true;
     setMount(true);
-
-    return () => {
-      mountedRef.current = false;
-    };
   }, []);
 
   return get;
