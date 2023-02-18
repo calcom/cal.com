@@ -332,6 +332,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  const isTeamEventType =
+    eventType.schedulingType === SchedulingType.COLLECTIVE ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
   const paymentAppData = getPaymentAppData(eventType);
 
   // Check if required custom inputs exist
@@ -491,12 +495,23 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.guests || []).map((guest) => ({
-    email: guest,
-    name: "",
-    timeZone: reqBody.timeZone,
-    language: { translate: tGuests, locale: "en" },
-  }));
+
+  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
+    // If it's a team event, remove the team member from guests
+    if (isTeamEventType) {
+      if (users.some((user) => user.email === guest)) {
+        return guestArray;
+      } else {
+        guestArray.push({
+          email: guest,
+          name: "",
+          timeZone: reqBody.timeZone,
+          language: { translate: tGuests, locale: "en" },
+        });
+      }
+    }
+    return guestArray;
+  }, [] as typeof invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -715,10 +730,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
   }
 
-  if (
-    eventType.schedulingType === SchedulingType.COLLECTIVE ||
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN
-  ) {
+  if (isTeamEventType) {
     evt.team = {
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
@@ -977,6 +989,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.description = eventType.description;
 
     results = updateManager.results;
+    console.log("🚀 ~ file: handleNewBooking.ts:992 ~ handler ~ results", results);
     referencesToCreate = updateManager.referencesToCreate;
     if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {

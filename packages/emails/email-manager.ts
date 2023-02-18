@@ -76,6 +76,9 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
 
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
+
+  const clonedEvent = cloneDeep(calEvent);
+
   // @TODO: we should obtain who is rescheduling the event and send them a different email
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -93,13 +96,28 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
+        const scheduledEmail = new OrganizerRescheduledEmail(clonedEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
       }
     })
   );
+
+  if (clonedEvent.team) {
+    for (const teamMember of clonedEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new OrganizerRescheduledEmail(clonedEvent, undefined, teamMember);
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
+          }
+        })
+      );
+    }
+  }
 
   await Promise.all(emailsToSend);
 };
