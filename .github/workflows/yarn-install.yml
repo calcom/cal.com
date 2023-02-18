@@ -7,28 +7,23 @@ on:
         required: true
 
 jobs:
-  setup:
-    name: Yarn install & cache
+  e2e-test:
+    name: E2E tests
     runs-on: ubuntu-latest
-    concurrency:
-      group: yarn-install-${{ github.sha }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ secrets.NODE_VERSION }}
-      # node_module cache helps to avoid 1 minute copying from yarn cache on every job run
-      - name: node_modules cache
-        id: node-modules-cache
+          node-version: ${{ env.node_version }}
+      - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
           cache-name: node-modules-yarn
-          cache-key: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
         with:
           path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
-          restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
-      - name: Yarn install
-        if: steps.node-modules-cache.outputs.cache-hit != 'true'
-        run: yarn install --prefer-offline --frozen-lockfile
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
+      - run: yarn playwright install
+      - name: Run tests
+        run: yarn e2e
