@@ -89,11 +89,6 @@ jobs:
         # change this if your nextjs app does not live at the root of the repo
         working-directory: ./apps/web/
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.node_version }}
-      - uses: ./.github/workflows/production-build.yml
       # Here's the first place where next-bundle-analysis' own script is used
       # This step pulls the raw bundle stats for the current bundle
       - name: Analyze bundle
