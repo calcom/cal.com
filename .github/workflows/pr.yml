@@ -94,8 +94,6 @@ jobs:
         with:
           node-version: ${{ env.node_version }}
       - uses: ./.github/workflows/production-build.yml
-        secrets:
-          node_version: ${{ secrets.NODE_VERSION }}
       # Here's the first place where next-bundle-analysis' own script is used
       # This step pulls the raw bundle stats for the current bundle
       - name: Analyze bundle
