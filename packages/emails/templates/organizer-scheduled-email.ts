@@ -1,5 +1,6 @@
-import { createEvent, DateArray, Person } from "ics";
-import { TFunction } from "next-i18next";
+import type { DateArray, Person } from "ics";
+import { createEvent } from "ics";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -14,13 +15,15 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
   newSeat?: boolean;
+  teamMember?: Person;
 
-  constructor(calEvent: CalendarEvent, newSeat?: boolean) {
+  constructor(calEvent: CalendarEvent, newSeat?: boolean, teamMember?: Person) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.t = this.calEvent.organizer.language.translate;
     this.newSeat = newSeat;
+    this.teamMember = teamMember;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -56,15 +59,15 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    // if (this.calEvent.team) {
+    //   this.calEvent.team.members.forEach((member) => {
+    //     const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
+    //     if (memberAttendee) {
+    //       toAddresses.push(memberAttendee.email);
+    //     }
+    //   });
+    // }
 
     return {
       icalEvent: {
@@ -79,6 +82,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
+        teamMember: this.teamMember,
         newSeat: this.newSeat,
       }),
       text: this.getTextBody(),
