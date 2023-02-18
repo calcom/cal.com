@@ -266,10 +266,11 @@ const checkCommunityLogin = (
   if (!credentials?.callbackUrl) return true;
   const callbackUrl = new URL(credentials.callbackUrl as string);
   if (callbackUrl.hostname !== new URL(COMMUNITY_URL).hostname) return true;
+  if (!process.env.COMMUNITY_SECRET) return "/auth/error?error=invalid-community-login";
   const params = new URLSearchParams(callbackUrl.searchParams);
   const ssoParam = params.get("sso");
   const sigParam = params.get("sig");
-  const sso = new discourseSso("discourse_connect_secret");
+  const sso = new discourseSso(process.env.COMMUNITY_SECRET);
   if (ssoParam === null || sigParam === null) return "/auth/error?error=invalid-community-login";
   if (!sso.validate(ssoParam, sigParam)) return "/auth/error?error=invalid-community-login";
   const nonce = sso.getNonce(ssoParam);
