@@ -1,0 +1,60 @@
+name: Production Build
+
+on:
+  workflow_call:
+    secrets:
+      node_version:
+        required: true
+
+concurrency:
+  group: prod-build-${{ github.sha }}
+
+env:
+  staleBuildFilesFindArgs: -maxdepth 1 -type f -regextype posix-egrep -regex ".*\.(json|js|css|map|txt)$"
+jobs:
+  build:
+    name: Build
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        name: Set nodeJs version
+        with:
+          node-version: ${{ secrets.NODE_VERSION }}
+
+      - name: Cache production build
+        id: prod-build-cache
+        uses: actions/cache@v3
+        env:
+          cache-name: prod-build
+          key-1: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/web/next.config.js') }}
+        with:
+          path: |
+            public
+            .cache
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+          restore-keys: |-
+            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
+            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+
+      - name: Restore node_modules from cache
+        # skip build on exact cache hit
+        if: steps.prod-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        env:
+          cache-name: node-modules-yarn
+          cache-key: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
+
+      - name: Gatsby production build
+        if: steps.prod-build-cache.outputs.cache-hit != 'true'
+        run: yarn build
