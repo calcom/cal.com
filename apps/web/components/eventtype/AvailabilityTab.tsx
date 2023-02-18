@@ -158,6 +158,7 @@ const EventTypeScheduleDetails = () => {
         </span>
         <Button
           href={`/availability/${schedule?.schedule.id}`}
+          disabled={isLoading}
           color="minimal"
           EndIcon={FiExternalLink}
           target="_blank"

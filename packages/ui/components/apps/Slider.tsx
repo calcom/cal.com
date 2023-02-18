@@ -50,13 +50,6 @@ export const Slider = <T extends string | unknown>({
 
   return (
     <div className={`mb-2 ${className}`}>
-      <style jsx global>
-        {`
-          .glide__slide {
-            height: auto !important;
-          }
-        `}
-      </style>
       <div className="glide" ref={glide}>
         <div className="flex cursor-default items-center pb-3">
           {isLocaleReady ? (

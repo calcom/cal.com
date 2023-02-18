@@ -1,5 +1,3 @@
-import type { CalWindow } from "./embed";
-
 const WEBAPP_URL =
   import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
 const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
@@ -36,9 +34,9 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
       }
       p(cal, ar);
     };
-})(window as CalWindow, EMBED_LIB_URL, "init");
+})(window, EMBED_LIB_URL, "init");
 
-const previewWindow: CalWindow = window;
+const previewWindow = window;
 
 previewWindow.Cal!("init", {
   origin: WEBAPP_URL,
@@ -71,7 +69,7 @@ previewWindow.addEventListener("message", (e) => {
     return;
   }
 
-  const globalCal = (window as CalWindow).Cal;
+  const globalCal = window.Cal;
   if (!globalCal) {
     throw new Error("Cal is not defined yet");
   }

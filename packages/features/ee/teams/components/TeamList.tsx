@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { FiUserPlus, FiUsers, FiUnlock, FiEdit } from "@calcom/ui/components/icon";
+import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
