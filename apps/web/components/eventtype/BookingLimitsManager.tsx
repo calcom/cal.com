@@ -18,6 +18,7 @@ type BookingLimitItemProps = {
   intervalLimitKey: IntervalLimitsKey;
   intervalSelectOptions: { value: keyof IntervalLimit; label: string }[];
   bookingAmount: number;
+  hasDeleteButton?: boolean;
   onDelete: (intervalLimitsKey: IntervalLimitsKey) => void;
   onLimitChange: (intervalLimitsKey: IntervalLimitsKey, durationAmount: number) => void;
   onIntervalSelect: (interval: SingleValue<{ value: keyof IntervalLimit; label: string }>) => void;
@@ -27,6 +28,7 @@ const BookingLimitItem = ({
   intervalLimitKey,
   intervalSelectOptions,
   bookingAmount,
+  hasDeleteButton,
   onDelete,
   onLimitChange,
   onIntervalSelect,
@@ -57,7 +59,9 @@ const BookingLimitItem = ({
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === intervalLimitKey)}
         onChange={onIntervalSelect}
       />
-      <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={handleDelete} />
+      {hasDeleteButton && (
+        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={handleDelete} />
+      )}
     </div>
   );
 };
@@ -109,6 +113,7 @@ export const BookingLimitsManager = () => {
                     <BookingLimitItem
                       key={key}
                       bookingAmount={bookingAmount}
+                      hasDeleteButton={Object.keys(currentBookingLimits).length > 1}
                       intervalLimitKey={intervalLimitKey}
                       intervalSelectOptions={INTERVAL_LIMIT_OPTIONS.filter(
                         (option) => !Object.keys(currentBookingLimits).includes(option.value)

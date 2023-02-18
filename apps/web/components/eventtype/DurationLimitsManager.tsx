@@ -18,6 +18,7 @@ type DurationLimitItemProps = {
   intervalLimitKey: IntervalLimitsKey;
   intervalSelectOptions: { value: keyof IntervalLimit; label: string }[];
   durationAmount: number;
+  hasDeleteButton?: boolean;
   onDelete: (intervalLimitsKey: IntervalLimitsKey) => void;
   onLimitChange: (intervalLimitsKey: IntervalLimitsKey, durationAmount: number) => void;
   onIntervalSelect: (interval: SingleValue<{ value: keyof IntervalLimit; label: string }>) => void;
@@ -27,6 +28,7 @@ const DurationLimitItem = ({
   intervalLimitKey,
   intervalSelectOptions,
   durationAmount,
+  hasDeleteButton,
   onDelete,
   onLimitChange,
   onIntervalSelect,
@@ -61,7 +63,9 @@ const DurationLimitItem = ({
         defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === intervalLimitKey)}
         onChange={onIntervalSelect}
       />
-      <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={handleDelete} />
+      {hasDeleteButton && (
+        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={handleDelete} />
+      )}
     </div>
   );
 };
@@ -113,6 +117,7 @@ export const DurationLimitsManager = () => {
                     <DurationLimitItem
                       key={key}
                       durationAmount={durationAmount}
+                      hasDeleteButton={Object.keys(currentDurationLimits).length > 1}
                       intervalLimitKey={intervalLimitKey}
                       intervalSelectOptions={INTERVAL_LIMIT_OPTIONS.filter(
                         (option) => !Object.keys(currentDurationLimits).includes(option.value)
