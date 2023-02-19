@@ -46,7 +46,7 @@ ${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer"
 ${calEvent.organizer.email}
   `;
 
-  const teamMembers = calEvent.team.members
+  const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
 ${member.name} - ${calEvent.organizer.language.translate("team_member")} 
