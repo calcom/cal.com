@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -22,14 +22,6 @@ export default class BrokenIntegrationEmail extends BaseEmail {
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
 
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

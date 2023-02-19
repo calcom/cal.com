@@ -5,15 +5,7 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.calEvent.attendees[0].email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    const toAddresses = this.calEvent.attendees.map((attendee) => attendee.email);
 
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
