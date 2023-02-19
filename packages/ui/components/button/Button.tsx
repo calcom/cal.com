@@ -42,7 +42,7 @@ const buttonClasses = cva(
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "rounded-full justify-center md:rounded-md  radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
+        fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
         primary: "text-white dark:text-black",
