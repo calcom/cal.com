@@ -46,10 +46,18 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
       ...{ recurrenceRule },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-      })),
+      attendees: [
+        ...this.calEvent.attendees.map((attendee: Person) => ({
+          name: attendee.name,
+          email: attendee.email,
+        })),
+        ...(this.calEvent.team?.members
+          ? this.calEvent.team?.members.map((member: Person) => ({
+              name: member.name,
+              email: member.email,
+            }))
+          : []),
+      ],
       status: "CONFIRMED",
     });
     if (icsEvent.error) {
