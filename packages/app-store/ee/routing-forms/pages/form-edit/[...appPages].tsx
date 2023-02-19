@@ -1,26 +1,27 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import {
   BooleanToggleGroupField,
   Button,
   EmptyScreen,
   FormCard,
-  Icon,
   SelectField,
-  Shell,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import { FiPlus, FiFileText } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
-  RoutingFormWithResponseCount,
 } from "../../components/SingleForm";
 
 export { getServerSideProps };
@@ -117,7 +118,6 @@ function Field({
             <TextField
               disabled={!!router}
               label="Label"
-              type="text"
               placeholder="This is what your users would see"
               /**
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
@@ -126,7 +126,6 @@ function Field({
               defaultValue={routerField?.label}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
-              className="block w-full rounded-sm border-gray-300 text-sm"
             />
           </div>
           <div className="mb-6 w-full">
@@ -139,7 +138,15 @@ function Field({
               value={identifier}
               defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
-              className="block w-full rounded-sm border-gray-300 text-sm"
+            />
+          </div>
+          <div className="mb-6 w-full">
+            <TextField
+              disabled={!!router}
+              label="Placeholder"
+              placeholder="This will be the placeholder"
+              defaultValue={routerField?.placeholder}
+              {...hookForm.register(`${hookFieldNamespace}.placeholder`)}
             />
           </div>
           <div className="mb-6 w-full ">
@@ -286,7 +293,7 @@ const FormEdit = ({
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={Icon.FiPlus}
+              StartIcon={FiPlus}
               color="secondary"
               onClick={addField}>
               Add Field
@@ -298,7 +305,7 @@ const FormEdit = ({
   ) : (
     <div className="w-full">
       <EmptyScreen
-        Icon={Icon.FiFileText}
+        Icon={FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         buttonRaw={

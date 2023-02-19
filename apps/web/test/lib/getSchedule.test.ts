@@ -1,4 +1,4 @@
-import {
+import type {
   EventType as PrismaEventType,
   User as PrismaUser,
   Booking as PrismaBooking,
@@ -6,15 +6,15 @@ import {
   SchedulingType,
 } from "@prisma/client";
 import { diff } from "jest-diff";
-import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
-import { getSchedule, Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import type { BookingStatus } from "@calcom/prisma/client";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots";
 
-import { prismaMock } from "../../../../tests/config/singleton";
+import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
@@ -184,19 +184,26 @@ type InputEventType = {
   length?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
-  users: { id: number }[];
+  users?: { id: number }[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
 };
 
 type InputBooking = {
-  userId: number;
+  userId?: number;
   eventTypeId: number;
   startTime: string;
   endTime: string;
   title?: string;
   status: BookingStatus;
+};
+
+type InputHost = {
+  id: number;
+  userId: number;
+  eventTypeId: number;
+  isFixed: boolean;
 };
 
 const cleanup = async () => {
@@ -218,6 +225,63 @@ afterEach(async () => {
 });
 
 describe("getSchedule", () => {
+  describe("Calendar event", () => {
+    test("correctly identifies unavailable slots from calendar", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const scenarioData = {
+        hosts: [],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+      // An event with one accepted booking
+      createBookingScenario(scenarioData);
+
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus2DateString}T04:45:00.000Z`,
+          end: `${plus2DateString}T23:00:00.000Z`,
+        },
+      ]);
+      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
+      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
+        dateString: plus2DateString,
+      });
+    });
+  });
+
   describe("User Event", () => {
     test("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -232,6 +296,7 @@ describe("getSchedule", () => {
             id: 1,
             // If `slotInterval` is set, it supersedes `length`
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 101,
@@ -281,6 +346,7 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T06:15:00.000Z`,
           },
         ],
+        hosts: [],
       });
 
       // Day Plus 2 is completely free - It only has non accepted bookings
@@ -378,6 +444,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
+        hosts: [],
       });
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -474,6 +541,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
+        hosts: [],
       });
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
@@ -550,20 +618,18 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
+        hosts: [],
         apps: [TestData.apps.googleCalendar],
       };
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus3DateString}T04:00:00.000Z`,
-            end: `${plus3DateString}T05:59:59.000Z`,
-          },
-        ],
-        scenarioData
-      );
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule(
         {
@@ -628,19 +694,17 @@ describe("getSchedule", () => {
           },
         ],
         apps: [TestData.apps.googleCalendar],
+        hosts: [],
       };
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus3DateString}T04:00:00.000Z`,
-            end: `${plus3DateString}T05:59:59.000Z`,
-          },
-        ],
-        scenarioData
-      );
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule(
         {
@@ -690,6 +754,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHoursWithDateOverride(plus2DateString)],
           },
         ],
+        hosts: [],
       };
 
       createBookingScenario(scenarioData);
@@ -713,20 +778,23 @@ describe("getSchedule", () => {
       );
     });
 
-    test("correctly identifies unavailable slots from calendar", async () => {
+    test("that a user is considered busy when there's a booking they host", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      const scenarioData = {
+      createBookingScenario({
         eventTypes: [
+          // A Collective Event Type hosted by this user
           {
             id: 1,
             slotInterval: 45,
-            users: [
-              {
-                id: 101,
-              },
-            ],
+            schedulingType: "COLLECTIVE",
+          },
+          // A default Event Type which this user owns
+          {
+            id: 2,
+            slotInterval: 45,
+            users: [{ id: 101 }],
           },
         ],
         users: [
@@ -734,27 +802,34 @@ describe("getSchedule", () => {
             ...TestData.users.example,
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
-      };
-      // An event with one accepted booking
-      createBookingScenario(scenarioData);
-
-      addBusyTimesInGoogleCalendar(
-        [
+        bookings: [
+          // Create a booking on our Collective Event Type
           {
-            start: `${plus2DateString}T04:30:00.000Z`,
-            end: `${plus2DateString}T23:00:00.000Z`,
+            // userId: XX, <- No owner since this is a Collective Event Type
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
           },
         ],
-        scenarioData
-      );
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
+        hosts: [
+          // This user is a host of our Collective event
+          {
+            id: 1,
+            eventTypeId: 1,
+            userId: 101,
+            isFixed: true,
+          },
+        ],
+      });
+
+      // Requesting this user's availability for their
+      // individual Event Type
+      const thisUserAvailability = await getSchedule(
         {
-          eventTypeId: 1,
+          eventTypeId: 2,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
@@ -763,10 +838,25 @@ describe("getSchedule", () => {
         ctx
       );
 
-      // As per Google Calendar Availability, only 4PM GMT slot would be available
-      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
-        dateString: plus2DateString,
-      });
+      expect(thisUserAvailability).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // <- This slot should be occupied by the Collective Event
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+          `12:15:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
   });
 
@@ -783,6 +873,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 101,
@@ -795,6 +886,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 102,
@@ -830,6 +922,7 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T05:45:00.000Z`,
           },
         ],
+        hosts: [],
       });
 
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
@@ -903,6 +996,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 101,
@@ -916,6 +1010,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 102,
@@ -965,6 +1060,7 @@ describe("getSchedule", () => {
             endTime: `${plus3DateString}T04:15:00.000Z`,
           },
         ],
+        hosts: [],
       });
       const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule(
         {
@@ -1066,9 +1162,10 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
       throw new Error(`eventTypes[number]: id ${eventType.id} is not unique`);
     }
     foundEvents[eventType.id] = true;
-    const users = eventType.users.map((userWithJustId) => {
-      return usersStore.find((user) => user.id === userWithJustId.id);
-    });
+    const users =
+      eventType.users?.map((userWithJustId) => {
+        return usersStore.find((user) => user.id === userWithJustId.id);
+      }) || [];
     return {
       ...baseEventType,
       ...eventType,
@@ -1080,7 +1177,6 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.eventType.findUnique.mockImplementation(({ where }) => {
-    console.log("eventTypesWithUsers", eventTypesWithUsers);
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
@@ -1102,11 +1198,32 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
         bookings
           // We can improve this filter to support the entire where clause but that isn't necessary yet. So, handle what we know we pass to `findMany` and is needed
           .filter((booking) => {
+            /**
+             * A user is considered busy within a given time period if there
+             * is a booking they own OR host. This function mocks some of the logic
+             * for each condition. For details see the following ticket:
+             * https://github.com/calcom/cal.com/issues/6374
+             */
+
+            // ~~ FIRST CONDITION ensures that this booking is owned by this user
+            //    and that the status is what we want
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const statusIn = where.status?.in || [];
-            // Return bookings passing status prisma where
-            return statusIn.includes(booking.status) && booking.userId === where.userId;
+            const statusIn = where.OR[0].status?.in || [];
+            const firstConditionMatches =
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
+
+            // ~~ SECOND CONDITION checks whether this user is a host of this Event Type
+            //    and that booking.status is a match for the returned query
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            let secondConditionMatches = where.OR[1].eventTypeId.in.includes(booking.eventTypeId);
+            secondConditionMatches = secondConditionMatches && statusIn.includes(booking.status);
+
+            // We return this booking if either condition is met
+            return firstConditionMatches || secondConditionMatches;
           })
           .map((booking) => ({
             uid: uuidv4(),
@@ -1117,6 +1234,10 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
       );
     });
   });
+}
+
+function addHosts(hosts: InputHost[]) {
+  prismaMock.host.findMany.mockResolvedValue(hosts);
 }
 
 function addUsers(users: InputUser[]) {
@@ -1134,6 +1255,7 @@ type ScenarioData = {
   // TODO: Support multiple bookings and add tests with that.
   bookings?: InputBooking[];
   users: InputUser[];
+  hosts: InputHost[];
   credentials?: InputCredential[];
   apps?: App[];
   selectedCalendars?: InputSelectedCalendar[];
@@ -1148,6 +1270,8 @@ function createBookingScenario(data: ScenarioData) {
   logger.silly("TestData: Creating Scenario", data);
 
   addUsers(data.users);
+
+  addHosts(data.hosts);
 
   const eventType = addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
@@ -1208,7 +1332,6 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   const date = _date < 10 ? "0" + _date : _date;
   const month = _month < 10 ? "0" + _month : _month;
 
-  console.log(`Date, month, year for ${JSON.stringify(param)}`, date, month, year);
   return {
     date,
     month,
@@ -1218,38 +1341,13 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
 };
 
 /**
- * Remember that this fn must be called only if you expect your test to lookup for busy times in Google Calendar.
- * Calling it unnecessarily will result in a test failure. This is how nock works because it would expect a call to the requests and that too only once.
+ * TODO: Improve this to validate the arguments passed to getBusyCalendarTimes if they are valid or not.
  */
 function addBusyTimesInGoogleCalendar(
   busy: {
     start: string;
     end: string;
-  }[],
-  data: ScenarioData
+  }[]
 ) {
-  if (!data.users.find((u) => u.credentials && u.selectedCalendars)) {
-    throw new Error(
-      "Google Calendar mocking requires atleast one user with both `credentials` and `selectedCalendars`"
-    );
-  }
-  if (!data.apps?.find((app) => app.slug === "google-calendar")) {
-    throw new Error('Google Calendar mocking requires an app with slug "google-calendar"');
-  }
-  logger.silly("Adding busy times in Google Calendar", busy);
-  nock("https://oauth2.googleapis.com").post("/token").reply(200, {
-    access_token: "access_token",
-    expiry_date: Infinity,
-  });
-
-  // Google Calendar with 11th July having many events
-  nock("https://www.googleapis.com")
-    .post("/calendar/v3/freeBusy")
-    .reply(200, {
-      calendars: [
-        {
-          busy,
-        },
-      ],
-    });
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busy);
 }

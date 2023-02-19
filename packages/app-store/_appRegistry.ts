@@ -1,25 +1,19 @@
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
-import { AppFrontendPayload as App } from "@calcom/types/App";
-import { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import { userMetadata } from "@calcom/prisma/zod-utils";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 export async function getAppWithMetadata(app: { dirName: string }) {
-  let appMetadata: App | null = null;
-  try {
-    appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
-  } catch (error) {
-    try {
-      appMetadata = (await import(`./ee/${app.dirName}/_metadata`)).default as App;
-    } catch (e) {
-      if (error instanceof Error) {
-        console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
-      }
-      return null;
-    }
-  }
+  const appMetadata: App | null = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
+  if (metadata.logo && !metadata.logo.includes("/api/app-store/")) {
+    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${app.dirName}`;
+    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
+  }
   return metadata;
 }
 
@@ -62,9 +56,25 @@ export async function getAppRegistryWithCredentials(userId: number) {
         select: safeCredentialSelect,
       },
     },
+    orderBy: {
+      credentials: {
+        _count: "desc",
+      },
+    },
   });
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      metadata: true,
+    },
+  });
+
+  const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
     credentials: Credential[];
+    isDefault?: boolean;
   })[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
@@ -72,7 +82,6 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
       rating: rating || 0,
@@ -83,6 +92,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
       categories: dbapp.categories,
       credentials: dbapp.credentials,
       installed: true,
+      isDefault: usersDefaultApp === dbapp.slug,
     });
   }
   return apps;

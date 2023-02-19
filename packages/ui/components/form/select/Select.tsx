@@ -1,13 +1,14 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import ReactSelect, {
-  components as reactSelectComponents,
+import type {
   GroupBase,
   Props,
   SingleValue,
   MultiValue,
   SelectComponentsConfig,
+  MenuPlacement,
 } from "react-select";
+import ReactSelect, { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,10 +38,13 @@ export const getReactSelectProps = <
 >({
   className,
   components,
+  menuPlacement = "auto",
 }: {
   className?: string;
   components: SelectComponentsConfig<Option, IsMulti, Group>;
+  menuPlacement?: MenuPlacement;
 }) => ({
+  menuPlacement,
   className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
@@ -69,7 +73,10 @@ export const Select = <
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
   const reactSelectProps = React.useMemo(() => {
-    return getReactSelectProps<Option, IsMulti, Group>({ className, components: components || {} });
+    return getReactSelectProps<Option, IsMulti, Group>({
+      className,
+      components: components || {},
+    });
   }, [className, components]);
 
   return (

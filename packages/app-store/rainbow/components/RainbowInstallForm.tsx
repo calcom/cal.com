@@ -1,11 +1,11 @@
-import { z } from "zod";
+import type { z } from "zod";
 
-import { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
+import type { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
 import { Select } from "@calcom/ui";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 type RainbowInstallFormProps = {
   setAppData: SetAppDataGeneric<typeof appDataSchema>;
@@ -22,7 +22,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
     <>
       <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="blockchainId" className="flex text-sm font-medium text-neutral-700">
+          <label htmlFor="blockchainId" className="flex text-sm font-medium text-gray-700">
             {t("Blockchain")}
           </label>
         </div>
@@ -38,7 +38,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
       </div>
       <div className="block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-neutral-700">
+          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-gray-700">
             {t("token_address")}
           </label>
         </div>

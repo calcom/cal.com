@@ -4,10 +4,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { getTranslation } from "@server/lib/i18n";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -37,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         location: true,
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             username: true,
@@ -100,6 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
         organizer: {
+          id: user.id,
           email: user.email,
           name,
           timeZone: user.timeZone,

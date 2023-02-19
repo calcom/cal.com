@@ -1,9 +1,14 @@
-import { App_RoutingForms_Form } from "@prisma/client";
-import z from "zod";
+import type { App_RoutingForms_Form } from "@prisma/client";
+import type z from "zod";
 
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
+import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
+import type { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
+
+export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+
+export type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
 export type Response = Record<
   // Field ID

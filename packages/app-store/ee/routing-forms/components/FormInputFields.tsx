@@ -1,9 +1,9 @@
-import { App_RoutingForms_Form } from "@prisma/client";
-import { Dispatch, SetStateAction } from "react";
+import type { App_RoutingForms_Form } from "@prisma/client";
+import type { Dispatch, SetStateAction } from "react";
 
+import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
-import { SerializableForm, Response } from "../types/types";
+import type { SerializableForm, Response } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;
@@ -20,6 +20,7 @@ export default function FormInputFields(props: Props) {
     <>
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
+          // @ts-expect-error FIXME @hariombalhara
           field = field.routerField;
         }
         const widget = queryBuilderConfig.widgets[field.type];
@@ -42,13 +43,14 @@ export default function FormInputFields(props: Props) {
               <label
                 id="slug-label"
                 htmlFor="slug"
-                className="flex text-sm font-medium text-neutral-700 dark:text-white">
+                className="flex text-sm font-medium text-gray-700 dark:text-white">
                 {field.label}
               </label>
             </div>
             <div className="flex rounded-sm">
               <Component
                 value={response[field.id]?.value}
+                placeholder={field.placeholder ?? ""}
                 // required property isn't accepted by query-builder types
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 /* @ts-ignore */

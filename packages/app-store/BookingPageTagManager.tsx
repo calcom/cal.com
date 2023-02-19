@@ -1,13 +1,9 @@
 import Script from "next/script";
 
-import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 
-import { trackingApps } from "./eventTypeAnalytics";
-
-export type AppScript = { attrs?: Record<string, string> } & (
-  | { src: undefined; content?: string }
-  | { src?: string; content: undefined }
-);
+import type { appDataSchemas } from "./apps.schemas.generated";
 
 export default function BookingPageTagManager({
   eventType,
@@ -16,16 +12,21 @@ export default function BookingPageTagManager({
 }) {
   return (
     <>
-      {Object.entries(trackingApps).map(([appId, scriptConfig]) => {
-        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof trackingApps)?.trackingId;
+      {Object.entries(appStoreMetadata).map(([appId, app]) => {
+        const tag = app.appData?.tag;
+        if (!tag) {
+          return null;
+        }
+        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas)?.trackingId;
         if (!trackingId) {
           return null;
         }
         const parseValue = <T extends string | undefined>(val: T): T =>
+          //TODO: Support more template variables.
           val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
 
-        return scriptConfig.scripts.map((script, index) => {
-          const parsedAttributes: NonNullable<AppScript["attrs"]> = {};
+        return tag.scripts.map((script, index) => {
+          const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};
           const attrs = script.attrs || {};
           Object.entries(attrs).forEach(([name, value]) => {
             if (typeof value === "string") {

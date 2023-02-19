@@ -1,13 +1,13 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { Prisma as PrismaType } from "@prisma/client";
+import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 
-import { TimeZoneEnum } from "./types";
+import type { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export async function hashPassword(password: string) {
@@ -34,6 +34,30 @@ const seededForm = {
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
 
+const createTeamAndAddUser = async (
+  { user }: { user: { id: number; role?: MembershipRole } },
+  workerInfo: WorkerInfo
+) => {
+  const team = await prisma.team.create({
+    data: {
+      name: "",
+      slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
+    },
+  });
+  if (!team) {
+    return;
+  }
+
+  const { role = MembershipRole.OWNER, id: userId } = user;
+  await prisma.membership.create({
+    data: {
+      teamId: team.id,
+      userId,
+      role: role,
+    },
+  });
+};
+
 // creates a user fixture instance and stores the collection
 export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
@@ -42,6 +66,7 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       opts?: CustomUserOpts | null,
       scenario: {
         seedRoutingForms?: boolean;
+        hasTeam?: true;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -193,6 +218,9 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         where: { id: _user.id },
         include: userIncludes,
       });
+      if (scenario.hasTeam) {
+        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+      }
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);
       return userFixture;

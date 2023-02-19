@@ -27,7 +27,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-neutral-500">{subtitle}</p>
+      <p>{label}</p> <p className=" text-gray-500">{subtitle}</p>
     </components.SingleValue>
   );
 };
@@ -119,7 +119,9 @@ const DestinationCalendarSelector = ({
 
   // Get primary calendar, which is shown in the placeholder since this is the calendar that will
   // be used when no destination calendar is selected.
-  const primaryCalendar = query.data.connectedCalendars.filter((cal) => Boolean(cal.primary))[0];
+  const primaryCalendar = query.data.destinationCalendarEmail;
+
+  const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
@@ -129,9 +131,10 @@ const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
           ) : (
-            <span>
+            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap">
               {t("default_calendar_selected")}{" "}
-              {primaryCalendar?.primary?.externalId && `(${primaryCalendar?.primary?.externalId})`}
+              {queryDestinationCalendar.name &&
+                `(${queryDestinationCalendar?.integration} - ${queryDestinationCalendar.name})`}
             </span>
           )
         }

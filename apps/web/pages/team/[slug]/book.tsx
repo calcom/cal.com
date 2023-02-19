@@ -1,14 +1,15 @@
-import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
+import type { GetServerSidePropsContext } from "next";
 
-import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import getBooking, { GetBookingType } from "@lib/getBooking";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { GetBookingType } from "@lib/getBooking";
+import getBooking from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
@@ -68,6 +69,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           name: true,
           logo: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
         },
       },
       users: {
@@ -129,9 +133,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
-        theme: null as string | null /* Teams don't have a theme, and `BookingPage` uses it */,
-        brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
-        darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
         eventName: null,
       },
       eventType: eventTypeObject,

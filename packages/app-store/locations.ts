@@ -1,11 +1,11 @@
 import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
-import { Ensure, Optional } from "@calcom/types/utils";
+import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
-import { appStoreMetadata } from "./apps.metadata.generated";
 
 export type DefaultEventLocationType = {
   default: true;
@@ -15,7 +15,7 @@ export type DefaultEventLocationType = {
   category: string;
 
   iconUrl: string;
-
+  urlRegExp?: string;
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
   variable: "locationType" | "locationAddress" | "address" | "locationLink" | "locationPhoneNumber" | "phone";
   defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone";
@@ -39,6 +39,8 @@ type EventLocationTypeFromApp = Ensure<EventLocationTypeFromAppMeta, "defaultVal
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
 export const DailyLocationType = "integrations:daily";
+
+export const MeetLocationType = "integrations:google:meet";
 
 export enum DefaultEventLocationTypeEnum {
   /**
@@ -64,7 +66,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
-    label: "in_person_attendee_address",
+    label: "attendeeInPerson",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",
@@ -77,7 +79,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.InPerson,
-    label: "In Person (Organizer Address)",
+    label: "inPerson",
     organizerInputType: "text",
     messageForOrganizer: "Provide an Address or Place",
     // HACK:
@@ -140,6 +142,14 @@ const locationsFromApps: EventLocationTypeFromApp[] = [];
 for (const [appName, meta] of Object.entries(appStoreMetadata)) {
   const location = meta.appData?.location;
   if (location) {
+    // TODO: This template variable replacement should happen once during app-store:build.
+    for (const [key, value] of Object.entries(location)) {
+      if (typeof value === "string") {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+      }
+    }
     const newLocation = {
       ...location,
       messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,

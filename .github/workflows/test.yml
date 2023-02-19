@@ -1,13 +1,14 @@
 name: Unit tests
 on:
-  push:
-    branches: [ feat/routing-forms/reporting ] # TODO: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
     paths:
       - apps/web/**
       - packages/**
+  workflow_run:
+    workflows: [Crowdin Action]
+    types: [completed]
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true

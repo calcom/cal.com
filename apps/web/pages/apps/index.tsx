@@ -1,17 +1,31 @@
-import { GetServerSidePropsContext } from "next";
-import { ChangeEventHandler, useState } from "react";
+import type { GetServerSidePropsContext } from "next";
+import type { ChangeEventHandler } from "react";
+import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { AllApps, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { HorizontalTabItemProps } from "@calcom/ui";
+import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
+import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
 import { ssgInit } from "@server/lib/ssg";
+
+const tabs: HorizontalTabItemProps[] = [
+  {
+    name: "app_store",
+    href: "/apps",
+  },
+  {
+    name: "installed_apps",
+    href: "/apps/installed",
+  },
+];
 
 function AppsSearch({
   onChange,
@@ -23,7 +37,7 @@ function AppsSearch({
   return (
     <TextField
       className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
-      addOnLeading={<Icon.FiSearch className="h-4 w-4 text-gray-500" />}
+      addOnLeading={<FiSearch className="h-4 w-4 text-gray-500" />}
       addOnClassname="!border-gray-100"
       containerClassName={classNames("focus:!ring-offset-0", className)}
       type="search"
@@ -43,20 +57,30 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
-        <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+        <div className="flex w-full flex-col  md:flex-row md:justify-between lg:w-auto">
+          <div className="lg:hidden">
+            <HorizontalTabs tabs={tabs} />
+          </div>
+          <div>
+            <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+          </div>
+        </div>
       )}
+      headerClassName="sm:hidden lg:block hidden"
       emptyStore={!appStore.length}>
-      {!searchText && (
-        <>
-          <AppStoreCategories categories={categories} />
-          <TrendingAppsSlider items={appStore} />
-        </>
-      )}
-      <AllApps
-        apps={appStore}
-        searchText={searchText}
-        categories={categories.map((category) => category.name)}
-      />
+      <div className="flex flex-col gap-y-8">
+        {!searchText && (
+          <>
+            <AppStoreCategories categories={categories} />
+            <PopularAppsSlider items={appStore} />
+          </>
+        )}
+        <AllApps
+          apps={appStore}
+          searchText={searchText}
+          categories={categories.map((category) => category.name)}
+        />
+      </div>
     </AppsLayout>
   );
 }

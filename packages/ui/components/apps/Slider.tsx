@@ -1,12 +1,23 @@
-import Glide, { Options } from "@glidejs/glide";
+import type { Options } from "@glidejs/glide";
+import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
+import type { ComponentProps, FC } from "react";
 import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../components/icon";
+import { FiArrowLeft, FiArrowRight } from "../icon";
 import { SkeletonText } from "../skeleton";
+
+const SliderButton: FC<ComponentProps<"button">> = (props) => {
+  const { children, ...rest } = props;
+  return (
+    <button className="rounded p-2.5 text-gray-700 hover:bg-gray-100" {...rest}>
+      {children}
+    </button>
+  );
+};
 
 export const Slider = <T extends string | unknown>({
   title = "",
@@ -39,31 +50,24 @@ export const Slider = <T extends string | unknown>({
 
   return (
     <div className={`mb-2 ${className}`}>
-      <style jsx global>
-        {`
-          .glide__slide {
-            height: auto !important;
-          }
-        `}
-      </style>
       <div className="glide" ref={glide}>
-        <div className="flex cursor-default">
+        <div className="flex cursor-default items-center pb-3">
           {isLocaleReady ? (
             title && (
               <div>
-                <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{title}</h2>
+                <h2 className="mt-0 text-base font-semibold leading-none text-gray-900">{title}</h2>
               </div>
             )
           ) : (
             <SkeletonText className="h-4 w-24" />
           )}
-          <div className="glide__arrows ml-auto" data-glide-el="controls">
-            <button data-glide-dir="<" className="mr-4">
-              <Icon.FiArrowLeft className="h-5 w-5 text-gray-600 hover:text-black" />
-            </button>
-            <button data-glide-dir=">">
-              <Icon.FiArrowRight className="h-5 w-5 text-gray-600 hover:text-black" />
-            </button>
+          <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
+            <SliderButton data-glide-dir="<">
+              <FiArrowLeft className="h-5 w-5" />
+            </SliderButton>
+            <SliderButton data-glide-dir=">">
+              <FiArrowRight className="h-5 w-5" />
+            </SliderButton>
           </div>
         </div>
         <div className="glide__track" data-glide-el="track">

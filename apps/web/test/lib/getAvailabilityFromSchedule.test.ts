@@ -1,10 +1,9 @@
 import { expect, it } from "@jest/globals";
-import { Availability } from "@prisma/client";
+import type { Availability } from "@prisma/client";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
-
-import { getAvailabilityFromSchedule } from "@lib/availability";
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 

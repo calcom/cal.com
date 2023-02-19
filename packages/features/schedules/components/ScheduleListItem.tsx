@@ -2,21 +2,19 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Availability } from "@calcom/prisma/client";
 import { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Schedule } from "@calcom/types/schedule";
 import {
   Badge,
   Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
-  Icon,
 } from "@calcom/ui";
+import { FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -45,14 +43,20 @@ export function ScheduleListItem({
             className="flex-grow truncate text-sm"
             title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
-              <span className="truncate font-medium text-neutral-900">{schedule.name}</span>
+              <span className="truncate font-medium text-gray-900">{schedule.name}</span>
               {schedule.isDefault && (
                 <Badge variant="success" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-xs text-gray-500">
+              {(schedule.timeZone || displayOptions?.timeZone) && (
+                <p className="my-1 flex items-center first-letter:text-xs">
+                  <FiGlobe />
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+                </p>
+              )}
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
@@ -64,28 +68,25 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
-              {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
-                <p className="my-1 flex items-center first-letter:text-xs">
-                  <Icon.FiGlobe />
-                  &nbsp;{schedule.timeZone}
-                </p>
-              )}
             </p>
           </Link>
         </div>
         <Dropdown>
-          <DropdownMenuTrigger asChild className="mx-5">
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="mx-5"
+              type="button"
+              variant="icon"
+              color="secondary"
+              StartIcon={FiMoreHorizontal}
+            />
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>
               <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
                 {!schedule.isDefault && (
-                  <Button
+                  <DropdownItem
                     type="button"
-                    color="minimal"
-                    className="w-full rounded-b-none border-none font-normal"
-                    disabled={schedule.isDefault}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -93,24 +94,21 @@ export function ScheduleListItem({
                       });
                     }}>
                     {t("set_as_default")}
-                  </Button>
+                  </DropdownItem>
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
-                <Button
+                <DropdownItem
+                  type="button"
+                  color="destructive"
+                  StartIcon={FiTrash}
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,
                     });
-                  }}
-                  type="button"
-                  color="destructive"
-                  className={classNames(
-                    "w-full border-none font-normal",
-                    !schedule.isDefault && "rounded-t-none"
-                  )}>
+                  }}>
                   {t("delete")}
-                </Button>
+                </DropdownItem>
               </DropdownMenuItem>
             </DropdownMenuContent>
           )}

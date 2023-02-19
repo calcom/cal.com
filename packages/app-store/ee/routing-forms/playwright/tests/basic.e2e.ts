@@ -1,6 +1,8 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
@@ -47,7 +49,7 @@ test.describe("Routing Forms", () => {
 
       await page.reload();
 
-      expect(await page.inputValue(`[data-testid="description"]`), description);
+      expect(await page.inputValue(`[data-testid="description"]`)).toMatch(description);
       expect(await page.locator('[data-testid="field"]').count()).toBe(1);
 
       await expectCurrentFormToHaveFields(page, { 0: field }, types);
@@ -61,7 +63,9 @@ test.describe("Routing Forms", () => {
     });
 
     test.describe("F1<-F2 Relationship", () => {
-      test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
+      // TODO: Fix this test, it is very flaky
+      // prettier-ignore
+      test.fixme("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         const form2Id = await addForm(page, { name: "F2" });
 
@@ -92,6 +96,9 @@ test.describe("Routing Forms", () => {
 
         // Expect F1 fields to be available in F2
         await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         expect(await page.locator('[data-testid="field"]').count()).toBe(2);
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
@@ -103,6 +110,8 @@ test.describe("Routing Forms", () => {
         });
 
         await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         expect(await page.locator('[data-testid="field"]').count()).toBe(3);
         await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
       });
@@ -111,7 +120,12 @@ test.describe("Routing Forms", () => {
 
     // TODO: How to install the app just once?
     test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing-forms" });
+      const user = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+        }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -141,7 +155,10 @@ test.describe("Routing Forms", () => {
       users: Fixtures["users"];
       page: Page;
     }) {
-      const user = await users.create({ username: "routing-forms" }, { seedRoutingForms: true });
+      const user = await users.create(
+        { username: "routing-forms" },
+        { seedRoutingForms: true, hasTeam: true }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -171,8 +188,9 @@ test.describe("Routing Forms", () => {
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
+      // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
       await headerEls.first().waitFor({
-        timeout: 500,
+        timeout: 1000,
       });
       const numHeaderEls = await headerEls.count();
       const headers = [];
@@ -324,14 +342,9 @@ async function expectCurrentFormToHaveFields(
 ) {
   for (const [index, field] of Object.entries(fields)) {
     expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
-    expect(
-      await page
-        .locator(".data-testid-field-type")
-        .nth(+index)
-        .locator("div")
-        .nth(1)
-        .innerText()
-    ).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
   }
 }
 

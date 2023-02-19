@@ -1,12 +1,13 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
-import { LocationObject } from "@calcom/core/location";
+import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
+import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
+import type { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -125,6 +126,12 @@ export default async function getEventTypeById({
           id: true,
         },
       },
+      hosts: {
+        select: {
+          isFixed: true,
+          userId: true,
+        },
+      },
       userId: true,
       price: true,
       destinationCalendar: true,
@@ -195,7 +202,7 @@ export default async function getEventTypeById({
   newMetadata.apps = {
     ...apps,
     stripe: {
-      ...getStripeAppData(eventTypeWithParsedMetadata, true),
+      ...getPaymentAppData(eventTypeWithParsedMetadata, true),
       currency:
         (
           credentials.find((integration) => integration.type === "stripe_payment")
@@ -245,7 +252,7 @@ export default async function getEventTypeById({
   const currentUser = eventType.users.find((u) => u.id === userId);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
+  const locationOptions = getLocationGroupedOptions(integrations, t);
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

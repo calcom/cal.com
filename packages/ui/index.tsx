@@ -1,110 +1,42 @@
+export { Avatar, AvatarGroup } from "./components/avatar";
+export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
+export { Badge, UpgradeTeamsBadge } from "./components/badge";
+export type { BadgeProps } from "./components/badge";
+export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
+export { Button, LinkIconButton } from "./components/button";
+export type { ButtonBaseProps, ButtonProps } from "./components/button";
+export { ButtonGroup } from "./components/buttonGroup";
 export {
-  Avatar,
-  AvatarGroup,
-  Badge,
-  Breadcrumb,
-  BreadcrumbContainer,
-  BreadcrumbItem,
-  Button,
-  ButtonGroup,
   Checkbox,
-  Credits,
-  Divider,
   EmailField,
   EmailInput,
-  EmptyScreen,
   FieldsetLegend,
   Form,
-  HeadSeo,
   HintsOrErrors,
   Input,
   InputField,
   InputGroupBox,
-  InputFieldWithSelect,
   InputLeading,
   Label,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemTitle,
-  ListLinkItem,
   PasswordField,
   TextArea,
   TextAreaField,
   TextField,
-  TopBanner,
-  AnimatedPopover,
+  InputFieldWithSelect,
   Select,
   SelectField,
   SelectWithValidation,
-  TableActions,
   TimezoneSelect,
-  VerticalDivider,
-  Skeleton,
-  SkeletonAvatar,
-  SkeletonText,
-  SkeletonButton,
-  SkeletonContainer,
-  DropdownActions,
-  Icon,
-  ErrorBoundary,
-  Alert,
-  TrendingAppsSlider,
-  AppCard,
-  AllApps,
-  AppSkeletonLoader,
-  SkeletonLoader,
-  AppStoreCategories,
-  Slider,
-  useShouldShowArrows,
-} from "./components";
-export type {
-  ActionType,
-  AlertProps,
-  AvatarProps,
-  BadgeProps,
-  ButtonBaseProps,
-  ButtonProps,
-  ITimezone,
-  ITimezoneOption,
-  ListItemProps,
-  ListProps,
-  TopBannerProps,
-} from "./components";
-export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
-/** ⬇️ TODO - Move these to components */
-export { default as AddressInput } from "./form/AddressInputLazy";
-export { default as PhoneInput } from "./form/PhoneInputLazy";
-export { UnstyledSelect } from "./form/Select";
-export { default as Loader } from "./v2/core/Loader";
-export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
-
-export {
-  HorizontalTabs,
-  SettingsToggle,
-  showToast,
-  Swatch,
-  Switch,
-  Card,
-  VerticalTabs,
-  HorizontalTabItem,
-  VerticalTabItem,
-} from "./v2";
-export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
-export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
-
-export { default as ColorPicker } from "./v2/core/colorpicker";
-export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "./v2/core/Dialog";
-export type { DialogProps } from "./v2/core/Dialog";
-export {
+  BooleanToggleGroup,
+  BooleanToggleGroupField,
+  DatePicker,
+  DateRangePicker,
+  MultiSelectCheckbox,
+  ToggleGroup,
+  ToggleGroupItem,
+  getReactSelectProps,
+  ColorPicker,
+  FormStep,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -113,7 +45,77 @@ export {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./v2/core/Dropdown";
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  ButtonOrLink,
+  DropdownMenuGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTriggerItem,
+  Steps,
+  WizardForm,
+  SettingsToggle,
+  Stepper,
+  Switch,
+} from "./components/form";
+export type { ITimezone, ITimezoneOption } from "./components/form";
+export {
+  AllApps,
+  AppCard,
+  AppSkeletonLoader,
+  SkeletonLoader,
+  Slider,
+  PopularAppsSlider,
+  useShouldShowArrows,
+  AppStoreCategories,
+} from "./components/apps";
+export { TopBanner } from "./components/top-banner";
+export type { TopBannerProps } from "./components/top-banner";
+export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
+export { TableActions, DropdownActions } from "./components/table/TableActions";
+export type { ActionType } from "./components/table/TableActions";
+export { ErrorBoundary } from "./components/errorBoundary";
+export { Logo } from "./components/logo";
+export { Alert } from "./components/alert";
+export type { AlertProps } from "./components/alert";
+export { Credits } from "./components/credits";
+export { Divider, VerticalDivider } from "./components/divider";
+export { EmptyScreen } from "./components/empty-screen";
+export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./components/list";
+export type { ListItemProps, ListProps } from "./components/list";
+export { HeadSeo } from "./components/head-seo";
+export {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  Loader,
+} from "./components/skeleton";
+export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./components/navigation";
+export type { HorizontalTabItemProps, NavTabProps, VerticalTabItemProps } from "./components/navigation";
+export { Card, StepCard, FormCard } from "./components/card";
+export type { BaseCardProps } from "./components/card";
+export { Tooltip } from "./components/tooltip";
+export { Editor, AddVariablesDropdown } from "./components/editor";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+  ConfirmationDialogContent,
+} from "./components/dialog";
+export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
+export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
+export { Meta, MetaProvider, useMeta } from "./components/meta";
+export { ShellSubHeading } from "./components/layout";
+
+/** ⬇️ TODO - Move these to components */
+export { default as AddressInput } from "./form/AddressInputLazy";
+export { default as PhoneInput } from "./form/PhoneInputLazy";
+export { UnstyledSelect } from "./form/Select";
+
 export {
   RadioGroup,
   /* TODO: solve this conflict -> Select, */
@@ -122,19 +124,7 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export { BooleanToggleGroupField } from "./v2/core/form/BooleanToggleGroup";
-export { DateRangePickerLazy as DateRangePicker } from "./v2/core/form/date-range-picker";
-export { default as DatePickerField } from "./v2/core/form/DatePicker";
-export { default as FormCard } from "./v2/core/form/FormCard";
-export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectCheckboxes";
-export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
-export { ToggleGroup } from "./v2/core/form/ToggleGroup";
-export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as LinkIconButton } from "./v2/core/LinkIconButton";
-export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
-export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { StepCard } from "./v2/core/StepCard";
-export { default as Stepper } from "./v2/core/Stepper";
-export { Steps } from "./v2/core/Steps";
-export { Tooltip } from "./v2/core/Tooltip";
-export { default as WizardForm } from "./v2/core/WizardForm";
+export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
+export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
+export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
+export type { ButtonColor } from "./components/button/Button";

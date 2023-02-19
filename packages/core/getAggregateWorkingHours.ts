@@ -7,16 +7,29 @@ import type { WorkingHours } from "@calcom/types/schedule";
  * offsets them to UTC and intersects them for collective events.
  **/
 export const getAggregateWorkingHours = (
-  usersWorkingHoursAndBusySlots: Omit<
+  usersWorkingHoursAndBusySlots: (Omit<
     Awaited<ReturnType<Awaited<typeof import("./getUserAvailability")>["getUserAvailability"]>>,
     "currentSeats"
-  >[],
+  > & { user?: { isFixed?: boolean } })[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schedulingType: SchedulingType | null
 ): WorkingHours[] => {
-  if (schedulingType !== SchedulingType.COLLECTIVE) {
+  // during personal events, just flatMap.
+  if (!schedulingType) {
     return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
   }
-  return usersWorkingHoursAndBusySlots.reduce((currentWorkingHours: WorkingHours[], s) => {
+  const looseHostWorkingHours = usersWorkingHoursAndBusySlots
+    .filter(({ user }) => schedulingType !== SchedulingType.COLLECTIVE && user?.isFixed !== true)
+    .flatMap((s) => s.workingHours);
+
+  const fixedHostSchedules = usersWorkingHoursAndBusySlots.filter(
+    ({ user }) => schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
+  );
+  // return early when there are no fixed hosts.
+  if (!fixedHostSchedules.length) {
+    return looseHostWorkingHours;
+  }
+  return fixedHostSchedules.reduce((currentWorkingHours: WorkingHours[], s) => {
     const updatedWorkingHours: typeof currentWorkingHours = [];
 
     s.workingHours.forEach((workingHour) => {
@@ -31,15 +44,18 @@ export const getAggregateWorkingHours = (
       updatedWorkingHours.push(
         ...sameDayWorkingHours.map((compare) => {
           const intersect = workingHour.days.filter((day) => compare.days.includes(day));
-          return {
+          const retVal: WorkingHours & { userId?: number | null } = {
             days: intersect,
             startTime: Math.max(workingHour.startTime, compare.startTime),
             endTime: Math.min(workingHour.endTime, compare.endTime),
           };
+          if (schedulingType !== SchedulingType.COLLECTIVE) {
+            retVal.userId = compare.userId;
+          }
+          return retVal;
         })
       );
     });
-
     return updatedWorkingHours;
-  }, []);
+  }, looseHostWorkingHours);
 };

@@ -35,7 +35,7 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
-    await expect(page.locator('[id="modal-title"]')).not.toBeVisible();
+    await expect(page.locator('[id="modal-title"]')).toBeHidden();
 
     const updatedBooking = await booking.self();
 
@@ -113,7 +113,22 @@ test.describe("Reschedule Tests", async () => {
       status: BookingStatus.CANCELLED,
       paid: false,
     });
-
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        metadata: {
+          apps: {
+            stripe: {
+              price: 20000,
+              enabled: true,
+              currency: "usd",
+            },
+          },
+        },
+      },
+    });
     const payment = await payments.create(booking.id);
     await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
 

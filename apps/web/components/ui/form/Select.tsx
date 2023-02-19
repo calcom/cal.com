@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import ReactSelect, { components, GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
+import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
+import ReactSelect, { components } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -28,7 +29,7 @@ function Select<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
-  const { resolvedTheme, forcedTheme, isReady } = useTheme();
+  const { resolvedTheme, forcedTheme /*isReady*/ } = useTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const darkThemeColors = {
     /** Dark Theme starts */
@@ -73,9 +74,9 @@ function Select<
   };
 
   // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
-  if (!isReady) {
-    return <input type="text" className={className} />;
-  }
+  // if (!isReady) {
+  //   return <input type="text" className={className} />;
+  // }
   return (
     <ReactSelect
       theme={(theme) => ({

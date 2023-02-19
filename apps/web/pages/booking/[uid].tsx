@@ -2,7 +2,7 @@ import { BookingStatus, WorkflowActions } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,10 +11,12 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -24,7 +26,11 @@ import {
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
-import { formatTime } from "@calcom/lib/date-fns";
+import {
+  formatToLocalizedDate,
+  formatToLocalizedTime,
+  formatToLocalizedTimezone,
+} from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -32,13 +38,15 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma, { baseUserSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
@@ -142,7 +150,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <Icon.FiX className="h-6 w-6 text-white" />
+                  <FiX className="h-6 w-6 text-white" />
                 </button>
               </div>
             </div>
@@ -168,6 +176,7 @@ const querySchema = z.object({
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
+  email: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -179,26 +188,29 @@ export default function Success(props: SuccessProps) {
     cancel: isCancellationMode,
     changes,
     formerTime,
+    email,
   } = querySchema.parse(router.query);
 
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
 
-  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0]
+  const location: ReturnType<typeof getEventLocationValue> = props.bookingInfo.location
+    ? props.bookingInfo.location
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
+
+  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+    props?.bookingInfo?.metadata || {}
+  )?.videoCallUrl;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
     console.error(`No location found `);
   }
-
-  const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
-  const cancellationReason = props.bookingInfo.cancellationReason;
+  const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
 
   const attendeeName =
     typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
@@ -254,6 +266,7 @@ export default function Success(props: SuccessProps) {
     if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
     sdkActionManager.fire("bookingSuccessful", {
+      booking: bookingInfo,
       eventType,
       date: date.toString(),
       duration: calculatedDuration,
@@ -278,8 +291,8 @@ export default function Success(props: SuccessProps) {
 
   function eventLink(): string {
     const optional: { location?: string } = {};
-    if (location) {
-      optional["location"] = location;
+    if (locationVideoCallUrl) {
+      optional["location"] = locationVideoCallUrl;
     }
 
     const event = createEvent({
@@ -322,19 +335,24 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
+    t,
+    bookingInfo.status
+  );
 
   const hasSMSAttendeeAction =
     eventType.workflows.find((workflowEventType) =>
       workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
     ) !== undefined;
+  const providerName = guessEventLocationType(location)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -356,7 +374,7 @@ export default function Success(props: SuccessProps) {
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
-            <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
+            <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -379,7 +397,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -401,14 +419,14 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Icon.FiCheck className="h-5 w-5 text-green-600" />
+                    <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <Icon.FiCalendar className="h-5 w-5 text-gray-900" />}
-                  {isCancelled && <Icon.FiX className="h-5 w-5 text-red-600" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -422,9 +440,21 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
-                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
+                  {props.paymentStatus && (
+                    <h4>
+                      {!props.paymentStatus.success &&
+                        !props.paymentStatus.refunded &&
+                        t("booking_with_payment_cancelled")}
+                      {props.paymentStatus.success &&
+                        !props.paymentStatus.refunded &&
+                        t("booking_with_payment_cancelled_already_paid")}
+                      {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
+                    </h4>
+                  )}
+
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
@@ -486,8 +516,14 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3">
                           {locationToDisplay.startsWith("http") ? (
-                            <a title="Meeting Link" href={locationToDisplay}>
-                              {locationToDisplay}
+                            <a
+                              href={locationToDisplay}
+                              target="_blank"
+                              title={locationToDisplay}
+                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
+                              rel="noreferrer">
+                              {providerName || "Link"}
+                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -499,7 +535,7 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.description}</p>
+                          <p className="break-words">{bookingInfo.description}</p>
                         </div>
                       </>
                     )}
@@ -513,7 +549,7 @@ export default function Success(props: SuccessProps) {
                           <>
                             {eventTypeCustomFound?.type === "RADIO" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
                                   {eventTypeCustomFound.label}
                                 </div>
                                 <div className="col-span-3 mt-1 mb-2">
@@ -537,7 +573,9 @@ export default function Success(props: SuccessProps) {
                             )}
                             {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
-                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
+                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {key}
+                                </div>
                                 <div className="col-span-3 mt-2 mb-2">
                                   {typeof customInput === "boolean" ? (
                                     <p>{customInput ? "true" : "false"}</p>
@@ -594,7 +632,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300" />
+                      <hr className="border-bookinglightest dark:border-darkgray-200" />
                       <CancelBooking
                         booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
@@ -628,15 +666,15 @@ export default function Success(props: SuccessProps) {
                                 .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                                 props.eventType.description
                               }` +
-                              (typeof location === "string"
-                                ? "&location=" + encodeURIComponent(location)
+                              (typeof locationVideoCallUrl === "string"
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "") +
                               (props.eventType.recurringEvent
                                 ? "&recur=" +
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-neutral-700 dark:text-white">
+                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -657,9 +695,12 @@ export default function Success(props: SuccessProps) {
                                   date.utc().format() +
                                   "&subject=" +
                                   eventName
-                              ) + (location ? "&location=" + location : "")
+                              ) +
+                              (locationVideoCallUrl
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -681,9 +722,12 @@ export default function Success(props: SuccessProps) {
                                   date.utc().format() +
                                   "&subject=" +
                                   eventName
-                              ) + (location ? "&location=" + location : "")
+                              ) +
+                              (locationVideoCallUrl
+                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -696,7 +740,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -732,7 +776,7 @@ export default function Success(props: SuccessProps) {
                         <EmailInput
                           name="email"
                           id="email"
-                          defaultValue={email || ""}
+                          defaultValue={email}
                           className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
@@ -778,7 +822,10 @@ export function RecurringBookings({
   isCancelled,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
 
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
@@ -801,11 +848,13 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+              {formatToLocalizedDate(dayjs.tz(dateStr, timeZone()), language, "full")}
               <br />
-              {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-              {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-              <span className="text-bookinglight">({timeZone()})</span>
+              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h)} -{" "}
+              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h)}{" "}
+              <span className="text-bookinglight">
+                ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+              </span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -819,11 +868,13 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+                    {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
                     <br />
-                    {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-                    {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-                    <span className="text-bookinglight">({timeZone()})</span>
+                    {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
+                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+                    <span className="text-bookinglight">
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+                    </span>
                   </div>
                 ))}
             </CollapsibleContent>
@@ -835,16 +886,27 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {dayjs.tz(date, timeZone()).format("dddd, DD MMMM YYYY")}
+      {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
       <br />
-      {formatTime(date, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-      {formatTime(dayjs(date).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-      <span className="text-bookinglight">({timeZone()})</span>
+      {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
+      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language)})</span>
     </div>
   );
 }
 
 const getEventTypesFromDB = async (id: number) => {
+  const userSelect = {
+    id: true,
+    name: true,
+    username: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    email: true,
+    timeZone: true,
+  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
@@ -863,17 +925,17 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      owner: {
+        select: userSelect,
+      },
       users: {
+        select: userSelect,
+      },
+      hosts: {
         select: {
-          id: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          email: true,
-          timeZone: true,
+          user: {
+            select: userSelect,
+          },
         },
       },
       team: {
@@ -917,6 +979,7 @@ const schema = z.object({
   uid: z.string(),
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
+  cancel: stringToBoolean,
 });
 
 const handleSeatsEventTypeOnBooking = (
@@ -950,7 +1013,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -968,7 +1031,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       endTime: true,
       location: true,
       status: true,
+      metadata: true,
       cancellationReason: true,
+      rejectionReason: true,
       user: {
         select: {
           id: true,
@@ -1013,27 +1078,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
-    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
-    const user = await prisma.user.findUnique({
-      where: {
-        id: eventTypeRaw.userId,
-      },
-      select: baseUserSelect,
-    });
-    if (user) {
-      eventTypeRaw.users.push({
-        ...user,
-        avatar: "",
-        allowDynamicBooking: true,
-      });
-    }
-  }
+  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+    ? eventTypeRaw.hosts.map((host) => host.user)
+    : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    return {
-      notFound: true,
-    };
+    if (!eventTypeRaw.owner)
+      return {
+        notFound: true,
+      };
+    eventTypeRaw.users.push({
+      ...eventTypeRaw.owner,
+    });
   }
 
   const eventType = {
@@ -1045,7 +1101,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl) {
+  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,
@@ -1080,6 +1136,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+    },
+  });
+  const paymentStatus = {
+    success: payment?.success,
+    refunded: payment?.refunded,
+  };
+
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
@@ -1089,6 +1159,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      paymentStatus: payment ? paymentStatus : null,
     },
   };
 }

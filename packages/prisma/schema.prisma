@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = []
 }
 
 generator zod {
@@ -29,6 +29,15 @@ enum PeriodType {
   RANGE     @map("range")
 }
 
+model Host {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+  isFixed     Boolean   @default(false)
+}
+
 model EventType {
   id                      Int                     @id @default(autoincrement())
   /// @zod.min(1)
@@ -41,6 +50,7 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                 @default(false)
+  hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
   owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
@@ -187,6 +197,7 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
+  hosts                Host[]
 
   @@map(name: "users")
 }
@@ -206,6 +217,9 @@ model Team {
   createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
+  theme               String?
+  brandColor          String       @default("#292929")
+  darkBrandColor      String       @default("#fafafa")
 }
 
 enum MembershipRole {
@@ -359,7 +373,7 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
-  // @zod.custom(imports.customInputOptionSchema)
+  /// @zod.custom(imports.customInputOptionSchema)
   options     Json?
   required    Boolean
   placeholder String                   @default("")
@@ -385,24 +399,20 @@ model ReminderMail {
   createdAt      DateTime     @default(now())
 }
 
-enum PaymentType {
-  STRIPE
-}
-
 model Payment {
-  id         Int         @id @default(autoincrement())
-  uid        String      @unique
-  // TODO: Use an App relationship instead of PaymentType enum?
-  type       PaymentType
+  id         Int      @id @default(autoincrement())
+  uid        String   @unique
+  app        App?     @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount     Int
   fee        Int
   currency   String
   success    Boolean
   refunded   Boolean
   data       Json
-  externalId String      @unique
+  externalId String   @unique
 }
 
 enum WebhookTriggerEvents {
@@ -511,6 +521,7 @@ model App {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   credentials Credential[]
+  payments    Payment[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
@@ -602,6 +613,16 @@ model WorkflowsOnEventTypes {
   workflowId  Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
+}
+
+model Deployment {
+  /// This is a single row table, so we use a fixed id
+  id              Int       @id @default(1)
+  logo            String?
+  /// @zod.custom(imports.DeploymentTheme)
+  theme           Json?
+  licenseKey      String?
+  agreedLicenseAt DateTime?
 }
 
 enum TimeUnit {

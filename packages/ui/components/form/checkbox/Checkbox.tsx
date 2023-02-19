@@ -1,4 +1,5 @@
-import React, { forwardRef, InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes } from "react";
+import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -12,7 +13,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
-  ({ label, description, error, informationIconText, disabled, ...rest }, ref) => {
+  ({ label, description, error, disabled, ...rest }, ref) => {
     const descriptionAsLabel = !label || rest.descriptionAsLabel;
     return (
       <div className="block items-center sm:flex">
@@ -39,7 +40,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               {
                 className: classNames(
                   "relative flex items-start",
-                  !error && descriptionAsLabel ? "text-gray-900" : "text-neutral-900",
+                  !error && descriptionAsLabel ? "text-gray-900" : "text-gray-900",
                   error && "text-red-800"
                 ),
               },

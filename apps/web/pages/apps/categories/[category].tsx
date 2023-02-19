@@ -1,12 +1,13 @@
 import { AppCategories } from "@prisma/client";
-import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
+import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { AppCard, Shell, SkeletonText } from "@calcom/ui";
+import { AppCard, SkeletonText } from "@calcom/ui";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
@@ -18,6 +19,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
       <Shell
         isPublic
         backPath="/apps"
+        smallHeading
         heading={
           <>
             <Link
@@ -32,8 +34,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
               </span>
             )}
           </>
-        }
-        large>
+        }>
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps.map((app) => {

@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppFrontendPayload as App } from "@calcom/types/App";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon } from "../..";
-import { showToast } from "../../v2/core/notifications";
+import { Button } from "../button";
+import { FiPlus } from "../icon";
+import { showToast } from "../toast";
 
 interface AppCardProps {
   app: App;
@@ -40,7 +41,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
   }, [app.name, searchText]);
 
   return (
-    <div className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5">
+    <div className="relative flex h-64 flex-col rounded-md border border-gray-200 p-5">
       <div className="flex">
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
@@ -73,6 +74,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         }}>
         {app.description}
       </p>
+
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -100,7 +102,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                     <Button
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       {...props}>
                       {t("install")}
                     </Button>
@@ -125,7 +127,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   }
                   return (
                     <Button
-                      StartIcon={Icon.FiPlus}
+                      StartIcon={FiPlus}
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"
@@ -143,7 +145,11 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
             {t("installed", { count: appAdded })}
           </span>
         )}
-        {app.isGlobal && (
+        {app.isTemplate && (
+          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
+        )}
+
+        {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
           </span>
