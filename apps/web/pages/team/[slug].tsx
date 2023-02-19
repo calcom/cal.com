@@ -14,7 +14,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Avatar, Button, HeadSeo, AvatarGroup, EmptyScreen } from "@calcom/ui";
-import { FiArrowRight, FiAlertCircle } from "@calcom/ui/components/icon";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -82,7 +82,7 @@ function TeamPage({ team }: TeamPageProps) {
 
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
-  const isPublished = true; // TODO: check for team.published or something
+  const isPublished = false; // TODO: check for team.published or something
 
   return (
     <>
@@ -146,10 +146,9 @@ function TeamPage({ team }: TeamPageProps) {
       ) : (
         <div className="m-8 flex items-center justify-center">
           <EmptyScreen
-            headline={t("ACME, Inc. is unpublished")}
-            Icon={FiAlertCircle}
-            description="This team link is currently not available. Please contact the team owner to publish it."
-            buttonRaw={<Button color="secondary">Contact Team Owner</Button>}
+            avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
+            headline={t("team_is_unpublished", { team: teamName })}
+            description={t("team_is_unpublished_description")}
           />
         </div>
       )}
