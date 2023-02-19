@@ -1,7 +1,7 @@
 import invoice from "@node-lightning/invoice";
 import fetch from "node-fetch";
 
-const decodeInvoice = async (lnName: string, amount: number) => {
+const fetchInvoiceFromLnName = async (lnName: string, amount: number) => {
   const splits = lnName.split("@");
   if (splits.length <= 1) {
     return false;
@@ -14,10 +14,12 @@ const decodeInvoice = async (lnName: string, amount: number) => {
   if (req.status === "ERROR" || !resData) {
     return false;
   }
+  // amount is given in msats: 1 satoshi = 1000 msats
+  // This fetch needs a cors redirect  when it does not run on a backend server
   const invoiceData = await fetch(`${resData.callback}?amount=${amount * 1000}`);
   const invoiceResData = await invoiceData.json();
   if (invoiceData.status === "ERROR" || !invoiceResData || invoiceResData.error) {
-    return false;
+    throw new Error("Invalid Invoice");
   }
   try {
     const result = invoice.decode(invoiceResData.pr);
@@ -27,14 +29,12 @@ const decodeInvoice = async (lnName: string, amount: number) => {
         return invoiceResData.pr;
       } else {
         throw new Error("Invoice does not match input");
-        return false;
       }
     }
     throw new Error("Invalid Invoice");
   } catch (ex) {
     throw new Error(`Undefined error: ${ex}`);
   }
-  throw new Error(`Undefined error`);
 };
 
-export default decodeInvoice;
+export default fetchInvoiceFromLnName;

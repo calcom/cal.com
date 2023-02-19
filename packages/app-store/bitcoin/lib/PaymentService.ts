@@ -13,6 +13,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import fetchInvoiceFromLnName from "./invoiceFetcher";
 
+import { getBitcoinAppKeys } from "./getBitcoinAppKeys";
+import { bitcoinCredentialSchema } from "./bitcoinCredentialSchema";
+
 // Mock
 const mockInvoice =
   "lnbc1u1p3mjl9xpp527xj0nhfray26nrkd5j8lnkhnltlc3025yx6kghjvt9nnkeselsqdpzgdhkjmjtd96yq4esxqcrqvpsx9tn2vp3xscqzpgxqyz5vqsp52lw0380j6pyys3gwka2j8e2m9fvguyslltzs5gzvdx3h6hf7ywws9qyyssqukxlkd60kmvcxwxdaz7gcuw6tuz4arsp2m5elnklxmttajr9jdkxj40l0ffgkeyz73yhhgj44cczr2weae7sg53dtf3lgjz9h6mhqfsqhsgsuv";
@@ -21,7 +24,7 @@ export class PaymentService implements IAbstractPaymentService {
   constructor(credentials: { key: Prisma.JsonValue }) {
     // parse credentials key
     // How to get the app values?
-    this.credentials = bitcoinCredentialKeysSchema.parse(credentials.key);
+    this.credentials = bitcoinCredentialSchema.parse(credentials.key);
   }
 
   async create(
@@ -30,20 +33,13 @@ export class PaymentService implements IAbstractPaymentService {
   ) {
     try {
       // Load ln options keys
-      const bitcoinAppKeys = await prisma?.app.findFirst({
-        select: {
-          keys: true,
-        },
-        where: {
-          slug: "bitcoin",
-        },
-      });
+      const bitcoinAppKeys = getBitcoinAppKeys();
 
       // Parse keys with zod
       // Parse keys to get ln-name/ln-invoice and price
-      const { ln_name, payment_fee_fixed } = bitcoinAppKeysSchema.parse(bitcoinAppKeys?.keys);
+      const { ln_name_url, payment_fee_fixed } = bitcoinCredentialSchema.parse(bitcoinAppKeys?.keys);
 
-      const paymentIntent = /* await fetchInvoiceFromLnName(ln_name, payment_fee_fixed); */ mockInvoice;
+      const paymentIntent = /* await fetchInvoiceFromLnName(ln_name_url, payment_fee_fixed); */ mockInvoice;
 
       const paymentData = await prisma.payment.create({
         data: {
@@ -135,7 +131,7 @@ export class PaymentService implements IAbstractPaymentService {
     const externalId = mockInvoice;
     let result;
     try {
-      result = await fetch(`https://api.ln-gateway.com/api/v1/isInvoicePaid?invoice=${mockInvoice}`);
+      result = await fetch(`https://api.ln-gateway.com/api/v1/isInvoicePaid?invoice=${externalId}`);
     } catch (ex) {
       throw new Error(`Could not update Payment: ${ex}`);
     }
