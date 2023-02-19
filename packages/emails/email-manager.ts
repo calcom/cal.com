@@ -317,14 +317,38 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
 };
 
 export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
-  await new Promise((resolve, reject) => {
-    try {
-      const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail(calEvent);
-      resolve(paymentRefundFailedEmail.sendEmail());
-    } catch (e) {
-      reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
+  const emailsToSend: Promise<unknown>[] = [];
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail(calEvent);
+        resolve(paymentRefundFailedEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  if (calEvent.team?.members) {
+    for (const teamMember of calEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail(
+              calEvent,
+              undefined,
+              teamMember
+            );
+            resolve(paymentRefundFailedEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
+          }
+        })
+      );
     }
-  });
+  }
+
+  await Promise.all(emailsToSend);
 };
 
 export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
