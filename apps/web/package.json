@@ -69,7 +69,6 @@
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
-    "discourse-sso": "^1.0.5",
     "dotenv-cli": "^6.0.0",
     "eslint-config-next": "^13.1.6",
     "googleapis": "^84.0.0",

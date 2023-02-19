@@ -1,13 +1,11 @@
-import { IdentityProvider, UserPermissionRole } from "@prisma/client";
-import discourseSso from "discourse-sso";
+import type { UserPermissionRole } from "@prisma/client";
+import { IdentityProvider } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import type { Session, User } from "next-auth";
+import type { Session } from "next-auth";
 import NextAuth from "next-auth";
-import type { AdapterUser } from "next-auth/adapters";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
-import type { CredentialInput } from "next-auth/providers/credentials";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -20,14 +18,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
-import {
-  APP_NAME,
-  COMMUNITY_URL,
-  IS_TEAM_BILLING_ENABLED,
-  WEBAPP_URL,
-  WEBSITE_URL,
-  IS_SELF_HOSTED,
-} from "@calcom/lib/constants";
+import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { randomString } from "@calcom/lib/random";
@@ -37,6 +28,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
+import checkCommunityLogin from "@lib/auth/checkCommunityLogin";
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -259,40 +251,6 @@ function isNumber(n: string) {
 }
 
 const calcomAdapter = CalComAdapter(prisma);
-
-const checkCommunityLogin = (
-  user: User | AdapterUser,
-  credentials: Record<string, CredentialInput> | undefined
-): string | boolean => {
-  if (IS_SELF_HOSTED) return true;
-  if (!credentials?.callbackUrl) return true;
-  const callbackUrl = new URL(credentials.callbackUrl as string);
-  if (callbackUrl.hostname !== new URL(COMMUNITY_URL).hostname) return true;
-  if (!process.env.COMMUNITY_SECRET) return "/auth/error?error=invalid-community-login";
-  const params = new URLSearchParams(callbackUrl.searchParams);
-  const ssoParam = params.get("sso");
-  const sigParam = params.get("sig");
-  const sso = new discourseSso(process.env.COMMUNITY_SECRET);
-  if (ssoParam === null || sigParam === null) return "/auth/error?error=invalid-community-login";
-  if (!sso.validate(ssoParam, sigParam)) return "/auth/error?error=invalid-community-login";
-  const nonce = sso.getNonce(ssoParam);
-  const userparams = {
-    // Required, will throw exception otherwise
-    nonce: nonce,
-    external_id: user.id.toString(),
-    email: user.email!,
-    // Optional
-    admin: user.role === UserPermissionRole.ADMIN,
-    username: user.username ?? undefined,
-    name: user.name ?? undefined,
-    bio: user.bio,
-    avatar_force_update: true,
-    avatar_url: `${WEBAPP_URL}/${user.username}/avatar.png`,
-    website: `${WEBSITE_URL}/${user.username}`,
-  };
-  const q = sso.buildLoginString(userparams);
-  return `https://cal.community/session/sso_login?${q}`;
-};
 
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
