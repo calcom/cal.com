@@ -4,8 +4,8 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
-import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
 
 import type { Maybe } from "@trpc/server";

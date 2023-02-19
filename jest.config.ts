@@ -35,8 +35,14 @@ const config: Config = {
       displayName: "@calcom/lib",
       roots: ["<rootDir>/packages/lib"],
       testEnvironment: "node",
+      moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
       transform: {
         "^.+\\.tsx?$": "ts-jest",
+      },
+      globals: {
+        "ts-jest": {
+          tsconfig: "<rootDir>/packages/lib/tsconfig.test.json",
+        },
       },
     },
     {
