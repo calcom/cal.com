@@ -17,7 +17,7 @@ const BitcoinInstallForm: React.FC<BitcoinInstallFormProps> = ({ setAppData, lnU
       <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor="lnUrlName" className="flex text-sm font-medium text-neutral-700">
-            {t("LN URL / LR Name")}
+            {t("LN Name")}
           </label>
         </div>
         <input
@@ -32,8 +32,8 @@ const BitcoinInstallForm: React.FC<BitcoinInstallFormProps> = ({ setAppData, lnU
       </div>
       <div className="block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-neutral-700">
-            {t("token_address")}
+          <label htmlFor="priceInSats" className="flex text-sm font-medium text-neutral-700">
+            {t("priceInSats")}
           </label>
         </div>
         <div className="w-full">
