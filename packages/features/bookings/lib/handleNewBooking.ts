@@ -989,7 +989,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.description = eventType.description;
 
     results = updateManager.results;
-    console.log("🚀 ~ file: handleNewBooking.ts:992 ~ handler ~ results", results);
     referencesToCreate = updateManager.referencesToCreate;
     if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {
