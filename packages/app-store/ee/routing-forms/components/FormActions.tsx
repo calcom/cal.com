@@ -69,7 +69,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
     onError: () => {
-      showToast(t("Something went wrong"), "error");
+      showToast(t("Something_went_wrong"), "error");
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
