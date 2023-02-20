@@ -8,9 +8,11 @@ runs:
   using: "composite"
   steps:
     - uses: actions/setup-node@v3
+      shell: bash
       with:
         node-version: ${{ inputs.node_version }}
     - name: node_modules cache
+      shell: bash
       id: node-modules-cache
       uses: actions/cache@v3
       env:
@@ -21,5 +23,6 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
         restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn install
+      shell: bash
       if: steps.node-modules-cache.outputs.cache-hit != 'true'
       run: yarn install --prefer-offline --frozen-lockfile
