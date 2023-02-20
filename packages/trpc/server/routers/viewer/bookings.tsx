@@ -5,7 +5,6 @@ import type {
   Workflow,
   WorkflowsOnEventTypes,
   WorkflowStep,
-  PrismaPromise,
 } from "@prisma/client";
 import {
   BookingStatus,
@@ -488,7 +487,7 @@ export const bookingsRouter = router({
         //cancel workflow reminders of previous booking
         bookingToReschedule.workflowReminders.forEach((reminder) => {
           if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+            deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
           } else if (reminder.method === WorkflowMethods.SMS) {
             deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
           }
