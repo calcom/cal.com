@@ -2,11 +2,10 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import slugify from "@calcom/lib/slugify";
 import {
   Label,
   Badge,
@@ -27,7 +26,7 @@ import { Switch } from "@calcom/ui";
 import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
-import { fieldsSchema } from "./FormBuilderFieldsSchema";
+import type { fieldsSchema } from "./FormBuilderFieldsSchema";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -51,97 +50,99 @@ export const FormBuilder = function FormBuilder({
   description: string;
   addFieldLabel: string;
 }) {
-  const FieldTypes: {
-    value: RhfForm["fields"][number]["type"];
-    label: string;
-    needsOptions?: boolean;
-    systemOnly?: boolean;
-    isTextType?: boolean;
-  }[] = [
+  const FieldTypesMap: Record<
+    string,
     {
+      value: RhfForm["fields"][number]["type"];
+      label: string;
+      needsOptions?: boolean;
+      systemOnly?: boolean;
+      isTextType?: boolean;
+    }
+  > = {
+    name: {
       label: "Name",
       value: "name",
       isTextType: true,
     },
-    {
+    email: {
       label: "Email",
       value: "email",
       isTextType: true,
     },
-    {
+    phone: {
       label: "Phone",
       value: "phone",
       isTextType: true,
     },
-    {
+    text: {
       label: "Short Text",
       value: "text",
       isTextType: true,
     },
-    {
+    number: {
       label: "Number",
       value: "number",
       isTextType: true,
     },
-    {
+    textarea: {
       label: "Long Text",
       value: "textarea",
       isTextType: true,
     },
-    {
+    select: {
       label: "Select",
       value: "select",
       needsOptions: true,
       isTextType: true,
     },
-    {
+    multiselect: {
       label: "MultiSelect",
       value: "multiselect",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    multiemail: {
       label: "Multiple Emails",
       value: "multiemail",
       isTextType: true,
     },
-    {
+    radioInput: {
       label: "Radio Input",
       value: "radioInput",
       isTextType: false,
       systemOnly: true,
     },
-    {
+    checkbox: {
       label: "Checkbox Group",
       value: "checkbox",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    radio: {
       label: "Radio Group",
       value: "radio",
       needsOptions: true,
       isTextType: false,
     },
-    {
+    boolean: {
       label: "Checkbox",
       value: "boolean",
       isTextType: false,
     },
-  ];
+  };
+  const FieldTypes = Object.values(FieldTypesMap);
 
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
   const fieldsForm = useFormContext<RhfForm>();
 
-  // It allows any property name to be used for instead of `fields` property name
-  const rhfFormPropName = formProp as unknown as "fields";
-
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>();
   const { fields, swap, remove, update, append } = useFieldArray({
     control: fieldsForm.control,
-    name: rhfFormPropName,
+    // HACK: It allows any property name to be used for instead of `fields` property name
+    name: formProp as unknown as "fields",
   });
 
   function OptionsField({
@@ -162,11 +163,11 @@ export const FormBuilder = function FormBuilder({
       onChange([
         {
           label: "Option 1",
-          value: "1",
+          value: "Option 1",
         },
         {
           label: "Option 2",
-          value: "2",
+          value: "Option 2",
         },
       ]);
     }
@@ -254,7 +255,7 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = FieldTypes.find((f) => f.value === fieldForm.watch("type"));
+  const fieldType = FieldTypesMap[fieldForm.watch("type")];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
@@ -263,7 +264,7 @@ export const FormBuilder = function FormBuilder({
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
-            const fieldType = FieldTypes.find((f) => f.value === field.type);
+            const fieldType = FieldTypesMap[field.type];
 
             // Hidden fields can't be required
             const isRequired = field.required && !field.hidden;
@@ -280,7 +281,7 @@ export const FormBuilder = function FormBuilder({
               item.push(source);
               groupBy[source.label] = item;
               return groupBy;
-            }, {} as Record<string, NonNullable<typeof field["sources"]>>);
+            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
             return (
               <li
@@ -320,14 +321,14 @@ export const FormBuilder = function FormBuilder({
                 </div>
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
-                    {field.editable !== "system" && (
-                      <Switch
-                        checked={!field.hidden}
-                        onCheckedChange={(checked) => {
-                          update(index, { ...field, hidden: !checked });
-                        }}
-                      />
-                    )}
+                    <Switch
+                      disabled={field.editable === "system"}
+                      tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
+                      checked={!field.hidden}
+                      onCheckedChange={(checked) => {
+                        update(index, { ...field, hidden: !checked });
+                      }}
+                    />
                     <Button
                       color="secondary"
                       onClick={() => {
@@ -335,16 +336,20 @@ export const FormBuilder = function FormBuilder({
                       }}>
                       Edit
                     </Button>
-                    {field.editable !== "system" && field.editable !== "system-but-optional" && (
-                      <Button
-                        color="minimal"
-                        variant="icon"
-                        onClick={() => {
-                          removeField(index);
-                        }}
-                        StartIcon={FiTrash2}
-                      />
-                    )}
+                    <Button
+                      color="minimal"
+                      tooltip={
+                        field.editable === "system" || field.editable === "system-but-optional"
+                          ? t("form_builder_system_field_cant_delete")
+                          : ""
+                      }
+                      disabled={field.editable === "system" || field.editable === "system-but-optional"}
+                      variant="icon"
+                      onClick={() => {
+                        removeField(index);
+                      }}
+                      StartIcon={FiTrash2}
+                    />
                   </div>
                 )}
               </li>
@@ -409,7 +414,7 @@ export const FormBuilder = function FormBuilder({
                   }
                   fieldForm.setValue("type", value);
                 }}
-                value={FieldTypes.find((fieldType) => fieldType.value === fieldForm.getValues("type"))}
+                value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
                 label="Input Type"
               />
@@ -495,7 +500,7 @@ const WithLabel = ({
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex items-center">{field.label}</Label>
-          <span className="ml-1 -mb-1 text-sm font-medium leading-none">
+          <span className="ml-1 -mb-1 text-sm font-medium leading-none dark:text-white">
             {!readOnly && field.required ? "*" : ""}
           </span>
         </div>
@@ -542,25 +547,16 @@ export const ComponentForField = ({
   const componentConfig = Components[fieldType];
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
-    if (propsType === "text") {
-      return typeof val === "string";
-    }
-    if (propsType === "boolean") {
-      return typeof val === "boolean";
-    }
-    if (propsType === "textList") {
-      return val instanceof Array && val.every((v) => typeof v === "string");
-    }
-    if (propsType === "select") {
-      return typeof val === "string";
-    }
-    if (propsType === "multiselect") {
-      return val instanceof Array && val.every((v) => typeof v === "string");
-    }
-    if (propsType === "objectiveWithInput") {
-      return typeof value === "object" && value !== null ? "value" in value : false;
-    }
-    throw new Error(`Unknown propsType ${propsType}`);
+    const propsTypeConditionMap = {
+      boolean: typeof val === "boolean",
+      multiselect: val instanceof Array && val.every((v) => typeof v === "string"),
+      objectiveWithInput: typeof val === "object" && val !== null ? "value" in val : false,
+      select: typeof val === "string",
+      text: typeof val === "string",
+      textList: val instanceof Array && val.every((v) => typeof v === "string"),
+    } as const;
+    if (!propsTypeConditionMap[propsType]) throw new Error(`Unknown propsType ${propsType}`);
+    return propsTypeConditionMap[propsType];
   };
 
   // If possible would have wanted `isValueOfPropsType` to narrow the type of `value` and `setValue` accordingly, but can't seem to do it.

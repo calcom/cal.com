@@ -1,4 +1,4 @@
-import { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import * as fetch from "@lib/core/http/fetch-wrapper";
 import type { BookingResponse } from "@lib/types/booking";

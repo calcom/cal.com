@@ -27,7 +27,6 @@ import {
   SystemField,
   getBookingFieldsWithSystemFields,
 } from "@calcom/features/bookings/lib/getBookingFields";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -47,10 +46,11 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
+import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -337,6 +337,7 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
+
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
@@ -543,21 +544,9 @@ export default function Success(props: SuccessProps) {
                       // We show Booker Name, Emails and guests in Who section
                       // We show notes in additional notes section
                       // We show rescheduleReason at the top
-                      if (
-                        !field ||
-                        (
-                          [
-                            SystemField.Enum.location,
-                            SystemField.Enum.name,
-                            SystemField.Enum.email,
-                            SystemField.Enum.guests,
-                            SystemField.Enum.notes,
-                            SystemField.Enum.rescheduleReason,
-                          ] as string[]
-                        ).includes(field.name)
-                      ) {
-                        return null;
-                      }
+                      if (!field) return null;
+                      const isSystemField = SystemField.safeParse(field.name);
+                      if (isSystemField.success) return null;
 
                       const label = field.label || t(field.defaultLabel || "");
 
@@ -1040,6 +1029,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     };
   }
+
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -1049,10 +1039,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const bookingInfo = {
-    ...bookingInfoRaw,
-    responses: getBookingResponsesSchema(eventTypeRaw).parse(bookingInfoRaw.responses),
-  };
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
 
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse

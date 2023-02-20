@@ -1,4 +1,4 @@
-import { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
+import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
@@ -144,7 +144,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
   };
 
-  const smsNumberSources = [] as NonNullable<typeof bookingFields[number]["sources"]>;
+  const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE") {
@@ -193,7 +193,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "location",
       type: "radioInput",
       name: "location",
-      // Even though it should be required it is optional in production with backend choosing CalVideo as the fallback
       required: false,
       // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
       // options: `eventType.locations`

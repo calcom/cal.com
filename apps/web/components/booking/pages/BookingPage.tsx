@@ -11,16 +11,10 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import {
-  getEventLocationType,
-  getEventLocationValue,
-  getHumanReadableLocationValue,
-  locationKeyToString,
-} from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -33,7 +27,7 @@ import {
   SystemField,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema, {
-  getBookingResponsesQuerySchema,
+  getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -88,7 +82,7 @@ const BookingFields = ({
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
         let noLabel = false;
-        let hidden = false;
+        let hidden = !!field.hidden;
         if (field.name === SystemField.Enum.rescheduleReason) {
           if (!rescheduleUid) {
             return null;
@@ -120,7 +114,7 @@ const BookingFields = ({
         }
 
         // Dynamically populate location field options
-        if (field.name === SystemField.Enum.location && field.type == "radioInput") {
+        if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
             throw new Error("radioInput must have optionsInputs");
           }
@@ -147,7 +141,7 @@ const BookingFields = ({
           });
 
           field.options = options.filter(
-            (location): location is NonNullable<typeof options[number]> => !!location
+            (location): location is NonNullable<(typeof options)[number]> => !!location
           );
           // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
           // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
@@ -269,7 +263,7 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
-  const querySchema = getBookingResponsesQuerySchema({
+  const querySchema = getBookingResponsesPartialSchema({
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
@@ -303,7 +297,7 @@ const BookingPage = ({
   const defaultValues = () => {
     if (!rescheduleUid) {
       const defaults = {
-        responses: {} as z.infer<typeof bookingFormSchema>["responses"],
+        responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
       };
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
@@ -330,7 +324,7 @@ const BookingPage = ({
     }
 
     const defaults = {
-      responses: {} as z.infer<typeof bookingFormSchema>["responses"],
+      responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
 
     const responses = eventType.bookingFields.reduce((responses, field) => {

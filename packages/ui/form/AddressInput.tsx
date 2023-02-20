@@ -1,8 +1,3 @@
-import type { UseFormReturn } from "react-hook-form";
-import type { Props } from "react-phone-number-input/react-hook-form";
-
-import type { EventLocationType } from "@calcom/app-store/locations";
-
 import { FiMapPin } from "../components/icon";
 
 export type AddressInputProps = {
