@@ -1,4 +1,3 @@
-import type { CalWindow } from "../embed";
 import getFloatingButtonHtml from "./FloatingButtonHtml";
 
 export class FloatingButton extends HTMLElement {
@@ -62,7 +61,7 @@ export class FloatingButton extends HTMLElement {
     const buttonTextColor = this.dataset["buttonTextColor"];
 
     //TODO: Logic is duplicated over HTML generation and attribute change, keep it at one place
-    const buttonHtml = `<style>${(window as CalWindow).Cal!.__css}</style> ${getFloatingButtonHtml({
+    const buttonHtml = `<style>${window.Cal!.__css}</style> ${getFloatingButtonHtml({
       buttonText: buttonText!,
       buttonClasses: [FloatingButton.updatedClassString(buttonPosition!, "")],
       buttonColor: buttonColor!,
