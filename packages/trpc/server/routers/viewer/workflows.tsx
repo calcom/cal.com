@@ -1,11 +1,12 @@
-import type { Prisma, PrismaPromise } from "@prisma/client";
 import {
+  PrismaPromise,
   WorkflowTemplates,
   WorkflowActions,
   WorkflowTriggerEvents,
   BookingStatus,
   WorkflowMethods,
   TimeUnit,
+  Prisma
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -23,7 +24,6 @@ import {
   scheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import {
-  //  BookingInfo,
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -208,13 +208,12 @@ export const workflowsRouter = router({
           },
         });
 
+        //cancel workflow reminders of deleted workflow
         scheduledReminders.forEach((reminder) => {
-          if (reminder.referenceId) {
-            if (reminder.method === WorkflowMethods.EMAIL) {
-              deleteScheduledEmailReminder(reminder.referenceId);
-            } else if (reminder.method === WorkflowMethods.SMS) {
-              deleteScheduledSMSReminder(reminder.referenceId);
-            }
+          if (reminder.method === WorkflowMethods.EMAIL) {
+            deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          } else if (reminder.method === WorkflowMethods.SMS) {
+            deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
           }
         });
 
@@ -373,28 +372,14 @@ export const workflowsRouter = router({
 
       const remindersToDelete = await Promise.all(remindersToDeletePromise);
 
-      const deleteReminderPromise: PrismaPromise<Prisma.BatchPayload>[] = [];
+      //cancel workflow reminders for all bookings from event types that got disabled
       remindersToDelete.flat().forEach((reminder) => {
-        //already scheduled reminders
-        if (reminder.referenceId) {
-          if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.referenceId);
-          } else if (reminder.method === WorkflowMethods.SMS) {
-            deleteScheduledSMSReminder(reminder.referenceId);
-          }
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
-        const deleteReminder = ctx.prisma.workflowReminder.deleteMany({
-          where: {
-            id: reminder.id,
-            booking: {
-              userId: ctx.user.id,
-            },
-          },
-        });
-        deleteReminderPromise.push(deleteReminder);
       });
-
-      await Promise.all(deleteReminderPromise);
 
       //update active on & reminders for new eventTypes
       await ctx.prisma.workflowsOnEventTypes.deleteMany({
@@ -529,15 +514,13 @@ export const workflowsRouter = router({
         });
         //step was deleted
         if (!newStep) {
-          //delete already scheduled reminders
+          // cancel all workflow reminders from deleted steps
           if (remindersFromStep.length > 0) {
             remindersFromStep.forEach((reminder) => {
-              if (reminder.referenceId) {
-                if (reminder.method === WorkflowMethods.EMAIL) {
-                  deleteScheduledEmailReminder(reminder.referenceId);
-                } else if (reminder.method === WorkflowMethods.SMS) {
-                  deleteScheduledSMSReminder(reminder.referenceId);
-                }
+              if (reminder.method === WorkflowMethods.EMAIL) {
+                deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+              } else if (reminder.method === WorkflowMethods.SMS) {
+                deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
               }
             });
           }
@@ -586,19 +569,14 @@ export const workflowsRouter = router({
               return reminder;
             }
           });
+
+          //cancel all workflow reminders from steps that were edited
           remindersToUpdate.forEach(async (reminder) => {
-            if (reminder.referenceId) {
-              if (reminder.method === WorkflowMethods.EMAIL) {
-                deleteScheduledEmailReminder(reminder.referenceId);
-              } else if (reminder.method === WorkflowMethods.SMS) {
-                deleteScheduledSMSReminder(reminder.referenceId);
-              }
+            if (reminder.method === WorkflowMethods.EMAIL) {
+              deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+            } else if (reminder.method === WorkflowMethods.SMS) {
+              deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
             }
-            await ctx.prisma.workflowReminder.deleteMany({
-              where: {
-                id: reminder.id,
-              },
-            });
           });
           const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
             if (!newEventTypes.includes(eventTypeId)) {
@@ -923,63 +901,63 @@ export const workflowsRouter = router({
     if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
 const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
 if (!hasTeamPlan) {
-  throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
 }
 }
 
 const booking = await ctx.prisma.booking.findFirst({
 orderBy: {
-  createdAt: "desc",
+createdAt: "desc",
 },
 where: {
-  userId: ctx.user.id,
+userId: ctx.user.id,
 },
 include: {
-  attendees: true,
-  user: true,
+attendees: true,
+user: true,
 },
 });
 
 let evt: BookingInfo;
 if (booking) {
 evt = {
-  uid: booking?.uid,
-  attendees:
-    booking?.attendees.map((attendee) => {
-      return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-    }) || [],
-  organizer: {
-    language: {
-      locale: booking?.user?.locale || "",
-    },
-    name: booking?.user?.name || "",
-    email: booking?.user?.email || "",
-    timeZone: booking?.user?.timeZone || "",
-  },
-  startTime: booking?.startTime.toISOString() || "",
-  endTime: booking?.endTime.toISOString() || "",
-  title: booking?.title || "",
-  location: booking?.location || null,
-  additionalNotes: booking?.description || null,
-  customInputs: booking?.customInputs,
+uid: booking?.uid,
+attendees:
+booking?.attendees.map((attendee) => {
+return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+}) || [],
+organizer: {
+language: {
+locale: booking?.user?.locale || "",
+},
+name: booking?.user?.name || "",
+email: booking?.user?.email || "",
+timeZone: booking?.user?.timeZone || "",
+},
+startTime: booking?.startTime.toISOString() || "",
+endTime: booking?.endTime.toISOString() || "",
+title: booking?.title || "",
+location: booking?.location || null,
+additionalNotes: booking?.description || null,
+customInputs: booking?.customInputs,
 };
 } else {
 //if no booking exists create an example booking
 evt = {
-  attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-  organizer: {
-    language: {
-      locale: ctx.user.locale,
-    },
-    name: ctx.user.name || "",
-    email: ctx.user.email,
-    timeZone: ctx.user.timeZone,
-  },
-  startTime: dayjs().add(10, "hour").toISOString(),
-  endTime: dayjs().add(11, "hour").toISOString(),
-  title: "Example Booking",
-  location: "Office",
-  additionalNotes: "These are additional notes",
+attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+organizer: {
+language: {
+locale: ctx.user.locale,
+},
+name: ctx.user.name || "",
+email: ctx.user.email,
+timeZone: ctx.user.timeZone,
+},
+startTime: dayjs().add(10, "hour").toISOString(),
+endTime: dayjs().add(11, "hour").toISOString(),
+title: "Example Booking",
+location: "Office",
+additionalNotes: "These are additional notes",
 };
 }
 

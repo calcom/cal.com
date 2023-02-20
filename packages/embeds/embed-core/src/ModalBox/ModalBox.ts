@@ -76,7 +76,7 @@ export class ModalBox extends HTMLElement {
 
   connectedCallback() {
     this.assertHasShadowRoot();
-    const closeEl = this.shadowRoot.querySelector(".close") as HTMLElement;
+    const closeEl = this.shadowRoot.querySelector<HTMLElement>(".close");
     document.addEventListener(
       "keydown",
       (e) => {
@@ -92,9 +92,11 @@ export class ModalBox extends HTMLElement {
       this.close();
     });
 
-    closeEl.onclick = () => {
-      this.close();
-    };
+    if (closeEl) {
+      closeEl.onclick = () => {
+        this.close();
+      };
+    }
   }
 
   constructor() {
