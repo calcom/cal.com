@@ -29,13 +29,15 @@ import { useGetBrowsingMonthStart } from "./utils/dates";
 // @TODO: Test embed view
 /* @TODO: eth signature / gates */
 
-const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
+const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
   const { i18n } = useLocale();
   const { timezone } = useTimePreferences();
   const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
   // Custom breakpoint to make calendar fit.
   const isMobile = useMediaQuery("(max-width: 800px)");
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
+  const rescheduleUuid =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
 
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
 
@@ -61,8 +63,15 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
 
   useEffect(() => {
-    initializeStore(username, eventSlug, browsingMonthStart.toDate(), event?.data?.id);
-  }, [initializeStore, username, eventSlug, browsingMonthStart, event]);
+    initializeStore(
+      username,
+      eventSlug,
+      browsingMonthStart.toDate(),
+      event?.data?.id,
+      rescheduleUuid,
+      rescheduleBooking
+    );
+  }, [initializeStore, username, eventSlug, browsingMonthStart, event, rescheduleUuid, rescheduleBooking]);
 
   const onMonthChange = (date: Dayjs) => {
     setBrowsingMonthStart(date);
@@ -217,6 +226,6 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
 
 export const Booker = (props: BookerProps) => (
   <LazyMotion features={domAnimation}>
-    <BookerAtom {...props} />
+    <BookerComponent {...props} />
   </LazyMotion>
 );

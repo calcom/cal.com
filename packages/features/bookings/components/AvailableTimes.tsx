@@ -28,7 +28,7 @@ export const AvailableTimes = ({
   const { t, i18n } = useLocale();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
   const hasTimeSlots = !!seatsPerTimeslot;
-  console.log(slots);
+
   return (
     <div className="dark:text-white">
       <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-6 flex w-full items-center bg-white before:absolute before:-top-8 before:h-8 before:w-full before:bg-white">

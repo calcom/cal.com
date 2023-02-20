@@ -16,6 +16,7 @@ type BookingOptions = {
   duration: number | undefined | null;
   timeZone: string;
   language: string;
+  rescheduleUid: string | undefined;
 };
 
 export const mapBookingToMutationInput = ({
@@ -25,6 +26,7 @@ export const mapBookingToMutationInput = ({
   duration,
   timeZone,
   language,
+  rescheduleUid,
 }: BookingOptions): BookingCreateBody => {
   const customInputs = Object.keys(values.customInputs || {}).map((inputId) => ({
     label: event.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
@@ -43,8 +45,7 @@ export const mapBookingToMutationInput = ({
     timeZone: timeZone,
     language: language,
     guests: values.guests ? values.guests.map(({ email }) => email) : [],
-    //@TODO:
-    // rescheduleid
+    rescheduleUid,
     location: getEventLocationValue(event.locations, {
       type: (values.locationType ? values.locationType : event.locations[0]?.type) || "",
       phone: values.phone,
@@ -62,7 +63,6 @@ export const mapBookingToMutationInput = ({
     //         ? booking.phone
     //         : booking.smsReminderNumber || undefined,
     //     ethSignature: gateState.rainbowToken,
-    //     guests: booking.guests?.map((guest) => guest.email),
   };
 };
 

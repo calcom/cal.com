@@ -1,27 +1,30 @@
-import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import getBooking, { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import prisma from "@calcom/prisma";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-type PageProps = inferSSRProps<typeof getStaticProps>;
+type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user }: PageProps) {
+export default function Type({ slug, user, booking }: PageProps) {
   // @TODO: Add gates
   return (
     <main className="flex justify-center">
-      <Booker username={user} eventSlug={slug} />
+      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} />
     </main>
   );
 }
 
 Type.isThemeSupported = true;
 
-async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user, type: slug } = paramsSchema.parse(context.params);
+  const { rescheduleUid } = context.query;
+
   const { ssgInit } = await import("@server/lib/ssg");
   const ssg = await ssgInit(context);
   const usernameList = getUsernameList(user);
@@ -43,8 +46,14 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     };
   }
 
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, `${rescheduleUid}`);
+  }
+
   return {
     props: {
+      booking,
       user,
       slug,
       away: false,
@@ -54,8 +63,9 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
   };
 }
 
-async function getUserPageProps(context: GetStaticPropsContext) {
+async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: username, type: slug } = paramsSchema.parse(context.params);
+  const { rescheduleUid } = context.query;
   const { ssgInit } = await import("@server/lib/ssg");
   const ssg = await ssgInit(context);
   const user = await prisma.user.findUnique({
@@ -73,14 +83,19 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     };
   }
 
+  let booking: GetBookingType | null = null;
+  if (rescheduleUid) {
+    booking = await getBooking(prisma, `${rescheduleUid}`);
+  }
+
   return {
     props: {
+      booking,
       away: user?.away,
       user: username,
       slug,
       trpcState: ssg.dehydrate(),
     },
-    revalidate: 10,
   };
 }
 
@@ -88,13 +103,9 @@ const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
-export const getStaticProps = async (context: GetStaticPropsContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.includes("+");
 
   return isDynamicGroup ? await getDynamicGroupPageProps(context) : await getUserPageProps(context);
-};
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  return { paths: [], fallback: "blocking" };
 };

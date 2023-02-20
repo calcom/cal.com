@@ -11,13 +11,15 @@ import { BookingFormValues } from "./form-config";
 type CustomInputFieldsProps = {
   inputs: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["customInputs"];
   bookingForm: UseFormReturn<BookingFormValues>;
+  isRescheduling?: boolean;
 };
 
 type FieldProps = CustomInputFieldsProps["inputs"][number] & {
   bookingForm: CustomInputFieldsProps["bookingForm"];
+  isRescheduling?: boolean;
 };
 
-const InputTextLong = ({ id, required, placeholder, label, bookingForm }: FieldProps) => (
+const InputTextLong = ({ id, required, placeholder, label, bookingForm, isRescheduling }: FieldProps) => (
   <TextAreaField
     label={label}
     {...bookingForm.register(`customInputs.${id}`, {
@@ -27,12 +29,11 @@ const InputTextLong = ({ id, required, placeholder, label, bookingForm }: FieldP
     id={"custom_" + id}
     rows={3}
     placeholder={placeholder}
-    // @TODO: How about this one during edit?
-    // disabled={disabledExceptForOwner}
+    disabled={isRescheduling}
   />
 );
 
-const InputText = ({ bookingForm, id, required, placeholder, label }: FieldProps) => (
+const InputText = ({ bookingForm, id, required, placeholder, label, isRescheduling }: FieldProps) => (
   <TextField
     type="text"
     label={label}
@@ -42,12 +43,11 @@ const InputText = ({ bookingForm, id, required, placeholder, label }: FieldProps
     required={required}
     id={"custom_" + id}
     placeholder={placeholder}
-    // @TODO: How about this one during edit?
-    // disabled={disabledExceptForOwner}
+    disabled={isRescheduling}
   />
 );
 
-const InputNumber = ({ bookingForm, id, required, placeholder, label }: FieldProps) => (
+const InputNumber = ({ bookingForm, id, required, placeholder, label, isRescheduling }: FieldProps) => (
   <TextField
     type="number"
     label={label}
@@ -57,12 +57,11 @@ const InputNumber = ({ bookingForm, id, required, placeholder, label }: FieldPro
     required={required}
     id={"custom_" + id}
     placeholder={placeholder}
-    // @TODO: How about this one during edit?
-    // disabled={disabledExceptForOwner}
+    disabled={isRescheduling}
   />
 );
 
-const InputBoolean = ({ bookingForm, id, required, label }: FieldProps) => (
+const InputBoolean = ({ bookingForm, id, required, label, isRescheduling }: FieldProps) => (
   <div className="my-6">
     <div className="flex">
       <TextField
@@ -74,15 +73,14 @@ const InputBoolean = ({ bookingForm, id, required, label }: FieldProps) => (
         id={"custom_" + id}
         className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
         placeholder=""
-        // @TODO: How about this one during edit?
-        // disabled={disabledExceptForOwner}
+        disabled={isRescheduling}
       />
       <Label htmlFor={"custom_" + id}>{label}</Label>
     </div>
   </div>
 );
 
-const InputRadio = ({ bookingForm, id, required, label, options }: FieldProps) => {
+const InputRadio = ({ bookingForm, id, required, label, options, isRescheduling }: FieldProps) => {
   const { t } = useLocale();
   return (
     <div className="flex">
@@ -102,6 +100,7 @@ const InputRadio = ({ bookingForm, id, required, label, options }: FieldProps) =
                 key={`option.${id}.${i}.radio`}
                 value={option.label}
                 id={`option.${id}.${i}.radio`}
+                disabled={isRescheduling}
               />
             ))}
         </>
@@ -115,7 +114,7 @@ const InputRadio = ({ bookingForm, id, required, label, options }: FieldProps) =
   );
 };
 
-const InputPhone = ({ bookingForm, id, required, label }: FieldProps) => {
+const InputPhone = ({ bookingForm, id, required, label, isRescheduling }: FieldProps) => {
   const { t } = useLocale();
   return (
     <div>
@@ -126,6 +125,7 @@ const InputPhone = ({ bookingForm, id, required, label }: FieldProps) => {
         placeholder={t("enter_phone_number")}
         id={`customInputs.${id}`}
         required={required}
+        disabled={isRescheduling}
       />
       {bookingForm.formState.errors?.customInputs?.[id] && (
         <div className="mt-2 flex items-center text-sm text-red-700 ">
@@ -137,7 +137,7 @@ const InputPhone = ({ bookingForm, id, required, label }: FieldProps) => {
   );
 };
 
-export const CustomInputFields = ({ inputs, bookingForm }: CustomInputFieldsProps) => {
+export const CustomInputFields = ({ inputs, bookingForm, isRescheduling }: CustomInputFieldsProps) => {
   return (
     <>
       {inputs
@@ -145,22 +145,22 @@ export const CustomInputFields = ({ inputs, bookingForm }: CustomInputFieldsProp
         .map((input) => (
           <div key={input.id}>
             {input.type === EventTypeCustomInputType.TEXTLONG && (
-              <InputTextLong {...input} bookingForm={bookingForm} />
+              <InputTextLong {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
             {input.type === EventTypeCustomInputType.TEXT && (
-              <InputText {...input} bookingForm={bookingForm} />
+              <InputText {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
             {input.type === EventTypeCustomInputType.NUMBER && (
-              <InputNumber {...input} bookingForm={bookingForm} />
+              <InputNumber {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
             {input.type === EventTypeCustomInputType.BOOL && (
-              <InputBoolean {...input} bookingForm={bookingForm} />
+              <InputBoolean {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
             {input.options && input.type === EventTypeCustomInputType.RADIO && (
-              <InputRadio {...input} bookingForm={bookingForm} />
+              <InputRadio {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
             {input.type === EventTypeCustomInputType.PHONE && (
-              <InputPhone {...input} bookingForm={bookingForm} />
+              <InputPhone {...input} isRescheduling={isRescheduling} bookingForm={bookingForm} />
             )}
           </div>
         ))}

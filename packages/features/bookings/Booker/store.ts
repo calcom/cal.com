@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+import { GetBookingType } from "../lib/get-booking";
 import { BookerState, BookerLayout } from "./types";
 
 type BookerStore = {
@@ -13,11 +14,20 @@ type BookerStore = {
   eventSlug: string | null;
   eventId: number | null;
   month: Date | null;
-  initialize: (username: string, eventSlug: string, month: Date, eventId: number | undefined) => void;
+  initialize: (
+    username: string,
+    eventSlug: string,
+    month: Date,
+    eventId: number | undefined,
+    rescheduleUid?: string | null,
+    rescheduleBooking?: GetBookingType | null
+  ) => void;
   selectedDuration: number | null;
   setSelectedDuration: (duration: number | null) => void;
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
+  rescheduleUid: string | null;
+  rescheduleBooking: GetBookingType | null;
 };
 
 export const useBookerStore = create<BookerStore>((set, get) => ({
@@ -31,18 +41,29 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   eventSlug: null,
   eventId: null,
   month: null,
-  initialize: (username: string, eventSlug: string, month: Date, eventId: number | undefined) => {
+  initialize: (
+    username: string,
+    eventSlug: string,
+    month: Date,
+    eventId: number | undefined,
+    rescheduleUid: string | null = null,
+    rescheduleBooking: GetBookingType | null = null
+  ) => {
     if (
       get().username === username &&
       get().eventSlug === eventSlug &&
       get().month === month &&
-      get().eventId === eventId
+      get().eventId === eventId &&
+      get().rescheduleUid === rescheduleUid &&
+      get().rescheduleBooking?.attendees[0].email === rescheduleBooking?.attendees[0].email
     )
       return;
-    set({ username, eventSlug, month, eventId });
+    set({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking });
   },
   selectedDuration: null,
   setSelectedDuration: (selectedDuration: number | null) => set({ selectedDuration }),
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
+  rescheduleBooking: null,
+  rescheduleUid: null,
 }));

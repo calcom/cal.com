@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       className={classNames(
         // @TODO: In globals.css there's an override that disabled the box shadow on inputs,
         // This causes the focus state to be different for different types of fields.
-        "dark:text-darkgray-900 dark:border-darkgray-500 dark:bg-darkgray-100 dark:focus:border-darkgray-500 mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "dark:text-darkgray-900 dark:disabled:text-darkgray-500 dark:disabled:bg-darkgray-100 dark:border-darkgray-500 dark:bg-darkgray-100 dark:focus:border-darkgray-500 dark:disabled:hover:border-darkgray-500 mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:bg-gray-100 disabled:text-gray-400 disabled:hover:border-gray-300",
         // Renders additional styles when field is wrapped in InputField, which can add addon fields.
         !isStandaloneField &&
           "[&:not(:only-child):first-child]:border-r-0 [&:not(:only-child):last-child]:border-l-0",

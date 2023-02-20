@@ -1,3 +1,5 @@
+import { GetBookingType } from "../lib/get-booking";
+
 export interface BookerProps {
   eventSlug: string;
   username: string;
@@ -30,6 +32,13 @@ export interface BookerProps {
    * This is NOT revalidated by calling the API.
    */
   allowsDynamicBooking?: boolean;
+  /**
+   * When rescheduling a booking, the current' bookings data is passed in via this prop.
+   * The component itself won't fetch booking data based on the ID, since there is not public
+   * api to fetch this data. Therefore rescheduling a booking currently is not possible
+   * within the atom (i.e. without a server side component).
+   */
+  rescheduleBooking?: GetBookingType;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

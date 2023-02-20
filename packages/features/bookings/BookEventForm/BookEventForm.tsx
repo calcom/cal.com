@@ -15,8 +15,9 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
-import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
+import { FiInfo } from "@calcom/ui/components/icon";
 
+import { useBookerStore } from "../Booker/store";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { GuestFields } from "./GuestFields";
@@ -66,8 +67,19 @@ export const BookEventForm = ({
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
+  const [rescheduleUid, rescheduleBooking] = useBookerStore((state) => [
+    state.rescheduleUid,
+    state.rescheduleBooking,
+  ]);
+  const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
   const defaultValues = () => {
+    if (isRescheduling) {
+      return {
+        email: rescheduleBooking?.attendees?.[0].email,
+        name: rescheduleBooking?.attendees?.[0].name,
+      };
+    }
     return {};
   };
 
@@ -106,10 +118,6 @@ export const BookEventForm = ({
     },
   });
 
-  // @TODO: Add reschedule layout.
-  const disableInput = false;
-  const rescheduleUid = null;
-
   // @TODO: Loading and or error states.
   if (!event?.data) return null;
   if (!timeslot) return null;
@@ -135,6 +143,7 @@ export const BookEventForm = ({
       date: timeslot,
       timeZone: timezone,
       language: i18n.language,
+      rescheduleUid: rescheduleUid || undefined,
     };
 
     if (event.data?.recurringEvent?.freq && recurringEventCount) {
@@ -160,6 +169,7 @@ export const BookEventForm = ({
           required
           placeholder={t("example_name")}
           autoFocus
+          disabled={isRescheduling}
         />
 
         <EmailField
@@ -168,10 +178,15 @@ export const BookEventForm = ({
           required
           placeholder="you@example.com"
           hintErrors={bookingForm.formState.errors.email && t("email_validation_error")}
+          disabled={isRescheduling}
         />
 
         <EventLocationsFields bookingForm={bookingForm} eventType={eventType} />
-        <CustomInputFields bookingForm={bookingForm} inputs={eventType.customInputs} />
+        <CustomInputFields
+          bookingForm={bookingForm}
+          inputs={eventType.customInputs}
+          isRescheduling={isRescheduling}
+        />
 
         {!eventType.disableGuests && (
           <div className="mb-4">
@@ -204,17 +219,26 @@ export const BookEventForm = ({
           </div>
         )}
 
-        <TextAreaField
-          label={t("additional_notes")}
-          {...bookingForm.register("notes")}
-          required={!!eventType.metadata?.additionalNotesRequired}
-          id="notes"
-          name="notes"
-          rows={3}
-          placeholder={t("share_additional_notes")}
-          // @TODO: How about this one during edit?
-          // disabled={disabledExceptForOwner}
-        />
+        {isRescheduling ? (
+          <TextAreaField
+            {...bookingForm.register("rescheduleReason")}
+            id="rescheduleReason"
+            name="rescheduleReason"
+            placeholder={t("reschedule_placeholder")}
+            label={t("reason_for_reschedule")}
+            rows={3}
+          />
+        ) : (
+          <TextAreaField
+            label={t("additional_notes")}
+            {...bookingForm.register("notes")}
+            required={!!eventType.metadata?.additionalNotesRequired}
+            id="notes"
+            name="notes"
+            rows={3}
+            placeholder={t("share_additional_notes")}
+          />
+        )}
 
         <div className="flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
