@@ -31,7 +31,6 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
   const { t } = useLocale();
   const session = useSession();
   const Component = as || Fragment;
-  return children;
   return (
     <Component {...rest}>
       {session.data?.hasValidLicense ? (
@@ -67,6 +66,10 @@ export const withLicenseRequired =
   <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
-    <Component {...hocProps} />;
+    (
+      <LicenseRequired>
+        <Component {...hocProps} />
+      </LicenseRequired>
+    );
 
 export default LicenseRequired;
