@@ -2,9 +2,9 @@ name: Production Build
 description: "Creates a production build, caches it and restores if necessary"
 
 inputs:
-   node_version:
-     required: true
-     description: "The node version used to run this"
+  node_version:
+    required: true
+    description: "The node version used to run this"
   DATABASE_URL:
     required: true
   NEXT_PUBLIC_WEBAPP_URL:
