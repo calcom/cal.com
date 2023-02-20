@@ -50,6 +50,7 @@ const IntegrationContainer = ({
   const [disableDialog, setDisableDialog] = useState(false);
 
   const showKeyModal = () => {
+    // FIXME: This is preventing the modal from opening for apps that has null keys
     if (app.keys) {
       handleModelOpen({
         dirName: app.dirName,
