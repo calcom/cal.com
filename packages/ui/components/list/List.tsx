@@ -1,5 +1,6 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { PropsWithChildren, ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -35,6 +36,7 @@ export type ListItemProps = {
 } & Omit<JSX.IntrinsicElements["li"], "children">;
 
 export function ListItem(props: ListItemProps) {
+  const [animatedRef] = useAutoAnimate<HTMLDivElement>();
   const { href, heading, subHeading, expanded, disabled = false, actions, leftNode } = props;
 
   const Wrapper = ({ children }: { children: ReactNode }) => {
@@ -59,10 +61,10 @@ export function ListItem(props: ListItemProps) {
         <Wrapper>
           <div className="flex space-x-3">
             {leftNode ? <div className="max-w-9 max-h-9">{leftNode} </div> : null}
-            <div className="item-center flex flex-grow flex-col">
+            <div className="flex flex-grow flex-col">
               <BadgeHandler
                 as="h3"
-                className="inline-flex items-center text-sm font-semibold leading-none"
+                className="inline-flex h-5 items-center text-sm font-semibold leading-none text-black"
                 componentPosition="heading"
                 badges={props.badges}
                 badgePosition={props.badgePosition}>
@@ -70,7 +72,7 @@ export function ListItem(props: ListItemProps) {
               </BadgeHandler>
               <BadgeHandler
                 as="h4"
-                className="inline-flex items-center text-sm font-normal text-gray-600"
+                className="inline-flex items-center text-sm font-normal leading-normal text-gray-600"
                 componentPosition="subheading"
                 badges={props.badges}
                 badgePosition={props.badgePosition}>
@@ -89,7 +91,7 @@ export function ListItem(props: ListItemProps) {
         {expanded ? (
           <>
             <div className="-mx-5 my-4 h-px bg-gray-200" />
-            <div>{expanded}</div>
+            <div ref={animatedRef}>{expanded}</div>
           </>
         ) : null}
       </>
@@ -113,10 +115,7 @@ function BadgeHandler(props: PropsWithChildren<BadgeHandlerProps>) {
       <div className="item-center flex">
         <Component className={props.className}>{props.children}</Component>
         <div
-          className={classNames(
-            "flex",
-            props.badgePosition === "below" ? "mt-1 [&>*]:mr-2" : "ml-2 space-x-2"
-          )}>
+          className={classNames("flex", props.badgePosition === "below" ? "[&>*]:mr-2" : "ml-1 space-x-2")}>
           {props.badges}
         </div>
       </div>

@@ -1,95 +1,136 @@
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
-import { List, ListItem} from './List';
-import {Button} from "../button"
-import {Badge} from "../badge"
-import {ButtonGroup} from "../buttonGroup"
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+import { useState } from "react";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { Badge } from "../badge";
+import { Button } from "../button";
+import { ButtonGroup } from "../buttonGroup";
+import { List, ListItem } from "./List";
 
 <Meta title="UI/List" component={List} />
 
-<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023"/>
+<Title title="List" suffix="Brief" subtitle="Version 2.0 — Last Update: 05 jan 2023" />
 
 ## Definition
+
 Sums it up nicely.
 
+export const ExpandableList = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <ListItem
+      heading="Test Heading"
+      subHeading="Sub Heading"
+      badgePosition="heading"
+      badges={
+        <>
+          <Badge variant="green">Default</Badge>
+        </>
+      }
+      actions={
+        <>
+          <ButtonGroup>
+            <Button color="secondary" onClick={() => setOpen((old) => !old)}>
+              {!open ? "Open" : "Close"}
+            </Button>
+          </ButtonGroup>
+        </>
+      }
+      leftNode={<div className="w-9 h-9 rounded-md bg-gray-900" />}
+      expanded={
+        open && (
+          <div className="p-4">
+            <p className="text-gray-500">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl nec ultricies
+              lacinia, nunc nisl tincidunt nisl, eget aliquam massa nisl eget dolor. Sed euismod, nisl nec
+              ultricies lacinia, nunc nisl tincidunt nisl, eget aliquam massa nisl eget dolor.
+            </p>
+          </div>
+        )
+      }
+    />
+  );
+};
+
 <Canvas>
-  <Story
-    name="List">
-    <List> 
-        <ListItem
-          heading="Test Heading"
-          subHeading="Sub Heading"
-          badgePosition="heading"
-          badges={
-            <>
-              <Badge> Test </Badge>
-            </>
-          }
-          actions={
-           <> 
+  <Story name="List">
+    <List>
+      <ListItem
+        heading="Test Heading"
+        subHeading="Sub Heading"
+        badgePosition="heading"
+        badges={
+          <>
+            <Badge variant="green">Default</Badge>
+          </>
+        }
+        actions={
+          <>
             <ButtonGroup>
-              <Button color="secondary">
-                Edit
-              </Button>
+              <Button color="secondary">Edit</Button>
             </ButtonGroup>
-           </>
-          }
-          leftNode={<div className="w-9 h-9 rounded-md bg-gray-900"/>}
-        />
-        <ListItem
-          heading="Test Heading"
-          subHeading="Sub Heading"
-          badgePosition="subheading"
-          badges={
-            <>
-              <Badge> Test </Badge>
-            </>
-          }
-          actions={
-           <> 
+          </>
+        }
+        leftNode={<div className="h-9 w-9 rounded-md bg-gray-900" />}
+      />
+      <ListItem
+        heading="Test Heading"
+        subHeading="Sub Heading"
+        badgePosition="subheading"
+        badges={
+          <>
+            <Badge> Test </Badge>
+          </>
+        }
+        actions={
+          <>
             <ButtonGroup>
-              <Button color="secondary">
-                Edit
-              </Button>
+              <Button color="secondary">Edit</Button>
             </ButtonGroup>
-           </>
-          }
-          leftNode={<div className="w-9 h-9 rounded-md bg-gray-900"/>}
-        />
-        <ListItem
-          heading="Test Heading"
-          subHeading="Sub Heading"
-          badgePosition="below"
-          badges={
-            <>
-              <Badge> Test </Badge>
-            </>
-          }
-          actions={
-           <> 
+          </>
+        }
+        leftNode={<div className="h-9 w-9 rounded-md bg-gray-900" />}
+      />
+      <ListItem
+        heading="Test Heading"
+        subHeading="Sub Heading"
+        badgePosition="below"
+        badges={
+          <>
+            <Badge> Test </Badge>
+          </>
+        }
+        actions={
+          <>
             <ButtonGroup>
-              <Button color="secondary">
-                Edit
-              </Button>
+              <Button color="secondary">Edit</Button>
             </ButtonGroup>
-           </>
-          }
-          leftNode={<div className="w-9 h-9 rounded-md bg-gray-900"/>}
-        />
-        <ListItem
-          heading="Test Heading"
-          subHeading="Sub Heading"
-          actions={
-           <> 
+          </>
+        }
+        leftNode={<div className="h-9 w-9 rounded-md bg-gray-900" />}
+      />
+      <ListItem
+        heading="Test Heading"
+        subHeading="Sub Heading"
+        actions={
+          <>
             <ButtonGroup>
-              <Button color="secondary">
-                Edit
-              </Button>
+              <Button color="secondary">Edit</Button>
             </ButtonGroup>
-           </>
-          }
-          leftNode={<div className="w-9 h-9 rounded-md bg-gray-900"/>}
-        />
+          </>
+        }
+        leftNode={<div className="h-9 w-9 rounded-md bg-gray-900" />}
+      />
+      <ExpandableList />
     </List>
   </Story>
 </Canvas>
