@@ -37,7 +37,7 @@ declare global {
 }
 
 export default async function init() {
-  if (!g.connectionController || !g.oauthController) {
+  if (!g.connectionController || !g.oauthController || !g.samlSPConfig) {
     const ret = await jackson(opts);
 
     connectionController = ret.connectionAPIController;
