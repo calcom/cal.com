@@ -122,7 +122,6 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
       )}
       <m.div
         layout
-        // @TODO: Can we fix the any please?
         // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
         // where there's no styles applied yet (meaning there wouldn't be a grid + widths), which would cause
         // the layout to jump around on load.
@@ -138,7 +137,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <AnimatePresence>
           <StickyOnDesktop>
             <BookerSection area="meta">
-              <EventMeta event={event.data} isLoading={event.isLoading} />
+              <EventMeta event={event.data} isLoading={event.isLoading} selectedTime={bookingTime} />
               {layout !== "small_calendar" && (
                 <div className=" mt-auto p-6">
                   <DatePicker

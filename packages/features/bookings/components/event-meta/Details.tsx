@@ -43,6 +43,7 @@ interface EventMetaProps {
   // applying in dark mode.
   highlight?: boolean;
   contentClassName?: string;
+  className?: string;
 }
 
 /**
@@ -57,14 +58,21 @@ const defaultEventDetailsBlocks = [
   EventDetailBlocks.PRICE,
 ];
 
-export const EventMetaBlock = ({ icon: Icon, children, highlight, contentClassName }: EventMetaProps) => {
+export const EventMetaBlock = ({
+  icon: Icon,
+  children,
+  highlight,
+  contentClassName,
+  className,
+}: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
   return (
     <div
       className={classNames(
         "flex items-start justify-start text-gray-600",
-        highlight ? "dark:text-white" : "dark:text-darkgray-600 "
+        highlight ? "dark:text-white" : "dark:text-darkgray-600",
+        className
       )}>
       {typeof Icon === "string" ? (
         <img

@@ -4,17 +4,21 @@ import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calc
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { PublicEvent } from "@calcom/features/bookings/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseDate } from "@calcom/lib/parse-dates";
 import { TimezoneSelect } from "@calcom/ui";
-import { FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
+import { FiCalendar, FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 
 type EventMetaProps = {
   event?: PublicEvent | null;
   isLoading?: boolean;
+  selectedTime?: string | null;
 };
-export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
+export const EventMeta = ({ isLoading, event, selectedTime }: EventMetaProps) => {
   const { timezone, setTimezone } = useTimePreferences();
+  const { i18n } = useLocale();
 
   return (
     <div className="relative z-10 p-6">
@@ -40,6 +44,11 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
                 onChange={(tz) => setTimezone(tz.value)}
               />
             </EventMetaBlock>
+            {selectedTime && (
+              <EventMetaBlock className="text-bookinghighlight dark:text-bookinghighlight" icon={FiCalendar}>
+                {parseDate(selectedTime, i18n.language)}
+              </EventMetaBlock>
+            )}
           </div>
         </m.div>
       )}
