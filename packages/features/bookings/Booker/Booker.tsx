@@ -206,6 +206,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
               extraDays={layout === "large_timeslots" ? 4 : 0}
               onTimeSelect={onTimeSelect}
               limitHeight={layout === "small_calendar"}
+              seatsPerTimeslot={event.data?.seatsPerTimeSlot}
             />
           </BookerSection>
         </AnimatePresence>

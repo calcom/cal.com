@@ -13,9 +13,15 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   onTimeSelect: (time: string) => void;
   limitHeight?: boolean;
+  seatsPerTimeslot?: number | null;
 };
 
-export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({
+  extraDays,
+  onTimeSelect,
+  limitHeight,
+  seatsPerTimeslot,
+}: AvailableTimeSlotsProps) => {
   const [selectedDate, username, eventSlug, eventId, month] = useBookerStore((state) => [
     state.selectedDate,
     state.username,
@@ -70,6 +76,7 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
             date={dayjs(slots.date)}
             slots={slots.slots}
             timezone={timezone}
+            seatsPerTimeslot={seatsPerTimeslot}
           />
         ))}
     </div>

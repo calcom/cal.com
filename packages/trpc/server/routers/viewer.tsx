@@ -188,6 +188,7 @@ const publicViewerRouter = router({
           recurringEvent: true,
           price: true,
           currency: true,
+          seatsPerTimeSlot: true,
           workflows: {
             include: {
               workflow: {
