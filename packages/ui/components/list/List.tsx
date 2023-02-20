@@ -30,6 +30,7 @@ export type ListItemProps = {
   leftNode?: ReactNode;
   badgePosition?: "heading" | "subheading" | "below";
   badges?: ReactNode;
+  removeHover?: boolean;
   disabled?: boolean;
   actions?: ReactNode;
   expanded?: ReactNode;
@@ -38,7 +39,17 @@ export type ListItemProps = {
 
 export function ListItem(props: ListItemProps) {
   const [animatedRef] = useAutoAnimate<HTMLDivElement>();
-  const { href, heading, subHeading, expanded, disabled = false, actions, leftNode, ...rest } = props;
+  const {
+    href,
+    heading,
+    subHeading,
+    expanded,
+    removeHover = false,
+    actions,
+    leftNode,
+    disabled,
+    ...rest
+  } = props;
 
   const Wrapper = ({ children }: { children: ReactNode }) => {
     if (!href) return <div className="text-sm"> {children} </div>;
@@ -57,9 +68,7 @@ export function ListItem(props: ListItemProps) {
   };
 
   return (
-    <li
-      className={classNames("group px-4 py-5 hover:bg-neutral-50", disabled ? "hover:bg-white" : "")}
-      {...rest}>
+    <li className={classNames("group px-4 py-5 ", !removeHover && "hover:bg-neutral-50")} {...rest}>
       <>
         <Wrapper>
           <div className="flex [&>*]:mr-3">

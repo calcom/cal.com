@@ -45,7 +45,7 @@ const DateOverrideList = ({
       {items.map((item, index) => (
         <>
           <ListItem
-            disabled
+            removeHover
             key={item.id}
             heading={new Intl.DateTimeFormat("en-GB", {
               weekday: "short",

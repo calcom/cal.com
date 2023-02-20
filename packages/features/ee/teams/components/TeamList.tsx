@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
 import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
 
@@ -72,7 +73,7 @@ export default function TeamList(props: Props) {
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live 
+                    {/* @TODO: uncomment once managed event types is live
                     <Card
                       icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"

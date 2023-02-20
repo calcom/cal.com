@@ -5,7 +5,8 @@
  */
 import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
-import React, { AriaRole, ComponentType, Fragment } from "react";
+import type { AriaRole, ComponentType } from "react";
+import React, { Fragment } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,6 +31,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
   const { t } = useLocale();
   const session = useSession();
   const Component = as || Fragment;
+  return children;
   return (
     <Component {...rest}>
       {session.data?.hasValidLicense ? (
@@ -65,10 +67,6 @@ export const withLicenseRequired =
   <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
-    (
-      <LicenseRequired>
-        <Component {...hocProps} />
-      </LicenseRequired>
-    );
+    <Component {...hocProps} />;
 
 export default LicenseRequired;
