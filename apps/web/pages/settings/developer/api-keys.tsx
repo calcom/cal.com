@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
+import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";

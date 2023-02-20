@@ -1,13 +1,16 @@
-import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import type { UserPermissionRole } from "@prisma/client";
+import { IdentityProvider } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import NextAuth, { Session } from "next-auth";
+import type { Session } from "next-auth";
+import NextAuth from "next-auth";
 import { encode } from "next-auth/jwt";
-import { Provider } from "next-auth/providers";
+import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import nodemailer, { TransportOptions } from "nodemailer";
+import type { TransportOptions } from "nodemailer";
+import nodemailer from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
@@ -504,6 +507,10 @@ export default NextAuth({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              data: { password: null },
+            });
             return true;
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";

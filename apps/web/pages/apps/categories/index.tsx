@@ -1,4 +1,4 @@
-import { InferGetStaticPropsType } from "next";
+import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
