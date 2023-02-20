@@ -8,11 +8,9 @@ runs:
   using: "composite"
   steps:
     - uses: actions/setup-node@v3
-      shell: bash
       with:
         node-version: ${{ inputs.node_version }}
     - name: node_modules cache
-      shell: bash
       id: node-modules-cache
       uses: actions/cache@v3
       env:
