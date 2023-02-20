@@ -64,7 +64,6 @@ export const EventLocationsFields = ({ eventType, bookingForm }: EventLocationsF
           }
           return (
             <label key={i} className="block">
-              {/* @TODO: Create radio group component */}
               <input
                 type="radio"
                 className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"

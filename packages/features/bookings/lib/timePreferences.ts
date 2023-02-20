@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { TimeFormat, detectBrowserTimeFormat, setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 
 type TimePreferencesStore = {
-  // @TODO: Does it make sense to add timeformat here as well?
-  // timeFormat: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR;
-  // setTimeFromat: (format: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR) => void;
+  timeFormat: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR;
+  setTimeFormat: (format: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR) => void;
   timezone: string;
   setTimezone: (timeZone: string) => void;
 };
@@ -19,9 +19,11 @@ const timezoneLocalStorageKey = "timeOption.preferredTimeZone";
  * any changes made in the user settings.
  */
 export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
-  // timeFormat: TimeFormat.TWELVE_HOUR,
-  // setTimeFromat: (format: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR) =>
-  //   set({ timeFormat: format }),
+  timeFormat: detectBrowserTimeFormat,
+  setTimeFormat: (format: TimeFormat.TWELVE_HOUR | TimeFormat.TWENTY_FOUR_HOUR) => {
+    setIs24hClockInLocalStorage(format === TimeFormat.TWENTY_FOUR_HOUR);
+    set({ timeFormat: format });
+  },
   timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess(),
   setTimezone: (timezone: string) => {
     localStorage.setItem(timezoneLocalStorageKey, timezone);

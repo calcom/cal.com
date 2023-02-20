@@ -1,14 +1,11 @@
-import { useState } from "react";
-
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { Slots } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { ToggleGroup, Button } from "@calcom/ui";
 
-// @TODO: from old booker:
-// * Brand color variable?
+import { useTimePreferences } from "../lib";
 
 type AvailableTimesProps = {
   date: Dayjs;
@@ -26,7 +23,8 @@ export const AvailableTimes = ({
   seatsPerTimeslot,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
-  const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
+  const timeFormat = useTimePreferences((state) => state.timeFormat);
+  const setTimeFormat = useTimePreferences((state) => state.setTimeFormat);
   const hasTimeSlots = !!seatsPerTimeslot;
 
   return (
@@ -42,10 +40,9 @@ export const AvailableTimes = ({
         <div className="ml-auto">
           <ToggleGroup
             onValueChange={(newFormat) => {
-              setTimeFormat(newFormat as TimeFormat);
-              setIs24hClockInLocalStorage(newFormat === TimeFormat.TWENTY_FOUR_HOUR);
+              if (newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
             }}
-            defaultValue={timeFormat}
+            value={timeFormat}
             options={[
               { value: TimeFormat.TWELVE_HOUR, label: t("12_hour_short") },
               { value: TimeFormat.TWENTY_FOUR_HOUR, label: t("24_hour_short") },

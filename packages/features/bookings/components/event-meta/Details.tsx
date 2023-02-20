@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import React from "react";
 
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
