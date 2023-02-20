@@ -61,7 +61,6 @@ export const AvailableTimeSlots = ({
 
   /* @TODO: recurring event count */
   /* @TODO: eth signature */
-  /* @TODO: seats per timeslot */
   return (
     <div
       className={classNames(
