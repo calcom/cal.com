@@ -40,6 +40,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { trpc } from "@calcom/trpc/react";
 import {
   AddressInput,
   Button,
@@ -66,7 +67,6 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
 
@@ -147,7 +147,7 @@ const BookingPage = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const mutation = useMutation(createBooking, {
+  const createBooking = trpc.viewer.bookings.event.useMutation({
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
 
@@ -461,7 +461,7 @@ const BookingPage = ({
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
-      mutation.mutate({
+      createBooking.mutate({
         ...booking,
         start: dayjs(date).format(),
         end: dayjs(date).add(duration, "minute").format(),
@@ -1040,13 +1040,13 @@ const BookingPage = ({
                   <Button
                     type="submit"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
-                    loading={mutation.isLoading || recurringMutation.isLoading}>
+                    loading={createBooking.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
                   </Button>
                 </div>
               </Form>
-              {(mutation.isError || recurringMutation.isError) && (
-                <ErrorMessage error={mutation.error || recurringMutation.error} />
+              {(createBooking.isError || recurringMutation.isError) && (
+                <ErrorMessage error={createBooking.error || recurringMutation.error} />
               )}
             </div>
           </div>
