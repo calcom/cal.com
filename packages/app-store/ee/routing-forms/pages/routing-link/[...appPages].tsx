@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,14 +11,14 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
-import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
-import { Response, Route } from "../../types/types";
+import type { Response, Route } from "../../types/types";
 
 function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");

@@ -6,14 +6,14 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import type { EventLocationType } from "@calcom/app-store/locations";
 import {
-  EventLocationType,
   getEventLocationType,
   getEventLocationValue,
   getHumanReadableLocationValue,
@@ -21,7 +21,8 @@ import {
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import { LocationObject, LocationType } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
+import { LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -33,7 +34,7 @@ import { createRecurringBooking, createBooking } from "@calcom/features/bookings
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -68,12 +69,13 @@ import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import Gates, { Gate, GateState } from "@components/Gates";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
 
-import { BookPageProps } from "../../../pages/[user]/book";
-import { HashLinkPageProps } from "../../../pages/d/[link]/book";
-import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+import type { BookPageProps } from "../../../pages/[user]/book";
+import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
+import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
@@ -121,7 +123,7 @@ const BookingPage = ({
     }),
     {}
   );
-  const stripeAppData = getStripeAppData(eventType);
+  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (
@@ -147,6 +149,7 @@ const BookingPage = ({
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
+
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -165,7 +168,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
-          formerTime: booking?.startTime.toString(),
+          ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
     },
@@ -556,14 +559,14 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {stripeAppData.price > 0 && (
+                  {paymentAppData.price > 0 && (
                     <p className="text-bookinglight -ml-2 px-2 text-sm ">
                       <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <IntlProvider locale="en">
                         <FormattedNumber
-                          value={stripeAppData.price / 100.0}
+                          value={paymentAppData.price / 100.0}
                           style="currency"
-                          currency={stripeAppData.currency.toUpperCase()}
+                          currency={paymentAppData?.currency?.toUpperCase()}
                         />
                       </IntlProvider>
                     </p>

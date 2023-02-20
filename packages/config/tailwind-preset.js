@@ -1,4 +1,5 @@
 const plugin = require("tailwindcss/plugin");
+const { fontFamily } = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
 
@@ -13,10 +14,6 @@ module.exports = {
   ],
   darkMode: "class",
   theme: {
-    fontFamily: {
-      cal: ['"Cal Sans"', "sans-serif"],
-      sans: ['"Inter var"', "sans-serif"],
-    },
     extend: {
       colors: {
         /* your primary brand color */
@@ -144,6 +141,9 @@ module.exports = {
           900: "#f3f4f6",
         },
       },
+      screens: {
+        pwa: { raw: "(display-mode: standalone)" },
+      },
       keyframes: {
         "fade-in-up": {
           from: { opacity: 0, transform: "translateY(10px)" },
@@ -157,9 +157,9 @@ module.exports = {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
       },
       fontFamily: {
-        cal: ['"Cal Sans"', "sans-serif"],
+        cal: ["var(--font-cal)", ...fontFamily.serif],
+        sans: ["var(--font-inter)", ...fontFamily.sans],
         mono: ["Roboto Mono", "monospace"],
-        sans: ['"Inter var"', "sans-serif"],
       },
       maxHeight: (theme) => ({
         0: "0",

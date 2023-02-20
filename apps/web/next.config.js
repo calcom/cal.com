@@ -83,7 +83,6 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 plugins.push(withAxiom);
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -105,7 +104,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -126,6 +125,8 @@ const nextConfig = {
         ],
       })
     );
+
+    config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -186,8 +187,16 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // prettier-ignore
-        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        source: "/auth/:path*",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/signup",
         headers: [
           {
             key: "X-Frame-Options",

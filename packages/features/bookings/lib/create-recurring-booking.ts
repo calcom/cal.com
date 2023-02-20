@@ -1,7 +1,7 @@
 import * as fetch from "@calcom/lib/fetch-wrapper";
-import { AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus } from "@calcom/types/Calendar";
 
-import { RecurringBookingCreateBody, BookingResponse } from "../types";
+import type { RecurringBookingCreateBody, BookingResponse } from "../types";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 export const createRecurringBooking = async (data: RecurringBookingCreateBody[]) => {

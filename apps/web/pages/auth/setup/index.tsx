@@ -1,5 +1,5 @@
 import { UserPermissionRole } from "@prisma/client";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -8,7 +8,7 @@ import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeployme
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Meta, WizardForm } from "@calcom/ui";
 
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
@@ -100,9 +100,11 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       const currentStep = isFreeLicense ? 3 : 4;
       return (
         <AdminAppsList
+          id={`wizard-step-${currentStep}`}
+          name={`wizard-step-${currentStep}`}
           classNames={{
             form: "mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full",
-            appCategoryNavigationContainer: " max-h-[400px] overflow-y-auto md:p-4",
+            appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
             verticalTabsItem: "!w-48 md:p-4",
           }}
           baseURL={`/auth/setup?step=${currentStep}`}
@@ -127,7 +129,6 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
           finishLabel={t("finish")}
           prevLabel={t("prev_step")}
           stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
-          containerClassname="md:w-[800px]"
         />
       </main>
     </>

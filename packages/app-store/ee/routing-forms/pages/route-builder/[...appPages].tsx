@@ -3,11 +3,12 @@ import Link from "next/link";
 import React, { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
-import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   SelectField,
   FormCard,
@@ -25,7 +26,12 @@ import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import { GlobalRoute, LocalRoute, QueryBuilderUpdatedConfig, SerializableRoute } from "../../types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  QueryBuilderUpdatedConfig,
+  SerializableRoute,
+} from "../../types/types";
 
 export { getServerSideProps };
 
@@ -281,6 +287,7 @@ const Routes = ({
   appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
+  const { t } = useLocale();
 
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
@@ -441,10 +448,10 @@ const Routes = ({
           );
         })}
         <SelectField
-          placeholder="Select a router"
+          placeholder={t("select_a_router")}
           containerClassName="mb-6 data-testid-select-router"
           isOptionDisabled={(option) => !!option.isDisabled}
-          label="Add a new Route"
+          label={t("add_a_new_route")}
           options={routerOptions}
           key={mainRoutes.length}
           onChange={(option) => {

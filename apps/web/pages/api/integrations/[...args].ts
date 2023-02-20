@@ -1,10 +1,11 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { getSession } from "@calcom/lib/auth";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
+import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
@@ -52,7 +53,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
-
     const handlerKey = deriveAppDictKeyFromType(appName, handlerMap);
     const handlers = await handlerMap[handlerKey as keyof typeof handlerMap];
     const handler = handlers[apiEndpoint as keyof typeof handlers] as AppHandler;
@@ -62,8 +62,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (typeof handler === "function") {
       await handler(req, res);
+      if (appName.includes("calendar") && req.session?.user?.username) {
+        await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
+      }
     } else {
       await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
+      if (handler.appType.includes("calendar") && req.session?.user?.username) {
+        await revalidateCalendarCache(res.revalidate, req.session?.user?.username);
+      }
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }

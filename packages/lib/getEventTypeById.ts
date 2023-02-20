@@ -1,12 +1,13 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
-import { LocationObject } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -201,7 +202,7 @@ export default async function getEventTypeById({
   newMetadata.apps = {
     ...apps,
     stripe: {
-      ...getStripeAppData(eventTypeWithParsedMetadata, true),
+      ...getPaymentAppData(eventTypeWithParsedMetadata, true),
       currency:
         (
           credentials.find((integration) => integration.type === "stripe_payment")

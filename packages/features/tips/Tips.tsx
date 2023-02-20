@@ -69,7 +69,15 @@ export const tips = [
     title: "Automate Workflows",
     description: "Make time work for you and automate tasks",
     href: "https://go.cal.com/workflows",
-  },  
+  },
+  {
+    id: 9,
+    thumbnailUrl: "https://img.youtube.com/vi/93iOmzHieCU/0.jpg",
+    mediaLink: "https://go.cal.com/round-robin",
+    title: "Round-Robin",
+    description: "Create advanced group meetings with round-robin",
+    href: "https://go.cal.com/round-robin",
+  },
 ];
 
 export default function Tips() {
