@@ -69,19 +69,10 @@ jobs:
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ env.node_version }}
-      - name: Restore production build from cache
-        uses: actions/cache@v3
-        env:
-          cache-name: prod-build
-          key-1: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('apps/web/next.config.js') }}
+      - uses: ./.github/actions/cache-build
+        id: prod-build-cache
         with:
-          path: |
-            apps/web/.next
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+          node_version: ${{ env.node_version }}
       # Here's the first place where next-bundle-analysis' own script is used
       # This step pulls the raw bundle stats for the current bundle
       - name: Analyze bundle

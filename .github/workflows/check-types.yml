@@ -26,9 +26,9 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-      
+
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"
-      
+
       - run: yarn --frozen-lockfile
       - run: yarn type-check
