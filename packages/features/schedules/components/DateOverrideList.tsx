@@ -3,7 +3,7 @@ import type { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, ButtonGroup, ListItem } from "@calcom/ui";
+import { Button, ButtonGroup, List, ListItem } from "@calcom/ui";
 import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
@@ -41,10 +41,11 @@ const DateOverrideList = ({
   };
 
   return (
-    <ul className="rounded border border-gray-200" data-testid="date-overrides-list">
+    <List data-testid="date-overrides-list">
       {items.map((item, index) => (
         <>
           <ListItem
+            disabled
             key={item.id}
             heading={new Intl.DateTimeFormat("en-GB", {
               weekday: "short",
@@ -100,7 +101,7 @@ const DateOverrideList = ({
           />
         </>
       ))}
-    </ul>
+    </List>
   );
 };
 

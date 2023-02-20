@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -50,6 +51,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
     name: "dateOverrides",
   });
   const { t } = useLocale();
+  const [open, setOpen] = useState(false);
   return (
     <div className="p-6">
       <h3 className="font-medium leading-6 text-gray-900">
@@ -73,12 +75,12 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           workingHours={workingHours}
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
-          Trigger={
-            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
-              Add an override
-            </Button>
-          }
+          open={open}
+          setOpen={setOpen}
         />
+        <Button color="secondary" StartIcon={FiPlus} data-testid="add-override" onClick={() => setOpen(true)}>
+          Add an override
+        </Button>
       </div>
     </div>
   );
