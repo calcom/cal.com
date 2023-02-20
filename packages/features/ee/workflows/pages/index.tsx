@@ -69,7 +69,7 @@ function WorkflowsPage() {
               return profile.teamId;
             }
           })
-          .filter((teamId) => !!teamId) as number[],
+          .filter((teamId): teamId is number => !!teamId),
       });
     }
   }, [session.status, query.isLoading, allWorkflowsData]);

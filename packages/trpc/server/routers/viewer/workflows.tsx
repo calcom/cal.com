@@ -74,6 +74,7 @@ async function isAuthorized(
             members: {
               some: {
                 userId: currentUserId,
+                accepted: true,
               },
             },
           },
@@ -106,6 +107,7 @@ export const workflowsRouter = router({
               members: {
                 some: {
                   userId: ctx.user.id,
+                  accepted: true,
                 },
               },
             },
@@ -167,6 +169,7 @@ export const workflowsRouter = router({
                 members: {
                   some: {
                     userId: ctx.user.id,
+                    accepted: true,
                   },
                 },
               },
@@ -260,6 +263,7 @@ export const workflowsRouter = router({
             members: {
               some: {
                 userId: ctx.user.id,
+                accepted: true,
               },
             },
           },
@@ -1194,6 +1198,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
                 members: {
                   some: {
                     userId: ctx.user.id,
+                    accepted: true,
                   },
                 },
               },
@@ -1353,8 +1358,8 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     type WorkflowGroup = {
       teamId?: number | null;
       profile: {
-        slug: typeof user["username"];
-        name: typeof user["name"];
+        slug: (typeof user)["username"];
+        name: (typeof user)["name"];
       };
       metadata?: {
         readOnly: boolean;
