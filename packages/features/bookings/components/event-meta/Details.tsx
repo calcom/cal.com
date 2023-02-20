@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import React from "react";
 
-import { locationKeyToString } from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -37,7 +37,7 @@ type EventDetailCustomBlock = {
 type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
-  icon: React.FC<{ className: string }>;
+  icon: React.FC<{ className: string }> | string;
   children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.
@@ -66,7 +66,15 @@ export const EventMetaBlock = ({ icon: Icon, children, highlight, contentClassNa
         "flex items-start justify-start text-gray-600",
         highlight ? "dark:text-white" : "dark:text-darkgray-600 "
       )}>
-      <Icon className="mr-2 mt-1 h-4 w-4 flex-shrink-0" />
+      {typeof Icon === "string" ? (
+        <img
+          src={Icon}
+          alt=""
+          className="mr-2 mt-1 h-4 w-4 flex-shrink-0 dark:[filter:invert(1)_brightness(0.6)]"
+        />
+      ) : (
+        <Icon className="mr-2 mt-1 h-4 w-4 flex-shrink-0" />
+      )}
       <div className={contentClassName}>{children}</div>
     </div>
   );
@@ -84,13 +92,13 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DESCRIPTION:
             if (!event.description) return null;
-            // @TODO: Parse markdown
             return (
               <EventMetaBlock
                 key={block}
                 icon={FiInfo}
                 contentClassName="break-words max-w-full overflow-clip">
-                {event.description}
+                {/*  @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts */}
+                <div dangerouslySetInnerHTML={{ __html: event.descriptionAsSafeHTML }} />
               </EventMetaBlock>
             );
 
@@ -105,14 +113,16 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             if (!event?.locations?.length) return null;
             return (
               <>
-                {/* @TODO: Add correct icons for even ttype */}
-                {event.locations.map((location) => (
-                  <EventMetaBlock key={block} icon={FiMapPin}>
-                    <div key={location.type} className="flex flex-row items-center text-sm font-medium">
-                      {t(locationKeyToString(location) ?? "")}
-                    </div>
-                  </EventMetaBlock>
-                ))}
+                {event.locations.map((location) => {
+                  const eventLocationType = getEventLocationType(location.type);
+                  return (
+                    <EventMetaBlock key={block} icon={eventLocationType?.iconUrl || FiMapPin}>
+                      <div key={location.type} className="flex flex-row items-center text-sm font-medium">
+                        {t(eventLocationType?.label ?? "")}
+                      </div>
+                    </EventMetaBlock>
+                  );
+                })}
               </>
             );
 

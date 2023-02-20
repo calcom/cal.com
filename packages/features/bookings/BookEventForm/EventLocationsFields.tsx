@@ -35,10 +35,6 @@ export const EventLocationsFields = ({ eventType, bookingForm }: EventLocationsF
     control: bookingForm.control,
     name: "locationType",
     defaultValue: ((): EventLocationType["type"] | undefined => {
-      // @TODO: Do we want to be able to supply location via url?
-      // if (router.query.location) {
-      //   return router.query.location as EventLocationType["type"];
-      // }
       if (eventType.locations.length === 1) {
         return eventType.locations[0]?.type;
       }
