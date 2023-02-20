@@ -49,8 +49,10 @@ function WorkflowsPage() {
     const allWorkflows = allWorkflowsData?.workflows;
     if (allWorkflows && allWorkflows.length > 0) {
       const filtered = allWorkflows.filter((workflow) => {
-        if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
         if (checkedFilterItems.teamIds.includes(workflow.teamId || 0)) return workflow;
+        if (!workflow.teamId) {
+          if (!!workflow.userId && workflow.userId === checkedFilterItems.userId) return workflow;
+        }
       });
       setFilteredWorkflows(filtered);
     } else {

@@ -254,7 +254,7 @@ export const workflowsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { teamId } = input;
 
-      const userId = !teamId ? ctx.user.id : undefined;
+      const userId = ctx.user.id;
 
       if (teamId) {
         const team = await ctx.prisma.team.findFirst({
@@ -457,6 +457,7 @@ export const workflowsRouter = router({
           }
 
           if (
+            !userWorkflow.teamId &&
             userWorkflow.userId &&
             newEventType.userId !== userWorkflow.userId &&
             !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userWorkflow.userId)
