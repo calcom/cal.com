@@ -19,8 +19,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
     if (!selectedDuration) setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.length]);
 
-  // @TODO: mins should be a translation?
-  if (!event?.metadata?.multipleDuration) return <>{event.length} mins</>;
+  if (!event?.metadata?.multipleDuration) return <>{t("multiple_duration_mins", { count: event.length })}</>;
 
   return (
     <div className="flex flex-wrap gap-2">
