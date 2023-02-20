@@ -204,5 +204,11 @@
     "slug": "facetime",
     "type": "facetime_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "mercado_pago",
+    "categories": ["payment"],
+    "slug": "mercado_pago",
+    "type": "mercado_pago_payment"
   }
 ]

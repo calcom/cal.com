@@ -20,6 +20,7 @@
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
     "@calcom/zoomvideo": "*",
+    "@types/mercadopago": "^1.5.8",
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1"
   },

@@ -10,6 +10,7 @@ import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appKeysSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
+import { appKeysSchema as mercado_pago_zod_ts } from "./mercado_pago/zod";
 import { appKeysSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
@@ -34,6 +35,7 @@ export const appKeysSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   hubspot: hubspot_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
+  mercado_pago: mercado_pago_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   plausible: plausible_zod_ts,

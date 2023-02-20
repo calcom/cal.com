@@ -14,6 +14,7 @@ import * as hubspot from "./hubspot";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
+import * as mercado_pago from "./mercado_pago";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
 import * as plausible from "./plausible";
@@ -38,6 +39,7 @@ const appStore = {
   huddle01video,
   jitsivideo,
   larkcalendar,
+  mercado_pago,
   office365calendar,
   office365video,
   plausible,

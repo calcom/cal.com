@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Mercado Pago",
+  "slug": "mercado_pago",
+  "type": "mercado_pago_payment",
+  "imageSrc": "/api/app-store/mercado_pago/icon.svg",
+  "logo": "/api/app-store/mercado_pago/icon.svg",
+  "url": "https://cal.com/apps/mercado_pago",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Cal.com",
+  "email": "support@cal.com",
+  "description": ".",
+  "extendsFeature": "EventType",
+  "__createdUsingCli": true,
+  "dirName": "mercadopagopayment"
+}
