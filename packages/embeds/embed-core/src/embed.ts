@@ -312,7 +312,6 @@ export class Cal {
     }
     let el: HTMLElement;
     if (!existingEl) {
-      const template = document.createElement("template");
       el = document.createElement("cal-floating-button");
       el.dataset.calLink = calLink;
       el.dataset.calNamespace = this.namespace;
@@ -320,8 +319,7 @@ export class Cal {
         el.id = attributes.id;
       }
 
-      template.appendChild(el);
-      document.body.appendChild(template.content);
+      document.body.appendChild(el);
     } else {
       el = existingEl;
     }
