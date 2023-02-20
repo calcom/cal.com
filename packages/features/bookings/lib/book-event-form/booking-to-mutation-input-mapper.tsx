@@ -30,7 +30,7 @@ export const mapBookingToMutationInput = ({
     label: event.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
     value: values.customInputs && values.customInputs[inputId] ? values.customInputs[inputId] : "",
   }));
-  console.log(event.locations);
+
   return {
     ...values,
     start: dayjs(date).format(),
@@ -42,8 +42,8 @@ export const mapBookingToMutationInput = ({
     eventTypeSlug: event.slug,
     timeZone: timeZone,
     language: language,
+    guests: values.guests ? values.guests.map(({ email }) => email) : [],
     //@TODO:
-    guests: [],
     // rescheduleid
     location: getEventLocationValue(event.locations, {
       type: (values.locationType ? values.locationType : event.locations[0]?.type) || "",

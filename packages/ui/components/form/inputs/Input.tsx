@@ -10,10 +10,10 @@ import { FiEye, FiEyeOff, FiX } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean; isStandaloneField?: boolean };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, ...props },
+  { isFullWidth = true, isStandaloneField = true, ...props },
   ref
 ) {
   return (
@@ -23,7 +23,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       className={classNames(
         // @TODO: In globals.css there's an override that disabled the box shadow on inputs,
         // This causes the focus state to be different for different types of fields.
-        "dark:text-darkgray-900 dark:border-darkgray-500 dark:bg-darkgray-100 dark:focus:border-darkgray-900 mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "dark:text-darkgray-900 dark:border-darkgray-500 dark:bg-darkgray-100 dark:focus:border-darkgray-500 mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        // Renders additional styles when field is wrapped in InputField, which can add addon fields.
+        !isStandaloneField &&
+          "[&:not(:only-child):first-child]:border-r-0 [&:not(:only-child):last-child]:border-l-0",
         isFullWidth && "w-full",
         props.className
       )}
@@ -67,8 +70,8 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper h-9 border border-gray-300 px-3",
-      isFilled && "bg-gray-100",
+      "addon-wrapper dark:border-darkgray-500 relative z-10 h-9 border border-gray-300 px-3",
+      isFilled && "dark:bg-darkgray-100 dark:text-darkgray-600 dark:bg-darkgray-100 bg-gray-50",
       className
     )}>
     <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
@@ -123,10 +126,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
-                addOnClassname
-              )}>
+              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
@@ -135,6 +135,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
+            isStandaloneField={false}
             className={classNames(
               className,
               addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
@@ -156,10 +157,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {addOnSuffix && (
             <Addon
               isFilled={addOnFilled}
-              className={classNames(
-                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
-                addOnClassname
-              )}>
+              className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}

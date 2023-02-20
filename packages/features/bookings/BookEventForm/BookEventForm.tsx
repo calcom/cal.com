@@ -19,6 +19,7 @@ import { FiInfo, FiUserPlus } from "@calcom/ui/components/icon";
 
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
+import { GuestFields } from "./GuestFields";
 import { BookingFormValues, bookingFormSchema } from "./form-config";
 
 type BookEventFormProps = {
@@ -74,6 +75,7 @@ export const BookEventForm = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
       const { uid, paymentUid } = responseData;
@@ -106,7 +108,6 @@ export const BookEventForm = ({
 
   // @TODO: Add reschedule layout.
   const disableInput = false;
-  const guestToggle = false;
   const rescheduleUid = null;
 
   // @TODO: Loading and or error states.
@@ -172,35 +173,9 @@ export const BookEventForm = ({
         <EventLocationsFields bookingForm={bookingForm} eventType={eventType} />
         <CustomInputFields bookingForm={bookingForm} inputs={eventType.customInputs} />
 
-        {!eventType.disableGuests && guestToggle && (
+        {!eventType.disableGuests && (
           <div className="mb-4">
-            {/* @TODO: Add in new guest fields */}
-            {/* <div>
-              <Label htmlFor="guests">{t("guests")}</Label>
-
-              <Controller
-                control={bookingForm.control}
-                name="guests"
-                render={({ field: { onChange, value } }) => (
-                  <ReactMultiEmail
-                    className="relative"
-                    placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                    emails={value}
-                    onChange={onChange}
-                    getLabel={(email: string, index: number, removeEmail: (index: number) => void) => {
-                      return (
-                        <div data-tag key={index} className="cursor-pointer">
-                          {email}
-                          <span data-tag-handle onClick={() => removeEmail(index)}>
-                            ×
-                          </span>
-                        </div>
-                      );
-                    }}
-                  />
-                )}
-              />
-            </div> */}
+            <GuestFields bookingForm={bookingForm} />
           </div>
         )}
         {/* @TODO: && selectedLocationType !== LocationType.Phone */}
@@ -242,17 +217,6 @@ export const BookEventForm = ({
         />
 
         <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-          {!eventType.disableGuests && !guestToggle && (
-            <Button
-              type="button"
-              color="minimal"
-              variant="icon"
-              tooltip={t("additional_guests")}
-              StartIcon={FiUserPlus}
-              // onClick={() => setGuestToggle(!guestToggle)}
-              className="mr-auto"
-            />
-          )}
           {!!onCancel && (
             <Button color="minimal" type="button" onClick={onCancel}>
               {t("back")}
