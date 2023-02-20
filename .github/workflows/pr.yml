@@ -21,7 +21,7 @@ jobs:
     secrets:
       node_version: ${{ secrets.NODE_VERSION }}
 
-  lint:
+  type-check:
     name: Type check
     runs-on: ubuntu-latest
     needs: setup
