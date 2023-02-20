@@ -65,19 +65,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ secrets.node_version }}
-      - name: Cache playwright binaries
-        uses: actions/cache@v2
-        id: playwright-cache
-        with:
-          path: |
-            ~/Library/Caches/ms-playwright
-            ~/.cache/ms-playwright
-            ${{ github.workspace }}/node_modules/playwright
-          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: cache-playwright-
-      - name: Install playwright deps
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn playwright install
+      - uses: ./.github/actions/cache-playwright
       - uses: ./.github/actions/yarn-build
         with:
           # GitHub Composite actions cannot read secrets, we have to pass them in here

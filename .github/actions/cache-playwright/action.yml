@@ -1,0 +1,23 @@
+name: Install playwright binaries
+description: "Install playwright, cache and restore if necessary"
+inputs:
+   node_version:
+     required: true
+     description: "The node version used to run this"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache playwright binaries
+      uses: actions/cache@v2
+      id: playwright-cache
+      with:
+        path: |
+          ~/Library/Caches/ms-playwright
+          ~/.cache/ms-playwright
+          ${{ github.workspace }}/node_modules/playwright
+        key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: cache-playwright-
+    - name: Install playwright deps
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: yarn playwright install
