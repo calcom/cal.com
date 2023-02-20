@@ -69,7 +69,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
     onError: () => {
-      showToast(`Something went wrong`, "error");
+      showToast(t("something_went_wrong"), "error");
     },
     onSettled: () => {
       utils.viewer.appRoutingForms.forms.invalidate();
@@ -109,14 +109,14 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             });
           }}>
           <div className="mt-3 space-y-4">
-            <TextField label={t("title")} required placeholder="A Routing Form" {...register("name")} />
+            <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
             <div className="mb-5">
               <TextAreaField
                 id="description"
                 label={t("description")}
                 {...register("description")}
                 data-testid="description"
-                placeholder="Form Description"
+                placeholder={t("form_description_placeholder")}
               />
             </div>
             {action === "duplicate" && (
@@ -125,8 +125,8 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 render={({ field: { value, onChange } }) => {
                   return (
                     <SettingsToggle
-                      title="Keep me connected with the form"
-                      description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
+                      title={t("keep_me_connected_with_form")}
+                      description={t("fields_in_form_duplicated")}
                       checked={value}
                       onCheckedChange={(checked) => {
                         onChange(checked);
@@ -184,6 +184,7 @@ function Dialogs({
 }) {
   const utils = trpc.useContext();
   const router = useRouter();
+  const { t } = useLocale();
   const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
       await utils.viewer.appRoutingForms.forms.cancel();
@@ -195,7 +196,7 @@ function Dialogs({
       return { previousValue };
     },
     onSuccess: () => {
-      showToast("Form deleted", "success");
+      showToast(t("form_deleted"), "success");
       setDeleteDialogOpen(false);
       router.replace(`${appUrl}/forms`);
     },
@@ -207,7 +208,7 @@ function Dialogs({
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast(err.message || "Something went wrong", "error");
+      showToast(err.message || t("something_went_wrong"), "error");
     },
   });
   return (
@@ -217,9 +218,9 @@ function Dialogs({
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
           variety="danger"
-          title="Delete Form"
-          confirmBtnText="Yes, delete Form"
-          loadingText="Yes, delete Form"
+          title={t("delete_form")}
+          confirmBtn={t("delete_form_action")}
+          loadingText={t("delete_form_action")}
           onConfirm={(e) => {
             if (!deleteDialogFormId) {
               return;
@@ -229,8 +230,7 @@ function Dialogs({
               id: deleteDialogFormId,
             });
           }}>
-          Are you sure you want to delete this form? Anyone who you&apos;ve shared the link with will no
-          longer be able to book using it. Also, all associated responses would be deleted.
+          {t("delete_form_confirmation")}
         </ConfirmationDialogContent>
       </Dialog>
       <NewFormDialog appUrl={appUrl} />
@@ -255,6 +255,7 @@ const actionsCtx = createContext({
 export function FormActionsProvider({ appUrl, children }: { appUrl: string; children: React.ReactNode }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
+  const { t } = useLocale();
   const utils = trpc.useContext();
 
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
@@ -279,7 +280,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast("Something went wrong", "error");
+      showToast(t("something_went_wrong"), "error");
     },
   });
 
@@ -401,7 +402,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     copyRedirectUrl: {
       onClick: () => {
         navigator.clipboard.writeText(redirectUrl);
-        showToast("Typeform Redirect URL copied! You can go and set the URL in Typeform form.", "success");
+        showToast(t("typeform_redirect_url_copied"), "success");
       },
     },
     toggle: {
