@@ -960,7 +960,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       // cancel workflow reminders from previous rescheduled booking
       originalRescheduledBooking.workflowReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }

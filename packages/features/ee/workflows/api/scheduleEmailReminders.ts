@@ -50,27 +50,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  const workflowRemindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder, never>[] = [];
+  try {
+    const workflowRemindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder, never>[] = [];
 
-  for (const reminder of remindersToCancel) {
-    await client.request({
-      url: "/v3/user/scheduled_sends",
-      method: "POST",
-      body: {
-        batch_id: reminder.referenceId,
-        status: "cancel",
-      },
-    });
+    for (const reminder of remindersToCancel) {
+      await client.request({
+        url: "/v3/user/scheduled_sends",
+        method: "POST",
+        body: {
+          batch_id: reminder.referenceId,
+          status: "cancel",
+        },
+      });
 
-    const workflowReminderToDelete = prisma.workflowReminder.delete({
-      where: {
-        id: reminder.id,
-      },
-    });
+      const workflowReminderToDelete = prisma.workflowReminder.delete({
+        where: {
+          id: reminder.id,
+        },
+      });
 
-    workflowRemindersToDelete.push(workflowReminderToDelete);
+      workflowRemindersToDelete.push(workflowReminderToDelete);
+    }
+    await Promise.all(workflowRemindersToDelete);
+  } catch (error) {
+    console.log(`Error cancelling scheduled Emails: ${error}`);
   }
-  await Promise.all(workflowRemindersToDelete);
 
   //find all unscheduled Email reminders
   const unscheduledReminders = await prisma.workflowReminder.findMany({

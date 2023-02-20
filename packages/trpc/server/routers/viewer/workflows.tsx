@@ -513,7 +513,7 @@ export const workflowsRouter = router({
         });
         //step was deleted
         if (!newStep) {
-          // cancel all workflow reminders from delted steps
+          // cancel all workflow reminders from deleted steps
           if (remindersFromStep.length > 0) {
             remindersFromStep.forEach((reminder) => {
               if (reminder.method === WorkflowMethods.EMAIL) {
