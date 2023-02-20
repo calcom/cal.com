@@ -1,13 +1,5 @@
-import {
-  App,
-  BookingStatus,
-  Credential,
-  EventTypeCustomInput,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -1149,7 +1141,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) } : undefined;
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
+  }
+
+  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) || videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
