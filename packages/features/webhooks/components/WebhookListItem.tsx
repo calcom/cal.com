@@ -1,4 +1,4 @@
-import { WebhookTriggerEvents } from "@prisma/client";
+import type { WebhookTriggerEvents } from "@prisma/client";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
