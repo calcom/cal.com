@@ -1,12 +1,5 @@
-import {
-  App,
-  BookingStatus,
-  Credential,
-  EventTypeCustomInput,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -16,15 +9,18 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { EventTypeAppsList, getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -36,6 +32,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -58,9 +55,10 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 
-import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import sendPayload from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
@@ -847,6 +845,7 @@ async function handler(
 
   // Initialize EventManager with credentials
   const rescheduleUid = bookingData.rescheduleUid;
+
   async function getOriginalRescheduledBooking(uid: string) {
     return prisma.booking.findFirst({
       where: {
@@ -877,6 +876,7 @@ async function handler(
       },
     });
   }
+
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
   if (rescheduleUid) {
@@ -1240,7 +1240,7 @@ async function handler(
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
+  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
