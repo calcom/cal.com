@@ -50,10 +50,9 @@ jobs:
         # change this if your nextjs app does not live at the root of the repo
         working-directory: ./apps/web/
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: ./.github/actions/yarn-install
         with:
-          node-version: ${{ env.node_version }}
+          node_version: ${{ env.node_version }}
       - name: Restore node_modules from cache
         uses: actions/cache@v3
         env:
