@@ -120,7 +120,7 @@ function Field({
             <TextField
               disabled={!!router}
               label="Label"
-              placeholder={t("This is what your users would see")}
+              placeholder={t("this_is_what_your_users_would_see")}
               /**
                * This is a bit of a hack to make sure that for routerField, label is shown from there.
                * For other fields, value property is used because it exists and would take precedence
@@ -136,7 +136,7 @@ function Field({
               label="Identifier"
               name="identifier"
               required
-              placeholder={t("Identifies field by this name.")}
+              placeholder={t("identifies_name_field")}
               value={identifier}
               defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
@@ -184,7 +184,7 @@ function Field({
                   rows={3}
                   label="Options"
                   defaultValue={routerField?.selectText}
-                  placeholder={t("Add 1 option per line")}
+                  placeholder={t("add_1_option_per_line")}
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
               </div>
@@ -200,7 +200,7 @@ function Field({
                 return (
                   <BooleanToggleGroupField
                     disabled={!!router}
-                    label={t("Required")}
+                    label={t("required")}
                     value={value}
                     onValueChange={onChange}
                   />
