@@ -44,9 +44,10 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { customInputSchema, bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
-import { FiX, FiChevronLeft, FiCheck, FiCalendar, FiExternalLink } from "@calcom/ui/components/icon";
+import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
 import { getBookingWithResponses } from "@lib/getBooking";
@@ -336,6 +337,7 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
+
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(

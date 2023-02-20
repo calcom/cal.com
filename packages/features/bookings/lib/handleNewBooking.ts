@@ -1,5 +1,5 @@
-import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -45,9 +45,9 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
+import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
   bookingCreateBodySchemaForApi,
-  bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
   EventTypeMetaDataSchema,
   extendedBookingCreateBody,
@@ -878,6 +878,7 @@ async function handler(
       },
     });
   }
+
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
   if (rescheduleUid) {

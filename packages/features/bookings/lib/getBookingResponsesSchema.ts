@@ -1,7 +1,8 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-import { bookingResponses, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { bookingResponses } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
 export const getBookingResponsesPartialSchema = (eventType: EventType) => {

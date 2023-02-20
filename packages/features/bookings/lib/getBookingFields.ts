@@ -1,4 +1,4 @@
-import { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
+import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
 import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
@@ -144,7 +144,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.PHONE]: BookingFieldType.phone,
   };
 
-  const smsNumberSources = [] as NonNullable<typeof bookingFields[number]["sources"]>;
+  const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE") {

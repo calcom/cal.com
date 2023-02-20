@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { PeriodType } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import type { PeriodType, SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";

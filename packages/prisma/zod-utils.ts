@@ -1,5 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */

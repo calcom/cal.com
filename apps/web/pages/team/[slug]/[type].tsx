@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { privacyFilteredLocations } from "@calcom/core/location";
 import type { LocationObject } from "@calcom/core/location";
+import { privacyFilteredLocations } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
