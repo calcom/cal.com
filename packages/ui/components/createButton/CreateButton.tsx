@@ -97,7 +97,7 @@ export function CreateButton(props: CreateBtnProps) {
               <DropdownMenuItem key={option.slug}>
                 <DropdownItem
                   type="button"
-                  StartIcon={(props: any) => (
+                  StartIcon={(props) => (
                     <Avatar
                       alt={option.name || ""}
                       imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
