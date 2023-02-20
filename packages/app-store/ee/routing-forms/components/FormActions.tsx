@@ -125,7 +125,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 render={({ field: { value, onChange } }) => {
                   return (
                     <SettingsToggle
-                      title={t("keep_me_connected")}
+                      title={t("keep_me_connected_with_form")}
                       description={t("fields_in_form_duplicated")}
                       checked={value}
                       onCheckedChange={(checked) => {
@@ -219,8 +219,8 @@ function Dialogs({
           isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t("delete_form")}
-          confirmBtn={t("delete_from_action")}
-          loadingText={t("delete_from_action")}
+          confirmBtn={t("delete_form_action")}
+          loadingText={t("delete_form_action")}
           onConfirm={(e) => {
             if (!deleteDialogFormId) {
               return;

@@ -145,8 +145,8 @@ function Field({
           <div className="mb-6 w-full">
             <TextField
               disabled={!!router}
-              label={t("Placeholder")}
-              placeholder={t("This will be the placeholder")}
+              label={t("placeholder")}
+              placeholder={t("this_will_be_the_placeholder")}
               defaultValue={routerField?.placeholder}
               {...hookForm.register(`${hookFieldNamespace}.placeholder`)}
             />
