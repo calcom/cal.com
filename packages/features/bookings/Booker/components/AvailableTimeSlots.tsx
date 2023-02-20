@@ -59,8 +59,6 @@ export const AvailableTimeSlots = ({
 
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
-  /* @TODO: recurring event count */
-  /* @TODO: eth signature */
   return (
     <div
       className={classNames(

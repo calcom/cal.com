@@ -27,6 +27,7 @@ import { BookerLayout, BookerProps } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
 
 // @TODO: Test embed view
+/* @TODO: eth signature / gates */
 
 const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const { i18n } = useLocale();
@@ -166,7 +167,6 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
             {...fadeInUp}
             initial="visible"
             className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:border-l md:border-gray-200">
-            {/* @TODO: Guts of this component aren't touched (yet) */}
             <DatePicker
               isLoading={schedule.isLoading}
               onChange={onDaySelect}

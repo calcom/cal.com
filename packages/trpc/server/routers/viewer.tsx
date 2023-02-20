@@ -19,6 +19,7 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -236,8 +237,15 @@ const publicViewerRouter = router({
         recurringEvent: isRecurringEvent(event.recurringEvent)
           ? parseRecurringEvent(event.recurringEvent)
           : null,
-        // unseet workflows since we don't want to send this in the public api.
+        // Unset workflows since we don't want to send this in the public api.
         workflows: undefined,
+        // Sets user data on profile object for easier access
+        profile: {
+          username: event.users[0].username,
+          name: event.users[0].name,
+          weekStart: event.users[0].weekStart,
+          image: `${WEBAPP_URL}/${event.users[0].username}/avatar.png`,
+        },
       };
     }),
 });

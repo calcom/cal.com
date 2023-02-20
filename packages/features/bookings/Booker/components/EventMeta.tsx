@@ -25,8 +25,7 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
       )}
       {!isLoading && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          {/* @TODO: Fix meeting type */}
-          <EventMembers meetingType={null} users={event.users} />
+          <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-5">
             <EventDetails event={event} />
@@ -34,7 +33,6 @@ export const EventMeta = ({ isLoading, event }: EventMetaProps) => {
               <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full items-center bg-white">
                 {timezone} <FiChevronDown className="ml-2 inline-block" />
               </span>
-              {/* @TODO: When old booking page is gone, hopefully we can improve the select component itself :)  */}
               <TimezoneSelect
                 menuPosition="fixed"
                 className="[&_.cal-react-select\_\_control]:h-auto [&_.cal-react-select\_\_control]:min-h-0 [&_.cal-react-select\_\_control]:cursor-pointer [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px] [&_.cal-react-select\_\_menu-portal]:z-30"
