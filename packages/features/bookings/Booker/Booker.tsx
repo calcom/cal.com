@@ -135,7 +135,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
         <AnimatePresence>
-          <StickyOnDesktop>
+          <StickyOnDesktop key="meta">
             <BookerSection area="meta">
               <EventMeta event={event.data} isLoading={event.isLoading} selectedTime={bookingTime} />
               {layout !== "small_calendar" && (
@@ -155,6 +155,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           </StickyOnDesktop>
 
           <BookerSection
+            key="book-event-form"
             area="main"
             className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:border-l"
             {...fadeInUp}
@@ -170,6 +171,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           </BookerSection>
 
           <BookerSection
+            key="datepicker"
             area="main"
             visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
@@ -188,6 +190,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           </BookerSection>
 
           <BookerSection
+            key="large-calendar"
             area="main"
             visible={
               layout === "large_calendar" &&
@@ -199,6 +202,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           </BookerSection>
 
           <BookerSection
+            key="timeslots"
             area={{ default: "main", small_calendar: "timeslots" }}
             visible={
               (bookerState === "selecting_time" && layout === "small_calendar") ||

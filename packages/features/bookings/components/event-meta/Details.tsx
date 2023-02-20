@@ -120,18 +120,18 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.LOCATION:
             if (!event?.locations?.length) return null;
             return (
-              <>
+              <React.Fragment key={block}>
                 {event.locations.map((location) => {
                   const eventLocationType = getEventLocationType(location.type);
                   return (
-                    <EventMetaBlock key={block} icon={eventLocationType?.iconUrl || FiMapPin}>
+                    <EventMetaBlock key={location.type} icon={eventLocationType?.iconUrl || FiMapPin}>
                       <div key={location.type} className="flex flex-row items-center text-sm font-medium">
                         {t(eventLocationType?.label ?? "")}
                       </div>
                     </EventMetaBlock>
                   );
                 })}
-              </>
+              </React.Fragment>
             );
 
           case EventDetailBlocks.REQUIRES_CONFIRMATION:
