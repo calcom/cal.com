@@ -1,25 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { WorkingHours } from "@calcom/types/schedule";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogHeader,
-  DialogClose,
-  Switch,
-  Form,
-  Button,
-} from "@calcom/ui";
+import type { WorkingHours } from "@calcom/types/schedule";
+import { Dialog, DialogContent, DialogHeader, DialogClose, Switch, Form, Button } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
-import { DayRanges, TimeRange } from "./Schedule";
+import type { TimeRange } from "./Schedule";
+import { DayRanges } from "./Schedule";
 
 const ALL_DAY_RANGE = {
   start: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
@@ -167,18 +160,19 @@ const DateOverrideForm = ({
 };
 
 const DateOverrideInputDialog = ({
-  Trigger,
   excludedDates = [],
+  open,
+  setOpen,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
   excludedDates?: string[];
-  Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [open, setOpen] = useState(false);
   {
     /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
        ref:- https://github.com/calcom/cal.com/pull/6215
@@ -187,8 +181,6 @@ const DateOverrideInputDialog = ({
   const enableOverflow = isMobile;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{Trigger}</DialogTrigger>
-
       <DialogContent enableOverflow={enableOverflow} size="md">
         <DateOverrideForm
           excludedDates={excludedDates}

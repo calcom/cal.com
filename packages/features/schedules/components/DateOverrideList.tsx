@@ -1,8 +1,9 @@
-import { UseFieldArrayRemove } from "react-hook-form";
+import { useState } from "react";
+import type { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import { Button, ButtonGroup, ListItem } from "@calcom/ui";
 import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
@@ -21,6 +22,7 @@ const DateOverrideList = ({
   workingHours: WorkingHours[];
   excludedDates?: string[];
 }) => {
+  const [open, setOpen] = useState(false);
   const { t, i18n } = useLocale();
   if (!items.length) {
     return <></>;
@@ -41,58 +43,62 @@ const DateOverrideList = ({
   return (
     <ul className="rounded border border-gray-200" data-testid="date-overrides-list">
       {items.map((item, index) => (
-        <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
-          <div>
-            <h3 className="text-sm text-gray-900">
-              {new Intl.DateTimeFormat("en-GB", {
-                weekday: "short",
-                month: "long",
-                day: "numeric",
-              }).format(item.ranges[0].start)}
-            </h3>
-            {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
-              <p className="text-xs text-gray-500">{t("unavailable")}</p>
-            ) : (
-              item.ranges.map((range, i) => (
-                <p key={i} className="text-xs text-gray-500">
-                  {timeSpan(range)}
-                </p>
-              ))
-            )}
-          </div>
-          <div className="flex flex-row-reverse gap-5 space-x-2 rtl:space-x-reverse">
-            <DateOverrideInputDialog
-              excludedDates={excludedDates}
-              workingHours={workingHours}
-              value={item.ranges}
-              onChange={(ranges) => {
-                update(index, {
-                  ranges,
-                });
-              }}
-              Trigger={
-                <DialogTrigger asChild>
+        <>
+          <ListItem
+            key={item.id}
+            heading={new Intl.DateTimeFormat("en-GB", {
+              weekday: "short",
+              month: "long",
+              day: "numeric",
+            }).format(item.ranges[0].start)}
+            subHeading={
+              <>
+                {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
+                  <p className="text-xs text-gray-500">{t("unavailable")}</p>
+                ) : (
+                  item.ranges.map((range, i) => (
+                    <p key={i} className="text-xs text-gray-500">
+                      {timeSpan(range)}
+                    </p>
+                  ))
+                )}
+              </>
+            }
+            actions={
+              <>
+                <ButtonGroup>
                   <Button
                     tooltip={t("edit")}
                     className="text-gray-700"
                     color="minimal"
+                    onClick={() => setOpen(true)}
                     variant="icon"
                     StartIcon={FiEdit2}
                   />
-                </DialogTrigger>
-              }
-            />
-            <Tooltip content="Delete">
-              <Button
-                className="text-gray-700"
-                color="destructive"
-                variant="icon"
-                StartIcon={FiTrash2}
-                onClick={() => remove(index)}
-              />
-            </Tooltip>
-          </div>
-        </li>
+                  <Button
+                    className="text-gray-700"
+                    color="destructive"
+                    variant="icon"
+                    StartIcon={FiTrash2}
+                    onClick={() => remove(index)}
+                  />
+                </ButtonGroup>
+              </>
+            }
+          />
+          <DateOverrideInputDialog
+            open={open}
+            setOpen={setOpen}
+            excludedDates={excludedDates}
+            workingHours={workingHours}
+            value={item.ranges}
+            onChange={(ranges) => {
+              update(index, {
+                ranges,
+              });
+            }}
+          />
+        </>
       ))}
     </ul>
   );
