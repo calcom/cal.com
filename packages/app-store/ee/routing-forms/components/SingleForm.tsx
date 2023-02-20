@@ -278,14 +278,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   <TextField
                     type="text"
                     containerClassName="mb-6"
-                    placeholder="Title"
+                    placeholder={t("title")}
                     {...hookForm.register("name")}
                   />
                   <TextAreaField
                     rows={3}
                     id="description"
                     data-testid="description"
-                    placeholder="Form Description"
+                    placeholder={t("form_description_placeholder")}
                     {...hookForm.register("description")}
                     defaultValue={form.description || ""}
                   />
@@ -311,7 +311,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="mt-6">
                       <div className="mb-2 block text-sm font-semibold leading-none text-black ">Routers</div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
-                        Modifications in fields and routes of following forms will be reflected in this form.
+                        {t("modifications_in_fields_warning")}
                       </p>
                       <div className="flex">
                         {form.routers.map((router) => {
@@ -330,10 +330,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   {connectedForms?.length ? (
                     <div className="mt-6">
                       <div className="mb-2 block text-sm font-semibold leading-none text-black ">
-                        Connected Forms
+                        {t("connected_forms")}
                       </div>
                       <p className="-mt-1 text-xs leading-normal text-gray-600">
-                        Following forms would be affected when you modify fields or routes here
+                        {t("form_modifications_warning")}
                       </p>
                       <div className="flex">
                         {connectedForms.map((router) => {
@@ -362,8 +362,8 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       <Alert
                         className="mt-6"
                         severity="neutral"
-                        title="No responses yet"
-                        message="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                        title={t("no_responses_yet")}
+                        message={t("responses_collection_waiting_description")}
                       />
                     </>
                   )}
