@@ -1,5 +1,13 @@
-import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  App,
+  BookingStatus,
+  Credential,
+  EventTypeCustomInput,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowMethods,
+} from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -28,7 +36,9 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
@@ -759,6 +769,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         },
         payment: true,
+        workflowReminders: true,
       },
     });
   }
@@ -950,6 +961,19 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   let videoCallUrl;
 
   if (originalRescheduledBooking?.uid) {
+    try {
+      // cancel workflow reminders from previous rescheduled booking
+      originalRescheduledBooking.workflowReminders.forEach((reminder) => {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        }
+      });
+    } catch (error) {
+      log.error("Error while canceling scheduled workflow reminders", error);
+    }
+
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
       evt,
