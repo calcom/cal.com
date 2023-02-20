@@ -330,7 +330,7 @@ model Booking {
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
-  isRecordingExist      Boolean              @default(false)
+  isRecorded            Boolean              @default(false)
 }
 
 model Schedule {

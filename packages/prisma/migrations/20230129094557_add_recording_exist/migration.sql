@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Booking" ADD COLUMN     "isRecordingExist" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Booking" ADD COLUMN     "isRecorded" BOOLEAN NOT NULL DEFAULT false;

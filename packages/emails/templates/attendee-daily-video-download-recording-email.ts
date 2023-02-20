@@ -33,6 +33,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         date: this.getFormattedDate(),
         downloadLink: this.downloadLink,
         language: this.t,
+        name: this.attendee.name,
       }),
     };
   }

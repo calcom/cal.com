@@ -1,5 +1,3 @@
-// shift to ee
-import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -9,16 +7,9 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-const senderEmail = process.env.SENDGRID_EMAIL as string;
-
-sgMail.setApiKey(sendgridAPIKey);
-
 const schema = z.object({
   uid: z.string(),
   downloadLink: z.string(),
-  // duration: z.number(),
-  duration: z.string(),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,15 +19,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const response = schema.safeParse(req.body);
 
-  console.log("Req_S", req.body);
-
   if (!response.success) {
     return res.status(400).send({
       message: "Invalid Payload",
     });
   }
 
-  const { uid, duration, downloadLink } = response.data;
+  const { uid, downloadLink } = response.data;
 
   try {
     const booking = await prisma.booking.findFirst({
@@ -66,7 +55,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || booking.location !== "integrations:daily") {
+    if (!booking || (booking.location !== "integrations:daily" && booking?.location?.trim() !== "")) {
       return res.status(404).send({
         message: `Booking of ${uid} does not exist or does not contain daily video as location`,
       });
@@ -77,12 +66,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         uid,
       },
       data: {
-        isRecordingExist: true,
+        isRecorded: true,
       },
     });
 
     // Schedule email here
-    const t = await getTranslation(booking.user.locale ?? "en", "common");
+    const t = await getTranslation(booking?.user?.locale ?? "en", "common");
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
       return {
         name: attendee.name,
@@ -104,10 +93,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
       organizer: {
-        email: booking.user.email,
-        name: booking.user.name,
-        timeZone: booking.user.timeZone,
-        language: { translate: t, locale: booking.user.locale ?? "en" },
+        email: booking.user?.email || "Email-less",
+        name: booking.user?.name || "Nameless",
+        timeZone: booking.user?.timeZone || "Europe/London",
+        language: { translate: t, locale: booking?.user?.locale ?? "en" },
       },
       attendees: attendeesList,
       uid: booking.uid,
@@ -116,7 +105,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await sendDailyVideoRecordingEmails(evt, downloadLink);
     return res.status(200).json({ message: "Success" });
   } catch (err) {
-    console.log("something_went_wrong", err);
+    console.warn("something_went_wrong", err);
     return res.status(500).json({ message: "something went wrong" });
   }
 }

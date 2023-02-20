@@ -1,5 +1,12 @@
-import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
-import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods ,WebhookTriggerEvents} from "@prisma/client";
+import type {
+  BookingReference,
+  EventType,
+  User,
+  Workflow,
+  WorkflowsOnEventTypes,
+  WorkflowStep,
+} from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
@@ -18,6 +25,7 @@ import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmai
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -300,7 +308,7 @@ export const bookingsRouter = router({
               },
             },
           },
-          isRecordingExist: true,
+          isRecorded: true,
         },
         orderBy,
         take: take + 1,
