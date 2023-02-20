@@ -176,7 +176,7 @@ export default function RoutingForms({
                             </div>
                           }
                           actions={
-                            <>
+                            <div className="flex">
                               <FormAction className="self-center" action="toggle" routingForm={form} />
                               <ButtonGroup combined>
                                 <Tooltip content={t("preview")}>
@@ -253,7 +253,7 @@ export default function RoutingForms({
                                   </FormAction>
                                 </FormActionsDropdown>
                               </ButtonGroup>
-                            </>
+                            </div>
                           }
                         />
                       );

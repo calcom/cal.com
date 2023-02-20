@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  ListItem,
 } from "@calcom/ui";
 import { FiMoreHorizontal, FiEdit2, FiTrash } from "@calcom/ui/components/icon";
 
@@ -37,25 +38,27 @@ const ApiKeyListItem = ({
   });
 
   return (
-    <div
+    <ListItem
       key={apiKey.id}
-      className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-b")}>
-      <div>
-        <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
-        <div className="flex items-center space-x-3.5">
+      heading={apiKey?.note ? apiKey.note : t("api_key_no_note")}
+      badges={
+        <>
           {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
           {!isExpired && <Badge variant="green">{t("active")}</Badge>}
-          <p className="text-xs text-gray-600">
-            {" "}
-            {neverExpires ? (
-              <div className="flex flex-row space-x-3 text-gray-500">{t("api_key_never_expires")}</div>
-            ) : (
-              `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
-            )}
-          </p>
-        </div>
-      </div>
-      <div>
+        </>
+      }
+      badgePosition="heading"
+      subHeading={
+        <>
+          {neverExpires ? (
+            <div className="flex flex-row space-x-3 text-gray-500">{t("api_key_never_expires")}</div>
+          ) : (
+            `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
+          )}
+        </>
+      }
+      removeHover
+      actions={
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button type="button" variant="icon" color="secondary" StartIcon={FiMoreHorizontal} />
@@ -81,8 +84,8 @@ const ApiKeyListItem = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
-      </div>
-    </div>
+      }
+    />
   );
 };
 

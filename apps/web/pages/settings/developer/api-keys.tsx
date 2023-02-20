@@ -16,6 +16,7 @@ import {
   EmptyScreen,
   Meta,
   AppSkeletonLoader as SkeletonLoader,
+  List,
 } from "@calcom/ui";
 import { FiLink, FiPlus } from "@calcom/ui/components/icon";
 
@@ -58,7 +59,7 @@ const ApiKeysView = () => {
           <div>
             {isLoading ? null : data?.length ? (
               <>
-                <div className="mt-6 mb-8 rounded-md border">
+                <List className="mt-6 mb-8">
                   {data.map((apiKey, index) => (
                     <ApiKeyListItem
                       key={apiKey.id}
@@ -70,7 +71,7 @@ const ApiKeysView = () => {
                       }}
                     />
                   ))}
-                </div>
+                </List>
                 <NewApiKeyButton />
               </>
             ) : (
