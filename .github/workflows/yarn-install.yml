@@ -14,6 +14,7 @@ jobs:
       group: yarn-install-${{ github.sha }}
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ secrets.node_version }}

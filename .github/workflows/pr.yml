@@ -50,6 +50,7 @@ jobs:
         # change this if your nextjs app does not live at the root of the repo
         working-directory: ./apps/web/
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ env.node_version }}
