@@ -1,4 +1,4 @@
-import { LocalRoute } from "../types/types";
+import type { LocalRoute } from "../types/types";
 
 export const RoutingPages: { label: string; value: NonNullable<LocalRoute["action"]>["type"] }[] = [
   {

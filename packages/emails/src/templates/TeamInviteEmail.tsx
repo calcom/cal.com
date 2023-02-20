@@ -1,5 +1,4 @@
 import type { TFunction } from "next-i18next";
-import { ReactNode } from "react";
 
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 

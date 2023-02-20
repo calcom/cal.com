@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";

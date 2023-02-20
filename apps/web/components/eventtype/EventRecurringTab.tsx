@@ -1,4 +1,4 @@
-import { EventTypeSetupProps } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 

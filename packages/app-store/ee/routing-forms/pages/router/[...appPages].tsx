@@ -1,13 +1,13 @@
 import Head from "next/head";
 import z from "zod";
 
-import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
-import { Response } from "../../types/types";
+import type { Response } from "../../types/types";
 
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (

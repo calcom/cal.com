@@ -1,4 +1,4 @@
-import logger from "@calcom/lib/logger";
+import type logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
 export type UserInfo = {

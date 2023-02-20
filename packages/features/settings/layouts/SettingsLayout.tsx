@@ -32,7 +32,6 @@ import {
   FiChevronRight,
   FiPlus,
   FiMenu,
-  FiExternalLink,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [

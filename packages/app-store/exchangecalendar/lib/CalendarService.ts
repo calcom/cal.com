@@ -1,4 +1,5 @@
 import { XhrApi } from "@ewsjs/xhr";
+import type { FindFoldersResults, FindItemsResults } from "ews-javascript-api";
 import {
   Appointment,
   Attendee,
@@ -8,8 +9,6 @@ import {
   DateTime,
   DeleteMode,
   ExchangeService,
-  FindFoldersResults,
-  FindItemsResults,
   Folder,
   FolderId,
   FolderSchema,
@@ -30,7 +29,7 @@ import {
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import {
+import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
@@ -38,7 +37,7 @@ import {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 

@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";

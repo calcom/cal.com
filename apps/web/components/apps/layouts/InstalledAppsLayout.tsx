@@ -1,7 +1,8 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
+import React from "react";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
-import { InstalledAppVariants } from "@calcom/app-store/utils";
+import type { InstalledAppVariants } from "@calcom/app-store/utils";
 import Shell from "@calcom/features/shell/Shell";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
@@ -44,7 +45,7 @@ export default function InstalledAppsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const variant: typeof InstalledAppVariants[number] = "payment";
+  const variant: (typeof InstalledAppVariants)[number] = "payment";
 
   const query = trpc.viewer.integrations.useQuery({
     variant,

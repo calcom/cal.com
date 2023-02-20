@@ -2,7 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
 import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { FC, useReducer, useState } from "react";
+import type { FC } from "react";
+import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -10,7 +11,8 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   ConfirmationDialogContent,
@@ -18,11 +20,6 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   EmptyScreen,
   Form,
   List,
@@ -31,14 +28,9 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  Switch,
 } from "@calcom/ui";
-import {
-  FiAlertCircle,
-  FiCheckCircle,
-  FiEdit,
-  FiMoreHorizontal,
-  FiXCircle,
-} from "@calcom/ui/components/icon";
+import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 
@@ -94,33 +86,23 @@ const IntegrationContainer = ({
         title={app.name}
         isTemplate={app.isTemplate}
         actions={
-          <div className="flex justify-self-end">
-            <Dropdown modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {app.keys && (
-                  <DropdownMenuItem>
-                    <DropdownItem onClick={showKeyModal} type="button" StartIcon={FiEdit}>
-                      {t("edit_keys")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (app.enabled) {
-                      setDisableDialog(true);
-                    } else {
-                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                    }
-                  }}>
-                  <DropdownItem StartIcon={app.enabled ? FiXCircle : FiCheckCircle} type="button">
-                    {app.enabled ? t("disable") : t("enable")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </Dropdown>
+          <div className="flex items-center justify-self-end">
+            {app.keys && (
+              <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
+                <FiEdit />
+              </Button>
+            )}
+
+            <Switch
+              checked={app.enabled}
+              onClick={() => {
+                if (app.enabled) {
+                  setDisableDialog(true);
+                } else {
+                  enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                }
+              }}
+            />
           </div>
         }
       />
