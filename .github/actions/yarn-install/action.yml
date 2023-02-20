@@ -3,7 +3,7 @@ description: "Install all NPM dependencies, caches them and restores if necessar
 inputs:
    node_version:
      required: true
-     description: "The node_version used to run this"
+     description: "The node version used to run this"
 runs:
   using: "composite"
   steps:

@@ -1,0 +1,100 @@
+name: Production Build
+description: "Creates a production build, caches it and restores if necessary"
+
+inputs:
+   node_version:
+     required: true
+     description: "The node version used to run this"
+  DATABASE_URL:
+    required: true
+  NEXT_PUBLIC_WEBAPP_URL:
+    required: true
+  NEXT_PUBLIC_WEBSITE_URL:
+    required: true
+  NEXTAUTH_SECRET:
+    required: true
+  GOOGLE_API_CREDENTIALS:
+    required: true
+  GOOGLE_LOGIN_ENABLED:
+    required: true
+  CRON_API_KEY:
+    required: false
+  CALENDSO_ENCRYPTION_KEY:
+    required: true
+  DAILY_API_KEY:
+    required: true
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY:
+    required: true
+  NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN:
+    required: true
+  STRIPE_PRIVATE_KEY:
+    required: true
+  STRIPE_CLIENT_ID:
+    required: true
+  STRIPE_WEBHOOK_SECRET:
+    required: true
+  STRIPE_PRO_PLAN_PRODUCT_ID:
+    required: true
+  STRIPE_PREMIUM_PLAN_PRODUCT_ID:
+    required: true
+  STRIPE_FREE_PLAN_PRODUCT_ID:
+    required: true
+  PAYMENT_FEE_PERCENTAGE:
+    required: true
+  PAYMENT_FEE_FIXED:
+    required: true
+  SAML_DATABASE_URL:
+    required: true
+  SAML_ADMINS:
+    required: true
+  NEXTAUTH_URL:
+    required: true
+  NEXT_PUBLIC_IS_E2E:
+    required: true
+  TURBO_TOKEN:
+    required: true
+  TURBO_TEAM:
+    required: true
+
+runs:
+  using: "composite"
+  services:
+        postgres:
+          image: postgres:12.1
+          env:
+            POSTGRES_USER: postgres
+            POSTGRES_DB: calendso
+          ports:
+            - 5432:5432
+  steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/yarn-install
+      with:
+        node_version: ${{ secrets.NODE_VERSION }}
+    - name: Cache production build
+      id: prod-build-cache
+      uses: actions/cache@v3
+      env:
+        cache-name: prod-build
+        key-1: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
+        key-2: ${{ hashFiles('apps/web/next.config.js') }}
+      with:
+        path: |
+          apps/web/.next
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+    - name: Next.js production build
+      if: steps.prod-build-cache.outputs.cache-hit != 'true'
+      run: |
+        yarn db-seed
+        yarn build

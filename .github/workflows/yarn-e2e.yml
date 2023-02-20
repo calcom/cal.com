@@ -62,7 +62,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: ./.github/workflows/yarn-install.yml
+      - uses: ./.github/actions/yarn-install
+        with:
+          node_version: ${{ secrets.node_version }}
       - name: Cache playwright binaries
         uses: actions/cache@v2
         id: playwright-cache
@@ -76,19 +78,37 @@ jobs:
       - name: Install playwright deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: yarn playwright install
-      - name: Cache production build
-        id: prod-build-cache
-        uses: actions/cache@v3
-        env:
-          cache-name: prod-build
-          key-1: ${{ secrets.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('apps/web/next.config.js') }}
+      - uses: ./.github/actions/yarn-build
         with:
-          path: |
-            apps/web/.next
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
-            ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+          # GitHub Composite actions cannot read secrets, we have to pass them in here
+          node_version: ${{ secrets.NODE_VERSION }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          NEXT_PUBLIC_WEBAPP_URL: ${{ env.NEXT_PUBLIC_WEBAPP_URL }}
+          NEXT_PUBLIC_WEBSITE_URL: ${{ env.NEXT_PUBLIC_WEBSITE_URL }}
+          NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
+          GOOGLE_API_CREDENTIALS: ${{ env.GOOGLE_API_CREDENTIALS }}
+          GOOGLE_LOGIN_ENABLED: ${{ env.GOOGLE_LOGIN_ENABLED }}
+          CALENDSO_ENCRYPTION_KEY: ${{ env.CALENDSO_ENCRYPTION_KEY }}
+          DAILY_API_KEY: ${{ env.DAILY_API_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+          NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ env.NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
+          NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
+          NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
+          NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE: ${{ env.NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE }}
+          NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN: ${{ env.NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN }}
+          STRIPE_PRIVATE_KEY: ${{ env.STRIPE_PRIVATE_KEY }}
+          STRIPE_CLIENT_ID: ${{ env.STRIPE_CLIENT_ID }}
+          STRIPE_WEBHOOK_SECRET: ${{ env.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_PRO_PLAN_PRODUCT_ID: ${{ env.STRIPE_PRO_PLAN_PRODUCT_ID }}
+          STRIPE_PREMIUM_PLAN_PRODUCT_ID: ${{ env.STRIPE_PREMIUM_PLAN_PRODUCT_ID }}
+          STRIPE_FREE_PLAN_PRODUCT_ID: ${{ env.STRIPE_FREE_PLAN_PRODUCT_ID }}
+          PAYMENT_FEE_PERCENTAGE: ${{ env.PAYMENT_FEE_PERCENTAGE }}
+          PAYMENT_FEE_FIXED: ${{ env.PAYMENT_FEE_FIXED }}
+          SAML_DATABASE_URL: ${{ env.SAML_DATABASE_URL }}
+          SAML_ADMINS: ${{ env.SAML_ADMINS }}
+          NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
+          NEXT_PUBLIC_IS_E2E: ${{ env.NEXT_PUBLIC_IS_E2E }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
         run: yarn e2e
