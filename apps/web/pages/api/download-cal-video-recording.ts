@@ -26,7 +26,8 @@ async function handler(
   const session = await getSession({ req });
 
   //   Check if user belong to active team
-  if (!session?.user?.belongsToActiveTeam && !IS_SELF_HOSTED) {
+const isDownloadAllowed = IS_SELF_HOSTED ? true : !session?.user?.belongsToActiveTeam`
+if (!isDownloadAllowed) {
     return res.status(403);
   }
   try {
