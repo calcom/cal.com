@@ -28,14 +28,8 @@ export const ExpandableList = () => {
   const [open, setOpen] = useState(false);
   return (
     <ListItem
-      heading="Test Heading"
-      subHeading="Sub Heading"
-      badgePosition="heading"
-      badges={
-        <>
-          <Badge variant="green">Default</Badge>
-        </>
-      }
+      heading="Expand Me"
+      subHeading="Dare you!"
       actions={
         <>
           <ButtonGroup>
@@ -45,7 +39,6 @@ export const ExpandableList = () => {
           </ButtonGroup>
         </>
       }
-      leftNode={<div className="w-9 h-9 rounded-md bg-gray-900" />}
       expanded={
         open && (
           <div className="p-4">
@@ -81,6 +74,10 @@ export const ExpandableList = () => {
           </>
         }
         leftNode={<div className="h-9 w-9 rounded-md bg-gray-900" />}
+      />
+       <ListItem
+        heading="Test Heading"
+        subHeading="Sub Heading"
       />
       <ListItem
         heading="Test Heading"

@@ -26,7 +26,7 @@ export function List(props: ListProps) {
 export type ListItemProps = {
   href?: string;
   heading: string;
-  subHeading: string;
+  subHeading?: string;
   leftNode?: ReactNode;
   badgePosition: "heading" | "subheading" | "below";
   badges: ReactNode;
@@ -70,15 +70,17 @@ export function ListItem(props: ListItemProps) {
                 badgePosition={props.badgePosition}>
                 {heading}
               </BadgeHandler>
-              <BadgeHandler
-                as="h4"
-                className="inline-flex items-center text-sm font-normal leading-normal text-gray-600"
-                componentPosition="subheading"
-                badges={props.badges}
-                badgePosition={props.badgePosition}>
-                {subHeading.substring(0, 100)}
-                {subHeading.length > 100 && "..."}
-              </BadgeHandler>
+              {subHeading && (
+                <BadgeHandler
+                  as="h4"
+                  className="inline-flex items-center text-sm font-normal leading-normal text-gray-600"
+                  componentPosition="subheading"
+                  badges={props.badges}
+                  badgePosition={props.badgePosition}>
+                  {subHeading.substring(0, 100)}
+                  {subHeading.length > 100 && "..."}
+                </BadgeHandler>
+              )}
               <BadgeHandler
                 componentPosition="below"
                 badges={props.badges}
