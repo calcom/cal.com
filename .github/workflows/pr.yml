@@ -26,8 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: ./.github/workflows/yarn-install.yml
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/yarn-install
+        with:
+          node_version: ${{ secrets.NODE_VERSION }}
       - run: yarn lint
+
   build:
     name: Production build
     needs: setup
