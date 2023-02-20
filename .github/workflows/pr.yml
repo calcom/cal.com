@@ -22,6 +22,17 @@ jobs:
       node_version: ${{ secrets.NODE_VERSION }}
 
   lint:
+    name: Type check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/yarn-install
+        with:
+          node_version: ${{ secrets.NODE_VERSION }}
+      - run: yarn type-check
+
+  lint:
     name: Linters
     runs-on: ubuntu-latest
     needs: setup
@@ -58,14 +69,6 @@ jobs:
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ env.node_version }}
-      - name: Restore node_modules from cache
-        uses: actions/cache@v3
-        env:
-          cache-name: node-modules-yarn
-          cache-fingerprint: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-fingerprint }}
       - name: Restore production build from cache
         uses: actions/cache@v3
         env:
