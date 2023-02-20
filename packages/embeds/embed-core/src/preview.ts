@@ -77,7 +77,7 @@ previewWindow.addEventListener("message", (e) => {
     globalCal(data.instruction.name, data.instruction.arg);
   }
   if (data.type == "inlineEmbedDimensionUpdate") {
-    const inlineEl = document.querySelector("#my-embed") as HTMLElement;
+    const inlineEl = document.querySelector<HTMLElement>("#my-embed");
     if (inlineEl) {
       inlineEl.style.width = data.data.width;
       inlineEl.style.height = data.data.height;
