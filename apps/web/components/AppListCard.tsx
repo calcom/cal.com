@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { Badge, ListItemText } from "@calcom/ui";
+import { Badge, ListItem } from "@calcom/ui";
 import { FiAlertCircle } from "@calcom/ui/components/icon";
 
 type ShouldHighlight = { slug: string; shouldHighlight: true } | { shouldHighlight?: never; slug?: never };
@@ -63,31 +63,27 @@ export default function AppListCard(props: AppListCardProps) {
   }, []);
 
   return (
-    <div className={`${highlight ? "bg-yellow-100" : ""}`}>
-      <div className="flex gap-x-3 p-4">
-        {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
-        <div className="flex grow flex-col gap-y-1 truncate">
-          <div className="flex items-center gap-x-2">
-            <h3 className="truncate text-sm font-semibold text-gray-900">{title}</h3>
-            <div className="flex items-center gap-x-2">
-              {isDefault && <Badge variant="green">{t("default")}</Badge>}
-              {isTemplate && <Badge variant="red">Template</Badge>}
-            </div>
+    <ListItem
+      heading={title}
+      subHeading={description}
+      leftNode={logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
+      badgePosition="heading"
+      badges={
+        <>
+          {isDefault && <Badge variant="green">{t("default")}</Badge>}
+          {isTemplate && <Badge variant="red">Template</Badge>}
+        </>
+      }
+      actions={actions}
+      expanded={children && <div className="w-full">{children}</div>}
+      belowHeading={
+        invalidCredential && (
+          <div className="mt-2 flex items-center gap-x-2">
+            <FiAlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
+            <p className="whitespace-pre-wrap text-red-500">{t("invalid_credential")}</p>
           </div>
-          <ListItemText component="p">{description}</ListItemText>
-          {invalidCredential && (
-            <div className="flex gap-x-2 pt-2">
-              <FiAlertCircle className="h-8 w-8 text-red-500 sm:h-4 sm:w-4" />
-              <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
-                {t("invalid_credential")}
-              </ListItemText>
-            </div>
-          )}
-        </div>
-
-        {actions}
-      </div>
-      {children && <div className="w-full">{children}</div>}
-    </div>
+        )
+      }
+    />
   );
 }

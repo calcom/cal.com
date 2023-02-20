@@ -1,6 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
@@ -16,8 +15,6 @@ import {
   EmptyScreen,
   List,
   ListItem,
-  ListItemText,
-  ListItemTitle,
   Meta,
   SkeletonButton,
   SkeletonContainer,
@@ -116,7 +113,7 @@ const CalendarsView = () => {
                 {t("check_for_conflicts")}
               </h4>
               <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
-              <List className="flex flex-col gap-6" noBorderTreatment>
+              <List>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
                     {item.error && item.error.message && (
@@ -143,53 +140,51 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem className="flex-col rounded-md">
-                        <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
-                          {
-                            // eslint-disable-next-line @next/next/no-img-element
-                            item.integration.logo && (
-                              <img
-                                className="h-10 w-10"
-                                src={item.integration.logo}
-                                alt={item.integration.title}
-                              />
-                            )
-                          }
-                          <div className="flex-grow truncate pl-2">
-                            <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
-                              <Link href={"/apps/" + item.integration.slug}>
-                                {item.integration.name || item.integration.title}
-                              </Link>
-                              {data?.destinationCalendar?.credentialId === item.credentialId && (
-                                <Badge variant="green">Default</Badge>
-                              )}
-                            </ListItemTitle>
-                            <ListItemText component="p">{item.integration.description}</ListItemText>
-                          </div>
-                          <div>
+                      <ListItem
+                        leftNode={
+                          item.integration.logo && (
+                            <img src={item.integration.logo} alt={item.integration.title} />
+                          )
+                        }
+                        heading={item.integration.name || item.integration.title || "Unknown Calendar"}
+                        subHeading={item.integration.description}
+                        badgePosition="heading"
+                        badges={
+                          <>
+                            {data?.destinationCalendar?.credentialId === item.credentialId && (
+                              <Badge variant="green">Default</Badge>
+                            )}
+                          </>
+                        }
+                        actions={
+                          <>
                             <DisconnectIntegration
                               trashIcon
                               credentialId={item.credentialId}
                               buttonProps={{ className: "border border-gray-300" }}
                             />
+                          </>
+                        }
+                        expanded={
+                          <div className="w-full">
+                            <p className="px-2 pt-4 text-sm text-gray-500">
+                              {t("toggle_calendars_conflict")}
+                            </p>
+                            <ul className="space-y-2 p-4">
+                              {item.calendars.map((cal) => (
+                                <CalendarSwitch
+                                  key={cal.externalId}
+                                  externalId={cal.externalId}
+                                  title={cal.name || "Nameless calendar"}
+                                  type={item.integration.type}
+                                  isSelected={cal.isSelected}
+                                  defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
+                                />
+                              ))}
+                            </ul>
                           </div>
-                        </div>
-                        <div className="w-full border-t border-gray-200">
-                          <p className="px-2 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 p-4">
-                            {item.calendars.map((cal) => (
-                              <CalendarSwitch
-                                key={cal.externalId}
-                                externalId={cal.externalId}
-                                title={cal.name || "Nameless calendar"}
-                                type={item.integration.type}
-                                isSelected={cal.isSelected}
-                                defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
-                              />
-                            ))}
-                          </ul>
-                        </div>
-                      </ListItem>
+                        }
+                      />
                     )}
                   </Fragment>
                 ))}

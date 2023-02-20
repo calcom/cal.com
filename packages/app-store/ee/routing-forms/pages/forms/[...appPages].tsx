@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   EmptyScreen,
   List,
-  ListLinkItem,
+  ListItem,
   Tooltip,
   Button,
 } from "@calcom/ui";
@@ -154,12 +154,27 @@ export default function RoutingForms({
                       form.routes = form.routes || [];
                       const fields = form.fields || [];
                       return (
-                        <ListLinkItem
+                        <ListItem
                           key={index}
                           href={appUrl + "/form-edit/" + form.id}
                           heading={form.name}
                           disabled={disabled}
                           subHeading={description}
+                          badgePosition="below"
+                          badges={
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="gray" StartIcon={FiMenu}>
+                                {fields.length} {fields.length === 1 ? "field" : "fields"}
+                              </Badge>
+                              <Badge variant="gray" StartIcon={FiGitMerge}>
+                                {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
+                              </Badge>
+                              <Badge variant="gray" StartIcon={FiMessageCircle}>
+                                {form._count.responses}{" "}
+                                {form._count.responses === 1 ? "response" : "responses"}
+                              </Badge>
+                            </div>
+                          }
                           actions={
                             <>
                               <FormAction className="self-center" action="toggle" routingForm={form} />
@@ -239,19 +254,8 @@ export default function RoutingForms({
                                 </FormActionsDropdown>
                               </ButtonGroup>
                             </>
-                          }>
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="gray" StartIcon={FiMenu}>
-                              {fields.length} {fields.length === 1 ? "field" : "fields"}
-                            </Badge>
-                            <Badge variant="gray" StartIcon={FiGitMerge}>
-                              {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
-                            </Badge>
-                            <Badge variant="gray" StartIcon={FiMessageCircle}>
-                              {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
-                            </Badge>
-                          </div>
-                        </ListLinkItem>
+                          }
+                        />
                       );
                     })}
                   </List>

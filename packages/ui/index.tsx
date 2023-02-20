@@ -80,7 +80,7 @@ export type { AlertProps } from "./components/alert";
 export { Credits } from "./components/credits";
 export { Divider, VerticalDivider } from "./components/divider";
 export { EmptyScreen } from "./components/empty-screen";
-export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./components/list";
+export { List, ListItem } from "./components/list";
 export type { ListItemProps, ListProps } from "./components/list";
 export { HeadSeo } from "./components/head-seo";
 export {
