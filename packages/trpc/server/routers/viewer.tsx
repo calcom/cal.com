@@ -202,6 +202,7 @@ const publicViewerRouter = router({
             select: {
               username: true,
               name: true,
+              weekStart: true,
             },
           },
         },

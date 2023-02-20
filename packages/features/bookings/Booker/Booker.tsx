@@ -1,4 +1,4 @@
-import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import { LazyMotion, domAnimation, m, AnimatePresence, MotionStyle } from "framer-motion";
 import { Fragment, useEffect, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -10,6 +10,7 @@ import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays, useSchedule } from "@calcom/features/schedules";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { trpc } from "@calcom/trpc/react";
@@ -36,6 +37,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
 
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
+
   const schedule = useSchedule({
     username,
     eventSlug,
@@ -56,7 +58,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
   );
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
-  console.log(recurringEventCount);
+
   useEffect(() => {
     initializeStore(username, eventSlug, browsingMonthStart.toDate(), event?.data?.id);
   }, [initializeStore, username, eventSlug, browsingMonthStart, event]);
@@ -114,7 +116,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
         // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
         // where there's no styles applied yet (meaning there wouldn't be a grid + widths), which would cause
         // the layout to jump around on load.
-        style={resizeAnimationConfig.small_calendar.default as any}
+        style={resizeAnimationConfig.small_calendar.default as MotionStyle}
         animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
@@ -136,6 +138,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
                     includedDates={nonEmptyScheduleDays}
                     locale={i18n.language}
                     browsingDate={browsingMonthStart}
+                    weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
                   />
                 </div>
               )}
@@ -172,6 +175,7 @@ const BookerAtom = ({ username, eventSlug, month }: BookerProps) => {
               locale={i18n.language}
               browsingDate={browsingMonthStart}
               selected={dayjs(selectedDate)}
+              weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
             />
           </BookerSection>
 

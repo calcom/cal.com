@@ -53,7 +53,6 @@ export const AvailableTimeSlots = ({ extraDays, onTimeSelect, limitHeight }: Ava
 
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
-  /* @TODO: Weekstart day */
   /* @TODO: recurring event count */
   /* @TODO: eth signature */
   /* @TODO: seats per timeslot */

@@ -2,10 +2,6 @@ import { TargetAndTransition } from "framer-motion";
 
 import { BookerLayout, BookerState } from "./types";
 
-// Why any? :( -> https://www.framer.com/motion/component/#%23%23animating-css-variables)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MotionStyleWithCssVar = any;
-
 export const MONTH_QUERY_PARAM = "month";
 
 export const fadeInLeft = {
