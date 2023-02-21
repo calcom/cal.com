@@ -18,7 +18,7 @@ runs:
         cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
       with:
         path: |
-          node_modules
+          **/node_modules/**
           packages/prisma/zod
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
         restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
