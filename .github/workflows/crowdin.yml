@@ -9,8 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  required-checks:
-    uses: calcom/cal.com/.github/workflows/required-checks.yml@main
   synchronize-with-crowdin:
     runs-on: ubuntu-latest
 
