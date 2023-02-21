@@ -1,5 +1,6 @@
 name: Check types
 on:
+  workflow_call:
   pull_request_target:
     branches:
       - main
