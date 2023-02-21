@@ -1,14 +1,6 @@
 name: Check types
 on:
   workflow_call:
-  pull_request_target:
-    branches:
-      - main
-    paths:
-      - "**.tsx?"
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 env:
   NODE_OPTIONS: "--max-old-space-size=8192"
 jobs:

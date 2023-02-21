@@ -1,20 +1,10 @@
 name: E2E test
 on:
-  pull_request_target: # So we can test on forks
-    branches:
-      - main
-    paths:
-      - apps/web/**
-      - packages/**
   workflow_call:
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 jobs:
   e2e:
     timeout-minutes: 20
     runs-on: buildjet-4vcpu-ubuntu-2204
-
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
@@ -64,6 +54,7 @@ jobs:
           - 5432:5432
 
     steps:
+      - uses: actions/checkout@v2
       - uses: ./.github/actions/dangerous-git-checkout
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - uses: ./.github/actions/yarn-install

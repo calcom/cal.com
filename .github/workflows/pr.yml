@@ -2,7 +2,9 @@ name: PR Update
 
 on:
   push:
-  pull_request:
+  pull_request_target:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -10,6 +12,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      app-store: ${{ steps.filter.outputs.app-store }}
+      embed: ${{ steps.filter.outputs.embed }}
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            app-store:
+              - 'apps/web/**'
+              - 'packages/app-store/**'
+            embed:
+              - 'apps/web/**'
+              - 'packages/embeds/**'
+
   setup:
     name: Yarn install & cache
     uses: ./.github/workflows/yarn-install.yml
@@ -29,9 +50,21 @@ jobs:
     needs: setup
     uses: ./.github/workflows/production-build.yml
 
-  e2e-test:
+  e2e:
     name: E2E tests
     needs: [lint, build]
+    uses: ./.github/workflows/e2e.yml
+
+  e2e-app-store:
+    name: E2E App Store tests
+    if: ${{ needs.changes.outputs.app-store == 'true' }}
+    needs: [changes, lint, build]
+    uses: ./.github/workflows/e2e-app-store.yml
+
+  e2e-embed:
+    name: E2E embeds tests
+    if: ${{ needs.changes.outputs.embed == 'true' }}
+    needs: [changes, lint, build]
     uses: ./.github/workflows/e2e.yml
 
   analyze:
