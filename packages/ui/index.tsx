@@ -109,7 +109,6 @@ export {
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
 export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
 export { Meta, MetaProvider, useMeta } from "./components/meta";
-export { Swatch } from "./components/swatch";
 export { ShellSubHeading } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */

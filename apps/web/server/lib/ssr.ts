@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import superjson from "superjson";
 
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";

@@ -51,6 +51,12 @@ export function ScheduleListItem({
               )}
             </div>
             <p className="mt-1 text-xs text-gray-500">
+              {(schedule.timeZone || displayOptions?.timeZone) && (
+                <p className="my-1 flex items-center first-letter:text-xs">
+                  <FiGlobe />
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+                </p>
+              )}
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
@@ -62,12 +68,6 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
-              {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
-                <p className="my-1 flex items-center first-letter:text-xs">
-                  <FiGlobe />
-                  &nbsp;{schedule.timeZone}
-                </p>
-              )}
             </p>
           </Link>
         </div>

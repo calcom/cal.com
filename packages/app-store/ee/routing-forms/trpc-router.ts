@@ -1,4 +1,5 @@
-import { App_RoutingForms_Form, Prisma, User, WebhookTriggerEvents } from "@prisma/client";
+import type { App_RoutingForms_Form, User } from "@prisma/client";
+import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { z } from "zod";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -7,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import { authedProcedure, publicProcedure, router } from "@calcom/trpc/server/trpc";
-import { Ensure } from "@calcom/types/utils";
+import type { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "./emails/templates/response-email";
 import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
@@ -18,14 +19,14 @@ import { isFallbackRoute } from "./lib/isFallbackRoute";
 import { isFormEditAllowed } from "./lib/isFormEditAllowed";
 import isRouter from "./lib/isRouter";
 import isRouterLinkedField from "./lib/isRouterLinkedField";
-import { Response, SerializableForm } from "./types/types";
+import type { Response, SerializableForm } from "./types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "./zod";
 
 async function onFormSubmission(
   form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: User }, "fields">,
   response: Response
 ) {
-  const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
+  const fieldResponsesByName: Record<string, (typeof response)[keyof typeof response]["value"]> = {};
 
   for (const [fieldId, fieldResponse] of Object.entries(response)) {
     // Use the label lowercased as the key to identify a field.
