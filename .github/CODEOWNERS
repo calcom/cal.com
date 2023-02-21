@@ -17,5 +17,16 @@ scripts/    @calcom/core
 apps/docs       @calcom/docs
 apps/swagger    @calcom/docs
 
-packages/ui         @calcom/ui
-packages/config     @calcom/core
+packages/app-store-cli                @hariombalhara
+packages/dayjs                        @zomars
+packages/emails                       @zomars
+packages/embeds                       @hariombalhara
+packages/eslint-plugin                @zomars
+packages/features                     @zomars
+packages/features/kbar                @alishaz-polymath 
+packages/features/ee/impersonation    @sean-brydon
+packages/features/ee/payments         @alannnc
+packages/features/ee/workflows        @CarinaWolli
+packages/features/tips                @PeerRich
+packages/ui                           @calcom/ui
+packages/config                       @calcom/core
