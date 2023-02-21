@@ -408,7 +408,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <DialogContent
             title={t("custom_event_name")}
             description={t("custom_event_name_description")}
-            type="creation">
+            type="creation"
+            enableOverflow>
             <TextField
               label={t("event_name_in_calendar")}
               type="text"

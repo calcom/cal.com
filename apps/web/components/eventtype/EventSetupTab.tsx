@@ -152,14 +152,11 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = getDefaultLocationValue(locationOptions, "integrations:daily");
-
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
             <LocationSelect
-              defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}

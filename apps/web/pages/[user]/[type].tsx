@@ -1,21 +1,10 @@
-import MarkdownIt from "markdown-it";
 import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import { privacyFilteredLocations } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import {
-  EventTypeMetaDataSchema,
-  teamMetadataSchema,
-  userMetadata as userMetadataSchema,
-} from "@calcom/prisma/zod-utils";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -65,10 +54,19 @@ export default function Type(props: AvailabilityPageProps) {
 
 Type.isThemeSupported = true;
 
+const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
-  const { type: slug, user: username } = paramsSchema.parse(context.params);
+  // load server side dependencies
+  const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
+  const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
+  const { EventTypeMetaDataSchema, teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
   const { ssgInit } = await import("@server/lib/ssg");
+
+  const { type: slug, user: username } = paramsSchema.parse(context.params);
   const ssg = await ssgInit(context);
+
   const user = await prisma.user.findUnique({
     where: {
       username,
@@ -191,7 +189,17 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 }
 
 async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+  // load server side dependencies
+  const { getDefaultEvent, getGroupName, getUsernameList } = await import("@calcom/lib/defaultEvents");
+  const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
+  const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const { EventTypeMetaDataSchema, userMetadata: userMetadataSchema } = await import(
+    "@calcom/prisma/zod-utils"
+  );
   const { ssgInit } = await import("@server/lib/ssg");
+  const { getAppFromSlug } = await import("@calcom/app-store/utils");
+
   const ssg = await ssgInit(context);
   const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
   const usernameList = getUsernameList(userParam);
@@ -309,8 +317,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     revalidate: 10, // seconds
   };
 }
-
-const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const { user: userParam } = paramsSchema.parse(context.params);

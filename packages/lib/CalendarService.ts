@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
 import { createEvent } from "ics";
-import type { DAVAccount } from "tsdav";
+import type { DAVAccount, DAVCalendar } from "tsdav";
 import {
   createAccount,
   createCalendarObject,
@@ -421,17 +421,20 @@ export default abstract class BaseCalendarService implements Calendar {
     try {
       const account = await this.getAccount();
 
-      const calendars = await fetchCalendars({
+      const calendars = (await fetchCalendars({
         account,
         headers: this.headers,
-      });
+      })) /** @url https://github.com/natelindev/tsdav/pull/139 */ as (Omit<DAVCalendar, "displayName"> & {
+        displayName?: string | Record<string, unknown>;
+      })[];
 
       return calendars.reduce<IntegrationCalendar[]>((newCalendars, calendar) => {
         if (!calendar.components?.includes("VEVENT")) return newCalendars;
 
         newCalendars.push({
           externalId: calendar.url,
-          name: calendar.displayName ?? "",
+          /** @url https://github.com/calcom/cal.com/issues/7186 */
+          name: typeof calendar.displayName === "string" ? calendar.displayName : "",
           primary: event?.destinationCalendar?.externalId
             ? event.destinationCalendar.externalId === calendar.url
             : false,
