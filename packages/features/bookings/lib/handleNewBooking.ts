@@ -4,8 +4,7 @@ import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
-import short from "short-uuid";
-import { uuid } from "short-uuid";
+import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 

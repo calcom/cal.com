@@ -17,7 +17,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     // Look bookingUid in bookingSeat
     const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUId: context.query.uid as string,
+        referenceUId: bookingUid,
       },
       select: {
         booking: {
@@ -90,7 +90,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventType?.slug;
   return {
     redirect: {
-      destination: "/" + eventPage + "?rescheduleUid=" + z.string().parse(context.query.uid),
+      destination: "/" + eventPage + "?rescheduleUid=" + bookingUid,
       permanent: false,
     },
   };

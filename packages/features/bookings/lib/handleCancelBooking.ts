@@ -275,10 +275,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
-    const updateBookingData = {
-      status: BookingStatus.CANCELLED,
-      cancellationReason: cancellationReason,
-    };
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
         where: {
@@ -291,7 +287,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         id,
         uid,
       },
-      data: updateBookingData,
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
       select: {
         startTime: true,
         endTime: true,
