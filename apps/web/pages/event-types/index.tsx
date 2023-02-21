@@ -647,7 +647,6 @@ const CTA = () => {
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={CreateEventTypeDialog}
-      duplicateDialog={DuplicateDialog}
     />
   );
 };
@@ -656,6 +655,7 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -701,6 +701,7 @@ const EventTypesPage = () => {
               )}
 
               <EmbedDialog />
+              {router.query.dialog === "duplicate" && <DuplicateDialog />}
             </>
           )}
         />
