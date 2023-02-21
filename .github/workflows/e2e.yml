@@ -64,20 +64,13 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
-          fetch-depth: 2
+      - uses: ./.github/actions/dangerous-git-checkout
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
-      - name: Use Node 16.x
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/yarn-install
         with:
-          node-version: 16.x
-          cache: "yarn"
-      - uses: ./.github/actions/cache-playwright
+          node_version: ${{ secrets.node_version }}
+      - uses: ./.github/actions/yarn-playwright-install
       - run: yarn test-e2e
-
       - name: Upload test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

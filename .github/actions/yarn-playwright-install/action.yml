@@ -1,0 +1,11 @@
+name: Install playwright binaries
+description: "Install playwright, cache and restore if necessary"
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/actions/cache-playwright
+      id: playwright-cache
+    - name: Yarn install
+      shell: bash
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: yarn playwright install
