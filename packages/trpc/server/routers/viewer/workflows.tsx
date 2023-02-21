@@ -1,4 +1,4 @@
-import type { PrismaPromise, Prisma, PrismaClient, Workflow } from "@prisma/client";
+import type { PrismaPromise, Workflow } from "@prisma/client";
 import {
   WorkflowTemplates,
   WorkflowActions,
@@ -35,6 +35,7 @@ import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type PrismaType from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -50,11 +51,7 @@ function getSender(
 
 async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
-  prisma: PrismaClient<
-    Prisma.PrismaClientOptions,
-    never,
-    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-  >,
+  prisma: typeof PrismaType,
   currentUserId: number,
   readOnly?: boolean
 ) {
