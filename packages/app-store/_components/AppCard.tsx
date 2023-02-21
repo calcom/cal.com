@@ -1,11 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
 
-import { SetAppDataGeneric } from "../EventTypeAppContext";
-import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import type { SetAppDataGeneric } from "../EventTypeAppContext";
+import type { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({

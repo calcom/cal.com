@@ -1,7 +1,8 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { parseBookingLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,7 +11,7 @@ import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
-import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
+import type { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
 
@@ -225,21 +226,19 @@ export async function getUserAvailability(
 
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
-      ? { ...eventType?.schedule }
-      : {
-          ...userSchedule,
-          availability: userSchedule?.availability.map((a) => ({
-            ...a,
-            userId: user.id,
-          })),
-        };
+      ? eventType.schedule
+      : userSchedule;
 
   const startGetWorkingHours = performance.now();
 
   const timeZone = schedule.timeZone || eventType?.timeZone || user.timeZone;
 
-  const availability =
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability);
+  const availability = (
+    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+  ).map((a) => ({
+    ...a,
+    userId: user.id,
+  }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

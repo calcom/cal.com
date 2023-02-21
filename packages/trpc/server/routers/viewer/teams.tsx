@@ -446,7 +446,11 @@ export const viewerTeamsRouter = router({
         });
       }
 
-      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+      if (
+        myMembership?.role === MembershipRole.ADMIN &&
+        input.memberId === ctx.user.id &&
+        input.role !== MembershipRole.MEMBER
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not change yourself to a higher role.",
@@ -687,7 +691,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
+      type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)

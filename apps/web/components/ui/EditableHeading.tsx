@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useState } from "react";
-import { ControllerRenderProps } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 
 import { FiEdit2 } from "@calcom/ui/components/icon";
 

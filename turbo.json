@@ -152,8 +152,7 @@
       "dependsOn": [
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
-        "@calcom/embed-core#build",
-        "@calcom/embed-react#build",
+        "^build",
         "^embed-tests-update-snapshots:ci"
       ]
     },

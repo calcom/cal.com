@@ -4,14 +4,16 @@ import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { EventLocationType, getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { App } from "@calcom/types/App";
-import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { App } from "@calcom/types/App";
+import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import {
   Alert,
   Button,
@@ -97,8 +99,8 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: typeof InstalledAppVariants[number];
-  exclude?: typeof InstalledAppVariants[number][];
+  variant?: (typeof InstalledAppVariants)[number];
+  exclude?: (typeof InstalledAppVariants)[number][];
   handleDisconnect: (credentialId: number) => void;
 }
 
@@ -245,7 +247,7 @@ const IntegrationsContainer = ({
           );
         }
         return (
-          <>
+          <div className="rounded-md border border-gray-200 p-7">
             <ShellSubHeading
               title={t(variant || "other")}
               subtitle={t(`installed_app_${variant || "other"}_description`)}
@@ -262,7 +264,7 @@ const IntegrationsContainer = ({
               }
             />
             <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
-          </>
+          </div>
         );
       }}
     />
@@ -311,19 +313,17 @@ export default function InstalledApps() {
   return (
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-        <div className="rounded-md border border-gray-200 p-7">
-          {categoryList.includes(category) && (
-            <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
-          )}
-          {category === "calendar" && <CalendarListContainer />}
-          {category === "other" && (
-            <IntegrationsContainer
-              handleDisconnect={handleDisconnect}
-              variant={category}
-              exclude={[...categoryList, "calendar"]}
-            />
-          )}
-        </div>
+        {categoryList.includes(category) && (
+          <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
+        )}
+        {category === "calendar" && <CalendarListContainer />}
+        {category === "other" && (
+          <IntegrationsContainer
+            handleDisconnect={handleDisconnect}
+            variant={category}
+            exclude={[...categoryList, "calendar"]}
+          />
+        )}
       </InstalledAppsLayout>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}

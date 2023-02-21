@@ -1,6 +1,6 @@
 import { CheckCircleIcon, ExclamationIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { FiInfo } from "../icon";
 

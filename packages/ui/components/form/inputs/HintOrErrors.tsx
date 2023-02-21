@@ -1,4 +1,5 @@
-import { FieldValues, useFormContext } from "react-hook-form";
+import type { FieldValues } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { FiCheck, FiCircle, FiInfo, FiX } from "../../icon";
 

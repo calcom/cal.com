@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
