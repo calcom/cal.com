@@ -1,5 +1,5 @@
 import type { App, Credential, EventTypeCustomInput } from "@prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents, Prisma } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -29,7 +29,9 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
@@ -875,6 +877,7 @@ async function handler(
           },
         },
         payment: true,
+        workflowReminders: true,
       },
     });
   }
@@ -1067,6 +1070,19 @@ async function handler(
 
   let videoCallUrl;
   if (originalRescheduledBooking?.uid) {
+    try {
+      // cancel workflow reminders from previous rescheduled booking
+      originalRescheduledBooking.workflowReminders.forEach((reminder) => {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        }
+      });
+    } catch (error) {
+      log.error("Error while canceling scheduled workflow reminders", error);
+    }
+
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
       evt,
@@ -1242,7 +1258,12 @@ async function handler(
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) } : undefined;
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
+  }
+
+  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) || videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED

@@ -1,12 +1,9 @@
-import {
-  TimeUnit,
-  WorkflowActions,
-  WorkflowStep,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-} from "@prisma/client";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import type { WorkflowStep } from "@prisma/client";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import type { Dispatch, SetStateAction } from "react";
+import { useRef, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
@@ -387,87 +384,82 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
               </div>
-              {(isPhoneNumberNeeded || isSenderIdNeeded) && (
+              {isPhoneNumberNeeded && (
                 <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
-                  {isPhoneNumberNeeded && (
+                  <Label className="pt-4">{t("custom_phone_number")}</Label>
+                  <div className="block sm:flex">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.sendTo`}
+                      render={({ field: { value, onChange } }) => (
+                        <PhoneInput
+                          placeholder={t("phone_number")}
+                          id={`steps.${step.stepNumber - 1}.sendTo`}
+                          className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
+                          required
+                          value={value}
+                          onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedNumbers
+                              ?.concat([])
+                              .find(
+                                (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                              );
+                            setNumberVerified(isAlreadyVerified);
+                            onChange(val);
+                          }}
+                        />
+                      )}
+                    />
+                    <Button
+                      color="secondary"
+                      disabled={numberVerified || false}
+                      className={classNames(
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none ",
+                        numberVerified ? "hidden" : "mt-3 sm:mt-0"
+                      )}
+                      onClick={() =>
+                        sendVerificationCodeMutation.mutate({
+                          phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                        })
+                      }>
+                      {t("send_code")}
+                    </Button>
+                  </div>
+
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                      </p>
+                    )}
+                  {numberVerified ? (
+                    <div className="mt-1">
+                      <Badge variant="green">{t("number_verified")}</Badge>
+                    </div>
+                  ) : (
                     <>
-                      <Label className="pt-4">{t("custom_phone_number")}</Label>
-                      <div className="block sm:flex">
-                        <Controller
-                          name={`steps.${step.stepNumber - 1}.sendTo`}
-                          render={({ field: { value, onChange } }) => (
-                            <PhoneInput
-                              placeholder={t("phone_number")}
-                              id={`steps.${step.stepNumber - 1}.sendTo`}
-                              className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
-                              required
-                              value={value}
-                              onChange={(val) => {
-                                const isAlreadyVerified = !!verifiedNumbers
-                                  ?.concat([])
-                                  .find(
-                                    (number) =>
-                                      number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-                                  );
-                                setNumberVerified(isAlreadyVerified);
-                                onChange(val);
-                              }}
-                            />
-                          )}
+                      <div className="mt-3 flex">
+                        <TextField
+                          className=" border-r-transparent"
+                          placeholder="Verification code"
+                          value={verificationCode}
+                          onChange={(e) => {
+                            setVerificationCode(e.target.value);
+                          }}
+                          required
                         />
                         <Button
                           color="secondary"
-                          disabled={numberVerified || false}
-                          className={classNames(
-                            "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none ",
-                            numberVerified ? "hidden" : "mt-3 sm:mt-0"
-                          )}
-                          onClick={() =>
-                            sendVerificationCodeMutation.mutate({
+                          className="-ml-[3px] rounded-tl-none rounded-bl-none "
+                          disabled={verifyPhoneNumberMutation.isLoading}
+                          onClick={() => {
+                            verifyPhoneNumberMutation.mutate({
                               phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                            })
-                          }>
-                          {t("send_code")}
+                              code: verificationCode,
+                            });
+                          }}>
+                          Verify
                         </Button>
                       </div>
-
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                          </p>
-                        )}
-                      {numberVerified ? (
-                        <div className="mt-1">
-                          <Badge variant="green">{t("number_verified")}</Badge>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="mt-3 flex">
-                            <TextField
-                              className=" border-r-transparent"
-                              placeholder="Verification code"
-                              value={verificationCode}
-                              onChange={(e) => {
-                                setVerificationCode(e.target.value);
-                              }}
-                              required
-                            />
-                            <Button
-                              color="secondary"
-                              className="-ml-[3px] rounded-tl-none rounded-bl-none "
-                              disabled={verifyPhoneNumberMutation.isLoading}
-                              onClick={() => {
-                                verifyPhoneNumberMutation.mutate({
-                                  phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                                  code: verificationCode,
-                                });
-                              }}>
-                              Verify
-                            </Button>
-                          </div>
-                        </>
-                      )}
                     </>
                   )}
                 </div>
