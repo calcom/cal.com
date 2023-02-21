@@ -30,6 +30,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ secrets.NODE_VERSION }}
+      - run: yarn prisma generate
       - run: yarn type-check
 
   lint:
