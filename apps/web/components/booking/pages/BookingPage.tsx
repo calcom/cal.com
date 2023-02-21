@@ -5,7 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
@@ -23,6 +23,7 @@ import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { LocationType } from "@calcom/core/location";
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -40,6 +41,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import {
   AddressInput,
   Button,
@@ -135,6 +137,20 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
+
+  // This is a workaround for forcing the same time format for both server side rendering and client side rendering
+  // At initial render, we use the default time format which is 12H
+  const [withDefaultTimeFormat, setWithDefaultTimeFormat] = useState(true);
+  const parseDateFunc = useCallback(
+    (date: string | null | Dayjs) => {
+      return parseDate(date, i18n, withDefaultTimeFormat);
+    },
+    [withDefaultTimeFormat]
+  );
+  // After intial render on client side, we let parseDateFunc to use the time format from the localStorage
+  useEffect(() => {
+    setWithDefaultTimeFormat(false);
+  }, []);
 
   useEffect(() => {
     if (top !== window) {
@@ -323,15 +339,26 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
+  const parseRecurringDatesFunc = useCallback(
+    (date: string | null | Dayjs, recurringEvent: RecurringEvent, recurringCount: number) => {
+      return parseRecurringDates(
+        {
+          startDate: date,
+          timeZone: timeZone(),
+          recurringEvent: recurringEvent,
+          recurringCount: recurringCount,
+          withDefaultTimeFormat: withDefaultTimeFormat,
+        },
+        i18n
+      );
+    },
+    [withDefaultTimeFormat, date, eventType.recurringEvent, recurringEventCount]
+  );
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: date,
-        timeZone: timeZone(),
-        recurringEvent: eventType.recurringEvent,
-        recurringCount: parseInt(recurringEventCount.toString()),
-      },
-      i18n
+    [recurringStrings, recurringDates] = parseRecurringDatesFunc(
+      date,
+      eventType.recurringEvent,
+      parseInt(recurringEventCount.toString())
     );
   }
 
@@ -587,7 +614,7 @@ const BookingPage = ({
                   <div className="text-bookinghighlight flex items-start text-sm">
                     <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
+                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDateFunc(date)}`}
                       {!rescheduleUid &&
                         eventType.recurringEvent?.freq &&
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
@@ -614,7 +641,7 @@ const BookingPage = ({
                       </p>
                       <p className="line-through ">
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                        {typeof booking.startTime === "string" && parseDateFunc(dayjs(booking.startTime))}
                       </p>
                     </div>
                   )}
