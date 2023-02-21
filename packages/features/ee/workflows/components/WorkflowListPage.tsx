@@ -1,4 +1,6 @@
-import type { Workflow, WorkflowStep } from "@prisma/client";
+import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -26,8 +28,9 @@ import EmptyScreen from "./EmptyScreen";
 export type WorkflowType = Workflow & {
   team: {
     id: number;
+    name: string;
+    members: Membership[];
     slug: string | null;
-    name?: string | null;
   } | null;
   steps: WorkflowStep[];
   activeOn: {
@@ -36,6 +39,7 @@ export type WorkflowType = Workflow & {
       title: string;
     };
   }[];
+  readOnly?: boolean;
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
@@ -52,6 +56,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const router = useRouter();
+  const session = useSession();
 
   return (
     <>
@@ -133,6 +138,13 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             type="button"
                             color="secondary"
                             variant="icon"
+                            disabled={
+                              !!workflow.team?.members?.find(
+                                (member) =>
+                                  member.userId === session.data?.user.id &&
+                                  member.role === MembershipRole.MEMBER
+                              )
+                            }
                             StartIcon={FiEdit2}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
@@ -144,6 +156,13 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                               setwWorkflowToDeleteId(workflow.id);
                             }}
                             color="secondary"
+                            disabled={
+                              !!workflow.team?.members?.find(
+                                (member) =>
+                                  member.userId === session.data?.user.id &&
+                                  member.role === MembershipRole.MEMBER
+                              )
+                            }
                             variant="icon"
                             StartIcon={FiTrash2}
                           />

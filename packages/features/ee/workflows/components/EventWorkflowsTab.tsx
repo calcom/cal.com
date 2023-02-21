@@ -13,7 +13,7 @@ import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
-import { WorkflowType } from "./WorkflowListPage";
+import type { WorkflowType } from "./WorkflowListPage";
 
 type ItemProps = {
   workflow: WorkflowType;
@@ -63,6 +63,10 @@ const WorkflowListItem = (props: ItemProps) => {
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
         showToast(message, "error");
       }
     },

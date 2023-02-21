@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { WorkflowStep } from "@prisma/client";
 import {
   TimeUnit,
   WorkflowActions,
-  WorkflowStep,
   WorkflowTemplates,
   WorkflowTriggerEvents,
+  MembershipRole,
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
@@ -115,6 +116,10 @@ function WorkflowPage() {
       enabled: !!workflow?.id,
     }
   );
+
+  const readOnly =
+    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+    MembershipRole.MEMBER;
 
   useEffect(() => {
     if (workflow && !isLoading) {
@@ -256,7 +261,9 @@ function WorkflowPage() {
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
           <div>
-            <Button type="submit">{t("save")}</Button>
+            <Button type="submit" disabled={readOnly}>
+              {t("save")}
+            </Button>
           </div>
         }
         heading={

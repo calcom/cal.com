@@ -80,9 +80,11 @@ function WorkflowsPage() {
 
   if (!query.data) return null;
 
-  const profileOptions = query.data.profiles.map((profile) => {
-    return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
-  });
+  const profileOptions = query.data.profiles
+    .filter((profile) => !profile.readOnly)
+    .map((profile) => {
+      return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
+    });
 
   return (
     <Shell
@@ -90,7 +92,7 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        profileOptions.length === 1 &&
+        query.data.profiles.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
         allWorkflowsData?.workflows.length > 0 ? (
@@ -112,7 +114,7 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {profileOptions.length > 1 &&
+            {query.data.profiles.length > 1 &&
               allWorkflowsData?.workflows &&
               allWorkflowsData.workflows.length > 0 && (
                 <div className="mb-4 flex">

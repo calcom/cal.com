@@ -55,10 +55,33 @@ async function isAuthorized(
     never,
     Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
   >,
-  currentUserId: number
+  currentUserId: number,
+  readOnly?: boolean
 ) {
   if (!workflow) {
     return false;
+  }
+
+  if (!readOnly) {
+    const userWorkflow = await prisma.workflow.findFirst({
+      where: {
+        id: workflow.id,
+        OR: [
+          { userId: currentUserId },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: currentUserId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+    if (userWorkflow) return true;
   }
 
   const userWorkflow = await prisma.workflow.findFirst({
@@ -72,6 +95,9 @@ async function isAuthorized(
               some: {
                 userId: currentUserId,
                 accepted: true,
+                NOT: {
+                  role: MembershipRole.MEMBER,
+                },
               },
             },
           },
@@ -110,6 +136,14 @@ export const workflowsRouter = router({
             },
           },
           include: {
+            team: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                members: true,
+              },
+            },
             activeOn: {
               select: {
                 eventType: {
@@ -121,7 +155,6 @@ export const workflowsRouter = router({
               },
             },
             steps: true,
-            team: true,
           },
           orderBy: {
             id: "asc",
@@ -148,7 +181,14 @@ export const workflowsRouter = router({
               },
             },
             steps: true,
-            team: true,
+            team: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                members: true,
+              },
+            },
           },
           orderBy: {
             id: "asc",
@@ -185,7 +225,14 @@ export const workflowsRouter = router({
             },
           },
           steps: true,
-          team: true,
+          team: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              members: true,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -214,6 +261,7 @@ export const workflowsRouter = router({
             select: {
               id: true,
               slug: true,
+              members: true,
             },
           },
           time: true,
@@ -261,6 +309,9 @@ export const workflowsRouter = router({
               some: {
                 userId: ctx.user.id,
                 accepted: true,
+                NOT: {
+                  role: MembershipRole.MEMBER,
+                },
               },
             },
           },
@@ -315,7 +366,7 @@ export const workflowsRouter = router({
         },
       });
 
-      const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.prisma, ctx.user.id);
+      const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.prisma, ctx.user.id, true);
 
       if (!isUserAuthorized || !workflowToDelete) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -399,7 +450,7 @@ export const workflowsRouter = router({
         },
       });
 
-      const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id);
+      const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id, true);
 
       if (!isUserAuthorized || !userWorkflow) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -976,6 +1027,7 @@ export const workflowsRouter = router({
             select: {
               id: true,
               slug: true,
+              members: true,
             },
           },
           steps: {
@@ -1163,7 +1215,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, workflowId } = input;
 
-      // Check that workflow & event type belong to the user or team
+      // Check that vent type belong to the user or team
       const userEventType = await ctx.prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
@@ -1175,6 +1227,9 @@ action === WorkflowActions.EMAIL_ADDRESS*/
                   some: {
                     userId: ctx.user.id,
                     accepted: true,
+                    NOT: {
+                      role: MembershipRole.MEMBER,
+                    },
                   },
                 },
               },
