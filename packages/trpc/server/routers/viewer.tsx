@@ -1,4 +1,6 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import { WorkflowActions } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -11,7 +13,8 @@ import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/uti
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { DailyLocationType, LocationObject, privacyFilteredLocations } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
+import { DailyLocationType, privacyFilteredLocations } from "@calcom/core/location";
 import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";

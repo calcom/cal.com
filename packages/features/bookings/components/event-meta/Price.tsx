@@ -1,9 +1,9 @@
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 
-import { PublicEvent } from "../../types";
+import type { PublicEvent } from "../../types";
 
 export const EventPrice = ({ event }: { event: PublicEvent }) => {
-  const stripeAppData = getStripeAppData(event);
+  const stripeAppData = getPaymentAppData(event);
 
   if (stripeAppData.price === 0) return null;
 

@@ -1,12 +1,13 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
-import getBooking, { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import getBooking from "@calcom/features/bookings/lib/get-booking";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import prisma from "@calcom/prisma";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
