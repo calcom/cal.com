@@ -137,7 +137,7 @@ test.describe("Event Types tests", () => {
       const locationData = ["location 1", "location 2", "location 3"];
 
       const fillLocation = async (inputText: string) => {
-        await (await page.waitForSelector("#location-select")).click();
+        await page.locator("#location-select").click();
         await page.locator("text=In Person (Organizer Address)").click();
         await page.locator('input[name="locationAddress"]').fill(inputText);
         await page.locator("[data-testid=display-location]").check();

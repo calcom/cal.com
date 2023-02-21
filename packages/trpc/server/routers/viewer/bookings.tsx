@@ -5,7 +5,6 @@ import type {
   Workflow,
   WorkflowsOnEventTypes,
   WorkflowStep,
-  PrismaPromise,
 } from "@prisma/client";
 import {
   BookingStatus,
@@ -482,29 +481,17 @@ export const bookingsRouter = router({
           },
         });
 
-        // delete scheduled jobs of cancelled bookings
+        // delete scheduled jobs of previous booking
         cancelScheduledJobs(bookingToReschedule);
 
-        //cancel workflow reminders
-        const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
-
+        //cancel workflow reminders of previous booking
         bookingToReschedule.workflowReminders.forEach((reminder) => {
-          if (reminder.scheduled && reminder.referenceId) {
-            if (reminder.method === WorkflowMethods.EMAIL) {
-              deleteScheduledEmailReminder(reminder.referenceId);
-            } else if (reminder.method === WorkflowMethods.SMS) {
-              deleteScheduledSMSReminder(reminder.referenceId);
-            }
+          if (reminder.method === WorkflowMethods.EMAIL) {
+            deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+          } else if (reminder.method === WorkflowMethods.SMS) {
+            deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
           }
-          const reminderToDelete = prisma.workflowReminder.deleteMany({
-            where: {
-              id: reminder.id,
-            },
-          });
-          remindersToDelete.push(reminderToDelete);
         });
-
-        await Promise.all(remindersToDelete);
 
         const [mainAttendee] = bookingToReschedule.attendees;
         // @NOTE: Should we assume attendees language?

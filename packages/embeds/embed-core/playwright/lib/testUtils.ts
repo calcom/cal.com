@@ -39,7 +39,7 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
   const iframeReady = await page.evaluate(() => {
     return new Promise((resolve) => {
       const interval = setInterval(() => {
-        const iframe = document.querySelector(".cal-embed") as HTMLIFrameElement | null;
+        const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (iframe && iframe.contentWindow && window.iframeReady) {

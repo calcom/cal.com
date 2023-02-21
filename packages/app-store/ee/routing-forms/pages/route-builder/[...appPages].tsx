@@ -6,6 +6,7 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import Shell from "@calcom/features/shell/Shell";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
@@ -286,6 +287,7 @@ const Routes = ({
   appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
+  const { t } = useLocale();
 
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
@@ -446,10 +448,10 @@ const Routes = ({
           );
         })}
         <SelectField
-          placeholder="Select a router"
+          placeholder={t("select_a_router")}
           containerClassName="mb-6 data-testid-select-router"
           isOptionDisabled={(option) => !!option.isDisabled}
-          label="Add a new Route"
+          label={t("add_a_new_route")}
           options={routerOptions}
           key={mainRoutes.length}
           onChange={(option) => {
