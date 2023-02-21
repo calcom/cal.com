@@ -1,0 +1,15 @@
+button[role="switch"][data-state="checked"] {
+  @apply bg-blue-600;
+
+}
+
+button[type="button"][disabled] {
+  @apply bg-neutral-100;
+  @apply opacity-100;
+  @apply text-neutral-400;
+  @apply border-transparent;
+}
+
+div[role="dialog"] {
+  @apply rounded-lg
+}

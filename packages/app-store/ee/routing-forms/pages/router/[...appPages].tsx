@@ -13,7 +13,7 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
   return (
     <>
       <Head>
-        <title>{form.name} | Cal.com Forms</title>
+        <title>{form.name} | Join.com Forms</title>
       </Head>
       <div className="mx-auto my-0 max-w-3xl md:my-24">
         <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">

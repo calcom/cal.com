@@ -3,8 +3,8 @@ import { SEO_IMG_DEFAULT, DOCS_URL } from "@calcom/lib/constants";
 const themeConfig = {
   github: "https://github.com/calcom/cal.com",
   docsRepositoryBase: "https://github.com/calcom/cal.com/blob/main/apps/docs/pages",
-  titleSuffix: " | Cal.com",
-  logo: <h4 className="m-0">Cal.com</h4>,
+  titleSuffix: " | Join.com",
+  logo: <h4 className="m-0">Join.com</h4>,
   head: (
     <>
       <meta name="msapplication-TileColor" content="#ffffff" />
@@ -28,8 +28,8 @@ const themeConfig = {
       <meta name="apple-mobile-web-app-title" content="Cal.com Docs" />
 
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/join-favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/join-favicon-16x16.png" />
       <link rel="manifest" href="/site.webmanifest" />
       <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
       <meta name="msapplication-TileColor" content="#ff0000" />
