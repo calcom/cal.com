@@ -55,7 +55,8 @@ jobs:
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
         with:
-          DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn test-e2e:app-store
 

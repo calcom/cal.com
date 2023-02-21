@@ -59,6 +59,7 @@ jobs:
       - uses: ./.github/actions/cache-db
         with:
           DATABASE_URL: ${{ env.DATABASE_URL }}
+      - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
       - name: Upload embed-core results

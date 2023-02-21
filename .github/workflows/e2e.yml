@@ -62,6 +62,7 @@ jobs:
       - uses: ./.github/actions/cache-db
         with:
           DATABASE_URL: ${{ env.DATABASE_URL }}
+      - uses: ./.github/actions/cache-build
       - run: yarn test-e2e
       - name: Upload test results
         if: ${{ always() }}
