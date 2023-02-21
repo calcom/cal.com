@@ -71,10 +71,20 @@ runs:
     - uses: ./.github/actions/yarn-install
       with:
         node_version: ${{ inputs.node_version }}
-    - uses: ./.github/actions/cache-build
+    - name: Cache production build
       id: prod-build-cache
+      uses: actions/cache@v3
+      env:
+        cache-name: prod-build
+        key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
+        key-2: ${{ hashFiles('apps/web/next.config.js') }}
       with:
-        node_version: ${{ inputs.node_version }}
+        path: |
+          apps/web/.next
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
     - name: Next.js production build
       if: steps.prod-build-cache.outputs.cache-hit != 'true'
       shell: bash

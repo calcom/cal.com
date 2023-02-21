@@ -72,7 +72,7 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-      - uses: ./.github/actions/cache-playwright
+      - uses: ./.github/actions/yarn-playwright-install
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
 

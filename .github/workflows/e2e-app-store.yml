@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: "yarn"
-      - uses: ./.github/actions/cache-playwright
+      - uses: ./.github/actions/yarn-playwright-install
       - name: Run Tests
         run: yarn test-e2e:app-store
 

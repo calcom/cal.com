@@ -38,7 +38,7 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/cache-install
+      - uses: ./.github/actions/yarn-install
         with:
           node_version: ${{ secrets.NODE_VERSION }}
       - run: yarn lint
@@ -70,7 +70,6 @@ jobs:
         with:
           node_version: ${{ env.node_version }}
       - uses: ./.github/actions/cache-build
-        id: prod-build-cache
         with:
           node_version: ${{ env.node_version }}
       # Here's the first place where next-bundle-analysis' own script is used
