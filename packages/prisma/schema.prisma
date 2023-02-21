@@ -643,6 +643,7 @@ model WorkflowReminder {
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled      Boolean?
 }
 
 enum WorkflowTemplates {

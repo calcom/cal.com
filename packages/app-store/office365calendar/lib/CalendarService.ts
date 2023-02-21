@@ -1,4 +1,4 @@
-import { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -12,9 +12,9 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { O365AuthCredentials } from "../types/Office365Calendar";
+import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
