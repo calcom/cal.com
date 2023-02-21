@@ -5,10 +5,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 defaults:
   run:
     # change this if your nextjs app does not live at the root of the repo
