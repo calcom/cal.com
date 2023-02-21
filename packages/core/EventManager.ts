@@ -437,14 +437,14 @@ export default class EventManager {
   private async updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
-  ): Promise<Array<EventResult<NewCalendarEventType>>> {
+  ): Promise<Array<EventResult<NewCalendarEventType>> | []> {
     let calendarReference: PartialReference | undefined = undefined,
       credential;
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
       if (!calendarReference) {
-        throw new Error("bookingRef");
+        return [];
       }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 
