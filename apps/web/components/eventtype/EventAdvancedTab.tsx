@@ -101,6 +101,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     }
   }, [eventType.customInputs]);
 
+  const eventNamePlaceholder = t("meeting_with_user")
+    .replace("{Event type title}", eventNameObject.eventType)
+    .replace("{Scheduler}", eventNameObject.attendeeName)
+    .replace("{Organiser}", eventNameObject.host);
+
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -141,7 +146,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
-          placeholder={t("meeting_with_user")}
+          placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName", {
             onChange: (e) => {
@@ -413,7 +418,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <TextField
               label={t("event_name_in_calendar")}
               type="text"
-              placeholder={t("meeting_with_user")}
+              placeholder={eventNamePlaceholder}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName", {
                 onChange: (e) => {
