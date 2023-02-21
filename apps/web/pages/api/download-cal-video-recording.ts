@@ -6,41 +6,32 @@ import { getSession } from "@calcom/lib/auth";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-const getAccessLinkSchema = z.union([
-  z.object({
-    download_link: z.string(),
-    expires: z.number(),
-  }),
-  z.object({}),
-]);
+const getAccessLinkSchema = z.object({
+  download_link: z.string().url(),
+  // expires (timestamp), s3_bucket, s3_region, s3_key
+});
 
 const requestQuery = z.object({
   recordingId: z.string(),
 });
+
+const isDownloadAllowed = async (req: NextApiRequest) => {
+  if (IS_SELF_HOSTED) return true;
+  const session = await getSession({ req });
+  // Check if user belong to active team
+  return !session?.user?.belongsToActiveTeam;
+};
 
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<z.infer<typeof getAccessLinkSchema> | void>
 ) {
   const { recordingId } = requestQuery.parse(req.query);
-  const session = await getSession({ req });
 
-  //   Check if user belong to active team
-  const isDownloadAllowed = IS_SELF_HOSTED ? true : !session?.user?.belongsToActiveTeam;
-  if (!isDownloadAllowed) {
-    return res.status(403);
-  }
-  try {
-    const response = await fetcher(`/recordings/${recordingId}/access-link`).then(getAccessLinkSchema.parse);
+  if (!(await isDownloadAllowed(req))) return res.status(403);
 
-    if ("download_link" in response && response.download_link) {
-      return res.status(200).json(response);
-    }
-
-    return res.status(400);
-  } catch (err) {
-    res.status(500);
-  }
+  const response = await fetcher(`/recordings/${recordingId}/access-link`).then(getAccessLinkSchema.parse);
+  return res.status(200).json(response);
 }
 
 export default defaultHandler({
