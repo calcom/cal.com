@@ -157,6 +157,7 @@ export default async function getEventTypeById({
                   id: true,
                   slug: true,
                   name: true,
+                  members: true,
                 },
               },
               activeOn: {
