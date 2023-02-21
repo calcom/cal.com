@@ -10,7 +10,7 @@ runs:
       uses: actions/cache@v3
       env:
         cache-name: node-modules-yarn
-        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma')) }}
+        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
       with:
         path: |
           **/node_modules/**
