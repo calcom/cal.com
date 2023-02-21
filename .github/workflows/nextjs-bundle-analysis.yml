@@ -3,10 +3,6 @@ name: "Next.js Bundle Analysis"
 on:
   workflow_call:
 
-defaults:
-  run:
-    working-directory: apps/web/
-
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -16,9 +12,10 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
-      - run: cd apps/web/
       - name: Analyze bundle
-        run: npx -p nextjs-bundle-analysis report
+        run: |
+          cd apps/web
+          npx -p nextjs-bundle-analysis report
 
       - name: Upload bundle
         uses: actions/upload-artifact@v2
@@ -49,12 +46,15 @@ jobs:
       # entry in your package.json file.
       - name: Compare with base branch bundle
         if: success() && github.event.number
-        run: ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
+        run: |
+          cd apps/web
+          ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
         if: success() && github.event.number
         run: |
+          cd apps/web
           body=$(cat .next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
