@@ -14,7 +14,7 @@ jobs:
       GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
-      CALENDSO_ENCRYPTION_KEY: 79GVSsl2tJR6x8IZkL0yfWs1XVxDu965
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
       NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
@@ -62,7 +62,7 @@ jobs:
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
         with:
-          DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+          DATABASE_URL: ${{ env.DATABASE_URL }}
       - run: yarn test-e2e
       - name: Upload test results
         if: ${{ always() }}

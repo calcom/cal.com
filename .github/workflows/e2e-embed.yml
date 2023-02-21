@@ -6,7 +6,6 @@ jobs:
   e2e-embed:
     timeout-minutes: 20
     runs-on: ubuntu-latest
-
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
@@ -59,7 +58,7 @@ jobs:
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
         with:
-          DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+          DATABASE_URL: ${{ env.DATABASE_URL }}
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
       - name: Upload embed-core results
