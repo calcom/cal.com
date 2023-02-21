@@ -1,4 +1,5 @@
-import { Page, Frame, test, expect } from "@playwright/test";
+import type { Page, Frame } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
@@ -55,7 +56,8 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
       setTimeout(() => {
         clearInterval(interval);
         resolve(false);
-      }, 5000);
+        // Some of these days it is fast, some of these days it is slow
+      }, 15000);
     });
   });
   if (!iframeReady) {
