@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { fetcher } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getSession } from "@calcom/lib/auth";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 const getAccessLinkSchema = z.union([
@@ -25,7 +26,8 @@ async function handler(
   const session = await getSession({ req });
 
   //   Check if user belong to active team
-  if (!session?.user?.belongsToActiveTeam) {
+  const isDownloadAllowed = IS_SELF_HOSTED ? true : !session?.user?.belongsToActiveTeam;
+  if (!isDownloadAllowed) {
     return res.status(403);
   }
   try {
