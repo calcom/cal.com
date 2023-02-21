@@ -2,9 +2,6 @@ name: Yarn install
 
 on:
   workflow_call:
-    secrets:
-      node_version:
-        required: true
 
 jobs:
   setup:
