@@ -83,7 +83,7 @@ export const tips = [
     thumbnailUrl: "https://img.youtube.com/vi/jvaBafzVUQc/0.jpg",
     mediaLink: "https://go.cal.com/video",
     title: "Cal Video",
-    description: "HIPAA compliant video conferencing with recording",
+    description: "Free video conferencing with recording",
     href: "https://go.cal.com/video",
   },
 ];
