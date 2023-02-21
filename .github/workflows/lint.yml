@@ -3,7 +3,8 @@ on:
   workflow_call:
 jobs:
   lint:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    # runs-on: buildjet-4vcpu-ubuntu-2204 # Uncomment before merging
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
