@@ -5,6 +5,11 @@ env:
 runs:
   using: "composite"
   steps:
+    - name: Use Node ${{ env.node_version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node_version }}
+        cache: "yarn"
     - name: node_modules cache
       id: node-modules-cache
       uses: actions/cache@v3
