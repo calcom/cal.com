@@ -100,4 +100,4 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
-        run: yarn e2e
+        run: yarn test-e2e
