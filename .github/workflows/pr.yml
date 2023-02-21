@@ -42,6 +42,11 @@ jobs:
     needs: setup
     uses: ./.github/workflows/check-types.yml
 
+  test:
+    name: Type check
+    needs: setup
+    uses: ./.github/workflows/test.yml
+
   lint:
     name: Linters
     needs: setup
