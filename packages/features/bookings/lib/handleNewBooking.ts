@@ -657,7 +657,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     // Add entry to bookingSeatsReference table
     const attendeeUniqueId = uuid();
-    await prisma.bookingSeatsReferences.create({
+    await prisma.bookingSeat.create({
       data: {
         data: {
           description: additionalNotes,
@@ -760,8 +760,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const rescheduleUid = reqBody.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
     let bookingUid = uid;
-    // Now rescheduleUid can be bookingSeatsReferences
-    const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
+    // Now rescheduleUid can be bookingSeat
+    const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
         referenceUId: uid,
       },
@@ -769,8 +769,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         booking: true,
       },
     });
-    if (bookingSeatsReferences) {
-      bookingUid = bookingSeatsReferences.booking.uid;
+    if (bookingSeat) {
+      bookingUid = bookingSeat.booking.uid;
     }
 
     return prisma.booking.findFirst({
@@ -970,10 +970,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
-      // Save description to bookingSeatsReferences
+      // Save description to bookingSeat
 
       const uniqueAttendeeId = uuid();
-      await prisma.bookingSeatsReferences.create({
+      await prisma.bookingSeat.create({
         data: {
           referenceUId: uniqueAttendeeId,
           data: {

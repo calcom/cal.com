@@ -182,7 +182,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const rescheduleEventTypeHasSeats = context.query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
   let attendeeEmail: string;
   if (rescheduleEventTypeHasSeats) {
-    const bookingSeatReference = await prisma.bookingSeatsReferences.findFirst({
+    const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
         referenceUId: context.query.rescheduleUid as string,
       },
@@ -196,9 +196,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
-    if (bookingSeatReference) {
-      rescheduleUid = bookingSeatReference.booking.uid;
-      attendeeEmail = bookingSeatReference.attendee.email;
+    if (bookingSeat) {
+      rescheduleUid = bookingSeat.booking.uid;
+      attendeeEmail = bookingSeat.attendee.email;
     }
   }
 

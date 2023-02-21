@@ -239,17 +239,17 @@ test.describe("Reschedule Tests", async () => {
         },
       });
 
-      const bookingSeatsReferences = [
+      const bookingSeats = [
         { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
         { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
         { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUId: uuidv4() },
       ];
 
-      await prisma.bookingSeatsReferences.createMany({
-        data: bookingSeatsReferences,
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
       });
 
-      const references = await prisma.bookingSeatsReferences.findMany({
+      const references = await prisma.bookingSeat.findMany({
         where: { bookingId: booking.id },
       });
 
@@ -307,16 +307,16 @@ test.describe("Reschedule Tests", async () => {
       },
     });
 
-    const bookingSeatsReferences = [
+    const bookingSeats = [
       { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
       { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
     ];
 
-    await prisma.bookingSeatsReferences.createMany({
-      data: bookingSeatsReferences,
+    await prisma.bookingSeat.createMany({
+      data: bookingSeats,
     });
 
-    const references = await prisma.bookingSeatsReferences.findMany({
+    const references = await prisma.bookingSeat.findMany({
       where: { bookingId: booking.id },
     });
 

@@ -1,11 +1,6 @@
-import {
-  BookingStatus,
-  MembershipRole,
-  WebhookTriggerEvents,
-  WorkflowMethods,
-  WorkflowReminder,
-} from "@prisma/client";
-import { NextApiRequest } from "next";
+import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
+import type { NextApiRequest } from "next";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -19,7 +14,8 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
@@ -118,7 +114,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 
     await Promise.all([
-      prisma.bookingSeatsReferences.delete({
+      prisma.bookingSeat.delete({
         where: {
           referenceUId: seatReferenceUId,
         },
