@@ -1,6 +1,6 @@
 import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -24,7 +24,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const { userId } = req;
 
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
@@ -125,7 +125,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         },
       }),
     ]);
-
+    res.status(200).json({ success: true });
     return;
   }
 
@@ -528,7 +528,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   await sendCancelledEmails(evt);
 
-  req.statusCode = 200;
+  res.statusCode = 200;
   return { message: "Booking successfully cancelled." };
 }
 
