@@ -3,14 +3,15 @@ name: Yarn install
 on:
   workflow_call:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   setup:
     name: Yarn install & cache
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-      cancel-in-progress: true
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
