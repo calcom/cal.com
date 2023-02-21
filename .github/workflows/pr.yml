@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/check-types.yml
 
   test:
-    name: Type check
+    name: Unit tests
     needs: setup
     uses: ./.github/workflows/test.yml
 
