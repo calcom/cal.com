@@ -82,13 +82,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     setCustomInputs([...customInputs]);
   };
 
+  const replaceEventNamePlaceholder = (eventNameObject: EventNameObjectType, previewEventName: string) =>
+    previewEventName
+      .replace("{Event type title}", eventNameObject.eventType)
+      .replace("{Scheduler}", eventNameObject.attendeeName)
+      .replace("{Organiser}", eventNameObject.host);
+
   const changePreviewText = (eventNameObject: EventNameObjectType, previewEventName: string) => {
-    setPreviewText(
-      previewEventName
-        .replace("{Event type title}", eventNameObject.eventType)
-        .replace("{Scheduler}", eventNameObject.attendeeName)
-        .replace("{Organiser}", eventNameObject.host)
-    );
+    setPreviewText(replaceEventNamePlaceholder(eventNameObject, previewEventName));
   };
 
   useEffect(() => {
@@ -101,10 +102,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     }
   }, [eventType.customInputs]);
 
-  const eventNamePlaceholder = t("meeting_with_user")
-    .replace("{Event type title}", eventNameObject.eventType)
-    .replace("{Scheduler}", eventNameObject.attendeeName)
-    .replace("{Organiser}", eventNameObject.host);
+  const eventNamePlaceholder = replaceEventNamePlaceholder(eventNameObject, t("meeting_with_user"));
 
   return (
     <div className="flex flex-col space-y-8">
