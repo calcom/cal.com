@@ -56,8 +56,7 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
       setTimeout(() => {
         clearInterval(interval);
         resolve(false);
-        // Some of these days it is fast, some of these days it is slow
-      }, 15000);
+      }, 5000);
     });
   });
   if (!iframeReady) {
