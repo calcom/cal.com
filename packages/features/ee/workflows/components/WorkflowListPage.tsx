@@ -1,11 +1,10 @@
-import { Workflow, WorkflowStep } from "@prisma/client";
+import type { Workflow, WorkflowStep } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Team } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -18,7 +17,7 @@ import {
   Tooltip,
   Badge,
 } from "@calcom/ui";
-import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2, FiZap } from "@calcom/ui/components/icon";
+import { FiEdit2, FiLink, FiMoreHorizontal, FiTrash2 } from "@calcom/ui/components/icon";
 
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -40,15 +39,14 @@ export type WorkflowType = Workflow & {
 };
 interface Props {
   workflows: WorkflowType[] | undefined;
-  profiles: {
-    readOnly?: boolean | undefined;
-    slug: string | null;
-    name: string | null;
+  profileOptions: {
+    image?: string | null;
+    label: string | null;
     teamId: number | null | undefined;
   }[];
   hasNoWorkflows?: boolean;
 }
-export default function WorkflowListPage({ workflows, profiles, hasNoWorkflows }: Props) {
+export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -196,7 +194,7 @@ export default function WorkflowListPage({ workflows, profiles, hasNoWorkflows }
           />
         </div>
       ) : (
-        <EmptyScreen profiles={profiles} isFilteredView={!hasNoWorkflows} />
+        <EmptyScreen profileOptions={profileOptions} isFilteredView={!hasNoWorkflows} />
       )}
     </>
   );

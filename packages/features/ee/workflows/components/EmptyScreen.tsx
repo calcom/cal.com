@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { CreateButton, showToast, EmptyScreen as ClassicEmptyScreen } from "@calcom/ui";
 import { FiSmartphone, FiMail, FiZap } from "@calcom/ui/components/icon";
 
@@ -34,10 +34,9 @@ function WorkflowExample(props: WorkflowExampleType) {
 }
 
 export default function EmptyScreen(props: {
-  profiles: {
-    readOnly?: boolean | undefined;
-    slug: string | null;
-    name: string | null;
+  profileOptions: {
+    label: string | null;
+    image?: string | null;
     teamId: number | null | undefined;
   }[];
   isFilteredView: boolean;
@@ -90,7 +89,7 @@ export default function EmptyScreen(props: {
           <div className="mt-8 ">
             <CreateButton
               subtitle={t("new_workflow_subtitle").toUpperCase()}
-              options={props.profiles}
+              options={props.profileOptions}
               createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
               buttonText={t("create_workflow")}
               isLoading={createMutation.isLoading}

@@ -636,10 +636,14 @@ const CTA = () => {
 
   if (!query.data) return null;
 
+  const profileOptions = query.data.profiles.map((profile) => {
+    return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
+  });
+
   return (
     <CreateButton
       subtitle={t("create_event_on").toUpperCase()}
-      options={query.data.profiles}
+      options={profileOptions}
       createDialog={CreateEventTypeDialog}
       duplicateDialog={DuplicateDialog}
     />

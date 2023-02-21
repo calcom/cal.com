@@ -1,5 +1,5 @@
+import type { PrismaPromise, Prisma, PrismaClient, Workflow } from "@prisma/client";
 import {
-  PrismaPromise,
   WorkflowTemplates,
   WorkflowActions,
   WorkflowTriggerEvents,
@@ -7,9 +7,6 @@ import {
   WorkflowMethods,
   TimeUnit,
   MembershipRole,
-  Prisma,
-  PrismaClient,
-  Workflow
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -34,7 +31,7 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
-import { IS_SELF_HOSTED, SENDER_ID } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -564,11 +561,11 @@ export const workflowsRouter = router({
                   }),
                   organizer: booking.user
                     ? {
-                      language: { locale: booking.user.locale || "" },
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
-                    }
+                        language: { locale: booking.user.locale || "" },
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                      }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
@@ -756,11 +753,11 @@ export const workflowsRouter = router({
                 }),
                 organizer: booking.user
                   ? {
-                    language: { locale: booking.user.locale || "" },
-                    name: booking.user.name || "",
-                    email: booking.user.email,
-                    timeZone: booking.user.timeZone,
-                  }
+                      language: { locale: booking.user.locale || "" },
+                      name: booking.user.name || "",
+                      email: booking.user.email,
+                      timeZone: booking.user.timeZone,
+                    }
                   : { name: "", email: "", timeZone: "", language: { locale: "" } },
                 startTime: booking.startTime.toISOString(),
                 endTime: booking.endTime.toISOString(),
@@ -883,11 +880,11 @@ export const workflowsRouter = router({
                   }),
                   organizer: booking.user
                     ? {
-                      name: booking.user.name || "",
-                      email: booking.user.email,
-                      timeZone: booking.user.timeZone,
-                      language: { locale: booking.user.locale || "" },
-                    }
+                        name: booking.user.name || "",
+                        email: booking.user.email,
+                        timeZone: booking.user.timeZone,
+                        language: { locale: booking.user.locale || "" },
+                      }
                     : { name: "", email: "", timeZone: "", language: { locale: "" } },
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
@@ -1289,6 +1286,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       select: {
         id: true,
         username: true,
+        avatar: true,
         name: true,
         startTime: true,
         endTime: true,
@@ -1339,6 +1337,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       profile: {
         slug: (typeof user)["username"];
         name: (typeof user)["name"];
+        image?: string;
       };
       metadata?: {
         readOnly: boolean;
@@ -1353,6 +1352,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       profile: {
         slug: user.username,
         name: user.name,
+        image: user.avatar || undefined,
       },
       workflows: userWorkflows,
       metadata: {
@@ -1367,6 +1367,7 @@ action === WorkflowActions.EMAIL_ADDRESS*/
         profile: {
           name: membership.team.name,
           slug: "team/" + membership.team.slug,
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
         },
         metadata: {
           readOnly: membership.role === MembershipRole.MEMBER,

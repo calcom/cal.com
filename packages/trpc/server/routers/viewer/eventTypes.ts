@@ -219,6 +219,7 @@ export const eventTypesRouter = router({
         startTime: true,
         endTime: true,
         bufferTime: true,
+        avatar: true,
         teams: {
           where: {
             accepted: true,
@@ -323,6 +324,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: user.username,
         name: user.name,
+        image: user.avatar || undefined,
       },
       eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {

@@ -14,15 +14,14 @@ import {
 } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";
 
-export interface Parent {
+export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile
-  name?: string | null;
-  slug?: string | null;
+  label: string | null;
   image?: string | null;
 }
 
 interface CreateBtnProps {
-  options: Parent[];
+  options: Option[];
   createDialog?: () => JSX.Element;
   duplicateDialog?: () => JSX.Element;
   createFunction?: (teamId?: number) => void;
@@ -42,11 +41,11 @@ export function CreateButton(props: CreateBtnProps) {
   const hasTeams = !!props.options.find((option) => option.teamId);
 
   // inject selection data into url for correct router history
-  const openModal = (option: Parent) => {
+  const openModal = (option: Option) => {
     const query = {
       ...router.query,
       dialog: "new",
-      eventPage: option.slug,
+      eventPage: option.label,
       teamId: option.teamId,
     };
     if (!option.teamId) {
@@ -94,13 +93,13 @@ export function CreateButton(props: CreateBtnProps) {
               <div className="w-48 text-left text-xs">{props.subtitle}</div>
             </DropdownMenuLabel>
             {props.options.map((option) => (
-              <DropdownMenuItem key={option.slug}>
+              <DropdownMenuItem key={option.label}>
                 <DropdownItem
                   type="button"
                   StartIcon={(props) => (
                     <Avatar
-                      alt={option.name || ""}
-                      imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
+                      alt={option.label || ""}
+                      imageSrc={option.image || `${WEBAPP_URL}/${option.label}/avatar.png`} // if no image, use default avatar
                       size="sm"
                       {...props}
                     />
@@ -114,7 +113,7 @@ export function CreateButton(props: CreateBtnProps) {
                   }>
                   {" "}
                   {/*improve this code */}
-                  <span>{option.name ? option.name : option.slug}</span>
+                  <span>{option.label}</span>
                 </DropdownItem>
               </DropdownMenuItem>
             ))}

@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState, Dispatch, SetStateAction, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
@@ -11,7 +12,8 @@ import { AnimatedPopover, Avatar, CreateButton, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
-import WorkflowList, { WorkflowType } from "../components/WorkflowListPage";
+import type { WorkflowType } from "../components/WorkflowListPage";
+import WorkflowList from "../components/WorkflowListPage";
 
 function WorkflowsPage() {
   const { t } = useLocale();
@@ -78,21 +80,24 @@ function WorkflowsPage() {
 
   if (!query.data) return null;
 
+  const profileOptions = query.data.profiles.map((profile) => {
+    return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
+  });
+
   return (
     <Shell
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        query.data.profiles.length === 1 &&
+        profileOptions.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
         allWorkflowsData?.workflows.length > 0 ? (
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
-            options={query.data.profiles}
+            options={profileOptions}
             createFunction={(teamId?: number) => {
-              console.log("test test");
               createMutation.mutate({ teamId });
             }}
             isLoading={createMutation.isLoading}
@@ -107,7 +112,7 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {query.data.profiles.length > 1 &&
+            {profileOptions.length > 1 &&
               allWorkflowsData?.workflows &&
               allWorkflowsData.workflows.length > 0 && (
                 <div className="mb-4 flex">
@@ -119,7 +124,7 @@ function WorkflowsPage() {
                   <div className="ml-auto">
                     <CreateButton
                       subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={query.data.profiles}
+                      options={profileOptions}
                       createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                       isLoading={createMutation.isLoading}
                       disableMobileButton={true}
@@ -129,7 +134,7 @@ function WorkflowsPage() {
               )}
             <WorkflowList
               workflows={filteredWorkflows}
-              profiles={query.data.profiles}
+              profileOptions={profileOptions}
               hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
             />
           </>
