@@ -1,4 +1,4 @@
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";

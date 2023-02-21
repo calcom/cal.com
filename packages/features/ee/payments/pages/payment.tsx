@@ -1,7 +1,8 @@
-import { GetServerSidePropsContext } from "next";
+import { BookingStatus } from "@prisma/client";
+import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -44,6 +45,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           },
           eventTypeId: true,
           location: true,
+          status: true,
+          rejectionReason: true,
+          cancellationReason: true,
           eventType: {
             select: {
               id: true,
@@ -103,6 +107,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     theme: (!eventType.team?.name && user?.theme) || null,
     hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
   };
+
+  if (
+    ([BookingStatus.CANCELLED, BookingStatus.REJECTED] as BookingStatus[]).includes(
+      booking.status as BookingStatus
+    )
+  ) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
+  }
 
   return {
     props: {

@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { FiLink } from "@calcom/ui/components/icon";
 
-import { Props } from "./pages/AvailabilityPage";
+import type { Props } from "./pages/AvailabilityPage";
 
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
   const { t } = useLocale();

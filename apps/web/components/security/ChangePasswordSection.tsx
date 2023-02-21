@@ -1,4 +1,5 @@
-import { SyntheticEvent, useState } from "react";
+import type { SyntheticEvent } from "react";
+import { useState } from "react";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

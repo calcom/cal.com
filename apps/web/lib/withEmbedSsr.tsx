@@ -1,4 +1,4 @@
-import { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
 export type EmbedProps = {
   isEmbed?: boolean;

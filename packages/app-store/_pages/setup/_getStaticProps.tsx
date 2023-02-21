@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext } from "next";
 
 export const AppSetupPageMap = {
   zapier: import("../../zapier/pages/setup/_getStaticProps"),
