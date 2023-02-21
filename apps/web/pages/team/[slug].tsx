@@ -13,7 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, HeadSeo, AvatarGroup, EmptyScreen } from "@calcom/ui";
+import prisma from "@calcom/prisma";
+import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -26,13 +27,15 @@ import { ssrInit } from "@server/lib/ssr";
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team }: TeamPageProps) {
+function TeamPage({ team, isUnpublished }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
   const router = useRouter();
+  const teamName = team.name || "Nameless Team";
+  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   useEffect(() => {
     telemetry.event(
@@ -40,6 +43,18 @@ function TeamPage({ team }: TeamPageProps) {
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
   }, [telemetry, router.asPath]);
+
+  if (isUnpublished) {
+    return (
+      <div className="m-8 flex items-center justify-center">
+        <EmptyScreen
+          avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
+          headline={t("team_is_unpublished", { team: teamName })}
+          description={t("team_is_unpublished_description")}
+        />
+      </div>
+    );
+  }
 
   const EventTypes = () => (
     <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
@@ -78,12 +93,6 @@ function TeamPage({ team }: TeamPageProps) {
     </ul>
   );
 
-  const teamName = team.name || "Nameless Team";
-
-  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
-  const isPublished = false; // TODO: check for team.published or something
-
   return (
     <>
       <HeadSeo
@@ -94,64 +103,53 @@ function TeamPage({ team }: TeamPageProps) {
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
+      <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
+        <div className="max-w-96 mx-auto mb-8 text-center">
+          <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
+          <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
+            {teamName}
+          </p>
+          {!isBioEmpty && (
+            <>
+              <div
+                className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+              />
+            </>
+          )}
+        </div>
+        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+        {!showMembers.isOn && team.eventTypes.length > 0 && (
+          <div className="mx-auto max-w-3xl ">
+            <EventTypes />
 
-      {isPublished ? (
-        <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
-          <div className="max-w-96 mx-auto mb-8 text-center">
-            <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-            <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
-              {teamName}
-            </p>
-            {!isBioEmpty && (
-              <>
-                <div
-                  className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
-                />
-              </>
+            {!team.hideBookATeamMember && (
+              <div>
+                <div className="relative mt-12">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
+                      {t("or")}
+                    </span>
+                  </div>
+                </div>
+                <aside className="mt-8 flex justify-center text-center dark:text-white">
+                  <Button
+                    color="minimal"
+                    EndIcon={FiArrowRight}
+                    className="dark:hover:bg-darkgray-200"
+                    href={`/team/${team.slug}?members=1`}
+                    shallow={true}>
+                    {t("book_a_team_member")}
+                  </Button>
+                </aside>
+              </div>
             )}
           </div>
-          {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
-          {!showMembers.isOn && team.eventTypes.length > 0 && (
-            <div className="mx-auto max-w-3xl ">
-              <EventTypes />
-
-              {!team.hideBookATeamMember && (
-                <div>
-                  <div className="relative mt-12">
-                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                      <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
-                        {t("or")}
-                      </span>
-                    </div>
-                  </div>
-                  <aside className="mt-8 flex justify-center text-center dark:text-white">
-                    <Button
-                      color="minimal"
-                      EndIcon={FiArrowRight}
-                      className="dark:hover:bg-darkgray-200"
-                      href={`/team/${team.slug}?members=1`}
-                      shallow={true}>
-                      {t("book_a_team_member")}
-                    </Button>
-                  </aside>
-                </div>
-              )}
-            </div>
-          )}
-        </main>
-      ) : (
-        <div className="m-8 flex items-center justify-center">
-          <EmptyScreen
-            avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
-            headline={t("team_is_unpublished", { team: teamName })}
-            description={t("team_is_unpublished_description")}
-          />
-        </div>
-      )}
+        )}
+      </main>
     </>
   );
 }
@@ -159,6 +157,25 @@ function TeamPage({ team }: TeamPageProps) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
+
+  const unpublishedTeam = await prisma.team.findFirst({
+    where: {
+      metadata: {
+        path: ["requestedSlug"],
+        equals: slug,
+      },
+    },
+  });
+
+  if (unpublishedTeam) {
+    return {
+      props: {
+        isUnpublished: true,
+        team: unpublishedTeam,
+        trpcState: ssr.dehydrate(),
+      },
+    } as const;
+  }
 
   const team = await getTeamWithMembers(undefined, slug);
 
@@ -177,7 +194,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team,
       trpcState: ssr.dehydrate(),
     },
-  };
+  } as const;
 };
 
 export default TeamPage;
