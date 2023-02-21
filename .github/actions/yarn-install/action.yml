@@ -10,9 +10,11 @@ runs:
       uses: actions/cache@v3
       env:
         cache-name: node-modules-yarn
-        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
+        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma')) }}
       with:
-        path: node_modules
+        path: |
+          **/node_modules/**
+          packages/prisma/zod
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
         restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn install
