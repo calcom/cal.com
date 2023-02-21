@@ -25,6 +25,7 @@ import { useState } from "react";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 import { Avatar, Button, ButtonGroup, Tooltip } from "@calcom/ui";
 import {
   FiSettings,
@@ -77,7 +78,7 @@ export default function InsightsPage() {
   ];
   return (
     <div>
-      <Shell heading="Insights" subtitle="View your Insights">
+      <>
         <UpgradeTip
           dark
           title={t("teams_plan_required")}
@@ -237,7 +238,7 @@ export default function InsightsPage() {
             </Shell>
           </>
         </UpgradeTip>
-      </Shell>
+      </>
     </div>
   );
 }
@@ -294,61 +295,71 @@ const colors: { [key: string]: Color } = {
   decrease: "rose",
 };
 
+function CalculateDeltaType(delta: number) {
+  if (delta > 0) {
+    return delta > 10 ? "increase" : "moderateIncrease";
+  } else if (delta < 0) {
+    return delta < -10 ? "decrease" : "moderateDecrease";
+  } else {
+    return "unchanged";
+  }
+}
+
 const categories: {
   title: string;
-  metric: string;
-  metricPrev: string;
-  delta: string;
-  deltaType: DeltaType;
+  index: "created" | "completed" | "rescheduled" | "cancelled";
 }[] = [
   {
     title: "Events created",
-    metric: "1888",
-    metricPrev: "$ 9,456",
-    delta: "34.3%",
-    deltaType: "moderateIncrease",
+    index: "created",
   },
   {
     title: "Events completed",
-    metric: "1802",
-    metricPrev: "$ 45,564",
-    delta: "10.9%",
-    deltaType: "moderateDecrease",
+    index: "completed",
   },
   {
     title: "Events rescheduled",
-    metric: "48",
-    metricPrev: "856",
-    delta: "25.3%",
-    deltaType: "moderateIncrease",
+    index: "rescheduled",
   },
   {
     title: "Events cancelled",
-    metric: "38",
-    metricPrev: "856",
-    delta: "25.3%",
-    deltaType: "moderateDecrease",
+    index: "cancelled",
   },
 ];
 
 function KPICards() {
+  const { data, isLoading } = trpc.viewer.analytics.eventsByStatus.useQuery({
+    startDate: "2023-02-01",
+    endDate: "2023-02-28",
+  });
+
   return (
     <ColGrid numColsSm={2} numColsLg={4} gapX="gap-x-6" gapY="gap-y-6">
-      {categories.map((item) => (
-        <Card key={item.title}>
-          <Text>{item.title}</Text>
-          <Flex justifyContent="justify-start" alignItems="items-baseline" spaceX="space-x-3" truncate={true}>
-            <Metric>{valueFormatter(parseInt(item.metric))}</Metric>
-          </Flex>
-          <Flex justifyContent="justify-start" spaceX="space-x-2" marginTop="mt-4">
-            <BadgeDelta deltaType={item.deltaType} />
-            <Flex justifyContent="justify-start" spaceX="space-x-1" truncate={true}>
-              <Text color={colors[item.deltaType]}>{item.delta}</Text>
-              <small className="relative top-px text-xs text-gray-600">from last month</small>
+      {data !== undefined &&
+        categories.map((item) => (
+          <Card key={item.title}>
+            <Text>{item.title}</Text>
+            <Flex
+              justifyContent="justify-start"
+              alignItems="items-baseline"
+              spaceX="space-x-3"
+              truncate={true}>
+              <Metric>{valueFormatter(data[item.index].count)}</Metric>
             </Flex>
-          </Flex>
-        </Card>
-      ))}
+            <Flex justifyContent="justify-start" spaceX="space-x-2" marginTop="mt-4">
+              <BadgeDelta
+                deltaType={CalculateDeltaType(data[item.index].deltaPrevious - data[item.index].count)}
+              />
+              <Flex justifyContent="justify-start" spaceX="space-x-1" truncate={true}>
+                <Text
+                  color={colors[CalculateDeltaType(data[item.index].deltaPrevious - data[item.index].count)]}>
+                  {data[item.index].deltaPrevious}
+                </Text>
+                <small className="relative top-px text-xs text-gray-600">from last month</small>
+              </Flex>
+            </Flex>
+          </Card>
+        ))}
     </ColGrid>
   );
 }

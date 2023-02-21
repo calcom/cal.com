@@ -37,6 +37,7 @@ import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
+import { analyticsRouter } from "./viewer/analytics";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
@@ -1247,6 +1248,7 @@ export const viewerRouter = mergeRouters(
     slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
+    analytics: analyticsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,

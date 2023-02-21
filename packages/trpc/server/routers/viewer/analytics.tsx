@@ -93,21 +93,21 @@ export const analyticsRouter = router({
       });
 
       return {
-        rescheduled: {
-          count: totalRescheduled,
-          deltaPrevious: 1,
-        },
-        cancelled: {
-          count: totalCancelled,
-          deltaPrevious: 2,
+        created: {
+          count: baseBookings.length,
+          deltaPrevious: 0,
         },
         completed: {
           count: baseBookings.length - totalRescheduled - totalCancelled,
-          deltaPrevious: 3,
+          deltaPrevious: 1,
         },
-        created: {
-          count: baseBookings.length,
-          deltaPrevious: 4,
+        rescheduled: {
+          count: totalRescheduled,
+          deltaPrevious: 2,
+        },
+        cancelled: {
+          count: totalCancelled,
+          deltaPrevious: 3,
         },
       };
     }),

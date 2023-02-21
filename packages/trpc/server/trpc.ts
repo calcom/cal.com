@@ -1,7 +1,8 @@
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
+import prisma from "@calcom/prisma";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
@@ -70,6 +71,34 @@ const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOpti
     });
   });
 
+const UserBelongsToTeamInput = z.object({
+  teamId: z.coerce.number().optional(),
+});
+
+const userBelongsToTeamMiddleware = t.middleware(async ({ ctx, next, rawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+  if (!ctx.user || !ctx.session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  if (!parse.success) {
+    throw new TRPCError({ code: "BAD_REQUEST" });
+  }
+
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: parse.data.teamId,
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return next();
+});
+
 export const router = t.router;
 export const mergeRouters = t.mergeRouters;
 export const middleware = t.middleware;
@@ -82,3 +111,7 @@ export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOp
     .use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
+export const userBelongsToTeamProcedure = t.procedure
+  .use(perfMiddleware)
+  .use(isAuthedMiddleware)
+  .use(userBelongsToTeamMiddleware);
