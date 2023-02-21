@@ -1,4 +1,3 @@
-import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -30,7 +29,32 @@ import TeamInviteEmail from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
-  const clonedEvent = cloneDeep(calEvent);
+
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerScheduledEmail({ calEvent });
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  if (calEvent.team) {
+    for (const teamMember of calEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new OrganizerScheduledEmail({ calEvent, teamMember });
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
+          }
+        })
+      );
+    }
+  }
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -45,39 +69,37 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
     })
   );
 
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerScheduledEmail({ calEvent: clonedEvent });
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
-      }
-    })
-  );
-
-  if (clonedEvent.team) {
-    for (const teamMember of clonedEvent.team.members) {
-      emailsToSend.push(
-        new Promise((resolve, reject) => {
-          try {
-            const scheduledEmail = new OrganizerScheduledEmail({ calEvent: clonedEvent, teamMember });
-            resolve(scheduledEmail.sendEmail());
-          } catch (e) {
-            reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
-          }
-        })
-      );
-    }
-  }
-
   await Promise.all(emailsToSend);
 };
 
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  const clonedEvent = cloneDeep(calEvent);
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerRescheduledEmail({ calEvent });
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  if (calEvent.team) {
+    for (const teamMember of calEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new OrganizerRescheduledEmail({ calEvent, teamMember });
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
+          }
+        })
+      );
+    }
+  }
 
   // @TODO: we should obtain who is rescheduling the event and send them a different email
   emailsToSend.push(
@@ -92,32 +114,6 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerRescheduledEmail({ calEvent: clonedEvent });
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
-      }
-    })
-  );
-
-  if (clonedEvent.team) {
-    for (const teamMember of clonedEvent.team.members) {
-      emailsToSend.push(
-        new Promise((resolve, reject) => {
-          try {
-            const scheduledEmail = new OrganizerRescheduledEmail({ calEvent: clonedEvent, teamMember });
-            resolve(scheduledEmail.sendEmail());
-          } catch (e) {
-            reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
-          }
-        })
-      );
-    }
-  }
 
   await Promise.all(emailsToSend);
 };
@@ -220,7 +216,31 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
 export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  const clonedEvent = cloneDeep(calEvent);
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerCancelledEmail({ calEvent });
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  if (calEvent.team?.members) {
+    for (const teamMember of calEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new OrganizerCancelledEmail({ calEvent, teamMember });
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
+          }
+        })
+      );
+    }
+  }
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -234,32 +254,6 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerCancelledEmail({ calEvent: clonedEvent });
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
-      }
-    })
-  );
-
-  if (clonedEvent.team?.members) {
-    for (const teamMember of clonedEvent.team.members) {
-      emailsToSend.push(
-        new Promise((resolve, reject) => {
-          try {
-            const scheduledEmail = new OrganizerCancelledEmail({ calEvent: clonedEvent, teamMember });
-            resolve(scheduledEmail.sendEmail());
-          } catch (e) {
-            reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
-          }
-        })
-      );
-    }
-  }
 
   await Promise.all(emailsToSend);
 };
@@ -405,7 +399,31 @@ export const sendRequestRescheduleEmail = async (
 export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  const clonedEvent = cloneDeep(calEvent);
+  emailsToSend.push(
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent });
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
+      }
+    })
+  );
+
+  if (calEvent.team?.members) {
+    for (const teamMember of calEvent.team.members) {
+      emailsToSend.push(
+        new Promise((resolve, reject) => {
+          try {
+            const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent, teamMember });
+            resolve(scheduledEmail.sendEmail());
+          } catch (e) {
+            reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
+          }
+        })
+      );
+    }
+  }
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -419,32 +437,6 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
       });
     })
   );
-
-  emailsToSend.push(
-    new Promise((resolve, reject) => {
-      try {
-        const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent: clonedEvent });
-        resolve(scheduledEmail.sendEmail());
-      } catch (e) {
-        reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
-      }
-    })
-  );
-
-  if (calEvent.team?.members) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(
-        new Promise((resolve, reject) => {
-          try {
-            const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent: clonedEvent, teamMember });
-            resolve(scheduledEmail.sendEmail());
-          } catch (e) {
-            reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
-          }
-        })
-      );
-    }
-  }
 
   await Promise.all(emailsToSend);
 };
