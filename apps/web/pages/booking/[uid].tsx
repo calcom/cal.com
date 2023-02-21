@@ -1017,10 +1017,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
+  let bookingUid = uid;
+  if (bookingUid) {
+    // Look bookingUid in bookingSeat
+    const bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUId: uid,
+      },
+      select: {
+        booking: {
+          select: {
+            id: true,
+            uid: true,
+          },
+        },
+      },
+    });
+    if (bookingSeat) {
+      bookingUid = bookingSeat.booking.uid;
+    }
+  }
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
-      uid,
+      uid: bookingUid,
     },
     select: {
       title: true,
