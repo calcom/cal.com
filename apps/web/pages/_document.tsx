@@ -18,7 +18,10 @@ class MyDocument extends Document<Props> {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       ctx.res?.setHeader("x-csp", "initialPropsOnly");
     }
-    const isEmbed = ctx.asPath?.includes("/embed") || ctx.asPath?.includes("embedType=");
+    const asPath = ctx.asPath || "";
+    // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
+    const parsedUrl = new URL(asPath, "https://dummyurl");
+    const isEmbed = parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null;
     const initialProps = await Document.getInitialProps(ctx);
     return { isEmbed, nonce, ...initialProps };
   }
