@@ -4,7 +4,8 @@ on:
 jobs:
   e2e:
     timeout-minutes: 20
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    # runs-on: buildjet-4vcpu-ubuntu-2204 # Uncomment before merging
+    runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
