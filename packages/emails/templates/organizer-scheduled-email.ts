@@ -17,13 +17,13 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   newSeat?: boolean;
   teamMember?: Person;
 
-  constructor(calEvent: CalendarEvent, newSeat?: boolean, teamMember?: Person) {
+  constructor(input: { calEvent: CalendarEvent; newSeat?: boolean; teamMember?: Person }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
-    this.calEvent = calEvent;
+    this.calEvent = input.calEvent;
     this.t = this.calEvent.organizer.language.translate;
-    this.newSeat = newSeat;
-    this.teamMember = teamMember;
+    this.newSeat = input.newSeat;
+    this.teamMember = input.teamMember;
   }
 
   protected getiCalEventAsString(): string | undefined {

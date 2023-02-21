@@ -48,7 +48,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(clonedEvent);
+        const scheduledEmail = new OrganizerScheduledEmail({ calEvent: clonedEvent });
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -61,7 +61,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const scheduledEmail = new OrganizerScheduledEmail(clonedEvent, undefined, teamMember);
+            const scheduledEmail = new OrganizerScheduledEmail({ calEvent: clonedEvent, teamMember });
             resolve(scheduledEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -96,7 +96,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerRescheduledEmail(clonedEvent);
+        const scheduledEmail = new OrganizerRescheduledEmail({ calEvent: clonedEvent });
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
@@ -109,7 +109,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const scheduledEmail = new OrganizerRescheduledEmail(clonedEvent, undefined, teamMember);
+            const scheduledEmail = new OrganizerRescheduledEmail({ calEvent: clonedEvent, teamMember });
             resolve(scheduledEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
@@ -144,7 +144,7 @@ export const sendScheduledSeatsEmails = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent, newSeat);
+        const scheduledEmail = new OrganizerScheduledEmail({ calEvent, newSeat });
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -161,7 +161,7 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const organizerRequestEmail = new OrganizerRequestEmail(calEvent);
+        const organizerRequestEmail = new OrganizerRequestEmail({ calEvent });
         resolve(organizerRequestEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRequestEmail.sendEmail failed", e));
@@ -174,7 +174,7 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const organizerRequestEmail = new OrganizerRequestEmail(calEvent, undefined, teamMember);
+            const organizerRequestEmail = new OrganizerRequestEmail({ calEvent, teamMember });
             resolve(organizerRequestEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerRequestEmail.sendEmail failed", e));
@@ -238,7 +238,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerCancelledEmail(clonedEvent);
+        const scheduledEmail = new OrganizerCancelledEmail({ calEvent: clonedEvent });
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
@@ -251,7 +251,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const scheduledEmail = new OrganizerCancelledEmail(clonedEvent, undefined, teamMember);
+            const scheduledEmail = new OrganizerCancelledEmail({ calEvent: clonedEvent, teamMember });
             resolve(scheduledEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerCancelledEmail.sendEmail failed", e));
@@ -270,7 +270,7 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const organizerRequestReminderEmail = new OrganizerRequestReminderEmail(calEvent);
+        const organizerRequestReminderEmail = new OrganizerRequestReminderEmail({ calEvent });
         resolve(organizerRequestReminderEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerRequestReminderEmail.sendEmail failed", e));
@@ -283,11 +283,10 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const organizerRequestReminderEmail = new OrganizerRequestReminderEmail(
+            const organizerRequestReminderEmail = new OrganizerRequestReminderEmail({
               calEvent,
-              undefined,
-              teamMember
-            );
+              teamMember,
+            });
             resolve(organizerRequestReminderEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerRequestReminderEmail.sendEmail failed", e));
@@ -321,7 +320,7 @@ export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEv
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail(calEvent);
+        const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail({ calEvent });
         resolve(paymentRefundFailedEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
@@ -334,11 +333,10 @@ export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEv
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail(
+            const paymentRefundFailedEmail = new OrganizerPaymentRefundFailedEmail({
               calEvent,
-              undefined,
-              teamMember
-            );
+              teamMember,
+            });
             resolve(paymentRefundFailedEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerPaymentRefundFailedEmail.sendEmail failed", e));
@@ -425,7 +423,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerLocationChangeEmail(clonedEvent);
+        const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent: clonedEvent });
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
@@ -438,7 +436,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
       emailsToSend.push(
         new Promise((resolve, reject) => {
           try {
-            const scheduledEmail = new OrganizerLocationChangeEmail(clonedEvent, undefined, teamMember);
+            const scheduledEmail = new OrganizerLocationChangeEmail({ calEvent: clonedEvent, teamMember });
             resolve(scheduledEmail.sendEmail());
           } catch (e) {
             reject(console.error("OrganizerLocationChangeEmail.sendEmail failed", e));
