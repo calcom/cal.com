@@ -3,6 +3,7 @@ name: "Next.js Bundle Analysis"
 on:
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -14,20 +15,9 @@ defaults:
     working-directory: ./apps/web/
 
 env:
-  node_version: ${{ secrets.NODE_VERSION }}
+  node_version: 16.x
 
 jobs:
-  setup:
-      name: Yarn install & cache
-      uses: ./.github/workflows/yarn-install.yml
-      secrets:
-        node_version: ${{ secrets.NODE_VERSION }}
-  build:
-        name: Production build
-        needs: setup
-        uses: ./.github/workflows/production-build.yml
-        secrets:
-          node_version: ${{ secrets.NODE_VERSION }}
   analyze:
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -67,16 +57,10 @@ jobs:
         ports:
           - 5432:5432
     runs-on: ubuntu-latest
-    needs: build
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.node_version }}
-      # Here's the first place where next-bundle-analysis' own script is used
-      # This step pulls the raw bundle stats for the current bundle
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/cache-build
       - name: Analyze bundle
         run: npx -p nextjs-bundle-analysis report
 

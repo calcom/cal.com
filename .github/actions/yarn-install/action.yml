@@ -1,9 +1,7 @@
 name: Yarn install
 description: "Install all NPM dependencies, caches them and restores if necessary"
-inputs:
-  node_version:
-    required: true
-    description: "The node version used to run this"
+env:
+  node_version: v16.x
 runs:
   using: "composite"
   steps:
@@ -12,7 +10,7 @@ runs:
       uses: actions/cache@v3
       env:
         cache-name: node-modules-yarn
-        cache-key: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
+        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
       with:
         path: node_modules
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}

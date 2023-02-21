@@ -11,10 +11,9 @@ jobs:
     name: Yarn install & cache
     runs-on: ubuntu-latest
     concurrency:
-      group: yarn-install-${{ github.sha }}
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/yarn-install
-        with:
-          node_version: ${{ secrets.node_version }}

@@ -2,12 +2,10 @@ name: Production Build
 
 on:
   workflow_call:
-    secrets:
-      node_version:
-        required: true
 
 concurrency:
-  group: prod-build-${{ github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -45,22 +43,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
-          postgres:
-            image: postgres:12.1
-            env:
-              POSTGRES_USER: postgres
-              POSTGRES_DB: calendso
-            ports:
-              - 5432:5432
+      postgres:
+        image: postgres:12.1
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: calendso
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/yarn-install
-        with:
-          node_version: ${{ secrets.NODE_VERSION }}
       - uses: ./.github/actions/yarn-build
         with:
           # GitHub Composite actions cannot read secrets, we have to pass them in here
-          node_version: ${{ secrets.NODE_VERSION }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ env.NEXT_PUBLIC_WEBAPP_URL }}
           NEXT_PUBLIC_WEBSITE_URL: ${{ env.NEXT_PUBLIC_WEBSITE_URL }}
@@ -89,4 +84,3 @@ jobs:
           NEXT_PUBLIC_IS_E2E: ${{ env.NEXT_PUBLIC_IS_E2E }}
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      
