@@ -5,11 +5,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-defaults:
-  run:
-    # change this if your nextjs app does not live at the root of the repo
-    working-directory: ./apps/web/
-
 env:
   node_version: 16.x
 
@@ -59,6 +54,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
       - name: Analyze bundle
+        working-directory: ./apps/web/
         run: npx -p nextjs-bundle-analysis report
 
       - name: Upload bundle
@@ -90,11 +86,13 @@ jobs:
       # entry in your package.json file.
       - name: Compare with base branch bundle
         if: success() && github.event.number
+        working-directory: ./apps/web/
         run: ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
         if: success() && github.event.number
+        working-directory: ./apps/web/
         run: |
           body=$(cat .next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
@@ -103,6 +101,7 @@ jobs:
           echo ::set-output name=body::$body
 
       - name: Find Comment
+        working-directory: ./apps/web/
         uses: peter-evans/find-comment@v1
         if: success() && github.event.number
         id: fc
@@ -111,6 +110,7 @@ jobs:
           body-includes: "<!-- __NEXTJS_BUNDLE -->"
 
       - name: Create Comment
+        working-directory: ./apps/web/
         uses: peter-evans/create-or-update-comment@v1.4.4
         if: success() && github.event.number && steps.fc.outputs.comment-id == 0
         with:
@@ -118,6 +118,7 @@ jobs:
           body: ${{ steps.get-comment-body.outputs.body }}
 
       - name: Update Comment
+        working-directory: ./apps/web/
         uses: peter-evans/create-or-update-comment@v1.4.4
         if: success() && github.event.number && steps.fc.outputs.comment-id != 0
         with:
