@@ -273,7 +273,7 @@ model Attendee {
   name                 String
   timeZone             String
   locale               String?       @default("en")
-  booking              Booking?      @relation(fields: [bookingId], references: [id])
+  booking              Booking?      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId            Int?
   bookingSeatReference BookingSeat[]
 }
@@ -288,7 +288,7 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
-  user                  User?                @relation(fields: [userId], references: [id])
+  user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
