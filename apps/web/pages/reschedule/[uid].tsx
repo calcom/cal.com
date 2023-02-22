@@ -1,10 +1,8 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.
@@ -14,12 +12,12 @@ export default function Type() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   let bookingUid = z.string().parse(context.query.uid);
 
-  // Booking uid while rescheduling can be a reference to bookingSeatsReferences Table
+  // Booking uid while rescheduling can be a reference to bookingSeat Table
   if (bookingUid) {
-    // Look bookingUid in bookingSeatsReferences
-    const bookingSeatReference = await prisma.bookingSeatsReferences.findUnique({
+    // Look bookingUid in bookingSeat
+    const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
-        referenceUId: context.query.uid as string,
+        referenceUId: bookingUid,
       },
       select: {
         booking: {
@@ -30,8 +28,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
     });
-    if (bookingSeatReference) {
-      bookingUid = bookingSeatReference.booking.uid;
+    if (bookingSeat) {
+      bookingUid = bookingSeat.booking.uid;
     }
   }
 
@@ -96,7 +94,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         "/" +
         eventPage +
         "?rescheduleUid=" +
-        z.string().parse(context.query.uid) +
+        bookingUid +
         (context.query.seatReferenceUId ? `&seatReferenceUId=${context.query.seatReferenceUId}` : ""),
       permanent: false,
     },

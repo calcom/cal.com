@@ -1,34 +1,28 @@
-import {
-  App,
-  BookingStatus,
-  Credential,
-  EventTypeCustomInput,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-  BookingReference,
-} from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
-import short from "short-uuid";
-import { uuid } from "short-uuid";
+import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { EventTypeAppsList, getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -37,9 +31,12 @@ import {
   sendScheduledSeatsEmails,
   sendRescheduledSeatEmail,
 } from "@calcom/emails";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -60,9 +57,10 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 
-import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import sendPayload from "../../webhooks/lib/sendPayload";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -313,8 +311,8 @@ async function ensureAvailableUsers(
 
 async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
   let bookingUid = uid;
-  // Now rescheduleUid can be bookingSeatsReferences
-  const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
+  // Now rescheduleUid can be bookingSeat
+  const bookingSeat = await prisma.bookingSeat.findUnique({
     where: {
       referenceUId: uid,
     },
@@ -322,8 +320,8 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
       booking: true,
     },
   });
-  if (bookingSeatsReferences) {
-    bookingUid = bookingSeatsReferences.booking.uid;
+  if (bookingSeat) {
+    bookingUid = bookingSeat.booking.uid;
   }
 
   return prisma.booking.findFirst({
@@ -354,6 +352,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
       },
       payment: true,
       references: true,
+      workflowReminders: true,
     },
   });
 }
@@ -1068,7 +1067,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
       // Add entry to bookingSeatsReference table
       const attendeeUniqueId = uuid();
-      await prisma.bookingSeatsReferences.create({
+      await prisma.bookingSeat.create({
         data: {
           data: {
             description: additionalNotes,
@@ -1081,12 +1080,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           referenceUId: attendeeUniqueId,
           attendee: {
             connect: {
-              id: bookingUpdated.attendees.find((attendee) => attendee.email === reqBody.email)?.id,
+              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
             },
           },
         },
       });
-      evt.attendeeSeatId = attendeeUniqueId;
+      evt.attendeeUniqueId = attendeeUniqueId;
 
       const newSeat = booking.attendees.length !== 0;
 
@@ -1331,10 +1330,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
-      // Save description to bookingSeatsReferences
+      // Save description to bookingSeat
 
       const uniqueAttendeeId = uuid();
-      const seatReference = await prisma.bookingSeatsReferences.create({
+      await prisma.bookingSeat.create({
         data: {
           referenceUId: uniqueAttendeeId,
           data: {
@@ -1407,6 +1406,19 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   let videoCallUrl;
 
   if (originalRescheduledBooking?.uid) {
+    try {
+      // cancel workflow reminders from previous rescheduled booking
+      originalRescheduledBooking.workflowReminders.forEach((reminder) => {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        }
+      });
+    } catch (error) {
+      log.error("Error while canceling scheduled workflow reminders", error);
+    }
+
     // Use EventManager to conditionally use all needed integrations.
 
     const updateManager = await eventManager.reschedule(
@@ -1591,7 +1603,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
+  }
+
+  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) || videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED

@@ -1,13 +1,6 @@
-import {
-  BookingStatus,
-  MembershipRole,
-  Prisma,
-  PrismaPromise,
-  WebhookTriggerEvents,
-  WorkflowMethods,
-  WorkflowReminder,
-} from "@prisma/client";
-import { NextApiRequest } from "next";
+import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -21,7 +14,8 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
 import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
@@ -30,7 +24,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const { userId } = req;
 
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
@@ -109,6 +103,30 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
+    const seatReference = bookingToDelete.seatsReferences.find(
+      (reference) => reference.referenceUId === seatReferenceUId
+    );
+
+    if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+    await Promise.all([
+      prisma.bookingSeat.delete({
+        where: {
+          referenceUId: seatReferenceUId,
+        },
+      }),
+      prisma.attendee.delete({
+        where: {
+          id: seatReference.attendeeId,
+        },
+      }),
+    ]);
+    res.status(200).json({ success: true });
+    return;
   }
 
   const organizer = await prisma.user.findFirstOrThrow({
@@ -358,10 +376,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
-    const updateBookingData = {
-      status: BookingStatus.CANCELLED,
-      cancellationReason: cancellationReason,
-    };
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
         where: {
@@ -374,7 +388,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         id,
         uid,
       },
-      data: updateBookingData,
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: cancellationReason,
+      },
       select: {
         startTime: true,
         endTime: true,
@@ -595,35 +612,24 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     cancelScheduledJobs(booking);
   });
 
-  //Workflows - delete all reminders for bookings
-  const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
+  //Workflows - cancel all reminders for cancelled bookings
   updatedBookings.forEach((booking) => {
     booking.workflowReminders.forEach((reminder) => {
-      if (reminder.scheduled && reminder.referenceId) {
-        if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.referenceId);
-        } else if (reminder.method === WorkflowMethods.SMS) {
-          deleteScheduledSMSReminder(reminder.referenceId);
-        }
+      if (reminder.method === WorkflowMethods.EMAIL) {
+        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.SMS) {
+        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
       }
-      const reminderToDelete = prisma.workflowReminder.deleteMany({
-        where: {
-          id: reminder.id,
-        },
-      });
-      remindersToDelete.push(reminderToDelete);
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes].concat(
-    remindersToDelete
-  );
+  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 
   await sendCancelledEmails(evt);
 
-  req.statusCode = 200;
+  res.statusCode = 200;
   return { message: "Booking successfully cancelled." };
 }
 

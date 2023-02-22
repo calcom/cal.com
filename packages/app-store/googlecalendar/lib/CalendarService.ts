@@ -1,9 +1,10 @@
-import { Prisma } from "@prisma/client";
-import { calendar_v3, google } from "googleapis";
+import type { Prisma } from "@prisma/client";
+import type { calendar_v3 } from "googleapis";
+import { google } from "googleapis";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import CalendarService from "@calcom/lib/CalendarService";
+import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -13,7 +14,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";

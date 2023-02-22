@@ -268,14 +268,14 @@ model BookingReference {
 }
 
 model Attendee {
-  id                   Int                     @id @default(autoincrement())
+  id                   Int           @id @default(autoincrement())
   email                String
   name                 String
   timeZone             String
-  locale               String?                 @default("en")
-  booking              Booking?                @relation(fields: [bookingId], references: [id])
+  locale               String?       @default("en")
+  booking              Booking?      @relation(fields: [bookingId], references: [id])
   bookingId            Int?
-  bookingSeatReference BookingSeatsReferences?
+  bookingSeatReference BookingSeat[]
 }
 
 enum BookingStatus {
@@ -286,12 +286,12 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                    Int                      @id @default(autoincrement())
-  uid                   String                   @unique
-  user                  User?                    @relation(fields: [userId], references: [id])
+  id                    Int                  @id @default(autoincrement())
+  uid                   String               @unique
+  user                  User?                @relation(fields: [userId], references: [id])
   userId                Int?
   references            BookingReference[]
-  eventType             EventType?               @relation(fields: [eventTypeId], references: [id])
+  eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?
   title                 String
   description           String?
@@ -300,12 +300,12 @@ model Booking {
   endTime               DateTime
   attendees             Attendee[]
   location              String?
-  createdAt             DateTime                 @default(now())
+  createdAt             DateTime             @default(now())
   updatedAt             DateTime?
-  status                BookingStatus            @default(ACCEPTED)
-  paid                  Boolean                  @default(false)
+  status                BookingStatus        @default(ACCEPTED)
+  paid                  Boolean              @default(false)
   payment               Payment[]
-  destinationCalendar   DestinationCalendar?     @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendar   DestinationCalendar? @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId Int?
   cancellationReason    String?
   rejectionReason       String?
@@ -317,7 +317,7 @@ model Booking {
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
-  seatsReferences       BookingSeatsReferences[]
+  seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
 }
@@ -643,6 +643,7 @@ model WorkflowReminder {
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled      Boolean?
 }
 
 enum WorkflowTemplates {
@@ -655,7 +656,7 @@ enum WorkflowMethods {
   SMS
 }
 
-model BookingSeatsReferences {
+model BookingSeat {
   id           Int      @id @default(autoincrement())
   referenceUId String   @unique
   bookingId    Int

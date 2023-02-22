@@ -73,7 +73,7 @@ export default function CancelBooking(props: Props) {
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
-
+                  // @NOTE: very important this shouldn't cancel with number ID use uid instead
                   const payload = {
                     id: booking?.id,
                     cancellationReason: cancellationReason,

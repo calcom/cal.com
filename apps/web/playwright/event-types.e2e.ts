@@ -62,7 +62,7 @@ test.describe("Event Types tests", () => {
       });
 
       await page.click("[data-testid=vertical-tab-recurring]");
-      await expect(page.locator("[data-testid=recurring-event-collapsible]")).not.toBeVisible();
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
       await page.click("[data-testid=recurring-event-check]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
 

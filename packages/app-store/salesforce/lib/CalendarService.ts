@@ -1,4 +1,5 @@
-import jsforce, { TokenResponse } from "jsforce";
+import type { TokenResponse } from "jsforce";
+import jsforce from "jsforce";
 import { RRule } from "rrule";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
@@ -12,7 +13,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 

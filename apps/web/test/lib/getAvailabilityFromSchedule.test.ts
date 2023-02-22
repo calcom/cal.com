@@ -1,5 +1,5 @@
 import { expect, it } from "@jest/globals";
-import { Availability } from "@prisma/client";
+import type { Availability } from "@prisma/client";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
