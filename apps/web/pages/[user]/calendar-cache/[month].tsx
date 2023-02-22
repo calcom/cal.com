@@ -30,7 +30,7 @@ export const getStaticProps: GetStaticProps<
     },
   });
   const startDate = (
-    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs() : dayjs(month, "YYYY-MM")
+    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
   ).startOf("day");
   const endDate = startDate.endOf("month");
   try {
