@@ -13,7 +13,8 @@ import {
   FiCreditCard,
 } from "@calcom/ui/components/icon";
 
-import { PublicEvent, EventDetailBlocks } from "../../types";
+import type { PublicEvent } from "../../types";
+import { EventDetailBlocks } from "../../types";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
 import { EventPrice } from "./Price";
@@ -58,6 +59,10 @@ const defaultEventDetailsBlocks = [
   EventDetailBlocks.PRICE,
 ];
 
+/**
+ * Helper component that ensures the meta data of an event is
+ * rendered in a consistent way — adds an icon and children (text usually).
+ */
 export const EventMetaBlock = ({
   icon: Icon,
   children,
@@ -88,6 +93,20 @@ export const EventMetaBlock = ({
   );
 };
 
+/**
+ * Component that renders event meta data in a structured way, with icons and labels.
+ * The component can be configured to show only specific blocks by overriding the
+ * `blocks` prop. The blocks prop takes in an array of block names, defined
+ * in the `EventDetailBlocks` enum. See the `defaultEventDetailsBlocks` const
+ * for the default order in which the blocks will be rendered.
+ *
+ * As part of the blocks array you can also decide to render a custom React Component,
+ * which will then also be rendered.
+ *
+ * Example:
+ * const MyCustomBlock = () => <div>Something nice</div>;
+ * <EventDetails event={event} blocks={[EventDetailBlocks.LOCATION, MyCustomBlock]} />
+ */
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
   return (

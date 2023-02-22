@@ -8,7 +8,6 @@ import type { Dayjs } from "@calcom/dayjs";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { trpc } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
@@ -22,6 +21,7 @@ import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
+import { useEvent } from "./utils/event";
 
 // @TODO: Test embed view
 /* @TODO: eth signature / gates */
@@ -33,9 +33,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
-
-  const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
-
+  const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [selectedDate, setSelectedDate] = useBookerStore(

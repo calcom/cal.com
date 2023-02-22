@@ -16,6 +16,13 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeslot?: number | null;
 };
 
+/**
+ * Renders available time slots for a given date.
+ * It will extra the date from the booker store.
+ * Next to that you can also pass in the `extraDays` prop, this
+ * will also fetch the next `extraDays` days and show multiple days
+ * in columns next to each other.
+ */
 export const AvailableTimeSlots = ({
   extraDays,
   onTimeSelect,

@@ -13,6 +13,8 @@ type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking }: PageProps) {
   // @TODO: Add gates
+  // @TODO: Away state + dynamic booking not allowed.
+  // @TODO: Test dynamic booking.
   return (
     <main className="flex justify-center">
       <Booker username={user} eventSlug={slug} rescheduleBooking={booking} />

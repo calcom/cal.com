@@ -89,6 +89,13 @@ type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
 };
 
+/**
+ * The booker store contains the data of the component's
+ * current state. This data can be reused within child components
+ * by importing this hook.
+ *
+ * See comments in interface above for more information on it's specific values.
+ */
 export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | BookerStoreInitialized)>(
   (set, get) => ({
     state: "loading",

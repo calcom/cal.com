@@ -1,9 +1,10 @@
-import { TargetAndTransition } from "framer-motion";
+import type { TargetAndTransition } from "framer-motion";
 
-import { BookerLayout, BookerState } from "./types";
+import type { BookerLayout, BookerState } from "./types";
 
 export const MONTH_QUERY_PARAM = "month";
 
+// Framer motion fade in animation configs.
 export const fadeInLeft = {
   variants: {
     visible: { opacity: 1, x: 0 },
