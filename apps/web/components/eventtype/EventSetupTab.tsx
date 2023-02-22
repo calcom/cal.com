@@ -248,7 +248,11 @@ export const EventSetupTab = (
             )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button
+                  data-testid="add-location"
+                  StartIcon={FiPlus}
+                  color="minimal"
+                  onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>
