@@ -138,7 +138,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 const getSeatReferenceId = (calEvent: CalendarEvent): string => {
-  return calEvent.attendeeSeatId ? `seatReferenceUId=${calEvent.attendeeSeatId}` : "";
+  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {

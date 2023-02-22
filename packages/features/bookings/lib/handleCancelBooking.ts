@@ -95,7 +95,7 @@ type CustomRequest = NextApiRequest & {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const { bookingToDelete, userId } = req;
@@ -168,9 +168,9 @@ async function handler(req: CustomRequest) {
   };
 
   // If it's just an attendee of a booking then just remove them from that booking
-  if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
+  if (seatReferenceUid && bookingToDelete.attendees.length > 1) {
     const seatReference = bookingToDelete.seatsReferences.find(
-      (reference) => reference.referenceUId === seatReferenceUId
+      (reference) => reference.referenceUId === seatReferenceUid
     );
 
     const attendee = bookingToDelete.attendees.find((attendee) => attendee.id === seatReference?.attendeeId);
@@ -181,7 +181,7 @@ async function handler(req: CustomRequest) {
     await Promise.all([
       prisma.bookingSeatsReferences.delete({
         where: {
-          referenceUId: seatReferenceUId,
+          referenceUId: seatReferenceUid,
         },
       }),
       prisma.attendee.delete({
@@ -621,12 +621,12 @@ async function handler(req: CustomRequest) {
 }
 
 async function handleSeatedEventCancellation(req: CustomRequest) {
-  const { seatReferenceUId } = schemaBookingCancelParams.parse(req.body);
-  if (!seatReferenceUId) return;
+  const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
+  if (!seatReferenceUid) return;
   if (!req.bookingToDelete?.attendees.length || req.bookingToDelete.attendees.length < 2) return;
 
   const seatReference = req.bookingToDelete.seatsReferences.find(
-    (reference) => reference.referenceUId === seatReferenceUId
+    (reference) => reference.referenceUId === seatReferenceUid
   );
 
   if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
@@ -634,7 +634,7 @@ async function handleSeatedEventCancellation(req: CustomRequest) {
   await Promise.all([
     prisma.bookingSeat.delete({
       where: {
-        referenceUId: seatReferenceUId,
+        referenceUId: seatReferenceUid,
       },
     }),
     prisma.attendee.delete({

@@ -141,7 +141,7 @@ function BookingListItem(booking: BookingItemProps) {
          cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUId=${getSeatReferenceUId()}` : ""}
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUId()}` : ""}
       `,
       icon: FiX,
     },
@@ -154,7 +154,7 @@ function BookingListItem(booking: BookingItemProps) {
           icon: FiClock,
           label: t("reschedule_booking"),
           href: `/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUId=${getSeatReferenceUId()}` : ""
+            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUId()}` : ""
           }`,
         },
         {

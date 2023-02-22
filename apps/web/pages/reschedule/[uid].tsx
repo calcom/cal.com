@@ -11,8 +11,8 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { uid: bookingId, seatReferenceUId } = z
-    .object({ uid: z.string(), seatReferenceUId: z.string().optional() })
+  const { uid: bookingId, seatReferenceUid } = z
+    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
     .parse(context.query);
   const uid = await maybeGetBookingUidFromSeat(prisma, bookingId);
   const booking = await prisma.booking.findUnique({
@@ -75,7 +75,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventPage +
         "?rescheduleUid=" +
         uid +
-        (seatReferenceUId ? `&seatReferenceUId=${seatReferenceUId}` : ""),
+        (seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""),
       permanent: false,
     },
   };

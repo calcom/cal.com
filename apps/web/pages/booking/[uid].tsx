@@ -177,7 +177,7 @@ const querySchema = z.object({
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
   email: z.string().optional(),
-  seatReferenceUId: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -190,7 +190,7 @@ export default function Success(props: SuccessProps) {
     changes,
     formerTime,
     email,
-    seatReferenceUId,
+    seatReferenceUid,
   } = querySchema.parse(router.query);
 
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
@@ -258,7 +258,7 @@ export default function Success(props: SuccessProps) {
     status === "CANCELLED" ||
     status === "REJECTED" ||
     (isCancellationMode &&
-      !bookingInfo.seatsReferences.some((reference) => reference.referenceUId === seatReferenceUId));
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUId === seatReferenceUid));
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -440,7 +440,7 @@ export default function Success(props: SuccessProps) {
                         ? t("submitted_recurring")
                         : t("submitted")
                       : isCancelled
-                      ? seatReferenceUId
+                      ? seatReferenceUid
                         ? t("no_longer_attending")
                         : t("event_cancelled")
                       : props.recurringBookings
@@ -649,7 +649,7 @@ export default function Success(props: SuccessProps) {
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
-                        seatReferenceUId={seatReferenceUId}
+                        seatReferenceUid={seatReferenceUid}
                       />
                     </>
                   ))}

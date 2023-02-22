@@ -220,11 +220,11 @@ const BookingPage = ({
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
     email:
-      rescheduleUid && router.query.seatReferenceUId
+      rescheduleUid && router.query.seatReferenceUid
         ? booking?.attendees.find((attendee) => {
             if (
               "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUId
+              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
             )
               return attendee;
           })?.email
@@ -234,11 +234,11 @@ const BookingPage = ({
         ? (router.query.email as string)
         : "",
     name:
-      rescheduleUid && router.query.seatReferenceUId
+      rescheduleUid && router.query.seatReferenceUid
         ? booking?.attendees.find((attendee) => {
             if (
               "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUId
+              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
             )
               return attendee;
           })?.name
@@ -431,7 +431,7 @@ const BookingPage = ({
 
     // Validate that guests are unique
     let alreadyInvited = false;
-    if (!router.query.seatReferenceUId) {
+    if (!router.query.seatReferenceUid) {
       booking.guests?.forEach((guest, index) => {
         if (guest.email === booking.email) {
           bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
@@ -514,7 +514,7 @@ const BookingPage = ({
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
         guests: booking.guests?.map((guest) => guest.email),
-        seatReferenceUId: router.query.seatReferenceUId as string,
+        seatReferenceUid: router.query.seatReferenceUid as string,
         seatsOwnerRescheduling: seatsBookingOwner,
       });
     }
