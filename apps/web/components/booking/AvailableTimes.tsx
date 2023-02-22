@@ -19,7 +19,7 @@ type AvailableTimesProps = {
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   eventTypeId: number;
-  recurringCount: number | undefined;
+  recurringCountUnit?: { count: number; unit: string };
   eventTypeSlug: string;
   date?: Dayjs;
   seatsPerTimeSlot?: number | null;
@@ -34,7 +34,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   date,
   eventTypeId,
   eventTypeSlug,
-  recurringCount,
+  recurringCountUnit,
   timeFormat,
   onTimeFormatChange,
   seatsPerTimeSlot,
@@ -90,7 +90,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     type: eventTypeId,
                     slug: eventTypeSlug,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
-                    count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+                    count: recurringCountUnit && !rescheduleUid ? recurringCountUnit.count : undefined,
                     ...(ethSignature ? { ethSignature } : {}),
                   },
                 };

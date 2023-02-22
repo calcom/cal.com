@@ -75,7 +75,7 @@ export const SlotPicker = ({
   timeFormat,
   onTimeFormatChange,
   timeZone,
-  recurringEventCount,
+  recurringEventCountUnit,
   users,
   seatsPerTimeSlot,
   weekStart = 0,
@@ -89,7 +89,7 @@ export const SlotPicker = ({
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
   seatsPerTimeSlot?: number;
-  recurringEventCount?: number;
+  recurringEventCountUnit?: { count: number; unit: dayjs.ManipulateType };
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   ethSignature?: string;
@@ -135,7 +135,9 @@ export const SlotPicker = ({
       browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
         ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
         : browsingDate?.startOf("month"),
-    endTime: browsingDate?.endOf("month"),
+    endTime: recurringEventCountUnit
+      ? browsingDate?.add(recurringEventCountUnit.count, recurringEventCountUnit.unit)
+      : browsingDate?.endOf("month"),
     timeZone,
     duration,
   });
@@ -192,7 +194,7 @@ export const SlotPicker = ({
         eventTypeId={eventType.id}
         eventTypeSlug={eventType.slug}
         seatsPerTimeSlot={seatsPerTimeSlot}
-        recurringCount={recurringEventCount}
+        recurringCountUnit={recurringEventCountUnit}
         ethSignature={ethSignature}
       />
     </>

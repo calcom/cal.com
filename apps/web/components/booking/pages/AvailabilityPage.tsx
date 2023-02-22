@@ -23,6 +23,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { Frequency } from "@calcom/prisma/zod-utils";
 import { HeadSeo } from "@calcom/ui";
 import { FiCreditCard, FiRefreshCcw } from "@calcom/ui/components/icon";
 
@@ -47,6 +48,18 @@ const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaste
 const TimezoneDropdown = dynamic(() => import("../TimezoneDropdown").then((mod) => mod.TimezoneDropdown), {
   ssr: false,
 });
+
+const frequencyToDayjsShorthand = (
+  count: number | undefined,
+  freq: Frequency | undefined
+): { count: number; unit: dayjs.ManipulateType } | undefined => {
+  return count && freq
+    ? {
+        count,
+        unit: (freq === Frequency.MONTHLY ? `M` : Frequency[freq][0].toLowerCase()) as dayjs.ManipulateType,
+      }
+    : undefined;
+};
 
 const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
@@ -247,7 +260,10 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   timeZone={timeZone}
                   users={userList}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                  recurringEventCount={recurringEventCount}
+                  recurringEventCountUnit={frequencyToDayjsShorthand(
+                    recurringEventCount,
+                    eventType.recurringEvent?.freq
+                  )}
                   ethSignature={gateState.rainbowToken}
                 />
               </div>
