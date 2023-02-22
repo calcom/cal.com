@@ -6,10 +6,10 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import {
   Badge,
   ButtonGroup,
@@ -39,7 +39,7 @@ import {
   FiMail,
 } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { getSerializableForm } from "../../lib/getSerializableForm";
@@ -49,7 +49,7 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
-  const { hasTeamPlan } = useHasTeamPlan();
+  const { hasPaidPlan } = useHasPaidPlan();
 
   const { data: forms, isLoading } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
     initialData: forms_,
@@ -105,7 +105,7 @@ export default function RoutingForms({
   return (
     <ShellMain
       heading="Routing Forms"
-      CTA={hasTeamPlan && <NewFormButton />}
+      CTA={hasPaidPlan && <NewFormButton />}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
         dark

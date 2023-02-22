@@ -32,7 +32,7 @@ import {
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
 
@@ -202,7 +202,7 @@ const CreateEventTypeDialog = () => {
                 min="10"
                 placeholder="15"
                 label={t("length")}
-                className="pr-20"
+                className="pr-4"
                 {...register("length", { valueAsNumber: true })}
                 addOnSuffix={t("minutes")}
               />

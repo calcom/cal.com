@@ -2,7 +2,8 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
-import { FiChevronDown } from "@calcom/ui/components/icon";
+
+import { FiChevronDown } from "../icon";
 
 export const AnimatedPopover = ({
   text,
@@ -61,7 +62,7 @@ export const AnimatedPopover = ({
       <Popover.Content side="bottom" align={align} asChild>
         <div
           className={classNames(
-            "absolute z-50 mt-2 w-56  rounded-md bg-white  py-[2px] shadow-sm ring-1 ring-black ring-opacity-5 focus-within:outline-none",
+            "absolute z-50 mt-2 max-h-64 w-56 overflow-y-scroll rounded-md bg-white py-[2px] shadow-sm ring-1 ring-black ring-opacity-5 focus-within:outline-none",
             align === "end" && "-translate-x-[228px]"
           )}>
           {children}

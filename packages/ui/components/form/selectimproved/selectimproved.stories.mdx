@@ -1,0 +1,86 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantRow,
+  VariantsTable,
+} from "@calcom/storybook/components";
+
+import { FiPlus } from "../../icon";
+import Select from "./components/Select";
+
+<Meta title="UI/Form/CustomSelect" component={Select} />
+
+<Title title="Select" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+export const options = [
+  {
+    //4
+    label: "Cal.com Inc",
+    options: [
+      { value: "UserA", label: "Pro" }, // 5
+      { value: "UserB", label: "Teampro" }, // 6
+      { value: "UserC", label: "Example" },
+      { value: "UserD", label: "Admin", disabled: true },
+    ],
+  },
+  {
+    // 5
+    label: "Acme Inc",
+    options: [
+      { value: "UserE", label: "Acme Pro" }, // 1 == 6
+      { value: "UserF", label: "Acme Teampro" },
+      { value: "UserG", label: "Acme example" },
+      { value: "UserH", label: "Acme Admin", disabled: true },
+    ],
+  },
+];
+
+export const SelectWithState = (...args) => {
+  const [value, setValue] = React.useState(options[0].options[0]);
+  return <Select options={options} selectedItems={value} onChange={(e) => setValue(e)} isClearable />;
+};
+
+export const MultiWithState = (...args) => {
+  const [value, setValue] = React.useState([options[0].options[0]]);
+  return (
+    <Select
+      options={options}
+      selectedItems={value}
+      onChange={(e) => {
+        setValue(e);
+      }}
+      isSearchable
+      isMultiple
+      isClearable
+    />
+  );
+};
+
+<Examples title="State">
+  <Example title="Single" isFullWidth>
+    <SelectWithState />
+  </Example>
+  <Example title="Multi" isFullWidth>
+    <MultiWithState />
+  </Example>
+</Examples>
+
+<Canvas>
+  <Story name="Default">
+    <div className="flex flex-col space-y-4">
+      <VariantsTable titles={[]} columnMinWidth={300}>
+        <VariantRow variant="Single">
+          <SelectWithState />
+        </VariantRow>
+        <VariantRow variant="Multi">
+          <MultiWithState />
+        </VariantRow>
+      </VariantsTable>
+    </div>
+  </Story>
+</Canvas>

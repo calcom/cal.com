@@ -1,7 +1,8 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { parseBookingLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
@@ -10,7 +11,7 @@ import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
-import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
+import type { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
 
@@ -121,8 +122,7 @@ export async function getUserAvailability(
   if (username) where.username = username;
   if (userId) where.id = userId;
 
-  let user: User | null = initialData?.user || null;
-  if (!user) user = await getUser(where);
+  const user = initialData?.user || (await getUser(where));
   if (!user) throw new HttpError({ statusCode: 404, message: "No user found" });
 
   let eventType: EventType | null = initialData?.eventType || null;
@@ -137,15 +137,13 @@ export async function getUserAvailability(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
 
-  const { selectedCalendars, ...currentUser } = user;
-
   const busyTimes = await getBusyTimes({
-    credentials: currentUser.credentials,
+    credentials: user.credentials,
     startTime: dateFrom.toISOString(),
     endTime: dateTo.toISOString(),
     eventTypeId,
-    userId: currentUser.id,
-    selectedCalendars,
+    userId: user.id,
+    username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
   });
@@ -222,28 +220,25 @@ export async function getUserAvailability(
     }
   }
 
-  const userSchedule = currentUser.schedules.filter(
-    (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
-      ? { ...eventType?.schedule }
-      : {
-          ...userSchedule,
-          availability: userSchedule.availability.map((a) => ({
-            ...a,
-            userId: currentUser.id,
-          })),
-        };
+      ? eventType.schedule
+      : userSchedule;
 
   const startGetWorkingHours = performance.now();
 
-  const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
+  const timeZone = schedule.timeZone || eventType?.timeZone || user.timeZone;
 
-  const availability =
-    schedule.availability ||
-    (eventType?.availability.length ? eventType.availability : currentUser.availability);
+  const availability = (
+    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+  ).map((a) => ({
+    ...a,
+    userId: user.id,
+  }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

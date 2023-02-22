@@ -117,7 +117,7 @@ export interface BookingLimit {
 
 export type AppsStatus = {
   appName: string;
-  type: typeof App["type"];
+  type: (typeof App)["type"];
   success: number;
   failures: number;
   errors: string[];
@@ -155,6 +155,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  seatsPerTimeSlot?: number | null;
 }
 
 export interface EntryPoint {

@@ -1,11 +1,10 @@
 import { IdentityProvider } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { hashPassword } from "@calcom/lib/auth";
+import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
-
-import slugify from "@lib/slugify";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -44,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OR: [
         { username },
         {
-          AND: [{ email: userEmail }, { password: { not: null } }, { username: { not: null } }],
+          AND: [{ email: userEmail }],
         },
       ],
     },

@@ -1,5 +1,4 @@
-import {
-  components as reactSelectComponents,
+import type {
   ControlProps,
   GroupBase,
   InputProps,
@@ -10,11 +9,12 @@ import {
   SingleValueProps,
   ValueContainerProps,
 } from "react-select";
+import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { FiCheck } from "@calcom/ui/components/icon";
 
 import { UpgradeTeamsBadge } from "../../badge";
+import { FiCheck } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -80,7 +80,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );

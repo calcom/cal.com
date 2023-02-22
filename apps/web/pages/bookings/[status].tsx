@@ -1,14 +1,16 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
-import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { FiCalendar } from "@calcom/ui/components/icon";
 
@@ -88,6 +90,8 @@ export default function Bookings() {
         return false;
       }
       shownBookings[booking.recurringEventId] = [booking];
+    } else if (status === "upcoming") {
+      return new Date(booking.startTime).toDateString() !== new Date().toDateString();
     }
     return true;
   };
@@ -121,7 +125,7 @@ export default function Bookings() {
                 <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
                 <div className="overflow-hidden rounded-md border border-gray-200">
                   <table className="w-full max-w-full table-fixed">
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="divide-y divide-gray-200 bg-white" data-testid="today-bookings">
                       <Fragment>
                         {bookingsToday.map((booking: BookingOutput) => (
                           <BookingListItem
@@ -138,7 +142,6 @@ export default function Bookings() {
               </div>
             )}
             <div className="pt-2 xl:pt-0">
-              {/* <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("all")}</p> */}
               <div className="overflow-hidden rounded-md border border-gray-200">
                 <table className="w-full max-w-full table-fixed">
                   <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">

@@ -1,15 +1,16 @@
-import { UseFormReturn } from "react-hook-form";
-import { Props } from "react-phone-number-input/react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import type { Props } from "react-phone-number-input/react-hook-form";
 
-import { EventLocationType } from "@calcom/app-store/locations";
-import { FiMapPin } from "@calcom/ui/components/icon";
+import type { EventLocationType } from "@calcom/app-store/locations";
+
+import { FiMapPin } from "../components/icon";
 
 type BookingFormValues = {
   name: string;
   email: string;
   notes?: string;
   locationType?: EventLocationType["type"];
-  guests?: string[];
+  guests?: { email: string }[];
   address?: string;
   attendeeAddress?: string;
   phone?: string;

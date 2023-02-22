@@ -1,17 +1,18 @@
-import React, { FC } from "react";
-import { IconType } from "react-icons/lib";
+import type { FC } from "react";
+import React from "react";
+import type { IconType } from "react-icons/lib";
 
+import type { ButtonBaseProps } from "../button";
+import { Button } from "../button";
 import {
-  Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuPortal,
   DropdownMenuTrigger,
-  ButtonBaseProps,
-} from "@calcom/ui";
-import { FiChevronDown, FiMoreHorizontal } from "@calcom/ui/components/icon";
+} from "../form/dropdown";
+import { FiChevronDown, FiMoreHorizontal } from "../icon";
 
 export type ActionType = {
   id: string;

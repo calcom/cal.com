@@ -1,4 +1,5 @@
-import React, { ErrorInfo } from "react";
+import type { ErrorInfo } from "react";
+import React from "react";
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode; message?: string },

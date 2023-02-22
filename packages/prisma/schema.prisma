@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = []
 }
 
 generator zod {
@@ -217,6 +217,9 @@ model Team {
   createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
+  theme               String?
+  brandColor          String       @default("#292929")
+  darkBrandColor      String       @default("#fafafa")
 }
 
 enum MembershipRole {
@@ -396,24 +399,20 @@ model ReminderMail {
   createdAt      DateTime     @default(now())
 }
 
-enum PaymentType {
-  STRIPE
-}
-
 model Payment {
-  id         Int         @id @default(autoincrement())
-  uid        String      @unique
-  // TODO: Use an App relationship instead of PaymentType enum?
-  type       PaymentType
+  id         Int      @id @default(autoincrement())
+  uid        String   @unique
+  app        App?     @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId      String?
   bookingId  Int
-  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount     Int
   fee        Int
   currency   String
   success    Boolean
   refunded   Boolean
   data       Json
-  externalId String      @unique
+  externalId String   @unique
 }
 
 enum WebhookTriggerEvents {
@@ -522,6 +521,7 @@ model App {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   credentials Credential[]
+  payments    Payment[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
@@ -615,6 +615,16 @@ model WorkflowsOnEventTypes {
   eventTypeId Int
 }
 
+model Deployment {
+  /// This is a single row table, so we use a fixed id
+  id              Int       @id @default(1)
+  logo            String?
+  /// @zod.custom(imports.DeploymentTheme)
+  theme           Json?
+  licenseKey      String?
+  agreedLicenseAt DateTime?
+}
+
 enum TimeUnit {
   DAY    @map("day")
   HOUR   @map("hour")
@@ -631,6 +641,7 @@ model WorkflowReminder {
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled      Boolean?
 }
 
 enum WorkflowTemplates {

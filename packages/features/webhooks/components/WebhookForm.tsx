@@ -233,6 +233,7 @@ const WebhookForm = (props: {
                     { value: "default", label: t("default") },
                     { value: "custom", label: t("custom") },
                   ]}
+                  isFullWidth={true}
                 />
               </div>
               {useCustomTemplate && (
@@ -248,9 +249,7 @@ const WebhookForm = (props: {
             </>
           )}
         />
-        <div className="mt-8">
-          <p className="font-medium text-black">{t("webhook_test")}</p>
-          <p className="font-sm mb-4 text-gray-600">{t("test_webhook")}</p>
+        <div className="mt-8 rounded-md bg-gray-100 p-6">
           <WebhookTestDisclosure />
         </div>
 
@@ -263,7 +262,7 @@ const WebhookForm = (props: {
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
-            {props?.webhook?.id ? t("save") : t("create")}
+            {props?.webhook?.id ? t("save") : t("create_webhook")}
           </Button>
         </div>
       </Form>

@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
-import { useState, useEffect, CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { useState, useEffect } from "react";
 
 import { sdkActionManager } from "./sdk-event";
 
@@ -19,7 +20,6 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
-    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
@@ -107,8 +107,6 @@ interface EmbedNonStylesConfig {
     medianColor?: string;
   };
 }
-
-type ReactEmbedStylesSetter = React.Dispatch<React.SetStateAction<EmbedStyles | EmbedNonStylesConfig>>;
 
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
@@ -308,7 +306,6 @@ const messageParent = (data: any) => {
 function keepParentInformedAboutDimensionChanges() {
   let knownIframeHeight: number | null = null;
   let knownIframeWidth: number | null = null;
-  let numDimensionChanges = 0;
   let isFirstTime = true;
   let isWindowLoadComplete = false;
   runAsap(function informAboutScroll() {
@@ -333,11 +330,15 @@ function keepParentInformedAboutDimensionChanges() {
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
-      (document.getElementsByClassName("main")[0] as HTMLElement) ||
+      document.getElementsByClassName("main")[0] ||
       document.getElementsByTagName("main")[0] ||
       document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
+
+    if (!(mainElement instanceof HTMLElement)) {
+      throw new Error("Main element should be an HTMLElement");
+    }
 
     const contentHeight = mainElement.offsetHeight;
     const contentWidth = mainElement.offsetWidth;
@@ -355,7 +356,6 @@ function keepParentInformedAboutDimensionChanges() {
     if (knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth) {
       knownIframeHeight = iframeHeight;
       knownIframeWidth = iframeWidth;
-      numDimensionChanges++;
       // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
       sdkActionManager?.fire("__dimensionChanged", {
         iframeHeight,
@@ -419,14 +419,14 @@ if (isBrowser) {
     });
 
     document.addEventListener("click", (e) => {
-      if (!e.target) {
+      if (!e.target || !(e.target instanceof Node)) {
         return;
       }
       const mainElement =
-        (document.getElementsByClassName("main")[0] as HTMLElement) ||
+        document.getElementsByClassName("main")[0] ||
         document.getElementsByTagName("main")[0] ||
         document.documentElement;
-      if ((e.target as HTMLElement).contains(mainElement)) {
+      if (e.target.contains(mainElement)) {
         sdkActionManager?.fire("__closeIframe", {});
       }
     });
