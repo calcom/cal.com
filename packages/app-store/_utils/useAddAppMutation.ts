@@ -1,5 +1,6 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -64,11 +65,11 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     const res = await fetch(`/api/integrations/${type}/add` + searchParams);
 
     if (!res.ok) {
-      const errorBody = await res.json();
+      const errorBody = z.object({ message: z.string() }).parse(await res.json());
       throw new Error(errorBody.message || "Something went wrong");
     }
 
-    const json = await res.json();
+    const json = z.object({ url: z.string(), newTab: z.boolean().optional() }).parse(await res.json());
     const externalUrl = /https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin);
 
     if (!isOmniInstall) {
