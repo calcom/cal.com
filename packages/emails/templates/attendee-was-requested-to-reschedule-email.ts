@@ -22,7 +22,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("requested_to_reschedule_subject_attendee", {
         eventType: this.calEvent.type,
