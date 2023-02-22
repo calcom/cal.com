@@ -1,91 +1,21 @@
 name: "Next.js Bundle Analysis"
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
-defaults:
-  run:
-    # change this if your nextjs app does not live at the root of the repo
-    working-directory: ./apps/web/
+  workflow_call:
 
 jobs:
   analyze:
-    env:
-      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
-      NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      NEXTAUTH_SECRET: secret
-      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
-      GOOGLE_LOGIN_ENABLED: true
-      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
-      DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
-      NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE: ${{ secrets.NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE }}
-      NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN: 1
-      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
-      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
-      STRIPE_PRO_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PRO_PLAN_PRODUCT_ID }}
-      STRIPE_PREMIUM_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_PREMIUM_PLAN_PRODUCT_ID }}
-      STRIPE_FREE_PLAN_PRODUCT_ID: ${{ secrets.CI_STRIPE_FREE_PLAN_PRODUCT_ID }}
-      PAYMENT_FEE_PERCENTAGE: 0.005
-      PAYMENT_FEE_FIXED: 10
-      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      SAML_ADMINS: pro@example.com
-      NEXTAUTH_URL: http://localhost:3000/api/auth
-      NEXT_PUBLIC_IS_E2E: 1
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-    services:
-      postgres:
-        image: postgres:12.1
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: calendso
-        ports:
-          - 5432:5432
     runs-on: ubuntu-latest
     steps:
+      - run: cd ${{ github.workspace }}
       - uses: actions/checkout@v3
-
-      - name: Set up node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
-
-      - name: Restore next build
-        uses: actions/cache@v2
-        id: restore-build-cache
-        env:
-          cache-name: cache-next-build
-        with:
-          path: apps/web/.next/cache
-          # change this if you prefer a more strict cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
-
-      - name: Build next.js app
-        # change this if your site requires a custom build command
-        run: cd ../.. && yarn db-seed && yarn build
-
-      # Here's the first place where next-bundle-analysis' own script is used
-      # This step pulls the raw bundle stats for the current bundle
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/cache-build
       - name: Analyze bundle
-        run: npx -p nextjs-bundle-analysis report
+        run: |
+          cd apps/web
+          npx -p nextjs-bundle-analysis report
 
       - name: Upload bundle
         uses: actions/upload-artifact@v2
@@ -116,12 +46,15 @@ jobs:
       # entry in your package.json file.
       - name: Compare with base branch bundle
         if: success() && github.event.number
-        run: ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
+        run: |
+          cd apps/web
+          ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
         if: success() && github.event.number
         run: |
+          cd apps/web
           body=$(cat .next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
