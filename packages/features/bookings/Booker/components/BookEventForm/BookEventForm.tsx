@@ -13,7 +13,8 @@ import {
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
+import type { HttpError } from "@calcom/lib/http-error";
+import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField, Alert } from "@calcom/ui";
 import { FiInfo } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
@@ -255,10 +256,20 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           </Button>
         </div>
       </Form>
-      {/* @TODO: Error */}
       {(createBookingMutation.isError || createRecurringBookingMutation.isError) && (
-        <div>An error occured</div>
-        // <div>{createBookingMutation?.error?.message || createRecurringBookingMutation?.error?.message}</div>
+        <Alert
+          className="mt-2"
+          severity="warning"
+          title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+          message={
+            createBookingMutation.isError && (createBookingMutation?.error as HttpError)?.message
+              ? t((createBookingMutation.error as HttpError).message)
+              : createRecurringBookingMutation.isError &&
+                (createRecurringBookingMutation?.error as HttpError)?.message
+              ? t((createRecurringBookingMutation.error as HttpError).message)
+              : "Unknown error"
+          }
+        />
       )}
     </div>
   );
