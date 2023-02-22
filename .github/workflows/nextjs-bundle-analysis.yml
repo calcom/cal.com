@@ -2,6 +2,9 @@ name: "Next.js Bundle Analysis"
 
 on:
   workflow_call:
+  push:
+    branches:
+      - main
 
 jobs:
   analyze:
