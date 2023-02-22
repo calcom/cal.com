@@ -437,7 +437,7 @@ export default class EventManager {
   private async updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
-  ): Promise<Array<EventResult<NewCalendarEventType>> | []> {
+  ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference | undefined = undefined,
       credential;
     try {
