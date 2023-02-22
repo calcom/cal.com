@@ -16,7 +16,7 @@ export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail
     }
 
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_awaiting_approval_subject", {
         title: this.calEvent.title,
