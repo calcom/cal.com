@@ -13,25 +13,19 @@ import {
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
 import { FiInfo } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../Booker/store";
+import { useEvent } from "../Booker/utils/event";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { GuestFields } from "./GuestFields";
-import { BookingFormValues, bookingFormSchema } from "./form-config";
+import type { BookingFormValues } from "./form-config";
+import { bookingFormSchema } from "./form-config";
 
 type BookEventFormProps = {
-  username: string;
-  eventSlug: string;
   onCancel?: () => void;
-  // Duration and recurring event count need to be passed in as a prop, since form does not use booker context,
-  // so form can also be used outside of booker component.
-  duration?: number | null;
-  recurringEventCount?: number | null;
-  timeslot?: string | null;
 };
 
 const getSuccessPath = ({
@@ -56,23 +50,19 @@ const getSuccessPath = ({
   },
 });
 
-export const BookEventForm = ({
-  username,
-  eventSlug,
-  onCancel,
-  duration,
-  timeslot,
-  recurringEventCount,
-}: BookEventFormProps) => {
+export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const router = useRouter();
   const { t, i18n } = useLocale();
   const { timezone } = useTimePreferences();
-  const [rescheduleUid, rescheduleBooking] = useBookerStore((state) => [
-    state.rescheduleUid,
-    state.rescheduleBooking,
-  ]);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const rescheduleBooking = useBookerStore((state) => state.rescheduleBooking);
+  const eventSlug = useBookerStore((state) => state.eventSlug);
+  const duration = useBookerStore((state) => state.selectedDuration);
+  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
-  const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
+  const event = useEvent();
+
   const defaultValues = () => {
     if (isRescheduling) {
       return {
@@ -105,15 +95,26 @@ export const BookEventForm = ({
 
       // @TODO: add "formertime"
       return await router.push(
-        getSuccessPath({ uid, email: bookingForm.getValues("email"), slug: eventSlug, isRecurring: false })
+        getSuccessPath({
+          uid,
+          email: bookingForm.getValues("email"),
+          slug: `${eventSlug}`,
+          isRecurring: false,
+        })
       );
     },
   });
+
   const createRecurringBookingMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData[0] || {};
       return await router.push(
-        getSuccessPath({ uid, email: bookingForm.getValues("email"), slug: eventSlug, isRecurring: true })
+        getSuccessPath({
+          uid,
+          email: bookingForm.getValues("email"),
+          slug: `${eventSlug}`,
+          isRecurring: true,
+        })
       );
     },
   });

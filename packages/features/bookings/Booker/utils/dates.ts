@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 
 import { MONTH_QUERY_PARAM } from "../config";
 
@@ -10,7 +11,7 @@ import { MONTH_QUERY_PARAM } from "../config";
 export const getBrowsingMonthStart = (month: string | undefined) => {
   const monthFromQueryParam =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get(MONTH_QUERY_PARAM) : null;
-  const browsingMonth = month || monthFromQueryParam || dayjs(new Date()).format("YYYY-MM");
+  const browsingMonth = month || monthFromQueryParam || dayjs(new Date());
 
   // @TODO: Old code got month in specific TZ. But if you request january, you always
   // want january, right? Not dec if you're in a different timezone.

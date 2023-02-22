@@ -3,11 +3,11 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes } from "@calcom/features/bookings";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { useSchedule } from "@calcom/features/schedules";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
+import { useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -22,22 +22,9 @@ export const AvailableTimeSlots = ({
   limitHeight,
   seatsPerTimeslot,
 }: AvailableTimeSlotsProps) => {
-  const [selectedDate, username, eventSlug, eventId, month] = useBookerStore((state) => [
-    state.selectedDate,
-    state.username,
-    state.eventSlug,
-    state.eventId,
-    state.month,
-  ]);
+  const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
-  const schedule = useSchedule({
-    username,
-    eventSlug,
-    eventId,
-    browsingMonth: month,
-    timezone,
-    // @TODO: Fix types
-  } as { username: string; eventSlug: string; browsingMonth: Date; timezone: string });
+  const schedule = useScheduleForEvent();
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.

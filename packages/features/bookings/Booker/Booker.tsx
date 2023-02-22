@@ -1,77 +1,60 @@
-import { LazyMotion, domAnimation, m, AnimatePresence, MotionStyle } from "framer-motion";
-import { Fragment, useEffect, useState } from "react";
+import type { MotionStyle } from "framer-motion";
+import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
+import { Fragment, useEffect } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import { BookEventForm } from "@calcom/features/bookings/BookEventForm";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
-import DatePicker from "@calcom/features/calendars/DatePicker";
-import { useNonEmptyScheduleDays, useSchedule } from "@calcom/features/schedules";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
+import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { BookerSection } from "./components/Section";
 import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
-import { useBookerStore } from "./store";
-import { BookerLayout, BookerProps } from "./types";
+import { useBookerStore, useInitializeBookerStore } from "./store";
+import type { BookerLayout, BookerProps } from "./types";
 import { useGetBrowsingMonthStart } from "./utils/dates";
 
 // @TODO: Test embed view
 /* @TODO: eth signature / gates */
 
 const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
-  const { i18n } = useLocale();
-  const { timezone } = useTimePreferences();
   const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
   // Custom breakpoint to make calendar fit.
   const isMobile = useMediaQuery("(max-width: 800px)");
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
-  const rescheduleUuid =
+  const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
 
   const event = trpc.viewer.public.event.useQuery({ username, eventSlug }, { refetchOnWindowFocus: false });
 
-  const schedule = useSchedule({
-    username,
-    eventSlug,
-    eventId: event?.data?.id,
-    browsingMonth: browsingMonthStart.toDate(),
-    timezone,
-  });
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-
-  const [bookingTime, setBookingTime] = useState<string | null>(null);
-
-  const initializeStore = useBookerStore((state) => state.initialize);
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [selectedDate, setSelectedDate] = useBookerStore(
     (state) => [state.selectedDate, state.setSelectedDate],
     shallow
   );
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
+  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
+    (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
+    shallow
+  );
 
-  useEffect(() => {
-    initializeStore(
-      username,
-      eventSlug,
-      browsingMonthStart.toDate(),
-      event?.data?.id,
-      rescheduleUuid,
-      rescheduleBooking
-    );
-  }, [initializeStore, username, eventSlug, browsingMonthStart, event, rescheduleUuid, rescheduleBooking]);
+  useInitializeBookerStore({
+    username,
+    eventSlug,
+    month: browsingMonthStart.toDate(),
+    eventId: event?.data?.id,
+    rescheduleUid,
+    rescheduleBooking,
+  });
 
   const onMonthChange = (date: Dayjs) => {
     setBrowsingMonthStart(date);
@@ -83,7 +66,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   };
 
   const onTimeSelect = (time: string) => {
-    setBookingTime(time);
+    setSelectedTimeslot(time);
   };
 
   useEffect(() => {
@@ -93,9 +76,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!bookingTime) return setBookerState("selecting_time");
+    if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, bookingTime, setBookerState]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
   return (
     <>
@@ -137,18 +120,10 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <AnimatePresence>
           <StickyOnDesktop key="meta">
             <BookerSection area="meta">
-              <EventMeta event={event.data} isLoading={event.isLoading} selectedTime={bookingTime} />
+              <EventMeta event={event.data} isLoading={event.isLoading} selectedTime={selectedTimeslot} />
               {layout !== "small_calendar" && (
                 <div className=" mt-auto p-6">
-                  <DatePicker
-                    isLoading={schedule.isLoading}
-                    onChange={onDaySelect}
-                    onMonthChange={onMonthChange}
-                    includedDates={nonEmptyScheduleDays}
-                    locale={i18n.language}
-                    browsingDate={browsingMonthStart}
-                    weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
-                  />
+                  <DatePicker onDaySelect={onDaySelect} onMonthChange={onMonthChange} />
                 </div>
               )}
             </BookerSection>
@@ -160,14 +135,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:border-l"
             {...fadeInUp}
             visible={bookerState === "booking"}>
-            <BookEventForm
-              username={username}
-              eventSlug={eventSlug}
-              onCancel={() => setBookingTime(null)}
-              duration={selectedDuration}
-              timeslot={bookingTime}
-              recurringEventCount={recurringEventCount}
-            />
+            <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
           </BookerSection>
 
           <BookerSection
@@ -177,16 +145,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             {...fadeInUp}
             initial="visible"
             className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:border-l md:border-gray-200">
-            <DatePicker
-              isLoading={schedule.isLoading}
-              onChange={onDaySelect}
-              onMonthChange={onMonthChange}
-              includedDates={nonEmptyScheduleDays}
-              locale={i18n.language}
-              browsingDate={browsingMonthStart}
-              selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
-            />
+            <DatePicker onDaySelect={onDaySelect} onMonthChange={onMonthChange} />
           </BookerSection>
 
           <BookerSection
