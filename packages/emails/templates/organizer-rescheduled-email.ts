@@ -20,7 +20,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("event_type_has_been_rescheduled_on_time_date", {
         title: this.calEvent.title,
