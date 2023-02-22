@@ -48,7 +48,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
       <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
         {eventType.description && (
           <div
-            className="dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+            className="line-clamp-4 dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
             dangerouslySetInnerHTML={{
               __html: md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " ")),
             }}
