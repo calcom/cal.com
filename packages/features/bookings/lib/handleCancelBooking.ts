@@ -24,13 +24,8 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
-  const { userId } = req;
-
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
-    schemaBookingCancelParams.parse(req.body);
-
-  const bookingToDelete = await prisma.booking.findUnique({
+async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
+  return await prisma.booking.findUnique({
     where: {
       id,
       uid,
@@ -92,6 +87,18 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       seatsReferences: true,
     },
   });
+}
+
+type CustomRequest = NextApiRequest & {
+  userId?: number;
+  bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+};
+
+async function handler(req: CustomRequest) {
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUId } =
+    schemaBookingCancelParams.parse(req.body);
+  req.bookingToDelete = await getBookingToDelete(id, uid);
+  const { bookingToDelete, userId } = req;
 
   if (!bookingToDelete || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
@@ -106,6 +113,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   }
 
   // If it's just an attendee of a booking then just remove them from that booking
+  const result = await handleSeatedEventCancellation(req);
+  if (result) return { success: true };
   if (seatReferenceUId && bookingToDelete.attendees.length > 1) {
     const seatReference = bookingToDelete.seatsReferences.find(
       (reference) => reference.referenceUId === seatReferenceUId
@@ -530,6 +539,33 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   req.statusCode = 200;
   return { message: "Booking successfully cancelled." };
+}
+
+async function handleSeatedEventCancellation(req: CustomRequest) {
+  const { seatReferenceUId } = schemaBookingCancelParams.parse(req.body);
+  if (!seatReferenceUId) return;
+  if (!req.bookingToDelete?.attendees.length || req.bookingToDelete.attendees.length < 2) return;
+
+  const seatReference = req.bookingToDelete.seatsReferences.find(
+    (reference) => reference.referenceUId === seatReferenceUId
+  );
+
+  if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+  await Promise.all([
+    prisma.bookingSeat.delete({
+      where: {
+        referenceUId: seatReferenceUId,
+      },
+    }),
+    prisma.attendee.delete({
+      where: {
+        id: seatReference.attendeeId,
+      },
+    }),
+  ]);
+  req.statusCode = 200;
+  return { success: true };
 }
 
 export default handler;

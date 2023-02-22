@@ -10,8 +10,7 @@ import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getLocationValueForDB } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationValueForDB, MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
@@ -837,17 +836,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       evt.attendees = [currentAttendee];
     }
 
-    const attendeesData = evt.attendees.map((attendee) => {
-      //if attendee is team member, it should fetch their locale not booker's locale
-      //perhaps make email fetch request to see if his locale is stored, else
-      const retObj = {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        locale: attendee.language.locale,
-      };
-      return retObj;
-    });
+    //if attendee is team member, it should fetch their locale not booker's locale
+    //perhaps make email fetch request to see if his locale is stored, else
+    const attendeesData = evt.attendees.map((attendee) => ({
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      locale: attendee.language.locale,
+    }));
 
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
