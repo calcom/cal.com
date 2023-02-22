@@ -1,33 +1,17 @@
 name: Unit tests
 on:
-  pull_request_target: # So we can test on forks
-    branches:
-      - main
-    paths:
-      - apps/web/**
-      - packages/**
+  workflow_call:
   workflow_run:
     workflows: [Crowdin Action]
     types: [completed]
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 jobs:
   test:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
-          fetch-depth: 2
-      # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
       - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
-      - name: Use Node 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-      - run: yarn --frozen-lockfile
+      - uses: ./.github/actions/yarn-install
+      # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
       - run: yarn test
