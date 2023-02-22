@@ -16,7 +16,7 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
     }
 
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("refund_failed_subject", {
         eventType: this.calEvent.type,
