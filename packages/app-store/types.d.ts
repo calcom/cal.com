@@ -5,10 +5,10 @@ import type { _EventTypeModel } from "@calcom/prisma/zod";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 
-export type IntegrationOAuthCallbackState = {
-  returnTo: string;
-  installGoogleVideo?: boolean;
-};
+export type IntegrationOAuthCallbackState = z.infer<
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  typeof import("./_utils/integrationOAuthCallbackStateSchema").integrationOAuthCallbackStateSchema
+>;
 
 type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: string };
 

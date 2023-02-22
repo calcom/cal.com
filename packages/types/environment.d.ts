@@ -1,3 +1,5 @@
+import "@total-typescript/ts-reset";
+
 declare namespace NodeJS {
   interface ProcessEnv {
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
