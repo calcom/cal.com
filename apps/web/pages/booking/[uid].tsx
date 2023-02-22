@@ -35,6 +35,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -1018,7 +1019,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
   const bookingInfo = await prisma.booking.findFirst({
     where: {
-      uid: await getBookingOrSeatUID(uid),
+      uid: await maybeGetBookingUidFromSeat(prisma, uid),
     },
     select: {
       title: true,
@@ -1146,25 +1147,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentStatus: payment,
     },
   };
-}
-
-async function getBookingOrSeatUID(uid: string) {
-  // Look bookingUid in bookingSeat
-  const bookingSeat = await prisma.bookingSeat.findUnique({
-    where: {
-      referenceUId: uid,
-    },
-    select: {
-      booking: {
-        select: {
-          id: true,
-          uid: true,
-        },
-      },
-    },
-  });
-  if (bookingSeat) return bookingSeat.booking.uid;
-  return uid;
 }
 
 async function getRecurringBookings(recurringEventId: string | null) {

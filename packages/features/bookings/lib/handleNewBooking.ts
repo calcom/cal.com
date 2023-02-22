@@ -43,6 +43,7 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import {
@@ -757,24 +758,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
-  async function getOriginalRescheduledBooking(uid: string) {
-    let bookingUid = uid;
-    // Now rescheduleUid can be bookingSeat
-    const bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUId: uid,
-      },
-      include: {
-        booking: true,
-      },
-    });
-    if (bookingSeat) {
-      bookingUid = bookingSeat.booking.uid;
-    }
-
+  async function getOriginalRescheduledBooking(bookingUid: string) {
+    const uid = await maybeGetBookingUidFromSeat(prisma, bookingUid);
     return prisma.booking.findFirst({
       where: {
-        uid: bookingUid,
+        uid,
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
