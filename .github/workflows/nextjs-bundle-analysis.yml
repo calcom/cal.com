@@ -7,10 +7,14 @@ on:
       - main
 
 jobs:
+  build:
+    name: Production build
+    uses: ./.github/workflows/production-build.yml
+    secrets: inherit
   analyze:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - run: cd ${{ github.workspace }}
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
