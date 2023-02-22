@@ -1,4 +1,5 @@
 {
+  "trial_days_left": "$t(day, {\"count\": {{days}} }) geratzen zaizkizu zure PRO frogan",
   "day_one": "egun {{count}}",
   "day_other": "{{count}} egun",
   "second_one": "segundo {{count}}",
