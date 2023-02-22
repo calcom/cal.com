@@ -1,4 +1,4 @@
-name: Cache databse between jobs
+name: Cache database between jobs
 description: "Cache or restore if necessary"
 inputs:
   DATABASE_URL:
