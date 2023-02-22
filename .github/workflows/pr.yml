@@ -1,0 +1,88 @@
+name: PR Update
+
+on:
+  push:
+  pull_request_target:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      app-store: ${{ steps.filter.outputs.app-store }}
+      embed: ${{ steps.filter.outputs.embed }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            app-store:
+              - 'apps/web/**'
+              - 'packages/app-store/**'
+            embed:
+              - 'apps/web/**'
+              - 'packages/embeds/**'
+
+  setup:
+    name: Yarn install & cache
+    uses: ./.github/workflows/yarn-install.yml
+    secrets: inherit
+
+  type-check:
+    name: Type check
+    needs: setup
+    uses: ./.github/workflows/check-types.yml
+    secrets: inherit
+
+  test:
+    name: Unit tests
+    needs: setup
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  lint:
+    name: Linters
+    needs: setup
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  build:
+    name: Production build
+    needs: setup
+    uses: ./.github/workflows/production-build.yml
+    secrets: inherit
+
+  e2e:
+    name: E2E tests
+    needs: [lint, build]
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-app-store:
+    name: E2E App Store tests
+    if: ${{ needs.changes.outputs.app-store == 'true' }}
+    needs: [changes, lint, build]
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
+  e2e-embed:
+    name: E2E embeds tests
+    if: ${{ needs.changes.outputs.embed == 'true' }}
+    needs: [changes, lint, build]
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  analyze:
+    needs: build
+    uses: ./.github/workflows/nextjs-bundle-analysis.yml
+    secrets: inherit
