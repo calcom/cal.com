@@ -1,9 +1,11 @@
+import { cloneDeep } from "lodash";
 import { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
+import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -14,6 +16,7 @@ import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
+import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
@@ -26,6 +29,7 @@ import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
+  const organizerCalEvent = cloneDeep(calEvent);
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
@@ -43,7 +47,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent);
+        const scheduledEmail = new OrganizerScheduledEmail(organizerCalEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -84,6 +88,30 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
+export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  const clonedCalEvent = cloneDeep(calEvent);
+  const emailsToSend: Promise<unknown>[] = [
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new AttendeeRescheduledEmail(clonedCalEvent, attendee);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
+      }
+    }),
+    new Promise((resolve, reject) => {
+      try {
+        const scheduledEmail = new OrganizerRescheduledEmail(clonedCalEvent);
+        resolve(scheduledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
+      }
+    }),
+  ];
+
+  await Promise.all(emailsToSend);
+};
+
 export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
   invitee: Person,
@@ -91,6 +119,8 @@ export const sendScheduledSeatsEmails = async (
   showAttendees: boolean
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
+
+  const organizerCalEvent = cloneDeep(calEvent);
 
   emailsToSend.push(
     new Promise((resolve, reject) => {
@@ -106,7 +136,7 @@ export const sendScheduledSeatsEmails = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new OrganizerScheduledEmail(calEvent, newSeat);
+        const scheduledEmail = new OrganizerScheduledEmail(organizerCalEvent, newSeat);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
@@ -115,6 +145,30 @@ export const sendScheduledSeatsEmails = async (
   );
 
   await Promise.all(emailsToSend);
+};
+
+export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+  await Promise.all([
+    new Promise((resolve, reject) => {
+      try {
+        const attendeeCancelledSeatEmail = new AttendeeCancelledSeatEmail(calEvent, cancelledAttendee);
+        resolve(attendeeCancelledSeatEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("attendeeCancelledSeat.sendEmail failed", e));
+      }
+    }),
+    new Promise((resolve, reject) => {
+      try {
+        const organizerAttendeeSeatCancelledEmail = new OrganizerAttendeeCancelledSeatEmail(
+          calEvent,
+          cancelledAttendee
+        );
+        resolve(organizerAttendeeSeatCancelledEmail.sendEmail());
+      } catch (e) {
+        reject(console.error("organizerAttendeeSeatCalledEmail.sendEmail failed", e));
+      }
+    }),
+  ]);
 };
 
 export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {

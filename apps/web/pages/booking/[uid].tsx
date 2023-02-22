@@ -254,7 +254,11 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
-  const isCancelled = status === "CANCELLED" || status === "REJECTED";
+  const isCancelled =
+    status === "CANCELLED" ||
+    status === "REJECTED" ||
+    (isCancellationMode &&
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUId === seatReferenceUid));
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -436,7 +440,9 @@ export default function Success(props: SuccessProps) {
                         ? t("submitted_recurring")
                         : t("submitted")
                       : isCancelled
-                      ? t("event_cancelled")
+                      ? seatReferenceUid
+                        ? t("no_longer_attending")
+                        : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
                       : t("meeting_is_scheduled")}
@@ -643,7 +649,7 @@ export default function Success(props: SuccessProps) {
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
-                        seatReferenceUId={seatReferenceUid}
+                        seatReferenceUid={seatReferenceUid}
                       />
                     </>
                   ))}
@@ -1055,6 +1061,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         select: {
           eventName: true,
           slug: true,
+        },
+      },
+      seatsReferences: {
+        select: {
+          referenceUId: true,
         },
       },
     },

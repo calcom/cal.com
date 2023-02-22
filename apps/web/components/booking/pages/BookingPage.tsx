@@ -209,20 +209,44 @@ const BookingPage = ({
   }, [router.query.guest]);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
-  const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => {
-        return { email: attendee.email };
-      })
-    : [];
+  const seatsBookingOwner = !!(eventType.seatsPerTimeSlot && booking?.user?.id === session?.user?.id);
+  const guestListEmails =
+    !isDynamicGroupBooking && !eventType.seatsPerTimeSlot
+      ? booking?.attendees.slice(1).map((attendee) => {
+          return { email: attendee.email };
+        })
+      : [];
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid
-      ? booking?.attendees[0].email
-      : router.query.email
-      ? (router.query.email as string)
-      : "",
-    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
+    email:
+      rescheduleUid && router.query.seatReferenceUid
+        ? booking?.attendees.find((attendee) => {
+            if (
+              "bookingSeatReference" in attendee &&
+              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+            )
+              return attendee;
+          })?.email
+        : rescheduleUid
+        ? booking?.attendees[0].email
+        : router.query.email
+        ? (router.query.email as string)
+        : "",
+    name:
+      rescheduleUid && router.query.seatReferenceUid
+        ? booking?.attendees.find((attendee) => {
+            if (
+              "bookingSeatReference" in attendee &&
+              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+            )
+              return attendee;
+          })?.name
+        : rescheduleUid
+        ? booking?.attendees[0].name
+        : router.query.name
+        ? (router.query.name as string)
+        : "",
   };
 
   const defaultValues = () => {
@@ -252,6 +276,7 @@ const BookingPage = ({
     }
 
     const customInputType = booking.customInputs;
+
     return {
       name: defaultUserValues.name,
       email: defaultUserValues.email || "",
@@ -406,24 +431,26 @@ const BookingPage = ({
 
     // Validate that guests are unique
     let alreadyInvited = false;
-    booking.guests?.forEach((guest, index) => {
-      if (guest.email === booking.email) {
-        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-        alreadyInvited = true;
-      }
+    if (!router.query.seatReferenceUid) {
+      booking.guests?.forEach((guest, index) => {
+        if (guest.email === booking.email) {
+          bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+          alreadyInvited = true;
+        }
 
-      if (booking.guests) {
-        let guestCount = 0;
-        for (const checkGuest of booking.guests) {
-          if (checkGuest.email === guest.email) guestCount++;
-          if (guestCount > 1) {
-            bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-            alreadyInvited = true;
-            break;
+        if (booking.guests) {
+          let guestCount = 0;
+          for (const checkGuest of booking.guests) {
+            if (checkGuest.email === guest.email) guestCount++;
+            if (guestCount > 1) {
+              bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+              alreadyInvited = true;
+              break;
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     if (alreadyInvited) return;
 
@@ -487,6 +514,8 @@ const BookingPage = ({
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
         guests: booking.guests?.map((guest) => guest.email),
+        seatReferenceUid: router.query.seatReferenceUid as string,
+        seatsOwnerRescheduling: seatsBookingOwner,
       });
     }
   };

@@ -299,7 +299,21 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
-          seatsReferences: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUId: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
         orderBy,
         take: take + 1,
@@ -1194,4 +1208,25 @@ export const bookingsRouter = router({
 
     return { message, status };
   }),
+  getBookingAttendees: authedProcedure
+    .input(z.object({ bookingUid: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          uid: input.bookingUid,
+        },
+        select: {
+          _count: {
+            select: {
+              attendees: true,
+            },
+          },
+        },
+      });
+
+      if (!booking) {
+        throw new Error("Booking not found");
+      }
+      return booking._count.attendees;
+    }),
 });

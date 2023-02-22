@@ -1,5 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -178,6 +178,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    seatsOwnerRescheduling: z.boolean().optional(),
   })
 );
 
@@ -186,7 +187,7 @@ export const schemaBookingCancelParams = z.object({
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
-  seatReferenceUId: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({

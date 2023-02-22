@@ -137,6 +137,10 @@ export const getUid = (calEvent: CalendarEvent): string => {
   return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 
+const getSeatReferenceId = (calEvent: CalendarEvent): string => {
+  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
+};
+
 export const getManageLink = (calEvent: CalendarEvent) => {
   return `
 ${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
@@ -146,12 +150,15 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
-    WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+    WEBAPP_URL +
+    `/booking/${getUid(
+      calEvent
+    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
   );
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
+  return WEBAPP_URL + "/reschedule/" + getUid(calEvent) + "?" + getSeatReferenceId(calEvent);
 };
 
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
@@ -169,7 +176,7 @@ ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
-  getManageLink(calEvent)
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
 }
 ${
   calEvent.paymentInfo

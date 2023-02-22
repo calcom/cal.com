@@ -95,19 +95,9 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUId = () => {
-    const attendee = booking.attendees.find((attendee) => {
-      if (attendee.email === user?.email) return attendee;
-    });
-
-    if (attendee) {
-      const attendeeSeatReference = booking.seatsReferences.find(
-        (attendeeSeatReference) => attendeeSeatReference.attendeeId === attendee.id
-      );
-
-      if (attendeeSeatReference) return attendeeSeatReference.referenceUId;
+    if (booking.seatsReferences.length > 0) {
+      return booking.seatsReferences[0].referenceUId;
     }
-
-    return "";
   };
 
   const pendingActions: ActionType[] = [
@@ -163,7 +153,9 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: FiClock,
           label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}`,
+          href: `/reschedule/${booking.uid}${
+            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUId()}` : ""
+          }`,
         },
         {
           id: "reschedule_request",

@@ -71,6 +71,10 @@ export default class GoogleCalendarService implements Calendar {
   };
 
   async createEvent(calEventRaw: CalendarEvent): Promise<NewCalendarEventType> {
+    const eventAttendees = calEventRaw.attendees.map(({ id, ...rest }) => ({
+      ...rest,
+      responseStatus: "accepted",
+    }));
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
@@ -91,11 +95,7 @@ export default class GoogleCalendarService implements Calendar {
             organizer: true,
             responseStatus: "accepted",
           },
-          // eslint-disable-next-line
-          ...calEventRaw.attendees.map(({ id, ...rest }) => ({
-            ...rest,
-            responseStatus: "accepted",
-          })),
+          ...eventAttendees,
         ],
         reminders: {
           useDefault: true,
