@@ -1,0 +1,104 @@
+name: Production Build
+description: "Creates a production build, caches it and restores if necessary"
+inputs:
+  DATABASE_URL:
+    required: true
+  NEXT_PUBLIC_WEBAPP_URL:
+    required: true
+  NEXT_PUBLIC_WEBSITE_URL:
+    required: true
+  NEXTAUTH_SECRET:
+    required: true
+  GOOGLE_API_CREDENTIALS:
+    required: true
+  GOOGLE_LOGIN_ENABLED:
+    required: true
+  CRON_API_KEY:
+    required: false
+  CALENDSO_ENCRYPTION_KEY:
+    required: true
+  DAILY_API_KEY:
+    required: true
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY:
+    required: true
+  NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE:
+    required: true
+  NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN:
+    required: true
+  STRIPE_PRIVATE_KEY:
+    required: true
+  STRIPE_CLIENT_ID:
+    required: true
+  STRIPE_WEBHOOK_SECRET:
+    required: true
+  STRIPE_PRO_PLAN_PRODUCT_ID:
+    required: true
+  STRIPE_PREMIUM_PLAN_PRODUCT_ID:
+    required: true
+  STRIPE_FREE_PLAN_PRODUCT_ID:
+    required: true
+  PAYMENT_FEE_PERCENTAGE:
+    required: true
+  PAYMENT_FEE_FIXED:
+    required: true
+  SAML_DATABASE_URL:
+    required: true
+  SAML_ADMINS:
+    required: true
+  NEXTAUTH_URL:
+    required: true
+  NEXT_PUBLIC_IS_E2E:
+    required: true
+  TURBO_TOKEN:
+    required: true
+  TURBO_TEAM:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/yarn-install
+    - uses: ./.github/actions/cache-build
+      id: prod-build-cache
+    - name: Next.js production build
+      if: steps.prod-build-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}
+        NEXT_PUBLIC_WEBAPP_URL: ${{ inputs.NEXT_PUBLIC_WEBAPP_URL }}
+        NEXT_PUBLIC_WEBSITE_URL: ${{ inputs.NEXT_PUBLIC_WEBSITE_URL }}
+        NEXTAUTH_SECRET: ${{ inputs.NEXTAUTH_SECRET }}
+        GOOGLE_API_CREDENTIALS: ${{ inputs.GOOGLE_API_CREDENTIALS }}
+        GOOGLE_LOGIN_ENABLED: ${{ inputs.GOOGLE_LOGIN_ENABLED }}
+        CALENDSO_ENCRYPTION_KEY: ${{ inputs.CALENDSO_ENCRYPTION_KEY }}
+        DAILY_API_KEY: ${{ inputs.DAILY_API_KEY }}
+        NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ inputs.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+        NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ inputs.NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
+        NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ inputs.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
+        NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ inputs.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
+        NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE: ${{ inputs.NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE }}
+        NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN: ${{ inputs.NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN }}
+        STRIPE_PRIVATE_KEY: ${{ inputs.STRIPE_PRIVATE_KEY }}
+        STRIPE_CLIENT_ID: ${{ inputs.STRIPE_CLIENT_ID }}
+        STRIPE_WEBHOOK_SECRET: ${{ inputs.STRIPE_WEBHOOK_SECRET }}
+        STRIPE_PRO_PLAN_PRODUCT_ID: ${{ inputs.STRIPE_PRO_PLAN_PRODUCT_ID }}
+        STRIPE_PREMIUM_PLAN_PRODUCT_ID: ${{ inputs.STRIPE_PREMIUM_PLAN_PRODUCT_ID }}
+        STRIPE_FREE_PLAN_PRODUCT_ID: ${{ inputs.STRIPE_FREE_PLAN_PRODUCT_ID }}
+        PAYMENT_FEE_PERCENTAGE: ${{ inputs.PAYMENT_FEE_PERCENTAGE }}
+        PAYMENT_FEE_FIXED: ${{ inputs.PAYMENT_FEE_FIXED }}
+        SAML_DATABASE_URL: ${{ inputs.SAML_DATABASE_URL }}
+        SAML_ADMINS: ${{ inputs.SAML_ADMINS }}
+        NEXTAUTH_URL: ${{ inputs.NEXTAUTH_URL }}
+        NEXT_PUBLIC_IS_E2E: ${{ inputs.NEXT_PUBLIC_IS_E2E }}
+        TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+        TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
+      run: |
+        yarn db-seed
+        yarn build
