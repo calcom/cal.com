@@ -11,7 +11,7 @@ export const metadata = {
   variant: "conferencing",
   categories: ["video"],
   logo: "/api/app-store/sylaps/icon.svg",
-  publisher: "Cal.com",
+  publisher: "Sylaps Inc",
   url: "https://sylaps.com/",
   verified: true,
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
