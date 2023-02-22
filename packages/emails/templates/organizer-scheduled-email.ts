@@ -71,7 +71,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: decodeURIComponent(
         `${this.newSeat ? this.t("new_attendee") + ":" : ""} ${this.calEvent.title}`
