@@ -1,25 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
-const bookingSelect = {
-  startTime: true,
-  description: true,
-  customInputs: true,
-  smsReminderNumber: true,
-  location: true,
-  attendees: {
-    select: {
-      email: true,
-      name: true,
-    },
-  },
-  user: {
-    select: {
-      id: true,
-    },
-  },
-};
-
-async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: string) {
+async function getBooking(prisma: PrismaClient, uid: string) {
   const booking = await prisma.booking.findFirst({
     where: {
       uid,
@@ -34,12 +15,6 @@ async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUId?: 
         select: {
           email: true,
           name: true,
-          ...(seatReferenceUId && { bookingSeatsReference: true }),
-        },
-      },
-      user: {
-        select: {
-          id: true,
         },
       },
     },
