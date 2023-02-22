@@ -5,7 +5,6 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
-import { BookEventForm } from "@calcom/features/bookings/BookEventForm";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -14,6 +13,7 @@ import { ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
+import { BookEventForm } from "./components/BookEventForm";
 import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { LargeCalendar } from "./components/LargeCalendar";

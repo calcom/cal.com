@@ -2,7 +2,7 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
-import { EventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
 
 export type BookingFormValues = {
   name: string;

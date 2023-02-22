@@ -1,12 +1,12 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Group, Label, RadioField, TextAreaField, TextField, PhoneInput } from "@calcom/ui";
 import { FiInfo } from "@calcom/ui/components/icon";
 
-import { BookingFormValues } from "./form-config";
+import type { BookingFormValues } from "./form-config";
 
 type CustomInputFieldsProps = {
   inputs: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["customInputs"];

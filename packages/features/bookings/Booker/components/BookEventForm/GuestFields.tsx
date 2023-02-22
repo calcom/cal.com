@@ -1,11 +1,12 @@
-import { UseFormReturn, useFieldArray } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField, Tooltip } from "@calcom/ui";
 import { FiInfo, FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
-import { BookingFormValues } from "./form-config";
+import type { BookingFormValues } from "./form-config";
 
 type GuestFieldsProps = {
   bookingForm: UseFormReturn<BookingFormValues>;

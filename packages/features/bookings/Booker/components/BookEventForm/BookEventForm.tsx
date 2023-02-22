@@ -16,8 +16,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField } from "@calcom/ui";
 import { FiInfo } from "@calcom/ui/components/icon";
 
-import { useBookerStore } from "../Booker/store";
-import { useEvent } from "../Booker/utils/event";
+import { useBookerStore } from "../../store";
+import { useEvent } from "../../utils/event";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { GuestFields } from "./GuestFields";

@@ -1,12 +1,14 @@
-import { UseFormReturn, useWatch } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
-import { EventLocationType, getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { PhoneInput, AddressInput, Label } from "@calcom/ui";
 import { FiInfo } from "@calcom/ui/components/icon";
 
-import { BookingFormValues } from "./form-config";
+import type { BookingFormValues } from "./form-config";
 
 type EventLocationsFieldsProps = {
   eventType: NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
