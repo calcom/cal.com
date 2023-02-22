@@ -131,6 +131,7 @@
     "@babel/core": "^7.19.6",
     "@calcom/config": "*",
     "@calcom/types": "*",
+    "@deploysentinel/playwright": "^0.3.3",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.25.0",
     "@testing-library/react": "^13.3.0",
