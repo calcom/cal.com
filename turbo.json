@@ -152,8 +152,7 @@
       "dependsOn": [
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
-        "@calcom/embed-core#build",
-        "@calcom/embed-react#build",
+        "^build",
         "^embed-tests-update-snapshots:ci"
       ]
     },
@@ -239,6 +238,7 @@
     "$NEXTAUTH_SECRET",
     "$NEXTAUTH_URL",
     "$NODE_ENV",
+    "$BUILD_ID",
     "$PLAYWRIGHT_HEADLESS",
     "$PLAYWRIGHT_TEST_BASE_URL",
     "$PRISMA_FIELD_ENCRYPTION_KEY",

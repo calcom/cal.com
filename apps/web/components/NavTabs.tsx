@@ -1,13 +1,15 @@
 import { AdminRequired } from "components/ui/AdminRequired";
 import noop from "lodash/noop";
-import Link, { LinkProps } from "next/link";
+import type { LinkProps } from "next/link";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, Fragment, MouseEventHandler } from "react";
+import type { FC, MouseEventHandler } from "react";
+import { Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import classNames from "@lib/classNames";
-import { SVGComponent } from "@lib/types/SVGComponent";
+import type { SVGComponent } from "@lib/types/SVGComponent";
 
 export interface NavTabProps {
   tabs: {

@@ -7,7 +7,8 @@ import * as z from "zod";
 import { classNames } from "@calcom/lib";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button, TextField } from "@calcom/ui";
 import { FiCheck, FiExternalLink, FiLoader } from "@calcom/ui/components/icon";
 

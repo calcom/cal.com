@@ -472,7 +472,6 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
-
       let apps = enabledApps.map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
@@ -1109,6 +1108,7 @@ const loggedInViewerRouter = router({
         });
         await prisma.webhook.deleteMany({
           where: {
+            userId: ctx.user.id,
             appId: "zapier",
           },
         });
@@ -1131,6 +1131,11 @@ const loggedInViewerRouter = router({
           id: id,
         },
       });
+      // Revalidate user calendar cache.
+      if (credential.app?.slug.includes("calendar")) {
+        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+      }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const { prisma, user } = ctx;
@@ -1175,6 +1180,55 @@ const loggedInViewerRouter = router({
           code: "BAD_REQUEST",
         });
       }
+    }),
+  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
+    return userMetadata.parse(ctx.user.metadata)?.defaultConferencingApp;
+  }),
+  updateUserDefaultConferencingApp: authedProcedure
+    .input(
+      z.object({
+        appSlug: z.string().optional(),
+        appLink: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const currentMetadata = userMetadata.parse(ctx.user.metadata);
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
+      const appLocation = foundApp?.appData?.location;
+
+      if (!foundApp || !appLocation)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
+
+      if (appLocation.linkType === "static" && !input.appLink) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
+      }
+
+      if (appLocation.linkType === "static" && appLocation.urlRegExp) {
+        const validLink = z
+          .string()
+          .regex(new RegExp(appLocation.urlRegExp), "Invalid App Link")
+          .parse(input.appLink);
+        if (!validLink) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid app link" });
+        }
+      }
+
+      await ctx.prisma.user.update({
+        where: {
+          id: ctx.user.id,
+        },
+        data: {
+          metadata: {
+            ...currentMetadata,
+            defaultConferencingApp: {
+              appSlug: input.appSlug,
+              appLink: input.appLink,
+            },
+          },
+        },
+      });
+      return input;
     }),
 });
 

@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";

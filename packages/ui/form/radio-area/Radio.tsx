@@ -1,5 +1,5 @@
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import classNames from "@calcom/lib/classNames";
 

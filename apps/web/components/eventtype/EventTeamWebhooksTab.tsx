@@ -1,13 +1,13 @@
-import { EventTypeSetupProps } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
 
 import { WebhookForm } from "@calcom/features/webhooks/components";
-import { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
+import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Webhook } from "@calcom/prisma/client";
+import type { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";

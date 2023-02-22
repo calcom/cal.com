@@ -1,15 +1,18 @@
-import {
+import type {
   BookingReference,
-  BookingStatus,
   EventType,
-  MembershipRole,
-  Prisma,
-  SchedulingType,
   User,
-  WebhookTriggerEvents,
   Workflow,
   WorkflowsOnEventTypes,
   WorkflowStep,
+} from "@prisma/client";
+import {
+  BookingStatus,
+  MembershipRole,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowMethods,
 } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
@@ -18,11 +21,14 @@ import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
+import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import {
   sendDeclinedEmails,
   sendLocationChangeEmails,
@@ -31,7 +37,8 @@ import {
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -320,7 +327,7 @@ export const bookingsRouter = router({
 
       const recurringInfo = recurringInfoBasic.map(
         (
-          info: typeof recurringInfoBasic[number]
+          info: (typeof recurringInfoBasic)[number]
         ): {
           recurringEventId: string | null;
           count: number;
@@ -405,6 +412,8 @@ export const bookingsRouter = router({
           dynamicGroupSlugRef: true,
           destinationCalendar: true,
           smsReminderNumber: true,
+          scheduledJobs: true,
+          workflowReminders: true,
         },
         where: {
           uid: bookingId,
@@ -470,6 +479,18 @@ export const bookingsRouter = router({
             status: BookingStatus.CANCELLED,
             updatedAt: dayjs().toISOString(),
           },
+        });
+
+        // delete scheduled jobs of previous booking
+        cancelScheduledJobs(bookingToReschedule);
+
+        //cancel workflow reminders of previous booking
+        bookingToReschedule.workflowReminders.forEach((reminder) => {
+          if (reminder.method === WorkflowMethods.EMAIL) {
+            deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+          } else if (reminder.method === WorkflowMethods.SMS) {
+            deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+          }
         });
 
         const [mainAttendee] = bookingToReschedule.attendees;
@@ -772,12 +793,8 @@ export const bookingsRouter = router({
     const isConfirmed = booking.status === BookingStatus.ACCEPTED;
     if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
 
-    /** When a booking that requires payment its being confirmed but doesn't have any payment,
-     * we shouldn’t save it on DestinationCalendars
-     *
-     * FIXME: This can cause unintended confirmations on rejection.
-     */
-    if (booking.payment.length > 0 && !booking.paid) {
+    // If booking requires payment and is not paid, we don't allow confirmation
+    if (confirmed && booking.payment.length > 0 && !booking.paid) {
       await prisma.booking.update({
         where: {
           id: bookingId,
@@ -789,6 +806,7 @@ export const bookingsRouter = router({
 
       return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
+
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
       return {
         name: attendee.name,
@@ -1083,66 +1101,66 @@ export const bookingsRouter = router({
         if (!!booking.payment.length) {
           const successPayment = booking.payment.find((payment) => payment.success);
           if (!successPayment) {
-            throw new Error("Cannot reject a booking without a successful payment");
-          }
+            // Disable paymentLink for this booking
+          } else {
+            let eventTypeOwnerId;
+            if (booking.eventType?.owner) {
+              eventTypeOwnerId = booking.eventType.owner.id;
+            } else if (booking.eventType?.teamId) {
+              const teamOwner = await prisma.membership.findFirst({
+                where: {
+                  teamId: booking.eventType.teamId,
+                  role: MembershipRole.OWNER,
+                },
+                select: {
+                  userId: true,
+                },
+              });
+              eventTypeOwnerId = teamOwner?.userId;
+            }
 
-          let eventTypeOwnerId;
-          if (booking.eventType?.owner) {
-            eventTypeOwnerId = booking.eventType.owner.id;
-          } else if (booking.eventType?.teamId) {
-            const teamOwner = await prisma.membership.findFirst({
+            if (!eventTypeOwnerId) {
+              throw new Error("Event Type owner not found for obtaining payment app credentials");
+            }
+
+            const paymentAppCredentials = await prisma.credential.findMany({
               where: {
-                teamId: booking.eventType.teamId,
-                role: MembershipRole.OWNER,
+                userId: eventTypeOwnerId,
+                appId: successPayment.appId,
               },
               select: {
-                userId: true,
-              },
-            });
-            eventTypeOwnerId = teamOwner?.userId;
-          }
-
-          if (!eventTypeOwnerId) {
-            throw new Error("Event Type owner not found for obtaining payment app credentials");
-          }
-
-          const paymentAppCredentials = await prisma.credential.findMany({
-            where: {
-              userId: eventTypeOwnerId,
-              appId: successPayment.appId,
-            },
-            select: {
-              key: true,
-              appId: true,
-              app: {
-                select: {
-                  categories: true,
-                  dirName: true,
+                key: true,
+                appId: true,
+                app: {
+                  select: {
+                    categories: true,
+                    dirName: true,
+                  },
                 },
               },
-            },
-          });
+            });
 
-          const paymentAppCredential = paymentAppCredentials.find((credential) => {
-            return credential.appId === successPayment.appId;
-          });
+            const paymentAppCredential = paymentAppCredentials.find((credential) => {
+              return credential.appId === successPayment.appId;
+            });
 
-          if (!paymentAppCredential) {
-            throw new Error("Payment app credentials not found");
-          }
+            if (!paymentAppCredential) {
+              throw new Error("Payment app credentials not found");
+            }
 
-          // Posible to refactor TODO:
-          const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
-          if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
-            console.warn(`payment App service of type ${paymentApp} is not implemented`);
-            return null;
-          }
+            // Posible to refactor TODO:
+            const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+            if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+              console.warn(`payment App service of type ${paymentApp} is not implemented`);
+              return null;
+            }
 
-          const PaymentService = paymentApp.lib.PaymentService;
-          const paymentInstance = new PaymentService(paymentAppCredential);
-          const paymentData = await paymentInstance.refund(successPayment.id);
-          if (!paymentData.refunded) {
-            throw new Error("Payment could not be refunded");
+            const PaymentService = paymentApp.lib.PaymentService;
+            const paymentInstance = new PaymentService(paymentAppCredential);
+            const paymentData = await paymentInstance.refund(successPayment.id);
+            if (!paymentData.refunded) {
+              throw new Error("Payment could not be refunded");
+            }
           }
         }
         // end handle refunds.

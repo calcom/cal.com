@@ -194,14 +194,40 @@ export const scheduleEmailReminder = async (
   }
 };
 
-export const deleteScheduledEmailReminder = async (referenceId: string) => {
+export const deleteScheduledEmailReminder = async (
+  reminderId: number,
+  referenceId: string | null,
+  immediateDelete?: boolean
+) => {
   try {
-    await client.request({
-      url: "/v3/user/scheduled_sends",
-      method: "POST",
-      body: {
-        batch_id: referenceId,
-        status: "cancel",
+    if (!referenceId) {
+      await prisma.workflowReminder.delete({
+        where: {
+          id: reminderId,
+        },
+      });
+
+      return;
+    }
+
+    if (immediateDelete) {
+      await client.request({
+        url: "/v3/user/scheduled_sends",
+        method: "POST",
+        body: {
+          batch_id: referenceId,
+          status: "cancel",
+        },
+      });
+      return;
+    }
+
+    await prisma.workflowReminder.update({
+      where: {
+        id: reminderId,
+      },
+      data: {
+        cancelled: true,
       },
     });
   } catch (error) {

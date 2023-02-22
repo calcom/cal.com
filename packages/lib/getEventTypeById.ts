@@ -1,8 +1,9 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
-import { LocationObject } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";

@@ -1,5 +1,6 @@
 import detect from "detect-port";
-import { createServer, Server } from "http";
+import type { Server } from "http";
+import { createServer } from "http";
 import next from "next";
 import { parse } from "url";
 

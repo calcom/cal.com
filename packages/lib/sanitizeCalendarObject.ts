@@ -1,4 +1,4 @@
-import { DAVObject } from "tsdav";
+import type { DAVObject } from "tsdav";
 
 export const sanitizeCalendarObject = (obj: DAVObject) => {
   return obj.data
