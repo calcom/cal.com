@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -11,15 +12,13 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { bookEventTypeSelect } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
-import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import type { GetBookingType } from "@lib/getBooking";
 import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -69,11 +68,23 @@ export default function Book(props: BookPageProps) {
 
 Book.isThemeSupported = true;
 
+const querySchema = z.object({
+  bookingUid: z.string().optional(),
+  count: z.coerce.number().optional(),
+  embed: z.string().optional(),
+  rescheduleUid: z.string().optional(),
+  slug: z.string().optional(),
+  /** This is the event "type" ID */
+  type: z.coerce.number().optional(),
+  user: z.string(),
+});
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const usernameList = getUsernameList(asStringOrThrow(context.query.user as string));
-  const eventTypeSlug = context.query.slug as string;
-  const recurringEventCountQuery = asStringOrNull(context.query.count);
+  const query = querySchema.parse(context.query);
+  const usernameList = getUsernameList(query.user);
+  const eventTypeSlug = query.slug;
+  const recurringEventCountQuery = query.count;
   const users = await prisma.user.findMany({
     where: {
       username: {
@@ -98,24 +109,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (!users.length) return { notFound: true };
   const [user] = users;
-  const isDynamicGroupBooking = users.length > 1;
+  const isDynamicGroupBooking = users.length > 1 && !!eventTypeSlug;
 
   // Dynamic Group link doesn't need a type but it must have a slug
-  if ((!isDynamicGroupBooking && !context.query.type) || (isDynamicGroupBooking && !eventTypeSlug)) {
+  if ((!isDynamicGroupBooking && !query.type) || (users.length > 1 && !eventTypeSlug)) {
     return { notFound: true };
   }
 
-  const eventTypeRaw =
-    usernameList.length > 1
-      ? getDefaultEvent(eventTypeSlug)
-      : await prisma.eventType.findUnique({
-          where: {
-            id: parseInt(asStringOrThrow(context.query.type)),
-          },
-          select: {
-            ...bookEventTypeSelect,
-          },
-        });
+  const eventTypeRaw = isDynamicGroupBooking
+    ? getDefaultEvent(eventTypeSlug)
+    : await prisma.eventType.findUnique({
+        where: {
+          id: query.type,
+        },
+        select: {
+          ...bookEventTypeSelect,
+        },
+      });
 
   if (!eventTypeRaw) return { notFound: true };
 
@@ -178,14 +188,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   })[0];
 
   // If rescheduleUid and event has seats lets convert Uid to bookingUid
-  let rescheduleUid = context.query.rescheduleUid as string;
-  const seatReferenceUId = context.query.seatReferenceUId as string;
-  const rescheduleEventTypeHasSeats = context.query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
+  let rescheduleUid = query.rescheduleUid;
+  const rescheduleEventTypeHasSeats = query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
   let attendeeEmail: string;
   if (rescheduleEventTypeHasSeats) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
-        referenceUId: context.query.rescheduleUid as string,
+        referenceUId: query.rescheduleUid,
       },
       select: {
         id: true,
@@ -204,12 +213,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   let booking: GetBookingType | null = null;
-  if (rescheduleUid || context.query.bookingUid) {
-    booking = await getBooking(
-      prisma,
-      rescheduleUid ? (rescheduleUid as string) : (context.query.bookingUid as string),
-      seatReferenceUId
-    );
+  if (rescheduleUid || query.bookingUid) {
+    booking = await getBooking(prisma, rescheduleUid || query.bookingUid || "", seatReferenceUId);
   }
   if (rescheduleEventTypeHasSeats && booking?.attendees) {
     const currentAttendee = booking?.attendees.find((attendee) => {
@@ -220,11 +225,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const dynamicNames = isDynamicGroupBooking
-    ? users.map((user) => {
-        return user.name || "";
-      })
-    : [];
+  const dynamicNames = isDynamicGroupBooking ? users.map((user) => user.name || "") : [];
 
   const profile = isDynamicGroupBooking
     ? {
@@ -234,9 +235,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         theme: null,
         brandColor: "",
         darkBrandColor: "",
-        allowDynamicBooking: !users.some((user) => {
-          return !user.allowDynamicBooking;
-        }),
+        allowDynamicBooking: !users.some((user) => !user.allowDynamicBooking),
         eventName: getDynamicEventName(dynamicNames, eventTypeSlug),
       }
     : {
@@ -253,8 +252,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const recurringEventCount =
     (eventType.recurringEvent?.count &&
       recurringEventCountQuery &&
-      (parseInt(recurringEventCountQuery) <= eventType.recurringEvent.count
-        ? parseInt(recurringEventCountQuery)
+      (recurringEventCountQuery <= eventType.recurringEvent.count
+        ? recurringEventCountQuery
         : eventType.recurringEvent.count)) ||
     null;
 
@@ -269,7 +268,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
       hashedLink: null,
-      isEmbed: typeof context.query.embed === "string",
+      isEmbed: !!query.embed,
     },
   };
 }
