@@ -1,4 +1,4 @@
-import {
+import type {
   EventType as PrismaEventType,
   User as PrismaUser,
   Booking as PrismaBooking,
@@ -10,8 +10,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
-import { getSchedule, Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import type { BookingStatus } from "@calcom/prisma/client";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import { getSchedule } from "@calcom/trpc/server/routers/viewer/slots";
 
 import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
 
@@ -183,19 +184,28 @@ type InputEventType = {
   length?: number;
   slotInterval?: number;
   minimumBookingNotice?: number;
-  users: { id: number }[];
+  users?: { id: number }[];
+  hosts?: { id: number }[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
 };
 
 type InputBooking = {
-  userId: number;
+  userId?: number;
   eventTypeId: number;
   startTime: string;
   endTime: string;
   title?: string;
   status: BookingStatus;
+  attendees?: { email: string }[];
+};
+
+type InputHost = {
+  id: number;
+  userId: number;
+  eventTypeId: number;
+  isFixed: boolean;
 };
 
 const cleanup = async () => {
@@ -223,6 +233,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
       const scenarioData = {
+        hosts: [],
         eventTypes: [
           {
             id: 1,
@@ -337,6 +348,7 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T06:15:00.000Z`,
           },
         ],
+        hosts: [],
       });
 
       // Day Plus 2 is completely free - It only has non accepted bookings
@@ -434,6 +446,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
+        hosts: [],
       });
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -530,6 +543,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHours],
           },
         ],
+        hosts: [],
       });
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
@@ -606,6 +620,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
+        hosts: [],
         apps: [TestData.apps.googleCalendar],
       };
 
@@ -681,6 +696,7 @@ describe("getSchedule", () => {
           },
         ],
         apps: [TestData.apps.googleCalendar],
+        hosts: [],
       };
 
       createBookingScenario(scenarioData);
@@ -740,6 +756,7 @@ describe("getSchedule", () => {
             schedules: [TestData.schedules.IstWorkHoursWithDateOverride(plus2DateString)],
           },
         ],
+        hosts: [],
       };
 
       createBookingScenario(scenarioData);
@@ -757,6 +774,105 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
         ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("that a user is considered busy when there's a booking they host", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      createBookingScenario({
+        eventTypes: [
+          // A Collective Event Type hosted by this user
+          {
+            id: 1,
+            slotInterval: 45,
+            schedulingType: "COLLECTIVE",
+            hosts: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+          },
+          // A default Event Type which this user owns
+          {
+            id: 2,
+            slotInterval: 45,
+            users: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [
+          // Create a booking on our Collective Event Type
+          {
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
+          },
+        ],
+        hosts: [
+          // This user is a host of our Collective event
+          {
+            id: 1,
+            eventTypeId: 1,
+            userId: 101,
+            isFixed: true,
+          },
+        ],
+      });
+
+      // Requesting this user's availability for their
+      // individual Event Type
+      const thisUserAvailability = await getSchedule(
+        {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      expect(thisUserAvailability).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // <- This slot should be occupied by the Collective Event
+          `04:45:00.000Z`,
+          `05:30:00.000Z`,
+          `06:15:00.000Z`,
+          `07:00:00.000Z`,
+          `07:45:00.000Z`,
+          `08:30:00.000Z`,
+          `09:15:00.000Z`,
+          `10:00:00.000Z`,
+          `10:45:00.000Z`,
+          `11:30:00.000Z`,
+          `12:15:00.000Z`,
+        ],
         {
           dateString: plus2DateString,
         }
@@ -826,6 +942,7 @@ describe("getSchedule", () => {
             endTime: `${plus2DateString}T05:45:00.000Z`,
           },
         ],
+        hosts: [],
       });
 
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
@@ -963,6 +1080,7 @@ describe("getSchedule", () => {
             endTime: `${plus3DateString}T04:15:00.000Z`,
           },
         ],
+        hosts: [],
       });
       const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule(
         {
@@ -1064,9 +1182,10 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
       throw new Error(`eventTypes[number]: id ${eventType.id} is not unique`);
     }
     foundEvents[eventType.id] = true;
-    const users = eventType.users.map((userWithJustId) => {
-      return usersStore.find((user) => user.id === userWithJustId.id);
-    });
+    const users =
+      eventType.users?.map((userWithJustId) => {
+        return usersStore.find((user) => user.id === userWithJustId.id);
+      }) || [];
     return {
       ...baseEventType,
       ...eventType,
@@ -1099,11 +1218,25 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
         bookings
           // We can improve this filter to support the entire where clause but that isn't necessary yet. So, handle what we know we pass to `findMany` and is needed
           .filter((booking) => {
+            /**
+             * A user is considered busy within a given time period if there
+             * is a booking they own OR host. This function mocks some of the logic
+             * for each condition. For details see the following ticket:
+             * https://github.com/calcom/cal.com/issues/6374
+             */
+
+            // ~~ FIRST CONDITION ensures that this booking is owned by this user
+            //    and that the status is what we want
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            const statusIn = where.status?.in || [];
-            // Return bookings passing status prisma where
-            return statusIn.includes(booking.status) && booking.userId === where.userId;
+            const statusIn = where.OR[0].status?.in || [];
+            const firstConditionMatches =
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
+
+            // We return this booking if either condition is met
+            return firstConditionMatches;
           })
           .map((booking) => ({
             uid: uuidv4(),
@@ -1117,6 +1250,16 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
 }
 
 function addUsers(users: InputUser[]) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.user.findUniqueOrThrow.mockImplementation((findUniqueArgs) => {
+    return new Promise((resolve) => {
+      resolve({
+        email: `IntegrationTestUser${findUniqueArgs?.where.id}@example.com`,
+      } as unknown as PrismaUser);
+    });
+  });
+
   prismaMock.user.findMany.mockResolvedValue(
     users.map((user) => {
       return {
@@ -1131,6 +1274,7 @@ type ScenarioData = {
   // TODO: Support multiple bookings and add tests with that.
   bookings?: InputBooking[];
   users: InputUser[];
+  hosts: InputHost[];
   credentials?: InputCredential[];
   apps?: App[];
   selectedCalendars?: InputSelectedCalendar[];

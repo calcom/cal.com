@@ -1,5 +1,5 @@
 import DailyIframe from "@daily-co/daily-js";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { useEffect } from "react";
@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
 

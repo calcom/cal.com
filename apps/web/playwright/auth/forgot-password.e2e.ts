@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { test } from "../lib/fixtures";
 
 test("Can reset forgotten password", async ({ page, users }) => {
+  test.skip(process.env.NEXT_PUBLIC_IS_E2E !== "1", "It shouldn't if we can't skip email");
   const user = await users.create();
   const newPassword = `${user.username!}-123`;
   // Got to reset password flow

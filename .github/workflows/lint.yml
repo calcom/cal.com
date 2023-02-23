@@ -1,38 +1,14 @@
 name: Lint
 on:
-  pull_request_target:
-    branches:
-      - main
-    paths:
-      - "**.tsx?"
-      - "**.jsx?"
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 jobs:
   lint:
     runs-on: buildjet-4vcpu-ubuntu-2204
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
-
-      - name: Use Node 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Install deps
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Test Code Linting
-        run: yarn lint
-
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
       - name: Save Code Linting Reports
         run: yarn lint:report
         continue-on-error: true

@@ -1,9 +1,10 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { components, OptionProps, SingleValueProps } from "react-select";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DestinationCalendar } from "@calcom/prisma/client";
+import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui";
 
@@ -121,6 +122,8 @@ const DestinationCalendarSelector = ({
   // be used when no destination calendar is selected.
   const primaryCalendar = query.data.destinationCalendarEmail;
 
+  const queryDestinationCalendar = query.data.destinationCalendar;
+
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
@@ -129,9 +132,10 @@ const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
           ) : (
-            <span>
-              {t("default_calendar_selected")} {primaryCalendar && `(${primaryCalendar})`}
-              {`(${query.data.destinationCalendar.name || primaryCalendar?.primary?.externalId})`}
+            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap">
+              {t("default_calendar_selected")}{" "}
+              {queryDestinationCalendar.name &&
+                `(${queryDestinationCalendar?.integration} - ${queryDestinationCalendar.name})`}
             </span>
           )
         }

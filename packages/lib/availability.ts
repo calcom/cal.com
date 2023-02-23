@@ -1,6 +1,7 @@
 import type { Availability } from "@prisma/client";
 
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import type { Schedule, TimeRange, WorkingHours } from "@calcom/types/schedule";
 
 import { nameOfDay } from "./weekday";

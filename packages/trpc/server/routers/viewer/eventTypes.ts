@@ -7,16 +7,18 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import getApps from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
+import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
-  CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
+  userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -202,6 +204,7 @@ export const eventTypesRouter = router({
           },
         },
       },
+      seatsPerTimeSlot: true,
       ...baseEventTypeSelect,
     });
 
@@ -268,7 +271,7 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
 
-    const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
+    const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
@@ -297,8 +300,8 @@ export const eventTypesRouter = router({
     type EventTypeGroup = {
       teamId?: number | null;
       profile: {
-        slug: typeof user["username"];
-        name: typeof user["name"];
+        slug: (typeof user)["username"];
+        name: (typeof user)["name"];
         image?: string;
       };
       metadata: {
@@ -335,7 +338,7 @@ export const eventTypesRouter = router({
         profile: {
           name: membership.team.name,
           image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-          slug: "team/" + membership.team.slug,
+          slug: membership.team.slug ? "team/" + membership.team.slug : null,
         },
         metadata: {
           membershipCount: membership.team.members.length,
@@ -405,7 +408,29 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
+    // Get Users default conferncing app
+
+    const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
     const appKeys = await getAppKeysFromSlug("daily-video");
+
+    let locations: { type: string; link?: string }[] = [];
+
+    // If no locations are passed in and the user has a daily api key then default to daily
+    if (
+      (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
+      typeof appKeys.api_key === "string"
+    ) {
+      locations = [{ type: DailyLocationType }];
+    }
+
+    // If its defaulting to daily no point handling compute as its done
+    if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === defaultConferencingData.appSlug)[0]; // There is only one possible install here so index [0] is the one we are looking for ;
+      const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
+      locations = [{ type: locationType, link: defaultConferencingData.appLink }];
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
@@ -414,8 +439,7 @@ export const eventTypesRouter = router({
           id: userId,
         },
       },
-      ...((typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
-        typeof appKeys.api_key === "string" && { locations: [{ type: DailyLocationType }] }),
+      locations,
     };
 
     if (teamId && schedulingType) {

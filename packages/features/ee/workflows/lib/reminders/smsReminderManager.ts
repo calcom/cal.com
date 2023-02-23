@@ -10,7 +10,6 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Person } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -175,9 +174,16 @@ export const scheduleSMSReminder = async (
   }
 };
 
-export const deleteScheduledSMSReminder = async (referenceId: string) => {
+export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
   try {
-    await twilio.cancelSMS(referenceId);
+    if (referenceId) {
+      await twilio.cancelSMS(referenceId);
+    }
+    await prisma.workflowReminder.delete({
+      where: {
+        id: reminderId,
+      },
+    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }

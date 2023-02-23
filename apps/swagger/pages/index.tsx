@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { SwaggerUI } from "swagger-ui-react";
+import type { SwaggerUI } from "swagger-ui-react";
 
 import { SnippedGenerator, requestSnippets } from "@lib/snippets";
 

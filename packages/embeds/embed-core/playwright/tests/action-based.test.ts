@@ -1,6 +1,8 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { Fixtures, test } from "../fixtures/fixtures";
+import type { Fixtures } from "../fixtures/fixtures";
+import { test } from "../fixtures/fixtures";
 import {
   todo,
   getEmbedIframe,
