@@ -93,9 +93,18 @@ export function VideoMeetingInfo() {
     <>
       <aside
         className={classNames(
-          "fixed top-0 z-30 flex h-full w-64 transform justify-between border-r border-gray-300/20 bg-black/80 backdrop-blur-lg transition-all duration-300 ease-in-out",
-          open ? "left-0" : "-left-64"
+          "fixed top-0 z-30 flex h-full w-64 transform justify-between border-l border-gray-300/20 bg-black/80 backdrop-blur-lg transition-all duration-300 ease-in-out",
+          open ? "right-0" : "-right-64"
         )}>
+        <div className="-ml-6 flex items-center justify-center">
+          <button
+            className="h-20 w-6 rounded-l-md border border-r-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
+            onClick={() => setOpen(!open)}>
+            <FiChevronRight
+              className={classNames(!open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
+            />
+          </button>
+        </div>
         <main className="prose prose-sm max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal overflow-scroll p-4 text-white shadow-sm">
           <h3>What:</h3>
           <p>30 Minute Meeting</p>
@@ -122,15 +131,6 @@ export function VideoMeetingInfo() {
           <h3>Description</h3>
           <p>With Peer Richelsen, Co-Founder & Co-CEO of Cal.com</p>
         </main>
-        <div className="-mr-6 flex items-center justify-center">
-          <button
-            className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
-            onClick={() => setOpen(!open)}>
-            <FiChevronRight
-              className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
-            />
-          </button>
-        </div>
       </aside>
     </>
   );
