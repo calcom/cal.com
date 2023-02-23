@@ -32,36 +32,9 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'
- *               recurringEventId:
- *                 type: integer
- *                 description: 'Recurring event ID if the event is recurring'
- *               description:
- *                 type: string
- *                 description: 'Event description'
  *               status:
  *                 type: string
  *                 description: 'Acceptable values one of ["ACCEPTED", "PENDING", "CANCELLED", "REJECTED"]'
- *               location:
- *                 type: string
- *                 description: 'Meeting location'
- *               smsReminderNumber:
- *                 type: number
- *                 description: 'SMS reminder number'
- *               attendees:
- *                 type: array
- *                 description: 'List of attendees of the booking'
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                       format: email
- *                     timeZone:
- *                       type: string
- *                     locale:
- *                       type: string
  *
  *     parameters:
  *      - in: query
