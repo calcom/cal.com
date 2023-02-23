@@ -1,11 +1,14 @@
 import DailyIframe from "@daily-co/daily-js";
+import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -14,10 +17,11 @@ import { FiChevronRight } from "@calcom/ui/components/icon";
 import { ssrInit } from "@server/lib/ssr";
 
 export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
-  const { meetingUrl, meetingPassword } = props;
+  const { meetingUrl, meetingPassword, booking } = props;
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -55,7 +59,6 @@ export default function JoinCall(props: JoinCallPageProps) {
     <>
       <Head>
         <title>{title}</title>
-        <meta name="title" content={APP_NAME + " Video"} />
         <meta name="description" content={t("quick_video_meeting")} />
         <meta property="og:image" content={SEO_IMG_OGIMG_VIDEO} />
         <meta property="og:type" content="website" />
@@ -79,15 +82,54 @@ export default function JoinCall(props: JoinCallPageProps) {
           }}
         />
       </div>
-      <VideoMeetingInfo />
+      <VideoMeetingInfo booking={booking} />
     </>
   );
 }
 
-export function VideoMeetingInfo() {
-  const [open, setOpen] = useState(false);
+interface ProgressBarProps {
+  startTime: string;
+  endTime: string;
+}
 
-  const progress = 20; // in percent
+function ProgressBar(props: ProgressBarProps) {
+  const { startTime, endTime } = props;
+  const currentTime = dayjs().second(0).millisecond(0);
+  const startingTime = dayjs(startTime).second(0).millisecond(0);
+  const isPast = currentTime.isAfter(startingTime);
+  const currentDifference = dayjs().diff(startingTime, "minutes");
+  const startDuration = dayjs(endTime).diff(startingTime, "minutes");
+  const [duration] = useState(() => {
+    if (currentDifference >= 0 && isPast) {
+      return startDuration - currentDifference;
+    } else {
+      return startDuration;
+    }
+  });
+
+  const prev = startDuration - duration;
+  const percentage = prev * (100 / startDuration);
+  return (
+    <div>
+      <p>{duration} minutes</p>
+      <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
+        <div className="absolute h-full w-full bg-gray-500/10" />
+        <div className={classNames("relative h-full bg-green-500")} style={{ width: `${percentage}%` }} />
+      </div>
+    </div>
+  );
+}
+
+interface VideoMeetingInfo {
+  booking: JoinCallPageProps["booking"];
+}
+
+export function VideoMeetingInfo(props: VideoMeetingInfo) {
+  const [open, setOpen] = useState(false);
+  const { booking } = props;
+
+  const endTime = new Date(booking.endTime);
+  const startTime = new Date(booking.startTime);
 
   return (
     <>
@@ -98,35 +140,49 @@ export function VideoMeetingInfo() {
         )}>
         <main className="prose prose-sm max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal overflow-scroll p-4 text-white shadow-sm">
           <h3>What:</h3>
-          <p>30 Minute Meeting</p>
+          <p>{booking.title}</p>
           <h3>Invitee Time Zone:</h3>
-          <p>America/Detroit</p>
+          <p>{booking.user?.timeZone}</p>
           <h3>When:</h3>
           <p>
-            Thursday 23rd February 2023 <br />
-            11:10 am (CET)
+            {formatToLocalizedDate(startTime)} <br />
+            {formatToLocalizedTime(startTime)}
           </p>
           <h3>Time left</h3>
-          <p>23 minutes</p>
-          <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
-            <div className="absolute h-full w-full bg-gray-500/10" />
-            <div className={classNames("relative h-full bg-green-500", `w-[${progress}%]`)} />
-          </div>
+          <ProgressBar
+            key={String(open)}
+            endTime={endTime.toISOString()}
+            startTime={startTime.toISOString()}
+          />
+
           <h3>Who:</h3>
           <p>
-            Peer Richelsen - Organizer <a href="mailto:peer@cal.com">peer@cal.com</a>
+            {booking?.user?.name} - Organizer{" "}
+            <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
           </p>
-          <p>
-            Example User – <a href="mailto:user@example.com">user@example.com</a>
-          </p>
+
+          {booking.attendees.length
+            ? booking.attendees.map((attendee) => (
+                <p key={attendee.id}>
+                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+                </p>
+              ))
+            : null}
+
           <h3>Description</h3>
-          <p>With Peer Richelsen, Co-Founder & Co-CEO of Cal.com</p>
+
+          <div
+            className="prose prose-sm prose-invert"
+            dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
+          />
         </main>
         <div className="-mr-6 flex items-center justify-center">
           <button
+            aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
             <FiChevronRight
+              aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
           </button>
@@ -146,10 +202,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       ...bookingMinimalSelect,
       uid: true,
+      description: true,
       user: {
         select: {
           id: true,
           credentials: true,
+          timeZone: true,
+          name: true,
+          email: true,
         },
       },
       references: {
@@ -209,6 +269,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(typeof bookingObj.references[0].meetingPassword === "string" && {
         meetingPassword: bookingObj.references[0].meetingPassword,
       }),
+      booking: bookingObj,
       trpcState: ssr.dehydrate(),
     },
   };
