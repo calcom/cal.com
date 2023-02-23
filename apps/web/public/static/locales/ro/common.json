@@ -76,7 +76,7 @@
   "rescheduled_event_type_subject": "Cerere de reprogramare trimisă: {{eventType}} cu {{name}} în {{date}}",
   "requested_to_reschedule_subject_attendee": "Acțiunea necesită reprogramare: rezervați o nouă dată pentru {{eventType}} cu {{name}}",
   "reschedule_reason": "Motivul reprogramării",
-  "hi_user_name": "Salut {{name}}",
+  "hi_user_name": "Salut {{userName}}",
   "ics_event_title": "{{eventType}} cu {{name}}",
   "new_event_subject": "Eveniment nou: {{attendeeName}} - {{date}} - {{eventType}}",
   "join_by_entrypoint": "Alăturați-vă de {{entryPoint}}",
