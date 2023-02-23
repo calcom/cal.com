@@ -86,7 +86,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                         </div>
                         <div>
                           {workflow.readOnly && (
-                            <Badge variant="gray" className="mb-1 ml-2">
+                            <Badge variant="gray" className="ml-2 ">
                               {t("readonly")}
                             </Badge>
                           )}
@@ -139,32 +139,35 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                       </ul>
                     </div>
                   </Link>
-                  {!workflow.readOnly && (
-                    <div className="flex flex-shrink-0">
-                      <div className="hidden sm:block">
-                        <ButtonGroup combined>
-                          <Tooltip content={t("edit") as string}>
-                            <Button
-                              type="button"
-                              color="secondary"
-                              variant="icon"
-                              StartIcon={FiEdit2}
-                              onClick={async () => await router.replace("/workflows/" + workflow.id)}
-                            />
-                          </Tooltip>
-                          <Tooltip content={t("delete") as string}>
-                            <Button
-                              onClick={() => {
-                                setDeleteDialogOpen(true);
-                                setwWorkflowToDeleteId(workflow.id);
-                              }}
-                              color="secondary"
-                              variant="icon"
-                              StartIcon={FiTrash2}
-                            />
-                          </Tooltip>
-                        </ButtonGroup>
-                      </div>
+
+                  <div className="flex flex-shrink-0">
+                    <div className="hidden sm:block">
+                      <ButtonGroup combined>
+                        <Tooltip content={t("edit") as string}>
+                          <Button
+                            type="button"
+                            color="secondary"
+                            variant="icon"
+                            StartIcon={FiEdit2}
+                            disabled={workflow.readOnly}
+                            onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                          />
+                        </Tooltip>
+                        <Tooltip content={t("delete") as string}>
+                          <Button
+                            onClick={() => {
+                              setDeleteDialogOpen(true);
+                              setwWorkflowToDeleteId(workflow.id);
+                            }}
+                            color="secondary"
+                            variant="icon"
+                            disabled={workflow.readOnly}
+                            StartIcon={FiTrash2}
+                          />
+                        </Tooltip>
+                      </ButtonGroup>
+                    </div>
+                    {!workflow.readOnly && (
                       <div className="block sm:hidden">
                         <Dropdown>
                           <DropdownMenuTrigger asChild>
@@ -199,8 +202,8 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                           </DropdownMenuContent>
                         </Dropdown>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </li>
             ))}
