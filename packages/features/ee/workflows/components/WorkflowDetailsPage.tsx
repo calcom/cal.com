@@ -1,7 +1,10 @@
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
+import { WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -38,25 +41,17 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const eventTypeOptions = useMemo(
     () =>
-      data?.eventTypeGroups
-        .filter((eventType) => {
-          if (!teamId && !eventType.teamId) {
-            return eventType;
-          }
-          if (teamId === eventType.teamId) {
-            return eventType;
-          }
-        })
-        .reduce(
-          (options, group) => [
-            ...options,
-            ...group.eventTypes.map((eventType) => ({
-              value: String(eventType.id),
-              label: eventType.title,
-            })),
-          ],
-          [] as Option[]
-        ) || [],
+      data?.eventTypeGroups.reduce((options, group) => {
+        /** only show event types that belong to team or user */
+        if (!(!teamId && !group.teamId) || teamId !== group.teamId) return options;
+        return [
+          ...options,
+          ...group.eventTypes.map((eventType) => ({
+            value: String(eventType.id),
+            label: eventType.title,
+          })),
+        ];
+      }, [] as Option[]) || [],
     [data]
   );
 
