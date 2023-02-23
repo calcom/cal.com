@@ -51,17 +51,17 @@ function VideoMeetingInfo() {
             Thursday 23rd February 2023 <br />
             11:10 am (CET)
           </p>
+          <h3>Time left</h3>
+          <p>23 minutes</p>
+          <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
+            <div className="absolute h-full w-full bg-gray-500/10" />
+            <div className={classNames("relative h-full bg-green-500", `w-[${progress}%]`)} />
+          </div>
           <h3>Who:</h3>
           <p>Peer Richelsen - Organizer peer@cal.com</p>
           <p>sunil pai, inc. – sunil@partykit.io</p>
           <h3>Description</h3>
           <p>With Peer Richelsen, Co-Founder & Co-CEO of Cal.com</p>
-          <h3>Time left</h3>
-          <p>23 minutes</p>
-          <div className="relative h-3 max-w-xl overflow-hidden rounded-full">
-            <div className="absolute h-full w-full bg-gray-200" />
-            <div id="bar" className={classNames("relative h-full bg-green-500", `w-[${progress}%]`)} />
-          </div>
         </main>
         <div className="-mr-6 flex items-center justify-center">
           <button
