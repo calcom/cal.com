@@ -84,7 +84,7 @@ export default function JoinCall(props: JoinCallPageProps) {
   );
 }
 
-function VideoMeetingInfo() {
+export function VideoMeetingInfo() {
   const [open, setOpen] = useState(false);
 
   const progress = 20; // in percent

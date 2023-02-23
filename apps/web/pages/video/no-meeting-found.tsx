@@ -1,3 +1,5 @@
+import { VideoMeetingInfo } from "pages/video/[uid]";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiX, FiArrowRight } from "@calcom/ui/components/icon";
@@ -20,6 +22,9 @@ export default function NoMeetingFound() {
           }
         />
       </main>
+      {/* TODO: for testing purposes only. Remove before merging */}
+      <VideoMeetingInfo />
+      <iframe src="https://cal.video/hJ3fD81SfXT8wL3nEu0N" className="h-[100vh] w-full" />
     </>
   );
 }
