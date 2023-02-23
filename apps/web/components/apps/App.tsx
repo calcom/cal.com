@@ -4,6 +4,7 @@ import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import ExistingGoogleCal from "@calcom/app-store/googlecalendar/components/ExistingGoogleCal";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
@@ -23,6 +24,9 @@ import {
   FiPlus,
   FiShield,
 } from "@calcom/ui/components/icon";
+
+/* These app slugs all require Google Cal to be installed */
+const appsThatRequiresGCal = ["google-meet", "amie", "vimcal"];
 
 const Component = ({
   name,
@@ -45,8 +49,8 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
-  disableInstall,
-}: Parameters<typeof App>[0]) => {
+}: // disableInstall,
+Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
   const router = useRouter();
@@ -76,6 +80,14 @@ const Component = ({
       },
     }
   );
+
+  const requiresGCal = appsThatRequiresGCal.some((app) => slug === app);
+  const gCalInstalled = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
+    enabled: requiresGCal,
+  });
+
+  const disableInstall = requiresGCal && !gCalInstalled.data;
+  console.log("🚀 ~ file: App.tsx:90 ~ disableInstall:", disableInstall);
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
@@ -178,6 +190,7 @@ const Component = ({
             <InstallAppButton
               type={type}
               isProOnly={isProOnly}
+              disableInstall={disableInstall}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -205,6 +218,13 @@ const Component = ({
         ) : (
           <SkeletonButton className="h-10 w-24" />
         )}
+
+        {requiresGCal && !gCalInstalled.isLoading && (
+          <div className="mt-6">
+            <ExistingGoogleCal gCalInstalled={gCalInstalled.data} appName={name} />
+          </div>
+        )}
+
         {price !== 0 && (
           <span className="block text-right">
             {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}

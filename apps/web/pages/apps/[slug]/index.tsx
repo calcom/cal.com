@@ -1,13 +1,11 @@
 import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
-import type { GetStaticPaths, GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext, GetStaticPaths } from "next";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import ExistingGoogleCal from "@calcom/app-store/googleCalendar/components/ExistingGoogleCal";
 import prisma from "@calcom/prisma";
-import { trpc } from "@calcom/trpc";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -15,15 +13,7 @@ import App from "@components/apps/App";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
 
-/* These app slugs all require Google Cal to be installed */
-const appsThatRequiresGCal = ["google-meet", "amie", "vimcal"];
-
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
-  const requiresGCal = appsThatRequiresGCal.some((slug) => slug === data.slug);
-  const { data: gCalInstalled } = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
-    enabled: requiresGCal,
-  });
-
   return (
     <App
       name={data.name}
@@ -46,14 +36,12 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       images={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
       // If gCal is not installed and required then disable the install button
-      disableInstall={requiresGCal && !gCalInstalled}
+      // disableInstall={requiresGCal && !gCalInstalled}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          {requiresGCal && (
-            <ExistingGoogleCal slug={data.slug} gCalInstalled={gCalInstalled} appName={data.name} />
-          )}
+          {/* {requiresGCal && <ExistingGoogleCal gCalInstalled={gCalInstalled} appName={data.name} />} */}
           <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
         </>
       }

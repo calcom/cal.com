@@ -18,7 +18,13 @@ export const InstallAppButtonWithoutPlanCheck = (
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
 
-  return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
+  return (
+    <InstallAppButtonComponent
+      render={props.render}
+      onChanged={props.onChanged}
+      disableInstall={props.disableInstall}
+    />
+  );
 };
 
 export const InstallAppButton = (
@@ -26,6 +32,7 @@ export const InstallAppButton = (
     isProOnly?: App["isProOnly"];
     type: App["type"];
     wrapperClassName?: string;
+    disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
   const { isLoading, data: user } = trpc.viewer.me.useQuery();
