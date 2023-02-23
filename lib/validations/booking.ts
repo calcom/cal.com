@@ -22,6 +22,7 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
+    status: z.string().optional(),
   })
   .strict();
 
