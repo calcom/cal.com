@@ -85,3 +85,12 @@ jobs:
     needs: build
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
+
+  required:
+    needs: [lint, type-check, test, build, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: fail if conditional jobs failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
