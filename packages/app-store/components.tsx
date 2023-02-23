@@ -18,7 +18,7 @@ export const InstallAppButtonWithoutPlanCheck = (
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
 
-  return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} disableInstall />;
+  return <InstallAppButtonComponent render={props.render} onChanged={props.onChanged} />;
 };
 
 export const InstallAppButton = (
