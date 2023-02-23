@@ -1,5 +1,4 @@
 import type { Workflow, WorkflowStep, Membership } from "@prisma/client";
-import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -138,13 +137,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                             type="button"
                             color="secondary"
                             variant="icon"
-                            disabled={
-                              !!workflow.team?.members?.find(
-                                (member) =>
-                                  member.userId === session.data?.user.id &&
-                                  member.role === MembershipRole.MEMBER
-                              )
-                            }
+                            disabled={workflow.readOnly}
                             StartIcon={FiEdit2}
                             onClick={async () => await router.replace("/workflows/" + workflow.id)}
                           />
@@ -156,13 +149,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                               setwWorkflowToDeleteId(workflow.id);
                             }}
                             color="secondary"
-                            disabled={
-                              !!workflow.team?.members?.find(
-                                (member) =>
-                                  member.userId === session.data?.user.id &&
-                                  member.role === MembershipRole.MEMBER
-                              )
-                            }
+                            disabled={workflow.readOnly}
                             variant="icon"
                             StartIcon={FiTrash2}
                           />

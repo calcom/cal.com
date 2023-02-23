@@ -8,6 +8,7 @@ import {
   TimeUnit,
   MembershipRole,
 } from "@prisma/client";
+import type { WorkflowType } from "ee/workflows/components/WorkflowListPage";
 import { z } from "zod";
 
 // import dayjs from "@calcom/dayjs";
@@ -120,7 +121,7 @@ export const workflowsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       if (input && input.teamId) {
-        const workflows = await ctx.prisma.workflow.findMany({
+        const workflows: WorkflowType[] = await ctx.prisma.workflow.findMany({
           where: {
             team: {
               id: input.teamId,
@@ -157,12 +158,18 @@ export const workflowsRouter = router({
             id: "asc",
           },
         });
+        const workflowsWithReadOnly = workflows.map((workflow) => {
+          const readOnly = !!workflow.team?.members?.find(
+            (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
+          );
+          return { ...workflow, readOnly };
+        });
 
-        return { workflows };
+        return { workflows: workflowsWithReadOnly };
       }
 
       if (input && input.userId) {
-        const workflows = await ctx.prisma.workflow.findMany({
+        const workflows: WorkflowType[] = await ctx.prisma.workflow.findMany({
           where: {
             userId: ctx.user.id,
           },
@@ -191,6 +198,7 @@ export const workflowsRouter = router({
             id: "asc",
           },
         });
+
         return { workflows };
       }
 
@@ -236,7 +244,15 @@ export const workflowsRouter = router({
         },
       });
 
-      return { workflows };
+      const workflowsWithReadOnly: WorkflowType[] = workflows.map((workflow) => {
+        const readOnly = !!workflow.team?.members?.find(
+          (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
+        );
+
+        return { readOnly, ...workflow };
+      });
+
+      return { workflows: workflowsWithReadOnly };
     }),
   get: authedProcedure
     .input(
