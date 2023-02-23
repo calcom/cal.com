@@ -13,10 +13,17 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *   get:
  *     summary: Find all event types
  *     operationId: listEventTypes
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/event-types
+ *        url: https://docs.cal.com/core-features/event-types
  *     responses:
  *       200:
  *         description: OK

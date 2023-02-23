@@ -12,18 +12,22 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     operationId: removeEventTypeById
  *     summary: Remove an existing eventType
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
  *        required: true
  *        description: ID of the eventType to delete
- *     security:
- *       - ApiKeyAuth: []
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/event-types
+ *        url: https://docs.cal.com/core-features/event-types
  *     responses:
  *       201:
  *         description: OK, eventType removed successfully

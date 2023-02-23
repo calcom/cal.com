@@ -12,19 +12,23 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     operationId: getEventTypeById
  *     summary: Find a eventType
  *     parameters:
- *       - in: path
- *         name: id
- *         example: 4
- *         schema:
- *           type: integer
- *         required: true
- *         description: ID of the eventType to get
- *     security:
- *       - ApiKeyAuth: []
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
+ *      - in: path
+ *        name: id
+ *        example: 4
+ *        schema:
+ *          type: integer
+ *        required: true
+ *        description: ID of the eventType to get
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/event-types
+ *        url: https://docs.cal.com/core-features/event-types
  *     responses:
  *       200:
  *         description: OK

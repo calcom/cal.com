@@ -50,6 +50,12 @@ import { defaultResponder } from "@calcom/lib/server";
  *               location:
  *                 type: string
  *                 description: 'Meeting location'
+ *               seatsPerTimeSlot:
+ *                 type: integer
+ *                 description: 'The number of seats for each time slot'
+ *               seatsShowAttendees:
+ *                 type: boolean
+ *                 description: 'Share Attendee information in seats'
  *               smsReminderNumber:
  *                 type: number
  *                 description: 'SMS reminder number'
