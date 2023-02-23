@@ -72,39 +72,55 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    // Schedule email here
-    const t = await getTranslation(booking?.user?.locale ?? "en", "common");
-    const attendeesListPromises = booking.attendees.map(async (attendee) => {
-      return {
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+    const checkMembership = await prisma.membership.findFirst({
+      where: {
+        userId: booking?.user?.id,
+        team: {
+          slug: {
+            not: null,
+          },
         },
-      };
+      },
     });
 
-    const attendeesList = await Promise.all(attendeesListPromises);
+    const hasTeamPlan = !!checkMembership;
 
-    const evt: CalendarEvent = {
-      type: booking.title,
-      title: booking.title,
-      description: booking.description || undefined,
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      organizer: {
-        email: booking.user?.email || "Email-less",
-        name: booking.user?.name || "Nameless",
-        timeZone: booking.user?.timeZone || "Europe/London",
-        language: { translate: t, locale: booking?.user?.locale ?? "en" },
-      },
-      attendees: attendeesList,
-      uid: booking.uid,
-    };
+    // send emails to all attendees only when user has team plan
+    if (hasTeamPlan) {
+      const t = await getTranslation(booking?.user?.locale ?? "en", "common");
+      const attendeesListPromises = booking.attendees.map(async (attendee) => {
+        return {
+          name: attendee.name,
+          email: attendee.email,
+          timeZone: attendee.timeZone,
+          language: {
+            translate: await getTranslation(attendee.locale ?? "en", "common"),
+            locale: attendee.locale ?? "en",
+          },
+        };
+      });
 
-    await sendDailyVideoRecordingEmails(evt, downloadLink);
+      const attendeesList = await Promise.all(attendeesListPromises);
+
+      const evt: CalendarEvent = {
+        type: booking.title,
+        title: booking.title,
+        description: booking.description || undefined,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        organizer: {
+          email: booking.user?.email || "Email-less",
+          name: booking.user?.name || "Nameless",
+          timeZone: booking.user?.timeZone || "Europe/London",
+          language: { translate: t, locale: booking?.user?.locale ?? "en" },
+        },
+        attendees: attendeesList,
+        uid: booking.uid,
+      };
+
+      await sendDailyVideoRecordingEmails(evt, downloadLink);
+    }
+
     return res.status(200).json({ message: "Success" });
   } catch (err) {
     console.warn("something_went_wrong", err);
