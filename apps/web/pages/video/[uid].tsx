@@ -96,7 +96,7 @@ export function VideoMeetingInfo() {
           "fixed top-0 z-30 flex h-full w-64 transform justify-between border-r border-gray-300/20 bg-black/80 backdrop-blur-lg transition-all duration-300 ease-in-out",
           open ? "left-0" : "-left-64"
         )}>
-        <main className="prose prose-sm max-w-64 prose-h3:text-white prose-h3:font-cal overflow-scroll p-4 text-white shadow-sm">
+        <main className="prose prose-sm max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal overflow-scroll p-4 text-white shadow-sm">
           <h3>What:</h3>
           <p>30 Minute Meeting</p>
           <h3>Invitee Time Zone:</h3>
@@ -113,8 +113,12 @@ export function VideoMeetingInfo() {
             <div className={classNames("relative h-full bg-green-500", `w-[${progress}%]`)} />
           </div>
           <h3>Who:</h3>
-          <p>Peer Richelsen - Organizer peer@cal.com</p>
-          <p>sunil pai, inc. – sunil@partykit.io</p>
+          <p>
+            Peer Richelsen - Organizer <a href="mailto:peer@cal.com">peer@cal.com</a>
+          </p>
+          <p>
+            Example User – <a href="mailto:user@example.com">user@example.com</a>
+          </p>
           <h3>Description</h3>
           <p>With Peer Richelsen, Co-Founder & Co-CEO of Cal.com</p>
         </main>
