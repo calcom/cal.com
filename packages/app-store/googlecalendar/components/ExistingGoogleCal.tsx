@@ -37,7 +37,9 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
             <div>
               <div>
                 <>
-                  <Link href={`${CAL_URL}/apps/google-calendar`} className="flex items-center text-blue-900">
+                  <Link
+                    href={`${CAL_URL}/apps/google-calendar`}
+                    className="flex items-center text-blue-900 underline">
                     <span className="mr-1">{t("connect_google_calendar")}</span>
                     <FiArrowRight />
                   </Link>

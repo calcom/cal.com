@@ -49,8 +49,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
-}: // disableInstall,
-Parameters<typeof App>[0]) => {
+}: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
   const router = useRouter();
@@ -81,13 +80,13 @@ Parameters<typeof App>[0]) => {
     }
   );
 
+  // If gCal is not installed and required then disable the install button
   const requiresGCal = appsThatRequiresGCal.some((app) => slug === app);
   const gCalInstalled = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
     enabled: requiresGCal,
   });
 
   const disableInstall = requiresGCal && !gCalInstalled.data;
-  console.log("🚀 ~ file: App.tsx:90 ~ disableInstall:", disableInstall);
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.

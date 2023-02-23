@@ -1,7 +1,7 @@
 import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
-import type { GetStaticPropsContext, GetStaticPaths } from "next";
+import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
@@ -35,13 +35,10 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       isProOnly={data.isProOnly}
       images={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
-      // If gCal is not installed and required then disable the install button
-      // disableInstall={requiresGCal && !gCalInstalled}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          {/* {requiresGCal && <ExistingGoogleCal gCalInstalled={gCalInstalled} appName={data.name} />} */}
           <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
         </>
       }
