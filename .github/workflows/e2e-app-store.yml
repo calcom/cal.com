@@ -1,29 +1,12 @@
 name: E2E App-Store Apps
 on:
-  push:
-    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
-  pull_request_target: # So we can test on forks
-    branches:
-      - main
-    paths-ignore:
-      - apps/api/**
-      - apps/console/**
-      - apps/docs/**
-      - apps/swagger/**
-      - apps/website/**
-      - apps/web/public/**
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+
 jobs:
-  test:
+  e2e-app-store:
     timeout-minutes: 20
     name: E2E App-Store Apps
-    strategy:
-      matrix:
-        node: ["16.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     env:
       DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
@@ -65,32 +48,15 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
-          fetch-depth: 2
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
-      - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v3
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/yarn-playwright-install
+      - uses: ./.github/actions/cache-db
         with:
-          node-version: ${{ matrix.node }}
-          cache: "yarn"
-
-      - name: Cache playwright binaries
-        uses: actions/cache@v2
-        id: playwright-cache
-        with:
-          path: |
-            ~/Library/Caches/ms-playwright
-            ~/.cache/ms-playwright
-            ${{ github.workspace }}/node_modules/playwright
-          key: cache-playwright-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: cache-playwright-
-      - run: yarn --frozen-lockfile
-      - name: Install playwright deps
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: yarn playwright install --with-deps
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn test-e2e:app-store
 
