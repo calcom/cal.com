@@ -29,6 +29,7 @@ import { Form, showToast } from "@calcom/ui";
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
@@ -90,6 +91,7 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
+  availability?: AvailabilityOption;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -244,6 +246,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const availability = formMethods.getValues("availability");
+  console.log({ availability });
   const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
@@ -289,6 +293,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
+      availability={availability}
       isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
       disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}

@@ -14,7 +14,7 @@ import { FiExternalLink, FiGlobe } from "@calcom/ui/components/icon";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
-type AvailabilityOption = {
+export type AvailabilityOption = {
   label: string;
   value: number;
   isDefault: boolean;
@@ -174,6 +174,7 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = () => {
   const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
   return (
     <div className="space-y-4">
       <div>
@@ -188,6 +189,7 @@ const EventTypeSchedule = () => {
               onBlur={field.onBlur}
               name={field.name}
               onChange={(selected) => {
+                formMethods.setValue("availability", selected !== null ? selected : undefined);
                 field.onChange(selected?.value || null);
               }}
             />

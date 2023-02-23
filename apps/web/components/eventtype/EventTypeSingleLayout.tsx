@@ -48,6 +48,7 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import type { AvailabilityOption } from "@components/eventtype/AvailabilityTab";
 
 type Props = {
   children: React.ReactNode;
@@ -60,6 +61,7 @@ type Props = {
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
   isUpdateMutationLoading?: boolean;
+  availability?: AvailabilityOption;
 };
 
 function getNavigation(props: {
@@ -68,8 +70,10 @@ function getNavigation(props: {
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
+  availability: AvailabilityOption | undefined;
 }) {
-  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber, availability } =
+    props;
   const duration =
     eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
 
@@ -84,7 +88,7 @@ function getNavigation(props: {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: FiCalendar,
-      info: `default_schedule_name`, // TODO: Get this from props
+      info: availability?.label ?? `default_schedule_name`, // TODO: Get this from props changing
     },
     {
       name: "event_limit_tab_title",
@@ -131,6 +135,7 @@ function EventTypeSingleLayout({
   enabledWorkflowsNumber,
   isUpdateMutationLoading,
   formMethods,
+  availability,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -165,6 +170,7 @@ function EventTypeSingleLayout({
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
+      availability,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
