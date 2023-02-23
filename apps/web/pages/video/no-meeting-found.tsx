@@ -22,9 +22,7 @@ export default function NoMeetingFound() {
           }
         />
       </main>
-      {/* TODO: for testing purposes only. Remove before merging */}
-      <VideoMeetingInfo />
-      <iframe src="https://cal.video" className="h-[100vh] w-full" />
+      
     </>
   );
 }
