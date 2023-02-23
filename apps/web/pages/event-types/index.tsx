@@ -138,9 +138,9 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           <></>
         )}
         {readOnly && (
-          <span className="inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <Badge variant="gray" className="ml-2">
             {t("readonly")}
-          </span>
+          </Badge>
         )}
       </div>
       <EventTypeDescription

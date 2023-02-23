@@ -67,22 +67,32 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                 <div className="first-line:group flex w-full items-center justify-between p-4 hover:bg-neutral-50 sm:px-6">
                   <Link href={"/workflows/" + workflow.id} className="flex-grow cursor-pointer">
                     <div className="rtl:space-x-reverse">
-                      <div
-                        className={classNames(
-                          "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
-                          workflow.name ? "text-gray-900" : "text-gray-500"
-                        )}>
-                        {workflow.name
-                          ? workflow.name
-                          : workflow.steps[0]
-                          ? "Untitled (" +
-                            `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
-                              .charAt(0)
-                              .toUpperCase() +
-                            `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-                            ")"
-                          : "Untitled"}
+                      <div className="flex">
+                        <div
+                          className={classNames(
+                            "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
+                            workflow.name ? "text-gray-900" : "text-gray-500"
+                          )}>
+                          {workflow.name
+                            ? workflow.name
+                            : workflow.steps[0]
+                            ? "Untitled (" +
+                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                                .charAt(0)
+                                .toUpperCase() +
+                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
+                              ")"
+                            : "Untitled"}
+                        </div>
+                        <div>
+                          {workflow.readOnly && (
+                            <Badge variant="gray" className="mb-1 ml-2">
+                              {t("readonly")}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+
                       <ul className="mt-1 flex flex-wrap space-x-2 sm:flex-nowrap ">
                         <li>
                           <Badge variant="gray">
@@ -129,63 +139,68 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                       </ul>
                     </div>
                   </Link>
-                  <div className="flex flex-shrink-0">
-                    <div className="hidden sm:block">
-                      <ButtonGroup combined>
-                        <Tooltip content={t("edit") as string}>
-                          <Button
-                            type="button"
-                            color="secondary"
-                            variant="icon"
-                            disabled={workflow.readOnly}
-                            StartIcon={FiEdit2}
-                            onClick={async () => await router.replace("/workflows/" + workflow.id)}
-                          />
-                        </Tooltip>
-                        <Tooltip content={t("delete") as string}>
-                          <Button
-                            onClick={() => {
-                              setDeleteDialogOpen(true);
-                              setwWorkflowToDeleteId(workflow.id);
-                            }}
-                            color="secondary"
-                            disabled={workflow.readOnly}
-                            variant="icon"
-                            StartIcon={FiTrash2}
-                          />
-                        </Tooltip>
-                      </ButtonGroup>
-                    </div>
-                    <div className="block sm:hidden">
-                      <Dropdown>
-                        <DropdownMenuTrigger asChild>
-                          <Button type="button" color="minimal" variant="icon" StartIcon={FiMoreHorizontal} />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            <DropdownItem
+                  {!workflow.readOnly && (
+                    <div className="flex flex-shrink-0">
+                      <div className="hidden sm:block">
+                        <ButtonGroup combined>
+                          <Tooltip content={t("edit") as string}>
+                            <Button
                               type="button"
+                              color="secondary"
+                              variant="icon"
                               StartIcon={FiEdit2}
-                              onClick={async () => await router.replace("/workflows/" + workflow.id)}>
-                              {t("edit")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <DropdownItem
-                              type="button"
-                              color="destructive"
-                              StartIcon={FiTrash2}
+                              onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                            />
+                          </Tooltip>
+                          <Tooltip content={t("delete") as string}>
+                            <Button
                               onClick={() => {
                                 setDeleteDialogOpen(true);
                                 setwWorkflowToDeleteId(workflow.id);
-                              }}>
-                              {t("delete")}
-                            </DropdownItem>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </Dropdown>
+                              }}
+                              color="secondary"
+                              variant="icon"
+                              StartIcon={FiTrash2}
+                            />
+                          </Tooltip>
+                        </ButtonGroup>
+                      </div>
+                      <div className="block sm:hidden">
+                        <Dropdown>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              color="minimal"
+                              variant="icon"
+                              StartIcon={FiMoreHorizontal}
+                            />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon={FiEdit2}
+                                onClick={async () => await router.replace("/workflows/" + workflow.id)}>
+                                {t("edit")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                color="destructive"
+                                StartIcon={FiTrash2}
+                                onClick={() => {
+                                  setDeleteDialogOpen(true);
+                                  setwWorkflowToDeleteId(workflow.id);
+                                }}>
+                                {t("delete")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </Dropdown>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </li>
             ))}
