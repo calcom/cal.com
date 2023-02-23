@@ -1622,5 +1622,7 @@
   "select_a_router": "Select a router",
   "add_a_new_route": "Add a new Route",
   "no_responses_yet": "No responses yet",
-  "this_will_be_the_placeholder": "This will be the placeholder"
+  "this_will_be_the_placeholder": "This will be the placeholder",
+  "verification_code": "Verification code",
+  "verify": "Verify"
 }
