@@ -374,6 +374,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <ButtonGroup combined>
                           <Tooltip content={t("preview")}>
                             <Button
+                              data-testid="preview-link-button"
                               color="secondary"
                               target="_blank"
                               variant="icon"
