@@ -92,5 +92,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: fail if conditional jobs failed
-        if: ${{ contains(needs.*.result, 'failure') }}
+        if: contains(fromJSON('["failure", "skipped", "cancelled"]'), needs.*.result)
         run: exit 1
