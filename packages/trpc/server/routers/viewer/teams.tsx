@@ -446,7 +446,11 @@ export const viewerTeamsRouter = router({
         });
       }
 
-      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+      if (
+        myMembership?.role === MembershipRole.ADMIN &&
+        input.memberId === ctx.user.id &&
+        input.role !== MembershipRole.MEMBER
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not change yourself to a higher role.",
