@@ -8,7 +8,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const schema = z.object({
-  uid: z.string(),
+  roomName: z.string(),
   downloadLink: z.string(),
 });
 
@@ -25,45 +25,47 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
-  const { uid, downloadLink } = response.data;
+  const { roomName, downloadLink } = response.data;
 
   try {
-    const booking = await prisma.booking.findFirst({
+    const bookingReference = await prisma.bookingReference.findFirst({
       where: {
-        uid,
+        meetingId: roomName,
       },
       select: {
-        ...bookingMinimalSelect,
-        id: true,
-        uid: true,
-        title: true,
-        location: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        user: {
+        type: true,
+        booking: {
           select: {
-            id: true,
-            credentials: true,
-            timeZone: true,
-            email: true,
-            name: true,
-            locale: true,
-            destinationCalendar: true,
+            ...bookingMinimalSelect,
+            uid: true,
+            location: true,
+            user: {
+              select: {
+                id: true,
+                credentials: true,
+                timeZone: true,
+                email: true,
+                name: true,
+                locale: true,
+                destinationCalendar: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!booking || (booking.location !== "integrations:daily" && booking?.location?.trim() !== "")) {
+    if (!bookingReference || !bookingReference.booking || bookingReference.type !== "daily_video") {
       return res.status(404).send({
-        message: `Booking of ${uid} does not exist or does not contain daily video as location`,
+        message: `Booking of room ${roomName} does not exist or does not contain daily video as location`,
       });
     }
 
+    const booking = bookingReference.booking;
+
     await prisma.booking.update({
       where: {
-        uid,
+        uid: booking.uid,
       },
       data: {
         isRecorded: true,
