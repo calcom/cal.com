@@ -32,7 +32,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               />
             )}
             <Tooltip content={t(locationKeyToString(location) ?? "")}>
-              <p className="truncate">{t(locationKeyToString(location) ?? "")}</p>
+              <p className="line-clamp-1">{t(locationKeyToString(location) ?? "")}</p>
             </Tooltip>
           </div>
         );

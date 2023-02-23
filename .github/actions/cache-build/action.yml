@@ -1,0 +1,23 @@
+name: Cache production build binaries
+description: "Cache or restore if necessary"
+env:
+  node_version: v16.x
+runs:
+  using: "composite"
+  steps:
+    - name: Cache production build
+      uses: actions/cache@v3
+      env:
+        cache-name: prod-build
+        key-1: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
+        key-2: ${{ hashFiles('apps/web/next.config.js') }}
+      with:
+        path: |
+          apps/web/.next
+          node_modules/.cache/turbo
+          **/.turbo/**
+          **/dist/**
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
