@@ -45,6 +45,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
+  disableInstall,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -137,6 +138,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   isProOnly={isProOnly}
+                  disableInstall={disableInstall}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -327,6 +329,7 @@ export default function App(props: {
   isProOnly: AppType["isProOnly"];
   images?: string[];
   isTemplate?: boolean;
+  disableInstall?: boolean;
 }) {
   const { t } = useLocale();
 

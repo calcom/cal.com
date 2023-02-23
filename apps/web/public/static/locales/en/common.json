@@ -1619,5 +1619,7 @@
   "select_a_router": "Select a router",
   "add_a_new_route": "Add a new Route",
   "no_responses_yet": "No responses yet",
-  "this_will_be_the_placeholder": "This will be the placeholder"
+  "this_will_be_the_placeholder": "This will be the placeholder",
+  "this_app_requires_google_calendar": "{{appName}} requires a connected Google Calendar account",
+  "connect_google_calendar": "Connect a Google Calendar"
 }
