@@ -100,13 +100,7 @@ export default class GoogleCalendarService implements Calendar {
         reminders: {
           useDefault: true,
         },
-        // If there are no seats then share attendee information
-        guestsCanSeeOtherGuests: !calEventRaw.seatsPerTimeSlot
-          ? true
-          : // If there are seats and show attendess is enabled then share attendee information
-          calEventRaw.seatsPerTimeSlot && calEventRaw.seatsShowAttendees
-          ? true
-          : false,
+        guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true
       };
 
       if (calEventRaw.location) {
