@@ -129,19 +129,21 @@ export const slotsRouter = router({
 async function markSelectedSlot(ctx: Context, input: z.infer<typeof markSelectedSlotSchema>) {
   const { prisma, ip } = ctx;
   const { slotUtcDate, eventTypeId } = input;
+  const releaseAt = dayjs
+    .utc()
+    .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2"), "minutes")
+    .format();
   await prisma.selectedSlots.upsert({
     where: { selectedSlotUnique: { eventTypeId, slotUtcDate, ip } },
     update: {
       slotUtcDate,
+      releaseAt,
     },
     create: {
       eventTypeId,
       slotUtcDate,
       ip,
-      releaseAt: dayjs
-        .utc()
-        .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2"), "minutes")
-        .format(),
+      releaseAt,
     },
   });
   return;
