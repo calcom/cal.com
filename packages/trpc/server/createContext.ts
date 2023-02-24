@@ -8,9 +8,9 @@ import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
 
-import * as trpc from "@trpc/server";
-import { Maybe } from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
+import type * as trpc from "@trpc/server";
+import type { Maybe } from "@trpc/server";
+import type * as trpcNext from "@trpc/server/adapters/next";
 
 type CreateContextOptions = trpcNext.CreateNextContextOptions | GetServerSidePropsContext;
 
@@ -106,6 +106,7 @@ type CreateInnerContextOptions = {
   locale: string;
   user: Awaited<ReturnType<typeof getUserFromSession>>;
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
+  ip: string;
 } & Partial<CreateContextOptions>;
 
 /**
@@ -135,8 +136,10 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
+  const forwarded = req.headers["x-forwarded-for"];
+  const ip = forwarded ? `${forwarded}`.split(/, /)[0] : `${req.connection.remoteAddress}`;
 
-  const contextInner = await createContextInner({ session, i18n, locale, user });
+  const contextInner = await createContextInner({ session, i18n, locale, user, ip });
   return {
     ...contextInner,
     req,

@@ -273,6 +273,7 @@
     "$ALCHEMY_API_KEY",
     "$INFURA_API_KEY",
     "$GITHUB_API_REPO_TOKEN",
+    "$NEXT_PUBLIC_MINUTES_TO_BOOK",
     "yarn.lock"
   ]
 }

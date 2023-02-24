@@ -660,3 +660,13 @@ model VerifiedNumber {
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   phoneNumber String
 }
+
+model SelectedSlots {
+  id          Int      @id @default(autoincrement())
+  eventTypeId Int
+  slotUtcDate DateTime
+  ip          String
+  releaseAt   DateTime
+
+  @@unique(fields: [eventTypeId, slotUtcDate, ip], name: "selectedSlotUnique")
+}

@@ -1,4 +1,5 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import type { Prisma, DestinationCalendar } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";

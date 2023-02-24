@@ -40,6 +40,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { trpc } from "@calcom/trpc/react";
 import {
   AddressInput,
   Button,
@@ -107,8 +108,11 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
+  const releaseSlotMutation = trpc.viewer.slots.removeSelectedSlotMark.useMutation();
+  const selectSlotMutation = trpc.viewer.slots.markSelectedSlot.useMutation();
+  const [timeOver, setTimeOver] = useState(false);
   const { t, i18n } = useLocale();
-  const { duration: queryDuration } = useRouterQuery("duration");
+  const { duration: queryDuration, queryDate } = useRouterQuery("duration");
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const embedUiConfig = useEmbedUiConfig();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
@@ -135,7 +139,6 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
-
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
@@ -144,6 +147,11 @@ const BookingPage = ({
         collectPageParameters("/book", { isTeamBooking: document.URL.includes("team/") })
       );
     }
+    selectSlotMutation.mutate({ eventTypeId: eventType.id, slotUtcDate: dayjs(queryDate).utc().format() });
+    setTimeout(() => setTimeOver(true), parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2") * 60 * 1000);
+    return () => {
+      releaseSlotMutation.mutate();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1045,8 +1053,10 @@ const BookingPage = ({
                   </Button>
                 </div>
               </Form>
-              {(mutation.isError || recurringMutation.isError) && (
+              {mutation.isError || recurringMutation.isError ? (
                 <ErrorMessage error={mutation.error || recurringMutation.error} />
+              ) : (
+                <>{timeOver ? <ErrorMessage error={t("time_to_booking_over")} /> : null}</>
               )}
             </div>
           </div>
@@ -1070,8 +1080,14 @@ function ErrorMessage({ error }: { error: unknown }) {
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
-            {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
+            {typeof error === "string" ? (
+              error
+            ) : (
+              <>
+                {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
+                {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
+              </>
+            )}
           </p>
         </div>
       </div>

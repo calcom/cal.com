@@ -9,6 +9,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
+import { trpc } from "@calcom/trpc/react";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
 import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
@@ -40,6 +41,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   seatsPerTimeSlot,
   ethSignature,
 }) => {
+  const mutation = trpc.viewer.slots.markSelectedSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -50,6 +52,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
+
+  const reserveSlot = (slot: Slot) => {
+    mutation.mutate({ slotUtcDate: slot.time, eventTypeId });
+  };
 
   return (
     <div ref={slotPickerRef}>
@@ -126,6 +132,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                           "dark:bg-darkgray-200 dark:hover:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
+                        onClick={() => reserveSlot(slot)}
                         data-testid="time">
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
                         {!!seatsPerTimeSlot && (

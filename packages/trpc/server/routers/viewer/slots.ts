@@ -1,22 +1,24 @@
 import { SchedulingType } from "@prisma/client";
-import cache from "memory-cache";
 import { z } from "zod";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
+import type { Context } from "../../createContext";
 import { router, publicProcedure } from "../../trpc";
 
 const getScheduleSchema = z
@@ -43,6 +45,17 @@ const getScheduleSchema = z
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
     "Either usernameList or eventTypeId should be filled in."
+  );
+
+const markSelectedSlotSchema = z
+  .object({
+    eventTypeId: z.number().int(),
+    // startTime ISOString
+    slotUtcDate: z.string(),
+  })
+  .refine(
+    (data) => !!data.eventTypeId || !!data.slotUtcDate,
+    "Either slotUtcDate or eventTypeId should be filled in."
   );
 
 export type Slot = {
@@ -107,7 +120,38 @@ export const slotsRouter = router({
   getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
     return await getSchedule(input, ctx);
   }),
+  markSelectedSlot: publicProcedure
+    .input(markSelectedSlotSchema)
+    .mutation(({ ctx, input }) => markSelectedSlot(ctx, input)),
+  removeSelectedSlotMark: publicProcedure.mutation(({ ctx }) => removeSelectedSlotMark(ctx)),
 });
+
+async function markSelectedSlot(ctx: Context, input: z.infer<typeof markSelectedSlotSchema>) {
+  const { prisma, ip } = ctx;
+  const { slotUtcDate, eventTypeId } = input;
+  await prisma.selectedSlots.upsert({
+    where: { selectedSlotUnique: { eventTypeId, slotUtcDate, ip } },
+    update: {
+      slotUtcDate,
+    },
+    create: {
+      eventTypeId,
+      slotUtcDate,
+      ip,
+      releaseAt: dayjs
+        .utc()
+        .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2"), "minutes")
+        .format(),
+    },
+  });
+  return;
+}
+
+async function removeSelectedSlotMark(ctx: Context) {
+  const { ip, prisma } = ctx;
+  await prisma.selectedSlots.deleteMany({ where: { ip: { equals: ip } } });
+  return;
+}
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
   const eventType = await ctx.prisma.eventType.findUnique({
@@ -323,14 +367,24 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
-  let slotBusy: string[] = [];
-  const busySlotName = `${eventType.slug}-${eventType.id}`;
-  const cachedBusySlot: string[] | undefined = cache.get(busySlotName);
-  if (cachedBusySlot && cachedBusySlot?.length > 0) {
-    slotBusy = cachedBusySlot?.map((slot: string) => {
-      return slot;
-    });
-  }
+  const selectedSlots = await prisma.selectedSlots.findMany({
+    where: {
+      eventTypeId: { equals: eventType.id },
+      releaseAt: { gt: dayjs.utc().format() },
+    },
+    select: { id: true, slotUtcDate: true },
+  });
+  const ids: number[] = [];
+  const slotBusy =
+    selectedSlots?.length > 0
+      ? selectedSlots.map((item) => {
+          ids.push(item.id);
+          return item.slotUtcDate.toISOString();
+        })
+      : [];
+  await prisma.selectedSlots.deleteMany({
+    where: { eventTypeId: { equals: eventType.id }, id: { notIn: ids } },
+  });
 
   availableTimeSlots = timeSlots.filter((slot) => {
     const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
@@ -372,7 +426,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => {
-    if (slotBusy && slotBusy?.includes(slot.time.toISOString())) {
+    if (slotBusy?.includes?.(slot.time.toISOString())) {
       return false;
     }
     return isTimeWithinBounds(slot.time);

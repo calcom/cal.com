@@ -32,6 +32,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
       user: null,
       locale,
       i18n: _i18n,
+      ip: "",
     },
   });
 
