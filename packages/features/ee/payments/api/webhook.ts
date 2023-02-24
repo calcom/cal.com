@@ -138,7 +138,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
-    scheduleResult.results;
   }
 
   if (eventTypeRaw?.requiresConfirmation) {
