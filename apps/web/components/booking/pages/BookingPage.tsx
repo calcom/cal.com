@@ -155,11 +155,16 @@ const BookingFields = ({
           }
         }
 
-        field.label = noLabel ? "" : field.label || t(field.defaultLabel || "");
-        field.placeholder = field.placeholder || t(field.defaultPlaceholder || "");
+        const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
+        const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
         return (
-          <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
+          <FormBuilderField
+            className="mb-4"
+            field={{ ...field, label, placeholder, hidden }}
+            readOnly={readOnly}
+            key={index}
+          />
         );
       })}
     </div>

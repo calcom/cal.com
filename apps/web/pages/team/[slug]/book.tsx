@@ -14,6 +14,8 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function TeamBookingPage(props: TeamBookingPageProps) {
@@ -23,6 +25,7 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 TeamBookingPage.isThemeSupported = true;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   const recurringEventCountQuery = asStringOrNull(context.query.count);
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
@@ -131,6 +134,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       profile: {
         ...eventTypeObject.team,
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
