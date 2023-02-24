@@ -1,4 +1,3 @@
-import cache from "memory-cache";
 import type { GetServerSidePropsContext } from "next";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -225,15 +224,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? parseInt(recurringEventCountQuery)
         : eventType.recurringEvent.count)) ||
     null;
-
-  // We should mark on cache this slot as unavailable
-  const date = context.query.date as string;
-  const dateUTC = new Date(date).toISOString();
-  const bookingEventName = `${eventType.slug}-${eventType.id}`;
-  const cacheLoad: undefined | string[] = cache.get(bookingEventName);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  cache.put(bookingEventName, [...new Set([...(cacheLoad || []), dateUTC])], 30000);
 
   return {
     props: {
