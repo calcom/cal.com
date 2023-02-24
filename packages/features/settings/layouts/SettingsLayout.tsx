@@ -3,7 +3,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/r
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { ComponentProps, useEffect, useState } from "react";
+import type { ComponentProps } from "react";
+import React, { useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
@@ -11,15 +12,8 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Button,
-  ErrorBoundary,
-  VerticalTabItemProps,
-  VerticalTabItem,
-  Skeleton,
-  useMeta,
-} from "@calcom/ui";
+import type { VerticalTabItemProps } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, VerticalTabItem, Skeleton, useMeta } from "@calcom/ui";
 import {
   FiUser,
   FiKey,
@@ -178,7 +172,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed bottom-0 left-0 top-0 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar fixed bottom-0 left-0  top-0 z-50 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
