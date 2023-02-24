@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
+import { Tooltip } from "@calcom/ui";
 
 import { FiChevronDown } from "../icon";
 
@@ -43,18 +44,20 @@ export const AnimatedPopover = ({
       <Popover.Trigger asChild>
         <div
           ref={ref}
-          className="item-center  mb-2 flex h-9 max-h-72 justify-between overflow-y-scroll whitespace-nowrap rounded-md border border-gray-300
+          className="mb-2 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border border-gray-300
           py-2 px-3 text-sm placeholder:text-gray-400
           hover:cursor-pointer hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
           <div className="max-w-36 flex items-center">
-            <div className="truncate">
-              {text}
-              {count && count > 0 && (
-                <div className="flex h-4 w-4 items-center justify-center rounded-full">{count}</div>
-              )}
-            </div>
+            <Tooltip content={text}>
+              <div className="truncate">
+                {text}
+                {count && count > 0 && (
+                  <div className="flex h-4 w-4 items-center justify-center rounded-full">{count}</div>
+                )}
+              </div>
+            </Tooltip>
             <FiChevronDown
-              className={classNames("mt-auto ml-2 transition-transform duration-150", open && "rotate-180")}
+              className={classNames("ml-2 transition-transform duration-150", open && "rotate-180")}
             />
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { FC } from "react";
@@ -60,8 +59,6 @@ import { HttpError } from "@lib/core/http/error";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
-import { ssrInit } from "@server/lib/ssr";
-
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
@@ -73,6 +70,7 @@ interface EventTypeListHeadingProps {
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
+
 interface EventTypeListProps {
   group: EventTypeGroup;
   groupIndex: number;
@@ -134,11 +132,9 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
             data-testid={"event-type-slug-" + type.id}>
             {`/${group.profile.slug}/${type.slug}`}
           </small>
-        ) : (
-          <></>
-        )}
+        ) : null}
         {readOnly && (
-          <span className="inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
             {t("readonly")}
           </span>
         )}
@@ -693,16 +689,6 @@ const EventTypesPage = () => {
       </Shell>
     </div>
   );
-};
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
 };
 
 export default EventTypesPage;
