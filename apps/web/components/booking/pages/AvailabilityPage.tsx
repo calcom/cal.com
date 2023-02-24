@@ -23,6 +23,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { trpc } from "@calcom/trpc";
 import { HeadSeo } from "@calcom/ui";
 import { FiCreditCard, FiUser, FiRefreshCcw } from "@calcom/ui/components/icon";
 
