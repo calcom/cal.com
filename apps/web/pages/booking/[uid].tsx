@@ -442,17 +442,19 @@ export default function Success(props: SuccessProps) {
                   <div className="mt-3">
                     <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
-                  {props.paymentStatus && (
-                    <h4>
-                      {!props.paymentStatus.success &&
-                        !props.paymentStatus.refunded &&
-                        t("booking_with_payment_cancelled")}
-                      {props.paymentStatus.success &&
-                        !props.paymentStatus.refunded &&
-                        t("booking_with_payment_cancelled_already_paid")}
-                      {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
-                    </h4>
-                  )}
+                  {props.paymentStatus &&
+                    (bookingInfo.status === BookingStatus.CANCELLED ||
+                      bookingInfo.status === BookingStatus.REJECTED) && (
+                      <h4>
+                        {!props.paymentStatus.success &&
+                          !props.paymentStatus.refunded &&
+                          t("booking_with_payment_cancelled")}
+                        {props.paymentStatus.success &&
+                          !props.paymentStatus.refunded &&
+                          t("booking_with_payment_cancelled_already_paid")}
+                        {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
+                      </h4>
+                    )}
 
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (

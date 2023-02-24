@@ -1,5 +1,4 @@
 import { IdentityProvider } from "@prisma/client";
-import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
@@ -9,8 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Meta, PasswordField, Select, SettingsToggle, showToast } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
@@ -208,15 +205,5 @@ const PasswordView = () => {
 };
 
 PasswordView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default PasswordView;
