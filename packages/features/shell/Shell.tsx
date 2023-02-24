@@ -782,7 +782,7 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div
         className={classNames(
-          "my-4 flex items-center md:mt-0 md:mb-6",
+          "flex items-center md:mt-0 md:mb-6",
           props.smallHeading ? "lg:mb-7" : "lg:mb-8"
         )}>
         {!!props.backPath && (
@@ -882,7 +882,7 @@ function TopNav() {
           </span>
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
-            <Link href="/settings/profile">
+            <Link href="/settings/my-account/profile">
               <FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </Link>
           </button>
