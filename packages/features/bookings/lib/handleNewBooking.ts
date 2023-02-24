@@ -541,11 +541,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const attendeesList = [...invitee, ...guests, ...teamMembers];
 
+  if (!organizerUser.name) {
+    throw new HttpError({ statusCode: 400, message: "organizerUser.name.required" });
+  }
+
   const eventNameObject = {
-    attendeeName: reqBody.name || "Nameless",
+    attendeeName: reqBody.name,
     eventType: eventType.title,
     eventName: eventType.eventName,
-    host: organizerUser.name || "Nameless",
+    host: organizerUser.name,
     location: bookingLocation,
     t: tOrganizer,
   };
