@@ -148,7 +148,7 @@ const BookingPage = ({
       );
     }
     selectSlotMutation.mutate({ eventTypeId: eventType.id, slotUtcDate: dayjs(queryDate).utc().format() });
-    setTimeout(() => setTimeOver(true), parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2") * 60 * 1000);
+    setTimeout(() => setTimeOver(true), parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5") * 60 * 1000);
     return () => {
       releaseSlotMutation.mutate();
     };
