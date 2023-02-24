@@ -474,7 +474,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     ) {
       throw new Error("Some users are unavailable for booking.");
     }
-    users = [...luckyUsers, ...availableUsers.filter((user) => user.isFixed)];
+    // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+    users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
@@ -581,7 +582,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
-    seatsShowAttendees: !!eventType.seatsShowAttendees,
+    // if seats are not enabled we should default true
+    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
