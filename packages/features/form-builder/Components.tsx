@@ -1,10 +1,11 @@
 import { useEffect } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
-import Widgets, {
+import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
 } from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
@@ -12,7 +13,7 @@ import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField,
 import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
-import { fieldsSchema } from "./FormBuilderFieldsSchema";
+import type { fieldsSchema } from "./FormBuilderFieldsSchema";
 
 type Component =
   | {
@@ -243,9 +244,7 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  // disabled={!!disableLocations}
-                  //TODO: ManageBookings: What does this location class do?
-                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
