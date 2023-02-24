@@ -223,7 +223,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
-            className="mx-4 h-5 w-5 animate-spin text-black dark:text-white"
+            className={classNames(
+              "mx-4 h-5 w-5 animate-spin",
+              color === "primary" ? "text-white dark:text-black" : "text-black dark:text-white"
+            )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24">
