@@ -1,7 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -41,8 +40,6 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const md = new MarkdownIt("default", { html: true, breaks: true });
 
@@ -384,15 +381,5 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ProfileView;

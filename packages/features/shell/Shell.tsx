@@ -780,7 +780,11 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      <div className={classNames("mb-4 flex sm:mt-0 md:mb-6", props.smallHeading ? "lg:mb-7" : "lg:mb-8")}>
+      <div
+        className={classNames(
+          "my-4 flex items-center md:mt-0 md:mb-6",
+          props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+        )}>
         {!!props.backPath && (
           <Button
             variant="icon"
@@ -791,7 +795,7 @@ export function ShellMain(props: LayoutProps) {
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="mt-2 rounded-md ltr:mr-2 rtl:ml-2"
+            className="rounded-md ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
@@ -844,7 +848,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 md:py-8 lg:px-12">
+      <div className="max-w-full py-4 px-4 md:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

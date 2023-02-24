@@ -58,13 +58,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
+  const replaceEventNamePlaceholder = (eventNameObject: EventNameObjectType, previewEventName: string) =>
+    previewEventName
+      .replace("{Event type title}", eventNameObject.eventType)
+      .replace("{Scheduler}", eventNameObject.attendeeName)
+      .replace("{Organiser}", eventNameObject.host);
+
   const changePreviewText = (eventNameObject: EventNameObjectType, previewEventName: string) => {
-    setPreviewText(
-      previewEventName
-        .replace("{Event type title}", eventNameObject.eventType)
-        .replace("{Scheduler}", eventNameObject.attendeeName)
-        .replace("{Organiser}", eventNameObject.host)
-    );
+    setPreviewText(replaceEventNamePlaceholder(eventNameObject, previewEventName));
   };
 
   useEffect(() => {
@@ -86,6 +87,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       })
     );
   };
+
+  const eventNamePlaceholder = replaceEventNamePlaceholder(eventNameObject, t("meeting_with_user"));
+
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -126,7 +130,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
-          placeholder={t("meeting_with_user")}
+          placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName", {
             onChange: (e) => {
@@ -330,7 +334,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <TextField
               label={t("event_name_in_calendar")}
               type="text"
-              placeholder={t("meeting_with_user")}
+              placeholder={eventNamePlaceholder}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName", {
                 onChange: (e) => {
