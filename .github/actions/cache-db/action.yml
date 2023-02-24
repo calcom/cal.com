@@ -1,0 +1,34 @@
+name: Cache database between jobs
+description: "Cache or restore if necessary"
+inputs:
+  DATABASE_URL:
+    required: true
+  path:
+    required: false
+    default: "backups/backup.sql"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache database
+      id: cache-db
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-db
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-
+    - name: Postgres Dump Backup
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      uses: tj-actions/pg-dump@v2.3
+      with:
+        database_url: ${{ inputs.DATABASE_URL }}
+        path: ${{ inputs.path }}
+        options: "-O"
+    - name: Postgres Backup Restore
+      if: steps.cache-db.outputs.cache-hit == 'true'
+      uses: tj-actions/pg-restore@v4.5
+      with:
+        database_url: ${{ inputs.DATABASE_URL }}
+        backup_file: ${{ inputs.path }}

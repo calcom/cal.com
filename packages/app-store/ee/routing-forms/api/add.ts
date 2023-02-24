@@ -1,5 +1,5 @@
 import prisma from "@calcom/prisma";
-import { AppDeclarativeHandler } from "@calcom/types/AppHandler";
+import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import appConfig from "../config.json";
 

@@ -29,6 +29,7 @@ const config = {
       "vi",
       "no",
       "uk",
+      "da",
     ],
   },
   reloadOnPrerender: process.env.NODE_ENV !== "production",

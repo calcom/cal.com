@@ -1,13 +1,16 @@
-import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import type { UserPermissionRole } from "@prisma/client";
+import { IdentityProvider } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import NextAuth, { Session } from "next-auth";
+import type { Session } from "next-auth";
+import NextAuth from "next-auth";
 import { encode } from "next-auth/jwt";
-import { Provider } from "next-auth/providers";
+import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import nodemailer, { TransportOptions } from "nodemailer";
+import type { TransportOptions } from "nodemailer";
+import nodemailer from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
@@ -164,6 +167,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -202,6 +206,7 @@ if (isSAMLLoginEnabled) {
       clientId: "dummy",
       clientSecret: "dummy",
     },
+    allowDangerousEmailAccountLinking: true,
   });
 }
 
@@ -360,7 +365,7 @@ export default NextAuth({
       return token;
     },
     async session({ session, token }) {
-      const hasValidLicense = await checkLicense(process.env.CALCOM_LICENSE_KEY || "");
+      const hasValidLicense = await checkLicense(prisma);
       const calendsoSession: Session = {
         ...session,
         hasValidLicense,
@@ -497,7 +502,17 @@ export default NextAuth({
             return true;
           }
 
-          if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+          // User signs up with email/password and then tries to login with Google/SAML using the same email
+          if (
+            existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
+            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+          ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              data: { password: null },
+            });
+            return true;
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
           }
 

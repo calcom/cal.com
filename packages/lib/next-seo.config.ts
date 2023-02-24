@@ -1,8 +1,8 @@
-import { DefaultSeoProps, NextSeoProps } from "next-seo";
+import type { DefaultSeoProps, NextSeoProps } from "next-seo";
 
 import { APP_NAME, SEO_IMG_DEFAULT, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 
-import { AppImageProps, MeetingImageProps } from "./OgImages";
+import type { AppImageProps, MeetingImageProps } from "./OgImages";
 
 export type HeadSeoProps = {
   title: string;

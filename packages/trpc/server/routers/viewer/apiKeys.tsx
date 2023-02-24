@@ -140,6 +140,7 @@ export const apiKeysRouter = router({
       if (apiKeyToDelete && apiKeyToDelete.appId === "zapier") {
         await ctx.prisma.webhook.deleteMany({
           where: {
+            userId: ctx.user.id,
             appId: "zapier",
           },
         });

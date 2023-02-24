@@ -1,12 +1,12 @@
 import { SchedulingType } from "@prisma/client";
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { ComponentProps } from "react";
-import { Controller, useFormContext, useWatch, Control } from "react-hook-form";
-import { Options } from "react-select";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { ComponentProps } from "react";
+import type { Control } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import type { Options } from "react-select";
 
-import CheckedTeamSelect, {
-  CheckedSelectOption,
-} from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";
@@ -24,6 +24,16 @@ const mapUserToValue = ({ id, name, username, email }: IMemberToValue) => ({
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
+
+const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
+  if (a.label < b.label) {
+    return -1;
+  }
+  if (a.label > b.label) {
+    return 1;
+  }
+  return 0;
+};
 
 const FixedHosts = ({
   control,
@@ -103,7 +113,6 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
   ];
 
   const teamMembersOptions = teamMembers.map(mapUserToValue);
-
   return (
     <div>
       {team && (
@@ -128,17 +137,16 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
 
           {schedulingType === SchedulingType.COLLECTIVE && (
             <FixedHosts
-              options={teamMembersOptions}
+              options={teamMembersOptions.sort(sortByLabel)}
               placeholder={t("add_attendees")}
               labelText={t("team")}
               control={formMethods.control}
             />
           )}
-
           {schedulingType === SchedulingType.ROUND_ROBIN && (
             <>
               <FixedHosts
-                options={teamMembersOptions}
+                options={teamMembersOptions.sort(sortByLabel)}
                 isOptionDisabled={(option) =>
                   !!formMethods.getValues("hosts").find((host) => host.userId.toString() === option.value)
                 }
@@ -173,7 +181,7 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
                           )
                           .filter(Boolean)}
                         controlShouldRenderValue={false}
-                        options={teamMembers.map(mapUserToValue)}
+                        options={teamMembersOptions.sort(sortByLabel)}
                         isOptionDisabled={(option) =>
                           !!formMethods
                             .getValues("hostsFixed")

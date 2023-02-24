@@ -24,7 +24,7 @@ export enum timeUnitLowerCase {
 
 export type BookingInfo = {
   uid?: string | null;
-  attendees: { name: string; email: string; timeZone: string }[];
+  attendees: { name: string; email: string; timeZone: string; language: { locale: string } }[];
   organizer: {
     language: { locale: string };
     name: string;
@@ -87,6 +87,11 @@ export const scheduleSMSReminder = async (
   const timeZone =
     action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
+  const locale =
+    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+      ? evt.attendees[0].language?.locale
+      : evt.organizer.language.locale;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
@@ -105,7 +110,7 @@ export const scheduleSMSReminder = async (
         customInputs: evt.customInputs,
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
-      const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
+      const customMessage = await customTemplate(message, variables, locale);
       message = customMessage.text;
       break;
   }
@@ -169,9 +174,16 @@ export const scheduleSMSReminder = async (
   }
 };
 
-export const deleteScheduledSMSReminder = async (referenceId: string) => {
+export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
   try {
-    await twilio.cancelSMS(referenceId);
+    if (referenceId) {
+      await twilio.cancelSMS(referenceId);
+    }
+    await prisma.workflowReminder.delete({
+      where: {
+        id: reminderId,
+      },
+    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }
