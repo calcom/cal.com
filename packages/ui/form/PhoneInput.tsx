@@ -21,17 +21,7 @@ function PhoneInput<FormValues>({
   onChange,
   ...rest
 }: PhoneInputProps<FormValues>) {
-  const [defaultCountry, setDefaultCountry] = useState("US");
-  useEffect(() => {
-    fetch("/api/countrycode")
-      .then((res) => res.json())
-      .then((res) => {
-        if (isSupportedCountry(res.countryCode)) setDefaultCountry(res.countryCode);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+  const defaultCountry = useDefaultCountry();
   return (
     <BasePhoneInput
       {...rest}
@@ -48,5 +38,21 @@ function PhoneInput<FormValues>({
     />
   );
 }
+
+const useDefaultCountry = () => {
+  const [defaultCountry, setDefaultCountry] = useState("US");
+  useEffect(() => {
+    fetch("/api/countrycode")
+      .then((res) => res.json())
+      .then((res) => {
+        if (isSupportedCountry(res.countryCode)) setDefaultCountry(res.countryCode);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  return defaultCountry;
+};
 
 export default PhoneInput;
