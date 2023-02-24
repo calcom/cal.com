@@ -243,7 +243,7 @@ const SettingsSidebarContainer = ({
                           }>
                           <CollapsibleTrigger>
                             <div
-                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900 text-left"
                               onClick={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
