@@ -15,7 +15,7 @@ async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUid?: 
         select: {
           email: true,
           name: true,
-          ...(seatReferenceUid && { bookingSeatReference: true }),
+          ...(seatReferenceUid && { bookingSeat: true }),
         },
       },
       user: {

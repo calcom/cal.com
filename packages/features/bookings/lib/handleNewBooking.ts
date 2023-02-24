@@ -48,6 +48,7 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
+import type { BookingReference } from "@calcom/prisma/client";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -338,7 +339,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
           email: true,
           locale: true,
           timeZone: true,
-          ...(seatsEventType && { bookingSeatReference: true, id: true }),
+          ...(seatsEventType && { bookingSeat: true, id: true }),
         },
       },
       user: {
@@ -728,7 +729,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       select: {
         uid: true,
         id: true,
-        attendees: { include: { bookingSeatReference: true } },
+        attendees: { include: { bookingSeat: true } },
         userId: true,
         references: true,
         startTime: true,
@@ -867,7 +868,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
             attendeesToDelete.push(attendee.id);
             // If the attendee does not exist on the new booking then move that attendee record to the new booking
           } else {
-            attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeatReference?.id });
+            attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeat?.id });
           }
         }
 
@@ -885,7 +886,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               },
               data: {
                 bookingId: newTimeSlotBooking.id,
-                bookingSeatReference: {
+                bookingSeat: {
                   upsert: {
                     create: {
                       referenceUId: uuid(),
@@ -994,9 +995,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
             bookingId: newTimeSlotBooking.id,
           },
         }),
-        await prisma.bookingSeatsReferences.update({
+        await prisma.bookingSeat.update({
           where: {
-            id: seatAttendee.bookingSeatReference?.id,
+            id: seatAttendee.bookingSeat?.id,
           },
           data: {
             bookingId: newTimeSlotBooking.id,
@@ -1067,7 +1068,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       });
 
-      // Add entry to bookingSeatsReference table
+      // Add entry to bookingSeat table
       const attendeeUniqueId = uuid();
       await prisma.bookingSeat.create({
         data: {

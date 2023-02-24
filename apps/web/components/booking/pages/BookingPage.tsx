@@ -223,8 +223,8 @@ const BookingPage = ({
       rescheduleUid && router.query.seatReferenceUid
         ? booking?.attendees.find((attendee) => {
             if (
-              "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+              "bookingSeat" in attendee &&
+              attendee.bookingSeat?.referenceUId === router.query.seatReferenceUid
             )
               return attendee;
           })?.email
@@ -237,8 +237,8 @@ const BookingPage = ({
       rescheduleUid && router.query.seatReferenceUid
         ? booking?.attendees.find((attendee) => {
             if (
-              "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+              "bookingSeat" in attendee &&
+              attendee.bookingSeat?.referenceUId === router.query.seatReferenceUid
             )
               return attendee;
           })?.name

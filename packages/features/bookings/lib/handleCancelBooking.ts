@@ -179,7 +179,7 @@ async function handler(req: CustomRequest) {
       throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 
     await Promise.all([
-      prisma.bookingSeatsReferences.delete({
+      prisma.bookingSeat.delete({
         where: {
           referenceUId: seatReferenceUid,
         },
