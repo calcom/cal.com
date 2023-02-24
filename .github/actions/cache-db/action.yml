@@ -17,8 +17,8 @@ runs:
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-
+        restore-keys: | 
+          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       uses: tj-actions/pg-dump@v2.3
