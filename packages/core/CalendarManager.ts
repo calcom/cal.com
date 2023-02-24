@@ -78,7 +78,6 @@ export const getConnectedCalendars = async (
           destinationCalendar.primaryEmail = primary.email;
           destinationCalendar.integrationTitle = integration.title;
         }
-        // primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
             integration,
