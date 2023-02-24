@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -33,14 +33,13 @@ import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Button, Form, Tooltip } from "@calcom/ui";
-import { FiAlertTriangle, FiCalendar, FiCreditCard, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
+import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -56,6 +55,11 @@ import BookingDescription from "@components/booking/BookingDescription";
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+
+/** These are like 40kb that not every user needs */
+const BookingDescriptionPayment = dynamic(
+  () => import("@components/booking/BookingDescriptionPayment")
+) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({
@@ -198,7 +202,6 @@ const BookingPage = ({
     }),
     {}
   );
-  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (
@@ -486,18 +489,7 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {paymentAppData.price > 0 && (
-                    <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={paymentAppData.price / 100.0}
-                          style="currency"
-                          currency={paymentAppData?.currency?.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
+                  <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
