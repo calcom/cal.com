@@ -49,6 +49,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/cache-db
+        with:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
       - uses: ./.github/actions/yarn-build
         with:
           # GitHub Composite actions cannot read secrets, we have to pass them in here
@@ -80,6 +83,3 @@ jobs:
           NEXT_PUBLIC_IS_E2E: ${{ env.NEXT_PUBLIC_IS_E2E }}
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - uses: ./.github/actions/cache-db
-        with:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
