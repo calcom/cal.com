@@ -1,12 +1,11 @@
+import type { PrismaPromise } from "@prisma/client";
 import {
-  PrismaPromise,
   WorkflowTemplates,
   WorkflowActions,
   WorkflowTriggerEvents,
   BookingStatus,
   WorkflowMethods,
   TimeUnit,
-  Prisma
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -33,6 +32,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { IS_SELF_HOSTED, SENDER_ID } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { WorkflowStep } from "@calcom/prisma/client";
@@ -947,7 +947,7 @@ evt = {
 attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
 organizer: {
 language: {
-locale: ctx.user.locale,
+  locale: ctx.user.locale,
 },
 name: ctx.user.name || "",
 email: ctx.user.email,
@@ -1102,8 +1102,16 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     return verifiedNumbers;
   }),
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
-    const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
+    const { user } = ctx;
+
+    const isCurrentUsernamePremium = user && user.metadata && hasKeyInMetadata(user, "isPremium");
+
+    let isTeamsPlan = false;
+    if (!isCurrentUsernamePremium) {
+      const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
+      isTeamsPlan = !!hasTeamPlan;
+    }
     const t = await getTranslation(ctx.user.locale, "common");
-    return getWorkflowActionOptions(t, IS_SELF_HOSTED || !!hasTeamPlan);
+    return getWorkflowActionOptions(t, IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan);
   }),
 });
