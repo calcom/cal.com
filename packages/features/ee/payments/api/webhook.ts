@@ -7,6 +7,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -55,6 +56,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
     select: {
       ...bookingMinimalSelect,
+      eventType: true,
+      smsReminderNumber: true,
       location: true,
       eventTypeId: true,
       userId: true,
@@ -65,6 +68,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       user: {
         select: {
           id: true,
+          username: true,
           credentials: true,
           timeZone: true,
           email: true,
@@ -136,6 +140,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
+    scheduleResult.results;
   }
 
   if (eventTypeRaw?.requiresConfirmation) {
@@ -160,7 +165,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt });
+  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
+    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
+  } else {
+    await sendScheduledEmails({ ...evt });
+  }
 
   throw new HttpCode({
     statusCode: 200,
