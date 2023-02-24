@@ -15,6 +15,7 @@ import {
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -77,7 +78,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 size="sm"
                 items={props.users.map((user) => ({
                   alt: user.name || "",
-                  image: user.avatar || "",
+                  image: `${WEBAPP_URL}/${user.username}/avatar.png`,
                 }))}
               />
             </div>
@@ -136,7 +137,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
+              <Avatar imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png`} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
