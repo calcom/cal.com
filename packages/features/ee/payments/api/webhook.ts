@@ -80,8 +80,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
 
-  console.log("booking", JSON.stringify(booking));
-
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
   type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
