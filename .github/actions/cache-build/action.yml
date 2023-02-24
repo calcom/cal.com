@@ -11,13 +11,13 @@ runs:
         cache-name: prod-build
         key-1: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
         key-2: ${{ hashFiles('apps/web/next.config.js') }}
+        key-3: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+      with:
       with:
         path: |
-          apps/web/.next
-          node_modules/.cache/turbo
+          ${{ github.workspace }}/apps/web/.next/cache
           **/.turbo/**
           **/dist/**
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
-          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-
