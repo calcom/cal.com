@@ -17,20 +17,20 @@
     "@vercel/og": "^0.0.21",
     "bcryptjs": "^2.4.3",
     "ical.js": "^1.4.0",
-    "ics": "^2.37.0",
-    "jimp": "^0.16.1",
+    "ics": "^2.44.0",
+    "jimp": "^0.16.13",
     "next-i18next": "^11.3.0",
-    "react-hot-toast": "^2.3.0",
-    "rrule": "^2.7.1",
-    "tailwind-merge": "^1.8.1",
+    "react-hot-toast": "^2.4.0",
+    "rrule": "^2.7.2",
+    "tailwind-merge": "^1.10.0",
     "tsdav": "2.0.3",
-    "tslog": "^3.2.1",
+    "tslog": "^3.3.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
-    "@faker-js/faker": "^7.3.0",
-    "typescript": "^4.9.4"
+    "@faker-js/faker": "^7.6.0",
+    "typescript": "^4.9.5"
   }
 }
