@@ -1,5 +1,6 @@
 import type { TFunction } from "next-i18next";
 
+import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
@@ -27,8 +28,7 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
-// eslint-disable-next-line
-const sendEmail = (prepare: () => any) => {
+const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
     try {
       const email = prepare();
