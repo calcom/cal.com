@@ -1,7 +1,8 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
@@ -19,6 +20,18 @@ export const config = {
     bodyParser: false,
   },
 };
+
+async function getEventType(id: number) {
+  return prisma.eventType.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      recurringEvent: true,
+      requiresConfirmation: true,
+    },
+  });
+}
 
 async function handlePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -63,22 +76,14 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
   });
 
+  console.log("booking", JSON.stringify(booking));
+
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    recurringEvent: true,
-    requiresConfirmation: true,
-  });
-  const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
-  type EventTypeRaw = Prisma.EventTypeGetPayload<typeof eventTypeData>;
+  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
-    eventTypeRaw = await prisma.eventType.findUnique({
-      where: {
-        id: booking.eventTypeId,
-      },
-      select: eventTypeSelect,
-    });
+    eventTypeRaw = await getEventType(booking.eventTypeId);
   }
 
   const { user } = booking;
