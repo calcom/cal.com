@@ -782,7 +782,7 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div
         className={classNames(
-          "my-4 flex items-center md:mt-0 md:mb-6",
+          "flex items-center md:mt-0 md:mb-6",
           props.smallHeading ? "lg:mb-7" : "lg:mb-8"
         )}>
         {!!props.backPath && (
