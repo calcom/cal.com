@@ -32,6 +32,11 @@ jobs:
               - 'apps/web/**'
               - 'packages/embeds/**'
 
+  env:
+    name: Create env file
+    uses: ./.github/workflows/env-create-file.yml
+    secrets: inherit
+
   setup:
     name: Yarn install & cache
     uses: ./.github/workflows/yarn-install.yml
