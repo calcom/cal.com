@@ -35,17 +35,15 @@ env:
   INPUT_ENV_TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  create_env_file_job:
+  create_env_file:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Create env file
-        uses: actions/cache@v3
+      - uses: ozaytsev86/create-env-file@v1
+        with:
+          file-name: ${{ github.workspace }}/gh.env
+      - uses: actions/cache@v3
         id: env-cache
         with:
           path: gh.env
           key: env-cache-${{ hashFiles('gh.env') }}
-      - uses: ozaytsev86/create-env-file@v1
-        if: steps.env-cache.outputs.cache-hit != 'true'
-        with:
-          file-name: ${{ github.workspace }}/gh.env
