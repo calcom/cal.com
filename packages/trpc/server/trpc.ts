@@ -1,11 +1,10 @@
 import superjson from "superjson";
-import { ZodError } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import { Context } from "./createContext";
+import type { Context } from "./createContext";
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,

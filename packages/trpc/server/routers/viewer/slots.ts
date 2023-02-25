@@ -1,4 +1,6 @@
 import { SchedulingType } from "@prisma/client";
+import { serialize } from "cookie";
+import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
 import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
@@ -127,14 +129,15 @@ export const slotsRouter = router({
 });
 
 async function markSelectedSlot(ctx: Context, input: z.infer<typeof markSelectedSlotSchema>) {
-  const { prisma, ip } = ctx;
+  const { prisma, req, res } = ctx;
+  const uid = req?.cookies?.uid || uuid();
   const { slotUtcDate, eventTypeId } = input;
   const releaseAt = dayjs
     .utc()
-    .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "2"), "minutes")
+    .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5"), "minutes")
     .format();
   await prisma.selectedSlots.upsert({
-    where: { selectedSlotUnique: { eventTypeId, slotUtcDate, ip } },
+    where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
     update: {
       slotUtcDate,
       releaseAt,
@@ -142,16 +145,20 @@ async function markSelectedSlot(ctx: Context, input: z.infer<typeof markSelected
     create: {
       eventTypeId,
       slotUtcDate,
-      ip,
+      uid,
       releaseAt,
     },
   });
+  res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
   return;
 }
 
 async function removeSelectedSlotMark(ctx: Context) {
-  const { ip, prisma } = ctx;
-  await prisma.selectedSlots.deleteMany({ where: { ip: { equals: ip } } });
+  const { req, prisma } = ctx;
+  const uid = req?.cookies?.uid;
+  if (uid) {
+    await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
+  }
   return;
 }
 

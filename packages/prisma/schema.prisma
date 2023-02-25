@@ -665,8 +665,8 @@ model SelectedSlots {
   id          Int      @id @default(autoincrement())
   eventTypeId Int
   slotUtcDate DateTime
-  ip          String
+  uid         String
   releaseAt   DateTime
 
-  @@unique(fields: [eventTypeId, slotUtcDate, ip], name: "selectedSlotUnique")
+  @@unique(fields: [eventTypeId, slotUtcDate, uid], name: "selectedSlotUnique")
 }

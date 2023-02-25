@@ -106,7 +106,6 @@ type CreateInnerContextOptions = {
   locale: string;
   user: Awaited<ReturnType<typeof getUserFromSession>>;
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
-  ip: string;
 } & Partial<CreateContextOptions>;
 
 /**
@@ -136,10 +135,8 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
-  const forwarded = req.headers["x-forwarded-for"];
-  const ip = forwarded ? `${forwarded}`.split(/, /)[0] : `${req.connection.remoteAddress}`;
 
-  const contextInner = await createContextInner({ session, i18n, locale, user, ip });
+  const contextInner = await createContextInner({ session, i18n, locale, user });
   return {
     ...contextInner,
     req,

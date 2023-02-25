@@ -1619,6 +1619,5 @@
   "select_a_router": "Select a router",
   "add_a_new_route": "Add a new Route",
   "no_responses_yet": "No responses yet",
-  "this_will_be_the_placeholder": "This will be the placeholder",
-  "time_to_booking_over": "This slot has already been released, it may be that the reservation does not materialize"
+  "this_will_be_the_placeholder": "This will be the placeholder"
 }
