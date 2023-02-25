@@ -64,6 +64,8 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
       - uses: ./.github/actions/cache-build
       - run: yarn test-e2e
+        env:
+          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
