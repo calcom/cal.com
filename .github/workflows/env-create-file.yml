@@ -47,4 +47,4 @@ jobs:
       - uses: ozaytsev86/create-env-file@v1
         if: steps.env-cache.outputs.cache-hit != 'true'
         with:
-          file-name: ./.github/.env
+          file-name: ${{ github.workspace }}/.github/.env
