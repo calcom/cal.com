@@ -3,13 +3,13 @@ description: "Creates a production build, caches it and restores if necessary"
 runs:
   using: "composite"
   steps:
+    - uses: ./.github/actions/env-read-file
     - uses: ./.github/actions/cache-db
       id: cache-db
       with:
         DATABASE_URL: ${{ env.DATABASE_URL }}
     - uses: ./.github/actions/cache-build
       id: prod-build-cache
-    - uses: ./.github/actions/env-read-file
     - name: Next.js production build
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash

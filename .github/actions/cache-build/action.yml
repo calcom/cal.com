@@ -14,7 +14,7 @@ runs:
         key-3: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
       with:
         path: |
-          ${{ github.workspace }}/apps/web/.next/cache
+          ${{ github.workspace }}/apps/web/.next
           **/.turbo/**
           **/dist/**
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ github.sha }}
