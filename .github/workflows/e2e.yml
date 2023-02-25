@@ -22,7 +22,7 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-build
-      - run: yarn test-e2e
+      - run: yarn e2e
       - name: Upload test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
