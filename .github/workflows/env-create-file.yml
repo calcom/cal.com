@@ -38,6 +38,7 @@ jobs:
   create_env_file_job:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Create env file
         uses: actions/cache@v3
         id: env-cache
