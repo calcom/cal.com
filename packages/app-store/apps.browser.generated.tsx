@@ -23,6 +23,7 @@ export const InstallAppButtonMap = {
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
+  webex: dynamic(() => import("./webex/components/InstallAppButton")),
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),

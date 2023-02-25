@@ -50,6 +50,7 @@ export const apiHandlers = {
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
+  webex: import("./webex/api"),
   whatsapp: import("./whatsapp/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),

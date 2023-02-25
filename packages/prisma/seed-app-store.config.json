@@ -204,5 +204,12 @@
     "slug": "facetime",
     "type": "facetime_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "webex",
+    "categories": ["video"],
+    "slug": "webex",
+    "type": "webex_video",
+    "isTemplate": false
   }
 ]
