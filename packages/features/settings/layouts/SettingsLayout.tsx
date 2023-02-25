@@ -123,16 +123,18 @@ const useTabs = () => {
 };
 
 const BackButtonInSidebar = ({ name }: { name: string }) => {
+  const router = useRouter();
+
   return (
-    <Link
-      href="/event-types"
+    <button
       className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-      data-testid={`vertical-tab-${name}`}>
+      data-testid={`vertical-tab-${name}`}
+      onClick={() => router.back()}>
       <FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>
-    </Link>
+    </button>
   );
 };
 
@@ -243,7 +245,7 @@ const SettingsSidebarContainer = ({
                           }>
                           <CollapsibleTrigger>
                             <div
-                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900 text-left"
+                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-left text-sm font-medium leading-none  hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
                               onClick={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
@@ -337,6 +339,7 @@ const SettingsSidebarContainer = ({
 
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
   const { t } = useLocale();
+  const router = useRouter();
 
   return (
     <>
@@ -346,12 +349,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
-          <a
-            href="/"
-            className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200 rtl:space-x-reverse">
+          <button
+            className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200 rtl:space-x-reverse"
+            onClick={() => router.back()}>
             <FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>
-          </a>
+          </button>
         </div>
       </nav>
     </>
