@@ -22,8 +22,6 @@ jobs:
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db
         id: cache-db
-        with:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - uses: ./.github/actions/cache-build
         id: cache-build
       - run: yarn db-seed

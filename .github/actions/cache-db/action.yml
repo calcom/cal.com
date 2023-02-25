@@ -2,7 +2,8 @@ name: Cache database between jobs
 description: "Cache or restore if necessary"
 inputs:
   DATABASE_URL:
-    required: true
+    required: false
+    default: postgresql://postgres:@localhost:5432/calendso
   path:
     required: false
     default: "backups/backup.sql"
@@ -17,7 +18,7 @@ runs:
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
-        restore-keys: | 
+        restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'

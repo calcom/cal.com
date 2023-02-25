@@ -23,8 +23,6 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
-        with:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-build
       - name: Run Tests
