@@ -9,6 +9,7 @@ runs:
   steps:
     - name: Cache production build
       uses: actions/cache@v3
+      id: cache-build
       env:
         cache-name: prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
