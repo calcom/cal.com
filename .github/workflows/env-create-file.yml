@@ -42,9 +42,9 @@ jobs:
         uses: actions/cache@v3
         id: env-cache
         with:
-          path: .github/.env
-          key: env-cache-${{ hashFiles('.github/.env') }}
+          path: .github/variables/gh.env
+          key: env-cache-${{ hashFiles('.github/variables/gh.env') }}
       - uses: ozaytsev86/create-env-file@v1
         if: steps.env-cache.outputs.cache-hit != 'true'
         with:
-          file-name: ${{ github.workspace }}/.github/.env
+          file-name: ${{ github.workspace }}/.github/variables/gh.env
