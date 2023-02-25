@@ -15,11 +15,12 @@ runs:
       uses: actions/cache@v3
       env:
         cache-name: cache-db
+        key-1: ${{ hashFiles('packages/prisma/**') }}
       with:
         path: ${{ inputs.path }}
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ github.sha }}
+          ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ github.sha }}
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       uses: tj-actions/pg-dump@v2.3
