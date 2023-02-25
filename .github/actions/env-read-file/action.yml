@@ -8,13 +8,13 @@ runs:
       uses: actions/cache@v3
       id: env-cache
       with:
-        path: .github/variables/gh.env
-        key: env-cache-${{ hashFiles('.github/variables/gh.env') }}
+        path: gh.env
+        key: env-cache-${{ hashFiles('gh.env') }}
     - name: Set Environment Variables
       if: steps.env-cache.outputs.cache-hit == 'true'
       uses: tw3lveparsecs/github-actions-setvars@latest
       with:
-        envFilePath: .github/variables/gh.env
+        envFilePath: gh.env
     - name: Set Environment Variables
       if: steps.env-cache.outputs.cache-hit != 'true'
       shell: bash
