@@ -243,7 +243,7 @@ const SettingsSidebarContainer = ({
                           }>
                           <CollapsibleTrigger>
                             <div
-                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900 text-left"
                               onClick={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
@@ -261,7 +261,7 @@ const SettingsSidebarContainer = ({
                                 className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                 alt={team.name || "Team logo"}
                               />
-                              <p>{team.name}</p>
+                              <p className="w-1/2 truncate">{team.name}</p>
                               {!team.accepted && (
                                 <Badge className="ltr:ml-3 rtl:mr-3" variant="orange">
                                   Inv.
