@@ -7,12 +7,12 @@ jobs:
   create_env_file_job:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache production build
+      - name: Create env file
         uses: actions/cache@v3
         id: env-cache
-        env:
-          cache-name: env-cache
-          key-1: ${{ hashFiles('.github/.env') }}
+        with:
+          path: .github/.env
+          key: env-cache-${{ hashFiles('.github/.env') }}
       - uses: ozaytsev86/create-env-file@v1
         if: steps.env-cache.outputs.cache-hit != 'true'
         with:
