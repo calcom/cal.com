@@ -7,9 +7,9 @@ runs:
     - name: Cache production build
       uses: actions/cache@v3
       id: env-cache
-      env:
-        cache-name: env-cache
-        key-1: ${{ hashFiles('.github/.env') }}
+      with:
+        path: .github/.env
+        key: env-cache-${{ hashFiles('.github/.env') }}
     - name: Set Environment Variables
       if: steps.env-cache.outputs.cache-hit == 'true'
       uses: tw3lveparsecs/github-actions-setvars@latest
