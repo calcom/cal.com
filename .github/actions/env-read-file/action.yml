@@ -2,7 +2,6 @@ name: "Set environment variables"
 description: "Configures environment variables for a workflow"
 runs:
   using: "composite"
-  runs-on: ubuntu-latest
   steps:
     - name: Create env file
       uses: actions/cache@v3
