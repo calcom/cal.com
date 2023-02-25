@@ -18,6 +18,6 @@ runs:
           ${{ github.workspace }}/apps/web/.next
           **/.turbo/**
           **/dist/**
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.sha }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ github.event.pull_request.number || github.ref }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-
