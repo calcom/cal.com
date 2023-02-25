@@ -21,8 +21,8 @@ jobs:
       - uses: ./.github/actions/cache-db
         id: cache-db
       - uses: ./.github/actions/yarn-install
-      - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-build
+      - uses: ./.github/actions/env-read-file
         id: cache-build
       - run: yarn db-seed
         if: steps.cache-db.outputs.cache-hit != 'true'
