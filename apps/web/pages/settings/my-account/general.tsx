@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 /** @type {import("next-i18next").UserConfig} */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import i18nConfig from "@calcom/config/next-i18next.config.js";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -46,10 +48,13 @@ export const getStaticProps = async () => {
     return countries;
   }
 
-  const countries = i18nConfig.i18n.locales.reduce((arr, locale) => {
-    arr[locale] = countryList(locale);
-    return arr;
-  }, {} as { [x: string]: ReturnType<typeof countryList> });
+  const countries = (i18nConfig.i18n.locales as string[]).reduce(
+    (arr: { [x: string]: ReturnType<typeof countryList> }, locale) => {
+      arr[locale] = countryList(locale);
+      return arr;
+    },
+    {}
+  );
 
   return {
     props: {
@@ -149,7 +154,7 @@ const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
         label: localeOptions.find((option) => option.value === localeProp)?.label || "",
       },
       timeZone: user.timeZone || "",
-      country: user.country || "",
+      country: "",
       timeFormat: {
         value: user.timeFormat || 12,
         label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
