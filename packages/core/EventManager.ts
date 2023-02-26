@@ -255,10 +255,7 @@ export default class EventManager {
       results.push(result);
     }
 
-    // If there is a calendar reference, update all calendar events.
-    if (booking.references.some((reference) => reference.type.includes("_calendar"))) {
-      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
-    }
+    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
     const bookingPayment = booking?.payment;
 
