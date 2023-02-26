@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -14,8 +14,10 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
-import FeedbackEmail, { Feedback } from "./templates/feedback-email";
-import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
+import type { Feedback } from "./templates/feedback-email";
+import FeedbackEmail from "./templates/feedback-email";
+import type { PasswordReset } from "./templates/forgot-password-email";
+import ForgotPasswordEmail from "./templates/forgot-password-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -25,7 +27,8 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
-import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
+import type { TeamInvite } from "./templates/team-invite-email";
+import TeamInviteEmail from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];

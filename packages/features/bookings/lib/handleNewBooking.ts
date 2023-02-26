@@ -1,4 +1,4 @@
-import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput, Prisma, BookingReference } from "@prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -994,7 +994,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
             bookingId: newTimeSlotBooking.id,
           },
         }),
-        await prisma.bookingSeatsReferences.update({
+        await prisma.bookingSeat.update({
           where: {
             id: seatAttendee.bookingSeatReference?.id,
           },
@@ -1087,7 +1087,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         },
       });
-      evt.attendeeUniqueId = attendeeUniqueId;
+      evt.attendeeSeatId = attendeeUniqueId;
 
       const newSeat = booking.attendees.length !== 0;
 
