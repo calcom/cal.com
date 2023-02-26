@@ -1,7 +1,11 @@
+import { isSupportedCountry } from "libphonenumber-js";
+import type { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+/** @type {import("next-i18next").UserConfig} */
+import i18nConfig from "@calcom/config/next-i18next.config.js";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -18,9 +22,41 @@ import {
   SkeletonContainer,
   SkeletonText,
   TimezoneSelect,
+  Tooltip,
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
+
+export const getStaticProps = async () => {
+  function countryList(lang = "en") {
+    const A = 65;
+    const Z = 90;
+    const countryName = new Intl.DisplayNames([lang], { type: "region" });
+    const countries: { [x: string]: { name?: string } } = {};
+    for (let i = A; i <= Z; ++i) {
+      for (let j = A; j <= Z; ++j) {
+        const code = String.fromCharCode(i) + String.fromCharCode(j);
+        const name = countryName.of(code);
+        if (code !== name && isSupportedCountry(code)) {
+          countries[code] = { name };
+        }
+      }
+    }
+
+    return countries;
+  }
+
+  const countries = i18nConfig.i18n.locales.reduce((arr, locale) => {
+    arr[locale] = countryList(locale);
+    return arr;
+  }, {} as { [x: string]: ReturnType<typeof countryList> });
+
+  return {
+    props: {
+      countries,
+    },
+  };
+};
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -41,13 +77,14 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
+  countries: InferGetStaticPropsType<typeof getStaticProps>["countries"][string];
 }
 
 const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
 
-const GeneralQueryView = () => {
-  const { t } = useLocale();
-
+const GeneralQueryView = ({ countries }: InferGetStaticPropsType<typeof getStaticProps>) => {
+  const { t, i18n } = useLocale();
+  console.log(countries[i18n.language]);
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
@@ -55,13 +92,15 @@ const GeneralQueryView = () => {
   }
   return (
     <WithQuery
-      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
+      success={({ data }) => (
+        <GeneralView countries={countries[i18n.language]} user={user} localeProp={data.locale} />
+      )}
       customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
     />
   );
 };
 
-const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
+const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
   const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -110,6 +149,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         label: localeOptions.find((option) => option.value === localeProp)?.label || "",
       },
       timeZone: user.timeZone || "",
+      country: user.country || "",
       timeFormat: {
         value: user.timeFormat || 12,
         label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
@@ -155,6 +195,27 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         )}
       />
       <Controller
+        name="country"
+        control={formMethods.control}
+        render={({ field: { value } }) => (
+          <>
+            <Label className="mt-8 text-gray-900">
+              <>{t("country")}</>
+            </Label>
+            <Select
+              id="country"
+              options={Object.keys(countries).map((countryCode) => ({
+                label: countries[countryCode].name,
+                value: countryCode,
+              }))}
+              onChange={(event) => {
+                if (event) formMethods.setValue("country", event.value, { shouldDirty: true });
+              }}
+            />
+          </>
+        )}
+      />
+      <Controller
         name="timeZone"
         control={formMethods.control}
         render={({ field: { value } }) => (
@@ -177,9 +238,10 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         control={formMethods.control}
         render={({ field: { value } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
-              <>{t("time_format")}</>
-            </Label>
+            <Tooltip content={t("timeformat_profile_hint")}>
+              <Label className="mt-8 text-gray-900">{t("time_format")}</Label>
+            </Tooltip>
+
             <Select
               value={value}
               options={timeFormatOptions}
@@ -190,9 +252,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
-      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
-        {t("timeformat_profile_hint")}
-      </div>
       <Controller
         name="weekStart"
         control={formMethods.control}

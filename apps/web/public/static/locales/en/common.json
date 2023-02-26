@@ -869,6 +869,7 @@
   "new_schedule_description": "Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types.",
   "requires_ownership_of_a_token": "Requires ownership of a token belonging to the following address:",
   "example_name": "John Doe",
+  "country": "Country",
   "time_format": "Time format",
   "12_hour": "12 hour",
   "24_hour": "24 hour",
