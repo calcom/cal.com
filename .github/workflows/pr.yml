@@ -79,6 +79,13 @@ jobs:
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
+  e2e-app-store-2:
+    name: E2E App Store tests 2
+    if: ${{ needs.changes.outputs.app-store == 'true' }}
+    needs: [changes, lint, build]
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
   e2e-embed:
     name: E2E embeds tests
     if: ${{ needs.changes.outputs.embed == 'true' }}
