@@ -4,6 +4,7 @@ on:
 jobs:
   e2e:
     timeout-minutes: 20
+    name: E2E tests
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -22,8 +23,9 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-build
-      - run: yarn e2e
-      - name: Upload test results
+      - name: Run Tests
+        run: yarn test-e2e
+      - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:

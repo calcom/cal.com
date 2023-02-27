@@ -62,13 +62,13 @@ jobs:
 
   build:
     name: Production build
-    needs: setup
+    needs: [setup, env]
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   e2e:
     name: E2E tests
-    needs: [lint, build]
+    needs: [changes, lint, build]
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
