@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { Slots } from "./types";
+import type { Slots } from "./types";
 
 /**
  * Get's slots for a specific date from the schedul cache.

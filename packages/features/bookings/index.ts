@@ -5,4 +5,4 @@ export {
   EventMetaSkeleton,
   EventTitle,
 } from "./components/event-meta";
-export { AvailableTimes } from "./components/AvailableTimes";
+export { AvailableTimes, AvailableTimesSkeleton } from "./components/AvailableTimes";

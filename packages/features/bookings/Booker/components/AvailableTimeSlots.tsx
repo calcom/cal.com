@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes } from "@calcom/features/bookings";
+import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
@@ -30,25 +30,29 @@ export const AvailableTimeSlots = ({
   seatsPerTimeslot,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
+  const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const { timezone } = useTimePreferences();
-  const schedule = useScheduleForEvent();
+
+  const schedule = useScheduleForEvent({
+    prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+  });
 
   // Creates an array of dates to fetch slots for.
   // If `extraDays` is passed in, we will extend the array with the next `extraDays` days.
   const dates = useMemo(
     () =>
       !extraDays
-        ? [selectedDate]
+        ? [date]
         : [
             // If NO date is selected yet, we show by default the upcomming `nextDays` days.
-            selectedDate || dayjs().format("YYYY-MM-DD"),
+            date,
             ...Array.from({ length: extraDays }).map((_, index) =>
-              dayjs(selectedDate || new Date())
+              dayjs(date)
                 .add(index + 1, "day")
                 .format("YYYY-MM-DD")
             ),
           ],
-    [selectedDate, extraDays]
+    [date, extraDays]
   );
 
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
@@ -57,19 +61,21 @@ export const AvailableTimeSlots = ({
     <div
       className={classNames(
         limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex flex-row gap-4 [&_header]:top-8"
+        !limitHeight && "flex w-full flex-row gap-4 [&_header]:top-8"
       )}>
-      {slotsPerDay.length > 0 &&
-        slotsPerDay.map((slots) => (
-          <AvailableTimes
-            key={slots.date}
-            onTimeSelect={onTimeSelect}
-            date={dayjs(slots.date)}
-            slots={slots.slots}
-            timezone={timezone}
-            seatsPerTimeslot={seatsPerTimeslot}
-          />
-        ))}
+      {schedule.isLoading
+        ? Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+        : slotsPerDay.length > 0 &&
+          slotsPerDay.map((slots) => (
+            <AvailableTimes
+              key={slots.date}
+              onTimeSelect={onTimeSelect}
+              date={dayjs(slots.date)}
+              slots={slots.slots}
+              timezone={timezone}
+              seatsPerTimeslot={seatsPerTimeslot}
+            />
+          ))}
     </div>
   );
 };

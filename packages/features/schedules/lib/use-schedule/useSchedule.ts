@@ -7,10 +7,19 @@ type UseScheduleWithCacheArgs = {
   eventId?: number | null;
   month?: Date | null;
   timezone?: string | null;
+  prefetchNextMonth?: boolean;
 };
 
-export const useSchedule = ({ month, timezone, username, eventSlug, eventId }: UseScheduleWithCacheArgs) => {
+export const useSchedule = ({
+  month,
+  timezone,
+  username,
+  eventSlug,
+  eventId,
+  prefetchNextMonth,
+}: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
+  const nextMonthDayjs = monthDayjs.add(1, "month");
 
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
@@ -22,7 +31,8 @@ export const useSchedule = ({ month, timezone, username, eventSlug, eventId }: U
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
       startTime: monthDayjs.startOf("month").toISOString(),
-      endTime: monthDayjs.endOf("month").toISOString(),
+      // if `prefetchNextMonth` is true, two months are fetched at once.
+      endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       eventTypeId: eventId!,
     },

@@ -4,7 +4,7 @@ import type { Slots } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { ToggleGroup, Button } from "@calcom/ui";
+import { ToggleGroup, Button, SkeletonText } from "@calcom/ui";
 
 import { useTimePreferences } from "../lib";
 
@@ -85,3 +85,12 @@ export const AvailableTimes = ({
     </div>
   );
 };
+
+export const AvailableTimesSkeleton = () => (
+  <div className="mt-8 flex h-full w-[20%] flex-col">
+    {/* Random number of elements between 1 and 10. */}
+    {Array.from({ length: Math.floor(Math.random() * 10) + 1 }).map((_, i) => (
+      <SkeletonText className="mb-4 h-6 w-full" key={i} />
+    ))}
+  </div>
+);
