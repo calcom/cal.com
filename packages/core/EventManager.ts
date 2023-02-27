@@ -59,7 +59,7 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
-type EventManagerUser = {
+export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
