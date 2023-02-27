@@ -29,11 +29,16 @@ export type EventTypeDescriptionProps = {
     seatsPerTimeSlot?: number;
   };
   className?: string;
+  shortenDescription?: true;
 };
 
 const md = new MarkdownIt("default", { html: true, breaks: false, linkify: true });
 
-export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+export const EventTypeDescription = ({
+  eventType,
+  className,
+  shortenDescription,
+}: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
   const recurringEvent = useMemo(
@@ -48,9 +53,14 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
       <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
         {eventType.description && (
           <div
-            className="line-clamp-4 dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+            className={classNames(
+              "dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+              shortenDescription ? "line-clamp-4" : ""
+            )}
             dangerouslySetInnerHTML={{
-              __html: md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " ")),
+              __html: shortenDescription
+                ? md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " "))
+                : md.render(eventType.description),
             }}
           />
         )}
