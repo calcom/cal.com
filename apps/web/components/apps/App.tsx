@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -85,13 +86,13 @@ const Component = ({
       {hasImages && (
         <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
           {images ? (
-            images.map((img) =>
-              img.includes("/<iframe") ? (
+            images.map((img, index) =>
+              typeof img === "object" ? (
                 <div
-                  key={img}
-                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full"
-                  dangerouslySetInnerHTML={{ __html: img.substring(img.indexOf("<iframe")) }}
-                />
+                  key={`iframe-${index}`}
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  <iframe allowFullScreen {...img.iframe} />
+                </div>
               ) : (
                 <img
                   key={img}
@@ -338,7 +339,7 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
-  images?: string[];
+  images?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
 }) {
   return (

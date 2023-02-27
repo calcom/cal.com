@@ -88,8 +88,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   const { content, data } = matter(source);
   if (data.items) {
-    data.items = data.items.map((item: string) => {
-      if (!item.includes("/api/app-store")) {
+    data.items = data.items.map((item: string | object) => {
+      if (typeof item === "string" && !item.includes("/api/app-store")) {
         // Make relative paths absolute
         return `/api/app-store/${appDirname}/${item}`;
       }
