@@ -5,10 +5,9 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
-import {
-  CreateEventTypeButton,
-  EventTypeDescriptionLazy as EventTypeDescription,
-} from "@calcom/features/eventtypes/components";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
+import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,6 +34,7 @@ import {
   showToast,
   Switch,
   Tooltip,
+  CreateButton,
   HorizontalTabs,
 } from "@calcom/ui";
 import {
@@ -134,9 +134,9 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           </small>
         ) : null}
         {readOnly && (
-          <span className="items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <Badge variant="gray" className="ml-2">
             {t("readonly")}
-          </span>
+          </Badge>
         )}
       </div>
       <EventTypeDescription
@@ -240,7 +240,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
       ...router.query,
-      dialog: "duplicate-event-type",
+      dialog: "duplicate",
       title: eventType.title,
       description: eventType.description,
       slug: eventType.slug,
@@ -627,17 +627,32 @@ const CreateFirstEventTypeView = () => {
 };
 
 const CTA = () => {
+  const { t } = useLocale();
+
   const query = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   if (!query.data) return null;
 
-  return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
+  const profileOptions = query.data.profiles
+    .filter((profile) => !profile.readOnly)
+    .map((profile) => {
+      return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
+    });
+
+  return (
+    <CreateButton
+      subtitle={t("create_event_on").toUpperCase()}
+      options={profileOptions}
+      createDialog={CreateEventTypeDialog}
+    />
+  );
 };
 
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -683,6 +698,7 @@ const EventTypesPage = () => {
               )}
 
               <EmbedDialog />
+              {router.query.dialog === "duplicate" && <DuplicateDialog />}
             </>
           )}
         />
