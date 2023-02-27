@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, EventType } from "@prisma/client";
+import type { Prisma, PrismaClient, EventType } from "@prisma/client";
 import { isEqual, omit } from "lodash";
 
 import logger from "@calcom/lib/logger";
@@ -20,7 +20,7 @@ interface handleChildrenEventTypesProps {
 }
 
 // All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: Prisma.EventTypeSelect = {
+export const allManagedEventTypeProps: { [k in keyof Prisma.EventTypeSelect]: true } = {
   title: true,
   description: true,
   slug: true,

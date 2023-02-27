@@ -1,5 +1,6 @@
-import { EventType, EventTypeCustomInputType, Prisma } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { Prisma } from "@prisma/client";
+import { EventTypeCustomInputType } from "@prisma/client";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -40,7 +41,7 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     managedEventConfig: z
       .object({
-        lockedFields: z.custom<{ [k in keyof Prisma.EventTypeSelect]: true }>().optional(),
+        lockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: boolean }>().optional(),
       })
       .optional(),
     requiresConfirmationThreshold: z
@@ -237,6 +238,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
+  .and(z.record(z.string()))
   .nullable();
 
 export const customInputOptionSchema = z.array(

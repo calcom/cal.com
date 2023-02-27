@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import isCalcom from "@calcom/lib/isCalcom";
 import { EmptyScreen } from "@calcom/ui";
 import { FiUsers } from "@calcom/ui/components/icon";
 
@@ -33,13 +33,13 @@ export function UpgradeTip({
   isParentLoading?: ReactNode;
 }) {
   const { t } = useLocale();
-  const { isLoading, hasPaidPlan } = useHasPaidPlan();
+  const { isLoading, hasTeamPlan } = useHasTeamPlan();
 
-  if (hasPaidPlan) return children;
+  if (hasTeamPlan) return children;
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
-  if (!isCalcom)
+  if (IS_SELF_HOSTED)
     return (
       <EmptyScreen
         Icon={FiUsers}

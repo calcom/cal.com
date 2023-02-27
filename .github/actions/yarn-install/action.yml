@@ -1,0 +1,30 @@
+name: Yarn install
+description: "Install all NPM dependencies, caches them and restores if necessary"
+env:
+  node_version: v16.x
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node ${{ env.node_version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node_version }}
+        cache: "yarn"
+    - name: node_modules cache
+      id: node-modules-cache
+      uses: actions/cache@v3
+      env:
+        cache-name: node-modules-yarn
+        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
+      with:
+        path: |
+          **/node_modules/**
+          packages/prisma/zod
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
+        restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn install
+      shell: bash
+      if: steps.node-modules-cache.outputs.cache-hit != 'true'
+      run: |
+        yarn install --prefer-offline --frozen-lockfile
+        yarn prisma generate
