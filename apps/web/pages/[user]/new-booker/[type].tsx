@@ -11,13 +11,14 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export default function Type({ slug, user, booking }: PageProps) {
+export default function Type({ slug, user, booking, away }: PageProps) {
   // @TODO: Add gates
   // @TODO: Away state + dynamic booking not allowed.
   // @TODO: Test dynamic booking.
+
   return (
     <main className="flex justify-center">
-      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} />
+      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
     </main>
   );
 }

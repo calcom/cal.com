@@ -12,6 +12,7 @@ import { ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
+import { Away } from "./components/Away";
 import { BookEventForm } from "./components/BookEventForm";
 import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
@@ -184,8 +185,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   );
 };
 
-export const Booker = (props: BookerProps) => (
-  <LazyMotion features={domAnimation}>
-    <BookerComponent {...props} />
-  </LazyMotion>
-);
+export const Booker = (props: BookerProps) => {
+  if (props.isAway) return <Away />;
+
+  return (
+    <LazyMotion features={domAnimation}>
+      <BookerComponent {...props} />
+    </LazyMotion>
+  );
+};
