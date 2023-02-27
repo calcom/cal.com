@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -26,10 +27,11 @@ import {
 } from "@calcom/ui";
 import { FiEdit, FiCopy, FiPlus } from "@calcom/ui/components/icon";
 
-import CustomEventTypeModal from "@components/eventtype/CustomEventTypeModal";
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
 const generateHashedLink = (id: number) => {
   const translator = short();
