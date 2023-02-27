@@ -554,9 +554,18 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{label}</Label>
+                          <Label
+                            data-fob-field={field.name}
+                            className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                            {label}
+                          </Label>
                           {/* Might be a good idea to use the readonly variant of respective components here */}
-                          <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
+                          <div
+                            data-testid="field-response"
+                            data-fob-field={field.name}
+                            className="col-span-3 mt-1 mb-2">
+                            {response.toString()}
+                          </div>
                         </>
                       );
                     })}

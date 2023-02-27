@@ -286,6 +286,7 @@ export const FormBuilder = function FormBuilder({
             return (
               <li
                 key={index}
+                data-testid={`field-${field.name}`}
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
                 <button
                   type="button"
@@ -322,6 +323,7 @@ export const FormBuilder = function FormBuilder({
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
                     <Switch
+                      data-testid="toggle-field"
                       disabled={field.editable === "system"}
                       tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
                       checked={!field.hidden}
@@ -356,7 +358,12 @@ export const FormBuilder = function FormBuilder({
             );
           })}
         </ul>
-        <Button color="minimal" onClick={addField} className="mt-4" StartIcon={FiPlus}>
+        <Button
+          color="minimal"
+          data-testid="add-field"
+          onClick={addField}
+          className="mt-4"
+          StartIcon={FiPlus}>
           {addFieldLabel}
         </Button>
       </div>
@@ -403,6 +410,7 @@ export const FormBuilder = function FormBuilder({
               }}>
               <SelectField
                 required
+                id="test-field-type"
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
@@ -471,7 +479,9 @@ export const FormBuilder = function FormBuilder({
               />
               <DialogFooter>
                 <DialogClose color="secondary">Cancel</DialogClose>
-                <Button type="submit">{isFieldEditMode ? t("save") : t("add")}</Button>
+                <Button data-testid="field-add-save" type="submit">
+                  {isFieldEditMode ? t("save") : t("add")}
+                </Button>
               </DialogFooter>
             </Form>
           </div>
@@ -716,7 +726,7 @@ export const FormBuilderField = ({
                   }
                   return (
                     <div
-                      data-field-name={field.name}
+                      data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
                       <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message)}</p>
