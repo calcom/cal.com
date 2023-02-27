@@ -14,9 +14,10 @@ runs:
         cache-name: prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
         key-2: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+        key-3: ${{ github.event.pull_request.number || github.ref }}
       with:
         path: |
           ${{ github.workspace }}/apps/web/.next
           **/.turbo/**
           **/dist/**
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
