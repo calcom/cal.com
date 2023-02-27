@@ -162,10 +162,39 @@ export const ensureBookingInputsHaveSystemFields = ({
   // These fields should be added before other user fields
   const systemBeforeFields: typeof bookingFields = [
     {
-      defaultLabel: "your_name",
-      defaultPlaceholder: "example_name",
       type: "name",
       name: "name",
+      // Variant supported
+      subFields: {
+        firstAndLastName: [
+          {
+            // Do we really need to configure the name here?
+            name: "firstName",
+            type: "text",
+            defaultLabel: "first_name",
+            label: "First Name",
+            defaultPlaceholder: "example_first_name",
+            required: true,
+          },
+          {
+            name: "lastName",
+            type: "text",
+            defaultLabel: "last_name",
+            label: "Last Name",
+            defaultPlaceholder: "example_last_name",
+            required: true,
+          },
+        ],
+        fullName: [
+          {
+            name: "name",
+            type: "text",
+            defaultLabel: "your_name",
+            defaultPlaceholder: "example_name",
+            label: "Your Name",
+          },
+        ],
+      },
       required: true,
       sources: [
         {

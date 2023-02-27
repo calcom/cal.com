@@ -9,7 +9,17 @@ import Widgets from "@calcom/app-store/ee/routing-forms/components/react-awesome
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import {
+  PhoneInput,
+  AddressInput,
+  Button,
+  Label,
+  Group,
+  RadioField,
+  EmailField,
+  Tooltip,
+  InputField,
+} from "@calcom/ui";
 import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -52,6 +62,10 @@ type Component =
       >(
         props: TProps
       ) => JSX.Element;
+    }
+  | {
+      propsType: "subFields";
+      factory: Function;
     };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
@@ -72,9 +86,45 @@ export const Components: Record<BookingFieldType, Component> = {
     factory: (props) => <Widgets.NumberWidget {...props} />,
   },
   name: {
-    propsType: "text",
+    propsType: "subFields",
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
-    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
+    factory: (
+      props: Omit<TextLikeComponentProps, "value" | "setValue"> & {
+        variant: "firstAndLastName" | "fullName";
+        subFields: z.infer<typeof fieldsSchema>[number]["subFields"];
+        value: Record<string, string>;
+        setValue: (value: Record<string, string>) => void;
+      }
+    ) => {
+      const { variant = "firstAndLastName" } = props;
+      const onChange = (name: string, value: string) => {
+        props.setValue({
+          ...props.value,
+          [name]: value,
+        });
+      };
+      if (!props.subFields) {
+        throw new Error("'subFields' is required for 'name' field");
+      }
+      const subFields = props.subFields[variant];
+      const value = props.value || {};
+      if (subFields) {
+        return (
+          <div className="flex space-x-4">
+            {subFields.map((subField) => (
+              <InputField
+                key={subField.name}
+                name={subField.name}
+                label={subField.label}
+                value={value[subField.name]}
+                type="text"
+                onChange={(e) => onChange(subField.name, e.target.value)}
+              />
+            ))}
+          </div>
+        );
+      }
+    },
   },
   phone: {
     propsType: "text",

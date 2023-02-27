@@ -36,6 +36,20 @@ const fieldSchema = z.object({
   defaultLabel: z.string().optional(),
   defaultPlaceholder: z.string().optional(),
 
+  subFields: z
+    .record(
+      z
+        .object({
+          name: z.string(),
+          type: fieldTypeEnum,
+          label: z.string().optional(),
+          defaultLabel: z.string().optional(),
+          defaultPlaceholder: z.string().optional(),
+          required: z.boolean().optional(),
+        })
+        .array()
+    )
+    .optional(),
   type: fieldTypeEnum,
   options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
   optionsInputs: z

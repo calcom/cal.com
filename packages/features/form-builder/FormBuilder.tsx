@@ -554,8 +554,9 @@ export const ComponentForField = ({
       select: typeof val === "string",
       text: typeof val === "string",
       textList: val instanceof Array && val.every((v) => typeof v === "string"),
+      subFields: typeof val === "object" && val !== null,
     } as const;
-    if (!propsTypeConditionMap[propsType]) throw new Error(`Unknown propsType ${propsType}`);
+    if (!propsTypeConditionMap[propsType]) throw new Error(`Value '${val}' is not valid for ${propsType}`);
     return propsTypeConditionMap[propsType];
   };
 
@@ -666,7 +667,18 @@ export const ComponentForField = ({
       </WithLabel>
     ) : null;
   }
-
+  if (componentConfig.propsType === "subFields") {
+    return (
+      <componentConfig.factory
+        placeholder={field.placeholder}
+        readOnly={readOnly}
+        name={field.name}
+        value={value as { value: string; optionValue: string }}
+        setValue={setValue as (arg: typeof value) => void}
+        subFields={field.subFields}
+      />
+    );
+  }
   throw new Error(`Field ${field.name} does not have a valid propsType`);
 };
 
