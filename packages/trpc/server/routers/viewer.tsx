@@ -1,4 +1,5 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -472,8 +473,9 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
+      //TODO: Refactor this to pick up only needed fields and prevent more leaking
       let apps = enabledApps.map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+        ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
             .filter((c) => c.type === app.type && c.invalid)
