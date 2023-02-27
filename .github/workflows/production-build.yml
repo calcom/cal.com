@@ -19,12 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/cache-db
-        id: cache-db
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
-        id: cache-build
       - uses: ./.github/actions/env-read-file
-      - run: yarn db-seed
-        if: steps.cache-db.outputs.cache-hit != 'true'
-      - run: yarn build
-        if: steps.cache-build.outputs.cache-hit != 'true'

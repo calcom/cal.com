@@ -21,6 +21,9 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ github.sha }}
+    - run: yarn db-seed
+      if: steps.cache-db.outputs.cache-hit != 'true'
+      shell: bash
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
       uses: tj-actions/pg-dump@v2.3
