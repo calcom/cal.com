@@ -1,4 +1,4 @@
-import { SelectedCalendar } from "@prisma/client";
+import type { SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
 import * as process from "process";
 
@@ -10,7 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
@@ -193,9 +193,8 @@ export const getBusyCalendarTimes = async (
     results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
   } else {
     // if dateFrom and dateTo is from different months get cache by each month
-    const monthsOfDiff = dayjs(dateTo).diff(dayjs(dateFrom), "month");
     const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (let i = 1; i <= monthsOfDiff; i++) {
+    for (let i = 1; dayjs(dateFrom).add(i, "month").isBefore(dateTo); i++) {
       months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
     }
     const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));

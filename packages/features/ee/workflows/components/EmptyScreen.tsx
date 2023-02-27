@@ -1,9 +1,11 @@
-import React from "react";
+import { useRouter } from "next/router";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Button } from "@calcom/ui";
-import { FiSmartphone, FiMail, FiPlus } from "@calcom/ui/components/icon";
+import { HttpError } from "@calcom/lib/http-error";
+import { trpc } from "@calcom/trpc/react";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
+import { CreateButton, showToast, EmptyScreen as ClassicEmptyScreen } from "@calcom/ui";
+import { FiSmartphone, FiMail, FiZap } from "@calcom/ui/components/icon";
 
 type WorkflowExampleType = {
   Icon: SVGComponent;
@@ -31,24 +33,33 @@ function WorkflowExample(props: WorkflowExampleType) {
   );
 }
 
-export default function EmptyScreen({
-  IconHeading,
-  headline,
-  description,
-  buttonText,
-  buttonOnClick,
-  isLoading,
-  showExampleWorkflows,
-}: {
-  IconHeading: SVGComponent;
-  headline: string;
-  description: string | React.ReactElement;
-  buttonText?: string;
-  buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  isLoading: boolean;
-  showExampleWorkflows: boolean;
+export default function EmptyScreen(props: {
+  profileOptions: {
+    label: string | null;
+    image?: string | null;
+    teamId: number | null | undefined;
+  }[];
+  isFilteredView: boolean;
 }) {
   const { t } = useLocale();
+  const router = useRouter();
+
+  const createMutation = trpc.viewer.workflows.create.useMutation({
+    onSuccess: async ({ workflow }) => {
+      await router.replace("/workflows/" + workflow.id);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not authorized to create this workflow`;
+        showToast(message, "error");
+      }
+    },
+  });
 
   const workflowsExamples = [
     { icon: FiSmartphone, text: t("workflow_example_1") },
@@ -60,38 +71,39 @@ export default function EmptyScreen({
   ];
   // new workflow example when 'after meetings ends' trigger is implemented: Send custom thank you email to attendee after event (FiSmile icon),
 
+  if (props.isFilteredView) {
+    return <ClassicEmptyScreen Icon={FiZap} headline={t("no_workflows")} description={t("change_filter")} />;
+  }
+
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
         <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-200 dark:bg-white">
-          <IconHeading className="inline-block h-10 w-10 stroke-[1.3px] dark:bg-gray-900 dark:text-gray-600" />
+          <FiZap className="inline-block h-10 w-10 stroke-[1.3px] dark:bg-gray-900 dark:text-gray-600" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{headline}</h2>
+          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
           <p className="line-clamp-2 mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
-            {description}
+            {t("no_workflows_description")}
           </p>
-          {buttonOnClick && buttonText && (
-            <Button
-              type="button"
-              StartIcon={FiPlus}
-              onClick={(e) => buttonOnClick(e)}
-              loading={isLoading}
-              className="mx-auto mt-8">
-              {buttonText}
-            </Button>
-          )}
-        </div>
-      </div>
-      {showExampleWorkflows && (
-        <div className="flex flex-row items-center justify-center">
-          <div className="grid-cols-none items-center lg:grid lg:grid-cols-3 xl:mx-20">
-            {workflowsExamples.map((example, index) => (
-              <WorkflowExample key={index} Icon={example.icon} text={example.text} />
-            ))}
+          <div className="mt-8 ">
+            <CreateButton
+              subtitle={t("new_workflow_subtitle").toUpperCase()}
+              options={props.profileOptions}
+              createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+              buttonText={t("create_workflow")}
+              isLoading={createMutation.isLoading}
+            />
           </div>
         </div>
-      )}
+      </div>
+      <div className="flex flex-row items-center justify-center">
+        <div className="grid-cols-none items-center lg:grid lg:grid-cols-3 xl:mx-20">
+          {workflowsExamples.map((example, index) => (
+            <WorkflowExample key={index} Icon={example.icon} text={example.text} />
+          ))}
+        </div>
+      </div>
     </>
   );
 }

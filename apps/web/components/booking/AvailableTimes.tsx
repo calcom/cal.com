@@ -2,11 +2,12 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
@@ -50,6 +51,15 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const ref = useCallback(
+    (node: HTMLDivElement) => {
+      if (isMobile) {
+        node?.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    [isMobile]
+  );
 
   return (
     <div ref={slotPickerRef}>
@@ -75,7 +85,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               />
             </div>
           </div>
-          <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
+          <div ref={ref} className="flex-grow overflow-y-auto sm:block md:h-[364px]">
             {slots.length > 0 &&
               slots.map((slot) => {
                 type BookingURL = {
