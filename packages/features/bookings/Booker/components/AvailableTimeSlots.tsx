@@ -18,7 +18,7 @@ type AvailableTimeSlotsProps = {
 
 /**
  * Renders available time slots for a given date.
- * It will extra the date from the booker store.
+ * It will extract the date from the booker store.
  * Next to that you can also pass in the `extraDays` prop, this
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
@@ -64,7 +64,8 @@ export const AvailableTimeSlots = ({
         !limitHeight && "flex w-full flex-row gap-4 [&_header]:top-8"
       )}>
       {schedule.isLoading
-        ? Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
+        ? // Shows exact amount of days as skeleton.
+          Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
         : slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimes
