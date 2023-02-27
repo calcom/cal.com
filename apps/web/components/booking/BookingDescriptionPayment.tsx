@@ -5,8 +5,7 @@ import { FiCreditCard } from "@calcom/ui/components/icon";
 
 const BookingDescriptionPayment = (props: { eventType: Parameters<typeof getPaymentAppData>[0] }) => {
   const paymentAppData = getPaymentAppData(props.eventType);
-
-  if (!paymentAppData || paymentAppData.price > 0) return null;
+  if (!paymentAppData || paymentAppData.price <= 0) return null;
 
   return (
     <p className="text-bookinglight -ml-2 px-2 text-sm ">
