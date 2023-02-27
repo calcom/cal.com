@@ -1,4 +1,4 @@
-import type { PrismaPromise } from "@prisma/client";
+import type { PrismaPromise, Workflow } from "@prisma/client";
 import {
   WorkflowTemplates,
   WorkflowActions,
@@ -6,9 +6,11 @@ import {
   BookingStatus,
   WorkflowMethods,
   TimeUnit,
+  MembershipRole,
 } from "@prisma/client";
 import { z } from "zod";
 
+import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
@@ -30,11 +32,12 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
-import { IS_SELF_HOSTED, SENDER_ID } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type PrismaType from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -48,32 +51,210 @@ function getSender(
   return isSMSAction(step.action) ? step.sender || SENDER_ID : step.senderName || SENDER_NAME;
 }
 
-export const workflowsRouter = router({
-  list: authedProcedure.query(async ({ ctx }) => {
-    const workflows = await ctx.prisma.workflow.findMany({
+async function isAuthorized(
+  workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
+  prisma: typeof PrismaType,
+  currentUserId: number,
+  readOnly?: boolean
+) {
+  if (!workflow) {
+    return false;
+  }
+
+  if (!readOnly) {
+    const userWorkflow = await prisma.workflow.findFirst({
       where: {
-        userId: ctx.user.id,
+        id: workflow.id,
+        OR: [
+          { userId: currentUserId },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: currentUserId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        ],
       },
-      include: {
-        activeOn: {
-          select: {
-            eventType: {
-              select: {
-                id: true,
-                title: true,
+    });
+    if (userWorkflow) return true;
+  }
+
+  const userWorkflow = await prisma.workflow.findFirst({
+    where: {
+      id: workflow.id,
+      OR: [
+        { userId: currentUserId },
+        {
+          team: {
+            members: {
+              some: {
+                userId: currentUserId,
+                accepted: true,
+                NOT: {
+                  role: MembershipRole.MEMBER,
+                },
               },
             },
           },
         },
-        steps: true,
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
+      ],
+    },
+  });
 
-    return { workflows };
-  }),
+  if (userWorkflow) return true;
+
+  return false;
+}
+
+export const workflowsRouter = router({
+  list: authedProcedure
+    .input(
+      z
+        .object({
+          teamId: z.number().optional(),
+          userId: z.number().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      if (input && input.teamId) {
+        const workflows: WorkflowType[] = await ctx.prisma.workflow.findMany({
+          where: {
+            team: {
+              id: input.teamId,
+              members: {
+                some: {
+                  userId: ctx.user.id,
+                  accepted: true,
+                },
+              },
+            },
+          },
+          include: {
+            team: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                members: true,
+              },
+            },
+            activeOn: {
+              select: {
+                eventType: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+            steps: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+        const workflowsWithReadOnly = workflows.map((workflow) => {
+          const readOnly = !!workflow.team?.members?.find(
+            (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
+          );
+          return { ...workflow, readOnly };
+        });
+
+        return { workflows: workflowsWithReadOnly };
+      }
+
+      if (input && input.userId) {
+        const workflows: WorkflowType[] = await ctx.prisma.workflow.findMany({
+          where: {
+            userId: ctx.user.id,
+          },
+          include: {
+            activeOn: {
+              select: {
+                eventType: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+            steps: true,
+            team: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                members: true,
+              },
+            },
+          },
+          orderBy: {
+            id: "asc",
+          },
+        });
+
+        return { workflows };
+      }
+
+      const workflows = await ctx.prisma.workflow.findMany({
+        where: {
+          OR: [
+            { userId: ctx.user.id },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: ctx.user.id,
+                    accepted: true,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          activeOn: {
+            select: {
+              eventType: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          },
+          steps: true,
+          team: {
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              members: true,
+            },
+          },
+        },
+        orderBy: {
+          id: "asc",
+        },
+      });
+
+      const workflowsWithReadOnly: WorkflowType[] = workflows.map((workflow) => {
+        const readOnly = !!workflow.team?.members?.find(
+          (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
+        );
+
+        return { readOnly, ...workflow };
+      });
+
+      return { workflows: workflowsWithReadOnly };
+    }),
   get: authedProcedure
     .input(
       z.object({
@@ -83,12 +264,20 @@ export const workflowsRouter = router({
     .query(async ({ ctx, input }) => {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
-          userId: ctx.user.id,
           id: input.id,
         },
         select: {
           id: true,
           name: true,
+          userId: true,
+          teamId: true,
+          team: {
+            select: {
+              id: true,
+              slug: true,
+              members: true,
+            },
+          },
           time: true,
           timeUnit: true,
           activeOn: {
@@ -104,45 +293,71 @@ export const workflowsRouter = router({
           },
         },
       });
-      if (!workflow) {
+
+      const isUserAuthorized = await isAuthorized(workflow, ctx.prisma, ctx.user.id);
+
+      if (!isUserAuthorized) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });
       }
+
       return workflow;
     }),
   create: authedProcedure
     .input(
       z.object({
-        name: z.string(),
-        trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-        action: z.enum(WORKFLOW_ACTIONS),
-        timeUnit: z.enum(TIME_UNIT).optional(),
-        time: z.number().optional(),
-        sendTo: z.string().optional(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { name, trigger, action, timeUnit, time, sendTo } = input;
+      const { teamId } = input;
+
       const userId = ctx.user.id;
 
+      if (teamId) {
+        const team = await ctx.prisma.team.findFirst({
+          where: {
+            id: teamId,
+            members: {
+              some: {
+                userId: ctx.user.id,
+                accepted: true,
+                NOT: {
+                  role: MembershipRole.MEMBER,
+                },
+              },
+            },
+          },
+        });
+
+        if (!team) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+          });
+        }
+      }
+
       try {
-        const workflow = await ctx.prisma.workflow.create({
+        const workflow: Workflow = await ctx.prisma.workflow.create({
           data: {
-            name,
-            trigger,
+            name: "",
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: TimeUnit.HOUR,
             userId,
-            timeUnit: time ? timeUnit : undefined,
-            time,
+            teamId,
           },
         });
 
         await ctx.prisma.workflowStep.create({
           data: {
             stepNumber: 1,
-            action,
+            action: WorkflowActions.EMAIL_HOST,
+            template: WorkflowTemplates.REMINDER,
             workflowId: workflow.id,
-            sendTo,
+            sender: SENDER_NAME,
+            numberVerificationPending: false,
           },
         });
         return { workflow };
@@ -150,35 +365,6 @@ export const workflowsRouter = router({
         throw e;
       }
     }),
-  createV2: authedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.user.id;
-
-    try {
-      const workflow = await ctx.prisma.workflow.create({
-        data: {
-          name: "",
-          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-          time: 24,
-          timeUnit: TimeUnit.HOUR,
-          userId,
-        },
-      });
-
-      await ctx.prisma.workflowStep.create({
-        data: {
-          stepNumber: 1,
-          action: WorkflowActions.EMAIL_HOST,
-          template: WorkflowTemplates.REMINDER,
-          workflowId: workflow.id,
-          sender: SENDER_NAME,
-          numberVerificationPending: false,
-        },
-      });
-      return { workflow };
-    } catch (e) {
-      throw e;
-    }
-  }),
   delete: authedProcedure
     .input(
       z.object({
@@ -191,39 +377,41 @@ export const workflowsRouter = router({
       const workflowToDelete = await ctx.prisma.workflow.findFirst({
         where: {
           id,
-          userId: ctx.user.id,
         },
       });
 
-      if (workflowToDelete) {
-        const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
-          where: {
-            workflowStep: {
-              workflowId: id,
-            },
-            scheduled: true,
-            NOT: {
-              referenceId: null,
-            },
-          },
-        });
+      const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.prisma, ctx.user.id, true);
 
-        //cancel workflow reminders of deleted workflow
-        scheduledReminders.forEach((reminder) => {
-          if (reminder.method === WorkflowMethods.EMAIL) {
-            deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
-          } else if (reminder.method === WorkflowMethods.SMS) {
-            deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-          }
-        });
-
-        await ctx.prisma.workflow.deleteMany({
-          where: {
-            userId: ctx.user.id,
-            id,
-          },
-        });
+      if (!isUserAuthorized || !workflowToDelete) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+
+      const scheduledReminders = await ctx.prisma.workflowReminder.findMany({
+        where: {
+          workflowStep: {
+            workflowId: id,
+          },
+          scheduled: true,
+          NOT: {
+            referenceId: null,
+          },
+        },
+      });
+
+      //cancel workflow reminders of deleted workflow
+      scheduledReminders.forEach((reminder) => {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        }
+      });
+
+      await ctx.prisma.workflow.deleteMany({
+        where: {
+          id,
+        },
+      });
 
       return {
         id,
@@ -264,7 +452,9 @@ export const workflowsRouter = router({
           id,
         },
         select: {
+          id: true,
           userId: true,
+          teamId: true,
           user: {
             select: {
               teams: true,
@@ -274,12 +464,15 @@ export const workflowsRouter = router({
         },
       });
 
-      if (
-        !userWorkflow ||
-        userWorkflow.userId !== user.id ||
-        steps.filter((step) => step.workflowId != id).length > 0
-      )
+      const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id, true);
+
+      if (!isUserAuthorized || !userWorkflow) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (steps.find((step) => step.workflowId != id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
@@ -303,7 +496,7 @@ export const workflowsRouter = router({
         }
       });
 
-      //check if new event types belong to user
+      //check if new event types belong to user or team
       for (const newEventTypeId of newActiveEventTypes) {
         const newEventType = await ctx.prisma.eventType.findFirst({
           where: {
@@ -318,13 +511,20 @@ export const workflowsRouter = router({
             },
           },
         });
-        if (
-          newEventType &&
-          newEventType.userId !== user.id &&
-          !newEventType?.team?.members.find((membership) => membership.userId === user.id) &&
-          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === user.id)
-        ) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
+
+        if (newEventType) {
+          if (userWorkflow.teamId && userWorkflow.teamId !== newEventType.teamId) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
+
+          if (
+            !userWorkflow.teamId &&
+            userWorkflow.userId &&
+            newEventType.userId !== userWorkflow.userId &&
+            !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userWorkflow.userId)
+          ) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
         }
       }
 
@@ -484,7 +684,8 @@ export const workflowsRouter = router({
                     step.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id
+                    user.id,
+                    userWorkflow.teamId
                   );
                 }
               });
@@ -532,7 +733,8 @@ export const workflowsRouter = router({
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
           if (
-            !userWorkflow.user.teams.length &&
+            !userWorkflow.teamId &&
+            !userWorkflow.user?.teams.length &&
             !isSMSAction(oldStep.action) &&
             isSMSAction(newStep.action)
           ) {
@@ -674,7 +876,8 @@ export const workflowsRouter = router({
                   newStep.id || 0,
                   newStep.template,
                   newStep.sender || SENDER_ID,
-                  user.id
+                  user.id,
+                  userWorkflow.teamId
                 );
               }
             });
@@ -684,7 +887,7 @@ export const workflowsRouter = router({
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
-          if (!userWorkflow.user.teams.length && isSMSAction(s.action)) {
+          if (!userWorkflow.user?.teams.length && isSMSAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           const { id: stepId, ...stepToAdd } = s;
@@ -801,7 +1004,8 @@ export const workflowsRouter = router({
                     createdStep.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id
+                    user.id,
+                    userWorkflow.teamId
                   );
                 }
               });
@@ -831,6 +1035,13 @@ export const workflowsRouter = router({
           activeOn: {
             select: {
               eventType: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              slug: true,
+              members: true,
             },
           },
           steps: {
@@ -1018,31 +1229,52 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, workflowId } = input;
 
-      // Check that workflow & event type belong to the user
+      // Check that vent type belong to the user or team
       const userEventType = await ctx.prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
-          users: {
-            some: {
-              id: ctx.user.id,
+          OR: [
+            { userId: ctx.user.id },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: ctx.user.id,
+                    accepted: true,
+                    NOT: {
+                      role: MembershipRole.MEMBER,
+                    },
+                  },
+                },
+              },
             },
-          },
+          ],
         },
       });
 
       if (!userEventType)
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
 
-      // Check that the workflow belongs to the user
+      // Check that the workflow belongs to the user or team
       const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
         where: {
           id: workflowId,
-          userId: ctx.user.id,
+          OR: [
+            {
+              userId: ctx.user.id,
+            },
+            {
+              teamId: userEventType.teamId,
+            },
+          ],
         },
       });
 
       if (!eventTypeWorkflow)
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Not authorized to enable/disable this workflow",
+        });
 
       //check if event type is already active
       const isActive = await ctx.prisma.workflowsOnEventTypes.findFirst({
@@ -1083,24 +1315,31 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       z.object({
         phoneNumber: z.string(),
         code: z.string(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, code } = input;
+      const { phoneNumber, code, teamId } = input;
       const { user } = ctx;
-      const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id);
+      const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id, teamId);
       return verifyStatus;
     }),
-  getVerifiedNumbers: authedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx;
-    const verifiedNumbers = await ctx.prisma.verifiedNumber.findMany({
-      where: {
-        userId: user.id,
-      },
-    });
+  getVerifiedNumbers: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const verifiedNumbers = await ctx.prisma.verifiedNumber.findMany({
+        where: {
+          OR: [{ userId: user.id }, { teamId: input.teamId }],
+        },
+      });
 
-    return verifiedNumbers;
-  }),
+      return verifiedNumbers;
+    }),
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
     const { user } = ctx;
 
@@ -1113,5 +1352,114 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     }
     const t = await getTranslation(ctx.user.locale, "common");
     return getWorkflowActionOptions(t, IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan);
+  }),
+  getByViewer: authedProcedure.query(async ({ ctx }) => {
+    const { prisma } = ctx;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        name: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        workflows: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        teams: {
+          where: {
+            accepted: true,
+          },
+          select: {
+            role: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                members: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                workflows: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+
+    const userWorkflows = user.workflows;
+
+    type WorkflowGroup = {
+      teamId?: number | null;
+      profile: {
+        slug: (typeof user)["username"];
+        name: (typeof user)["name"];
+        image?: string;
+      };
+      metadata?: {
+        readOnly: boolean;
+      };
+      workflows: typeof userWorkflows;
+    };
+
+    let workflowGroups: WorkflowGroup[] = [];
+
+    workflowGroups.push({
+      teamId: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+        image: user.avatar || undefined,
+      },
+      workflows: userWorkflows,
+      metadata: {
+        readOnly: false,
+      },
+    });
+
+    workflowGroups = ([] as WorkflowGroup[]).concat(
+      workflowGroups,
+      user.teams.map((membership) => ({
+        teamId: membership.team.id,
+        profile: {
+          name: membership.team.name,
+          slug: "team/" + membership.team.slug,
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+        },
+        metadata: {
+          readOnly: membership.role === MembershipRole.MEMBER,
+        },
+        workflows: membership.team.workflows,
+      }))
+    );
+
+    return {
+      workflowGroups: workflowGroups.filter((groupBy) => !!groupBy.workflows?.length),
+      profiles: workflowGroups.map((group) => ({
+        teamId: group.teamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    };
   }),
 });

@@ -44,9 +44,7 @@ export const AnimatedPopover = ({
       <Popover.Trigger asChild>
         <div
           ref={ref}
-          className="mb-2 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border border-gray-300
-          py-2 px-3 text-sm placeholder:text-gray-400
-          hover:cursor-pointer hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+          className="mb-2 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 hover:cursor-pointer hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
           <div className="max-w-36 flex items-center">
             <Tooltip content={text}>
               <div className="truncate">
