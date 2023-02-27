@@ -56,7 +56,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         })}
         className="mb-0"
       />
-      <div className="text-sm">
+      <div className="pt-6 text-sm">
         <div className="mb-6 rounded-md bg-gray-100 p-2">
           <h1 className="mb-2 ml-1 font-medium text-gray-900">{t("available_variables")}</h1>
           <div className="mb-2.5 flex font-normal">
