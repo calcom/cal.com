@@ -230,7 +230,10 @@ function Dialogs({
               id: deleteDialogFormId,
             });
           }}>
-          {t("delete_form_confirmation")}
+          <ul className="list-disc pl-3">
+            <li> {t("delete_form_confirmation_1")}</li>
+            <li> {t("delete_form_confirmation_2")}</li>
+          </ul>
         </ConfirmationDialogContent>
       </Dialog>
       <NewFormDialog appUrl={appUrl} />
