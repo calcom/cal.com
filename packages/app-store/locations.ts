@@ -3,7 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
-import { Ensure, Optional } from "@calcom/types/utils";
+import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
 

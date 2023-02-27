@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -50,7 +50,7 @@ export function ScheduleListItem({
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-gray-500">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
@@ -62,10 +62,10 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
-              {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
+              {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
                   <FiGlobe />
-                  &nbsp;{schedule.timeZone}
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
             </p>

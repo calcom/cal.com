@@ -37,26 +37,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!team) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
     const metadata = teamMetadataSchema.parse(prevTeam.metadata);
+    /** We save the metadata first to prevent duplicate payments */
+    team = await prisma.team.update({
+      where: { id },
+      data: {
+        metadata: {
+          paymentId: checkoutSession.id,
+          subscriptionId: subscription.id || null,
+          subscriptionItemId: subscription.items.data[0].id || null,
+        },
+      },
+    });
     /** Legacy teams already have a slug, this will allow them to upgrade as well */
     const slug = prevTeam.slug || metadata?.requestedSlug;
-    if (!slug) throw new HttpError({ statusCode: 400, message: "Missing team slug" });
-    try {
-      /** We save the metadata first to prevent duplicate payments */
-      await prisma.team.update({
-        where: { id },
-        data: {
-          metadata: {
-            paymentId: checkoutSession.id,
-            subscriptionId: subscription.id || null,
-            subscriptionItemId: subscription.items.data[0].id || null,
-          },
-        },
-      });
-      /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
-      team = await prisma.team.update({ where: { id }, data: { slug } });
-    } catch (error) {
-      const { message, statusCode } = getRequestedSlugError(error, slug);
-      return res.status(statusCode).json({ message });
+    if (slug) {
+      try {
+        /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
+        team = await prisma.team.update({ where: { id }, data: { slug } });
+      } catch (error) {
+        const { message, statusCode } = getRequestedSlugError(error, slug);
+        return res.status(statusCode).json({ message });
+      }
     }
 
     // Sync Services: Close.com

@@ -82,13 +82,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     setCustomInputs([...customInputs]);
   };
 
+  const replaceEventNamePlaceholder = (eventNameObject: EventNameObjectType, previewEventName: string) =>
+    previewEventName
+      .replace("{Event type title}", eventNameObject.eventType)
+      .replace("{Scheduler}", eventNameObject.attendeeName)
+      .replace("{Organiser}", eventNameObject.host);
+
   const changePreviewText = (eventNameObject: EventNameObjectType, previewEventName: string) => {
-    setPreviewText(
-      previewEventName
-        .replace("{Event type title}", eventNameObject.eventType)
-        .replace("{Scheduler}", eventNameObject.attendeeName)
-        .replace("{Organiser}", eventNameObject.host)
-    );
+    setPreviewText(replaceEventNamePlaceholder(eventNameObject, previewEventName));
   };
 
   useEffect(() => {
@@ -100,6 +101,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       setCustomInputs(eventType.customInputs.sort((a, b) => a.id - b.id));
     }
   }, [eventType.customInputs]);
+
+  const eventNamePlaceholder = replaceEventNamePlaceholder(eventNameObject, t("meeting_with_user"));
 
   return (
     <div className="flex flex-col space-y-8">
@@ -141,7 +144,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
-          placeholder={t("meeting_with_user")}
+          placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName", {
             onChange: (e) => {
@@ -408,11 +411,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <DialogContent
             title={t("custom_event_name")}
             description={t("custom_event_name_description")}
-            type="creation">
+            type="creation"
+            enableOverflow>
             <TextField
               label={t("event_name_in_calendar")}
               type="text"
-              placeholder={t("meeting_with_user")}
+              placeholder={eventNamePlaceholder}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName", {
                 onChange: (e) => {

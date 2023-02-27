@@ -1,3 +1,5 @@
+import { Inter } from "@next/font/google";
+import localFont from "@next/font/local";
 import "@tremor/react/dist/esm/tremor.css";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
@@ -7,12 +9,21 @@ import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { trpc } from "@calcom/trpc/react";
 
-import AppProviders, { AppProps } from "@lib/app-providers";
+import type { AppProps } from "@lib/app-providers";
+import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import "../styles/globals.css";
+
+const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const calFont = localFont({
+  src: "../fonts/CalSans-SemiBold.woff2",
+  variable: "--font-cal",
+  preload: true,
+  display: "swap",
+});
 
 function MyApp(props: AppProps) {
   const { Component, pageProps, err, router } = props;
@@ -46,6 +57,12 @@ function MyApp(props: AppProps) {
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
+      <style jsx global>{`
+        :root {
+          --font-inter: ${interFont.style.fontFamily};
+          --font-cal: ${calFont.style.fontFamily};
+        }
+      `}</style>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>

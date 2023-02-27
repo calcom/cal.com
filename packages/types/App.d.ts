@@ -142,6 +142,7 @@ export interface App {
 
 export type AppFrontendPayload = Omit<App, "key"> & {
   /** We should type error if keys are leaked to the frontend */
+  isDefault?: boolean;
   key?: never;
 };
 

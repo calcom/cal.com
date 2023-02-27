@@ -1,7 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import ReactSelect, {
-  components as reactSelectComponents,
+import type {
   GroupBase,
   Props,
   SingleValue,
@@ -9,6 +8,7 @@ import ReactSelect, {
   SelectComponentsConfig,
   MenuPlacement,
 } from "react-select";
+import ReactSelect, { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

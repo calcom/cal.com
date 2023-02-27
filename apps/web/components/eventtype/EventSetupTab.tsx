@@ -6,15 +6,11 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
-import { MultiValue } from "react-select";
+import type { MultiValue } from "react-select";
 import { z } from "zod";
 
-import {
-  EventLocationType,
-  getEventLocationType,
-  MeetLocationType,
-  LocationType,
-} from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { slugify } from "@calcom/lib/slugify";
@@ -22,10 +18,8 @@ import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@cal
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import LocationSelect, {
-  SingleValueLocationOption,
-  LocationOption,
-} from "@components/ui/form/LocationSelect";
+import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
+import LocationSelect from "@components/ui/form/LocationSelect";
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -81,7 +75,7 @@ export const EventSetupTab = (
     setShowLocationModal(true);
   };
 
-  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
+  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
     formMethods.setValue(
       "locations",
       formMethods.getValues("locations").filter((location) => {
@@ -158,14 +152,11 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = getDefaultLocationValue(locationOptions, "integrations:daily");
-
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
             <LocationSelect
-              defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
@@ -206,14 +197,14 @@ export const EventSetupTab = (
                 <li
                   key={`${location.type}${index}`}
                   className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
-                  <div className="flex max-w-full justify-between">
-                    <div key={index} className="flex flex-grow items-center">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
                         className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
+                      <span className="line-clamp-1 text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -255,9 +246,13 @@ export const EventSetupTab = (
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
+            {validLocations.length > 0 && (
               <li>
-                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button
+                  data-testid="add-location"
+                  StartIcon={FiPlus}
+                  color="minimal"
+                  onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>

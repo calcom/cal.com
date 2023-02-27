@@ -1,9 +1,10 @@
 import debounce from "lodash/debounce";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { SyntheticEvent } from "react";
+import type { SyntheticEvent } from "react";
+import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";

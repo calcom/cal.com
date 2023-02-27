@@ -6,7 +6,7 @@ import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 import { Label } from "../../inputs/Label";
 import Item from "./Item";
 import { SelectContext } from "./SelectProvider";
-import { Option } from "./type";
+import type { Option } from "./type";
 
 interface OptionsProps<T extends Option> {
   list: T[];

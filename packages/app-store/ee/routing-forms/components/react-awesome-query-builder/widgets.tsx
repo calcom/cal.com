@@ -1,5 +1,5 @@
-import { ChangeEvent } from "react";
-import {
+import type { ChangeEvent } from "react";
+import type {
   ButtonGroupProps,
   ButtonProps,
   ConjsProps,

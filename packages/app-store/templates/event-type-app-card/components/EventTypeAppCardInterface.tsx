@@ -5,7 +5,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { FiSunrise, FiSunset } from "@calcom/ui/components/icon";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();

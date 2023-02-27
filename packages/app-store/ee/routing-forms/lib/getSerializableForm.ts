@@ -1,10 +1,11 @@
-import { App_RoutingForms_Form } from "@prisma/client";
-import { z } from "zod";
+import type { App_RoutingForms_Form } from "@prisma/client";
+import type { z } from "zod";
 
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import { SerializableForm } from "../types/types";
-import { zodFields, zodRoutes, zodRoutesView, zodFieldsView } from "../zod";
+import type { SerializableForm } from "../types/types";
+import type { zodRoutesView, zodFieldsView } from "../zod";
+import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";

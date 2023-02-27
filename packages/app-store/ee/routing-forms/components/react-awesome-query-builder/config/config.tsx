@@ -1,4 +1,4 @@
-import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
+import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
 // Figure out why ee/routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore

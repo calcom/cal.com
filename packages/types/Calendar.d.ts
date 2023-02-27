@@ -117,7 +117,7 @@ export interface BookingLimit {
 
 export type AppsStatus = {
   appName: string;
-  type: typeof App["type"];
+  type: (typeof App)["type"];
   success: number;
   failures: number;
   errors: string[];
@@ -181,6 +181,9 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
+  primaryEmail?: string;
+  credentialId?: number;
+  integrationTitle?: string;
 }
 
 export interface Calendar {
