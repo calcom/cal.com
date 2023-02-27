@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { PublicEvent } from "@calcom/features/bookings/types";
+import type { PublicEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseDate } from "@calcom/lib/parse-dates";
 import { TimezoneSelect } from "@calcom/ui";

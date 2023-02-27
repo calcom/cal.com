@@ -1,5 +1,6 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
-import { Slots } from "@calcom/features/schedules";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import type { Slots } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -42,6 +43,7 @@ export const AvailableTimes = ({
             onValueChange={(newFormat) => {
               if (newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
             }}
+            defaultValue={timeFormat}
             value={timeFormat}
             options={[
               { value: TimeFormat.TWELVE_HOUR, label: t("12_hour_short") },

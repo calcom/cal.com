@@ -1,9 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/router";
+import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
+import type { TFunction } from "react-i18next";
 
+import { LocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import dayjs from "@calcom/dayjs";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
@@ -14,14 +19,24 @@ import {
 } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { HttpError } from "@calcom/lib/http-error";
-import { Form, TextField, EmailField, PhoneInput, Button, TextAreaField, Alert } from "@calcom/ui";
-import { FiInfo } from "@calcom/ui/components/icon";
+import {
+  Form,
+  TextField,
+  EmailField,
+  PhoneInput,
+  Button,
+  TextAreaField,
+  Alert,
+  EmptyScreen,
+} from "@calcom/ui";
+import { FiCalendar, FiInfo } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
 import { CustomInputFields } from "./CustomInputFields";
 import { EventLocationsFields } from "./EventLocationsFields";
 import { GuestFields } from "./GuestFields";
+import { FormSkeleton } from "./Skeleton";
 import type { BookingFormValues } from "./form-config";
 import { bookingFormSchema } from "./form-config";
 
@@ -78,6 +93,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+  const locationType = bookingForm.watch("locationType");
 
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -94,11 +110,13 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         );
       }
 
-      // @TODO: add "formertime"
       return await router.push(
         getSuccessPath({
           uid,
           email: bookingForm.getValues("email"),
+          formerTime: rescheduleBooking?.startTime
+            ? dayjs(rescheduleBooking?.startTime).toISOString()
+            : undefined,
           slug: `${eventSlug}`,
           isRecurring: false,
         })
@@ -120,17 +138,40 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     },
   });
 
-  // @TODO: Loading and or error states.
-  if (!event?.data) return null;
-  if (!timeslot) return null;
+  if (event.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
+  if (event.isLoading || !event.data) return <FormSkeleton />;
+  if (!timeslot)
+    return (
+      <EmptyScreen
+        headline={t("timeslot_missing_title")}
+        description={t("timeslot_missing_description")}
+        Icon={FiCalendar}
+        buttonText={t("timeslot_missing_cta")}
+        buttonOnClick={onCancel}
+      />
+    );
 
   const bookEvent = (values: BookingFormValues) => {
     bookingForm.clearErrors();
 
-    // @TODO: Shouldn't be possible, but do we want to warn for this?
-    if (!event?.data) return;
+    // It shouldn't be possible that this method is fired without having event data,
+    // but since in theory (looking at the types) it is possible, we still handle that case.
+    if (!event?.data) {
+      bookingForm.setError("globalError", { message: t("error_booking_event") });
+      return;
+    }
+
     const errors = validateCustomInputs(event.data, values);
-    // @TODO: Validate duration is valid option. + default to event.length if not passed in
+
+    // Ensures that duration is an allowed value, if not it defaults to the
+    // default event duration.
+    const validDuration =
+      duration &&
+      event.data.metadata?.multipleDuration &&
+      event.data.metadata?.multipleDuration.includes(duration)
+        ? duration
+        : event.data.length;
+
     // @TODO: "validate that guests are unique" step
 
     if (errors) {
@@ -140,7 +181,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
     const bookingInput = {
       values,
-      duration,
+      duration: validDuration,
       event: event.data,
       date: timeslot,
       timeZone: timezone,
@@ -195,8 +236,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
             <GuestFields bookingForm={bookingForm} />
           </div>
         )}
-        {/* @TODO: && selectedLocationType !== LocationType.Phone */}
-        {eventType.isSmsReminderNumberNeeded && (
+
+        {locationType !== LocationType.Phone && eventType.isSmsReminderNumberNeeded && (
           <div className="mb-4">
             <label
               htmlFor="smsReminderNumber"
@@ -256,21 +297,40 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           </Button>
         </div>
       </Form>
-      {(createBookingMutation.isError || createRecurringBookingMutation.isError) && (
+      {(createBookingMutation.isError ||
+        createRecurringBookingMutation.isError ||
+        bookingForm.formState.errors["globalError"]) && (
         <Alert
           className="mt-2"
           severity="warning"
           title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
-          message={
-            createBookingMutation.isError && (createBookingMutation?.error as HttpError)?.message
-              ? t((createBookingMutation.error as HttpError).message)
-              : createRecurringBookingMutation.isError &&
-                (createRecurringBookingMutation?.error as HttpError)?.message
-              ? t((createRecurringBookingMutation.error as HttpError).message)
-              : "Unknown error"
-          }
+          message={getError(
+            bookingForm.formState.errors["globalError"],
+            createBookingMutation,
+            createRecurringBookingMutation,
+            t
+          )}
         />
       )}
     </div>
   );
+};
+
+const getError = (
+  globalError: FieldError | undefined,
+  // It feels like an implementation detail to reimplement the types of useMutation here.
+  // Since they don't matter for this function, I'd rather disable them then giving you
+  // the cognitive overload of thinking to update them here when anything changes.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bookingMutation: UseMutationResult<any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recurringBookingMutation: UseMutationResult<any, any, any, any>,
+  t: TFunction
+) => {
+  if (globalError) return globalError.message;
+  return bookingMutation.isError && (bookingMutation?.error as HttpError)?.message
+    ? t((bookingMutation.error as HttpError).message)
+    : recurringBookingMutation.isError && (recurringBookingMutation?.error as HttpError)?.message
+    ? t((recurringBookingMutation.error as HttpError).message)
+    : "Unknown error";
 };
