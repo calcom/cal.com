@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getSession } from "next-auth/react";
 import { z } from "zod";
@@ -58,20 +58,20 @@ const ImpersonationProvider = CredentialsProvider({
     // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
     const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
 
-    if (session?.user.username === creds?.username) {
+    if (session?.user.username === creds?.username || session?.user.email === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
     }
 
-    if (!creds?.username) throw new Error("Username must be present");
+    if (!creds?.username) throw new Error("User identifier must be present");
     // If you are an ADMIN we return way before team impersonation logic is executed, so NEXT_PUBLIC_TEAM_IMPERSONATION certainly true
     if (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") {
       throw new Error("You do not have permission to do this.");
     }
 
     // Get user who is being impersonated
-    const impersonatedUser = await prisma.user.findUnique({
+    const impersonatedUser = await prisma.user.findFirst({
       where: {
-        username: creds?.username,
+        OR: [{ username: creds?.username }, { email: creds?.username }],
       },
       select: {
         id: true,

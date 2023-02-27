@@ -11,13 +11,13 @@ export class Inline extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: string, newValue: string) {
     if (name === "loading") {
       if (newValue == "done") {
-        (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
+        this.shadowRoot!.querySelector<HTMLElement>(".loader")!.style.display = "none";
       } else if (newValue === "failed") {
-        (this.shadowRoot!.querySelector(".loader")! as HTMLElement).style.display = "none";
-        (this.shadowRoot!.querySelector("#error")! as HTMLElement).style.display = "block";
-        (this.shadowRoot!.querySelector("slot")! as HTMLElement).style.visibility = "hidden";
+        this.shadowRoot!.querySelector<HTMLElement>(".loader")!.style.display = "none";
+        this.shadowRoot!.querySelector<HTMLElement>("#error")!.style.display = "block";
+        this.shadowRoot!.querySelector<HTMLElement>("slot")!.style.visibility = "hidden";
         const errorString = getErrorString(this.dataset.errorCode);
-        (this.shadowRoot!.querySelector("#error")! as HTMLElement).innerText = errorString;
+        this.shadowRoot!.querySelector<HTMLElement>("#error")!.innerText = errorString;
       }
     }
   }

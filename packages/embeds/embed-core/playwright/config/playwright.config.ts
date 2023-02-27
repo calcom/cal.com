@@ -1,4 +1,5 @@
-import { PlaywrightTestConfig, Frame, devices, expect } from "@playwright/test";
+import type { PlaywrightTestConfig, Frame } from "@playwright/test";
+import { devices, expect } from "@playwright/test";
 import * as path from "path";
 
 require("dotenv").config({ path: "../../../../../.env" });
