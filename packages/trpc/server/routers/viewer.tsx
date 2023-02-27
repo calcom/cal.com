@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -31,9 +31,11 @@ import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
+import type { Prisma, DestinationCalendar } from "@calcom/prisma";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
+import type { Maybe } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
@@ -324,7 +326,7 @@ const loggedInViewerRouter = router({
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
 
     // store email of the destination calendar to display
-    let destinationCalendarEmail = null;
+    let destinationCalendarEmail: Maybe<string> = null;
 
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */

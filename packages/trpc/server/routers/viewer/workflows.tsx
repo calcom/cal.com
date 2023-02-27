@@ -890,7 +890,7 @@ export const workflowsRouter = router({
           if (!userWorkflow.user?.teams.length && isSMSAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
-          const { id: stepId, ...stepToAdd } = s;
+          const { id: _stepId, ...stepToAdd } = s;
           return stepToAdd;
         }
       });
