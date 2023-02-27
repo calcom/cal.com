@@ -1,14 +1,10 @@
-import { isSupportedCountry } from "libphonenumber-js";
 import type { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-/** @type {import("next-i18next").UserConfig} */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import i18nConfig from "@calcom/config/next-i18next.config.js";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -30,35 +26,11 @@ import {
 import { withQuery } from "@lib/QueryCell";
 
 export const getStaticProps = async () => {
-  function countryList(lang = "en") {
-    const A = 65;
-    const Z = 90;
-    const countryName = new Intl.DisplayNames([lang], { type: "region" });
-    const countries: { [x: string]: { name?: string } } = {};
-    for (let i = A; i <= Z; ++i) {
-      for (let j = A; j <= Z; ++j) {
-        const code = String.fromCharCode(i) + String.fromCharCode(j);
-        const name = countryName.of(code);
-        if (code !== name && isSupportedCountry(code)) {
-          countries[code] = { name };
-        }
-      }
-    }
-
-    return countries;
-  }
-
-  const countries = (i18nConfig.i18n.locales as string[]).reduce(
-    (arr: { [x: string]: ReturnType<typeof countryList> }, locale) => {
-      arr[locale] = countryList(locale);
-      return arr;
-    },
-    {}
-  );
-
+  const res = await fetch(WEBAPP_URL + "/api/countrylist");
+  const countries = await res.json();
   return {
     props: {
-      countries,
+      countries: countries.countries,
     },
   };
 };
@@ -89,7 +61,6 @@ const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { contex
 
 const GeneralQueryView = ({ countries }: InferGetStaticPropsType<typeof getStaticProps>) => {
   const { t, i18n } = useLocale();
-  console.log(countries[i18n.language]);
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
@@ -154,7 +125,7 @@ const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
         label: localeOptions.find((option) => option.value === localeProp)?.label || "",
       },
       timeZone: user.timeZone || "",
-      country: "",
+      country: user.country || "",
       timeFormat: {
         value: user.timeFormat || 12,
         label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
@@ -202,23 +173,26 @@ const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
       <Controller
         name="country"
         control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="mt-8 text-gray-900">
-              <>{t("country")}</>
-            </Label>
-            <Select
-              id="country"
-              options={Object.keys(countries).map((countryCode) => ({
-                label: countries[countryCode].name,
-                value: countryCode,
-              }))}
-              onChange={(event) => {
-                if (event) formMethods.setValue("country", event.value, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <>
+              <Label className="mt-8 text-gray-900">
+                <>{t("country")}</>
+              </Label>
+              <Select
+                id="country"
+                value={value ? { label: countries[value].name, value } : undefined}
+                options={Object.keys(countries).map((countryCode) => ({
+                  label: countries[countryCode].name,
+                  value: countryCode,
+                }))}
+                onChange={(event) => {
+                  event && onChange(event.value);
+                }}
+              />
+            </>
+          );
+        }}
       />
       <Controller
         name="timeZone"

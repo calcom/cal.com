@@ -1,4 +1,5 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -177,6 +178,7 @@ const loggedInViewerRouter = router({
       theme: user.theme,
       hideBranding: user.hideBranding,
       metadata: user.metadata,
+      country: user.country,
     };
   }),
   avatar: authedProcedure.query(({ ctx }) => ({
