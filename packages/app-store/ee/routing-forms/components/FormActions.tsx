@@ -219,7 +219,7 @@ function Dialogs({
           isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t("delete_form")}
-          confirmBtn={t("delete_form_action")}
+          confirmBtnText={t("delete_form_action")}
           loadingText={t("delete_form_action")}
           onConfirm={(e) => {
             if (!deleteDialogFormId) {
