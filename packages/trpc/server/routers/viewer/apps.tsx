@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -320,4 +320,16 @@ export const appsRouter = router({
 
       return !!updated;
     }),
+  queryForPrerequisites: authedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const appInstalled = await ctx.prisma.credential.findFirst({
+      where: {
+        appId: input,
+        userId: ctx.user.id,
+      },
+    });
+
+    const app = getAppFromSlug(input);
+
+    return { prerequisiteName: app?.name, prerequisiteInstalled: !!appInstalled };
+  }),
 });

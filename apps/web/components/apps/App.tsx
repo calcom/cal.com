@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
-import ExistingGoogleCal from "@calcom/app-store/googlecalendar/components/ExistingGoogleCal";
+import { InstallAppButton, AppPrerequisiteComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
@@ -49,6 +48,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
+  prerequisite,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -84,6 +84,9 @@ const Component = ({
   const requiresGCal = appsThatRequiresGCal.some((app) => slug === app);
   const gCalInstalled = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
     enabled: requiresGCal,
+  });
+  const prerequisiteInstalled = trpc.viewer.appsRouter.queryForPrerequisites.useQuery(prerequisite, {
+    enabled: !!prerequisite,
   });
 
   const disableInstall = requiresGCal && !gCalInstalled.data;
@@ -218,11 +221,20 @@ const Component = ({
           <SkeletonButton className="h-10 w-24" />
         )}
 
-        {requiresGCal && !gCalInstalled.isLoading && (
-          <div className="mt-6">
-            <ExistingGoogleCal gCalInstalled={gCalInstalled.data} appName={name} />
-          </div>
-        )}
+        {prerequisite &&
+          (!prerequisiteInstalled.isLoading ? (
+            <div className="mt-6">
+              <AppPrerequisiteComponent
+                appName={name}
+                prerequisite={prerequisite}
+                prerequisiteName={prerequisiteInstalled.data?.prerequisiteName}
+                prerequisiteInstalled={prerequisiteInstalled.data?.prerequisiteInstalled}
+                isLoading={prerequisiteInstalled.isLoading}
+              />
+            </div>
+          ) : (
+            <SkeletonButton className="mt-6 h-20 grow" />
+          ))}
 
         {price !== 0 && (
           <span className="block text-right">
@@ -349,6 +361,7 @@ export default function App(props: {
   images?: string[];
   isTemplate?: boolean;
   disableInstall?: boolean;
+  prerequisite?: string;
 }) {
   const { t } = useLocale();
 

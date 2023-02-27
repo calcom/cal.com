@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
+import { FiAlertCircle, FiArrowRight, FiCheck } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -70,3 +74,65 @@ export const InstallAppButton = (
 };
 
 export { AppConfiguration } from "./_components/AppConfiguration";
+
+export const AppPrerequisiteComponent = ({
+  appName,
+  prerequisite,
+  prerequisiteName,
+  prerequisiteInstalled,
+}: {
+  appName: string;
+  prerequisite: string;
+  prerequisiteName: string;
+  prerequisiteInstalled: boolean;
+}) => {
+  const { t } = useLocale();
+
+  return prerequisiteInstalled ? (
+    <div className="rounded-md bg-gray-100 py-3 px-4">
+      <div className="items-start space-x-2.5">
+        <div className="flex items-start">
+          <div>
+            <FiCheck className="mt-1 mr-2 font-semibold" />
+          </div>
+          <div>
+            <span className="font-semibold">{t("app_is_connected", { prerequisiteName })}</span>
+            <div>
+              <div>
+                <span> {t("this_app_requires_connected_account", { appName, prerequisiteName })} </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
+      <div className="items-start space-x-2.5">
+        <div className="flex items-start">
+          <div>
+            <FiAlertCircle className="mt-1 mr-2 font-semibold" />
+          </div>
+          <div>
+            <span className="font-semibold">
+              {t("this_app_requires_connected_account", { appName, prerequisiteName })}
+            </span>
+
+            <div>
+              <div>
+                <>
+                  <Link
+                    href={`${CAL_URL}/apps/${prerequisite}`}
+                    className="flex items-center text-blue-900 underline">
+                    <span className="mr-1">{t("connect_app", { prerequisiteName })}</span>
+                    <FiArrowRight />
+                  </Link>
+                </>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

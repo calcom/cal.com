@@ -35,6 +35,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       isProOnly={data.isProOnly}
       images={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
+      prerequisite={data.prerequisite}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
