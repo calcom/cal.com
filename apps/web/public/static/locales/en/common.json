@@ -1625,5 +1625,6 @@
   "google_calendar_is_connected": "Google Calendar is connected",
   "this_app_requires_connected_account": "{{appName}} requires a connected {{prerequisiteName}} account",
   "connect_app": "Connect {{prerequisiteName}}",
-  "app_is_connected": "{{prerequisiteName}} is connected"
+  "app_is_connected": "{{prerequisiteName}} is connected",
+  "requires_app": "Requires {{prerequisiteName}}"
 }

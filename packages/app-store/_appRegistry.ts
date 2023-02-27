@@ -1,4 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -75,6 +76,10 @@ export async function getAppRegistryWithCredentials(userId: number) {
   const apps = [] as (App & {
     credentials: Credential[];
     isDefault?: boolean;
+    prerequisiteData?: {
+      name?: string;
+      installed?: boolean;
+    };
   })[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
@@ -82,6 +87,13 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
+    let prerequisiteInstalled, prerequisiteName;
+    if (app.prerequisite) {
+      prerequisiteInstalled = dbApps.some(
+        (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === app.prerequisite
+      );
+      prerequisiteName = await getAppFromSlug(app.prerequisite)?.name;
+    }
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
       rating: rating || 0,
@@ -93,7 +105,14 @@ export async function getAppRegistryWithCredentials(userId: number) {
       credentials: dbapp.credentials,
       installed: true,
       isDefault: usersDefaultApp === dbapp.slug,
+      ...(app.prerequisite && {
+        prerequisiteData: {
+          name: prerequisiteName,
+          installed: prerequisiteInstalled,
+        },
+      }),
     });
   }
+
   return apps;
 }

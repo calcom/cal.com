@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -31,6 +33,10 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
+
+  if (app.slug === "google-meet") {
+    console.log(app);
+  }
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
@@ -75,6 +81,14 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         {app.description}
       </p>
 
+      {app.prerequisiteData && !app.prerequisiteData?.installed && (
+        <Link
+          className="mt-5 rounded-md bg-blue-100 p-0.5 text-sm font-semibold text-blue-900 underline"
+          href={`${CAL_URL}/apps/${app.prerequisite}`}>
+          {t("requires_app", { prerequisiteName: app.prerequisiteData.name })}
+        </Link>
+      )}
+
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -116,6 +130,8 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                 type={app.type}
                 isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
+                disableInstall={!app.prerequisiteData?.installed}
+                tooltip="Requires another app"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
