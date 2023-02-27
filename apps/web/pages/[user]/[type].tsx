@@ -70,7 +70,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 
   const user = await prisma.user.findUnique({
     where: {
-      username,
+      /** TODO: We should standarize this */
+      username: username.toLowerCase().replace(/( |%20)/g, "+"),
     },
     select: {
       id: true,

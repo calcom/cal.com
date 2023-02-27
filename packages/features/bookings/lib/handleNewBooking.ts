@@ -704,7 +704,8 @@ async function handler(
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
-    seatsShowAttendees: !!eventType.seatsShowAttendees,
+    // if seats are not enabled we should default true
+    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
