@@ -1,5 +1,5 @@
-import { BookingFormValues } from "../../BookEventForm/form-config";
-import { PublicEvent, ValidationErrors } from "../../types";
+import type { BookingFormValues } from "../../Booker/components/BookEventForm/form-config";
+import type { PublicEvent, ValidationErrors } from "../../types";
 
 /**
  * Validates all custom input fields, then either returns

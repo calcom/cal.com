@@ -1,26 +1,9 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { Props } from "react-phone-number-input/react-hook-form";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
+import type { BookingFormValues } from "@calcom/features/bookings/Booker";
 
 import { FiMapPin } from "../components/icon";
-
-type BookingFormValues = {
-  name: string;
-  email: string;
-  notes?: string;
-  locationType?: EventLocationType["type"];
-  guests?: { email: string }[];
-  address?: string;
-  attendeeAddress?: string;
-  phone?: string;
-  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-  customInputs?: {
-    [key: string]: string | boolean;
-  };
-  rescheduleReason?: string;
-  smsReminderNumber?: string;
-};
 
 export type AddressInputProps<FormValues> = Props<
   {

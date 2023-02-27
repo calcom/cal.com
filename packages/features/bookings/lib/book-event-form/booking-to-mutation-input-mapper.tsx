@@ -4,9 +4,8 @@ import { getEventLocationValue } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
-import { BookingFormValues } from "../../BookEventForm/form-config";
-import { BookingCreateBody, RecurringBookingCreateBody } from "../../types";
-import { PublicEvent } from "../../types";
+import type { BookingFormValues } from "../../Booker/components/BookEventForm/form-config";
+import type { PublicEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
 
 type BookingOptions = {
   values: BookingFormValues;

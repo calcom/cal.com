@@ -30,6 +30,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import type { BookingFormValues } from "@calcom/features/bookings/Booker";
 import { createRecurringBooking, createBooking } from "@calcom/features/bookings/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
@@ -78,23 +79,6 @@ import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
-
-type BookingFormValues = {
-  name: string;
-  email: string;
-  notes?: string;
-  locationType?: EventLocationType["type"];
-  guests?: { email: string }[];
-  address?: string;
-  attendeeAddress?: string;
-  phone?: string;
-  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-  customInputs?: {
-    [key: string]: string | boolean;
-  };
-  rescheduleReason?: string;
-  smsReminderNumber?: string;
-};
 
 const BookingPage = ({
   eventType,
