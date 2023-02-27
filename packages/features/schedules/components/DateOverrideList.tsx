@@ -1,7 +1,7 @@
-import { UseFieldArrayRemove } from "react-hook-form";
+import type { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
@@ -29,12 +29,10 @@ const DateOverrideList = ({
   const timeSpan = ({ start, end }: TimeRange) => {
     return (
       new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(
-        new Date(start.toISOString().slice(0, -1))
+        start
       ) +
       " - " +
-      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(
-        new Date(end.toISOString().slice(0, -1))
-      )
+      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(end)
     );
   };
 
@@ -50,7 +48,7 @@ const DateOverrideList = ({
                 day: "numeric",
               }).format(item.ranges[0].start)}
             </h3>
-            {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
+            {item.ranges[0].end.getHours() === 0 && item.ranges[0].end.getMinutes() === 0 ? (
               <p className="text-xs text-gray-500">{t("unavailable")}</p>
             ) : (
               item.ranges.map((range, i) => (
