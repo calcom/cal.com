@@ -27,6 +27,13 @@ export type Person = {
   locale?: string;
 };
 
+export type TeamMember = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
+};
+
 export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
@@ -137,7 +144,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: TeamMember[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
