@@ -1,4 +1,5 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -321,10 +322,11 @@ const loggedInViewerRouter = router({
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
-    const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
-    // store email of the destination calendar to display
-    let destinationCalendarEmail = null;
+    const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
+      calendarCredentials,
+      user.selectedCalendars,
+      user.destinationCalendar?.externalId
+    );
 
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
@@ -348,7 +350,6 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
-      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -371,32 +372,14 @@ const loggedInViewerRouter = router({
           },
         });
       }
-      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
-    }
-
-    let destinationCalendarName = user.destinationCalendar?.externalId || "";
-    let destinationCalendarIntegration = "";
-
-    for (const integration of connectedCalendars) {
-      if (integration.calendars) {
-        for (const calendar of integration.calendars) {
-          if (calendar.externalId === user.destinationCalendar?.externalId) {
-            destinationCalendarName = calendar.name || calendar.externalId;
-            destinationCalendarIntegration = integration.integration.title || "";
-            break;
-          }
-        }
-      }
     }
 
     return {
       connectedCalendars,
       destinationCalendar: {
         ...(user.destinationCalendar as DestinationCalendar),
-        name: destinationCalendarName,
-        integration: destinationCalendarIntegration,
+        ...destinationCalendar,
       },
-      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
