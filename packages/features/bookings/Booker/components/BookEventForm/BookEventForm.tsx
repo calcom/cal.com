@@ -13,6 +13,7 @@ import {
   useTimePreferences,
   mapBookingToMutationInput,
   validateCustomInputs,
+  validateUniqueGuests,
   createBooking,
   createRecurringBooking,
   mapRecurringBookingToMutationInput,
@@ -172,10 +173,15 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         ? duration
         : event.data.length;
 
-    // @TODO: "validate that guests are unique" step
+    const guestErrors = validateUniqueGuests(values.guests, values.email, t);
 
     if (errors) {
       errors.forEach((error) => bookingForm.setError(error.key, error.error));
+      return;
+    }
+
+    if (guestErrors) {
+      guestErrors.forEach((error) => bookingForm.setError(error.key, error.error));
       return;
     }
 
