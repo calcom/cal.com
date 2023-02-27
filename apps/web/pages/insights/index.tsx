@@ -1,11 +1,10 @@
+import type { DeltaType, Color } from "@tremor/react";
 import {
   Card,
   Metric,
   Text,
   Flex,
   BadgeDelta,
-  DeltaType,
-  Color,
   ColGrid,
   LineChart,
   Title,
@@ -22,22 +21,13 @@ import {
 import { DateRangePicker } from "@tremor/react";
 import { useState } from "react";
 
+import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Button, ButtonGroup, Tooltip } from "@calcom/ui";
-import {
-  FiSettings,
-  FiDownload,
-  FiFilter,
-  FiUsers,
-  FiRefreshCcw,
-  FiUserPlus,
-  FiMail,
-  FiVideo,
-  FiEyeOff,
-} from "@calcom/ui/components/icon";
+import { Avatar, Button, ButtonGroup } from "@calcom/ui";
+import { FiUsers, FiRefreshCcw, FiUserPlus, FiMail, FiVideo, FiEyeOff } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../../packages/features/tips";
 
@@ -76,9 +66,15 @@ export default function InsightsPage() {
       description: t("dolor sit amet, consetetur sadipscing elitr,", { appName: APP_NAME }),
     },
   ];
+
+  const { data: eventsTimeLine } = trpc.viewer.analytics.eventsTimeline.useQuery({
+    timeView: "week",
+    startDate: dayjs().subtract(1, "week").format("YYYY-MM-DD"),
+    endDate: dayjs().format("YYYY-MM-DD"),
+  });
   return (
     <div>
-      <>
+      <Shell>
         <UpgradeTip
           dark
           title={t("teams_plan_required")}
@@ -104,141 +100,103 @@ export default function InsightsPage() {
             </div>
           }>
           <>
-            <Shell
-              heading={t("insights")}
-              subtitle={t("view_your_insights")}
-              CTA={
-                <div className="flex">
-                  <ButtonGroup combined containerProps={{ className: "hidden lg:flex mx-2" }}>
-                    <Tooltip content={t("filter") /* Filter */}>
-                      <Button
-                        variant="icon"
-                        color="secondary"
-                        target="_blank"
-                        rel="noreferrer"
-                        StartIcon={FiFilter}
-                      />
-                    </Tooltip>
-                    <Tooltip content={t("settings")}>
-                      <Button
-                        variant="icon"
-                        color="secondary"
-                        target="_blank"
-                        rel="noreferrer"
-                        StartIcon={FiSettings}
-                      />
-                    </Tooltip>
-                    <Tooltip content={t("download_csv") /*"Download *.csv*/}>
-                      <Button
-                        variant="icon"
-                        color="secondary"
-                        target="_blank"
-                        rel="noreferrer"
-                        StartIcon={FiDownload}
-                      />
-                    </Tooltip>
-                  </ButtonGroup>
-                  <DateSelect />
-                </div>
-              }>
-              <div className="space-y-6">
-                <KPICards />
-                <Line
-                  title={t("event_trends" /* "Events trends" */)}
+            <div className="space-y-6">
+              <KPICards />
+              <Line
+                title={t("event_trends" /* "Events trends" */)}
+                data={[
+                  {
+                    Month: "Dec 15",
+                    Created: 2890,
+                    Completed: 2390,
+                    Rescheduled: 500,
+                    Cancelled: 100,
+                  },
+                  {
+                    Month: "Dec 22",
+                    Created: 1890,
+                    Completed: 1590,
+                    Rescheduled: 300,
+                    Cancelled: 120,
+                  },
+                  {
+                    Month: "Dec 29",
+                    Created: 4890,
+                    Completed: 4290,
+                    Rescheduled: 800,
+                    Cancelled: 300,
+                  },
+                  {
+                    Month: "Jan 06",
+                    Created: 3890,
+                    Completed: 2400,
+                    Rescheduled: 500,
+                    Cancelled: 200,
+                  },
+                  {
+                    Month: "Jan 13",
+                    Created: 1890,
+                    Completed: 1590,
+                    Rescheduled: 200,
+                    Cancelled: 50,
+                  },
+                ]}
+              />
+              <TeamTable />
+              <div className="grid grid-cols-2 gap-5">
+                <Bar
+                  title={t("average_event_duration" /* "Average event duration" */)}
                   data={[
                     {
-                      Month: "Dec 15",
-                      Created: 2890,
-                      Completed: 2390,
-                      Rescheduled: 500,
-                      Cancelled: 100,
+                      Month: "Jan 21",
+                      Sales: 2890,
+                      Profit: 2400,
                     },
                     {
-                      Month: "Dec 22",
-                      Created: 1890,
-                      Completed: 1590,
-                      Rescheduled: 300,
-                      Cancelled: 120,
+                      Month: "Feb 21",
+                      Sales: 1890,
+                      Profit: 1398,
                     },
                     {
-                      Month: "Dec 29",
-                      Created: 4890,
-                      Completed: 4290,
-                      Rescheduled: 800,
-                      Cancelled: 300,
-                    },
-                    {
-                      Month: "Jan 06",
-                      Created: 3890,
-                      Completed: 2400,
-                      Rescheduled: 500,
-                      Cancelled: 200,
-                    },
-                    {
-                      Month: "Jan 13",
-                      Created: 1890,
-                      Completed: 1590,
-                      Rescheduled: 200,
-                      Cancelled: 50,
+                      Month: "Jan 22",
+                      Sales: 3890,
+                      Profit: 2980,
                     },
                   ]}
                 />
-                <TeamTable />
-                <div className="grid grid-cols-2 gap-5">
-                  <Bar
-                    title={t("average_event_duration" /* "Average event duration" */)}
-                    data={[
-                      {
-                        Month: "Jan 21",
-                        Sales: 2890,
-                        Profit: 2400,
-                      },
-                      {
-                        Month: "Feb 21",
-                        Sales: 1890,
-                        Profit: 1398,
-                      },
-                      {
-                        Month: "Jan 22",
-                        Sales: 3890,
-                        Profit: 2980,
-                      },
-                    ]}
-                  />
-                  <Bar
-                    title={t("popular_days" /* "Popular days" */)}
-                    data={[
-                      {
-                        Month: "Jan 21",
-                        Sales: 2890,
-                        Profit: 2400,
-                      },
-                      {
-                        Month: "Feb 21",
-                        Sales: 1890,
-                        Profit: 1398,
-                      },
-                      {
-                        Month: "Jan 22",
-                        Sales: 3890,
-                        Profit: 2980,
-                      },
-                    ]}
-                  />
-                </div>
-                <small className="block text-center text-gray-600">
-                  t{"looking_for_more_analytics" /* Looking for more analytics? */}{" "}
-                  <a
-                    className="text-blue-500 hover:underline"
-                    href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
-                    {t("contact_support")}
-                  </a>
-                </small>
+                <Bar
+                  title={t("popular_days" /* "Popular days" */)}
+                  data={[
+                    {
+                      Month: "Jan 21",
+                      Sales: 2890,
+                      Profit: 2400,
+                    },
+                    {
+                      Month: "Feb 21",
+                      Sales: 1890,
+                      Profit: 1398,
+                    },
+                    {
+                      Month: "Jan 22",
+                      Sales: 3890,
+                      Profit: 2980,
+                    },
+                  ]}
+                />
               </div>
-            </Shell>
+              <small className="block text-center text-gray-600">
+                {t("looking_for_more_analytics")}
+                <a
+                  className="text-blue-500 hover:underline"
+                  href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+                  {t("contact_support")}
+                </a>
+              </small>
+            </div>
           </>
         </UpgradeTip>
-      </>
+      </Shell>
     </div>
   );
 }
@@ -329,8 +287,8 @@ const categories: {
 
 function KPICards() {
   const { data, isLoading } = trpc.viewer.analytics.eventsByStatus.useQuery({
-    startDate: "2023-02-01",
-    endDate: "2023-02-28",
+    startDate: dayjs().subtract(1, "week").format("YYYY-MM-DD"),
+    endDate: dayjs().format("YYYY-MM-DD"),
   });
 
   return (
