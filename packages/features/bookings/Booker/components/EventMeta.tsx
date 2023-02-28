@@ -5,19 +5,20 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { PublicEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseDate } from "@calcom/lib/parse-dates";
 import { TimezoneSelect } from "@calcom/ui";
 import { FiCalendar, FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
+import { formatEventFromToTime } from "../utils/dates";
 
 type EventMetaProps = {
   event?: PublicEvent | null;
   isLoading?: boolean;
   selectedTime?: string | null;
+  duration: number | null;
 };
-export const EventMeta = ({ isLoading, event, selectedTime }: EventMetaProps) => {
-  const { timezone, setTimezone } = useTimePreferences();
+export const EventMeta = ({ isLoading, event, selectedTime, duration }: EventMetaProps) => {
+  const { timezone, setTimezone, timeFormat } = useTimePreferences();
   const { i18n } = useLocale();
 
   return (
@@ -32,6 +33,11 @@ export const EventMeta = ({ isLoading, event, selectedTime }: EventMetaProps) =>
           <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-5">
+            {selectedTime && (
+              <EventMetaBlock icon={FiCalendar}>
+                {formatEventFromToTime(selectedTime, duration, timeFormat, i18n.language)}
+              </EventMetaBlock>
+            )}
             <EventDetails event={event} />
             <EventMetaBlock contentClassName="relative" icon={FiGlobe}>
               <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full items-center bg-white">
@@ -44,11 +50,6 @@ export const EventMeta = ({ isLoading, event, selectedTime }: EventMetaProps) =>
                 onChange={(tz) => setTimezone(tz.value)}
               />
             </EventMetaBlock>
-            {selectedTime && (
-              <EventMetaBlock className="text-bookinghighlight dark:text-bookinghighlight" icon={FiCalendar}>
-                {parseDate(selectedTime, i18n.language)}
-              </EventMetaBlock>
-            )}
           </div>
         </m.div>
       )}

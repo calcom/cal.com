@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 
 import { MONTH_QUERY_PARAM } from "../config";
 
@@ -35,4 +36,19 @@ export const useGetBrowsingMonthStart = (month: string | undefined) => {
   );
 
   return [browsingMonthStart, setBrowsingMonthStartAndUpdateQueryParam] as const;
+};
+
+export const formatEventFromToTime = (
+  date: string,
+  duration: number | null,
+  timeFormat: TimeFormat,
+  language: string
+) => {
+  const start = dayjs(date);
+  const end = duration ? start.add(duration, "minute") : null;
+  return `${start.format("dddd")}, ${start
+    .toDate()
+    .toLocaleDateString(language, { dateStyle: "long" })} ${start.format(timeFormat)} ${
+    end ? `– ${end.format(timeFormat)}` : ``
+  }`;
 };
