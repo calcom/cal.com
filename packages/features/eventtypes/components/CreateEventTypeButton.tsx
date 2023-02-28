@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import MarkdownIt from "markdown-it";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
+import turndown from "@calcom/lib/turndownService";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -29,12 +31,14 @@ import {
   Form,
   RadioGroup as RadioArea,
   showToast,
-  TextAreaField,
   TextField,
+  Editor,
 } from "@calcom/ui";
 import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -189,10 +193,11 @@ const CreateEventTypeDialog = () => {
               />
             )}
 
-            <TextAreaField
-              label={t("description")}
+            <Editor
+              getText={() => md.render(form.getValues("description") || "")}
+              setText={(value: string) => form.setValue("description", turndown(value))}
+              excludedToolbarItems={["blockType", "link"]}
               placeholder={t("quick_video_meeting")}
-              {...register("description")}
             />
 
             <div className="relative">
