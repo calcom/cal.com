@@ -102,7 +102,8 @@ export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | B
     setState: (state: BookerState) => set({ state }),
     layout: "small_calendar",
     setLayout: (layout: BookerLayout) => set({ layout }),
-    selectedDate: null,
+    selectedDate:
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("month") ?? null : null,
     setSelectedDate: (selectedDate: string | null) => set({ selectedDate }),
     username: null,
     eventSlug: null,
@@ -128,13 +129,17 @@ export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | B
         return;
       set({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, initialized: true });
     },
-    selectedDuration: null,
+    selectedDuration:
+      typeof window !== "undefined"
+        ? Number(new URLSearchParams(window.location.search).get("duration")) ?? null
+        : null,
     setSelectedDuration: (selectedDuration: number | null) => set({ selectedDuration }),
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
     rescheduleBooking: null,
     rescheduleUid: null,
-    selectedTimeslot: null,
+    selectedTimeslot:
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("date") ?? null : null,
     setSelectedTimeslot: (selectedTimeslot: string | null) => set({ selectedTimeslot }),
   })
 );
