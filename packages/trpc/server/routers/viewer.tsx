@@ -395,7 +395,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       const credentialId = allCals.find(
