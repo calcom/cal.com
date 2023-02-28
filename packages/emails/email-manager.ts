@@ -75,7 +75,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeScheduledEmail(calEvent, attendee));
+      return sendEmail(() => new AttendeeRescheduledEmail(calEvent, attendee));
     })
   );
 
