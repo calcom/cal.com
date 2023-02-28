@@ -1,4 +1,4 @@
-import type { PrismaPromise, Workflow } from "@prisma/client";
+import type { Workflow, Prisma } from "@prisma/client";
 import {
   WorkflowTemplates,
   WorkflowActions,
@@ -539,7 +539,7 @@ export const workflowsRouter = router({
           }
         });
 
-      const remindersToDeletePromise: PrismaPromise<
+      const remindersToDeletePromise: Prisma.PrismaPromise<
         {
           id: number;
           referenceId: string | null;

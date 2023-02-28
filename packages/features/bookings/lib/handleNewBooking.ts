@@ -335,6 +335,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  const isTeamEventType =
+    eventType.schedulingType === SchedulingType.COLLECTIVE ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
   const paymentAppData = getPaymentAppData(eventType);
 
   // Check if required custom inputs exist
@@ -495,12 +499,23 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.guests || []).map((guest) => ({
-    email: guest,
-    name: "",
-    timeZone: reqBody.timeZone,
-    language: { translate: tGuests, locale: "en" },
-  }));
+
+  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
+    // If it's a team event, remove the team member from guests
+    if (isTeamEventType) {
+      if (users.some((user) => user.email === guest)) {
+        return guestArray;
+      } else {
+        guestArray.push({
+          email: guest,
+          name: "",
+          timeZone: reqBody.timeZone,
+          language: { translate: tGuests, locale: "en" },
+        });
+      }
+    }
+    return guestArray;
+  }, [] as typeof invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -539,7 +554,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
+  const attendeesList = [...invitee, ...guests];
 
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
@@ -720,11 +735,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
   }
 
-  if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+  if (isTeamEventType) {
     evt.team = {
-      members: users.map((user) => user.name || user.username || "Nameless"),
+      members: teamMembers,
       name: eventType.team?.name || "Nameless",
-    }; // used for invitee emails
+    };
   }
 
   if (reqBody.recurringEventId && eventType.recurringEvent) {
@@ -810,17 +825,30 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       metadata: reqBody.metadata,
       attendees: {
         createMany: {
-          data: evt.attendees.map((attendee) => {
-            //if attendee is team member, it should fetch their locale not booker's locale
-            //perhaps make email fetch request to see if his locale is stored, else
-            const retObj = {
-              name: attendee.name,
-              email: attendee.email,
-              timeZone: attendee.timeZone,
-              locale: attendee.language.locale,
-            };
-            return retObj;
-          }),
+          data: [
+            ...evt.attendees.map((attendee) => {
+              //if attendee is team member, it should fetch their locale not booker's locale
+              //perhaps make email fetch request to see if his locale is stored, else
+              const retObj = {
+                name: attendee.name,
+                email: attendee.email,
+                timeZone: attendee.timeZone,
+                locale: attendee.language.locale,
+              };
+              return retObj;
+            }),
+            // Have this for now until we change the relationship between bookings & team members
+            ...(evt.team?.members
+              ? evt.team.members.map((member) => {
+                  return {
+                    email: member.email,
+                    name: member.name,
+                    timeZone: member.timeZone,
+                    locale: member.language.locale,
+                  };
+                })
+              : []),
+          ],
         },
       },
       dynamicEventSlugRef,
