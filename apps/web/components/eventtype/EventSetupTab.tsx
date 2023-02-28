@@ -44,11 +44,14 @@ const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"]
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
