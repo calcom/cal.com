@@ -1,21 +1,23 @@
 name: Yarn install
 description: "Install all NPM dependencies, caches them and restores if necessary"
-env:
-  node_version: v16.x
+inputs:
+  node_version:
+    required: false
+    default: v16.x
 runs:
   using: "composite"
   steps:
-    - name: Use Node ${{ env.node_version }}
+    - name: Use Node ${{ inputs.node_version }}
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node_version }}
+        node-version: ${{ inputs.node_version }}
         cache: "yarn"
     - name: node_modules cache
       id: node-modules-cache
       uses: actions/cache@v3
       env:
         cache-name: node-modules-yarn
-        cache-key: ${{ env.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
+        cache-key: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
       with:
         path: |
           **/node_modules/**

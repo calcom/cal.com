@@ -255,7 +255,6 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
     const bookingPayment = booking?.payment;
@@ -442,7 +441,7 @@ export default class EventManager {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
       if (!calendarReference) {
-        throw new Error("bookingRef");
+        return [];
       }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 

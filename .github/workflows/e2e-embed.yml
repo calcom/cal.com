@@ -6,41 +6,6 @@ jobs:
   e2e-embed:
     timeout-minutes: 20
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
-      NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
-      NEXTAUTH_SECRET: secret
-      GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
-      GOOGLE_LOGIN_ENABLED: true
-      # CRON_API_KEY: xxx
-      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
-      NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE }}
-      NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE: ${{ secrets.NEXT_PUBLIC_STRIPE_PREMIUM_NEW_PLAN_PRICE }}
-      NEXT_PUBLIC_IS_PREMIUM_NEW_PLAN: 1
-      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
-      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
-      STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
-      PAYMENT_FEE_PERCENTAGE: 0.005
-      PAYMENT_FEE_FIXED: 10
-      SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-      SAML_ADMINS: pro@example.com
-      NEXTAUTH_URL: http://localhost:3000/api/auth
-      NEXT_PUBLIC_IS_E2E: 1
-      # EMAIL_FROM: e2e@cal.com
-      # EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
-      # EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
-      # EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
-      # EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
-      # MS_GRAPH_CLIENT_ID: xxx
-      # MS_GRAPH_CLIENT_SECRET: xxx
-      # ZOOM_CLIENT_ID: xxx
-      # ZOOM_CLIENT_SECRET: xxx
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
     services:
       postgres:
         image: postgres:12.1
@@ -57,8 +22,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
-        with:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
