@@ -9,7 +9,6 @@ runs:
       with:
         path: gh.env
         key: env-cache-${{ hashFiles('gh.env') }}
-        restore-keys: env-cache-
     - name: Set Environment Variables
       if: steps.env-cache.outputs.cache-hit == 'true'
       uses: tw3lveparsecs/github-actions-setvars@latest
