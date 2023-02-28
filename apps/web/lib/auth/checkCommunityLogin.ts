@@ -60,8 +60,8 @@ const checkCommunityLogin = (
   const params = new URLSearchParams(callbackUrl.searchParams);
   const ssoParam = params.get("sso");
   const sigParam = params.get("sig");
-  const sso = communityLoginChecker(process.env.COMMUNITY_SECRET);
   if (ssoParam === null || sigParam === null) return "/auth/error?error=invalid-community-login";
+  const sso = communityLoginChecker(process.env.COMMUNITY_SECRET);
   if (!sso.validate(ssoParam, sigParam)) return "/auth/error?error=invalid-community-login";
   const nonce = sso.getNonce(ssoParam);
   const userparams = {
@@ -79,7 +79,7 @@ const checkCommunityLogin = (
     website: `${WEBSITE_URL}/${user.username}`,
   };
   const q = sso.getLoginString(userparams);
-  return `https://cal.community/session/sso_login?${q}`;
+  return `https://cal.community/session/sso_login${q}`;
 };
 
 export default checkCommunityLogin;

@@ -186,7 +186,7 @@ export default function Login({
               </Button>
             </div>
           </form>
-          {!twoFactorRequired && (
+          {!twoFactorRequired && !communityLogin && (
             <>
               {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
               <div className="space-y-3">
