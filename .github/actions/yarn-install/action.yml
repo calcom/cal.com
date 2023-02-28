@@ -23,7 +23,6 @@ runs:
           **/node_modules/**
           packages/prisma/zod
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
-        restore-keys: ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn install
       shell: bash
       if: steps.node-modules-cache.outputs.cache-hit != 'true'
