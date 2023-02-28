@@ -1,5 +1,6 @@
-import { createEvent, DateArray } from "ics";
-import { TFunction } from "next-i18next";
+import type { DateArray } from "ics";
+import { createEvent } from "ics";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -47,10 +48,18 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-      })),
+      attendees: [
+        ...this.calEvent.attendees.map((attendee: Person) => ({
+          name: attendee.name,
+          email: attendee.email,
+        })),
+        ...(this.calEvent.team?.members
+          ? this.calEvent.team?.members.map((member: Person) => ({
+              name: member.name,
+              email: member.email,
+            }))
+          : []),
+      ],
       ...{ recurrenceRule },
       status: "CONFIRMED",
     });

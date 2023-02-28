@@ -4,6 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -121,6 +122,63 @@ test.describe("Event Types tests", () => {
       await page.locator("[data-testid=update-eventtype]").click();
       const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
       expect(toast).toBeTruthy();
+    });
+
+    test("can add multiple organizer address", async ({ page }) => {
+      const $eventTypes = page.locator("[data-testid=event-types] > li a");
+      const firstEventTypeElement = $eventTypes.first();
+      await firstEventTypeElement.click();
+      await page.waitForNavigation({
+        url: (url) => {
+          return !!url.pathname.match(/\/event-types\/.+/);
+        },
+      });
+
+      const locationData = ["location 1", "location 2", "location 3"];
+
+      const fillLocation = async (inputText: string) => {
+        await page.locator("#location-select").click();
+        await page.locator("text=In Person (Organizer Address)").click();
+        await page.locator('input[name="locationAddress"]').fill(inputText);
+        await page.locator("[data-testid=display-location]").check();
+        await page.locator("[data-testid=update-location]").click();
+      };
+
+      await fillLocation(locationData[0]);
+
+      await page.locator("[data-testid=add-location]").click();
+      await fillLocation(locationData[1]);
+
+      await page.locator("[data-testid=add-location]").click();
+      await fillLocation(locationData[2]);
+
+      await page.locator("[data-testid=update-eventtype]").click();
+
+      await page.goto("/event-types");
+
+      const previewLink = await page
+        .locator("[data-testid=preview-link-button]")
+        .first()
+        .getAttribute("href");
+
+      await page.goto(previewLink ?? "");
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      // Navigate to book page
+      await page.waitForNavigation({
+        url(url) {
+          return url.pathname.endsWith("/book");
+        },
+      });
+
+      for (const location of locationData) {
+        await page.locator(`span:has-text("${location}")`).click();
+      }
+
+      await bookTimeSlot(page);
+
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
   });
 });

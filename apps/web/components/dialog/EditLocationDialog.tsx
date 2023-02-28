@@ -188,6 +188,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 control={locationFormMethods.control}
                 render={() => (
                   <CheckboxField
+                    data-testid="display-location"
                     defaultChecked={defaultLocation?.displayLocationPublicly}
                     description={t("display_location_label")}
                     onChange={(e) =>
@@ -345,7 +346,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     {t("cancel")}
                   </Button>
 
-                  <Button type="submit">{t("update")}</Button>
+                  <Button data-testid="update-location" type="submit">
+                    {t("update")}
+                  </Button>
                 </div>
               </DialogFooter>
             </Form>

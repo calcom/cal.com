@@ -57,8 +57,8 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
-        <div className="flex w-full flex-col  md:flex-row md:justify-between lg:w-auto">
-          <div className="lg:hidden">
+        <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
+          <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
             <HorizontalTabs tabs={tabs} />
           </div>
           <div>
