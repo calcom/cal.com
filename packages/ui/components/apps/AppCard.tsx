@@ -10,7 +10,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button } from "../button";
-import { FiPlus } from "../icon";
+import { FiPlus, FiArrowRight } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {
@@ -83,9 +83,10 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
 
       {app.dependencyData && !app.dependencyData?.installed && (
         <Link
-          className="mt-5 rounded-md bg-blue-100 p-0.5 text-sm font-semibold text-blue-900 underline"
+          className="mt-5 flex items-center rounded-md bg-blue-100 p-1 text-sm font-semibold text-blue-900 underline"
           href={`${CAL_URL}/apps/${app.dependency}`}>
           {t("requires_app", { dependencyName: app.dependencyData.name })}
+          <FiArrowRight className="ml-1" />
         </Link>
       )}
 
