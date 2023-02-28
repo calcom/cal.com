@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -16,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -178,6 +180,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
+  let customInputs: Prisma.JsonObject;
+
+  eventType.customInputs.forEach(({ label }) => {
+    customInputs[label] = label;
+  });
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -213,6 +221,15 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .object({
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
+          eventName: z
+            .string()
+            .refine(
+              (val) => validateCustomEventName(val, t("invalid_event_name_variables"), customInputs) === true,
+              {
+                message: t("invalid_event_name_variables"),
+              }
+            )
+            .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
         })
         // TODO: Add schema for other fields later.

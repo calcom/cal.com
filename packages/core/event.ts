@@ -50,12 +50,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   customInputvariables?.forEach((variable) => {
     if (eventNameObj.customInputs) {
       Object.keys(eventNameObj.customInputs).forEach((customInput) => {
-        const formatedToVariable = customInput
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase();
-        if (variable === formatedToVariable && eventNameObj.customInputs) {
+        if (variable === customInput && eventNameObj.customInputs) {
           dynamicEventName = dynamicEventName.replace(
             `{${variable}}`,
             eventNameObj.customInputs[customInput as keyof typeof eventNameObj.customInputs]
@@ -67,3 +62,31 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
 
   return dynamicEventName;
 }
+
+export const validateCustomEventName = (value: string, message: string, customInputs?: Prisma.JsonObject) => {
+  let customInputVariables: string[] = [];
+  if (customInputs) {
+    customInputVariables = Object.keys(customInputs).map((customInput) => {
+      return `{${customInput}}`;
+    });
+  }
+  console.log("customInputVariables: " + JSON.stringify(customInputVariables));
+  console.log("customInputs: " + JSON.stringify(customInputs));
+
+  const validVariables = customInputVariables.concat([
+    "{Event type title}",
+    "{Organiser}",
+    "{Scheduler}",
+    "{Location}",
+  ]);
+  const matches = value.match(/\{([^}]+)\}/g);
+  if (matches?.length) {
+    for (const item of matches) {
+      if (!validVariables.includes(item)) {
+        return message;
+      }
+    }
+  }
+
+  return true;
+};
