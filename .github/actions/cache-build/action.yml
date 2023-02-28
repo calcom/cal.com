@@ -1,22 +1,26 @@
 name: Cache production build binaries
 description: "Cache or restore if necessary"
-env:
-  node_version: v16.x
+inputs:
+  node_version:
+    required: false
+    default: v16.x
 runs:
   using: "composite"
   steps:
     - name: Cache production build
       uses: actions/cache@v3
+      id: cache-build
       env:
         cache-name: prod-build
-        key-1: ${{ env.node_version }}-${{ hashFiles('yarn.lock') }}
-        key-2: ${{ hashFiles('apps/web/next.config.js') }}
-        key-3: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+        key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
+        key-2: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+        key-3: ${{ github.event.pull_request.number || github.ref }}
       with:
         path: |
-          ${{ github.workspace }}/apps/web/.next/cache
+          ${{ github.workspace }}/apps/web/.next
           **/.turbo/**
           **/dist/**
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
+    - run: yarn build
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      shell: bash

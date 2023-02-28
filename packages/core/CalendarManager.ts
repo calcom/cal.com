@@ -9,7 +9,12 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
+import type {
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
 import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
@@ -31,12 +36,15 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
 
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
-  selectedCalendars: { externalId: string }[]
+  selectedCalendars: { externalId: string }[],
+  destinationCalendarExternalId?: string
 ) => {
+  let destinationCalendar: IntegrationCalendar | undefined;
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
         const { calendar, integration, credential } = item;
+        let primary!: IntegrationCalendar;
 
         // Don't leak credentials to the client
         const credentialId = credential.id;
@@ -48,16 +56,28 @@ export const getConnectedCalendars = async (
         }
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
-          .map((cal) => ({
-            ...cal,
-            readOnly: cal.readOnly || false,
-            primary: cal.primary || null,
-            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-            credentialId,
-          }))
+          .map((cal) => {
+            if (cal.primary) {
+              primary = { ...cal, credentialId };
+            }
+            if (cal.externalId === destinationCalendarExternalId) {
+              destinationCalendar = cal;
+            }
+            return {
+              ...cal,
+              readOnly: cal.readOnly || false,
+              primary: cal.primary || null,
+              isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              credentialId,
+            };
+          })
           .sortBy(["primary"])
           .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
+
+        if (primary && destinationCalendar) {
+          destinationCalendar.primaryEmail = primary.email;
+          destinationCalendar.integrationTitle = integration.title;
+        }
         if (!primary) {
           return {
             integration,
@@ -95,7 +115,7 @@ export const getConnectedCalendars = async (
     })
   );
 
-  return connectedCalendars;
+  return { connectedCalendars, destinationCalendar };
 };
 
 /**

@@ -1611,6 +1611,7 @@
   "form_builder_system_field_cant_delete": "This system field can't be removed.",
   "form_builder_system_field_cant_toggle": "This system field can't be toggled.",
   "get_started_zapier_templates": "Get started with Zapier templates",
+  "team_member": "Team member",
   "a_routing_form": "A Routing Form",
   "form_description_placeholder": "Form Description",
   "keep_me_connected_with_form": "Keep me connected with the form",
