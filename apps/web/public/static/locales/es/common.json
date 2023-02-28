@@ -76,7 +76,7 @@
   "rescheduled_event_type_subject": "Solicitud de reprogramación enviada: {{eventType}} con {{name}} el {{date}}",
   "requested_to_reschedule_subject_attendee": "Reprogramar acción requerida: reserva una nueva hora para {{eventType}} con {{name}}",
   "reschedule_reason": "Motivo de la reprogramación",
-  "hi_user_name": "Hola {{userName}}",
+  "hi_user_name": "Hola {{name}}",
   "ics_event_title": "{{eventType}} con {{name}}",
   "new_event_subject": "Nuevo Evento: {{attendeeName}} - {{date}} - {{eventType}}",
   "join_by_entrypoint": "Únase por {{entryPoint}}",

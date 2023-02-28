@@ -1,7 +1,10 @@
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
+import { WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,10 +24,12 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  teamId?: number;
+  isMixedEventType: boolean;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -36,18 +41,31 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const eventTypeOptions = useMemo(
     () =>
-      data?.eventTypeGroups.reduce(
-        (options, group) => [
+      data?.eventTypeGroups.reduce((options, group) => {
+        /** only show event types that belong to team or user */
+        if (!(!teamId && !group.teamId) || teamId !== group.teamId) return options;
+        return [
           ...options,
           ...group.eventTypes.map((eventType) => ({
             value: String(eventType.id),
             label: eventType.title,
           })),
-        ],
-        [] as Option[]
-      ) || [],
+        ];
+      }, [] as Option[]) || [],
     [data]
   );
+
+  let allEventTypeOptions = eventTypeOptions;
+  const distinctEventTypes = new Set();
+
+  if (!teamId && isMixedEventType) {
+    allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
+    allEventTypeOptions = allEventTypeOptions.filter((option) => {
+      const duplicate = distinctEventTypes.has(option.value);
+      distinctEventTypes.add(option.value);
+      return !duplicate;
+    });
+  }
 
   const addAction = (
     action: WorkflowActions,
@@ -101,7 +119,7 @@ export default function WorkflowDetailsPage(props: Props) {
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={eventTypeOptions}
+                  options={allEventTypeOptions}
                   isLoading={isLoading}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
@@ -129,7 +147,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} teamId={teamId} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -142,6 +160,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    teamId={teamId}
                   />
                 );
               })}
