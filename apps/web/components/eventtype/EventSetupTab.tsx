@@ -234,7 +234,7 @@ export const EventSetupTab = (
             })}
             {validLocations.some(
               (location) =>
-                location.type === MeetLocationType && destinationCalendar.integration !== "google_calendar"
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
