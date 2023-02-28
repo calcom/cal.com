@@ -177,7 +177,7 @@ export const viewerTeamsRouter = router({
         // If we save slug, we don't need the requestedSlug anymore
         const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
         if (metadataParse.success) {
-          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
           data.metadata = {
             ...cleanMetadata,
           };

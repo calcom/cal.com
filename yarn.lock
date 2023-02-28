@@ -7910,27 +7910,27 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
-"@trpc/client@^10.10.0":
-  version "10.10.0"
-  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-10.10.0.tgz#5abdbf399639f2fdfe605682d2cdf3f9dba87cb1"
-  integrity sha512-HRVGkOsR4FIYpyQILP84HLbj6pRnLKgxy4AIelTf9d9TxD60M5bNhbR2Uz3hqNSb9a2ppaRJBLv7twlV9b4qHQ==
+"@trpc/client@^10.13.0":
+  version "10.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-10.13.0.tgz#8999a7ba068a684629071b77a07c00a141585eca"
+  integrity sha512-r4KuN0os2J194lxg5jn4+o3uNlqunLFYptwTHcVW4Q0XGO0ZoTKLHuxT7c9IeDivkAs6G5oVEPiKhptkag36dQ==
 
-"@trpc/next@^10.10.0":
-  version "10.10.0"
-  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-10.10.0.tgz#083ff327b68b005d60b19af07008377f830ad73a"
-  integrity sha512-7d84L2OoF0RW06drTbNGOOggwMes8JxI3Ln/VOIaYeERzwOFNCtWPmGjWCdq4l1SKbXC6+baS+b9n5cXc+euwA==
+"@trpc/next@^10.13.0":
+  version "10.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/next/-/next-10.13.0.tgz#64393f0d8dbfae7d87e54260dea532702bd1ecdf"
+  integrity sha512-Q4rnuuiSUXDYv34f8FNUKhEMQFgLJTTJean78YjhG3Aaci+r4sew4hPmRvDRut8fBpa+EtExq+dv1EUbzlXgJg==
   dependencies:
     react-ssr-prepass "^1.5.0"
 
-"@trpc/react-query@^10.10.0":
-  version "10.10.0"
-  resolved "https://registry.yarnpkg.com/@trpc/react-query/-/react-query-10.10.0.tgz#1faf32056aa3ee5ecb2ffd0d15e8abbcd7eff911"
-  integrity sha512-Jc/uii1MPevf95/z/W3ufYGHvrFvrtkjxQ8UuXhJCzOgv/FGPqhmA5PH124nLHEgGLBA7zQxHumofhdXosEhUQ==
+"@trpc/react-query@^10.13.0":
+  version "10.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/react-query/-/react-query-10.13.0.tgz#ca5a1da0ea126976d7435775f2ba1846cb7fad59"
+  integrity sha512-y4jbojrDFdEl1KBejBoMWIofcUXDHQA8wf01eKMEDV7Jwc7lhq6R1dxYtKzeF+s5wqfnPWFOGZDmB3flzv07Dw==
 
-"@trpc/server@^10.10.0":
-  version "10.10.0"
-  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-10.10.0.tgz#0b494335140d4fd5e1452f7b57dcc9b8886720a4"
-  integrity sha512-tCTqcqBT+3nebYFTHtwM877qo5xQPtVlptxKdUzMVWleWT4lFTL4oddk45qVURToci2iMbVJjd4jQU9y9/XwlQ==
+"@trpc/server@^10.13.0":
+  version "10.13.0"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-10.13.0.tgz#0945b5210a18934c2284c8679cb6692ecb5b054c"
+  integrity sha512-d/bu6utCC4ALxhTJkolEPAHMOSuCAu3mG79TZswa6wD2ob0/Z3AIvBF/meeSTqDxe4tvXY78lQqOkQI81dgi/g==
 
 "@tryvital/vital-node@^1.4.6":
   version "1.4.6"
