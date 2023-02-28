@@ -11,17 +11,7 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.node_version }}
-    - name: node_modules cache
-      id: node-modules-cache
-      uses: actions/cache@v3
-      env:
-        cache-name: node-modules-yarn
-        cache-key: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock', 'packages/prisma/schema.prisma') }}
-      with:
-        path: |
-          **/node_modules/**
-          packages/prisma/zod
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
+        cache: "yarn"
     - name: Yarn install
       shell: bash
       run: |
