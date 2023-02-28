@@ -588,7 +588,6 @@
   "new_event_type_heading": "Opprett din første hendelsestype",
   "new_event_type_description": "Hendelsestyper lar deg dele lenker som viser tilgjengelige tider i kalenderen din og lar folk gjøre bookinger med deg.",
   "new_event_title": "Legg til en ny hendelsestype",
-  "new_event_subtitle": "Opprett en hendelsestype under navnet ditt eller et team.",
   "new_team_event": "Legg til en ny hendelsestype for team",
   "new_event_description": "Opprett en ny hendelsestype som folk kan booke tider med.",
   "event_type_created_successfully": "{{eventTypeTitle}} hendelsestype opprettet",
