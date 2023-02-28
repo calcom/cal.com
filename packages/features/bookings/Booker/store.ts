@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
+import { updateQueryParam } from "./utils/update-query-param";
 
 // Before booker store is initialized, it's unsure if all data is set,
 // therefore these null values are allowed.
@@ -104,7 +105,10 @@ export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | B
     setLayout: (layout: BookerLayout) => set({ layout }),
     selectedDate:
       typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("month") ?? null : null,
-    setSelectedDate: (selectedDate: string | null) => set({ selectedDate }),
+    setSelectedDate: (selectedDate: string | null) => {
+      set({ selectedDate });
+      updateQueryParam("month", selectedDate ?? "");
+    },
     username: null,
     eventSlug: null,
     eventId: null,
@@ -133,14 +137,20 @@ export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | B
       typeof window !== "undefined"
         ? Number(new URLSearchParams(window.location.search).get("duration")) ?? null
         : null,
-    setSelectedDuration: (selectedDuration: number | null) => set({ selectedDuration }),
+    setSelectedDuration: (selectedDuration: number | null) => {
+      set({ selectedDuration });
+      updateQueryParam("duration", selectedDuration ?? "");
+    },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
     rescheduleBooking: null,
     rescheduleUid: null,
     selectedTimeslot:
       typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("date") ?? null : null,
-    setSelectedTimeslot: (selectedTimeslot: string | null) => set({ selectedTimeslot }),
+    setSelectedTimeslot: (selectedTimeslot: string | null) => {
+      set({ selectedTimeslot });
+      updateQueryParam("date", selectedTimeslot ?? "");
+    },
   })
 );
 
