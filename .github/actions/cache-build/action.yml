@@ -21,6 +21,6 @@ runs:
           **/.turbo/**
           **/dist/**
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}
-      - run: yarn build
-        if: steps.cache-build.outputs.cache-hit != 'true'
-        shell: bash
+    - run: yarn build
+      if: steps.cache-build.outputs.cache-hit != 'true'
+      shell: bash
