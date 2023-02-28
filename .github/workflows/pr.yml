@@ -37,32 +37,24 @@ jobs:
     uses: ./.github/workflows/env-create-file.yml
     secrets: inherit
 
-  setup:
-    name: Yarn install & cache
-    uses: ./.github/workflows/yarn-install.yml
-    secrets: inherit
-
   type-check:
     name: Type check
-    needs: setup
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
-    needs: setup
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: setup
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   build:
     name: Production build
-    needs: [setup, env]
+    needs: env
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
