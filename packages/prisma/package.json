@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^4.8.1",
-    "prisma": "^4.8.1",
+    "@prisma/client": "^4.11.0",
+    "prisma": "^4.11.0",
     "ts-node": "^10.9.1",
     "zod": "^3.20.2",
     "zod-prisma": "^0.5.4"
