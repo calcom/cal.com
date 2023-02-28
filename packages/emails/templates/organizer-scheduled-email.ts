@@ -1,4 +1,4 @@
-import type { DateArray, Person } from "ics";
+import type { DateArray } from "ics";
 import { createEvent } from "ics";
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
@@ -7,7 +7,7 @@ import { RRule } from "rrule";
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { APP_NAME } from "@calcom/lib/constants";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
