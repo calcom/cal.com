@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MembershipRole, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import MarkdownIt from "markdown-it";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
