@@ -32,7 +32,6 @@ import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import type { Prisma, DestinationCalendar } from "@calcom/prisma";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
