@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/yarn-install
       - name: Save Code Linting Reports
         run: yarn lint:report
         continue-on-error: true

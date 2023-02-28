@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
-      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/yarn-install
       # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
       - run: yarn test

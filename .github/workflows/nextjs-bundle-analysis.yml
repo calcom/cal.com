@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
       - name: Analyze bundle
         run: |

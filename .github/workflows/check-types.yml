@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/yarn-install
 
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"
