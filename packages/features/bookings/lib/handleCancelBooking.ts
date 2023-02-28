@@ -66,7 +66,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           price: true,
           currency: true,
           length: true,
-          seatsPerTimeSlot: true,
+          hosts: {
+            select: {
+              user: true,
+            },
+          },
           workflows: {
             include: {
               workflow: {
@@ -128,8 +132,12 @@ async function handler(req: CustomRequest) {
     },
   });
 
-  const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
-    return {
+  const teamMembersPromises = [];
+  const attendeesListPromises = [];
+  const hostsPresent = !!bookingToDelete.eventType?.hosts;
+
+  for (const attendee of bookingToDelete.attendees) {
+    const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
@@ -138,9 +146,24 @@ async function handler(req: CustomRequest) {
         locale: attendee.locale ?? "en",
       },
     };
-  });
+
+    // Check for the presence of hosts to determine if it is a team event type
+    if (hostsPresent) {
+      // If the attendee is a host then they are a team member
+      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
+      if (teamMember) {
+        teamMembersPromises.push(attendeeObject);
+        // If not then they are an attendee
+      } else {
+        attendeesListPromises.push(attendeeObject);
+      }
+    } else {
+      attendeesListPromises.push(attendeeObject);
+    }
+  }
 
   const attendeesList = await Promise.all(attendeesListPromises);
+  const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
@@ -165,6 +188,7 @@ async function handler(req: CustomRequest) {
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
+    ...(teamMembers && { team: { name: "", members: teamMembers } }),
   };
 
   // If it's just an attendee of a booking then just remove them from that booking

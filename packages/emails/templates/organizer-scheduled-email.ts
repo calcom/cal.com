@@ -1,6 +1,7 @@
-import { createEvent, DateArray, Person } from "ics";
+import type { DateArray, Person } from "ics";
+import { createEvent } from "ics";
 import { cloneDeep } from "lodash";
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -15,13 +16,15 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
   newSeat?: boolean;
+  teamMember?: Person;
 
-  constructor(calEvent: CalendarEvent, newSeat?: boolean) {
+  constructor(input: { calEvent: CalendarEvent; newSeat?: boolean; teamMember?: Person }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
-    this.calEvent = calEvent;
+    this.calEvent = input.calEvent;
     this.t = this.calEvent.organizer.language.translate;
-    this.newSeat = newSeat;
+    this.newSeat = input.newSeat;
+    this.teamMember = input.teamMember;
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -44,10 +47,18 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
       ...{ recurrenceRule },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-      })),
+      attendees: [
+        ...this.calEvent.attendees.map((attendee: Person) => ({
+          name: attendee.name,
+          email: attendee.email,
+        })),
+        ...(this.calEvent.team?.members
+          ? this.calEvent.team?.members.map((member: Person) => ({
+              name: member.name,
+              email: member.email,
+            }))
+          : []),
+      ],
       status: "CONFIRMED",
     });
     if (icsEvent.error) {
@@ -82,6 +93,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       html: renderEmail("OrganizerScheduledEmail", {
         calEvent: clonedCalEvent,
         attendee: this.calEvent.organizer,
+        teamMember: this.teamMember,
         newSeat: this.newSeat,
       }),
       text: this.getTextBody(),

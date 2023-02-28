@@ -28,6 +28,13 @@ export type Person = {
   bookingSeatReference?: BookingSeatsReferences | null;
 };
 
+export type TeamMember = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
+};
+
 export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
@@ -138,7 +145,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: TeamMember[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
@@ -183,6 +190,9 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
+  primaryEmail?: string;
+  credentialId?: number;
+  integrationTitle?: string;
 }
 
 export interface Calendar {
