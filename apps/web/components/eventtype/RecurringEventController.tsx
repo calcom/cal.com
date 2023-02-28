@@ -1,23 +1,26 @@
-import type { FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert, Select, SettingsToggle } from "@calcom/ui";
 
 type RecurringEventControllerProps = {
-  recurringEvent: RecurringEvent | null;
+  eventType: EventTypeSetup;
   paymentEnabled: boolean;
 };
 
 export default function RecurringEventController({
-  recurringEvent,
+  eventType,
   paymentEnabled,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
-  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);
+  const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(
+    eventType.recurringEvent
+  );
   const formMethods = useFormContext<FormValues>();
 
   /* Just yearly-0, monthly-1 and weekly-2 */
@@ -28,6 +31,8 @@ export default function RecurringEventController({
       value: value.toString(),
     }));
 
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+
   return (
     <div className="block items-start sm:flex">
       <div className={!paymentEnabled ? "w-full" : ""}>
@@ -37,6 +42,7 @@ export default function RecurringEventController({
           <>
             <SettingsToggle
               title={t("recurring_event")}
+              {...shouldLockDisableProps("recurringEvent")}
               description={t("recurring_event_description")}
               checked={recurringEventState !== null}
               data-testid="recurring-event-check"
@@ -45,7 +51,7 @@ export default function RecurringEventController({
                   formMethods.setValue("recurringEvent", null);
                   setRecurringEventState(null);
                 } else {
-                  const newVal = recurringEvent || {
+                  const newVal = eventType.recurringEvent || {
                     interval: 1,
                     count: 12,
                     freq: Frequency.WEEKLY,

@@ -56,7 +56,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const { shouldLockDisable } = lockedFieldsManager(eventType);
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
 
   return (
     <>
@@ -85,7 +85,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ))}
         </div>
       </div>
-      {!shouldLockDisable("apps") && (
+      {!shouldLockDisableProps("apps").disabled && (
         <div>
           {!isLoading && notInstalledApps?.length ? (
             <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{t("available_apps")}</h2>

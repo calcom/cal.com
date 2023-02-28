@@ -1,49 +1,50 @@
 import { SchedulingType } from "@prisma/client";
+import { get } from "lodash";
 import React from "react";
-import z from "zod";
+import type z from "zod";
 
-import { Prisma } from "@calcom/prisma/client";
-import { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
+import type { Prisma } from "@calcom/prisma/client";
+import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Tooltip } from "@calcom/ui";
 import { FiLock } from "@calcom/ui/components/icon";
 
+const Indicator = (label: string) => (
+  <Tooltip content={<>{label}</>}>
+    <div className="ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm bg-gray-100 p-0.5">
+      <FiLock className="h-3 w-3 text-gray-500 hover:text-black" />
+    </div>
+  </Tooltip>
+);
+
 const lockedFieldsManager = (
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata">
+  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata">,
+  label: string
 ) => {
-  const Indicator = (label: string) => (
-    <Tooltip content={<>{label}</>}>
-      <div className="ml-1 -mt-0.5 inline-flex h-4 w-4 rounded-sm bg-gray-100 p-0.5">
-        <FiLock className="h-3 w-3 text-gray-500 hover:text-black" />
-      </div>
-    </Tooltip>
-  );
-
-  const regular = {
-    shouldLockDisable: (
-      fieldName: string,
-      label?: string
-    ): typeof label extends undefined ? boolean : React.ReactNode => {
-      const disabled = eventType.schedulingType === SchedulingType.MANAGED && eventType.userId !== null;
-      const lockedFields =
-        (eventType.metadata?.managedEventConfig?.lockedFields !== undefined &&
-          eventType.metadata?.managedEventConfig?.lockedFields) ||
-        {};
-      const locked = lockedFields[fieldName as keyof Prisma.EventTypeSelect] === true;
-      return label ? locked && !disabled && Indicator(label) : locked && disabled;
-    },
+  const shouldLockIndicator = (fieldName: string) => {
+    let locked = eventType.schedulingType === SchedulingType.MANAGED;
+    if (!locked) return false;
+    const unlockedFields =
+      (eventType.metadata?.managedEventConfig?.unlockedFields !== undefined &&
+        eventType.metadata?.managedEventConfig?.unlockedFields) ||
+      {};
+    // Supports "metadata.fieldName"
+    if (fieldName.includes(".")) {
+      locked = get(unlockedFields, fieldName) === undefined;
+    } else {
+      locked = unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
+    }
+    return locked && Indicator(label);
   };
 
-  const advanced = {
-    shouldLockDisableProps: (fieldName: string, label: string) => {
-      const indicator = regular.shouldLockDisable(fieldName, label);
-      return {
-        disabled: !indicator,
-        isLocked: indicator,
-      };
-    },
+  const shouldLockDisableProps = (fieldName: string) => {
+    const lala = {
+      disabled: eventType.schedulingType === SchedulingType.MANAGED && eventType.userId !== null,
+      isLocked: shouldLockIndicator(fieldName),
+    };
+    return lala;
   };
 
-  return { ...regular, ...advanced };
+  return { shouldLockIndicator, shouldLockDisableProps };
 };
 
 export default lockedFieldsManager;

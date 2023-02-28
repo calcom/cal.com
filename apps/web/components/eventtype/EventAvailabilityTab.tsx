@@ -175,14 +175,17 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockDisable } = lockedFieldsManager(eventType);
+  const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
   return (
     <div className="space-y-4">
       <div>
         <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
           <>
             {t("availability")}
-            {shouldLockDisable("availability", t("locked_fields_description"))}
+            {shouldLockIndicator("availability")}
           </>
         </label>
         <Controller
@@ -191,7 +194,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
             <AvailabilitySelect
               value={field.value}
               onBlur={field.onBlur}
-              isDisabled={!!shouldLockDisable("availability")}
+              isDisabled={shouldLockDisableProps("availability").disabled}
               name={field.name}
               onChange={(selected) => {
                 field.onChange(selected?.value || null);

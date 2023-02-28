@@ -77,7 +77,7 @@ export const EventSetupTab = (
     setShowLocationModal(true);
   };
 
-  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
+  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
     formMethods.setValue(
       "locations",
       formMethods.getValues("locations").filter((location) => {
@@ -266,7 +266,10 @@ export const EventSetupTab = (
     );
   };
 
-  const { shouldLockDisableProps, shouldLockDisable } = lockedFieldsManager(eventType);
+  const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
 
   return (
     <div>
@@ -274,14 +277,14 @@ export const EventSetupTab = (
         <TextField
           required
           label={t("title")}
-          {...shouldLockDisableProps("title", t("locked_fields_description"))}
+          {...shouldLockDisableProps("title")}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
         <TextField
           label={t("description")}
           placeholder={t("quick_video_meeting")}
-          {...shouldLockDisableProps("description", t("locked_fields_description"))}
+          {...shouldLockDisableProps("description")}
           defaultValue={eventType.description ?? ""}
           {...formMethods.register("description")}
         />
@@ -289,7 +292,7 @@ export const EventSetupTab = (
           <TextField
             required
             label={t("URL")}
-            {...shouldLockDisableProps("slug", t("locked_fields_description"))}
+            {...shouldLockDisableProps("slug")}
             defaultValue={eventType.slug}
             addOnLeading={
               <>
@@ -351,14 +354,14 @@ export const EventSetupTab = (
             <div>
               <Skeleton as={Label} loadingClassName="w-16">
                 {t("default_duration")}
-                {shouldLockDisable("length", t("locked_fields_description"))}
+                {shouldLockIndicator("length")}
               </Skeleton>
               <Select
                 value={defaultDuration}
                 isSearchable={false}
                 name="length"
                 className="text-sm"
-                isDisabled={!!shouldLockDisable("length")}
+                isDisabled={shouldLockDisableProps("length").disabled}
                 noOptionsMessage={() => t("default_duration_no_options")}
                 options={selectedMultipleDuration}
                 onChange={(option) => {
@@ -374,7 +377,7 @@ export const EventSetupTab = (
           <TextField
             required
             type="number"
-            {...shouldLockDisableProps("length", t("locked_fields_description"))}
+            {...shouldLockDisableProps("length")}
             label={t("duration")}
             defaultValue={eventType.length ?? 15}
             {...formMethods.register("length")}
@@ -401,14 +404,14 @@ export const EventSetupTab = (
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
-            {shouldLockDisable("location", t("locked_fields_description"))}
+            {shouldLockIndicator("locations")}
           </Skeleton>
 
           <Controller
             name="locations"
             control={formMethods.control}
             defaultValue={eventType.locations || []}
-            render={() => <Locations isDisabled={!!shouldLockDisable("location")} />}
+            render={() => <Locations isDisabled={shouldLockDisableProps("locations").disabled} />}
           />
         </div>
       </div>

@@ -103,7 +103,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     }
   }, [eventType.customInputs]);
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType);
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
   const eventNamePlaceholder = replaceEventNamePlaceholder(eventNameObject, t("meeting_with_user"));
 
   return (
@@ -146,7 +146,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <TextField
           label={t("event_name_in_calendar")}
           type="text"
-          {...shouldLockDisableProps("eventName", t("locked_fields_description"))}
+          {...shouldLockDisableProps("eventName")}
           placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName", {
@@ -173,7 +173,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       <div className="">
         <SettingsToggle
           title={t("additional_inputs")}
-          {...shouldLockDisableProps("customInputs", t("locked_fields_description"))}
+          {...shouldLockDisableProps("customInputs")}
           description={t("additional_input_description")}
           checked={customInputs.length > 0}
           onCheckedChange={(e) => {
@@ -229,6 +229,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             title={t("disable_guests")}
+            {...shouldLockDisableProps("disableGuests")}
             description={t("disable_guests_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -245,6 +246,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             title={t("disable_notes")}
+            {...shouldLockDisableProps("hideCalendarNotes")}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -260,6 +262,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <div className="flex space-x-3 ">
             <SettingsToggle
               title={t("require_additional_notes")}
+              {...shouldLockDisableProps("metadata.additionalNotesRequired")}
               description={t("require_additional_notes_description")}
               checked={!!value}
               onCheckedChange={(e) => onChange(e)}
@@ -275,6 +278,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <>
             <SettingsToggle
               title={t("redirect_success_booking")}
+              {...shouldLockDisableProps("successRedirectUrl")}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
               onCheckedChange={(e) => {
@@ -317,6 +321,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
+        {...shouldLockDisableProps("hashedLinkCheck")}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
@@ -363,6 +368,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             title={t("offer_seats")}
+            {...shouldLockDisableProps("seatsPerTimeSlotEnabled")}
             description={t("offer_seats_description")}
             checked={value}
             onCheckedChange={(e) => {

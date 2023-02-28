@@ -40,7 +40,7 @@ export default function RequiresConfirmationController({
     }
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType);
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
 
   return (
     <div className="block items-start sm:flex">
@@ -55,7 +55,7 @@ export default function RequiresConfirmationController({
               <SettingsToggle
                 title={t("requires_confirmation")}
                 description={t("requires_confirmation_description")}
-                {...shouldLockDisableProps("requiresConfirmation", t("locked_fields_description"))}
+                {...shouldLockDisableProps("requiresConfirmation")}
                 checked={requiresConfirmation}
                 onCheckedChange={(val) => {
                   formMethods.setValue("requiresConfirmation", val);

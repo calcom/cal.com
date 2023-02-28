@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { lockedManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
+import { unlockedManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -83,16 +83,17 @@ export default function CreateEventTypeDialog({
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
-      metadata: {
-        managedEventConfig: {
-          lockedFields: lockedManagedEventTypeProps,
-        },
-      },
     },
     resolver: zodResolver(createEventTypeInput),
   });
 
   const schedulingTypeWatch = form.watch("schedulingType");
+
+  if (schedulingTypeWatch === SchedulingType.MANAGED) {
+    form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
+  } else {
+    form.setValue("metadata", null);
+  }
 
   const { register } = form;
 

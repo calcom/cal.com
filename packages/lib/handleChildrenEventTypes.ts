@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient, EventType } from "@prisma/client";
-import { isEqual, omit } from "lodash";
+import { isEqual, pick } from "lodash";
 
 import logger from "@calcom/lib/logger";
 import { _EventTypeModel } from "@calcom/prisma/zod";
@@ -20,7 +20,7 @@ interface handleChildrenEventTypesProps {
 }
 
 // All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: { [k in keyof Prisma.EventTypeSelect]: true } = {
+export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
   slug: true,
@@ -54,11 +54,9 @@ export const allManagedEventTypeProps: { [k in keyof Prisma.EventTypeSelect]: tr
 };
 
 // All properties that are defined as locked based on all managed props
-export const lockedManagedEventTypeProps = omit(allManagedEventTypeProps, [
-  "locations",
-  "availability",
-  "destinationCalendar",
-]);
+export const unlockedManagedEventTypeProps = {
+  ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
+};
 
 export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
