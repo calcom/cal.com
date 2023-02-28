@@ -112,14 +112,15 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
-          "dark:bg-darkgray-100 grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white [--booker-meta-width:280px] [--booker-main-width:425px] [--booker-timeslots-width:280px] md:flex-row",
+          "[--booker-meta-width:280px] [--booker-main-width:425px] [--booker-timeslots-width:280px]",
+          "dark:bg-darkgray-100 grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
           layout === "small_calendar" &&
             "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
         <AnimatePresence>
           <StickyOnDesktop key="meta">
-            <BookerSection area="meta">
+            <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
               <EventMeta
                 event={event.data}
                 isLoading={event.isLoading}
@@ -137,7 +138,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           <BookerSection
             key="book-event-form"
             area="main"
-            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:border-l"
+            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:w-[var(--booker-main-width)] md:border-l"
             {...fadeInUp}
             visible={bookerState === "booking"}>
             <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
@@ -149,7 +150,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
             initial="visible"
-            className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:border-l md:border-gray-200">
+            className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l md:border-gray-200">
             <DatePicker onDaySelect={onDaySelect} onMonthChange={onMonthChange} />
           </BookerSection>
 
@@ -160,7 +161,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               layout === "large_calendar" &&
               (bookerState === "selecting_date" || bookerState === "selecting_time")
             }
-            className="dark:border-darkgray-300 sticky top-0  ml-[-1px] h-full border-gray-200 md:border-l"
+            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 md:border-l"
             {...fadeInUp}>
             <LargeCalendar onDaySelect={onDaySelect} onTimeSelect={onTimeSelect} />
           </BookerSection>
@@ -174,7 +175,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             }
             className={classNames(
               "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
-              layout === "small_calendar" && "h-full overflow-auto",
+              layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
               layout !== "small_calendar" && "sticky top-0"
             )}
             {...fadeInLeft}>

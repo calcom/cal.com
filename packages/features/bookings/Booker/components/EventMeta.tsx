@@ -39,9 +39,12 @@ export const EventMeta = ({ isLoading, event, selectedTime, duration }: EventMet
               </EventMetaBlock>
             )}
             <EventDetails event={event} />
-            <EventMetaBlock contentClassName="relative" icon={FiGlobe}>
-              <span className="dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full items-center bg-white">
-                {timezone} <FiChevronDown className="ml-2 inline-block" />
+            <EventMetaBlock
+              className="[&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
+              contentClassName="relative"
+              icon={FiGlobe}>
+              <span className="current-timezone dark:before:bg-darkgray-200 dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full min-w-[120px] items-center bg-white before:absolute before:inset-0 before:left-[-30px] before:z-[-1] before:w-[calc(100%+30px)] before:rounded-md before:bg-gray-100 before:opacity-0 before:transition-opacity">
+                {timezone} <FiChevronDown className="min-h-4 min-w-4 ml-2 inline-block" />
               </span>
               <TimezoneSelect
                 menuPosition="fixed"

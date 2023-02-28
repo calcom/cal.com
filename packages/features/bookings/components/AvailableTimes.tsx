@@ -34,7 +34,7 @@ export const AvailableTimes = ({
         <span className="font-semibold text-gray-900 dark:text-white">
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
-        <span className="mr-4">
+        <span>
           , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
         </span>
 
@@ -56,29 +56,28 @@ export const AvailableTimes = ({
         {slots.map((slot) => {
           const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeslot);
           return (
-            <div key={slot.time}>
-              <Button
-                disabled={bookingFull}
-                onClick={() => onTimeSelect(dayjs.utc(slot.time).tz(timezone).format())}
-                className="mb-3 block h-auto min-h-[44px] w-full flex-col justify-center py-2"
-                color="secondary">
-                {dayjs(slot.time).tz(timezone).format(timeFormat)}
-                {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
-                {hasTimeSlots && !bookingFull && (
-                  <p
-                    className={`${
-                      slot.attendees && slot.attendees / seatsPerTimeslot >= 0.8
-                        ? "text-rose-600"
-                        : slot.attendees && slot.attendees / seatsPerTimeslot >= 0.33
-                        ? "text-yellow-500"
-                        : "text-emerald-400"
-                    } text-sm`}>
-                    {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot} /{" "}
-                    {seatsPerTimeslot} {t("seats_available")}
-                  </p>
-                )}
-              </Button>
-            </div>
+            <Button
+              key={slot.time}
+              disabled={bookingFull}
+              onClick={() => onTimeSelect(dayjs.utc(slot.time).tz(timezone).format())}
+              className="mb-3 block flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
+              color="secondary">
+              {dayjs(slot.time).tz(timezone).format(timeFormat)}
+              {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
+              {hasTimeSlots && !bookingFull && (
+                <p
+                  className={`${
+                    slot.attendees && slot.attendees / seatsPerTimeslot >= 0.8
+                      ? "text-rose-600"
+                      : slot.attendees && slot.attendees / seatsPerTimeslot >= 0.33
+                      ? "text-yellow-500"
+                      : "text-emerald-400"
+                  } text-sm`}>
+                  {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot} / {seatsPerTimeslot}{" "}
+                  {t("seats_available")}
+                </p>
+              )}
+            </Button>
           );
         })}
       </div>
@@ -87,7 +86,7 @@ export const AvailableTimes = ({
 };
 
 export const AvailableTimesSkeleton = () => (
-  <div className="mt-8 flex h-full w-[20%] flex-col">
+  <div className="mt-8 flex h-full w-[20%] flex-col only:w-full">
     {/* Random number of elements between 1 and 10. */}
     {Array.from({ length: Math.floor(Math.random() * 10) + 1 }).map((_, i) => (
       <SkeletonText className="mb-4 h-6 w-full" key={i} />

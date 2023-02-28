@@ -190,25 +190,6 @@ module.exports = {
       backgroundImage: {
         "gradient-primary": "radial-gradient(162.05% 170% at 109.58% 35%, #667593 0%, #E3E3E3 100%)",
       },
-      gridTemplateAreas: {
-        booker_tight: [
-          "meta calendar timeslots",
-          //
-          "meta calendar timeslots",
-        ],
-        booker_fullscreen: [
-          "meta main timeslots",
-          //
-          "calendar main timeslots",
-        ],
-      },
-      gridTemplateColumns: {
-        booker_tight: "280px 424px 280px",
-        booker_fullscreen: "424px 424px 280px",
-      },
-      gridTemplateRows: {
-        booker_tight: "6rem 3rem 1fr auto",
-      },
     },
   },
   plugins: [

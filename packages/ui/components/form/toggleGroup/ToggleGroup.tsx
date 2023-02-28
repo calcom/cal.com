@@ -1,5 +1,6 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import { useEffect, useState, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 
@@ -11,9 +12,11 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
 export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: ToggleGroupProps) => {
   const [value, setValue] = useState<string | undefined>(props.defaultValue);
   const [activeToggleElement, setActiveToggleElement] = useState<null | HTMLButtonElement>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (value && onValueChange) onValueChange(value);
+    setIsDirty(true);
   }, [value, onValueChange]);
 
   return (
@@ -30,7 +33,10 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {/* Active toggle. It's a separate element so we can animate it nicely. */}
         <span
           aria-hidden
-          className="dark:bg-darkgray-200 absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] bg-gray-200 transition-all"
+          className={classNames(
+            "dark:bg-darkgray-200 absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] bg-gray-200",
+            isDirty && "transition-all"
+          )}
           style={{ left: activeToggleElement?.offsetLeft, width: activeToggleElement?.offsetWidth }}
         />
         {options.map((option) => (
@@ -46,7 +52,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
               isFullWidth && "w-full"
             )}
             ref={(node) => {
-              if (node && value === option.value) {
+              if (node && value === option.value && activeToggleElement !== node) {
                 setActiveToggleElement(node);
               }
               return node;
