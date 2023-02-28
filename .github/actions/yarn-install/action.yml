@@ -25,7 +25,6 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.cache-key }}
     - name: Yarn install
       shell: bash
-      if: steps.node-modules-cache.outputs.cache-hit != 'true'
       run: |
         yarn install --prefer-offline --frozen-lockfile
         yarn prisma generate
