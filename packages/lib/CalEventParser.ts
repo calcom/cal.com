@@ -142,7 +142,7 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
 };
 
 export const getUid = (calEvent: CalendarEvent): string => {
-  const uid = calEvent.attendeeUniqueId || calEvent.uid;
+  const uid = calEvent.uid;
   return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 

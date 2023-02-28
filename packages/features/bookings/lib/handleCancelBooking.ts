@@ -66,6 +66,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           price: true,
           currency: true,
           length: true,
+          seatsPerTimeSlot: true,
           hosts: {
             select: {
               user: true,
