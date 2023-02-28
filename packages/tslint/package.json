@@ -1,0 +1,12 @@
+{
+  "name": "@calcom/tslint",
+  "sideEffects": false,
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^9.0.1"
+  },
+  "scripts": {}
+}
