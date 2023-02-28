@@ -1,0 +1,23 @@
+name: "Set environment variables"
+description: "Configures environment variables for a workflow"
+runs:
+  using: "composite"
+  steps:
+    - name: Create env file
+      uses: actions/cache@v3
+      id: env-cache
+      with:
+        path: gh.env
+        key: env-cache-${{ hashFiles('gh.env') }}
+        restore-keys: env-cache-
+    - name: Set Environment Variables
+      if: steps.env-cache.outputs.cache-hit == 'true'
+      uses: tw3lveparsecs/github-actions-setvars@latest
+      with:
+        envFilePath: gh.env
+    - name: Set Environment Variables
+      if: steps.env-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        echo "You need to run env-create-file first"
+        exit 1
