@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton, AppPrerequisiteComponent } from "@calcom/app-store/components";
+import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
@@ -48,7 +48,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
-  prerequisite,
+  dependency,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -85,8 +85,8 @@ const Component = ({
   const gCalInstalled = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
     enabled: requiresGCal,
   });
-  const prerequisiteInstalled = trpc.viewer.appsRouter.queryForPrerequisites.useQuery(prerequisite, {
-    enabled: !!prerequisite,
+  const dependencyInstalled = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependency, {
+    enabled: !!dependency,
   });
 
   const disableInstall = requiresGCal && !gCalInstalled.data;
@@ -221,15 +221,15 @@ const Component = ({
           <SkeletonButton className="h-10 w-24" />
         )}
 
-        {prerequisite &&
-          (!prerequisiteInstalled.isLoading ? (
+        {dependency &&
+          (!dependencyInstalled.isLoading ? (
             <div className="mt-6">
-              <AppPrerequisiteComponent
+              <AppDependencyComponent
                 appName={name}
-                prerequisite={prerequisite}
-                prerequisiteName={prerequisiteInstalled.data?.prerequisiteName}
-                prerequisiteInstalled={prerequisiteInstalled.data?.prerequisiteInstalled}
-                isLoading={prerequisiteInstalled.isLoading}
+                dependency={dependency}
+                dependencyName={dependencyInstalled.data?.dependencyName}
+                dependencyInstalled={dependencyInstalled.data?.dependencyInstalled}
+                isLoading={dependencyInstalled.isLoading}
               />
             </div>
           ) : (
@@ -366,7 +366,7 @@ export default function App(props: {
   images?: string[];
   isTemplate?: boolean;
   disableInstall?: boolean;
-  prerequisite?: string;
+  dependency?: string;
 }) {
   return (
     <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>

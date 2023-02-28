@@ -75,20 +75,20 @@ export const InstallAppButton = (
 
 export { AppConfiguration } from "./_components/AppConfiguration";
 
-export const AppPrerequisiteComponent = ({
+export const AppDependencyComponent = ({
   appName,
-  prerequisite,
-  prerequisiteName,
-  prerequisiteInstalled,
+  dependency,
+  dependencyName,
+  dependencyInstalled,
 }: {
   appName: string;
-  prerequisite: string;
-  prerequisiteName: string;
-  prerequisiteInstalled: boolean;
+  dependency: string;
+  dependencyName: string;
+  dependencyInstalled: boolean;
 }) => {
   const { t } = useLocale();
 
-  return prerequisiteInstalled ? (
+  return dependencyInstalled ? (
     <div className="rounded-md bg-gray-100 py-3 px-4">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
@@ -96,10 +96,10 @@ export const AppPrerequisiteComponent = ({
             <FiCheck className="mt-1 mr-2 font-semibold" />
           </div>
           <div>
-            <span className="font-semibold">{t("app_is_connected", { prerequisiteName })}</span>
+            <span className="font-semibold">{t("app_is_connected", { dependencyName })}</span>
             <div>
               <div>
-                <span> {t("this_app_requires_connected_account", { appName, prerequisiteName })} </span>
+                <span> {t("this_app_requires_connected_account", { appName, dependencyName })} </span>
               </div>
             </div>
           </div>
@@ -115,16 +115,16 @@ export const AppPrerequisiteComponent = ({
           </div>
           <div>
             <span className="font-semibold">
-              {t("this_app_requires_connected_account", { appName, prerequisiteName })}
+              {t("this_app_requires_connected_account", { appName, dependencyName })}
             </span>
 
             <div>
               <div>
                 <>
                   <Link
-                    href={`${CAL_URL}/apps/${prerequisite}`}
+                    href={`${CAL_URL}/apps/${dependency}`}
                     className="flex items-center text-blue-900 underline">
-                    <span className="mr-1">{t("connect_app", { prerequisiteName })}</span>
+                    <span className="mr-1">{t("connect_app", { dependencyName })}</span>
                     <FiArrowRight />
                   </Link>
                 </>

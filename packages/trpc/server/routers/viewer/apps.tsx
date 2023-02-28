@@ -320,7 +320,7 @@ export const appsRouter = router({
 
       return !!updated;
     }),
-  queryForPrerequisites: authedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+  queryForDependencies: authedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const appInstalled = await ctx.prisma.credential.findFirst({
       where: {
         appId: input,
@@ -330,6 +330,6 @@ export const appsRouter = router({
 
     const app = getAppFromSlug(input);
 
-    return { prerequisiteName: app?.name, prerequisiteInstalled: !!appInstalled };
+    return { dependencyName: app?.name, dependencyInstalled: !!appInstalled };
   }),
 });

@@ -76,7 +76,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
   const apps = [] as (App & {
     credentials: Credential[];
     isDefault?: boolean;
-    prerequisiteData?: {
+    dependencyData?: {
       name?: string;
       installed?: boolean;
     };
@@ -87,12 +87,12 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    let prerequisiteInstalled, prerequisiteName;
-    if (app.prerequisite) {
-      prerequisiteInstalled = dbApps.some(
-        (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === app.prerequisite
+    let dependencyInstalled, dependencyName;
+    if (app.dependency) {
+      dependencyInstalled = dbApps.some(
+        (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === app.dependency
       );
-      prerequisiteName = await getAppFromSlug(app.prerequisite)?.name;
+      dependencyName = await getAppFromSlug(app.dependency)?.name;
     }
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
@@ -105,10 +105,10 @@ export async function getAppRegistryWithCredentials(userId: number) {
       credentials: dbapp.credentials,
       installed: true,
       isDefault: usersDefaultApp === dbapp.slug,
-      ...(app.prerequisite && {
-        prerequisiteData: {
-          name: prerequisiteName,
-          installed: prerequisiteInstalled,
+      ...(app.dependency && {
+        dependencyData: {
+          name: dependencyName,
+          installed: dependencyInstalled,
         },
       }),
     });

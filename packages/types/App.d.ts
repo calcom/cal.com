@@ -139,14 +139,14 @@ export interface App {
   isTemplate?: boolean;
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */
-  prerequisite?: string;
+  dependency?: string;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   isDefault?: boolean;
   key?: never;
-  prerequisiteData?: {
+  dependencyData?: {
     name?: string;
     installed?: boolean;
   };

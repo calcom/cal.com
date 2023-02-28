@@ -81,11 +81,11 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         {app.description}
       </p>
 
-      {app.prerequisiteData && !app.prerequisiteData?.installed && (
+      {app.dependencyData && !app.dependencyData?.installed && (
         <Link
           className="mt-5 rounded-md bg-blue-100 p-0.5 text-sm font-semibold text-blue-900 underline"
-          href={`${CAL_URL}/apps/${app.prerequisite}`}>
-          {t("requires_app", { prerequisiteName: app.prerequisiteData.name })}
+          href={`${CAL_URL}/apps/${app.dependency}`}>
+          {t("requires_app", { dependencyName: app.dependencyData.name })}
         </Link>
       )}
 
@@ -130,7 +130,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                 type={app.type}
                 isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
-                disableInstall={!app.prerequisiteData?.installed}
+                disableInstall={!app.dependencyData?.installed}
                 tooltip="Requires another app"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
