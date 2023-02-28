@@ -195,7 +195,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (rescheduleEventTypeHasSeats) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
-        referenceUId: query.rescheduleUid,
+        referenceUid: query.rescheduleUid,
       },
       select: {
         id: true,

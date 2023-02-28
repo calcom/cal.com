@@ -314,7 +314,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   // Now rescheduleUid can be bookingSeat
   const bookingSeat = await prisma.bookingSeat.findUnique({
     where: {
-      referenceUId: uid,
+      referenceUid: uid,
     },
     include: {
       booking: true,
@@ -903,7 +903,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
                 bookingSeatReference: {
                   upsert: {
                     create: {
-                      referenceUId: uuid(),
+                      referenceUid: uuid(),
                       bookingId: newTimeSlotBooking.id,
                     },
                     update: {
@@ -1094,7 +1094,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               id: booking.id,
             },
           },
-          referenceUId: attendeeUniqueId,
+          referenceUid: attendeeUniqueId,
           attendee: {
             connect: {
               id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
@@ -1352,7 +1352,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const uniqueAttendeeId = uuid();
       await prisma.bookingSeat.create({
         data: {
-          referenceUId: uniqueAttendeeId,
+          referenceUid: uniqueAttendeeId,
           data: {
             description: evt.additionalNotes,
           },

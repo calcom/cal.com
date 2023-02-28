@@ -96,7 +96,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const getSeatReferenceUId = () => {
     if (booking.seatsReferences.length > 0) {
-      return booking.seatsReferences[0].referenceUId;
+      return booking.seatsReferences[0].referenceUid;
     }
   };
 

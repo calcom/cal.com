@@ -283,7 +283,7 @@ export const bookingsRouter = router({
               },
             },
             select: {
-              referenceUId: true,
+              referenceUid: true,
               attendee: {
                 select: {
                   email: true,

@@ -662,7 +662,7 @@ enum WorkflowMethods {
 
 model BookingSeat {
   id           Int      @id @default(autoincrement())
-  referenceUId String   @unique
+  referenceUid String   @unique
   bookingId    Int
   booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendeeId   Int      @unique

@@ -224,7 +224,7 @@ const BookingPage = ({
         ? booking?.attendees.find((attendee) => {
             if (
               "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+              attendee.bookingSeatReference?.referenceUid === router.query.seatReferenceUid
             )
               return attendee;
           })?.email
@@ -238,7 +238,7 @@ const BookingPage = ({
         ? booking?.attendees.find((attendee) => {
             if (
               "bookingSeatReference" in attendee &&
-              attendee.bookingSeatReference?.referenceUId === router.query.seatReferenceUid
+              attendee.bookingSeatReference?.referenceUid === router.query.seatReferenceUid
             )
               return attendee;
           })?.name

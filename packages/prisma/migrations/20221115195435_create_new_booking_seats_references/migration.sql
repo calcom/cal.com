@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "BookingSeat" (
     "id" SERIAL NOT NULL,
-    "referenceUId" TEXT NOT NULL,
+    "referenceUid" TEXT NOT NULL,
     "bookingId" INTEGER NOT NULL,
     "attendeeId" INTEGER NOT NULL,
     "data" JSONB,
@@ -10,7 +10,7 @@ CREATE TABLE "BookingSeat" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "BookingSeat_referenceUId_key" ON "BookingSeat"("referenceUId");
+CREATE UNIQUE INDEX "BookingSeat_referenceUid_key" ON "BookingSeat"("referenceUid");
 
 -- AddForeignKey
 ALTER TABLE "BookingSeat" ADD CONSTRAINT "BookingSeat_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;
