@@ -13,7 +13,7 @@ runs:
       env:
         cache-name: prod-build
         key-1: ${{ inputs.node_version }}-${{ hashFiles('yarn.lock') }}
-        key-2: ${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+        key-2: ${{ hashFiles('**/**.[jt]s', '**/**.[jt]sx') }}
         key-3: ${{ github.event.pull_request.number || github.ref }}
       with:
         path: |
