@@ -44,11 +44,11 @@ const Component = ({
   tos,
   privacy,
   isProOnly,
-  images,
+  descriptionItems,
   isTemplate,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
-  const hasImages = images && images.length > 0;
+  const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
   const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
@@ -83,10 +83,10 @@ const Component = ({
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
-      {hasImages && (
+      {hasDescriptionItems && (
         <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
-          {images ? (
-            images.map((img, index) =>
+          {descriptionItems ? (
+            descriptionItems.map((img, index) =>
               typeof img === "object" ? (
                 <div
                   key={`iframe-${index}`}
@@ -110,7 +110,7 @@ const Component = ({
       <div
         className={classNames(
           "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
-          hasImages && "lg:ml-8"
+          hasDescriptionItems && "lg:ml-8"
         )}>
         <div className="mb-8 flex pt-4">
           <header>
@@ -339,7 +339,7 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
-  images?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
+  descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
 }) {
   return (
