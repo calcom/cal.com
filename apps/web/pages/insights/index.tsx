@@ -21,13 +21,24 @@ import {
 import { DateRangePicker } from "@tremor/react";
 import { useState } from "react";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Button, ButtonGroup } from "@calcom/ui";
-import { FiUsers, FiRefreshCcw, FiUserPlus, FiMail, FiVideo, FiEyeOff } from "@calcom/ui/components/icon";
+import { Avatar, Button, ButtonGroup, Tooltip } from "@calcom/ui";
+import {
+  FiUsers,
+  FiRefreshCcw,
+  FiUserPlus,
+  FiMail,
+  FiVideo,
+  FiEyeOff,
+  FiFilter,
+  FiSettings,
+  FiDownload,
+} from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../../packages/features/tips";
 
@@ -66,11 +77,15 @@ export default function InsightsPage() {
       description: t("dolor sit amet, consetetur sadipscing elitr,", { appName: APP_NAME }),
     },
   ];
+  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [endDate, setEndDate] = useState(dayjs());
+  const [timeView, setTimeView] = useState<"month" | "week" | "year">("week");
 
   const { data: eventsTimeLine } = trpc.viewer.analytics.eventsTimeline.useQuery({
-    timeView: "week",
-    startDate: dayjs().subtract(1, "week").format("YYYY-MM-DD"),
-    endDate: dayjs().format("YYYY-MM-DD"),
+    timeView,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    teamId: 20,
   });
   return (
     <div>
@@ -99,49 +114,49 @@ export default function InsightsPage() {
               </ButtonGroup>
             </div>
           }>
+          <div className="mb-4 ml-auto flex w-[40%]">
+            <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
+              <Tooltip content={t("filter") /* Filter */}>
+                <Button
+                  variant="icon"
+                  color="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                  StartIcon={FiFilter}
+                  className="h-[38px]"
+                />
+              </Tooltip>
+              <Tooltip content={t("settings")}>
+                <Button
+                  variant="icon"
+                  color="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                  StartIcon={FiSettings}
+                  className="h-[38px]"
+                />
+              </Tooltip>
+              <Tooltip content={t("download_csv") /*"Download *.csv*/}>
+                <Button
+                  variant="icon"
+                  color="secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                  StartIcon={FiDownload}
+                  className="h-[38px]"
+                />
+              </Tooltip>
+            </ButtonGroup>
+            <DateSelect
+              dates={[startDate.toDate(), endDate.toDate()]}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
+            />
+          </div>
           <>
             <div className="space-y-6">
-              <KPICards />
-              <Line
-                title={t("event_trends" /* "Events trends" */)}
-                data={[
-                  {
-                    Month: "Dec 15",
-                    Created: 2890,
-                    Completed: 2390,
-                    Rescheduled: 500,
-                    Cancelled: 100,
-                  },
-                  {
-                    Month: "Dec 22",
-                    Created: 1890,
-                    Completed: 1590,
-                    Rescheduled: 300,
-                    Cancelled: 120,
-                  },
-                  {
-                    Month: "Dec 29",
-                    Created: 4890,
-                    Completed: 4290,
-                    Rescheduled: 800,
-                    Cancelled: 300,
-                  },
-                  {
-                    Month: "Jan 06",
-                    Created: 3890,
-                    Completed: 2400,
-                    Rescheduled: 500,
-                    Cancelled: 200,
-                  },
-                  {
-                    Month: "Jan 13",
-                    Created: 1890,
-                    Completed: 1590,
-                    Rescheduled: 200,
-                    Cancelled: 50,
-                  },
-                ]}
-              />
+              <KPICards startDate={startDate.toISOString()} endDate={endDate.toISOString()} teamId={20} />
+              <Line title={t("event_trends" /* "Events trends" */)} data={eventsTimeLine || []} />
               <TeamTable />
               <div className="grid grid-cols-2 gap-5">
                 <Bar
@@ -226,24 +241,46 @@ function Line({
   );
 }
 
-function DateSelect() {
+const DateSelect = ({
+  dates,
+  setStartDate,
+  setEndDate,
+}: {
+  dates: Date[];
+  setStartDate: (date: Dayjs) => void;
+  setEndDate: (date: Dayjs) => void;
+}) => {
+  const currentDate = dayjs();
+  const [start, end] = dates;
   return (
     <DateRangePicker
-      value={undefined}
-      defaultValue={undefined}
-      onValueChange={undefined}
+      value={[start, end, null]}
+      // defaultValue={dates}
+      onValueChange={(datesArray) => {
+        const [selected, ...rest] = datesArray;
+        const [start, end] = datesArray;
+        if (start && end) {
+          setStartDate(dayjs(start));
+          setEndDate(dayjs(end));
+          return;
+        } else if (start && !end) {
+          const newDates = [dates[1], selected];
+          setStartDate(dayjs(newDates[0]));
+          setEndDate(dayjs(newDates[1]));
+        }
+      }}
       options={undefined}
       enableDropdown={true}
-      placeholder="Select..."
-      enableYearPagination={false}
-      minDate={null}
-      maxDate={null}
+      placeholder="Select Date Range..."
+      enableYearPagination={true}
+      minDate={currentDate.subtract(2, "year").toDate()}
+      maxDate={currentDate.toDate()}
       color="blue"
       maxWidth="max-w-none"
       marginTop="mt-0"
     />
   );
-}
+};
 
 const colors: { [key: string]: Color } = {
   increase: "emerald",
@@ -285,10 +322,11 @@ const categories: {
   },
 ];
 
-function KPICards() {
-  const { data, isLoading } = trpc.viewer.analytics.eventsByStatus.useQuery({
-    startDate: dayjs().subtract(1, "week").format("YYYY-MM-DD"),
-    endDate: dayjs().format("YYYY-MM-DD"),
+const KPICards = ({ startDate, endDate, teamId }: { startDate: string; endDate: string; teamId: number }) => {
+  const { data } = trpc.viewer.analytics.eventsByStatus.useQuery({
+    startDate,
+    endDate,
+    teamId,
   });
 
   return (
@@ -313,14 +351,14 @@ function KPICards() {
                   color={colors[CalculateDeltaType(data[item.index].deltaPrevious - data[item.index].count)]}>
                   {data[item.index].deltaPrevious}
                 </Text>
-                <small className="relative top-px text-xs text-gray-600">from last month</small>
+                <small className="relative top-px text-xs text-gray-600">from last period</small>
               </Flex>
             </Flex>
           </Card>
         ))}
     </ColGrid>
   );
-}
+};
 
 type Person = {
   name: string;

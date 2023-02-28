@@ -1,25 +1,31 @@
-import { PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { BookingStatus, PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { hashPassword } from "@calcom/lib/auth";
 
 const prisma = new PrismaClient();
 async function main() {
   const insightsAdmin = await prisma.user.create({
     data: {
       email: "insights@example.com",
-      password: "insights",
+      password: await hashPassword("insights"),
       name: "Insights Admin",
       role: "ADMIN",
+      username: "insights",
+      completedOnboarding: true,
     },
   });
 
   const insightsUser = await prisma.user.create({
     data: {
       email: "insightuser@example.com",
-      password: "insightsuser",
+      password: await hashPassword("insightsuser"),
       name: "Insights User",
       role: "USER",
+      username: "insights-user",
+      completedOnboarding: true,
     },
   });
 
@@ -115,19 +121,14 @@ async function main() {
     },
   });
 
-  const baseBooking = {
+  const baseBooking: Prisma.BookingCreateManyInput = {
     uid: "demoUID",
     title: "Team Meeting",
     description: "Team Meeting",
     startTime: dayjs().toISOString(),
     endTime: dayjs().toISOString(),
     userId: insightsUser.id,
-    teamId: insightsTeam.id,
-    eventType: {
-      connect: {
-        id: teamEvents[0].id,
-      },
-    },
+    eventTypeId: teamEvents[0].id,
   };
 
   const shuffle = (booking: typeof baseBooking, year) => {
@@ -141,18 +142,39 @@ async function main() {
 
     booking.startTime = startTime.toISOString();
     booking.endTime = endTime.toISOString();
+    booking.createdAt = startTime.subtract(1, "day").toISOString();
 
-    booking.eventType.connect.id = teamEventTypes[Math.floor(Math.random() * teamEvents.length)].id;
+    // Pick a random status
+    const randomStatusIndex = Math.floor(Math.random() * Object.keys(BookingStatus).length);
+    const statusKey = Object.keys(BookingStatus)[randomStatusIndex];
+
+    booking.status = BookingStatus[statusKey];
+
+    booking.rescheduled = Math.random() > 0.5 && Math.random() > 0.5 && Math.random() > 0.5;
+
+    if (booking.rescheduled) {
+      booking.status = "CANCELLED";
+    }
+    const randomEventTypeId = teamEvents[Math.floor(Math.random() * teamEvents.length)].id;
+
+    booking.eventTypeId = randomEventTypeId;
     booking.uid = uuidv4();
+
     return booking;
   };
 
   // Create past bookings
-  const pastBookings = await prisma.booking.createMany({
-    data: [...new Array(20).fill(baseBooking).map(shuffle)],
+  await prisma.booking.createMany({
+    data: [...new Array(100).fill(0).map(() => shuffle({ ...baseBooking }, dayjs().get("y") - 2))],
   });
 
-  console.log("pastBookings", pastBookings);
+  await prisma.booking.createMany({
+    data: [...new Array(100).fill(0).map(() => shuffle({ ...baseBooking }, dayjs().get("y") - 1))],
+  });
+
+  await prisma.booking.createMany({
+    data: [...new Array(100).fill(0).map(() => shuffle({ ...baseBooking }, dayjs().get("y")))],
+  });
 }
 main()
   .then(async () => {
