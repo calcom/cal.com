@@ -11,6 +11,7 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -59,11 +60,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+
+  const previewCustomInputs: Prisma.JsonObject = {};
+
+  eventType.customInputs.forEach(({ label }) => {
+    previewCustomInputs[label] = label + " input";
+  });
+
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: eventType.users[0]?.name || "Nameless",
+    customInputs: previewCustomInputs,
     t,
   };
   const [previewText, setPreviewText] = useState(getEventName(eventNameObject));

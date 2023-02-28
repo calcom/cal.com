@@ -1,6 +1,7 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import type { Prisma } from "@calcom/prisma/client";
 
 export type EventNameObjectType = {
   attendeeName: string;
@@ -8,6 +9,7 @@ export type EventNameObjectType = {
   eventName?: string | null;
   host: string;
   location?: string;
+  customInputs?: Prisma.JsonObject;
   t: TFunction;
 };
 
@@ -31,15 +33,37 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     eventName = eventName.replace("{LOCATION}", locationString);
   }
 
-  return (
-    eventName
-      // Need this for compatibility with older event names
-      .replace("{Event type title}", eventNameObj.eventType)
-      .replace("{Scheduler}", eventNameObj.attendeeName)
-      .replace("{Organiser}", eventNameObj.host)
-      .replace("{USER}", eventNameObj.attendeeName)
-      .replace("{ATTENDEE}", eventNameObj.attendeeName)
-      .replace("{HOST}", eventNameObj.host)
-      .replace("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : eventNameObj.attendeeName)
-  );
+  let dynamicEventName = eventName
+    // Need this for compatibility with older event names
+    .replaceAll("{Event type title}", eventNameObj.eventType)
+    .replaceAll("{Scheduler}", eventNameObj.attendeeName)
+    .replaceAll("{Organiser}", eventNameObj.host)
+    .replaceAll("{USER}", eventNameObj.attendeeName)
+    .replaceAll("{ATTENDEE}", eventNameObj.attendeeName)
+    .replaceAll("{HOST}", eventNameObj.host)
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : eventNameObj.attendeeName);
+
+  const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
+    return variable.replace("{", "").replace("}", "");
+  });
+
+  customInputvariables?.forEach((variable) => {
+    if (eventNameObj.customInputs) {
+      Object.keys(eventNameObj.customInputs).forEach((customInput) => {
+        const formatedToVariable = customInput
+          .replace(/[^a-zA-Z0-9 ]/g, "")
+          .trim()
+          .replaceAll(" ", "_")
+          .toUpperCase();
+        if (variable === formatedToVariable && eventNameObj.customInputs) {
+          dynamicEventName = dynamicEventName.replace(
+            `{${variable}}`,
+            eventNameObj.customInputs[customInput as keyof typeof eventNameObj.customInputs]
+          );
+        }
+      });
+    }
+  });
+
+  return dynamicEventName;
 }

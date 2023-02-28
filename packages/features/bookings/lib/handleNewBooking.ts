@@ -554,14 +554,20 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const attendeesList = [...invitee, ...guests];
+  if (reqBody.customInputs.length > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputs[label] = value;
+    });
+  }
 
+  const attendeesList = [...invitee, ...guests];
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    customInputs: customInputs,
     t: tOrganizer,
   };
 
@@ -727,12 +733,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     req.statusCode = 201;
     return booking;
-  }
-
-  if (reqBody.customInputs.length > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputs[label] = value;
-    });
   }
 
   if (isTeamEventType) {
