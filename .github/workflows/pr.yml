@@ -32,6 +32,11 @@ jobs:
               - 'apps/web/**'
               - 'packages/embeds/**'
 
+  env:
+    name: Create env file
+    uses: ./.github/workflows/env-create-file.yml
+    secrets: inherit
+
   setup:
     name: Yarn install & cache
     uses: ./.github/workflows/yarn-install.yml
@@ -57,13 +62,13 @@ jobs:
 
   build:
     name: Production build
-    needs: setup
+    needs: [setup, env]
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   e2e:
     name: E2E tests
-    needs: [lint, build]
+    needs: [changes, lint, build]
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
