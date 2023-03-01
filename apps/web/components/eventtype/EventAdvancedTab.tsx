@@ -410,7 +410,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <CustomEventTypeModal
           close={closeEventNameTip}
           setValue={setEventName}
-          defaultValue={eventType.eventName || ""}
+          defaultValue={formMethods.getValues("eventName") || eventType.eventName || ""}
           placeHolder={eventNamePlaceholder}
           event={eventNameObject}
         />

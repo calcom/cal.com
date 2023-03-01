@@ -180,7 +180,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
-  let customInputs: Prisma.JsonObject;
+  const customInputs: Prisma.JsonObject = {};
 
   eventType.customInputs.forEach(({ label }) => {
     customInputs[label] = label;
