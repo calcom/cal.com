@@ -1,7 +1,7 @@
-import { Inter } from "@next/font/google";
-import localFont from "@next/font/local";
 import "@tremor/react/dist/esm/tremor.css";
 import { DefaultSeo } from "next-seo";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
 
