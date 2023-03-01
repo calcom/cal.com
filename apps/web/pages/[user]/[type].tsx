@@ -85,11 +85,9 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       brandColor: true,
       darkBrandColor: true,
       metadata: true,
-      eventTypes: {
+      ownedEventTypes: {
         where: {
-          // Many-to-many relationship causes inclusion of the team events - cool -
-          // but to prevent these from being selected, make sure the teamId is NULL.
-          AND: [{ slug }, { teamId: null }],
+          slug,
         },
         select: {
           title: true,
@@ -132,13 +130,13 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     "strikethrough",
   ]);
 
-  if (!user || !user.eventTypes.length) return { notFound: true };
+  if (!user || !user.ownedEventTypes.length) return { notFound: true };
 
-  const [eventType]: ((typeof user.eventTypes)[number] & {
+  const [eventType]: ((typeof user.ownedEventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
-      ...user.eventTypes[0],
+      ...user.ownedEventTypes[0],
       users: [
         {
           name: user.name,

@@ -17,7 +17,6 @@ import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -85,7 +84,7 @@ const EventTypeUpdateInput = _EventTypeModel
       integration: true,
       externalId: true,
     }),
-    users: z.array(stringOrNumber).optional(),
+    users: z.array(z.coerce.number()).optional(),
     hosts: z
       .array(
         z.object({
@@ -121,7 +120,7 @@ const eventOwnerProcedure = authedProcedure
   .input(
     z.object({
       id: z.number(),
-      users: z.array(z.string()).optional().default([]),
+      users: z.array(z.coerce.number()).optional().default([]),
     })
   )
   .use(async ({ ctx, input, next }) => {
@@ -165,9 +164,9 @@ const eventOwnerProcedure = authedProcedure
     const isAllowed = (function () {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
-        return input.users.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+        return input.users.every((userId) => allTeamMembers.includes(userId));
       }
-      return input.users.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+      return input.users.every((userId) => userId === ctx.user.id);
     })();
 
     if (!isAllowed) {
@@ -258,7 +257,7 @@ export const eventTypesRouter = router({
             },
           },
         },
-        eventTypes: {
+        ownedEventTypes: {
           where: {
             team: null,
           },
@@ -279,14 +278,14 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
 
-    const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
+    const mapEventType = (eventType: (typeof user.ownedEventTypes)[number]) => ({
       ...eventType,
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     });
 
-    const userEventTypes = user.eventTypes.map(mapEventType);
+    const userEventTypes = user.ownedEventTypes.map(mapEventType);
     // backwards compatibility, TMP:
     const typesRaw = (
       await prisma.eventType.findMany({
