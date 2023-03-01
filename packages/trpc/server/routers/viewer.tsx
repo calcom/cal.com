@@ -141,44 +141,6 @@ const publicViewerRouter = router({
         };
       }
     }),
-  getBookingPageFormData: publicProcedure
-    .input(
-      z.object({
-        referenceUId: z.string(),
-      })
-    )
-    .query(async ({ input }) => {
-      const { referenceUId } = input;
-
-      // Look if the refUId its from bookingSeat
-      const attendee = await prisma.attendee.findFirst({
-        where: {
-          OR: [
-            {
-              bookingSeat: {
-                some: {
-                  referenceUid: referenceUId,
-                },
-              },
-            },
-            {
-              booking: {
-                uid: referenceUId,
-              },
-            },
-          ],
-        },
-      });
-
-      if (!attendee) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid booking seat ID",
-        });
-      }
-
-      return { attendee };
-    }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
 });

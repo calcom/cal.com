@@ -40,7 +40,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { trpc } from "@calcom/trpc";
 import {
   AddressInput,
   Button,
@@ -218,14 +217,14 @@ const BookingPage = ({
         })
       : [];
 
-  const { data } = trpc.viewer.public.getBookingPageFormData.useQuery({
-    referenceUId: rescheduleUid,
-  });
-
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid ? data?.attendee.email : router.query.email ? (router.query.email as string) : "",
-    name: rescheduleUid ? data?.attendee.email : router.query.name ? (router.query.name as string) : "",
+    email: rescheduleUid
+      ? booking?.attendees[0].email
+      : router.query.email
+      ? (router.query.email as string)
+      : "",
+    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
   };
 
   const defaultValues = () => {
