@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
-async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUid?: string) {
+async function getBooking(prisma: PrismaClient, uid: string) {
   const booking = await prisma.booking.findFirst({
     where: {
       uid,
@@ -15,7 +15,7 @@ async function getBooking(prisma: PrismaClient, uid: string, seatReferenceUid?: 
         select: {
           email: true,
           name: true,
-          ...(seatReferenceUid && { bookingSeat: true }),
+          bookingSeat: true,
         },
       },
       user: {
