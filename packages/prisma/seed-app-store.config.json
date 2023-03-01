@@ -204,5 +204,12 @@
     "slug": "facetime",
     "type": "facetime_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "cancel-politely",
+    "categories": ["other"],
+    "slug": "cancel-politely",
+    "type": "cancel-politely_other",
+    "isTemplate": false
   }
 ]
