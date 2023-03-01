@@ -49,14 +49,14 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
       <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
-          <SkeletonAvatar className="w-12 h-12 px-4" />
-          <SkeletonButton className="w-32 h-6 p-5 rounded-md" />
+          <SkeletonAvatar className="h-12 w-12 px-4" />
+          <SkeletonButton className="h-6 w-32 rounded-md p-5" />
         </div>
-        <SkeletonText className="w-full h-8" />
-        <SkeletonText className="w-full h-8" />
-        <SkeletonText className="w-full h-8" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
 
-        <SkeletonButton className="w-20 h-8 p-5 mr-6 rounded-md" />
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
       </div>
     </SkeletonContainer>
   );
