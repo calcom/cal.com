@@ -325,13 +325,6 @@ const createUser = async (
             },
           }
         : undefined,
-    // eventTypes: {
-    //   create: {
-    //     title: "30 min",
-    //     slug: "30-min",
-    //     length: 30,
-    //   },
-    // },
   };
 };
 

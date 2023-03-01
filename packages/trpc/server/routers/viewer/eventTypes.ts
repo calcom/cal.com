@@ -539,7 +539,6 @@ export const eventTypesRouter = router({
       teamId,
       ...rest
     } = input;
-    // console.log("🚀 ~ file: eventTypes.ts:542 ~ update:eventOwnerProcedure.input ~ users:", users);
 
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
@@ -606,7 +605,6 @@ export const eventTypesRouter = router({
     }
 
     if (users.length) {
-      console.log("🚀 ~ file: eventTypes.ts:609 ~ update:eventOwnerProcedure.input ~ users:", users);
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
