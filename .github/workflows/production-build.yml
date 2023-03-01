@@ -18,6 +18,7 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/env-read-file
       - uses: ./.github/actions/cache-db

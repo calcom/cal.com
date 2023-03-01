@@ -589,7 +589,6 @@
   "new_event_type_heading": "Maak uw eerste evenement aan",
   "new_event_type_description": "Evenementen stellen u in staat om links te delen die beschikbare tijden tonen op uw agenda en bezoekers hiervan kunnen deze gebruiken om afspraken te maken.",
   "new_event_title": "Een evenement toevoegen",
-  "new_event_subtitle": "Maak een evenement aan onder uw profiel of team.",
   "new_team_event": "Een nieuw type vergadering toevoegen",
   "new_event_description": "Maak een nieuw evenement voor bezoekers om afspraken te maken.",
   "event_type_created_successfully": "{{eventTypeTitle}} evenement met succes aangemaakt",
