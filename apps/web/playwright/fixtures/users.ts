@@ -74,7 +74,29 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       });
       await prisma.eventType.create({
         data: {
+          owner: {
+            connect: {
+              id: _user.id,
+            },
+          },
           users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "30 mins",
+          slug: "30-mins",
+          length: 30,
+        },
+      });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          owner: {
             connect: {
               id: _user.id,
             },
@@ -88,6 +110,11 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       await prisma.eventType.create({
         data: {
           users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          owner: {
             connect: {
               id: _user.id,
             },
@@ -298,13 +325,6 @@ const createUser = async (
             },
           }
         : undefined,
-    eventTypes: {
-      create: {
-        title: "30 min",
-        slug: "30-min",
-        length: 30,
-      },
-    },
   };
 };
 
