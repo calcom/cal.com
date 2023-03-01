@@ -7,6 +7,10 @@ import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
+const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRange[]; id: string }) => {
+  return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
+};
+
 const DateOverrideList = ({
   items,
   remove,
@@ -38,7 +42,7 @@ const DateOverrideList = ({
 
   return (
     <ul className="rounded border border-gray-200" data-testid="date-overrides-list">
-      {items.map((item, index) => (
+      {items.sort(sortByDate).map((item, index) => (
         <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
             <h3 className="text-sm text-gray-900">
