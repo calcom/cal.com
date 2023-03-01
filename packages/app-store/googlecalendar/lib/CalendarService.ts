@@ -92,8 +92,11 @@ export default class GoogleCalendarService implements Calendar {
           {
             ...calEventRaw.organizer,
             id: String(calEventRaw.organizer.id),
-            organizer: true,
             responseStatus: "accepted",
+            organizer: true,
+            email: calEventRaw.destinationCalendar?.externalId
+              ? calEventRaw.destinationCalendar.externalId
+              : calEventRaw.organizer.email,
           },
           ...eventAttendees,
         ],
