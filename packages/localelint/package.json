@@ -1,5 +1,5 @@
 {
-  "name": "@calcom/tslint",
+  "name": "@calcom/localelint",
   "sideEffects": false,
   "private": true,
   "version": "0.0.0",
