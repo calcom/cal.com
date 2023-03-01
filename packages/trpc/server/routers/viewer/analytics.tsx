@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { EventsAnalytics } from "@calcom/features/analytics/events";
 
@@ -103,8 +102,8 @@ export const analyticsRouter = router({
             baseBookings.length -
             totalCancelled -
             totalRescheduled -
-            lastPeriodBaseBookings.length +
-            lastPeriodTotalCancelled +
+            lastPeriodBaseBookings.length -
+            lastPeriodTotalCancelled -
             lastPeriodTotalRescheduled,
         },
         rescheduled: {
@@ -124,13 +123,23 @@ export const analyticsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
+        userId: z.coerce.number().optional(),
         timeView: z.enum(["week", "month", "year"]),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, timeView: inputTimeView } = input;
+      const {
+        teamId,
+        startDate: startDateString,
+        endDate: endDateString,
+        eventTypeId,
+        userId,
+        timeView: inputTimeView,
+      } = input;
+      const startDate = dayjs(startDateString);
+      const endDate = dayjs(endDateString);
       const user = ctx.user;
-      let timeView = inputTimeView;
+      const timeView = inputTimeView;
       // Just for type safety but authedProcedure should have already checked this
 
       if (!user) {
@@ -140,18 +149,20 @@ export const analyticsRouter = router({
       }
 
       let whereConditional: Prisma.BookingWhereInput = {
-        userId: user.id,
+        eventType: {
+          teamId: teamId,
+        },
       };
 
-      if (teamId && !!whereConditional) {
-        delete whereConditional.userId;
+      if (userId) {
+        delete whereConditional.eventType;
         whereConditional = {
           ...whereConditional,
-          eventType: {
-            teamId: teamId,
-          },
+          userId,
         };
-      } else if (eventTypeId && !!whereConditional) {
+      }
+      if (eventTypeId && !!whereConditional) {
+        delete whereConditional.eventType;
         delete whereConditional.userId;
         whereConditional = {
           ...whereConditional,
@@ -159,35 +170,14 @@ export const analyticsRouter = router({
         };
       }
 
-      if (dayjs(startDate).diff(dayjs(endDate), "day") > 90) {
-        timeView = "month";
-      } else if (dayjs(startDate).diff(dayjs(endDate), "day") > 365) {
-        timeView = "year";
-      }
-
       // Get timeline data
-      let timeline;
-      if (timeView) {
-        switch (timeView) {
-          case "week":
-            timeline = getWeekTimeline(dayjs(startDate), dayjs(endDate));
-            break;
-          case "month":
-            timeline = getMonthTimeline(dayjs(startDate), dayjs(endDate));
-            break;
-          case "year":
-            timeline = getYearTimeline(dayjs(startDate), dayjs(endDate));
-            break;
-          default:
-            timeline = getWeekTimeline(dayjs(startDate), dayjs(endDate));
-            break;
-        }
-      }
+      const timeline = await EventsAnalytics.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
 
       // iterate timeline and fetch data
       if (!timeline) {
         return [];
       }
+
       const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
       const result = [];
 
@@ -243,35 +233,111 @@ export const analyticsRouter = router({
 
       return result;
     }),
+  popularEventTypes: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        userId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate } = input;
+      const user = ctx.user;
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+        by: ["eventTypeId"],
+        where: {
+          eventType: {
+            teamId: teamId,
+          },
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        },
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "desc",
+          },
+        },
+        take: 10,
+      });
+      const eventTypeIds = bookingsFromTeam
+        .filter((booking) => typeof booking.eventTypeId === "number")
+        .map((booking) => booking.eventTypeId);
+      const eventTypesFromTeam = await ctx.prisma.eventType.findMany({
+        where: {
+          teamId: teamId,
+          id: {
+            in: eventTypeIds as number[],
+          },
+        },
+      });
+
+      const eventTypeHashMap = new Map();
+      eventTypesFromTeam.forEach((eventType) => {
+        eventTypeHashMap.set(eventType.id, eventType.title);
+      });
+
+      const result = bookingsFromTeam.map((booking) => {
+        return {
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventTypeHashMap.get(booking.eventTypeId),
+          count: booking._count.id,
+        };
+      });
+      return result;
+    }),
+  averageEventDuration: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        userId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate: startDateString, endDate: endDateString, userId } = input;
+      const user = ctx.user;
+      const startDate = dayjs(startDateString);
+      const endDate = dayjs(endDateString);
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const whereConditional: Prisma.BookingWhereInput = {
+        eventType: {
+          teamId: teamId,
+        },
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+      };
+
+      if (userId) {
+        delete whereConditional.eventType;
+        whereConditional["userId"] = userId;
+      }
+
+      // It has to use timeline
+      const timeView = await EventsAnalytics.getTimeLine("week", startDate, endDate);
+    }),
 });
-
-function getWeekTimeline(startDate: Dayjs, endDate: Dayjs) {
-  let pivotDate = dayjs(startDate);
-  const dates = [];
-  while (pivotDate.isBefore(endDate)) {
-    pivotDate = pivotDate.add(7, "day");
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-  }
-  return dates;
-}
-
-function getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {
-  let pivotDate = dayjs(startDate);
-  const dates = [];
-  while (pivotDate.isBefore(endDate)) {
-    pivotDate = pivotDate.set("month", pivotDate.get("month") + 1);
-
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-  }
-  return dates;
-}
-
-function getYearTimeline(startDate: Dayjs, endDate: Dayjs) {
-  const pivotDate = dayjs(startDate);
-  const dates = [];
-  while (pivotDate.isBefore(endDate)) {
-    pivotDate.set("year", pivotDate.get("year") + 1);
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-  }
-  return dates;
-}

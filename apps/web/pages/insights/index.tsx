@@ -44,7 +44,7 @@ import { UpgradeTip } from "../../../../packages/features/tips";
 
 export default function InsightsPage() {
   const { t } = useLocale();
-
+  const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
       icon: <FiUsers className="h-5 w-5 text-red-500" />,
@@ -85,7 +85,7 @@ export default function InsightsPage() {
     timeView,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId: 20,
+    teamId: 21,
   });
   return (
     <div>
@@ -155,9 +155,32 @@ export default function InsightsPage() {
           </div>
           <>
             <div className="space-y-6">
-              <KPICards startDate={startDate.toISOString()} endDate={endDate.toISOString()} teamId={20} />
+              <KPICards startDate={startDate.toISOString()} endDate={endDate.toISOString()} teamId={21} />
               <Line title={t("event_trends" /* "Events trends" */)} data={eventsTimeLine || []} />
               <TeamTable />
+              <div className="grid grid-cols-2 gap-5">
+                <PopularEvents startDate={startDate} endDate={endDate} teamId={21} />
+                <Bar
+                  title={t("popular_days" /* "Popular days" */)}
+                  data={[
+                    {
+                      Month: "Jan 21",
+                      Sales: 2890,
+                      Profit: 2400,
+                    },
+                    {
+                      Month: "Feb 21",
+                      Sales: 1890,
+                      Profit: 1398,
+                    },
+                    {
+                      Month: "Jan 22",
+                      Sales: 3890,
+                      Profit: 2980,
+                    },
+                  ]}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-5">
                 <Bar
                   title={t("average_event_duration" /* "Average event duration" */)}
@@ -279,6 +302,50 @@ const DateSelect = ({
       maxWidth="max-w-none"
       marginTop="mt-0"
     />
+  );
+};
+
+const PopularEvents = ({
+  startDate,
+  endDate,
+  teamId,
+}: {
+  startDate: Dayjs;
+  endDate: Dayjs;
+  teamId: number;
+}) => {
+  const { data, isSuccess } = trpc.viewer.analytics.popularEventTypes.useQuery({
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    teamId,
+  });
+  return (
+    <Card>
+      <Title>Popular Events</Title>
+      <Table marginTop="mt-5">
+        <TableBody>
+          {isSuccess ? (
+            data?.map((item) => (
+              <TableRow key={item.eventTypeId}>
+                <TableCell>{item.eventTypeName}</TableCell>
+                <TableCell>
+                  <Text>
+                    <strong>{item.count}</strong>
+                  </Text>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell>No event types found</TableCell>
+              <TableCell>
+                <strong>0</strong>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </Card>
   );
 };
 
