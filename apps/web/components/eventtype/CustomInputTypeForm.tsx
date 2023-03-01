@@ -67,9 +67,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   return (
     <div className="flex flex-col space-y-4">
       <div>
-        <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-          {t("input_type")}
-        </label>
+        <Label htmlFor="type">{t("input_type")}</Label>
         <Controller
           name="type"
           control={control}
@@ -93,7 +91,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         type="text"
         id="label"
         required
-        className="block w-full rounded-sm border-gray-300 text-sm"
+        className="block w-full border-gray-300 text-sm"
         defaultValue={selectedCustomInput?.label}
         {...register("label", { required: true })}
       />
@@ -103,7 +101,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           label={t("placeholder")}
           type="text"
           id="placeholder"
-          className="block w-full rounded-sm border-gray-300 text-sm"
+          className="block w-full border-gray-300 text-sm "
           defaultValue={selectedCustomInput?.placeholder}
           {...register("placeholder")}
         />
