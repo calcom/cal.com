@@ -306,17 +306,19 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       {(createBookingMutation.isError ||
         createRecurringBookingMutation.isError ||
         bookingForm.formState.errors["globalError"]) && (
-        <Alert
-          className="mt-2"
-          severity="warning"
-          title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
-          message={getError(
-            bookingForm.formState.errors["globalError"],
-            createBookingMutation,
-            createRecurringBookingMutation,
-            t
-          )}
-        />
+        <div data-testid="booking-fail">
+          <Alert
+            className="mt-2"
+            severity="warning"
+            title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
+            message={getError(
+              bookingForm.formState.errors["globalError"],
+              createBookingMutation,
+              createRecurringBookingMutation,
+              t
+            )}
+          />
+        </div>
       )}
     </div>
   );

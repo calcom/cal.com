@@ -169,12 +169,36 @@ const publicViewerRouter = router({
         throw new Error(ErrorCode.UserNotFound);
       }
 
-      const event = await ctx.prisma.eventType.findUnique({
+      const event = await ctx.prisma.eventType.findFirst({
         where: {
-          userId_slug: {
-            userId: user.id,
-            slug: input.eventSlug,
-          },
+          AND: [
+            {
+              OR: [
+                {
+                  users: {
+                    some: {
+                      id: user.id,
+                    },
+                  },
+                },
+                {
+                  team: {
+                    members: {
+                      some: {
+                        userId: user.id,
+                      },
+                    },
+                  },
+                },
+                {
+                  userId: user.id,
+                },
+              ],
+            },
+            {
+              slug: input.eventSlug,
+            },
+          ],
         },
         select: {
           id: true,
@@ -214,7 +238,7 @@ const publicViewerRouter = router({
         },
       });
 
-      if (!event) return event;
+      if (!event) return null;
 
       let isSmsReminderNumberNeeded = false;
       let isSmsReminderNumberRequired = false;

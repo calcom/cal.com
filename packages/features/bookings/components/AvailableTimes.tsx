@@ -59,6 +59,7 @@ export const AvailableTimes = ({
             <Button
               key={slot.time}
               disabled={bookingFull}
+              data-testid="time"
               onClick={() => onTimeSelect(dayjs.utc(slot.time).tz(timezone).format())}
               className="mb-3 block flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
               color="secondary">
