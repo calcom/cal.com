@@ -69,7 +69,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           />
         </a>
         <div>
-          <ContactMenuItem />
+          <ContactMenuItem onHelpItemSelect={onHelpItemSelect} />
         </div>
       </div>
 

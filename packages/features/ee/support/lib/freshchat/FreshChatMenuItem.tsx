@@ -16,7 +16,12 @@ declare global {
   }
 }
 
-export default function FreshChatMenuItem() {
+interface FreshChatMenuItemProps {
+  onHelpItemSelect: () => void;
+}
+
+export default function FreshChatMenuItem(props: FreshChatMenuItemProps) {
+  const { onHelpItemSelect } = props;
   const { t } = useLocale();
   const { data } = trpc.viewer.me.useQuery();
   const [open, setOpen] = useState(false);
@@ -28,6 +33,7 @@ export default function FreshChatMenuItem() {
       <button
         onClick={() => {
           setOpen(true);
+          onHelpItemSelect();
         }}
         className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
         {t("contact_support")}
