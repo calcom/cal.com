@@ -32,10 +32,6 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
     },
   });
 
-  if (app.slug === "google-meet") {
-    console.log(app);
-  }
-
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
