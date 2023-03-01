@@ -782,8 +782,8 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div
         className={classNames(
-          "flex items-center md:mt-0 md:mb-6",
-          props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+          "flex items-center md:mt-0 md:mb-8",
+          props.smallHeading ? "lg:mb-9" : "lg:mb-10"
         )}>
         {!!props.backPath && (
           <Button
