@@ -1,16 +1,14 @@
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button } from "../button";
-import { FiPlus, FiArrowRight } from "../icon";
+import { FiPlus } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {
@@ -81,15 +79,6 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         {app.description}
       </p>
 
-      {app.dependencyData && !app.dependencyData?.installed && (
-        <Link
-          className="mt-5 flex items-center rounded-md bg-blue-100 p-1 text-sm font-semibold text-blue-900 underline"
-          href={`${CAL_URL}/apps/${app.dependency}`}>
-          {t("requires_app", { dependencyName: app.dependencyData.name })}
-          <FiArrowRight className="ml-1" />
-        </Link>
-      )}
-
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -103,6 +92,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                disableInstall={!app.dependencyData?.installed}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
@@ -132,7 +122,6 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                 isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 disableInstall={!app.dependencyData?.installed}
-                tooltip="Requires another app"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
