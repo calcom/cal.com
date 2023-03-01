@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Cron",
+  "slug": "cron",
+  "type": "cron_other",
+  "imageSrc": "logo.png",
+  "logo": "logo.png",
+  "url": "https://cal.com/apps/cron",
+  "variant": "other",
+  "categories": ["calendar"],
+  "publisher": "miguelnietoa",
+  "email": "support@cal.com",
+  "description": "Cron is the next-generation calendar for professionals and teams.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}
