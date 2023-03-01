@@ -1,6 +1,11 @@
 import { LinkIcon } from "./LinkIcon";
 
-export const CallToAction = (props: { label: string; href: string; secondary?: boolean }) => (
+export const CallToAction = (props: {
+  label: string;
+  href: string;
+  secondary?: boolean;
+  iconName?: string;
+}) => (
   <p
     style={{
       display: "inline-block",
@@ -27,7 +32,7 @@ export const CallToAction = (props: { label: string; href: string; secondary?: b
       target="_blank"
       rel="noreferrer">
       {props.label}
-      <LinkIcon secondary={props.secondary} />
+      <LinkIcon secondary={props.secondary} iconName={props.iconName ?? "linkIcon"} />
     </a>
   </p>
 );

@@ -23,11 +23,13 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           <CallToAction
             label={props.calEvent.organizer.language.translate("accept")}
             href={`${actionHref}&action=accept`}
+            iconName="confirmIcon"
           />
           <Separator />
           <CallToAction
             label={props.calEvent.organizer.language.translate("reject")}
             href={`${actionHref}&action=reject`}
+            iconName="rejectIcon"
             secondary
           />
         </CallToActionTable>
