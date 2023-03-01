@@ -1,13 +1,18 @@
-import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, User } from "@prisma/client";
+import type {
+  Availability as AvailabilityModel,
+  Prisma,
+  Schedule as ScheduleModel,
+  User,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
-import { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { Schedule, TimeRange } from "@calcom/types/schedule";
+import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -464,7 +469,7 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
   });
 };
 
-const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
+const _isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
   return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
 };
 

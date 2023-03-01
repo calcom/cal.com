@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@calcom/eslint-plugin-eslint": "*",
-    "eslint-config-next": "^13.1.6",
+    "eslint-config-next": "^13.2.1",
     "eslint-config-prettier": "^8.6.0",
     "eslint-config-turbo": "^0.0.7",
     "eslint-plugin-playwright": "^0.12.0",

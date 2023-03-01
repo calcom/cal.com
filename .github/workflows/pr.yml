@@ -32,38 +32,35 @@ jobs:
               - 'apps/web/**'
               - 'packages/embeds/**'
 
-  setup:
-    name: Yarn install & cache
-    uses: ./.github/workflows/yarn-install.yml
+  env:
+    name: Create env file
+    uses: ./.github/workflows/env-create-file.yml
     secrets: inherit
 
   type-check:
     name: Type check
-    needs: setup
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
-    needs: setup
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: setup
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   build:
     name: Production build
-    needs: setup
+    needs: env
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   e2e:
     name: E2E tests
-    needs: [lint, build]
+    needs: [changes, lint, build]
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
@@ -78,7 +75,7 @@ jobs:
     name: E2E embeds tests
     if: ${{ needs.changes.outputs.embed == 'true' }}
     needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e.yml
+    uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   analyze:
