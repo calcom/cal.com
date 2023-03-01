@@ -32,6 +32,7 @@ export default function FreshChatScript() {
           meta: {
             username: data?.username,
           },
+          open: true,
         });
       }}
     />
