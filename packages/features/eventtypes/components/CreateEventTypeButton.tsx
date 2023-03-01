@@ -34,7 +34,7 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
-import { FiPlus, FiChevronDown } from "@calcom/ui/components/icon";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { DuplicateDialog } from "./DuplicateDialog";
 
