@@ -11,12 +11,10 @@ on:
     - cron: "0 0 * * *"
 jobs:
   stale:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: actions/stale@v7
         with:
           days-before-stale: 60
           include-only-assigned: true
           days-before-close: -1
-
-

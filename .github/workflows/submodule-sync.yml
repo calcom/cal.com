@@ -6,7 +6,7 @@ on:
 jobs:
   submodule-sync:
     name: Submodule update
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3

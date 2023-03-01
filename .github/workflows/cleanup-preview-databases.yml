@@ -12,7 +12,7 @@ on:
 
 jobs:
   delete:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: snaplet/action@v1
         if: ${{ env.SNAPLET_ACCESS_TOKEN && env.SNAPLET_PROJECT_ID }}

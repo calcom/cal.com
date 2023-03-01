@@ -19,7 +19,7 @@ concurrency:
 # List of jobs
 jobs:
   chromatic-deployment:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

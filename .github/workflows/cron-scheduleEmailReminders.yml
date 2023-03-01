@@ -11,7 +11,7 @@ jobs:
     env:
       APP_URL: ${{ secrets.APP_URL }}
       CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY }}
