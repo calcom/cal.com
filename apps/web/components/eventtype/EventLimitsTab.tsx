@@ -1,14 +1,16 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import React, { useEffect, useState } from "react";
-import { Controller, useFormContext, UseFormRegisterReturn, useWatch } from "react-hook-form";
+import type { UseFormRegisterReturn } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
-import convertToNewDurationType, { DurationType } from "@calcom/lib/convertToNewDurationType";
+import type { DurationType } from "@calcom/lib/convertToNewDurationType";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { PeriodType } from "@calcom/prisma/client";
+import type { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
 import { FiPlus, FiTrash } from "@calcom/ui/components/icon";

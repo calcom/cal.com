@@ -1,6 +1,6 @@
-import { Attendee, Booking } from "@prisma/client";
+import type { Attendee, Booking } from "@prisma/client";
 
-import { AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus } from "@calcom/types/Calendar";
 
 export type BookingCreateBody = {
   email: string;

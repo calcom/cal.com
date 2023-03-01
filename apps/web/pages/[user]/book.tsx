@@ -1,6 +1,8 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
-import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { privacyFilteredLocations } from "@calcom/app-store/locations";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -11,11 +13,16 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  customInputSchema,
+  EventTypeMetaDataSchema,
+  userMetadata as userMetadataSchema,
+} from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import getBooking, { GetBookingType } from "@lib/getBooking";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { GetBookingType } from "@lib/getBooking";
+import getBooking from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
@@ -85,6 +92,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       darkBrandColor: true,
       allowDynamicBooking: true,
       away: true,
+      metadata: true,
     },
   });
 
@@ -117,8 +125,38 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
-  const eventTypeObject = [eventType].map((e) => {
+  const getLocations = () => {
     let locations = eventTypeRaw.locations || [];
+    if (!isDynamicGroupBooking) return locations;
+
+    let sortedUsers: typeof users = [];
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    if (users.length > 1) {
+      sortedUsers = users.sort((a, b) => {
+        const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+        const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+        return aIndex - bIndex;
+      });
+    }
+
+    // Get the prefered location type from the first user
+    const firstUsersMetadata = userMetadataSchema.parse(sortedUsers[0].metadata || {});
+    const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
+
+    if (preferedLocationType?.appSlug) {
+      const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (appType) {
+        // Replace the location with the prefered location type
+        // This will still be default to daily if the app is not found
+        locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
+      }
+    }
+    return locations;
+  };
+
+  const eventTypeObject = [eventType].map((e) => {
+    let locations = getLocations();
     locations = privacyFilteredLocations(locations as LocationObject[]);
     return {
       ...e,

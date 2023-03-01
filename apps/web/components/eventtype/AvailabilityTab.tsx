@@ -1,6 +1,7 @@
-import { FormValues } from "pages/event-types/[type]";
+import type { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
-import { components, OptionProps, SingleValueProps } from "react-select";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -157,6 +158,7 @@ const EventTypeScheduleDetails = () => {
         </span>
         <Button
           href={`/availability/${schedule?.schedule.id}`}
+          disabled={isLoading}
           color="minimal"
           EndIcon={FiExternalLink}
           target="_blank"

@@ -3,7 +3,7 @@
  * caching system that NextJS uses SSG pages.
  * TODO: Redirect to user profile on browser
  */
-import { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
 import { getCachedResults } from "@calcom/core";
@@ -30,16 +30,31 @@ export const getStaticProps: GetStaticProps<
     },
   });
   const startDate = (
-    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs() : dayjs(month, "YYYY-MM")
+    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
   ).startOf("day");
   const endDate = startDate.endOf("month");
-  const results = user?.credentials
-    ? await getCachedResults(user?.credentials, startDate.format(), endDate.format(), user?.selectedCalendars)
-    : [];
-  return {
-    props: { results, date: new Date().toISOString() },
-    revalidate: 1,
-  };
+  try {
+    const results = user?.credentials
+      ? await getCachedResults(
+          user?.credentials,
+          startDate.format(),
+          endDate.format(),
+          user?.selectedCalendars
+        )
+      : [];
+    return {
+      props: { results, date: new Date().toISOString() },
+      revalidate: 1,
+    };
+  } catch (error) {
+    let message = "Unknown error while fetching calendarƒ";
+    if (error instanceof Error) message = error.message;
+    console.error(error, message);
+    return {
+      props: { results: [], date: new Date().toISOString(), message },
+      revalidate: 1,
+    };
+  }
 };
 
 export const getStaticPaths: GetStaticPaths = () => {

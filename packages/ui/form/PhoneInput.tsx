@@ -1,4 +1,7 @@
-import BasePhoneInput, { Props } from "react-phone-number-input/react-hook-form";
+import { isSupportedCountry } from "libphonenumber-js";
+import { useEffect, useState } from "react";
+import type { Props } from "react-phone-number-input/react-hook-form";
+import BasePhoneInput from "react-phone-number-input/react-hook-form";
 import "react-phone-number-input/style.css";
 
 export type PhoneInputProps<FormValues> = Props<
@@ -18,10 +21,12 @@ function PhoneInput<FormValues>({
   onChange,
   ...rest
 }: PhoneInputProps<FormValues>) {
+  const defaultCountry = useDefaultCountry();
   return (
     <BasePhoneInput
       {...rest}
       international
+      defaultCountry={defaultCountry}
       name={name}
       control={control}
       onChange={onChange}
@@ -33,5 +38,21 @@ function PhoneInput<FormValues>({
     />
   );
 }
+
+const useDefaultCountry = () => {
+  const [defaultCountry, setDefaultCountry] = useState("US");
+  useEffect(() => {
+    fetch("/api/countrycode")
+      .then((res) => res.json())
+      .then((res) => {
+        if (isSupportedCountry(res.countryCode)) setDefaultCountry(res.countryCode);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  return defaultCountry;
+};
 
 export default PhoneInput;

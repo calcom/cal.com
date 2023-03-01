@@ -1,12 +1,13 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
-import { RefCallback, useEffect, useMemo, useState } from "react";
+import type { RefCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogHeader, TextField } from "@calcom/ui";
 import { FiCheck, FiEdit2 } from "@calcom/ui/components/icon";
 

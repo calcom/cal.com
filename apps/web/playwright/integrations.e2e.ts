@@ -1,4 +1,5 @@
-import { expect, Page, Route } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";

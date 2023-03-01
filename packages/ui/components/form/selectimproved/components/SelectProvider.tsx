@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from "react";
 
-import { ClassNames, Option } from "./type";
+import type { ClassNames, Option } from "./type";
 
 interface Store {
   selectedItems: Option | Option[] | null;

@@ -1,7 +1,7 @@
 import parser from "accept-language-parser";
-import { IncomingMessage } from "http";
+import type { IncomingMessage } from "http";
 
-import { Maybe } from "@calcom/trpc/server";
+import type { Maybe } from "@calcom/trpc/server";
 
 import { getSession } from "@lib/auth";
 

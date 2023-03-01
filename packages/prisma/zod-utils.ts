@@ -209,6 +209,12 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     sessionTimeout: z.number().optional(), // Minutes
+    defaultConferencingApp: z
+      .object({
+        appSlug: z.string().default("daily-video").optional(),
+        appLink: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
@@ -226,6 +232,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
+  .and(z.record(z.string()))
   .nullable();
 
 export const customInputOptionSchema = z.array(

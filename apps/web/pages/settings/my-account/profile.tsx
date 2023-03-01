@@ -1,9 +1,9 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { BaseSyntheticEvent, useRef, useState } from "react";
+import type { BaseSyntheticEvent } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -11,9 +11,9 @@ import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import turndown from "@calcom/lib/turndownService";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
   Avatar,
@@ -41,8 +41,6 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -51,14 +49,14 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
       <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
-          <SkeletonAvatar className="h-12 w-12 px-4" />
-          <SkeletonButton className="h-6 w-32 rounded-md p-5" />
+          <SkeletonAvatar className="w-12 h-12 px-4" />
+          <SkeletonButton className="w-32 h-6 p-5 rounded-md" />
         </div>
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="w-full h-8" />
+        <SkeletonText className="w-full h-8" />
+        <SkeletonText className="w-full h-8" />
 
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+        <SkeletonButton className="w-20 h-8 p-5 mr-6 rounded-md" />
       </div>
     </SkeletonContainer>
   );
@@ -383,15 +381,5 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ProfileView;

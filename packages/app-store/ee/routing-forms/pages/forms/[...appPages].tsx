@@ -9,7 +9,7 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import {
   Badge,
   ButtonGroup,
@@ -39,7 +39,7 @@ import {
   FiMail,
 } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { getSerializableForm } from "../../lib/getSerializableForm";

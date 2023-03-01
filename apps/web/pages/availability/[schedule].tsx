@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 

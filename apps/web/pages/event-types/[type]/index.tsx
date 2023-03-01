@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PeriodType, SchedulingType } from "@prisma/client";
-import { GetServerSidePropsContext } from "next";
+import type { PeriodType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
+import type { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { EventLocationType } from "@calcom/core/location";
+import type { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -15,14 +16,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { trpc, RouterOutputs } from "@calcom/trpc/react";
+import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
@@ -293,7 +295,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             ...input
           } = values;
 
-          const hosts: (typeof hostsInput[number] & { isFixed?: boolean })[] = [];
+          const hosts: ((typeof hostsInput)[number] & { isFixed?: boolean })[] = [];
           if (hostsInput || hostsFixed) {
             hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
           }
