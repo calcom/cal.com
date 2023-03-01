@@ -77,6 +77,7 @@ const querySchema = z.object({
   /** This is the event "type" ID */
   type: z.coerce.number().optional(),
   user: z.string(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -194,7 +195,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (rescheduleEventTypeHasSeats) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
-        referenceUId: query.rescheduleUid,
+        referenceUid: query.rescheduleUid,
       },
       select: {
         id: true,
@@ -214,7 +215,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid || query.bookingUid) {
-    booking = await getBooking(prisma, rescheduleUid || query.bookingUid || "", seatReferenceUid);
+    booking = await getBooking(prisma, rescheduleUid || query.bookingUid || "", query.seatReferenceUid);
   }
   if (rescheduleEventTypeHasSeats && booking?.attendees) {
     const currentAttendee = booking?.attendees.find((attendee) => {

@@ -4,7 +4,7 @@ export async function maybeGetBookingUidFromSeat(prisma: PrismaClient, uid: stri
   // Look bookingUid in bookingSeat
   const bookingSeat = await prisma.bookingSeat.findUnique({
     where: {
-      referenceUId: uid,
+      referenceUid: uid,
     },
     select: {
       booking: {

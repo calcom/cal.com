@@ -1,8 +1,8 @@
-import { DestinationCalendar, Booking } from "@prisma/client";
+import type { DestinationCalendar, Booking } from "@prisma/client";
 import { cloneDeep } from "lodash";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -12,7 +12,7 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -61,7 +61,7 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
-type EventManagerUser = {
+export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
@@ -449,7 +449,7 @@ export default class EventManager {
       }
 
       if (!calendarReference) {
-        throw new Error("bookingRef");
+        return [];
       }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 

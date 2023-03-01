@@ -47,9 +47,18 @@ ${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer"
 ${calEvent.organizer.email}
   `;
 
+  const teamMembers = calEvent.team?.members
+    ? calEvent.team.members.map((member) => {
+        return `
+${member.name} - ${calEvent.organizer.language.translate("team_member")} 
+${member.email}
+    `;
+      })
+    : [];
+
   return `
 ${calEvent.organizer.language.translate("who")}:
-${organizer + attendees}
+${organizer + attendees + teamMembers.join("")}
   `;
 };
 
@@ -133,7 +142,7 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
 };
 
 export const getUid = (calEvent: CalendarEvent): string => {
-  const uid = calEvent.attendeeUniqueId || calEvent.uid;
+  const uid = calEvent.uid;
   return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 

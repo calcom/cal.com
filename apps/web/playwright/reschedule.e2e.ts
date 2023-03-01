@@ -240,9 +240,9 @@ test.describe("Reschedule Tests", async () => {
       });
 
       const bookingSeats = [
-        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
-        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
-        { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUId: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUid: uuidv4() },
       ];
 
       await prisma.bookingSeat.createMany({
@@ -253,7 +253,7 @@ test.describe("Reschedule Tests", async () => {
         where: { bookingId: booking.id },
       });
 
-      await page.goto(`/reschedule/${references[2].referenceUId}`);
+      await page.goto(`/reschedule/${references[2].referenceUid}`);
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -307,8 +307,8 @@ test.describe("Reschedule Tests", async () => {
       });
 
       const bookingSeats = [
-        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
-        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
       ];
 
       await prisma.bookingSeat.createMany({
@@ -319,7 +319,7 @@ test.describe("Reschedule Tests", async () => {
         where: { bookingId: booking.id },
       });
 
-      await page.goto(`/reschedule/${references[0].referenceUId}`);
+      await page.goto(`/reschedule/${references[0].referenceUid}`);
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -327,7 +327,7 @@ test.describe("Reschedule Tests", async () => {
 
       await expect(page).toHaveURL(/.*booking/);
 
-      await page.goto(`/reschedule/${references[1].referenceUId}`);
+      await page.goto(`/reschedule/${references[1].referenceUid}`);
 
       await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -388,8 +388,8 @@ test.describe("Reschedule Tests", async () => {
       });
 
       const bookingSeats = [
-        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
-        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
       ];
 
       await prisma.bookingSeat.createMany({
@@ -446,8 +446,8 @@ test.describe("Reschedule Tests", async () => {
     });
 
     const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
+      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
     ];
 
     await prisma.bookingSeat.createMany({
@@ -459,7 +459,7 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await page.goto(
-      `/booking/${references[0].referenceUId}?cancel=true&seatReferenceUid=${references[0].referenceUId}`
+      `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
 
     await page.locator('[data-testid="cancel"]').click();
@@ -476,7 +476,7 @@ test.describe("Reschedule Tests", async () => {
 
     expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
 
-    await page.goto(`/reschedule/${references[1].referenceUId}`);
+    await page.goto(`/reschedule/${references[1].referenceUid}`);
 
     await page.waitForTimeout(1000);
     await page.click('[data-testid="incrementMonth"]');

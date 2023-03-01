@@ -258,7 +258,7 @@ export default function Success(props: SuccessProps) {
     status === "CANCELLED" ||
     status === "REJECTED" ||
     (isCancellationMode &&
-      !bookingInfo.seatsReferences.some((reference) => reference.referenceUId === seatReferenceUid));
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -1067,7 +1067,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       seatsReferences: {
         select: {
-          referenceUId: true,
+          referenceUid: true,
         },
       },
     },
