@@ -43,7 +43,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="w-full py-5">
         <p className="mb-1 px-5 text-gray-500">{t("resources").toUpperCase()}</p>
         <a
-          onClick={() => onHelpItemSelect()}
           href="https://docs.cal.com/"
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -57,7 +56,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           />
         </a>
         <a
-          onClick={() => onHelpItemSelect()}
           href="https://developer.cal.com/"
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -70,7 +68,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             )}
           />
         </a>
-        <div onClick={() => onHelpItemSelect()}>
+        <div>
           <ContactMenuItem />
         </div>
       </div>
