@@ -50,7 +50,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   customInputvariables?.forEach((variable) => {
     if (eventNameObj.customInputs) {
       Object.keys(eventNameObj.customInputs).forEach((customInput) => {
-        if (variable === customInput && eventNameObj.customInputs) {
+        if (variable === customInput) {
           dynamicEventName = dynamicEventName.replace(
             `{${variable}}`,
             eventNameObj.customInputs[customInput as keyof typeof eventNameObj.customInputs]
@@ -70,8 +70,6 @@ export const validateCustomEventName = (value: string, message: string, customIn
       return `{${customInput}}`;
     });
   }
-  console.log("customInputVariables: " + JSON.stringify(customInputVariables));
-  console.log("customInputs: " + JSON.stringify(customInputs));
 
   const validVariables = customInputVariables.concat([
     "{Event type title}",
