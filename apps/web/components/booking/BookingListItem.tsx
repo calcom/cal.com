@@ -26,7 +26,16 @@ import {
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
-import { FiCheck, FiClock, FiMapPin, FiRefreshCcw, FiSend, FiSlash, FiX } from "@calcom/ui/components/icon";
+import {
+  FiCheck,
+  FiClock,
+  FiMapPin,
+  FiHelpCircle,
+  FiSend,
+  FiX,
+  FiRefreshCcw,
+  FiSlash,
+} from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -133,10 +142,30 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }`,
-      icon: FiX,
+      actions: [
+        {
+          id: "cancel_immediately",
+          icon: FiX,
+          label: t("Cancel Immediately"),
+          href: `/booking/${booking.uid}?cancel=true${
+            isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+          }`,
+        },
+        {
+          id: "reschedule_request",
+          icon: FiHelpCircle,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("Cancel Tentatively"),
+          onClick: () => {
+            showToast(
+              t(
+                "Booking cancelled tentatively, waiting for guests to respond. If they cancel too, the meeting will be removed for everyone."
+              ),
+              "success"
+            );
+          },
+        },
+      ],
     },
     {
       id: "edit_booking",
