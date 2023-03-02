@@ -277,7 +277,7 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
-          organizerTimeZone: user.timeZone || eventType.timeZone,
+          organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
           inviteeTimeZone: input.timeZone,
         }
       )
