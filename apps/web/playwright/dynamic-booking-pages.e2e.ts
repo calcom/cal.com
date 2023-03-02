@@ -7,6 +7,8 @@ import {
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.afterEach(({ users }) => users.deleteAll());
+
 // Due to some reason for Dynamic booking cancellation, daily video api_key is not set which causes cancellation to fail.
 // This test is skipped until the issue is resolved in GH actions.
 test.skip("dynamic booking", async ({ page, users }) => {
@@ -58,8 +60,6 @@ test.skip("dynamic booking", async ({ page, users }) => {
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
-    await expect(cancelledHeadline).toBe("This event is cancelled");
+    expect(cancelledHeadline).toBe("This event is cancelled");
   });
-
-  await users.deleteAll();
 });
