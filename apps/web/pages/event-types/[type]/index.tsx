@@ -84,7 +84,7 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
-  users: (number | string)[];
+  users: number[];
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
 };
@@ -299,7 +299,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             ...input
           } = values;
 
-          const hosts: (typeof hostsInput[number] & { isFixed?: boolean })[] = [];
+          const hosts: ((typeof hostsInput)[number] & { isFixed?: boolean })[] = [];
           if (hostsInput || hostsFixed) {
             hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
           }

@@ -124,6 +124,7 @@ export default async function getEventTypeById({
       schedule: {
         select: {
           id: true,
+          name: true,
         },
       },
       hosts: {
@@ -230,6 +231,7 @@ export default async function getEventTypeById({
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],

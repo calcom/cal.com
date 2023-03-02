@@ -37,11 +37,10 @@ const lockedFieldsManager = (
   };
 
   const shouldLockDisableProps = (fieldName: string) => {
-    const lala = {
-      disabled: eventType.schedulingType === SchedulingType.MANAGED && eventType.userId !== null,
+    return {
+      disabled: eventType.userId !== null && eventType.metadata?.managedEventConfig !== undefined,
       isLocked: shouldLockIndicator(fieldName),
     };
-    return lala;
   };
 
   return { shouldLockIndicator, shouldLockDisableProps };

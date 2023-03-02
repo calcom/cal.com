@@ -48,9 +48,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodEndDate: true,
   destinationCalendar: true,
   periodCountCalendarDays: true,
-  schedulingType: true,
   bookingLimits: true,
   slotInterval: true,
+  scheduleId: true,
+  workflows: true,
 };
 
 // All properties that are defined as locked based on all managed props

@@ -1,4 +1,5 @@
 import { WorkflowActions } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -6,8 +7,10 @@ import { useEffect, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
 import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
@@ -149,15 +152,10 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 };
 
+type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+
 type Props = {
-  eventType: {
-    id: number;
-    title: string;
-    userId: number | null;
-    team: {
-      id?: number;
-    } | null;
-  };
+  eventType: EventTypeSetup;
   workflows: WorkflowType[];
 };
 
@@ -205,20 +203,34 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const workflowLockedStatus = shouldLockDisableProps("workflow");
+
   return (
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="space-y-4">
-            {sortedWorkflows.map((workflow) => {
-              return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
-            })}
+          <div>
+            {eventType.schedulingType === SchedulingType.MANAGED && (
+              <Alert
+                severity="neutral"
+                className="mb-2"
+                title="Locked for members"
+                message="Members will be able to see the active apps but will not be able to edit any app settings"
+              />
+            )}
+            <div className="space-y-4">
+              {sortedWorkflows.map((workflow) => {
+                return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
+              })}
+            </div>
           </div>
         ) : (
           <div className="pt-4 before:border-0">
             <EmptyScreen
               Icon={FiZap}
               headline={t("workflows")}
+              isLocked={workflowLockedStatus.isLocked}
               description={t("no_workflows_description")}
               buttonRaw={
                 <Button

@@ -18,7 +18,6 @@ import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  stringOrNumber,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -86,7 +85,7 @@ const EventTypeUpdateInput = _EventTypeModel
       integration: true,
       externalId: true,
     }),
-    users: z.array(stringOrNumber).optional(),
+    users: z.array(z.number()).optional(),
     hosts: z
       .array(
         z.object({
@@ -122,7 +121,7 @@ const eventOwnerProcedure = authedProcedure
   .input(
     z.object({
       id: z.number(),
-      users: z.array(z.string()).optional().default([]),
+      users: z.array(z.number()).optional().default([]),
     })
   )
   .use(async ({ ctx, input, next }) => {
@@ -166,9 +165,9 @@ const eventOwnerProcedure = authedProcedure
     const isAllowed = (function () {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
-        return input.users.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+        return input.users.every((userId: number) => allTeamMembers.includes(userId));
       }
-      return input.users.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+      return input.users.every((userId: number) => userId === ctx.user.id);
     })();
 
     if (!isAllowed) {

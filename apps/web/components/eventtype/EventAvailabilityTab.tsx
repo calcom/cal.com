@@ -1,3 +1,4 @@
+import { SchedulingType } from "@prisma/client";
 import type { FormValues, EventTypeSetup } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -53,11 +54,13 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
 
 const AvailabilitySelect = ({
   className = "",
+  isManaged,
   ...props
 }: {
   className?: string;
   name: string;
   value: number;
+  isManaged?: boolean;
   isDisabled?: boolean;
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
@@ -77,9 +80,19 @@ const AvailabilitySelect = ({
     isDefault: schedule.isDefault,
   }));
 
+  if (isManaged) {
+    options.push({
+      value: 0,
+      label: "Member's default schedule",
+      isDefault: false,
+    });
+  }
+
   const value = options.find((option) =>
     props.value
       ? option.value === props.value
+      : isManaged
+      ? option.value === 0
       : option.value === schedules.find((schedule) => schedule.isDefault)?.id
   );
 
@@ -91,7 +104,7 @@ const AvailabilitySelect = ({
       isSearchable={false}
       onChange={props.onChange}
       className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
-      value={value}
+      defaultValue={value}
       components={{ Option, SingleValue }}
       isMulti={false}
     />
@@ -179,6 +192,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     eventType,
     t("locked_fields_description")
   );
+  const { watch } = useFormContext<FormValues>();
+  const watchSchedule = watch("schedule");
   return (
     <div className="space-y-4">
       <div>
@@ -193,6 +208,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           render={({ field }) => (
             <AvailabilitySelect
               value={field.value}
+              isManaged={eventType.schedulingType === SchedulingType.MANAGED}
               onBlur={field.onBlur}
               isDisabled={shouldLockDisableProps("availability").disabled}
               name={field.name}
@@ -203,7 +219,13 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           )}
         />
       </div>
-      <EventTypeScheduleDetails />
+      {eventType.schedulingType !== SchedulingType.MANAGED || watchSchedule !== null ? (
+        <EventTypeScheduleDetails />
+      ) : (
+        <p className="!mt-2 text-sm text-gray-600">
+          We will use each members default availability schedule. They will be able to edit or change it.
+        </p>
+      )}
     </div>
   );
 };
@@ -241,7 +263,7 @@ export const EventAvailabilityTab = ({
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
 }) => {
-  return isTeamEvent ? (
+  return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
     <UseCommonScheduleSettingsToggle eventType={eventType} />
   ) : (
     <EventTypeSchedule eventType={eventType} />

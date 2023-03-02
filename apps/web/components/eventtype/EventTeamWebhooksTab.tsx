@@ -1,3 +1,5 @@
+import type { Webhook } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
@@ -7,9 +9,9 @@ import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Webhook } from "@calcom/prisma/client";
+import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
+import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
@@ -91,6 +93,10 @@ export const EventTeamWebhooksTab = ({
       </Button>
     );
   };
+
+  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const webhookLockedStatus = shouldLockDisableProps("webhooks");
+
   return (
     <div>
       {team && webhooks && !isLoading && (
@@ -100,6 +106,14 @@ export const EventTeamWebhooksTab = ({
               <>
                 {webhooks.length ? (
                   <>
+                    {eventType.schedulingType === SchedulingType.MANAGED && (
+                      <Alert
+                        severity="neutral"
+                        className="mb-2"
+                        title="Locked for members"
+                        message="Members will be able to see the active apps but will not be able to edit any app settings"
+                      />
+                    )}
                     <div className="mb-8 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
@@ -120,6 +134,7 @@ export const EventTeamWebhooksTab = ({
                 ) : (
                   <EmptyScreen
                     Icon={TbWebhook}
+                    isLocked={webhookLockedStatus.isLocked}
                     headline={t("create_your_first_webhook")}
                     description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
                     buttonRaw={<NewWebhookButton />}

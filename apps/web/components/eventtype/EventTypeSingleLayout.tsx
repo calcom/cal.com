@@ -1,3 +1,4 @@
+import { SchedulingType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -81,12 +82,6 @@ function getNavigation(props: {
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
-      name: "availability",
-      href: `/event-types/${eventType.id}?tabName=availability`,
-      icon: FiCalendar,
-      info: `default_schedule_name`, // TODO: Get this from props
-    },
-    {
       name: "event_limit_tab_title",
       href: `/event-types/${eventType.id}?tabName=limits`,
       icon: FiClock,
@@ -166,6 +161,17 @@ function EventTypeSingleLayout({
       installedAppsNumber,
       enabledWorkflowsNumber,
     });
+    navigation.splice(1, 0, {
+      name: "availability",
+      href: `/event-types/${eventType.id}?tabName=availability`,
+      icon: FiCalendar,
+      info:
+        eventType.schedulingType === SchedulingType.MANAGED
+          ? eventType.schedule === null
+            ? "Member's default schedule"
+            : eventType.scheduleName ?? `default_schedule_name`
+          : `default_schedule_name`,
+    });
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
@@ -173,7 +179,7 @@ function EventTypeSingleLayout({
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          eventType.schedulingType === "MANAGED" &&
+          eventType.schedulingType === SchedulingType.MANAGED &&
           ` - ${t("count_members", { count: eventType.users.length || 0 })}`
         }`,
       });

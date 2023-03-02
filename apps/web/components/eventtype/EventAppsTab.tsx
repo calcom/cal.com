@@ -1,3 +1,4 @@
+import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
@@ -8,7 +9,7 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen } from "@calcom/ui";
+import { Button, EmptyScreen, Alert } from "@calcom/ui";
 import { FiGrid } from "@calcom/ui/components/icon";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
@@ -57,6 +58,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   };
 
   const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const appsLockedStatus = shouldLockDisableProps("apps");
 
   return (
     <>
@@ -67,6 +69,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               Icon={FiGrid}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
+              isLocked={appsLockedStatus.isLocked}
               buttonRaw={
                 <Button target="_blank" color="secondary" href="/apps">
                   {t("empty_installed_apps_button")}{" "}
@@ -74,6 +77,13 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
+          {!!installedApps?.length && eventType.schedulingType === SchedulingType.MANAGED && (
+            <Alert
+              severity="neutral"
+              title="Locked for members"
+              message="Members will be able to see the active apps but will not be able to edit any app settings"
+            />
+          )}
           {installedApps?.map((app) => (
             <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
@@ -85,7 +95,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ))}
         </div>
       </div>
-      {!shouldLockDisableProps("apps").disabled && (
+      {!appsLockedStatus.disabled && (
         <div>
           {!isLoading && notInstalledApps?.length ? (
             <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{t("available_apps")}</h2>
