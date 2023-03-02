@@ -22,16 +22,13 @@ import type { TeamBookingPageProps } from "../../pages/team/[slug]/book";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 
 interface Props {
-  profile: {
-    name: string;
-    image: null;
-    slug: string;
-    theme: string | null;
-    weekStart: string;
-    brandColor: string;
-    darkBrandColor: string;
-    allowDynamicBooking: boolean;
-  };
+  profile:
+    | AvailabilityPageProps["profile"]
+    | HashLinkPageProps["profile"]
+    | TeamBookingPageProps["profile"]
+    | BookPageProps["profile"]
+    | AvailabilityTeamPageProps["profile"]
+    | DynamicAvailabilityPageProps["profile"];
   eventType:
     | AvailabilityPageProps["eventType"]
     | HashLinkPageProps["eventType"]
