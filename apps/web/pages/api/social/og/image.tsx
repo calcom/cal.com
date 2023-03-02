@@ -18,7 +18,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
 );
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const meetingSchema = z.object({
