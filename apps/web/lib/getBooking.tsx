@@ -1,7 +1,55 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
+import type { z } from "zod";
 
-async function getBooking(prisma: PrismaClient, uid: string) {
-  const booking = await prisma.booking.findFirst({
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import slugify from "@calcom/lib/slugify";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+type BookingSelect = {
+  description: true;
+  customInputs: true;
+  attendees: {
+    select: {
+      email: true;
+      name: true;
+    };
+  };
+  location: true;
+  smsReminderNumber: true;
+};
+
+// Backward Compatibility for booking created before we had managed booking questions
+function getResponsesFromOldBooking(
+  rawBooking: Prisma.BookingGetPayload<{
+    select: BookingSelect;
+  }>
+) {
+  const customInputs = rawBooking.customInputs || {};
+  const responses = Object.keys(customInputs).reduce((acc, label) => {
+    acc[slugify(label) as keyof typeof acc] = customInputs[label as keyof typeof customInputs];
+    return acc;
+  }, {});
+  return {
+    name: rawBooking.attendees[0].name,
+    email: rawBooking.attendees[0].email,
+    guests: rawBooking.attendees.slice(1).map((attendee) => {
+      return attendee.email;
+    }),
+    notes: rawBooking.description || "",
+    location: {
+      value: rawBooking.location || "",
+      optionValue: rawBooking.location || "",
+    },
+    ...responses,
+  };
+}
+
+async function getBooking(
+  prisma: PrismaClient,
+  uid: string,
+  bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">
+) {
+  const rawBooking = await prisma.booking.findFirst({
     where: {
       uid,
     },
@@ -9,6 +57,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
       startTime: true,
       description: true,
       customInputs: true,
+      responses: true,
       smsReminderNumber: true,
       location: true,
       attendees: {
@@ -18,6 +67,14 @@ async function getBooking(prisma: PrismaClient, uid: string) {
         },
       },
     },
+  });
+
+  if (!rawBooking) {
+    return rawBooking;
+  }
+
+  const booking = getBookingWithResponses(rawBooking, {
+    bookingFields,
   });
 
   if (booking) {
@@ -31,4 +88,23 @@ async function getBooking(prisma: PrismaClient, uid: string) {
 
 export type GetBookingType = Prisma.PromiseReturnType<typeof getBooking>;
 
+export const getBookingWithResponses = <
+  T extends Prisma.BookingGetPayload<{
+    select: BookingSelect & {
+      responses: true;
+    };
+  }>
+>(
+  booking: T,
+  eventType: {
+    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+  }
+) => {
+  return {
+    ...booking,
+    responses: getBookingResponsesPartialSchema({
+      bookingFields: eventType.bookingFields,
+    }).parse(booking.responses || getResponsesFromOldBooking(booking)),
+  };
+};
 export default getBooking;

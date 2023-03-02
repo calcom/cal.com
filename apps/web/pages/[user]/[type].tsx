@@ -124,13 +124,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
-  const md = new MarkdownIt("zero").enable([
-    //
-    "emphasis",
-    "list",
-    "newline",
-    "strikethrough",
-  ]);
+  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
