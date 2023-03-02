@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
@@ -19,8 +18,6 @@ import {
   List,
 } from "@calcom/ui";
 import { FiLink, FiPlus } from "@calcom/ui/components/icon";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -96,15 +93,5 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ApiKeysView;

@@ -1,0 +1,32 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @global-owner1 and @global-owner2 will be requested for
+# review when someone opens a pull request.
+*           @calcom/reviewers
+
+.github/    @calcom/core
+.husky/     @calcom/core
+.vcode/     @calcom/core
+.snaplet/   @calcom/core
+deploy/     @calcom/core
+scripts/    @calcom/core
+
+apps/docs       @calcom/docs
+apps/swagger    @calcom/docs
+
+packages/app-store-cli                @hariombalhara
+packages/dayjs                        @zomars
+packages/emails                       @zomars
+packages/embeds                       @hariombalhara
+packages/eslint-plugin                @zomars
+packages/features                     @zomars
+packages/features/kbar                @alishaz-polymath 
+packages/features/ee/impersonation    @sean-brydon
+packages/features/ee/payments         @alannnc
+packages/features/ee/workflows        @CarinaWolli
+packages/features/tips                @PeerRich
+packages/ui                           @calcom/ui
+packages/config                       @calcom/core

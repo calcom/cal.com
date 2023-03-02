@@ -41,7 +41,7 @@ export function ScheduleListItem({
       heading={schedule.name}
       subHeading={
         <>
-          <p className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-gray-500">
             {(schedule.timeZone || displayOptions?.timeZone) && (
               <p className="my-1 flex items-center first-letter:text-xs">
                 <FiGlobe />
@@ -51,15 +51,21 @@ export function ScheduleListItem({
             {schedule.availability
               .filter((availability) => !!availability.days.length)
               .map((availability) => (
-                <Fragment key={availability.id}>
+                <p key={availability.id}>
                   {availabilityAsString(availability, {
                     locale: i18n.language,
                     hour12: displayOptions?.hour12,
                   })}
                   <br />
-                </Fragment>
+                </p>
               ))}
-          </p>
+            {(schedule.timeZone || displayOptions?.timeZone) && (
+              <p className="my-1 flex items-center first-letter:text-xs">
+                <FiGlobe />
+                &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+              </p>
+            )}
+          </div>
         </>
       }
       badgePosition="heading"

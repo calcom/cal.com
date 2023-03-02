@@ -1,5 +1,5 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
@@ -117,61 +117,68 @@ const EventTypeDuplicateInput = z.object({
   length: z.number(),
 });
 
-const eventOwnerProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) => {
-  // Prevent non-owners to update/delete a team event
-  const event = await ctx.prisma.eventType.findUnique({
-    where: { id: (rawInput as Record<"id", number>)?.id },
-    include: {
-      users: true,
-      team: {
-        select: {
-          members: {
-            select: {
-              userId: true,
-              role: true,
+const eventOwnerProcedure = authedProcedure
+  .input(
+    z.object({
+      id: z.number(),
+      users: z.array(z.string()).optional().default([]),
+    })
+  )
+  .use(async ({ ctx, input, next }) => {
+    // Prevent non-owners to update/delete a team event
+    const event = await ctx.prisma.eventType.findUnique({
+      where: { id: input.id },
+      include: {
+        users: true,
+        team: {
+          select: {
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
             },
           },
         },
       },
-    },
+    });
+
+    if (!event) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    const isAuthorized = (function () {
+      if (event.team) {
+        return event.team.members
+          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+          .map((member) => member.userId)
+          .includes(ctx.user.id);
+      }
+      return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
+    })();
+
+    if (!isAuthorized) {
+      console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const isAllowed = (function () {
+      if (event.team) {
+        const allTeamMembers = event.team.members.map((member) => member.userId);
+        return input.users.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+      }
+      return input.users.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+    })();
+
+    if (!isAllowed) {
+      console.warn(
+        `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
+      );
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
+    return next();
   });
-
-  if (!event) {
-    throw new TRPCError({ code: "NOT_FOUND" });
-  }
-
-  const isAuthorized = (function () {
-    if (event.team) {
-      return event.team.members
-        .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-        .map((member) => member.userId)
-        .includes(ctx.user.id);
-    }
-    return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
-  })();
-
-  if (!isAuthorized) {
-    console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const inputUsers = (rawInput as any).users || [];
-
-  const isAllowed = (function () {
-    if (event.team) {
-      const allTeamMembers = event.team.members.map((member) => member.userId);
-      return inputUsers.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
-    }
-    return inputUsers.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
-  })();
-
-  if (!isAllowed) {
-    console.warn(`User ${ctx.user.id} attempted to an create an event for users ${inputUsers.join(", ")}.`);
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
-
-  return next();
-});
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -219,6 +226,7 @@ export const eventTypesRouter = router({
         startTime: true,
         endTime: true,
         bufferTime: true,
+        avatar: true,
         teams: {
           where: {
             accepted: true,
@@ -323,6 +331,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: user.username,
         name: user.name,
+        image: user.avatar || undefined,
       },
       eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
@@ -595,7 +604,7 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users) {
+    if (users.length) {
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
@@ -762,9 +771,6 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore - not typed correctly as its set on SSR
-        descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
 
