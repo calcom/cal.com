@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -44,6 +45,16 @@ const DuplicateDialog = () => {
   });
   const { register } = form;
 
+  useEffect(() => {
+    if (router.query.dialog === "duplicate") {
+      form.setValue("id", Number(router.query.id as string) || -1);
+      form.setValue("title", (router.query.title as string) || "");
+      form.setValue("slug", t("event_type_duplicate_copy_text", { slug: router.query.slug as string }));
+      form.setValue("description", (router.query.description as string) || "");
+      form.setValue("length", Number(router.query.length) || 30);
+    }
+  }, [router.query.dialog]);
+
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
@@ -69,7 +80,7 @@ const DuplicateDialog = () => {
 
   return (
     <Dialog
-      name="duplicate-event-type"
+      name="duplicate"
       clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
       <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
         <Form

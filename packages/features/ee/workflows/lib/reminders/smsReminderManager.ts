@@ -53,7 +53,8 @@ export const scheduleSMSReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates,
   sender: string,
-  userId: number,
+  userId?: number | null,
+  teamId?: number | null,
   isVerificationPending = false
 ) => {
   const { startTime, endTime } = evt;
@@ -69,7 +70,10 @@ export const scheduleSMSReminder = async (
   async function getIsNumberVerified() {
     if (action === WorkflowActions.SMS_ATTENDEE) return true;
     const verifiedNumber = await prisma.verifiedNumber.findFirst({
-      where: { userId, phoneNumber: reminderPhone || "" },
+      where: {
+        OR: [{ userId }, { teamId }],
+        phoneNumber: reminderPhone || "",
+      },
     });
     if (!!verifiedNumber) return true;
     return isVerificationPending;
@@ -174,9 +178,16 @@ export const scheduleSMSReminder = async (
   }
 };
 
-export const deleteScheduledSMSReminder = async (referenceId: string) => {
+export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
   try {
-    await twilio.cancelSMS(referenceId);
+    if (referenceId) {
+      await twilio.cancelSMS(referenceId);
+    }
+    await prisma.workflowReminder.delete({
+      where: {
+        id: reminderId,
+      },
+    });
   } catch (error) {
     console.log(`Error canceling reminder with error ${error}`);
   }

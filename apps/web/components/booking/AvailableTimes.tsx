@@ -2,11 +2,12 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
@@ -50,6 +51,15 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   useEffect(() => {
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const ref = useCallback(
+    (node: HTMLDivElement) => {
+      if (isMobile) {
+        node?.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    [isMobile]
+  );
 
   return (
     <div ref={slotPickerRef}>
@@ -75,7 +85,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               />
             </div>
           </div>
-          <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
+          <div ref={ref} className="flex-grow overflow-y-auto sm:block md:h-[364px]">
             {slots.length > 0 &&
               slots.map((slot) => {
                 type BookingURL = {
@@ -111,7 +121,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                       <div
                         className={classNames(
-                          "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2  font-medium opacity-25 dark:border-transparent ",
+                          "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2 font-medium opacity-25 dark:border-transparent ",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}>
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
@@ -122,8 +132,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         href={bookingUrl}
                         prefetch={false}
                         className={classNames(
-                          "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
-                          "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
+                          "hover:bg-brand hover:border-brand hover:text-brandcontrast dark:hover:text-darkmodebrandcontrast",
+                          "dark:bg-darkgray-200 dark:hover:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         data-testid="time">

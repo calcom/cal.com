@@ -13,7 +13,7 @@ import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
-import { WorkflowType } from "./WorkflowListPage";
+import type { WorkflowType } from "./WorkflowListPage";
 
 type ItemProps = {
   workflow: WorkflowType;
@@ -63,6 +63,11 @@ const WorkflowListItem = (props: ItemProps) => {
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+      if (err.data?.code === "UNAUTHORIZED") {
+        // TODO: Add missing translation
+        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
         showToast(message, "error");
       }
     },
@@ -148,14 +153,21 @@ type Props = {
   eventType: {
     id: number;
     title: string;
+    userId: number | null;
+    team: {
+      id?: number;
+    } | null;
   };
   workflows: WorkflowType[];
 };
 
 function EventWorkflowsTab(props: Props) {
-  const { workflows } = props;
+  const { workflows, eventType } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
+    teamId: eventType.team?.id,
+    userId: eventType.userId || undefined,
+  });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 
@@ -176,7 +188,7 @@ function EventWorkflowsTab(props: Props) {
     }
   }, [isLoading]);
 
-  const createMutation = trpc.viewer.workflows.createV2.useMutation({
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },
@@ -212,7 +224,7 @@ function EventWorkflowsTab(props: Props) {
                 <Button
                   target="_blank"
                   color="secondary"
-                  onClick={() => createMutation.mutate()}
+                  onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
                   loading={createMutation.isLoading}>
                   {t("create_workflow")}
                 </Button>

@@ -1,12 +1,5 @@
-import {
-  App,
-  BookingStatus,
-  Credential,
-  EventTypeCustomInput,
-  Prisma,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@prisma/client";
+import type { App, Credential, EventTypeCustomInput, Prisma } from "@prisma/client";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
@@ -16,15 +9,18 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
-import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
-import { EventTypeAppsList, getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import { getAppFromSlug, getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -32,9 +28,12 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -55,9 +54,10 @@ import {
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 
-import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import sendPayload from "../../webhooks/lib/sendPayload";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
@@ -335,6 +335,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  const isTeamEventType =
+    eventType.schedulingType === SchedulingType.COLLECTIVE ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
   const paymentAppData = getPaymentAppData(eventType);
 
   // Check if required custom inputs exist
@@ -474,7 +478,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     ) {
       throw new Error("Some users are unavailable for booking.");
     }
-    users = [...luckyUsers, ...availableUsers.filter((user) => user.isFixed)];
+    // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+    users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
@@ -494,12 +499,23 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       language: { translate: tAttendees, locale: language ?? "en" },
     },
   ];
-  const guests = (reqBody.guests || []).map((guest) => ({
-    email: guest,
-    name: "",
-    timeZone: reqBody.timeZone,
-    language: { translate: tGuests, locale: "en" },
-  }));
+
+  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
+    // If it's a team event, remove the team member from guests
+    if (isTeamEventType) {
+      if (users.some((user) => user.email === guest)) {
+        return guestArray;
+      } else {
+        guestArray.push({
+          email: guest,
+          name: "",
+          timeZone: reqBody.timeZone,
+          language: { translate: tGuests, locale: "en" },
+        });
+      }
+    }
+    return guestArray;
+  }, [] as typeof invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -538,7 +554,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
+  const attendeesList = [...invitee, ...guests];
 
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",
@@ -581,7 +597,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
-    seatsShowAttendees: !!eventType.seatsShowAttendees,
+    // if seats are not enabled we should default true
+    seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
@@ -718,11 +735,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
   }
 
-  if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+  if (isTeamEventType) {
     evt.team = {
-      members: users.map((user) => user.name || user.username || "Nameless"),
+      members: teamMembers,
       name: eventType.team?.name || "Nameless",
-    }; // used for invitee emails
+    };
   }
 
   if (reqBody.recurringEventId && eventType.recurringEvent) {
@@ -761,6 +778,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
         },
         payment: true,
+        workflowReminders: true,
       },
     });
   }
@@ -807,17 +825,30 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       metadata: reqBody.metadata,
       attendees: {
         createMany: {
-          data: evt.attendees.map((attendee) => {
-            //if attendee is team member, it should fetch their locale not booker's locale
-            //perhaps make email fetch request to see if his locale is stored, else
-            const retObj = {
-              name: attendee.name,
-              email: attendee.email,
-              timeZone: attendee.timeZone,
-              locale: attendee.language.locale,
-            };
-            return retObj;
-          }),
+          data: [
+            ...evt.attendees.map((attendee) => {
+              //if attendee is team member, it should fetch their locale not booker's locale
+              //perhaps make email fetch request to see if his locale is stored, else
+              const retObj = {
+                name: attendee.name,
+                email: attendee.email,
+                timeZone: attendee.timeZone,
+                locale: attendee.language.locale,
+              };
+              return retObj;
+            }),
+            // Have this for now until we change the relationship between bookings & team members
+            ...(evt.team?.members
+              ? evt.team.members.map((member) => {
+                  return {
+                    email: member.email,
+                    name: member.name,
+                    timeZone: member.timeZone,
+                    locale: member.language.locale,
+                  };
+                })
+              : []),
+          ],
         },
       },
       dynamicEventSlugRef,
@@ -952,6 +983,19 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   let videoCallUrl;
 
   if (originalRescheduledBooking?.uid) {
+    try {
+      // cancel workflow reminders from previous rescheduled booking
+      originalRescheduledBooking.workflowReminders.forEach((reminder) => {
+        if (reminder.method === WorkflowMethods.EMAIL) {
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+        } else if (reminder.method === WorkflowMethods.SMS) {
+          deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        }
+      });
+    } catch (error) {
+      log.error("Error while canceling scheduled workflow reminders", error);
+    }
+
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
       evt,
@@ -1127,7 +1171,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
+
+  if (booking.location?.startsWith("http")) {
+    videoCallUrl = booking.location;
+  }
+
+  const metadata = videoCallUrl ? { videoCallUrl: getVideoCallUrl(evt) || videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED

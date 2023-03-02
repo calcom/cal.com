@@ -247,7 +247,7 @@ const IntegrationsContainer = ({
           );
         }
         return (
-          <>
+          <div className="rounded-md border border-gray-200 p-7">
             <ShellSubHeading
               title={t(variant || "other")}
               subtitle={t(`installed_app_${variant || "other"}_description`)}
@@ -264,7 +264,7 @@ const IntegrationsContainer = ({
               }
             />
             <IntegrationsList handleDisconnect={handleDisconnect} data={data} variant={variant} />
-          </>
+          </div>
         );
       }}
     />
@@ -313,19 +313,17 @@ export default function InstalledApps() {
   return (
     <>
       <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-        <div className="rounded-md border border-gray-200 p-7">
-          {categoryList.includes(category) && (
-            <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
-          )}
-          {category === "calendar" && <CalendarListContainer />}
-          {category === "other" && (
-            <IntegrationsContainer
-              handleDisconnect={handleDisconnect}
-              variant={category}
-              exclude={[...categoryList, "calendar"]}
-            />
-          )}
-        </div>
+        {categoryList.includes(category) && (
+          <IntegrationsContainer handleDisconnect={handleDisconnect} variant={category} />
+        )}
+        {category === "calendar" && <CalendarListContainer />}
+        {category === "other" && (
+          <IntegrationsContainer
+            handleDisconnect={handleDisconnect}
+            variant={category}
+            exclude={[...categoryList, "calendar"]}
+          />
+        )}
       </InstalledAppsLayout>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}
