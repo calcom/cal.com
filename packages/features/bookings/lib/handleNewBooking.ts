@@ -125,17 +125,17 @@ const isWithinAvailableHours = (
   const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
   const isInviteeInDST = isInDST(dayjs().tz(organizerTimeZone));
   const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const isInviteeInDSTWheSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
+  const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
   const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-
+const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
+const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
+const inviteeDST = isInviteeInDST === isInviteeInDSTWheSlotStart;
   const getTime = (slotTime: Dayjs, minutes: number) =>
     slotTime
       .startOf("day")
       .add(
-        isOrganizerInDSTWhenSlotStart === isInviteeInDSTWheSlotStart &&
-          isOrganizerInDST === isOrganizerInDSTWhenSlotStart &&
-          isInviteeInDST === isInviteeInDSTWheSlotStart
+        sameDSTUsers && organizerDST && inviteeDST
           ? minutes
           : minutes -
               (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
@@ -146,7 +146,6 @@ const isWithinAvailableHours = (
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
-    console.log(timeSlotStart.format(), startTime.format());
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
