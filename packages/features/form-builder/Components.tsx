@@ -69,7 +69,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   number: {
     propsType: "text",
-    factory: (props) => <Widgets.NumberWidget {...props} />,
+    factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
   },
   name: {
     propsType: "text",
