@@ -108,7 +108,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       <HeadSeo
         title={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
         description={
-          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : md.render(user.bio || "")
+          isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
         }
         meeting={{
           title: isDynamicGroup ? "" : `${user.bio}`,
