@@ -342,14 +342,9 @@ async function expectCurrentFormToHaveFields(
 ) {
   for (const [index, field] of Object.entries(fields)) {
     expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
-    expect(
-      await page
-        .locator(".data-testid-field-type")
-        .nth(+index)
-        .locator("div")
-        .nth(1)
-        .innerText()
-    ).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
   }
 }
 
