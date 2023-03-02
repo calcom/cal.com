@@ -98,11 +98,22 @@ function buildSlots({
       });
     }
   }
-  // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
-  const timeZone =
-    (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"] || "UTC";
+
+  const isOrganizerInDST = isInDST(startOfInviteeDay.tz(organizerTimeZone));
+  const isInviteeInDST = isInDST(startOfInviteeDay.tz(inviteeTimeZone));
+  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
+  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
 
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+
+  const getTime = (time: number) => {
+    const minutes =
+      isOrganizerInDST !== isInviteeInDST
+        ? time - (isOrganizerInDST ? organizerDSTDifference : -inviteeDSTDifference)
+        : time;
+
+    return startOfInviteeDay.tz(inviteeTimeZone).add(minutes, "minutes");
+  };
 
   for (const item of Object.values(slotsTimeFrameAvailable)) {
     /*
@@ -115,14 +126,7 @@ function buildSlots({
      */
     const slot = {
       userIds: item.userIds,
-      time: dayjs(
-        startOfInviteeDay.add(
-          isInDST(startOfInviteeDay.tz(organizerTimeZone)) && !isInDST(startOfInviteeDay.tz(inviteeTimeZone))
-            ? item.startTime - getDSTDifference(organizerTimeZone)
-            : item.startTime,
-          "minute"
-        )
-      ).tz(timeZone),
+      time: getTime(item.startTime),
     };
     // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
     // As the time has now fallen backwards, or forwards; this difference -

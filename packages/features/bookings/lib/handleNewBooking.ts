@@ -19,7 +19,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import type { ConfigType } from "@calcom/dayjs";
+import type { ConfigType, Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
@@ -117,19 +117,31 @@ const isWithinAvailableHours = (
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  for (const workingHour of workingHours) {
-    const startMinutes =
-      isInDST(timeSlotStart.tz(organizerTimeZone)) && !isInDST(timeSlotStart.tz(inviteeTimeZone))
-        ? workingHour.startTime - getDSTDifference(organizerTimeZone)
-        : workingHour.startTime;
-    const endMinutes =
-      isInDST(timeSlotEnd.tz(organizerTimeZone)) && !isInDST(timeSlotEnd.tz(inviteeTimeZone))
-        ? workingHour.endTime - getDSTDifference(organizerTimeZone)
-        : workingHour.endTime;
+  const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
+  const isInviteeInDST = isInDST(dayjs().tz(organizerTimeZone));
+  const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
+  const isInviteeInDSTWheSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
+  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
+  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
 
-    // TODO: Double check & possibly fix timezone conversions.
-    const startTime = timeSlotStart.startOf("day").add(startMinutes, "minute");
-    const endTime = timeSlotEnd.startOf("day").add(endMinutes, "minute");
+  const getTime = (slotTime: Dayjs, minutes: number) =>
+    slotTime
+      .startOf("day")
+      .add(
+        isOrganizerInDSTWhenSlotStart === isInviteeInDSTWheSlotStart &&
+          isOrganizerInDST === isOrganizerInDSTWhenSlotStart &&
+          isInviteeInDST === isInviteeInDSTWheSlotStart
+          ? minutes
+          : minutes -
+              (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
+                ? organizerDSTDifference
+                : -inviteeDSTDifference),
+        "minutes"
+      );
+  for (const workingHour of workingHours) {
+    const startTime = getTime(timeSlotStart, workingHour.startTime);
+    const endTime = getTime(timeSlotEnd, workingHour.endTime);
+    console.log(timeSlotStart.format(), startTime.format());
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
