@@ -34,6 +34,7 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
+import { getDSTDifference, isInDST } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -106,16 +107,29 @@ const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
     workingHours,
+    organizerTimeZone,
+    inviteeTimeZone,
   }: {
     workingHours: WorkingHours[];
+    organizerTimeZone: string;
+    inviteeTimeZone: string;
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
   for (const workingHour of workingHours) {
+    const startMinutes =
+      isInDST(timeSlotStart.tz(organizerTimeZone)) && !isInDST(timeSlotStart.tz(inviteeTimeZone))
+        ? workingHour.startTime - getDSTDifference(organizerTimeZone)
+        : workingHour.startTime;
+    const endMinutes =
+      isInDST(timeSlotEnd.tz(organizerTimeZone)) && !isInDST(timeSlotEnd.tz(inviteeTimeZone))
+        ? workingHour.endTime - getDSTDifference(organizerTimeZone)
+        : workingHour.endTime;
+
     // TODO: Double check & possibly fix timezone conversions.
-    const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
-    const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
+    const startTime = timeSlotStart.startOf("day").add(startMinutes, "minute");
+    const endTime = timeSlotEnd.startOf("day").add(endMinutes, "minute");
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
@@ -239,7 +253,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string },
+  input: { dateFrom: string; dateTo: string; timeZone: string },
   recurringDatesInfo?: {
     allRecurringDates: string[] | undefined;
     currentRecurringIndex: number | undefined;
@@ -263,6 +277,8 @@ async function ensureAvailableUsers(
         { start: input.dateFrom, end: input.dateTo },
         {
           workingHours,
+          organizerTimeZone: user.timeZone || eventType.timeZone,
+          inviteeTimeZone: input.timeZone,
         }
       )
     ) {
@@ -449,6 +465,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       {
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
+        timeZone: reqBody.timeZone,
       },
       {
         allRecurringDates,

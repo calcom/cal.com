@@ -126,3 +126,69 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
   const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
   return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
 };
+
+/**
+ * Dayjs does not expose the timeZone value publicly through .get("timeZone")
+ * instead, we as devs are required to somewhat hack our way to get the
+ * tz value as string
+ * @param date Dayjs
+ * @returns Time Zone name
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+
+/**
+ * Verify if timeZone has Daylight Saving Time (DST).
+ *
+ * Many countries in the Northern Hemisphere. Daylight Saving Time usually starts in March-April and ends in
+ * September-November when the countries return to standard time, or winter time as it is also known.
+ *
+ * In the Southern Hemisphere (south of the equator) the participating countries usually start the DST period
+ * in September-November and end DST in March-April.
+ *
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns boolean
+ */
+export const timeZoneWithDST = (timeZone: string): boolean => {
+  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+  return jan.utcOffset() !== jul.utcOffset();
+};
+
+/**
+ * Get DST difference.
+ * Today clocks are almost always set one hour back or ahead.
+ * However, on Lord Howe Island, Australia, clocks are set only 30 minutes forward
+ * from LHST (UTC+10:30) to LHDT (UTC+11) during DST.
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns minutes
+ */
+export const getDSTDifference = (timeZone: string): number => {
+  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+  return jul.utcOffset() - jan.utcOffset();
+};
+
+/**
+ * Get UTC offset of given time zone when in DST
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns minutes
+ */
+export const getUTCOffsetInDST = (timeZone: string) => {
+  if (timeZoneWithDST(timeZone)) {
+    const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+    const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+    return jan.utcOffset() < jul.utcOffset() ? jul.utcOffset() : jan.utcOffset();
+  }
+  return 0;
+};
+/**
+ * Verifies if given time zone is in DST
+ * @param date
+ * @returns
+ */
+export const isInDST = (date: Dayjs) => {
+  const timeZone = getTimeZone(date);
+
+  return timeZoneWithDST(timeZone) && date.utcOffset() === getUTCOffsetInDST(timeZone);
+};

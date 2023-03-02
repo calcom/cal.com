@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import { getWorkingHours } from "./availability";
+import { getTimeZone, isInDST, getDSTDifference } from "./date-fns";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -11,6 +12,7 @@ export type GetSlots = {
   dateOverrides?: DateOverride[];
   minimumBookingNotice: number;
   eventLength: number;
+  organizerTimeZone: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -22,12 +24,16 @@ function buildSlots({
   frequency,
   eventLength,
   startDate,
+  organizerTimeZone,
+  inviteeTimeZone,
 }: {
   computedLocalAvailability: TimeFrame[];
   startOfInviteeDay: Dayjs;
   startDate: Dayjs;
   frequency: number;
   eventLength: number;
+  organizerTimeZone: string;
+  inviteeTimeZone: string;
 }) {
   // no slots today
   if (startOfInviteeDay.isBefore(startDate, "day")) {
@@ -97,6 +103,7 @@ function buildSlots({
     (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"] || "UTC";
 
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+
   for (const item of Object.values(slotsTimeFrameAvailable)) {
     /*
      * @calcom/web:dev: 2022-11-06T00:00:00-04:00
@@ -108,7 +115,14 @@ function buildSlots({
      */
     const slot = {
       userIds: item.userIds,
-      time: dayjs.tz(startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"), timeZone),
+      time: dayjs(
+        startOfInviteeDay.add(
+          isInDST(startOfInviteeDay.tz(organizerTimeZone)) && !isInDST(startOfInviteeDay.tz(inviteeTimeZone))
+            ? item.startTime - getDSTDifference(organizerTimeZone)
+            : item.startTime,
+          "minute"
+        )
+      ).tz(timeZone),
     };
     // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
     // As the time has now fallen backwards, or forwards; this difference -
@@ -132,6 +146,7 @@ const getSlots = ({
   workingHours,
   dateOverrides = [],
   eventLength,
+  organizerTimeZone,
 }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
@@ -151,12 +166,7 @@ const getSlots = ({
     return [];
   }
 
-  // Dayjs does not expose the timeZone value publicly through .get("timeZone")
-  // instead, we as devs are required to somewhat hack our way to get the ...
-  // tz value as string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const timeZone: string = (inviteeDate as any)["$x"]["$timezone"];
-
+  const timeZone: string = getTimeZone(inviteeDate);
   const workingHoursUTC = workingHours.map((schedule) => ({
     userId: schedule.userId,
     days: schedule.days,
@@ -237,6 +247,8 @@ const getSlots = ({
     startDate,
     frequency,
     eventLength,
+    organizerTimeZone,
+    inviteeTimeZone: timeZone,
   });
 };
 
