@@ -1,4 +1,5 @@
-import { devices, PlaywrightTestConfig } from "@playwright/test";
+import type { PlaywrightTestConfig } from "@playwright/test";
+import { devices } from "@playwright/test";
 import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
@@ -33,13 +34,14 @@ if (IS_EMBED_TEST) {
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 1,
+  retries: 0,
   workers: os.cpus().length,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
   reporter: [
     [process.env.CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./test-results/reports/results.xml" }],
   ],

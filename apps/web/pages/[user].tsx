@@ -1,7 +1,7 @@
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -31,8 +31,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -61,7 +61,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600">
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
           <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
@@ -157,7 +157,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           <div
             className={classNames(
               "rounded-md ",
-              !isEventListEmpty && "border border-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
+              !isEventListEmpty && "dark:border-darkgray-300 border border-gray-200"
             )}
             data-testid="event-types">
             {user.away ? (
@@ -176,7 +176,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600">
+                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
                   <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
@@ -291,6 +291,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const isDynamicGroup = users.length > 1;
+
+  if (isDynamicGroup) {
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
 
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {

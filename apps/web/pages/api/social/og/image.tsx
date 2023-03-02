@@ -1,5 +1,5 @@
 import { ImageResponse } from "@vercel/og";
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
@@ -18,7 +18,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
 );
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const meetingSchema = z.object({

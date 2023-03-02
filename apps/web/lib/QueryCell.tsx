@@ -1,11 +1,11 @@
-import {
+import type {
   QueryObserverLoadingErrorResult,
   QueryObserverLoadingResult,
   QueryObserverRefetchErrorResult,
   QueryObserverSuccessResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";

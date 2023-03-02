@@ -55,14 +55,16 @@ export default trpcNext.createNextApiHandler({
     // We need all these conditions to be true to set cache headers
     if (!(allPublic && allOk && isQuery)) return defaultHeaders;
 
-    defaultHeaders.headers["cache-control"] = `s-maxage=1, stale-while-revalidate=${ONE_DAY_IN_SECONDS}`;
+    // No cache by default
+    defaultHeaders.headers["cache-control"] = `no-cache`;
 
     // Our cache can change depending on our current paths value. Since paths is an array,
     // we want to create a map that can match potential paths with their desired cache value
     const cacheRules = {
-      "viewer.public.i18n": `max-age=${ONE_DAY_IN_SECONDS}, s-maxage=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
+      "viewer.public.session": `no-cache`,
+      "viewer.public.i18n": `no-cache`,
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
-      "viewer.public.slots.getSchedule": `max-age=0, s-maxage=1`,
+      "viewer.public.slots.getSchedule": `no-cache`, // FIXME
     } as const;
 
     // Find which element above is an exact match for this group of paths

@@ -1,10 +1,6 @@
 import { useMemo } from "react";
-import BaseSelect, {
-  allTimezones,
-  ITimezoneOption,
-  ITimezone,
-  Props as SelectProps,
-} from "react-timezone-select";
+import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
+import BaseSelect, { allTimezones } from "react-timezone-select";
 
 import { getReactSelectProps } from "../select";
 

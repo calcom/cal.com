@@ -14,10 +14,9 @@ const IS_STRIPE_ENABLED = !!(
 
 test.describe.configure({ mode: "parallel" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Reschedule Tests", async () => {
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
 
@@ -35,7 +34,7 @@ test.describe("Reschedule Tests", async () => {
     await page.fill('[data-testid="reschedule_reason"]', "I can't longer have it");
 
     await page.locator('button[data-testid="send_request"]').click();
-    await expect(page.locator('[id="modal-title"]')).not.toBeVisible();
+    await expect(page.locator('[id="modal-title"]')).toBeHidden();
 
     const updatedBooking = await booking.self();
 

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "../../../packages/ui/styles/shared-globals.css";
+
 
 body  {
   text-rendering: optimizeLegibility;
@@ -103,7 +103,6 @@ html.todesktop nav a svg{
   color: #0272F7 !important
 }
 */
-
 
 
 /*

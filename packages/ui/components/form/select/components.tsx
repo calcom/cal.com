@@ -1,5 +1,4 @@
-import {
-  components as reactSelectComponents,
+import type {
   ControlProps,
   GroupBase,
   InputProps,
@@ -10,6 +9,7 @@ import {
   SingleValueProps,
   ValueContainerProps,
 } from "react-select";
+import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 

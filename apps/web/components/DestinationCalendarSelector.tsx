@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DestinationCalendar } from "@calcom/prisma/client";
+import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 
 interface Props {

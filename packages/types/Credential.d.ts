@@ -1,4 +1,4 @@
-import { Prisma } from ".prisma/client";
+import type { Prisma } from "@prisma/client";
 
 /*
  * The logic on this it's just using Credential Type doesn't reflect that some fields can be

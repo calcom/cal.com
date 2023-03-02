@@ -4,6 +4,7 @@ export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
   identifier: z.string().optional(),
+  placeholder: z.string().optional(),
   type: z.string(),
   selectText: z.string().optional(),
   required: z.boolean().optional(),

@@ -197,5 +197,12 @@
     "slug": "basic",
     "type": "basic_other",
     "isTemplate": true
+  },
+  {
+    "dirName": "facetime",
+    "categories": ["video"],
+    "slug": "facetime",
+    "type": "facetime_video",
+    "isTemplate": false
   }
 ]

@@ -1,6 +1,10 @@
-import { expect, Page, test } from "@playwright/test";
-import { createServer, IncomingMessage, ServerResponse } from "http";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { IncomingMessage, ServerResponse } from "http";
+import { createServer } from "http";
 import noop from "lodash/noop";
+
+import { test } from "./fixtures";
 
 export function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test

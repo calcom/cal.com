@@ -117,6 +117,7 @@ const CopyButton = ({
           disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+            setOpen(false);
           }}
           onCancel={() => setOpen(false)}
         />

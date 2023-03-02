@@ -1,11 +1,7 @@
 import classNames from "classnames";
 import { components } from "react-select";
-import BaseSelect, {
-  allTimezones,
-  ITimezone,
-  ITimezoneOption,
-  Props as SelectProps,
-} from "react-timezone-select";
+import type { ITimezone, ITimezoneOption, Props as SelectProps } from "react-timezone-select";
+import BaseSelect, { allTimezones } from "react-timezone-select";
 
 import { InputComponent } from "../components/form/select/components";
 

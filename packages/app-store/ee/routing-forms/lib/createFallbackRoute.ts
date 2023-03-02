@@ -1,6 +1,6 @@
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
-import { GlobalRoute, SerializableRoute } from "../types/types";
+import type { GlobalRoute, SerializableRoute } from "../types/types";
 
 export const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();

@@ -1,5 +1,5 @@
 import { FieldTypes } from "../pages/form-edit/[...appPages]";
-import { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
+import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
 import { InitialConfig } from "./InitialConfig";
 
 export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {

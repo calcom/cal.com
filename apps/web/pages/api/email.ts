@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renderEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
