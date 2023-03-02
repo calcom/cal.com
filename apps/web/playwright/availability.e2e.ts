@@ -28,6 +28,7 @@ test.describe("Availablity tests", () => {
       await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
       await page.locator('[data-testid="date-override-mark-unavailable"]').click();
       await page.locator('[data-testid="add-override-submit-btn"]').click();
+      await page.locator('[data-testid="add-override-close-btn"]').click();
       await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
       await page.locator('[form="availability-form"][type="submit"]').click();
     });

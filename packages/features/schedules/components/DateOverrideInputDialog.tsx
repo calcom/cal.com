@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,8 @@ import {
 } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
-import { DayRanges, TimeRange } from "./Schedule";
+import type { TimeRange } from "./Schedule";
+import { DayRanges } from "./Schedule";
 
 const ALL_DAY_RANGE = {
   start: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
@@ -113,7 +115,6 @@ const DateOverrideForm = ({
             end: date.hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
           }))
         );
-        onClose();
       }}
       className="space-y-4 sm:flex sm:space-x-4">
       <div className={classNames(date && "w-full sm:border-r sm:pr-6")}>
@@ -158,7 +159,7 @@ const DateOverrideForm = ({
               data-testid="add-override-submit-btn">
               {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
             </Button>
-            <DialogClose onClick={onClose} />
+            <DialogClose data-testid="add-override-close-btn" onClick={onClose} />
           </div>
         </div>
       )}
