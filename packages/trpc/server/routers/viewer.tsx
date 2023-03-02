@@ -17,6 +17,7 @@ import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
@@ -1236,6 +1237,7 @@ export const viewerRouter = mergeRouters(
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    features: featureFlagRouter,
     appsRouter,
   })
 );
