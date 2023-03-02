@@ -30,4 +30,4 @@ packages/features/ee/workflows        @CarinaWolli
 packages/features/tips                @PeerRich
 packages/ui                           @calcom/ui
 packages/config                       @calcom/core
-packages/app-store/ee/routing-forms   @hariombalhara
+packages/app-store/ee/routing-forms   @hariombalhara @calcom/core
