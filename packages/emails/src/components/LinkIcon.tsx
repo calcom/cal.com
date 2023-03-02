@@ -1,11 +1,9 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 export const LinkIcon = ({ secondary, iconName }: { secondary?: boolean; iconName: string }) => (
   <img
-    src={
-      IS_PRODUCTION ? WEBAPP_URL + `/emails/${iconName}.png` : `https://app.cal.com/emails/${iconName}.png`
-    }
-    srcSet={
-      IS_PRODUCTION ? WEBAPP_URL + `/emails/${iconName}.svg` : `https://app.cal.com/emails/${iconName}.svg`
-    }
+    src={`${WEBAPP_URL}/emails/${iconName}.png`}
+    srcSet={`${WEBAPP_URL}/emails/${iconName}.svg`}
     width="16px"
     style={{
       marginBottom: "-3px",
