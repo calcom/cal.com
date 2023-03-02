@@ -1,5 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -14,6 +14,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -49,6 +50,29 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+  })
+  .nullable();
+
+export const eventTypeBookingFields = formBuilderFieldsSchema;
+export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+
+// Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
+// So it is a dynamic validation and thus entire validation can't exist here
+export const bookingResponses = z
+  .object({
+    email: z.string(),
+    name: z.string(),
+    guests: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+    location: z
+      .object({
+        optionValue: z.string(),
+        value: z.string(),
+      })
+      .optional(),
+    smsReminderNumber: z.string().optional(),
+    rescheduleReason: z.string().optional(),
   })
   .nullable();
 
@@ -120,14 +144,9 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  email: z.string(),
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  location: z.string(),
-  name: z.string(),
-  notes: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
@@ -135,7 +154,6 @@ export const bookingCreateBodySchema = z.object({
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
@@ -158,14 +176,13 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
 });
 
+// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
-    rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -179,6 +196,23 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
   })
+);
+
+// It has only the legacy props that are part of `responses` now. The API can still hit old props
+export const bookingCreateSchemaLegacyPropsForApi = z.object({
+  email: z.string(),
+  name: z.string(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  location: z.string(),
+  smsReminderNumber: z.string().optional().nullable(),
+  rescheduleReason: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+});
+
+// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
+export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
+  bookingCreateSchemaLegacyPropsForApi
 );
 
 export const schemaBookingCancelParams = z.object({

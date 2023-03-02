@@ -1,28 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
+import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import {
-  getEventLocationType,
-  getEventLocationValue,
-  getHumanReadableLocationValue,
-  locationKeyToString,
-} from "@calcom/app-store/locations";
+import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -30,41 +22,27 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import {
+  getBookingFieldsWithSystemFields,
+  SystemField,
+} from "@calcom/features/bookings/lib/getBookingFields";
+import getBookingResponsesSchema, {
+  getBookingResponsesPartialSchema,
+} from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import {
-  AddressInput,
-  Button,
-  EmailField,
-  EmailInput,
-  Form,
-  Group,
-  PhoneInput,
-  RadioField,
-  Tooltip,
-} from "@calcom/ui";
-import {
-  FiUserPlus,
-  FiCalendar,
-  FiX,
-  FiInfo,
-  FiCreditCard,
-  FiRefreshCw,
-  FiUser,
-  FiAlertTriangle,
-} from "@calcom/ui/components/icon";
+import { Button, Form, Tooltip } from "@calcom/ui";
+import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
-import { ensureArray } from "@lib/ensureArray";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
@@ -78,23 +56,123 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
-type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+/** These are like 40kb that not every user needs */
+const BookingDescriptionPayment = dynamic(
+  () => import("@components/booking/BookingDescriptionPayment")
+) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
 
-type BookingFormValues = {
-  name: string;
-  email: string;
-  notes?: string;
-  locationType?: EventLocationType["type"];
-  guests?: { email: string }[];
-  address?: string;
-  attendeeAddress?: string;
-  phone?: string;
-  hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
-  customInputs?: {
-    [key: string]: string | boolean;
-  };
-  rescheduleReason?: string;
-  smsReminderNumber?: string;
+type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
+const BookingFields = ({
+  fields,
+  locations,
+  rescheduleUid,
+  isDynamicGroupBooking,
+}: {
+  fields: BookingPageProps["eventType"]["bookingFields"];
+  locations: LocationObject[];
+  rescheduleUid?: string;
+  isDynamicGroupBooking: boolean;
+}) => {
+  const { t } = useLocale();
+  const { watch, setValue } = useFormContext();
+  const locationResponse = watch("responses.location");
+
+  return (
+    // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
+    <div>
+      {fields.map((field, index) => {
+        // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
+        // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
+        let readOnly =
+          (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+        let noLabel = false;
+        let hidden = !!field.hidden;
+        if (field.name === SystemField.Enum.rescheduleReason) {
+          if (!rescheduleUid) {
+            return null;
+          }
+          // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
+          readOnly = false;
+        }
+
+        if (field.name === SystemField.Enum.smsReminderNumber) {
+          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
+          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
+          if (locationResponse?.value === "phone") {
+            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
+            // Just don't render the field now, as the value is already connected to attendee phone location
+            return null;
+          }
+          // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          readOnly = false;
+        }
+
+        if (field.name === SystemField.Enum.guests) {
+          // No matter what user configured for Guests field, we don't show it for dynamic group booking as that doesn't support guests
+          hidden = isDynamicGroupBooking ? true : !!field.hidden;
+        }
+
+        // We don't show `notes` field during reschedule
+        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+          return null;
+        }
+
+        // Dynamically populate location field options
+        if (field.name === SystemField.Enum.location && field.type === "radioInput") {
+          if (!field.optionsInputs) {
+            throw new Error("radioInput must have optionsInputs");
+          }
+          const optionsInputs = field.optionsInputs;
+
+          const options = locations.map((location) => {
+            const eventLocation = getEventLocationType(location.type);
+            const locationString = locationKeyToString(location);
+
+            if (typeof locationString !== "string" || !eventLocation) {
+              // It's possible that location app got uninstalled
+              return null;
+            }
+            const type = eventLocation.type;
+            const optionInput = optionsInputs[type as keyof typeof optionsInputs];
+            if (optionInput) {
+              optionInput.placeholder = t(eventLocation?.attendeeInputPlaceholder || "");
+            }
+
+            return {
+              label: t(locationString),
+              value: type,
+            };
+          });
+
+          field.options = options.filter(
+            (location): location is NonNullable<(typeof options)[number]> => !!location
+          );
+          // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
+          // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
+          if (field.options.length === 1) {
+            if (field.optionsInputs[field.options[0].value]) {
+              noLabel = true;
+            } else {
+              // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
+              hidden = true;
+            }
+          }
+        }
+
+        const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
+        const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
+
+        return (
+          <FormBuilderField
+            className="mb-4"
+            field={{ ...field, label, placeholder, hidden }}
+            readOnly={readOnly}
+            key={index}
+          />
+        );
+      })}
+    </div>
+  );
 };
 
 const BookingPage = ({
@@ -124,7 +202,6 @@ const BookingPage = ({
     }),
     {}
   );
-  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (
@@ -156,8 +233,8 @@ const BookingPage = ({
           createPaymentLink({
             paymentUid,
             date,
-            name: bookingForm.getValues("name"),
-            email: bookingForm.getValues("email"),
+            name: bookingForm.getValues("responses.name"),
+            email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
         );
@@ -167,7 +244,7 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           isSuccessBookingPage: true,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
@@ -183,7 +260,7 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           allRemainingBookings: true,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
           formerTime: booking?.startTime.toString(),
         },
@@ -194,55 +271,58 @@ const BookingPage = ({
   const rescheduleUid = router.query.rescheduleUid as string;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
+  const querySchema = getBookingResponsesPartialSchema({
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
+  });
 
-  const [guestToggle, setGuestToggle] = useState(booking && booking.attendees.length > 1);
+  const parsedQuery = querySchema.parse({
+    ...router.query,
+    // `guest` because we need to support legacy URL with `guest` query param support
+    // `guests` because the `name` of the corresponding bookingField is `guests`
+    guests: router.query.guests || router.query.guest,
+  });
+
   // it would be nice if Prisma at some point in the future allowed for Json<Location>; as of now this is not the case.
   const locations: LocationObject[] = useMemo(
     () => (eventType.locations as LocationObject[]) || [],
     [eventType.locations]
   );
 
+  const [isClientTimezoneAvailable, setIsClientTimezoneAvailable] = useState(false);
   useEffect(() => {
-    if (router.query.guest) {
-      setGuestToggle(true);
-    }
-  }, [router.query.guest]);
+    // THis is to fix hydration error that comes because of different timezone on server and client
+    setIsClientTimezoneAvailable(true);
+  }, []);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
-  const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => {
-        return { email: attendee.email };
-      })
-    : [];
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: rescheduleUid
-      ? booking?.attendees[0].email
-      : router.query.email
-      ? (router.query.email as string)
-      : "",
-    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
+    email: rescheduleUid ? booking?.attendees[0].email : parsedQuery["email"],
+    name: rescheduleUid ? booking?.attendees[0].name : parsedQuery["name"],
   };
 
   const defaultValues = () => {
     if (!rescheduleUid) {
-      return {
+      const defaults = {
+        responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
+      };
+
+      const responses = eventType.bookingFields.reduce((responses, field) => {
+        return {
+          ...responses,
+          [field.name]: parsedQuery[field.name],
+        };
+      }, {});
+      defaults.responses = {
+        ...responses,
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
-        notes: (router.query.notes as string) || "",
-        guests: ensureArray(router.query.guest).map((guest) => {
-          return { email: guest as string };
-        }),
-        customInputs: eventType.customInputs.reduce(
-          (customInputs, input) => ({
-            ...customInputs,
-            [input.id]: router.query[slugify(input.label)],
-          }),
-          {}
-        ),
       };
+
+      return defaults;
     }
+
     if (!booking || !booking.attendees.length) {
       return {};
     }
@@ -251,74 +331,41 @@ const BookingPage = ({
       return {};
     }
 
-    const customInputType = booking.customInputs;
-    return {
-      name: defaultUserValues.name,
-      email: defaultUserValues.email || "",
-      guests: guestListEmails,
-      notes: booking.description || "",
-      rescheduleReason: "",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      customInputs: eventType.customInputs.reduce(
-        (customInputs, input) => ({
-          ...customInputs,
-          [input.id]: booking.customInputs
-            ? booking.customInputs[input.label as keyof typeof customInputType]
-            : "",
-        }),
-        {}
-      ),
+    const defaults = {
+      responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
+
+    const responses = eventType.bookingFields.reduce((responses, field) => {
+      return {
+        ...responses,
+        [field.name]: booking.responses[field.name],
+      };
+    }, {});
+    defaults.responses = {
+      ...responses,
+      name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+      email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
+    };
+    return defaults;
   };
 
   const bookingFormSchema = z
     .object({
-      name: z.string().min(1),
-      email: z.string().trim().email(),
-      guests: z.array(z.object({ email: z.string().email() })).optional(),
-      phone: z
-        .string()
-        .refine((val) => isValidPhoneNumber(val))
-        .optional()
-        .nullable(),
-      attendeeAddress: z.string().optional().nullable(),
-      smsReminderNumber: z
-        .string()
-        .refine((val) => isValidPhoneNumber(val))
-        .optional()
-        .nullable(),
+      responses: getBookingResponsesSchema({
+        bookingFields: getBookingFieldsWithSystemFields(eventType),
+      }),
     })
     .passthrough();
+
+  type BookingFormValues = {
+    locationType?: EventLocationType["type"];
+    responses: z.infer<typeof bookingFormSchema>["responses"];
+  };
 
   const bookingForm = useForm<BookingFormValues>({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  const guestsField = useFieldArray({
-    name: "guests",
-    control: bookingForm.control,
-  });
-
-  const selectedLocationType = useWatch({
-    control: bookingForm.control,
-    name: "locationType",
-    defaultValue: ((): EventLocationType["type"] | undefined => {
-      if (router.query.location) {
-        return router.query.location as EventLocationType["type"];
-      }
-      if (locations.length === 1) {
-        return locations[0]?.type;
-      }
-    })(),
-  });
-
-  const selectedLocation = getEventLocationType(selectedLocationType);
-  const AttendeeInput =
-    selectedLocation?.attendeeInputType === "phone"
-      ? PhoneInput
-      : selectedLocation?.attendeeInputType === "attendeeAddress"
-      ? AddressInput
-      : null;
 
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
@@ -336,40 +383,6 @@ const BookingPage = ({
   }
 
   const bookEvent = (booking: BookingFormValues) => {
-    bookingForm.clearErrors();
-    const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
-      label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-      value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
-    }));
-
-    // Checking if custom inputs of type Phone number are valid to display error message on UI
-    if (eventType.customInputs.length) {
-      let isErrorFound = false;
-      eventType.customInputs.forEach((customInput) => {
-        if (customInput.required && customInput.type === EventTypeCustomInputType.PHONE) {
-          const input = bookingCustomInputs.find((i) => i.label === customInput.label);
-          try {
-            z.string({
-              errorMap: () => ({
-                message: `Missing ${customInput.type} customInput: '${customInput.label}'`,
-              }),
-            })
-              .refine((val) => isValidPhoneNumber(val), {
-                message: "Phone number is invalid",
-              })
-              .parse(input?.value);
-          } catch (err) {
-            isErrorFound = true;
-            bookingForm.setError(`customInputs.${customInput.id}`, {
-              type: "custom",
-              message: "Invalid Phone number",
-            });
-          }
-        }
-      });
-      if (isErrorFound) return;
-    }
-
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -388,45 +401,6 @@ const BookingPage = ({
         {}
       );
 
-    if (eventType.customInputs.length > 0) {
-      // find all required custom inputs and ensure they are filled out in the booking form
-      const requiredCustomInputs = eventType.customInputs.filter((input) => input.required);
-      const missingRequiredCustomInputs = requiredCustomInputs.filter(
-        (input) => !booking?.customInputs?.[input.id]
-      );
-      if (missingRequiredCustomInputs.length > 0) {
-        missingRequiredCustomInputs.forEach((input) => {
-          bookingForm.setError(`customInputs.${input.id}`, {
-            type: "required",
-          });
-        });
-        return;
-      }
-    }
-
-    // Validate that guests are unique
-    let alreadyInvited = false;
-    booking.guests?.forEach((guest, index) => {
-      if (guest.email === booking.email) {
-        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-        alreadyInvited = true;
-      }
-
-      if (booking.guests) {
-        let guestCount = 0;
-        for (const checkGuest of booking.guests) {
-          if (checkGuest.email === guest.email) guestCount++;
-          if (guestCount > 1) {
-            bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
-            alreadyInvited = true;
-            break;
-          }
-        }
-      }
-    });
-
-    if (alreadyInvited) return;
-
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
@@ -443,21 +417,10 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         user: router.query.user,
-        location: getEventLocationValue(locations, {
-          type: booking.locationType ? booking.locationType : selectedLocationType || "",
-          phone: booking.phone,
-          attendeeAddress: booking.attendeeAddress,
-        }),
         metadata,
-        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
-        smsReminderNumber:
-          selectedLocationType === LocationType.Phone
-            ? booking.phone
-            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
-        guests: booking.guests?.map((guest) => guest.email),
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -472,48 +435,14 @@ const BookingPage = ({
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
-        location: getEventLocationValue(locations, {
-          type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
-          phone: booking.phone,
-          attendeeAddress: booking.attendeeAddress,
-        }),
         metadata,
-        customInputs: bookingCustomInputs,
         hasHashedBookingLink,
         hashedLink,
-        smsReminderNumber:
-          selectedLocationType === LocationType.Phone
-            ? booking.phone
-            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
-        guests: booking.guests?.map((guest) => guest.email),
       });
     }
   };
 
-  // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
-  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
-  const disableLocations = !!rescheduleUid;
-  const disabledExceptForOwner = disableInput && !loggedInIsOwner;
-  const inputClassName =
-    "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
-
-  let isSmsReminderNumberNeeded = false;
-  let isSmsReminderNumberRequired = false;
-
-  if (eventType.workflows.length > 0) {
-    eventType.workflows.forEach((workflowReference) => {
-      if (workflowReference.workflow.steps.length > 0) {
-        workflowReference.workflow.steps.forEach((step) => {
-          if (step.action === WorkflowActions.SMS_ATTENDEE) {
-            isSmsReminderNumberNeeded = true;
-            isSmsReminderNumberRequired = step.numberRequired || false;
-            return;
-          }
-        });
-      }
-    });
-  }
   const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
@@ -560,18 +489,7 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {paymentAppData.price > 0 && (
-                    <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={paymentAppData.price / 100.0}
-                          style="currency"
-                          currency={paymentAppData?.currency?.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
+                  <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
@@ -587,8 +505,11 @@ const BookingPage = ({
                   <div className="text-bookinghighlight flex items-start text-sm">
                     <FiCalendar className="ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                     <div className="text-sm font-medium">
-                      {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
-                      {!rescheduleUid &&
+                      {isClientTimezoneAvailable &&
+                        (rescheduleUid || !eventType.recurringEvent?.freq) &&
+                        `${parseDate(date, i18n)}`}
+                      {isClientTimezoneAvailable &&
+                        !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
                         recurringStrings.slice(0, 5).map((timeFormatted, key) => {
                           return <p key={key}>{timeFormatted}</p>;
@@ -614,7 +535,9 @@ const BookingPage = ({
                       </p>
                       <p className="line-through ">
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                        {isClientTimezoneAvailable &&
+                          typeof booking.startTime === "string" &&
+                          parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
                   )}
@@ -648,392 +571,23 @@ const BookingPage = ({
               </div>
             )}
             <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
-              <Form form={bookingForm} handleSubmit={bookEvent}>
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("your_name")}
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      {...bookingForm.register("name", { required: true })}
-                      type="text"
-                      name="name"
-                      id="name"
-                      required
-                      className={inputClassName}
-                      placeholder={t("example_name")}
-                      disabled={disableInput}
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("email_address")}
-                  </label>
-                  <div className="mt-1">
-                    <EmailInput
-                      {...bookingForm.register("email")}
-                      required
-                      className={classNames(
-                        inputClassName,
-                        bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
-                      )}
-                      placeholder="you@example.com"
-                      type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                      disabled={disableInput}
-                    />
-                    {bookingForm.formState.errors.email && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("email_validation_error")}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <>
-                  {rescheduleUid ? (
-                    <div className="mb-4">
-                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("location")}
-                      </span>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {getHumanReadableLocationValue(booking?.location, t)}
-                      </p>
-                    </div>
-                  ) : (
-                    locations.length > 1 && (
-                      <div className="mb-4">
-                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                          {t("location")}
-                        </span>
-                        {locations.map((location, i) => {
-                          const locationString = locationKeyToString(location);
-                          if (!selectedLocationType) {
-                            bookingForm.setValue("locationType", locations[0].type);
-                          }
-                          if (typeof locationString !== "string") {
-                            // It's possible that location app got uninstalled
-                            return null;
-                          }
-                          return (
-                            <label key={i} className="block">
-                              <input
-                                type="radio"
-                                disabled={!!disableLocations}
-                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                                {...bookingForm.register("locationType", { required: true })}
-                                value={location.type}
-                                defaultChecked={i === 0}
-                              />
-                              <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
-                                {t(locationKeyToString(location) ?? "")}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )
-                  )}
-                </>
-                {/* TODO: Change name and id ="phone" to something generic */}
-                {AttendeeInput && !disableInput && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor={
-                        selectedLocationType === LocationType.Phone
-                          ? "phone"
-                          : selectedLocationType === LocationType.AttendeeInPerson
-                          ? "attendeeAddress"
-                          : ""
-                      }
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {selectedLocationType === LocationType.Phone
-                        ? t("phone_number")
-                        : selectedLocationType === LocationType.AttendeeInPerson
-                        ? t("address")
-                        : ""}
-                    </label>
-                    <div className="mt-1">
-                      <AttendeeInput<BookingFormValues>
-                        control={bookingForm.control}
-                        bookingForm={bookingForm}
-                        name={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id={
-                          selectedLocationType === LocationType.Phone
-                            ? "phone"
-                            : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "attendeeAddress"
-                            : ""
-                        }
-                        required
-                      />
-                    </div>
-                    {bookingForm.formState.errors.phone && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {eventType.customInputs
-                  .sort((a, b) => a.id - b.id)
-                  .map((input) => (
-                    <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className={classNames(
-                            "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
-                            bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
-                          )}>
-                          {input.label} {input.required && <span className="text-red-700">*</span>}
-                        </label>
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXTLONG && (
-                        <textarea
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          rows={3}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXT && (
-                        <input
-                          type="text"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.NUMBER && (
-                        <input
-                          type="number"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder=""
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="my-6">
-                          <div className="flex">
-                            <input
-                              type="checkbox"
-                              {...bookingForm.register(`customInputs.${input.id}`, {
-                                required: input.required,
-                              })}
-                              required={input.required}
-                              id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                              placeholder=""
-                              disabled={disabledExceptForOwner}
-                            />
-                            <label
-                              htmlFor={"custom_" + input.id}
-                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
-                              {input.label}
-                            </label>
-                          </div>
-                        </div>
-                      )}
-                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
-                        <div className="flex">
-                          <Group
-                            name={`customInputs.${input.id}`}
-                            required={input.required}
-                            onValueChange={(e) => {
-                              bookingForm.setValue(`customInputs.${input.id}`, e);
-                            }}>
-                            <>
-                              {input.options.map((option, i) => (
-                                <RadioField
-                                  label={option.label}
-                                  key={`option.${input.id}.${i}.radio`}
-                                  value={option.label}
-                                  id={`option.${input.id}.${i}.radio`}
-                                />
-                              ))}
-                            </>
-                            {bookingForm.formState.errors.customInputs?.[input.id] && (
-                              <div className="mt-px flex items-center text-xs text-red-700 ">
-                                <p>{t("required")}</p>
-                              </div>
-                            )}
-                          </Group>
-                        </div>
-                      )}
-                      {input.type === EventTypeCustomInputType.PHONE && (
-                        <div>
-                          <PhoneInput<BookingFormValues>
-                            name={`customInputs.${input.id}`}
-                            control={bookingForm.control}
-                            placeholder={t("enter_phone_number")}
-                            id={`customInputs.${input.id}`}
-                            required={input.required}
-                          />
-                          {bookingForm.formState.errors?.customInputs?.[input.id] && (
-                            <div className="mt-2 flex items-center text-sm text-red-700 ">
-                              <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                              <p>{t("invalid_number")}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+              <Form form={bookingForm} noValidate handleSubmit={bookEvent}>
+                <BookingFields
+                  isDynamicGroupBooking={isDynamicGroupBooking}
+                  fields={eventType.bookingFields}
+                  locations={locations}
+                  rescheduleUid={rescheduleUid}
+                />
 
-                {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
-                  <div className="mb-4">
-                    <label
-                      htmlFor="smsReminderNumber"
-                      className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("number_sms_notifications")}
-                    </label>
-                    <div className="mt-1">
-                      <PhoneInput<BookingFormValues>
-                        control={bookingForm.control}
-                        name="smsReminderNumber"
-                        placeholder={t("enter_phone_number")}
-                        id="smsReminderNumber"
-                        required={isSmsReminderNumberRequired}
-                      />
-                    </div>
-                    {bookingForm.formState.errors.smsReminderNumber && (
-                      <div className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("invalid_number")}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="mb-4">
-                  <label
-                    htmlFor="notes"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                    {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
-                  </label>
-                  {rescheduleUid ? (
-                    <textarea
-                      {...bookingForm.register("rescheduleReason")}
-                      id="rescheduleReason"
-                      name="rescheduleReason"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("reschedule_placeholder")}
-                    />
-                  ) : (
-                    <textarea
-                      {...bookingForm.register("notes")}
-                      required={!!eventType.metadata?.additionalNotesRequired}
-                      id="notes"
-                      name="notes"
-                      rows={3}
-                      className={inputClassName}
-                      placeholder={t("share_additional_notes")}
-                      disabled={disabledExceptForOwner}
-                    />
-                  )}
-                </div>
-                {!eventType.disableGuests && guestsField.fields.length ? (
-                  <div className="mb-4">
-                    <div>
-                      <label
-                        htmlFor="guests"
-                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                        {t("guests")}
-                      </label>
-                      <ul>
-                        {guestsField.fields.map((field, index) => (
-                          <li key={field.id}>
-                            <EmailField
-                              {...bookingForm.register(`guests.${index}.email` as const)}
-                              className={classNames(
-                                inputClassName,
-                                bookingForm.formState.errors.guests?.[index] &&
-                                  "!focus:ring-red-700 !border-red-700",
-                                "border-r-0"
-                              )}
-                              addOnClassname={classNames(
-                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 ",
-                                bookingForm.formState.errors.guests?.[index] &&
-                                  "!focus:ring-red-700 !border-red-700"
-                              )}
-                              placeholder="guest@example.com"
-                              label={<></>}
-                              required
-                              addOnSuffix={
-                                <Tooltip content="Remove guest">
-                                  <button
-                                    className="m-1 disabled:hover:cursor-not-allowed"
-                                    type="button"
-                                    onClick={() => guestsField.remove(index)}>
-                                    <FiX className="text-gray-600" />
-                                  </button>
-                                </Tooltip>
-                              }
-                            />
-                            {bookingForm.formState.errors.guests?.[index] && (
-                              <div className="mt-2 flex items-center text-sm text-red-700 ">
-                                <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                                <p className="text-red-700">
-                                  {bookingForm.formState.errors.guests?.[index]?.message}
-                                </p>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button
-                        type="button"
-                        color="minimal"
-                        StartIcon={FiUserPlus}
-                        className="my-2.5"
-                        // className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
-                        onClick={() => guestsField.append({ email: "" })}>
-                        {t("add_another")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <></>
-                )}
-
-                {!eventType.disableGuests && !guestsField.fields.length && (
-                  <Button
-                    color="minimal"
-                    variant="button"
-                    StartIcon={FiUserPlus}
-                    onClick={() => {
-                      guestsField.append({ email: "" });
-                    }}
-                    className="mr-auto">
-                    {t("additional_guests")}
-                  </Button>
-                )}
-
-                <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                <div
+                  className={classNames(
+                    "flex justify-end space-x-2 rtl:space-x-reverse",
+                    // HACK: If the last field is guests, we need to move Cancel, Submit buttons up because "Add Guests" being present on the left and the buttons on the right, spacing is not required
+                    eventType.bookingFields[eventType.bookingFields.length - 1].name ===
+                      SystemField.Enum.guests
+                      ? "-mt-4"
+                      : ""
+                  )}>
                   <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
