@@ -1,6 +1,7 @@
 import type { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { FiEdit2, FiTrash2 } from "@calcom/ui/components/icon";
@@ -9,6 +10,14 @@ import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
 const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRange[]; id: string }) => {
   return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
+};
+
+const useSettings = () => {
+  const { data } = useMeQuery();
+  return {
+    hour12: data?.timeFormat === 12,
+    timeZone: data?.timeZone,
+  };
 };
 
 const DateOverrideList = ({
@@ -26,17 +35,20 @@ const DateOverrideList = ({
   excludedDates?: string[];
 }) => {
   const { t, i18n } = useLocale();
+  const { hour12 } = useSettings();
   if (!items.length) {
     return <></>;
   }
 
   const timeSpan = ({ start, end }: TimeRange) => {
     return (
-      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(
-        start
+      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
+        new Date(start.toISOString().slice(0, -1))
       ) +
       " - " +
-      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(end)
+      new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
+        new Date(end.toISOString().slice(0, -1))
+      )
     );
   };
 
@@ -52,7 +64,7 @@ const DateOverrideList = ({
                 day: "numeric",
               }).format(item.ranges[0].start)}
             </h3>
-            {item.ranges[0].end.getHours() === 0 && item.ranges[0].end.getMinutes() === 0 ? (
+            {item.ranges[0].start.valueOf() - item.ranges[0].end.valueOf() === 0 ? (
               <p className="text-xs text-gray-500">{t("unavailable")}</p>
             ) : (
               item.ranges.map((range, i) => (
