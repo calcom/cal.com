@@ -1,4 +1,5 @@
 import { Prisma, SchedulingType } from "@prisma/client";
+import MarkdownIt from "markdown-it";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -28,9 +29,16 @@ export type EventTypeDescriptionProps = {
     seatsPerTimeSlot?: number;
   };
   className?: string;
+  shortenDescription?: true;
 };
 
-export const EventTypeDescription = ({ eventType, className }: EventTypeDescriptionProps) => {
+const md = new MarkdownIt("default", { html: true, breaks: false, linkify: true });
+
+export const EventTypeDescription = ({
+  eventType,
+  className,
+  shortenDescription,
+}: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
   const recurringEvent = useMemo(
@@ -44,10 +52,17 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     <>
       <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
         {eventType.description && (
-          <p className="dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
-            {eventType.description.substring(0, 300)}
-            {eventType.description.length > 300 && "..."}
-          </p>
+          <div
+            className={classNames(
+              "dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+              shortenDescription ? "line-clamp-4" : ""
+            )}
+            dangerouslySetInnerHTML={{
+              __html: shortenDescription
+                ? md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " "))
+                : md.render(eventType.description),
+            }}
+          />
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
           {eventType.metadata?.multipleDuration ? (

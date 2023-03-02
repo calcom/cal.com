@@ -13,15 +13,16 @@ import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
-import { availabilityUserSelect } from "@calcom/prisma";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { Context } from "../../createContext";
-import { router, publicProcedure } from "../../trpc";
+import type { createContext } from "../../createContext";
+import { publicProcedure, router } from "../../trpc";
+
+type Context = Awaited<ReturnType<typeof createContext>>;
 
 const getScheduleSchema = z
   .object({

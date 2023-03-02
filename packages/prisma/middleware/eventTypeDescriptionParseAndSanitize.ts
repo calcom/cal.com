@@ -1,13 +1,7 @@
 import type { PrismaClient, EventType } from "@prisma/client";
 import MarkdownIt from "markdown-it";
 
-const md = new MarkdownIt("zero").enable([
-  //
-  "emphasis",
-  "list",
-  "newline",
-  "strikethrough",
-]);
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 function parseAndSanitize(description: string) {
   const parsedMarkdown = md.render(description);
