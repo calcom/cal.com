@@ -1,5 +1,6 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import { cityMapping } from "city-timezones";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -143,6 +144,7 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  cityTimezones: publicProcedure.query(() => cityMapping),
 });
 
 // routes only available to authenticated users
