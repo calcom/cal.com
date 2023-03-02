@@ -88,7 +88,7 @@ function getNavigation(props: {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: FiCalendar,
-      info: availability?.label ?? `default_schedule_name`, // TODO: Get this from props changing
+      info: availability?.label ?? `default_schedule_name`,
     },
     {
       name: "event_limit_tab_title",
@@ -188,7 +188,7 @@ function EventTypeSingleLayout({
       });
     }
     return navigation;
-  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team, availability]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug

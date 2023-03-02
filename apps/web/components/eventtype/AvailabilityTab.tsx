@@ -1,4 +1,5 @@
 import type { FormValues } from "pages/event-types/[type]";
+import { useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -62,10 +63,7 @@ const AvailabilitySelect = ({
 }) => {
   const { data, isLoading } = trpc.viewer.availability.list.useQuery();
   const { t } = useLocale();
-
-  if (isLoading) {
-    return <SelectSkeletonLoader />;
-  }
+  const formMethods = useFormContext<FormValues>();
 
   const schedules = data?.schedules || [];
 
@@ -80,6 +78,16 @@ const AvailabilitySelect = ({
       ? option.value === props.value
       : option.value === schedules.find((schedule) => schedule.isDefault)?.id
   );
+
+  useEffect(() => {
+    if (value) {
+      formMethods.setValue("availability", value);
+    }
+  }, [value?.value]);
+
+  if (isLoading) {
+    return <SelectSkeletonLoader />;
+  }
 
   return (
     <Select
@@ -174,7 +182,7 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = () => {
   const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
+
   return (
     <div className="space-y-4">
       <div>
@@ -189,7 +197,6 @@ const EventTypeSchedule = () => {
               onBlur={field.onBlur}
               name={field.name}
               onChange={(selected) => {
-                formMethods.setValue("availability", selected !== null ? selected : undefined);
                 field.onChange(selected?.value || null);
               }}
             />
