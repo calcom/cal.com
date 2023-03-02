@@ -38,6 +38,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { trpc } from "@calcom/trpc";
 import { Button, Form, Tooltip } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
@@ -185,8 +186,8 @@ const BookingPage = ({
   hashedLink,
   ...restProps
 }: BookingPageProps) => {
-  const releaseSlotMutation = trpc.viewer.slots.removeSelectedSlotMark.useMutation();
-  const selectSlotMutation = trpc.viewer.slots.markSelectedSlot.useMutation();
+  const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
+  const selectSlotMutation = trpc.viewer.public.slots.markSelectedSlot.useMutation();
   const { t, i18n } = useLocale();
   const { duration: queryDuration } = useRouterQuery("duration");
   const { date: queryDate } = useRouterQuery("date");

@@ -42,7 +42,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   seatsPerTimeSlot,
   ethSignature,
 }) => {
-  const mutation = trpc.viewer.slots.markSelectedSlot.useMutation();
+  const mutation = trpc.viewer.public.slots.markSelectedSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
