@@ -7,6 +7,8 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Wipe my Cal App Test", () => {
   test("Browse upcoming bookings and validate button shows and triggering wipe my cal button", async ({
     page,
@@ -47,7 +49,5 @@ test.describe("Wipe my Cal App Test", () => {
     page.locator("data-testid=send_request").click();
     // There will not be any today-bookings
     await expect(page.locator('[data-testid="today-bookings"]')).toBeHidden();
-
-    await users.deleteAll();
   });
 });
