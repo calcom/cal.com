@@ -14,7 +14,7 @@ import { Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 type FormData = {
   bio: string;

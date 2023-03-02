@@ -244,13 +244,13 @@ test.describe("Routing Forms", () => {
       const thirdResponseCells = csvRows[3].split(",");
 
       expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,");
-      expect(new Date(firstResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(firstResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
       expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,");
-      expect(new Date(secondResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(secondResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
       expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,");
-      expect(new Date(thirdResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(thirdResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
     });
 
     test("Router URL should work", async ({ page, users }) => {
