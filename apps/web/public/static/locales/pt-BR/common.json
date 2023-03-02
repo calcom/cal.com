@@ -589,7 +589,6 @@
   "new_event_type_heading": "Crie seu primeiro evento",
   "new_event_type_description": "Os eventos permitem que você compartilhe links que mostram os horários disponíveis no seu calendário para que os usuários façam agendamentos com você.",
   "new_event_title": "Adicionar um novo tipo de evento",
-  "new_event_subtitle": "Crie um tipo de evento com o seu nome ou da sua equipe.",
   "new_team_event": "Adicionar um novo tipo de evento de equipe",
   "new_event_description": "Crie um novo tipo de evento para as pessoas agendarem horários.",
   "event_type_created_successfully": "{{eventTypeTitle}} evento criado com sucesso",

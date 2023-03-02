@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -14,27 +13,16 @@ import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
-  Avatar,
   Button,
   Dialog,
   DialogClose,
   DialogContent,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
   Form,
   RadioGroup as RadioArea,
   showToast,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
-
-import { DuplicateDialog } from "./DuplicateDialog";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -42,15 +30,6 @@ export interface EventTypeParent {
   name?: string | null;
   slug?: string | null;
   image?: string | null;
-}
-
-interface CreateEventTypeBtnProps {
-  // set true for use on the team settings page
-  canAddEvents: boolean;
-  // set true when in use on the team settings page
-  isIndividualTeam?: boolean;
-  // EventTypeParent can be a profile (as first option) or a team for the rest.
-  options: EventTypeParent[];
 }
 
 const locationFormSchema = z.array(
@@ -71,10 +50,7 @@ const querySchema = z.object({
   teamId: z.union([z.string().transform((val) => +val), z.number()]).optional(),
   title: z.string().optional(),
   slug: z.string().optional(),
-  length: z
-    .union([z.string().transform((val) => +val), z.number()])
-    .optional()
-    .default(15),
+  length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
   description: z.string().optional(),
   schedulingType: z.nativeEnum(SchedulingType).optional(),
   locations: z
@@ -83,17 +59,19 @@ const querySchema = z.object({
     .optional(),
 });
 
-const CreateEventTypeDialog = () => {
+export default function CreateEventTypeDialog() {
   const { t } = useLocale();
   const router = useRouter();
 
   const {
-    data: { teamId, eventPage: pageSlug, ...defaultValues },
+    data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
+    defaultValues: {
+      length: 15,
+    },
     resolver: zodResolver(createEventTypeInput),
-    defaultValues,
   });
 
   const { register } = form;
@@ -123,7 +101,7 @@ const CreateEventTypeDialog = () => {
 
   return (
     <Dialog
-      name="new-eventtype"
+      name="new"
       clearQueryParamsOnClose={[
         "eventPage",
         "teamId",
@@ -248,82 +226,5 @@ const CreateEventTypeDialog = () => {
         </Form>
       </DialogContent>
     </Dialog>
-  );
-};
-
-export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
-  const { t } = useLocale();
-  const router = useRouter();
-
-  const hasTeams = !!props.options.find((option) => option.teamId);
-
-  // inject selection data into url for correct router history
-  const openModal = (option: EventTypeParent) => {
-    const query = {
-      ...router.query,
-      dialog: "new-eventtype",
-      eventPage: option.slug,
-      teamId: option.teamId,
-    };
-    if (!option.teamId) {
-      delete query.teamId;
-    }
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
-  };
-
-  return (
-    <>
-      {!hasTeams || props.isIndividualTeam ? (
-        <Button
-          onClick={() => openModal(props.options[0])}
-          data-testid="new-event-type"
-          StartIcon={FiPlus}
-          variant="fab"
-          disabled={!props.canAddEvents}>
-          {t("new")}
-        </Button>
-      ) : (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button variant="fab" StartIcon={FiPlus}>
-              {t("new")}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={14} align="end">
-            <DropdownMenuLabel>
-              <div className="max-w-48">{t("new_event_subtitle")}</div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {props.options.map((option) => (
-              <DropdownMenuItem key={option.slug}>
-                <DropdownItem
-                  type="button"
-                  StartIcon={(props: any) => (
-                    <Avatar
-                      alt={option.name || ""}
-                      imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                      size="sm"
-                      {...props}
-                    />
-                  )}
-                  onClick={() => openModal(option)}>
-                  <span>{option.name ? option.name : option.slug}</span>
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
-      )}
-      {/* Dialog for duplicate event type */}
-      {router.query.dialog === "duplicate-event-type" && <DuplicateDialog />}
-      {router.query.dialog === "new-eventtype" && <CreateEventTypeDialog />}
-    </>
   );
 }

@@ -588,7 +588,6 @@
   "new_event_type_heading": "创建您的第一个活动类型",
   "new_event_type_description": "活动类型使您能够分享关于您日历上可用时间的链接，并能让人们和您预约。",
   "new_event_title": "添加一个新的活动类型",
-  "new_event_subtitle": "在您的个人或团队名下创建活动类型。",
   "new_team_event": "添加一个新的团队活动类型",
   "new_event_description": "创建一个新的活动类型以让他人预约。",
   "event_type_created_successfully": "{{eventTypeTitle}} 活动类型创建成功",
