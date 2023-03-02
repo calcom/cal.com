@@ -7,6 +7,8 @@ import {
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.login();
@@ -55,8 +57,6 @@ test("dynamic booking", async ({ page, users }) => {
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
-    await expect(cancelledHeadline).toBe("This event is cancelled");
+    expect(cancelledHeadline).toBe("This event is cancelled");
   });
-
-  await users.deleteAll();
 });
