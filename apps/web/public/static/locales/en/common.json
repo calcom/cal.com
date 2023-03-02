@@ -860,6 +860,7 @@
   "add_new_calendar": "Add a new calendar",
   "set_calendar": "Set where to add new events to when you're booked.",
   "delete_schedule": "Delete schedule",
+  "delete_schedule_description":"Deleting a schedule will remove it from all event types. This action cannot be undone.",
   "schedule_created_successfully": "{{scheduleName}} schedule created successfully",
   "availability_updated_successfully": "{{scheduleName}} schedule updated successfully",
   "schedule_deleted_successfully": "Schedule deleted successfully",
