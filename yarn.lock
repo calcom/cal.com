@@ -11624,6 +11624,13 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
+city-timezones@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/city-timezones/-/city-timezones-1.2.1.tgz#7087d1719dd599f1e88ebc2f7fb96e091201d318"
+  integrity sha512-hruuB611QFoUFMsan7xd9B2VPMrA8XC716O/999WW34kmaJUT1hxKF2W8TSXAWkhSqgvbu70DjcDv7/wpM6vow==
+  dependencies:
+    lodash "^4.17.21"
+
 cjs-module-lexer@^1.0.0:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.2.2.tgz#9f84ba3244a512f3a54e5277e8eef4c489864e40"
