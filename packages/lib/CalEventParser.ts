@@ -46,9 +46,18 @@ ${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer"
 ${calEvent.organizer.email}
   `;
 
+  const teamMembers = calEvent.team?.members
+    ? calEvent.team.members.map((member) => {
+        return `
+${member.name} - ${calEvent.organizer.language.translate("team_member")} 
+${member.email}
+    `;
+      })
+    : [];
+
   return `
 ${calEvent.organizer.language.translate("who")}:
-${organizer + attendees}
+${organizer + attendees + teamMembers.join("")}
   `;
 };
 
