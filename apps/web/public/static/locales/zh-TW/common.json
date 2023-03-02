@@ -589,7 +589,6 @@
   "new_event_type_heading": "新增第一個活動類型",
   "new_event_type_description": "活動類型可以用來分享行事曆開放時段的連結，讓人們進行預約。",
   "new_event_title": "新增活動類型",
-  "new_event_subtitle": "在名字或團隊的地方新增活動類型。",
   "new_team_event": "新增團隊的活動類型",
   "new_event_description": "新增讓人們可以預約時段的活動類型。",
   "event_type_created_successfully": "成功新增活動類型 {{eventTypeTitle}}",

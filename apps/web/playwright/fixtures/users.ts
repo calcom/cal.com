@@ -1,7 +1,7 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import { MembershipRole, Prisma as PrismaType } from "@prisma/client";
-import { hash } from "bcryptjs";
+import { hashSync as hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -10,8 +10,8 @@ import { prisma } from "@calcom/prisma";
 import type { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
-export async function hashPassword(password: string) {
-  const hashedPassword = await hash(password, 12);
+export function hashPassword(password: string) {
+  const hashedPassword = hash(password, 12);
   return hashedPassword;
 }
 
@@ -74,7 +74,29 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       });
       await prisma.eventType.create({
         data: {
+          owner: {
+            connect: {
+              id: _user.id,
+            },
+          },
           users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "30 mins",
+          slug: "30-mins",
+          length: 30,
+        },
+      });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          owner: {
             connect: {
               id: _user.id,
             },
@@ -88,6 +110,11 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       await prisma.eventType.create({
         data: {
           users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          owner: {
             connect: {
               id: _user.id,
             },
@@ -270,17 +297,14 @@ type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "loc
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
-const createUser = async (
-  workerInfo: WorkerInfo,
-  opts?: CustomUserOpts | null
-): Promise<PrismaType.UserCreateInput> => {
+const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
   // build a unique name for our user
   const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
     name: opts?.name,
     email: `${uname}@example.com`,
-    password: await hashPassword(uname),
+    password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? dayjs.tz.guess(),
@@ -298,13 +322,6 @@ const createUser = async (
             },
           }
         : undefined,
-    eventTypes: {
-      create: {
-        title: "30 min",
-        slug: "30-min",
-        length: 30,
-      },
-    },
   };
 };
 
