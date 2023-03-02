@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,9 +23,12 @@ import {
   Switch,
   TimezoneSelect,
   Tooltip,
+  Dialog,
+  DialogTrigger,
+  ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiInfo, FiPlus } from "@calcom/ui/components/icon";
+import { FiInfo, FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -86,6 +90,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 
 export default function Availability({ schedule }: { schedule: number }) {
   const { t, i18n } = useLocale();
+  const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
@@ -117,6 +122,22 @@ export default function Availability({ schedule }: { schedule: number }) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
+    },
+  });
+
+  const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+    onSettled: () => {
+      utils.viewer.availability.list.invalidate();
+    },
+    onSuccess: () => {
+      showToast(t("schedule_deleted_successfully"), "success");
+      router.push("/availability");
     },
   });
 
@@ -165,6 +186,24 @@ export default function Availability({ schedule }: { schedule: number }) {
               }}
             />
           </div>
+
+          <VerticalDivider />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button StartIcon={FiTrash} variant="icon" color="destructive" aria-label={t("delete")} />
+            </DialogTrigger>
+            <ConfirmationDialogContent
+              isLoading={deleteMutation.isLoading}
+              variety="danger"
+              title={t("delete_schedule")}
+              confirmBtnText={t("delete")}
+              loadingText={t("delete")}
+              onConfirm={() => {
+                deleteMutation.mutate({ scheduleId: schedule });
+              }}>
+              {t("delete_schedule_description")}
+            </ConfirmationDialogContent>
+          </Dialog>
 
           <VerticalDivider />
 

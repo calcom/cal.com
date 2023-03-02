@@ -10,6 +10,11 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  getSmsReminderNumberField,
+  getSmsReminderNumberSource,
+} from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 import {
@@ -32,6 +37,7 @@ import {
   verifyPhoneNumber,
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
+import { upsertBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -547,6 +553,7 @@ export const workflowsRouter = router({
           scheduled: boolean;
         }[]
       >[] = [];
+
       removedEventTypes.forEach((eventTypeId) => {
         const reminderToDelete = ctx.prisma.workflowReminder.findMany({
           where: {
@@ -567,8 +574,16 @@ export const workflowsRouter = router({
             scheduled: true,
           },
         });
+
         remindersToDeletePromise.push(reminderToDelete);
       });
+
+      for (const removedEventType of removedEventTypes) {
+        await removeSmsReminderFieldForBooking({
+          workflowId: id,
+          eventTypeId: removedEventType,
+        });
+      }
 
       const remindersToDelete = await Promise.all(remindersToDeletePromise);
 
@@ -700,6 +715,16 @@ export const workflowsRouter = router({
               eventTypeId,
             },
           });
+        });
+      }
+
+      for (const eventTypeId of activeOn) {
+        await upsertSmsReminderFieldForBooking({
+          workflowId: id,
+          isSmsReminderNumberRequired: input.steps.some(
+            (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+          ),
+          eventTypeId,
         });
       }
 
@@ -1268,6 +1293,9 @@ action === WorkflowActions.EMAIL_ADDRESS*/
             },
           ],
         },
+        include: {
+          steps: true,
+        },
       });
 
       if (!eventTypeWorkflow)
@@ -1291,12 +1319,32 @@ action === WorkflowActions.EMAIL_ADDRESS*/
             eventTypeId,
           },
         });
+        await removeBookingField(
+          {
+            name: "smsReminderNumber",
+          },
+          {
+            id: "" + workflowId,
+            type: "workflow",
+          },
+          eventTypeId
+        );
       } else {
         await ctx.prisma.workflowsOnEventTypes.create({
           data: {
             workflowId,
             eventTypeId,
           },
+        });
+
+        const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
+          return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
+        });
+
+        await upsertSmsReminderFieldForBooking({
+          workflowId,
+          isSmsReminderNumberRequired,
+          eventTypeId,
         });
       }
     }),
@@ -1463,3 +1511,41 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     };
   }),
 });
+
+async function upsertSmsReminderFieldForBooking({
+  workflowId,
+  eventTypeId,
+  isSmsReminderNumberRequired,
+}: {
+  workflowId: number;
+  isSmsReminderNumberRequired: boolean;
+  eventTypeId: number;
+}) {
+  await upsertBookingField(
+    getSmsReminderNumberField(),
+    getSmsReminderNumberSource({
+      workflowId,
+      isSmsReminderNumberRequired,
+    }),
+    eventTypeId
+  );
+}
+
+async function removeSmsReminderFieldForBooking({
+  workflowId,
+  eventTypeId,
+}: {
+  workflowId: number;
+  eventTypeId: number;
+}) {
+  await removeBookingField(
+    {
+      name: SMS_REMINDER_NUMBER_FIELD,
+    },
+    {
+      id: "" + workflowId,
+      type: "workflow",
+    },
+    eventTypeId
+  );
+}
