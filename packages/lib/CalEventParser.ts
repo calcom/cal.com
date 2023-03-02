@@ -71,23 +71,24 @@ ${calEvent.additionalNotes}
   `;
 };
 
-export const getCustomInputs = (calEvent: CalendarEvent) => {
-  if (!calEvent.customInputs) {
+export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
+  const responses = calEvent.userFieldsResponses || calEvent.customInputs;
+  if (!responses) {
     return "";
   }
-  const customInputsString = Object.keys(calEvent.customInputs)
+  const responsesString = Object.keys(responses)
     .map((key) => {
-      if (!calEvent.customInputs) return "";
-      if (calEvent.customInputs[key] !== "") {
+      if (!responses) return "";
+      if (responses[key] !== "") {
         return `
 ${key}:
-${calEvent.customInputs[key]}
+${responses[key]}
   `;
       }
     })
     .join("");
 
-  return customInputsString;
+  return responsesString;
 };
 
 export const getAppsStatus = (calEvent: CalendarEvent) => {
@@ -171,7 +172,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
+${getUserFieldsResponses(calEvent)}
 ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
