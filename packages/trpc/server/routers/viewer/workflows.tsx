@@ -38,7 +38,7 @@ import {
   sendVerificationCode,
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { upsertBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
-import { IS_SELF_HOSTED, SENDER_ID } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
