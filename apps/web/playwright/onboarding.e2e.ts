@@ -5,6 +5,8 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "serial" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     test("Onboarding Flow", async ({ page, users }) => {

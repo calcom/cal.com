@@ -1,4 +1,4 @@
-import type { PrismaPromise, Workflow } from "@prisma/client";
+import type { Workflow, Prisma } from "@prisma/client";
 import {
   WorkflowTemplates,
   WorkflowActions,
@@ -545,7 +545,7 @@ export const workflowsRouter = router({
           }
         });
 
-      const remindersToDeletePromise: PrismaPromise<
+      const remindersToDeletePromise: Prisma.PrismaPromise<
         {
           id: number;
           referenceId: string | null;
@@ -915,7 +915,7 @@ export const workflowsRouter = router({
           if (!userWorkflow.user?.teams.length && isSMSAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
-          const { id: stepId, ...stepToAdd } = s;
+          const { id: _stepId, ...stepToAdd } = s;
           return stepToAdd;
         }
       });
