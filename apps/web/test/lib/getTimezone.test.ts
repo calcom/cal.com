@@ -34,28 +34,45 @@ const option = {
 };
 
 it("should return empty array for an empty string", () => {
-  expect(filterByCities("", cityData)).toStrictEqual([]);
+  expect(filterByCities("", cityData)).toMatchInlineSnapshot(`Array []`);
 });
 
 it("should filter cities for a valid city name", () => {
-  expect(filterByCities("San Francisco", cityData)).toStrictEqual(cityData);
+  expect(filterByCities("San Francisco", cityData)).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        "city": "San Francisco",
+        "timezone": "America/Argentina/Cordoba",
+      },
+      Object {
+        "city": "San Francisco de Macoris",
+        "timezone": "America/Santo_Domingo",
+      },
+      Object {
+        "city": "San Francisco Gotera",
+        "timezone": "America/El_Salvador",
+      },
+      Object {
+        "city": "San Francisco",
+        "timezone": "America/Los_Angeles",
+      },
+    ]
+  `);
 });
 
 it("should return appropriate timezone(s) for a given city name array", () => {
-  const expected = {
-    "America/Sao_Paulo": "Sao Francisco do Sul",
-    "America/Los_Angeles": "San Francisco",
-  };
-
-  expect(addCitiesToDropdown(cityData)).toStrictEqual(expected);
+  expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
+    Object {
+      "America/Los_Angeles": "San Francisco",
+      "America/Sao_Paulo": "Sao Francisco do Sul",
+    }
+  `);
 });
 
 it("should render city name as option label if cityData is not empty", () => {
-  const expected = "San Francisco GMT -8:00";
-  expect(handleOptionLabel(option, cityData)).toStrictEqual(expected);
+  expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -8:00"`);
 });
 
 it("should return timezone as option label if cityData is empty", () => {
-  const expected = "America/Los_Angeles GMT -8:00";
-  expect(handleOptionLabel(option, [])).toStrictEqual(expected);
+  expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los_Angeles GMT -8:00"`);
 });
