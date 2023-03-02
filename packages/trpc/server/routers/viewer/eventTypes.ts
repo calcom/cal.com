@@ -608,7 +608,7 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users) {
+    if (users.length) {
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
