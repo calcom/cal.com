@@ -14,7 +14,9 @@ export interface ICity {
 
 export function TimezoneSelect({ className, components, ...props }: SelectProps) {
   const [cities, setCities] = useState<ICity[]>([]);
-  const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery();
+  const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
+    trpc: { context: { skipBatch: true } },
+  });
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
