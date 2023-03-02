@@ -81,6 +81,7 @@
     "ts-jest": "^28.0.8"
   },
   "dependencies": {
+    "city-timezones": "^1.2.1",
     "turbo": "^1.4.3"
   },
   "resolutions": {
