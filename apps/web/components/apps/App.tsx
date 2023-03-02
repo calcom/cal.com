@@ -303,6 +303,11 @@ const Component = ({
   );
 };
 
+const ShellHeading = () => {
+  const { t } = useLocale();
+  return <span className="block py-2">{t("app_store")}</span>;
+};
+
 export default function App(props: {
   name: string;
   description: AppType["description"];
@@ -328,10 +333,8 @@ export default function App(props: {
   images?: string[];
   isTemplate?: boolean;
 }) {
-  const { t } = useLocale();
-
   return (
-    <Shell smallHeading isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}

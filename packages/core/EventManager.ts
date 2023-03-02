@@ -1,7 +1,7 @@
-import { DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
@@ -10,7 +10,7 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -59,7 +59,7 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
-type EventManagerUser = {
+export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
@@ -255,7 +255,6 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Update all calendar events.
     results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
     const bookingPayment = booking?.payment;
@@ -442,7 +441,7 @@ export default class EventManager {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
       if (!calendarReference) {
-        throw new Error("bookingRef");
+        return [];
       }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 

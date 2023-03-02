@@ -5,12 +5,16 @@
   "authors": "zomars",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+  },
   "dependencies": {
     "@tanstack/react-query": "^4.3.9",
-    "@trpc/client": "^10.10.0",
-    "@trpc/next": "^10.10.0",
-    "@trpc/react-query": "^10.10.0",
-    "@trpc/server": "^10.10.0",
+    "@trpc/client": "^10.13.0",
+    "@trpc/next": "^10.13.0",
+    "@trpc/react-query": "^10.13.0",
+    "@trpc/server": "^10.13.0",
     "superjson": "1.9.1",
     "zod": "^3.20.2"
   }

@@ -589,7 +589,6 @@
   "new_event_type_heading": "Creați-vă primul tip de eveniment",
   "new_event_type_description": "Tipurile de evenimente vă permit să partajați link-uri care afișează orele disponibile în calendarul dvs. și permit oamenilor să facă rezervări cu dvs.",
   "new_event_title": "Adaugă un nou tip de eveniment în echipă",
-  "new_event_subtitle": "Creați un tip de eveniment sub numele sau echipa dvs.",
   "new_team_event": "Adaugă un nou tip de eveniment în echipă",
   "new_event_description": "Creaţi un nou tip de eveniment cu care oamenii să poată rezerva orare.",
   "event_type_created_successfully": "{{eventTypeTitle}} tip de eveniment creat cu succes",

@@ -1,4 +1,6 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import { cityMapping } from "city-timezones";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -142,6 +144,7 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  cityTimezones: publicProcedure.query(() => cityMapping),
 });
 
 // routes only available to authenticated users
@@ -321,10 +324,11 @@ const loggedInViewerRouter = router({
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
-    const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
-    // store email of the destination calendar to display
-    let destinationCalendarEmail = null;
+    const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
+      calendarCredentials,
+      user.selectedCalendars,
+      user.destinationCalendar?.externalId
+    );
 
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
@@ -348,7 +352,6 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
-      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -371,32 +374,14 @@ const loggedInViewerRouter = router({
           },
         });
       }
-      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
-    }
-
-    let destinationCalendarName = user.destinationCalendar?.externalId || "";
-    let destinationCalendarIntegration = "";
-
-    for (const integration of connectedCalendars) {
-      if (integration.calendars) {
-        for (const calendar of integration.calendars) {
-          if (calendar.externalId === user.destinationCalendar?.externalId) {
-            destinationCalendarName = calendar.name || calendar.externalId;
-            destinationCalendarIntegration = integration.integration.title || "";
-            break;
-          }
-        }
-      }
     }
 
     return {
       connectedCalendars,
       destinationCalendar: {
         ...(user.destinationCalendar as DestinationCalendar),
-        name: destinationCalendarName,
-        integration: destinationCalendarIntegration,
+        ...destinationCalendar,
       },
-      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
@@ -412,7 +397,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       const credentialId = allCals.find(
@@ -472,8 +457,9 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
+      //TODO: Refactor this to pick up only needed fields and prevent more leaking
       let apps = enabledApps.map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+        ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
             .filter((c) => c.type === app.type && c.invalid)
