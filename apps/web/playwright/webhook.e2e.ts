@@ -3,6 +3,8 @@ import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth, waitFor } from "./lib/testUtils";
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test("add webhook & test that creating an event triggers a webhook call", async ({
   page,
   users,

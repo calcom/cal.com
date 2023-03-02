@@ -589,7 +589,6 @@
   "new_event_type_heading": "Utwórz swój typ pierwszego wydarzenia",
   "new_event_type_description": "Typy wydarzeń umożliwiają udostępnianie linków, które pokazują dostępne czasy w kalendarzu i pozwalają ludziom na dokonywanie rezerwacji.",
   "new_event_title": "Dodaj nowy typ wydarzenia",
-  "new_event_subtitle": "Utwórz typ wydarzenia pod Twoim imieniem lub zespołem.",
   "new_team_event": "Dodaj nowy typ wydarzenia drużynowego",
   "new_event_description": "Utwórz nowy typ wydarzenia, z którym ludzie mogą rezerwować czasy.",
   "event_type_created_successfully": "Utworzono {{eventTypeTitle}} typ wydarzenia pomyślnie",
