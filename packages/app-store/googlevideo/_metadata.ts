@@ -31,7 +31,7 @@ export const metadata = {
     },
   },
   dirName: "googlevideo",
-  dependency: "google-calendar",
+  dependencies: ["google-calendar"],
 } as AppMeta;
 
 export default metadata;

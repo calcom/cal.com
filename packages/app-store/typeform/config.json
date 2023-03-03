@@ -11,5 +11,5 @@
   "email": "help@cal.com",
   "description": "Adds a link to copy Typeform Redirect URL",
   "__createdUsingCli": true,
-  "dependency": "routing-forms"
+  "dependencies": ["routing-forms"]
 }
