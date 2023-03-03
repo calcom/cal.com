@@ -24,6 +24,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(24);
   });
@@ -45,6 +46,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(12);
   });
@@ -64,6 +66,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
   });
@@ -84,6 +87,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours,
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
   });
@@ -104,6 +108,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(11);
   });

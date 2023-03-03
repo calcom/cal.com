@@ -30,8 +30,9 @@ function getResponsesFromOldBooking(
     return acc;
   }, {});
   return {
-    name: rawBooking.attendees[0].name,
-    email: rawBooking.attendees[0].email,
+    // It is possible to have no attendees in a booking when the booking is cancelled.
+    name: rawBooking.attendees[0]?.name || "Nameless",
+    email: rawBooking.attendees[0]?.email || "",
     guests: rawBooking.attendees.slice(1).map((attendee) => {
       return attendee.email;
     }),
