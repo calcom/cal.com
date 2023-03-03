@@ -23,7 +23,7 @@ const Switch = (
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200",
-          primitiveProps.disabled ? "cursor-not-allowed" : "hover:bg-gray-300",
+          primitiveProps.disabled ? "cursor-not-allowed !bg-gray-400" : "hover:bg-gray-300",
           "focus:ring-brand-800 h-5 w-[34px] rounded-full shadow-none",
           props.className
         )}

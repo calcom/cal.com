@@ -78,6 +78,7 @@ export const EventTeamWebhooksTab = ({
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
       eventTypeId: eventType.id,
+      eventSchedulingType: eventType.schedulingType,
     });
   };
 
@@ -114,13 +115,14 @@ export const EventTeamWebhooksTab = ({
                         message="Members will be able to see the active apps but will not be able to edit any app settings"
                       />
                     )}
-                    <div className="mb-8 rounded-md border">
+                    <div className="mb-2 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
                           <WebhookListItem
                             key={webhook.id}
                             webhook={webhook}
                             lastItem={webhooks.length === index + 1}
+                            canEditWebhook={!webhookLockedStatus.disabled}
                             onEditWebhook={() => {
                               setEditModalOpen(true);
                               setWebhookToEdit(webhook);
@@ -186,6 +188,7 @@ export const EventTeamWebhooksTab = ({
                     payloadTemplate: values.payloadTemplate,
                     secret: values.secret,
                     eventTypeId: webhookToEdit?.eventTypeId || undefined,
+                    eventSchedulingType: eventType.schedulingType,
                   });
                 }}
               />

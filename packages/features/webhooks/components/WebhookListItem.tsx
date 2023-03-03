@@ -1,4 +1,4 @@
-import { WebhookTriggerEvents } from "@prisma/client";
+import type { WebhookTriggerEvents } from "@prisma/client";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +18,7 @@ type WebhookProps = {
 
 export default function WebhookListItem(props: {
   webhook: WebhookProps;
+  canEditWebhook?: boolean;
   onEditWebhook: () => void;
   lastItem: boolean;
 }) {
@@ -61,6 +62,7 @@ export default function WebhookListItem(props: {
       <div className="flex items-center space-x-4">
         <Switch
           defaultChecked={webhook.active}
+          disabled={!props.canEditWebhook}
           onCheckedChange={() =>
             toggleWebhook.mutate({
               id: webhook.id,
@@ -70,18 +72,22 @@ export default function WebhookListItem(props: {
             })
           }
         />
-        <Button color="secondary" onClick={props.onEditWebhook}>
-          {t("edit")}
-        </Button>
-        <Button
-          color="destructive"
-          StartIcon={FiTrash}
-          variant="icon"
-          onClick={() => {
-            // TODO: Confimation dialog before deleting
-            deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
-          }}
-        />
+        {props.canEditWebhook && (
+          <>
+            <Button color="secondary" onClick={props.onEditWebhook}>
+              {t("edit")}
+            </Button>
+            <Button
+              color="destructive"
+              StartIcon={FiTrash}
+              variant="icon"
+              onClick={() => {
+                // TODO: Confimation dialog before deleting
+                deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

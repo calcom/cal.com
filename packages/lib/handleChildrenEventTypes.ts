@@ -55,6 +55,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 };
 
 // All properties that are defined as locked based on all managed props
+// Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
 };
@@ -84,7 +85,6 @@ export default async function handleChildrenEventTypes({
   const oldUserIds = oldEventType.users?.map((user) => user.id).filter((id) => id !== currentUserId);
   const updatedUserIds = updatedEventType.users?.map((user) => user.id);
   const newUsersIds = updatedUserIds?.filter((userId) => !oldUserIds?.includes(userId));
-  const deletedUsersIds = oldUserIds?.filter((userId) => !updatedUserIds?.includes(userId));
 
   // Calculate the difference between old and new data
   const diffEventType = Object.entries(managedEventTypeValues).reduce(
@@ -95,7 +95,7 @@ export default async function handleChildrenEventTypes({
 
   logger.debug(
     "handleChildrenEventTypes",
-    JSON.stringify([{ diffEventType, newUsersIds, oldUserIds, deletedUsersIds }], null, 2)
+    JSON.stringify([{ diffEventType, newUsersIds, oldUserIds }], null, 2)
   );
 
   // New users added
@@ -110,6 +110,16 @@ export default async function handleChildrenEventTypes({
         metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
         userId,
         parentId,
+        workflows: {
+          createMany: {
+            data: updatedEventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
+          },
+        },
+        webhooks: {
+          createMany: {
+            data: updatedEventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
+          },
+        },
       })),
     });
     logger.debug("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));
@@ -117,7 +127,7 @@ export default async function handleChildrenEventTypes({
 
   // Old users updated
   if (oldUserIds?.length) {
-    const updatedEventTypes = await prisma.eventType.updateMany({
+    const updatedOldEventTypes = await prisma.eventType.updateMany({
       where: {
         parentId,
       },
@@ -131,16 +141,44 @@ export default async function handleChildrenEventTypes({
     });
     logger.debug(
       "handleChildrenEventTypes:updatedEventTypes",
-      JSON.stringify({ updatedEventTypes }, null, 2)
+      JSON.stringify({ updatedOldEventTypes }, null, 2)
+    );
+    const updatedOldWorkflows = await prisma.workflow.updateMany({
+      where: {
+        userId: {
+          in: oldUserIds,
+        },
+      },
+      data: {
+        ...updatedEventType.workflows,
+      },
+    });
+    logger.debug(
+      "handleChildrenEventTypes:updatedOldWorkflows",
+      JSON.stringify({ updatedOldWorkflows }, null, 2)
+    );
+    const updatedOldWebhooks = await prisma.webhook.updateMany({
+      where: {
+        userId: {
+          in: oldUserIds,
+        },
+      },
+      data: {
+        ...updatedEventType.webhooks,
+      },
+    });
+    console.log(
+      "handleChildrenEventTypes:updatedOldWebhooks",
+      JSON.stringify({ updatedOldWebhooks }, null, 2)
     );
   }
 
   // Old users deleted
-  if (deletedUsersIds?.length) {
+  if (updatedEventType.users?.length) {
     const deletedEventTypes = await prisma.eventType.deleteMany({
       where: {
         id: {
-          in: deletedUsersIds,
+          notIn: updatedEventType.users.map((user) => user.id),
         },
         parentId,
       },
