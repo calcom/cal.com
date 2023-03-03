@@ -1,10 +1,5 @@
-import {
-  TimeUnit,
-  WorkflowTriggerEvents,
-  WorkflowTemplates,
-  WorkflowActions,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
@@ -12,8 +7,9 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
-import customTemplate, { VariablesType } from "./templates/customTemplate";
+import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import type { VariablesType } from "./templates/customTemplate";
+import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
@@ -101,6 +97,7 @@ export const scheduleEmailReminder = async (
         attendeeEmail: evt.attendees[0].email,
         eventDate: dayjs(startTime).tz(timeZone),
         eventTime: dayjs(startTime).tz(timeZone),
+        eventEndTime: dayjs(endTime).tz(timeZone),
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,

@@ -7,10 +7,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
+import type { VariablesType } from "../lib/reminders/templates/customTemplate";
+import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 
 const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
@@ -165,6 +166,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             attendeeEmail: reminder.booking?.attendees[0].email,
             eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
             eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+            eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
             timeZone: timeZone,
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,

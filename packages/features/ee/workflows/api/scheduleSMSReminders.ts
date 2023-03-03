@@ -9,7 +9,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
-import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
+import type { VariablesType } from "../lib/reminders/templates/customTemplate";
+import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -101,6 +102,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             attendeeEmail: reminder.booking?.attendees[0].email,
             eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
             eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+            eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
             timeZone: timeZone,
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,
