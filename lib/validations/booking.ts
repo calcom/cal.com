@@ -13,6 +13,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   description: true,
   startTime: true,
   endTime: true,
+  status: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
@@ -22,7 +23,6 @@ const schemaBookingEditParams = z
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
-    status: z.string().optional(),
   })
   .strict();
 
