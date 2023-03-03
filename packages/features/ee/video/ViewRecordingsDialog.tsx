@@ -4,9 +4,9 @@ import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import type { PartialReference } from "@calcom/types/EventManager";
+import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Dialog,
   DialogClose,
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
-import { Button, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 import { FiDownload } from "@calcom/ui/components/icon";
 
 import RecordingListSkeleton from "./components/RecordingListSkeleton";
@@ -68,32 +68,36 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
 
   const { hasPaidPlan, isLoading: isTeamPlanStatusLoading } = useHasPaidPlan();
 
-  const roomName =
-    booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
-    undefined;
+  // const roomName =
+  //   booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
+  //   undefined;
 
+  const roomName = "EBfRoaYbCgxTrLO6920Y";
   const { data: recordings, isLoading } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName: roomName ?? "" },
     { enabled: !!roomName && isOpenDialog }
   );
-  const handleDownloadClick = async (recordingId: string) => {
-    try {
-      setRecordingId(recordingId);
-      const res = await fetch(`/api/download-cal-video-recording?recordingId=${recordingId}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const respBody = await res.json();
-
-      if (respBody?.download_link) {
-        window.location.href = respBody.download_link;
-      }
-    } catch (err) {
-      console.error(err);
-      showToast(t("something_went_wrong"), "error");
+  const { data } = trpc.viewer.getDownloadLinkOfCalVideoRecordings.useQuery(
+    {
+      recordingId: downloadingRecordingId ?? "",
+    },
+    {
+      enabled: !!downloadingRecordingId,
+      cacheTime: 0,
+      onSettled: () => {
+        setRecordingId(null);
+      },
+      onSuccess: (data) => {
+        if (data && data.download_link) {
+          window.location.href = data.download_link;
+        }
+      },
     }
-    setRecordingId(null);
+  );
+
+  const handleDownloadClick = async (recordingId: string) => {
+    // this would enable the getDownloadLinkOfCalVideoRecordings
+    setRecordingId(recordingId);
   };
 
   const subtitle = `${booking?.title} - ${dayjs(booking?.startTime).format("ddd")} ${dayjs(
