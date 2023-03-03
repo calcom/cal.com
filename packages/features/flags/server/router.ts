@@ -15,14 +15,6 @@ export const featureFlagRouter = router({
     const { prisma } = ctx;
     return getFeatureFlagMap(prisma);
   }),
-  isEnabled: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    const { prisma } = ctx;
-    const feature = await prisma.feature.findUnique({
-      where: { slug: input },
-      select: { enabled: true },
-    });
-    return feature?.enabled ?? false;
-  }),
   toggle: authedAdminProcedure
     .input(z.object({ slug: z.string(), enabled: z.boolean() }))
     .mutation(({ ctx, input }) => {
