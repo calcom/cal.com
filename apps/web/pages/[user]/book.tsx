@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -129,10 +130,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       });
 
   if (!eventTypeRaw) return { notFound: true };
-
   const eventType = {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
+    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
@@ -215,7 +216,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid || query.bookingUid) {
-    booking = await getBooking(prisma, rescheduleUid || query.bookingUid || "");
+    booking = await getBooking(
+      prisma,
+      rescheduleUid || query.bookingUid || "",
+      eventTypeObject.bookingFields
+    );
   }
   if (rescheduleEventTypeHasSeats && booking?.attendees) {
     const currentAttendee = booking?.attendees.find((attendee) => {

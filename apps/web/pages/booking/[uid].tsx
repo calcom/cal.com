@@ -1,4 +1,4 @@
-import { BookingStatus, WorkflowActions } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -23,6 +23,10 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import {
+  SystemField,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -41,11 +45,13 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo } from "@calcom/ui";
-import { FiCalendar, FiCheck, FiChevronLeft, FiExternalLink, FiX } from "@calcom/ui/components/icon";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
+import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
+import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -197,10 +203,7 @@ export default function Success(props: SuccessProps) {
     window.scrollTo(0, document.body.scrollHeight);
   }
 
-  const location: ReturnType<typeof getEventLocationValue> = props.bookingInfo.location
-    ? props.bookingInfo.location
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+  const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -341,12 +344,12 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
+
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
-  const customInputs = bookingInfo?.customInputs;
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -354,10 +357,6 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
-  const hasSMSAttendeeAction =
-    eventType.workflows.find((workflowEventType) =>
-      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
-    ) !== undefined;
   const providerName = guessEventLocationType(location)?.label;
 
   return (
@@ -549,63 +548,27 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {customInputs &&
-                      Object.keys(customInputs).map((key) => {
-                        // This breaks if you have two label that are the same.
-                        // TODO: Fix this in another PR
-                        const customInput = customInputs[key as keyof typeof customInputs];
-                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
-                        return (
-                          <>
-                            {eventTypeCustomFound?.type === "RADIO" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {eventTypeCustomFound.label}
-                                </div>
-                                <div className="col-span-3 mt-1 mb-2">
-                                  {eventTypeCustomFound.options &&
-                                    eventTypeCustomFound.options.map((option) => {
-                                      const selected = option.label == customInput;
-                                      return (
-                                        <div
-                                          key={option.label}
-                                          className={classNames(
-                                            "flex space-x-1",
-                                            !selected && "text-gray-500"
-                                          )}>
-                                          <p>{option.label}</p>
-                                          <span>{option.label === customInput && "✅"}</span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </>
-                            )}
-                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {key}
-                                </div>
-                                <div className="col-span-3 mt-2 mb-2">
-                                  {typeof customInput === "boolean" ? (
-                                    <p>{customInput ? "true" : "false"}</p>
-                                  ) : (
-                                    <p>{customInput}</p>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })}
-                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
-                      <>
-                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
-                        <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.smsReminderNumber}</p>
-                        </div>
-                      </>
-                    )}
+
+                    {Object.entries(bookingInfo.responses).map(([name, response]) => {
+                      const field = eventType.bookingFields.find((field) => field.name === name);
+                      // We show location in the "where" section
+                      // We show Booker Name, Emails and guests in Who section
+                      // We show notes in additional notes section
+                      // We show rescheduleReason at the top
+                      if (!field) return null;
+                      const isSystemField = SystemField.safeParse(field.name);
+                      if (isSystemField.success) return null;
+
+                      const label = field.label || t(field.defaultLabel || "");
+
+                      return (
+                        <>
+                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{label}</Label>
+                          {/* Might be a good idea to use the readonly variant of respective components here */}
+                          <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
+                        </>
+                      );
+                    })}
                   </div>
                 </div>
                 {(!needsConfirmation || !userIsOwner) &&
@@ -936,6 +899,8 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      bookingFields: true,
+      disableGuests: true,
       owner: {
         select: userSelect,
       },
@@ -960,6 +925,7 @@ const getEventTypesFromDB = async (id: number) => {
         select: {
           workflow: {
             select: {
+              id: true,
               steps: true,
             },
           },
@@ -982,6 +948,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
     metadata,
   };
 };
@@ -1025,7 +992,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
-  const bookingInfo = await prisma.booking.findFirst({
+
+  const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
       uid: await maybeGetBookingUidFromSeat(prisma, uid),
     },
@@ -1043,6 +1011,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       status: true,
       metadata: true,
       cancellationReason: true,
+      responses: true,
       rejectionReason: true,
       user: {
         select: {
@@ -1072,26 +1041,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
-
-  if (!bookingInfo) {
+  if (!bookingInfoRaw) {
     return {
       notFound: true,
     };
   }
 
-  // @NOTE: had to do this because Server side cant return [Object objects]
-  // probably fixable with json.stringify -> json.parse
-  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
-  const eventTypeRaw = !bookingInfo.eventTypeId
+  const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfo.eventTypeId);
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
   if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
+
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
+
+  // @NOTE: had to do this because Server side cant return [Object objects]
+  // probably fixable with json.stringify -> json.parse
+  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
