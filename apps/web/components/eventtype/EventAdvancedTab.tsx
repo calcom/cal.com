@@ -13,18 +13,7 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  Label,
-  SettingsToggle,
-  showToast,
-  TextField,
-  Tooltip,
-} from "@calcom/ui";
+import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -58,8 +47,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-
-  };
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
