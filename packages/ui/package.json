@@ -5,7 +5,8 @@
   "main": "./index.tsx",
   "exports": {
     ".": "./index.tsx",
-    "./components/icon": "./components/icon/index.ts"
+    "./components/icon": "./components/icon/index.ts",
+    "./form-builder/FormBuilderFieldsSchema": "./form-builder/FormBuilderFieldsSchema.ts"
   },
   "types": "./index.tsx",
   "license": "MIT",
