@@ -1,14 +1,15 @@
-import { Prisma, SchedulingType } from "@prisma/client";
-import MarkdownIt from "markdown-it";
+import type { Prisma } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { baseEventTypeSelect } from "@calcom/prisma";
-import { EventTypeModel } from "@calcom/prisma/zod";
+import { addListFormatting, md } from "@calcom/lib/markdownIt";
+import type { baseEventTypeSelect } from "@calcom/prisma";
+import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
 import {
   FiClock,
@@ -29,10 +30,8 @@ export type EventTypeDescriptionProps = {
     seatsPerTimeSlot?: number;
   };
   className?: string;
-  shortenDescription?: true;
+  shortenDescription?: boolean;
 };
-
-const md = new MarkdownIt("default", { html: true, breaks: false, linkify: true });
 
 export const EventTypeDescription = ({
   eventType,
@@ -58,9 +57,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: shortenDescription
-                ? md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " "))
-                : md.render(eventType.description),
+              __html: addListFormatting(md.render(eventType.description)),
             }}
           />
         )}

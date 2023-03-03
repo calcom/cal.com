@@ -1,7 +1,6 @@
 import type { PrismaClient, EventType } from "@prisma/client";
-import MarkdownIt from "markdown-it";
 
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+import { md } from "@calcom/lib/markdownIt";
 
 function parseAndSanitize(description: string) {
   const parsedMarkdown = md.render(description);
