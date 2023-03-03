@@ -105,11 +105,11 @@ function buildSlots({
   const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
 
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
-
+const resultDSTDifference = isOrganizerInDST ? organizerDSTDifference : -inviteeDSTDifference;
   const getTime = (time: number) => {
     const minutes =
       isOrganizerInDST !== isInviteeInDST
-        ? time - (isOrganizerInDST ? organizerDSTDifference : -inviteeDSTDifference)
+        ? time - DSTDifference
         : time;
 
     return startOfInviteeDay.tz(inviteeTimeZone).add(minutes, "minutes");
