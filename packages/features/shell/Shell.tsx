@@ -573,7 +573,6 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
       trpc: {},
     }
   );
-  // TODO: Find a better way to abstract this
   const flags = useFlagMap();
   if (isKeyInObject(item.name, flags)) return flags[item.name];
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
