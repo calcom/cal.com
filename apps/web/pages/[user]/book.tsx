@@ -222,7 +222,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventTypeObject.bookingFields
     );
   }
-  if (rescheduleEventTypeHasSeats && booking?.attendees) {
+
+  if (rescheduleEventTypeHasSeats && booking?.attendees && booking?.attendees.length > 0) {
     const currentAttendee = booking?.attendees.find((attendee) => {
       return attendee.email === attendeeEmail;
     });
