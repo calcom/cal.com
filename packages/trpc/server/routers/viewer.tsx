@@ -1180,9 +1180,16 @@ const loggedInViewerRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const { recordingId } = input;
-      const { user, session } = ctx;
-      const isDownloadAllowed = IS_SELF_HOSTED || user;
-      console.log("recordingId", recordingId);
+      const { session } = ctx;
+
+      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+
+      if (!isDownloadAllowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
+
       try {
         const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
         return res;

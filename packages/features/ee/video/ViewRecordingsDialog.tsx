@@ -68,11 +68,10 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
 
   const { hasPaidPlan, isLoading: isTeamPlanStatusLoading } = useHasPaidPlan();
 
-  // const roomName =
-  //   booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
-  //   undefined;
+  const roomName =
+    booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
+    undefined;
 
-  const roomName = "EBfRoaYbCgxTrLO6920Y";
   const { data: recordings, isLoading } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName: roomName ?? "" },
     { enabled: !!roomName && isOpenDialog }
