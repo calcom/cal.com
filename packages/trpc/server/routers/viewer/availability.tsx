@@ -92,6 +92,7 @@ export const availabilityRouter = router({
             code: "UNAUTHORIZED",
           });
         }
+        const timeZone = schedule.timeZone || user.timeZone;
         return {
           id: schedule.id,
           name: schedule.name,
@@ -107,10 +108,10 @@ export const availabilityRouter = router({
               end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
             }))
           ),
-          timeZone: schedule.timeZone || user.timeZone,
+          timeZone,
           dateOverrides: schedule.availability.reduce((acc, override) => {
             // only iff future date override
-            if (!override.date || dayjs.utc(override.date).isBefore(dayjs.utc(), "day")) {
+            if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {
               return acc;
             }
             const newValue = {
