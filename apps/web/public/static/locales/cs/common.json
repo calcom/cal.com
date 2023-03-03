@@ -589,7 +589,6 @@
   "new_event_type_heading": "Vytvořte svůj první typ události",
   "new_event_type_description": "Typy událostí vám umožňují sdílet odkazy, které ukazují časy v kalendáři, kdy jste dostupní, a lidí skrz ně mohou rezervovat váš čas.",
   "new_event_title": "Přidat nový typ události",
-  "new_event_subtitle": "Vytvořit nový typ události pod vaším jménem nebo týmem.",
   "new_team_event": "Přidat nový typ týmové události",
   "new_event_description": "Vytvořit nový typ události, ve které si lidé mohou rezervovat časy.",
   "event_type_created_successfully": "Typ události {{eventTypeTitle}} byl úspěšně vytvořen",

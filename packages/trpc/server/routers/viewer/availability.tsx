@@ -435,7 +435,7 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
   });
 };
 
-const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
+const _isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
   return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
 };
 

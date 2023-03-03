@@ -17,16 +17,16 @@ scripts/    @calcom/core
 apps/docs       @calcom/docs
 apps/swagger    @calcom/docs
 
-packages/app-store-cli                @hariombalhara
-packages/dayjs                        @zomars
-packages/emails                       @zomars
-packages/embeds                       @hariombalhara
-packages/eslint-plugin                @zomars
-packages/features                     @zomars
-packages/features/kbar                @alishaz-polymath 
-packages/features/ee/impersonation    @sean-brydon
-packages/features/ee/payments         @alannnc
-packages/features/ee/workflows        @CarinaWolli
-packages/features/tips                @PeerRich
+packages/app-store-cli                @hariombalhara @calcom/core
+packages/dayjs                        @zomars @calcom/core
+packages/emails                       @zomars @calcom/core
+packages/embeds                       @hariombalhara @calcom/core
+packages/eslint-plugin                @zomars @calcom/core
+packages/features                     @zomars @calcom/core
+packages/features/kbar                @alishaz-polymath @calcom/core
+packages/features/ee/impersonation    @sean-brydon @calcom/core
+packages/features/ee/payments         @alannnc @calcom/core
+packages/features/ee/workflows        @CarinaWolli @calcom/core
+packages/features/tips                @PeerRich @calcom/core
 packages/ui                           @calcom/ui
 packages/config                       @calcom/core

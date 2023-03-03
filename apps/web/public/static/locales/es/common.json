@@ -589,7 +589,6 @@
   "new_event_type_heading": "Crea tu primer tipo de evento",
   "new_event_type_description": "Los tipos de eventos te permiten compartir enlaces que muestran las horas disponibles en tu calendario y permitir que la gente haga reservas contigo.",
   "new_event_title": "Crear Nuevo Tipo de Evento",
-  "new_event_subtitle": "Crea un tipo de evento bajo tu nombre o equipo.",
   "new_team_event": "Crear Nuevo Tipo de Evento de Equipo",
   "new_event_description": "Crea un nuevo tipo de evento con el que la gente pueda hacer reservas.",
   "event_type_created_successfully": "{{eventTypeTitle}} tipo de evento creado con éxito",
