@@ -833,7 +833,7 @@ async function handler(
     }
   };
 
-  /* Check if the original booking has no more attendees, if so delete the booking 
+  /* Check if the original booking has no more attendees, if so delete the booking
   and any calendar or video integrations */
   const lastAttendeeDeleteBooking = async (
     originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>,
