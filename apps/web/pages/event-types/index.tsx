@@ -637,12 +637,7 @@ const CTA = () => {
   const profileOptions = query.data.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        slug: profile.slug,
-      };
+      return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
     });
 
   return (
