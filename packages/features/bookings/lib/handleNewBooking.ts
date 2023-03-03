@@ -813,7 +813,7 @@ async function handler(
   ) => {
     if (
       originalRescheduledBooking?.attendees.filter((attendee) => {
-        return attendee.email !== reqBody.email;
+        return attendee.email !== bookerEmail;
       }).length === 0
     ) {
       const integrationsToDelete = [];
