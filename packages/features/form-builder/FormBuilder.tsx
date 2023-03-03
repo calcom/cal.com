@@ -692,9 +692,7 @@ export const FormBuilderField = ({
   const { t } = useLocale();
   const { control, formState } = useFormContext();
   return (
-    <div
-      data-form-builder-field-name={field.name}
-      className={classNames(className, field.hidden ? "hidden" : "")}>
+    <div data-fob-field-name={field.name} className={classNames(className, field.hidden ? "hidden" : "")}>
       <Controller
         control={control}
         // Make it a variable
