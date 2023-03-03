@@ -223,6 +223,8 @@ function BookingListItem(booking: BookingItemProps) {
   };
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+
+  const title = decodeURIComponent(booking.title);
   return (
     <>
       <RescheduleDialog
@@ -355,12 +357,12 @@ function BookingListItem(booking: BookingItemProps) {
 
           <div className="cursor-pointer py-4">
             <div
-              title={booking.title}
+              title={title}
               className={classNames(
                 "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
-              {booking.title}
+              {title}
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
