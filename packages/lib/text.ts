@@ -1,7 +1,5 @@
 export const truncate = (text: string, maxLength: number, ellipsis = true) => {
-  if (text.length <= maxLength) {
-    return text;
-  }
+  if (text.length <= maxLength) return text;
 
   return `${text.slice(0, maxLength - 3)}${ellipsis ? "..." : ""}`;
 };
@@ -16,9 +14,7 @@ export const truncateOnWord = (text: string, maxLength: number, ellipsis = true)
   // which looks just a bit nicer.
   truncatedText = truncatedText.substring(0, Math.min(truncatedText.length, truncatedText.lastIndexOf(" ")));
 
-  if (ellipsis) {
-    truncatedText += "...";
-  }
+  if (ellipsis) truncatedText += "...";
 
   return truncatedText;
 };

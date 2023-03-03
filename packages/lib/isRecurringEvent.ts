@@ -10,9 +10,7 @@ export function isRecurringEvent(obj: unknown): obj is RecurringEvent {
 export function parseRecurringEvent(obj: unknown): RecurringEvent | null {
   let recurringEvent: RecurringEvent | null = null;
 
-  if (isRecurringEvent(obj)) {
-    recurringEvent = obj;
-  }
+  if (isRecurringEvent(obj)) recurringEvent = obj;
 
   return recurringEvent;
 }

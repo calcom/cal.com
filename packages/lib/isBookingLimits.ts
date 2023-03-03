@@ -8,9 +8,7 @@ export function isBookingLimit(obj: unknown): obj is BookingLimit {
 export function parseBookingLimit(obj: unknown): BookingLimit | null {
   let bookingLimit: BookingLimit | null = null;
 
-  if (isBookingLimit(obj)) {
-    bookingLimit = obj;
-  }
+  if (isBookingLimit(obj)) bookingLimit = obj;
 
   return bookingLimit;
 }
