@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
+import { addListFormatting } from "@lib/markdownIt";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -152,7 +153,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
+    descriptionAsSafeHTML: eventType.description ? addListFormatting(md.render(eventType.description)) : null,
   });
   // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =

@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import MarkdownIt from "markdown-it";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -19,11 +18,11 @@ import turndown from "@calcom/lib/turndownService";
 import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
+import { md } from "@lib/markdownIt";
+
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const getLocationFromType = (
   type: EventLocationType["type"],

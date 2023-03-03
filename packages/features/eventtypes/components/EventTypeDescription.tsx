@@ -1,14 +1,14 @@
-import { Prisma, SchedulingType } from "@prisma/client";
-import MarkdownIt from "markdown-it";
+import type { Prisma } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { baseEventTypeSelect } from "@calcom/prisma";
-import { EventTypeModel } from "@calcom/prisma/zod";
+import type { baseEventTypeSelect } from "@calcom/prisma";
+import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
 import {
   FiClock,
@@ -19,6 +19,8 @@ import {
   FiPlus,
   FiUser,
 } from "@calcom/ui/components/icon";
+
+import { md } from "@lib/markdownIt";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -31,8 +33,6 @@ export type EventTypeDescriptionProps = {
   className?: string;
   shortenDescription?: true;
 };
-
-const md = new MarkdownIt("default", { html: true, breaks: false, linkify: true });
 
 export const EventTypeDescription = ({
   eventType,

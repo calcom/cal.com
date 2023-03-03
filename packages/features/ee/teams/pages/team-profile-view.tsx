@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
-import MarkdownIt from "markdown-it";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -31,9 +30,9 @@ import {
 } from "@calcom/ui";
 import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
+import { md } from "@lib/markdownIt";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

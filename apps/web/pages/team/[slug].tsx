@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -17,13 +16,12 @@ import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { md } from "@lib/markdownIt";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {

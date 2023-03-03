@@ -1,6 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
-import MarkdownIt from "markdown-it";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -38,10 +37,10 @@ import {
 } from "@calcom/ui";
 import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
+import { md } from "@lib/markdownIt";
+
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -371,6 +370,7 @@ const ProfileForm = ({
             formMethods.setValue("bio", turndown(value), { shouldDirty: true });
           }}
           excludedToolbarItems={["blockType"]}
+          disableLists
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">

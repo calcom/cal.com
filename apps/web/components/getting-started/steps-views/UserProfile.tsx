@@ -1,5 +1,4 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import MarkdownIt from "markdown-it";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
@@ -12,9 +11,9 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 
-import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
+import { md } from "@lib/markdownIt";
 
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
 type FormData = {
   bio: string;

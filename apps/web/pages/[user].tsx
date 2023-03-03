@@ -1,6 +1,5 @@
 import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -31,12 +30,11 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
+import { md } from "@lib/markdownIt";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
@@ -147,7 +145,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               {!isBioEmpty && (
                 <>
                   <div
-                    className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
