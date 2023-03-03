@@ -30,7 +30,7 @@ export type EventTypeDescriptionProps = {
     seatsPerTimeSlot?: number;
   };
   className?: string;
-  shortenDescription?: true;
+  shortenDescription?: boolean;
 };
 
 export const EventTypeDescription = ({
@@ -57,9 +57,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: shortenDescription
-                ? addListFormatting(md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " ")))
-                : addListFormatting(md.render(eventType.description)),
+              __html: addListFormatting(md.render(eventType.description)),
             }}
           />
         )}
