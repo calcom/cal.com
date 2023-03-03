@@ -110,7 +110,7 @@ export const availabilityRouter = router({
           timeZone: schedule.timeZone || user.timeZone,
           dateOverrides: schedule.availability.reduce((acc, override) => {
             // only iff future date override
-            if (!override.date || override.date < new Date()) {
+            if (!override.date || dayjs.utc(override.date).isBefore(dayjs.utc(), "day")) {
               return acc;
             }
             const newValue = {
