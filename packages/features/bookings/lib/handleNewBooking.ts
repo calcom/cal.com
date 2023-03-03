@@ -128,9 +128,9 @@ const isWithinAvailableHours = (
   const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
   const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
-const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
-const inviteeDST = isInviteeInDST === isInviteeInDSTWheSlotStart;
+  const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
+  const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
+  const inviteeDST = isInviteeInDST === isInviteeInDSTWhenSlotStart;
   const getTime = (slotTime: Dayjs, minutes: number) =>
     slotTime
       .startOf("day")
@@ -140,7 +140,7 @@ const inviteeDST = isInviteeInDST === isInviteeInDSTWheSlotStart;
           : minutes -
               (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
                 ? organizerDSTDifference
-                : -inviteeDSTDifference),
+                : inviteeDSTDifference),
         "minutes"
       );
   for (const workingHour of workingHours) {
