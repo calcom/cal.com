@@ -1,6 +1,6 @@
 -- Insert initial feature flags with their default values
 INSERT INTO
-  public."Feature" (slug, enabled, description, "type")
+  "Feature" (slug, enabled, description, "type")
 VALUES
   (
     'emails',
@@ -26,4 +26,3 @@ VALUES
     'Enable webhooks for this instance',
     'OPERATIONAL'
   ) ON CONFLICT (slug) DO NOTHING;
-  
