@@ -84,8 +84,8 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
               id: _user.id,
             },
           },
-          title: "30 mins",
-          slug: "30-mins",
+          title: "30 min",
+          slug: "30-min",
           length: 30,
         },
       });
