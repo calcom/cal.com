@@ -397,19 +397,26 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
                   <Label className="pt-4">{t("custom_phone_number")}</Label>
                   <div className="block sm:flex">
-                    <PhoneInput<FormValues>
-                      control={form.control}
+                    <Controller
                       name={`steps.${step.stepNumber - 1}.sendTo`}
-                      placeholder={t("phone_number")}
-                      id={`steps.${step.stepNumber - 1}.sendTo`}
-                      className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
-                      required
-                      onChange={() => {
-                        const isAlreadyVerified = !!verifiedNumbers
-                          ?.concat([])
-                          .find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
-                        setNumberVerified(isAlreadyVerified);
-                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <PhoneInput
+                          placeholder={t("phone_number")}
+                          id={`steps.${step.stepNumber - 1}.sendTo`}
+                          className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
+                          required
+                          value={value}
+                          onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedNumbers
+                              ?.concat([])
+                              .find(
+                                (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                              );
+                            setNumberVerified(isAlreadyVerified);
+                            onChange(val);
+                          }}
+                        />
+                      )}
                     />
                     <Button
                       color="secondary"

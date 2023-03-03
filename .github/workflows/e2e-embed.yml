@@ -26,6 +26,8 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
+        env:
+          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload embed-core results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

@@ -56,6 +56,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     smsReminderNumber: null,
     scheduledJobs: [],
     metadata: null,
+    responses: null,
     ...booking,
   };
 };
@@ -96,6 +97,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    bookingFields: null,
     ...eventType,
   };
 };
