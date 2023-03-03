@@ -102,7 +102,7 @@ const BookingDescription: FC<Props> = (props) => {
                 )}
               />
             </div>
-            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words">
+            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
