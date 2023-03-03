@@ -6,13 +6,18 @@ export const FlagAdminList = () => {
   return (
     <List roundContainer noBorderTreatment>
       {data.map((flag) => (
-        <ListItem key={flag.slug} rounded={false} className="mb-4">
-          <ListItemTitle component="h3">
-            {flag.slug}
-            <Badge variant="green">{flag.type}</Badge>
-          </ListItemTitle>
-          <ListItemText component="p">{flag.description}</ListItemText>
-          <Switch checked={flag.enabled} />
+        <ListItem key={flag.slug} rounded={false}>
+          <div className="flex flex-1 flex-col">
+            <ListItemTitle component="h3">
+              {flag.slug}
+              &nbsp;&nbsp;
+              <Badge variant="green">{flag.type}</Badge>
+            </ListItemTitle>
+            <ListItemText component="p">{flag.description}</ListItemText>
+          </div>
+          <div className="flex py-2">
+            <Switch checked={flag.enabled} />
+          </div>
         </ListItem>
       ))}
     </List>
