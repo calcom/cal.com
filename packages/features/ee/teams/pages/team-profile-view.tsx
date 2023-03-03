@@ -223,6 +223,7 @@ const ProfileView = () => {
                   getText={() => md.render(form.getValues("bio") || "")}
                   setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
+                  disableLists
                 />
               </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
