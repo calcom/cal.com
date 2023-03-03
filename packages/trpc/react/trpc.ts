@@ -15,7 +15,7 @@ import type { AppRouter } from "../server/routers/_app";
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
-export const trpc = createTRPCNext<AppRouter>({
+export const trpc = createTRPCNext<AppRouter, unknown, "ExperimentalSuspense">({
   config() {
     const url =
       typeof window !== "undefined"
