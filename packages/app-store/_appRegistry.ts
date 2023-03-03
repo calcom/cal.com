@@ -76,10 +76,6 @@ export async function getAppRegistryWithCredentials(userId: number) {
   const apps = [] as (App & {
     credentials: Credential[];
     isDefault?: boolean;
-    dependencyData?: {
-      name?: string;
-      installed?: boolean;
-    };
   })[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
@@ -87,13 +83,20 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-    let dependencyInstalled, dependencyName;
-    if (app.dependency) {
-      dependencyInstalled = dbApps.some(
-        (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === app.dependency
-      );
-      dependencyName = await getAppFromSlug(app.dependency)?.name;
+    let dependencyData: {
+      name?: string;
+      installed?: boolean;
+    }[] = [];
+    if (app.dependencies) {
+      dependencyData = app.dependencies.map((dependency) => {
+        const dependencyInstalled = dbApps.some(
+          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+        );
+        const dependencyName = getAppFromSlug(dependency)?.name;
+        return { name: dependencyName, installed: dependencyInstalled };
+      });
     }
+
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
       rating: rating || 0,
@@ -105,13 +108,23 @@ export async function getAppRegistryWithCredentials(userId: number) {
       credentials: dbapp.credentials,
       installed: true,
       isDefault: usersDefaultApp === dbapp.slug,
-      ...(app.dependency && {
-        dependencyData: {
-          name: dependencyName,
-          installed: dependencyInstalled,
-        },
-      }),
+      ...(app.dependencies && { dependencyData }),
     });
+
+    if (app.slug === "typeform") {
+      console.log({
+        rating: rating || 0,
+        reviews: reviews || 0,
+        trending: trending || true,
+        verified: verified || true,
+        ...remainingAppProps,
+        categories: dbapp.categories,
+        credentials: dbapp.credentials,
+        installed: true,
+        isDefault: usersDefaultApp === dbapp.slug,
+        ...(app.dependencies && { dependencyData }),
+      });
+    }
   }
 
   return apps;

@@ -20,7 +20,8 @@ export const InstallAppButtonWithoutPlanCheck = (
 ) => {
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
-  if (!InstallAppButtonComponent) return <>{props.render({ useDefaultComponent: true })}</>;
+  if (!InstallAppButtonComponent)
+    return <>{props.render({ useDefaultComponent: true, disabled: props.disableInstall })}</>;
 
   return (
     <InstallAppButtonComponent

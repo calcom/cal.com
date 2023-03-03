@@ -139,7 +139,7 @@ export interface App {
   isTemplate?: boolean;
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */
-  dependency?: string;
+  dependencies?: string[];
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
@@ -149,7 +149,7 @@ export type AppFrontendPayload = Omit<App, "key"> & {
   dependencyData?: {
     name?: string;
     installed?: boolean;
-  };
+  }[];
 };
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;
