@@ -922,7 +922,7 @@ async function handler(
       if (originalRescheduledBooking) {
         const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
           (filteredAttendees, attendee) => {
-            if (attendee.email !== reqBody.email) {
+            if (attendee.email !== bookerEmail) {
               filteredAttendees.push({
                 name: attendee.name,
                 email: attendee.email,
@@ -968,7 +968,7 @@ async function handler(
             },
             data: {
               startTime: evt.startTime,
-              cancellationReason: reqBody.rescheduleReason,
+              cancellationReason: rescheduleReason,
             },
             include: {
               references: true,
@@ -979,12 +979,12 @@ async function handler(
 
           const copyEvent = cloneDeep(evt);
 
-          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id, reqBody.rescheduleReason);
+          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id, rescheduleReason);
 
           await sendRescheduledEmails({
             ...copyEvent,
             additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+            cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
           });
 
           return newBooking;
@@ -1076,18 +1076,13 @@ async function handler(
 
         const copyEvent = cloneDeep(evt);
 
-        await eventManager.reschedule(
-          copyEvent,
-          rescheduleUid,
-          newTimeSlotBooking.id,
-          reqBody.rescheduleReason
-        );
+        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id, rescheduleReason);
 
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
         // Delete the old booking
@@ -1143,12 +1138,7 @@ async function handler(
 
       const copyEvent = cloneDeep(evt);
 
-      await eventManager.reschedule(
-        copyEvent,
-        rescheduleUid,
-        newTimeSlotBooking.id,
-        reqBody.rescheduleReason
-      );
+      await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id, rescheduleReason);
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
 
@@ -1297,12 +1287,6 @@ async function handler(
     }
   }
 
-  if (reqBody.customInputs.length > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputs[label] = value;
-    });
-  }
-
   if (isTeamEventType) {
     evt.team = {
       members: teamMembers,
@@ -1400,9 +1384,9 @@ async function handler(
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (newBookingData.attendees?.createMany?.data) {
         // Reschedule logic with booking with seats
-        if (eventType?.seatsPerTimeSlot && reqBody.email) {
+        if (eventType?.seatsPerTimeSlot && bookerEmail) {
           newBookingData.attendees.createMany.data = attendeesData.filter(
-            (attendee) => attendee.email === reqBody.email
+            (attendee) => attendee.email === bookerEmail
           );
         } else {
           newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
@@ -1564,8 +1548,8 @@ async function handler(
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
-      reqBody.rescheduleReason,
-      reqBody.email
+      rescheduleReason,
+      bookerEmail
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1601,7 +1585,7 @@ async function handler(
         // Reschedule login for booking with seats
         if (eventType?.seatsPerTimeSlot && originalRescheduledBooking.attendees.length > 1) {
           // We should only notify affected attendees (owner and attendee rescheduling)
-          copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
+          copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === bookerEmail);
         }
 
         await sendRescheduledEmails({
