@@ -4,7 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
@@ -49,16 +49,19 @@ const LocationInput = (props: {
   defaultValue?: string;
 }): JSX.Element | null => {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
+  const { control } = useFormContext() as typeof locationFormMethods;
   if (eventLocationType?.organizerInputType === "text") {
     return (
       <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     return (
-      <PhoneInput
+      <Controller
         name={eventLocationType.variable}
-        control={locationFormMethods.control}
-        {...remainingProps}
+        control={control}
+        render={({ field: { onChange, value } }) => {
+          return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
+        }}
       />
     );
   }

@@ -90,6 +90,8 @@ test("add webhook & test that creating an event triggers a webhook call", async 
         timeZone: "[redacted/dynamic]",
         language: "[redacted/dynamic]",
       },
+      responses: { email: "test@example.com", name: "Test Testson" },
+      userFieldsResponses: {},
       attendees: [
         {
           email: "test@example.com",

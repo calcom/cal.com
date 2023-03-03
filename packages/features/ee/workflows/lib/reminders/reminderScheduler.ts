@@ -1,10 +1,5 @@
-import {
-  Workflow,
-  WorkflowActions,
-  WorkflowsOnEventTypes,
-  WorkflowStep,
-  WorkflowTriggerEvents,
-} from "@prisma/client";
+import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import { WorkflowActions, WorkflowTriggerEvents } from "@prisma/client";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
