@@ -32,7 +32,7 @@ export default class BaseEmail {
   public async sendEmail() {
     const featureFlags = await getFeatureFlagMap(prisma);
     /** If email kill switch exists and is active, we prevent emails being sent. */
-    if ("email" in featureFlags && featureFlags.email) {
+    if (featureFlags.emails) {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }

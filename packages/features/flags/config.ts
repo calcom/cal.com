@@ -3,6 +3,7 @@
  * Maybe later on we can add string variants or numeric ones
  **/
 export type AppFlags = {
+  emails: boolean;
   teams: boolean;
   webhooks: boolean;
   workflows: boolean;
