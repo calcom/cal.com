@@ -11,6 +11,7 @@ CREATE TABLE "Feature" (
     "lastUsedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "Feature_pkey" PRIMARY KEY ("slug")
 );

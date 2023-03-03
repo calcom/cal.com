@@ -685,6 +685,7 @@ model Feature {
   lastUsedAt  DateTime?
   createdAt   DateTime?    @default(now())
   updatedAt   DateTime     @updatedAt
+  updatedBy   Int?
 }
 
 enum FeatureType {
