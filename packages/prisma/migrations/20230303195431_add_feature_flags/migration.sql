@@ -10,7 +10,7 @@ CREATE TABLE "Feature" (
     "stale" BOOLEAN DEFAULT false,
     "lastUsedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updatedBy" INTEGER,
 
     CONSTRAINT "Feature_pkey" PRIMARY KEY ("slug")
