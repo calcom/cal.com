@@ -41,7 +41,7 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-const md = new MarkdownIt("default", { html: true, breaks: true });
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

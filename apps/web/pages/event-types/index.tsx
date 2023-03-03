@@ -119,7 +119,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
-      title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
+      title={type.title}>
       <div>
         <span
           className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
@@ -142,6 +142,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={type}
+        shortenDescription
       />
     </Link>
   );
