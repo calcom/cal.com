@@ -86,7 +86,7 @@ async function main() {
   });
 
   // Create team events types
-  const teamEventTypes = await prisma.eventType.createMany({
+  await prisma.eventType.createMany({
     data: [
       {
         title: "Team Meeting",

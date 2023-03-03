@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import crypto from "crypto";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -68,7 +69,7 @@ export const analyticsRouter = router({
       const totalCancelled = await EventsAnalytics.getTotalCancelledEvents(baseBookingIds);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
-      const lastPeriodEndDate = dayjs(endDate).subtract(1, "minute");
+      const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
 
       const lastPeriodBaseBookings = await EventsAnalytics.getBaseBookingForEventStatus({
         ...whereConditional,
@@ -94,25 +95,26 @@ export const analyticsRouter = router({
       return {
         created: {
           count: baseBookings.length,
-          deltaPrevious: baseBookings.length - lastPeriodBaseBookings.length,
+          deltaPrevious: EventsAnalytics.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
         },
         completed: {
           count: baseBookings.length - totalCancelled - totalRescheduled,
-          deltaPrevious:
-            baseBookings.length -
-            totalCancelled -
-            totalRescheduled -
-            lastPeriodBaseBookings.length -
-            lastPeriodTotalCancelled -
-            lastPeriodTotalRescheduled,
+          deltaPrevious: EventsAnalytics.getPercentage(
+            baseBookings.length - totalCancelled - totalRescheduled,
+            lastPeriodBaseBookings.length - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
+          ),
         },
         rescheduled: {
           count: totalRescheduled,
-          deltaPrevious: totalRescheduled - lastPeriodTotalRescheduled,
+          deltaPrevious: EventsAnalytics.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
         },
         cancelled: {
           count: totalCancelled,
-          deltaPrevious: totalCancelled - lastPeriodTotalCancelled,
+          deltaPrevious: EventsAnalytics.getPercentage(totalCancelled, lastPeriodTotalCancelled),
+        },
+        previousRange: {
+          startDate: lastPeriodStartDate.format("YYYY-MM-DD"),
+          endDate: lastPeriodEndDate.format("YYYY-MM-DD"),
         },
       };
     }),
@@ -337,7 +339,185 @@ export const analyticsRouter = router({
         whereConditional["userId"] = userId;
       }
 
-      // It has to use timeline
-      const timeView = await EventsAnalytics.getTimeLine("week", startDate, endDate);
+      const timeView = EventsAnalytics.getTimeView("week", startDate, endDate);
+      const timeLine = await EventsAnalytics.getTimeLine("week", startDate, endDate);
+
+      if (!timeLine) {
+        return [];
+      }
+
+      const dateFormat = "ll";
+
+      const result = [];
+
+      for (const date of timeLine) {
+        const EventData = {
+          Date: dayjs(date).format(dateFormat),
+          Average: 0,
+        };
+        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
+
+        const startDate = dayjs(date).startOf(startOfEndOf);
+        const endDate = dayjs(date).endOf(startOfEndOf);
+
+        const bookingsInTimeRange = await ctx.prisma.booking.findMany({
+          where: {
+            ...whereConditional,
+            createdAt: {
+              gte: startDate.toDate(),
+              lte: endDate.toDate(),
+            },
+          },
+          include: {
+            eventType: true,
+          },
+        });
+
+        const avgDuration =
+          bookingsInTimeRange.reduce((acc, booking) => {
+            const duration = booking.eventType?.length || 0;
+            return acc + duration;
+          }, 0) / bookingsInTimeRange.length;
+
+        EventData["Average"] = Number(avgDuration) || 0;
+        result.push(EventData);
+      }
+
+      return result;
+    }),
+  membersWithMostBookings: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.coerce.number().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate } = input;
+      const user = ctx.user;
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+        by: ["userId"],
+        where: {
+          eventType: {
+            teamId: teamId,
+          },
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        },
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "desc",
+          },
+        },
+        take: 10,
+      });
+      const userIds = bookingsFromTeam
+        .filter((booking) => typeof booking.userId === "number")
+        .map((booking) => booking.userId);
+      const usersFromTeam = await ctx.prisma.user.findMany({
+        where: {
+          id: {
+            in: userIds as number[],
+          },
+        },
+      });
+
+      const userHashMap = new Map();
+      usersFromTeam.forEach((user) => {
+        userHashMap.set(user.id, user);
+      });
+
+      const result = bookingsFromTeam.map((booking) => {
+        return {
+          userId: booking.userId,
+          user: userHashMap.get(booking.userId),
+          emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+          count: booking._count.id,
+        };
+      });
+      return result;
+    }),
+  membersWithLeastBookings: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.coerce.number().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, startDate, endDate } = input;
+      const user = ctx.user;
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+        by: ["userId"],
+        where: {
+          eventType: {
+            teamId: teamId,
+          },
+          createdAt: {
+            gte: dayjs(startDate).startOf("day").toDate(),
+            lte: dayjs(endDate).endOf("day").toDate(),
+          },
+        },
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: "asc",
+          },
+        },
+        take: 10,
+      });
+      const userIds = bookingsFromTeam
+        .filter((booking) => typeof booking.userId === "number")
+        .map((booking) => booking.userId);
+      const usersFromTeam = await ctx.prisma.user.findMany({
+        where: {
+          id: {
+            in: userIds as number[],
+          },
+        },
+      });
+
+      const userHashMap = new Map();
+      usersFromTeam.forEach((user) => {
+        userHashMap.set(user.id, user.name);
+      });
+
+      const result = bookingsFromTeam.map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+          count: booking._count.id,
+          Username: user.name,
+        };
+      });
+      console.log(result);
+      return result;
     }),
 });

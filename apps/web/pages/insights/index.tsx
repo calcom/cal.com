@@ -26,6 +26,7 @@ import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import { Avatar, Button, ButtonGroup, Tooltip } from "@calcom/ui";
 import {
@@ -77,7 +78,7 @@ export default function InsightsPage() {
       description: t("dolor sit amet, consetetur sadipscing elitr,", { appName: APP_NAME }),
     },
   ];
-  const [startDate, setStartDate] = useState(dayjs().startOf("month"));
+  const [startDate, setStartDate] = useState(dayjs().subtract(1, "month"));
   const [endDate, setEndDate] = useState(dayjs());
   const [timeView, setTimeView] = useState<"month" | "week" | "year">("week");
 
@@ -157,71 +158,14 @@ export default function InsightsPage() {
             <div className="space-y-6">
               <KPICards startDate={startDate.toISOString()} endDate={endDate.toISOString()} teamId={21} />
               <Line title={t("event_trends" /* "Events trends" */)} data={eventsTimeLine || []} />
-              <TeamTable />
+              {/* <TeamTable /> */}
               <div className="grid grid-cols-2 gap-5">
                 <PopularEvents startDate={startDate} endDate={endDate} teamId={21} />
-                <Bar
-                  title={t("popular_days" /* "Popular days" */)}
-                  data={[
-                    {
-                      Month: "Jan 21",
-                      Sales: 2890,
-                      Profit: 2400,
-                    },
-                    {
-                      Month: "Feb 21",
-                      Sales: 1890,
-                      Profit: 1398,
-                    },
-                    {
-                      Month: "Jan 22",
-                      Sales: 3890,
-                      Profit: 2980,
-                    },
-                  ]}
-                />
+                <AverageEventDuration startDate={startDate} endDate={endDate} teamId={21} />
               </div>
               <div className="grid grid-cols-2 gap-5">
-                <Bar
-                  title={t("average_event_duration" /* "Average event duration" */)}
-                  data={[
-                    {
-                      Month: "Jan 21",
-                      Sales: 2890,
-                      Profit: 2400,
-                    },
-                    {
-                      Month: "Feb 21",
-                      Sales: 1890,
-                      Profit: 1398,
-                    },
-                    {
-                      Month: "Jan 22",
-                      Sales: 3890,
-                      Profit: 2980,
-                    },
-                  ]}
-                />
-                <Bar
-                  title={t("popular_days" /* "Popular days" */)}
-                  data={[
-                    {
-                      Month: "Jan 21",
-                      Sales: 2890,
-                      Profit: 2400,
-                    },
-                    {
-                      Month: "Feb 21",
-                      Sales: 1890,
-                      Profit: 1398,
-                    },
-                    {
-                      Month: "Jan 22",
-                      Sales: 3890,
-                      Profit: 2980,
-                    },
-                  ]}
-                />
+                <MembersWithMostBookings startDate={startDate} endDate={endDate} teamId={21} />
+                <MembersWithLeastBookings startDate={startDate} endDate={endDate} teamId={21} />
               </div>
               <small className="block text-center text-gray-600">
                 {t("looking_for_more_analytics")}
@@ -349,6 +293,126 @@ const PopularEvents = ({
   );
 };
 
+const AverageEventDuration = ({
+  startDate,
+  endDate,
+  teamId,
+}: {
+  startDate: Dayjs;
+  endDate: Dayjs;
+  teamId: number;
+}) => {
+  const { data, isSuccess } = trpc.viewer.analytics.averageEventDuration.useQuery({
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    teamId,
+  });
+  return (
+    <Card>
+      <Title>Average Event Duration</Title>
+      {isSuccess && data.length > 0 && (
+        <LineChart
+          marginTop="mt-4"
+          data={data}
+          dataKey="Date"
+          categories={["Average"]}
+          colors={["blue"]}
+          valueFormatter={valueFormatter}
+          height="h-80"
+        />
+      )}
+    </Card>
+  );
+};
+
+const MembersWithMostBookings = ({
+  startDate,
+  endDate,
+  teamId,
+}: {
+  startDate: Dayjs;
+  endDate: Dayjs;
+  teamId: number;
+}) => {
+  const { data, isSuccess } = trpc.viewer.analytics.membersWithMostBookings.useQuery({
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    teamId,
+  });
+  return (
+    <Card>
+      <Title>Most Booked Members</Title>
+      <UsersTotalBookingTable isSuccess={isSuccess} data={data} />
+    </Card>
+  );
+};
+
+const MembersWithLeastBookings = ({
+  startDate,
+  endDate,
+  teamId,
+}: {
+  startDate: Dayjs;
+  endDate: Dayjs;
+  teamId: number;
+}) => {
+  const { data, isSuccess } = trpc.viewer.analytics.membersWithLeastBookings.useQuery({
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+    teamId,
+  });
+
+  return (
+    <Card>
+      <Title>Least Booked Members</Title>
+      <UsersTotalBookingTable isSuccess={isSuccess} data={data} />
+    </Card>
+  );
+};
+
+const UsersTotalBookingTable = ({
+  isSuccess,
+  data,
+}: {
+  isSuccess: boolean;
+  data: { userId: number | null; user: User; emailMd5: string; count: number; Username: any }[] | undefined;
+}) => {
+  return (
+    <Table>
+      <TableBody>
+        <>
+          {isSuccess ? (
+            data?.map((item) => (
+              <TableRow key={item.userId}>
+                <TableCell className="flex flex-row">
+                  <Avatar
+                    alt={item.user.name}
+                    size="sm"
+                    imageSrc={item.user.avatar}
+                    title={item.user.name}
+                    className="m-2"
+                    gravatarFallbackMd5={item.emailMd5}
+                  />
+                  <strong className="align-super">{item.user.name}</strong>
+                </TableCell>
+                <TableCell>
+                  <Text>
+                    <strong>{item.count}</strong>
+                  </Text>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell>No members found</TableCell>
+            </TableRow>
+          )}
+        </>
+      </TableBody>
+    </Table>
+  );
+};
+
 const colors: { [key: string]: Color } = {
   increase: "emerald",
   moderateIncrease: "emerald",
@@ -390,7 +454,7 @@ const categories: {
 ];
 
 const KPICards = ({ startDate, endDate, teamId }: { startDate: string; endDate: string; teamId: number }) => {
-  const { data } = trpc.viewer.analytics.eventsByStatus.useQuery({
+  const { data, isSuccess } = trpc.viewer.analytics.eventsByStatus.useQuery({
     startDate,
     endDate,
     teamId,
@@ -398,7 +462,7 @@ const KPICards = ({ startDate, endDate, teamId }: { startDate: string; endDate: 
 
   return (
     <ColGrid numColsSm={2} numColsLg={4} gapX="gap-x-6" gapY="gap-y-6">
-      {data !== undefined &&
+      {isSuccess &&
         categories.map((item) => (
           <Card key={item.title}>
             <Text>{item.title}</Text>
@@ -416,9 +480,12 @@ const KPICards = ({ startDate, endDate, teamId }: { startDate: string; endDate: 
               <Flex justifyContent="justify-start" spaceX="space-x-1" truncate={true}>
                 <Text
                   color={colors[CalculateDeltaType(data[item.index].deltaPrevious - data[item.index].count)]}>
-                  {data[item.index].deltaPrevious}
+                  {Number(data[item.index].deltaPrevious).toFixed(0)}%
                 </Text>
-                <small className="relative top-px text-xs text-gray-600">from last period</small>
+
+                <Tooltip content={`From: ${data.previousRange.startDate} To: ${data.previousRange.endDate}`}>
+                  <small className="relative top-px text-xs text-gray-600">from last period</small>
+                </Tooltip>
               </Flex>
             </Flex>
           </Card>
