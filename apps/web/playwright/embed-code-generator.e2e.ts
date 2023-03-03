@@ -88,6 +88,8 @@ async function expectToContainValidPreviewIframe(
 
 test.describe.configure({ mode: "parallel" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Embed Code Generator Tests", () => {
   test.beforeEach(async ({ users }) => {
     const pro = await users.create();
