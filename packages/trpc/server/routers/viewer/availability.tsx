@@ -435,10 +435,6 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
   });
 };
 
-const _isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
-  return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
-};
-
 const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
   const user = await prisma.user.findUnique({
     where: {

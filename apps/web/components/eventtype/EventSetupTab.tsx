@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import MarkdownIt from "markdown-it";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -14,12 +15,15 @@ import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/ap
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { slugify } from "@calcom/lib/slugify";
-import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import turndown from "@calcom/lib/turndownService";
+import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
+
+const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -272,12 +276,15 @@ export const EventSetupTab = (
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
-        <TextField
-          label={t("description")}
-          placeholder={t("quick_video_meeting")}
-          defaultValue={eventType.description ?? ""}
-          {...formMethods.register("description")}
-        />
+        <div>
+          <Label>{t("description")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+            setText={(value: string) => formMethods.setValue("description", turndown(value))}
+            excludedToolbarItems={["blockType"]}
+            placeholder={t("quick_video_meeting")}
+          />
+        </div>
         <TextField
           required
           label={t("URL")}

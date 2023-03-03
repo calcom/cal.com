@@ -5,13 +5,13 @@ import type { AppsStatus as AppsStatusType, CalendarEvent, Person } from "@calco
 
 import {
   BaseEmailHtml,
-  CustomInputs,
   Info,
   LocationInfo,
   ManageLink,
   WhenInfo,
   WhoInfo,
   AppsStatus,
+  UserFieldsResponses,
 } from "../components";
 
 export const BaseScheduledEmail = (
@@ -73,7 +73,7 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
-      <CustomInputs calEvent={props.calEvent} />
+      <UserFieldsResponses calEvent={props.calEvent} />
     </BaseEmailHtml>
   );
 };

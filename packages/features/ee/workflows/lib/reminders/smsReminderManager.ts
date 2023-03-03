@@ -1,19 +1,15 @@
-import {
-  WorkflowTriggerEvents,
-  TimeUnit,
-  WorkflowTemplates,
-  WorkflowActions,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
-import customTemplate, { VariablesType } from "./templates/customTemplate";
+import type { VariablesType } from "./templates/customTemplate";
+import customTemplate from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
