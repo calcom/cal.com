@@ -26,7 +26,7 @@ export class FloatingButton extends HTMLElement {
       if (!buttonEl) {
         throw new Error("Button not found");
       }
-      buttonEl.innerHTML = newValue;
+      buttonEl.textContent = newValue;
     } else if (name === "data-hide-button-icon") {
       const buttonIconEl = this.shadowRoot?.querySelector<HTMLElement>("#button-icon");
       if (!buttonIconEl) {
