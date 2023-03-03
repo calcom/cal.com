@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { authedAdminProcedure, publicProcedure, router } from "@calcom/trpc/server/trpc";
 
+import { getFeatureFlagMap } from "./utils";
+
 export const featureFlagRouter = router({
   list: publicProcedure.query(async ({ ctx }) => {
     const { prisma } = ctx;
@@ -11,13 +13,7 @@ export const featureFlagRouter = router({
   }),
   map: publicProcedure.query(async ({ ctx }) => {
     const { prisma } = ctx;
-    const flags = await prisma.feature.findMany({
-      orderBy: { slug: "asc" },
-    });
-    return flags.reduce<Record<string, boolean>>((fs, f) => {
-      fs[f.slug] = f.enabled;
-      return fs;
-    }, {});
+    return getFeatureFlagMap(prisma);
   }),
   isEnabled: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const { prisma } = ctx;

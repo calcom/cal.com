@@ -2,8 +2,10 @@ import nodemailer from "nodemailer";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import prisma from "@calcom/prisma";
 
 declare let global: {
   E2E_EMAILS?: Record<string, unknown>[];
@@ -27,7 +29,13 @@ export default class BaseEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
   }
-  public sendEmail() {
+  public async sendEmail() {
+    const featureFlags = await getFeatureFlagMap(prisma);
+    /** If email kill switch exists and is active, we prevent emails being sent. */
+    if ("email" in featureFlags && featureFlags.email) {
+      console.warn("Skipped Sending Email due to active Kill Switch");
+      return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
+    }
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       global.E2E_EMAILS = global.E2E_EMAILS || [];
       global.E2E_EMAILS.push(this.getNodeMailerPayload());
