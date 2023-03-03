@@ -121,12 +121,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
-      <div
-        className={classNames(
-          shouldAlignCentrally ? "mx-auto" : "",
-          isEmbed ? "max-w-3xl" : "",
-          "dark:bg-darkgray-50"
-        )}>
+      <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
+        {/* There should only be two places to add dark theme - Either at body or (at main tag or an element with .main class  )*/}
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
