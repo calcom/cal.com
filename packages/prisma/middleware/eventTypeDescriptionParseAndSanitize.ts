@@ -1,6 +1,6 @@
 import type { PrismaClient, EventType } from "@prisma/client";
 
-import { md } from "@lib/markdownIt";
+import { md } from "@calcom/lib/markdownIt";
 
 function parseAndSanitize(description: string) {
   const parsedMarkdown = md.render(description);

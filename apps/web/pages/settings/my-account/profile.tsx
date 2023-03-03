@@ -9,6 +9,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -36,8 +37,6 @@ import {
   Editor,
 } from "@calcom/ui";
 import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
-
-import { md } from "@lib/markdownIt";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";

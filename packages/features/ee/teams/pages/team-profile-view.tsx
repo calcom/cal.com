@@ -10,6 +10,7 @@ import { z } from "zod";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
@@ -29,8 +30,6 @@ import {
   Editor,
 } from "@calcom/ui";
 import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
-
-import { md } from "@lib/markdownIt";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 

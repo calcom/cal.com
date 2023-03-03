@@ -3,9 +3,8 @@ import type { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { Avatar } from "@calcom/ui";
-
-import { md } from "@lib/markdownIt";
 
 type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];

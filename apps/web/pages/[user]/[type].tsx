@@ -5,10 +5,10 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { addListFormatting } from "@calcom/lib/markdownIt";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { addListFormatting } from "@lib/markdownIt";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 

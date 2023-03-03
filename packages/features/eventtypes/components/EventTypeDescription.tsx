@@ -7,6 +7,7 @@ import type { z } from "zod";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { addListFormatting, md } from "@calcom/lib/markdownIt";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
@@ -19,8 +20,6 @@ import {
   FiPlus,
   FiUser,
 } from "@calcom/ui/components/icon";
-
-import { md } from "@lib/markdownIt";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -59,8 +58,8 @@ export const EventTypeDescription = ({
             )}
             dangerouslySetInnerHTML={{
               __html: shortenDescription
-                ? md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " "))
-                : md.render(eventType.description),
+                ? addListFormatting(md.render(eventType.description?.replace(/<p><br><\/p>|\n/g, " ")))
+                : addListFormatting(md.render(eventType.description)),
             }}
           />
         )}
