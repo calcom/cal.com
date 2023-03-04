@@ -914,7 +914,6 @@ async function handler(
     // If rescheduling an existing attendee
     if (rescheduleUid) {
       // Check if the host or attendee is rescheduling
-      const host = booking.user?.email === req.body.email;
       const host = booking.user?.email === req.body.responses.email;
 
       // If it is the host then continue rescheduling as normal
