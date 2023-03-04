@@ -1,5 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
-import { UnitTypeLongPlural } from "dayjs";
+import type { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -14,6 +14,7 @@ import type {
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
+import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import { slugify } from "@calcom/lib/slugify";
 
 // Let's not import 118kb just to get an enum
@@ -49,6 +50,29 @@ export const EventTypeMetaDataSchema = z
         useHostSchedulesForTeamEvent: z.boolean().optional(),
       })
       .optional(),
+  })
+  .nullable();
+
+export const eventTypeBookingFields = formBuilderFieldsSchema;
+export const BookingFieldType = eventTypeBookingFields.element.shape.type.Enum;
+export type BookingFieldType = typeof BookingFieldType extends z.Values<infer T> ? T[number] : never;
+
+// Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
+// So it is a dynamic validation and thus entire validation can't exist here
+export const bookingResponses = z
+  .object({
+    email: z.string(),
+    name: z.string(),
+    guests: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+    location: z
+      .object({
+        optionValue: z.string(),
+        value: z.string(),
+      })
+      .optional(),
+    smsReminderNumber: z.string().optional(),
+    rescheduleReason: z.string().optional(),
   })
   .nullable();
 
@@ -120,14 +144,9 @@ export const stringOrNumber = z.union([
 export const stringToDayjs = z.string().transform((val) => dayjs(val));
 
 export const bookingCreateBodySchema = z.object({
-  email: z.string(),
   end: z.string(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
-  guests: z.array(z.string()).optional(),
-  location: z.string(),
-  name: z.string(),
-  notes: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
   start: z.string(),
@@ -135,7 +154,6 @@ export const bookingCreateBodySchema = z.object({
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
-  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
@@ -158,14 +176,13 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
 });
 
+// `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
-    rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -179,6 +196,23 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
   })
+);
+
+// It has only the legacy props that are part of `responses` now. The API can still hit old props
+export const bookingCreateSchemaLegacyPropsForApi = z.object({
+  email: z.string(),
+  name: z.string(),
+  guests: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  location: z.string(),
+  smsReminderNumber: z.string().optional().nullable(),
+  rescheduleReason: z.string().optional(),
+  customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
+});
+
+// This is the schema that is used for the API. It has all the legacy props that are part of `responses` now.
+export const bookingCreateBodySchemaForApi = extendedBookingCreateBody.merge(
+  bookingCreateSchemaLegacyPropsForApi
 );
 
 export const schemaBookingCancelParams = z.object({
@@ -208,6 +242,13 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
+    sessionTimeout: z.number().optional(), // Minutes
+    defaultConferencingApp: z
+      .object({
+        appSlug: z.string().default("daily-video").optional(),
+        appLink: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
@@ -225,6 +266,7 @@ export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
   })
+  .and(z.record(z.string()))
   .nullable();
 
 export const customInputOptionSchema = z.array(
@@ -293,6 +335,24 @@ export const RoutingFormSettings = z
   })
   .nullable();
 
+export const DeploymentTheme = z
+  .object({
+    brand: z.string().default("#292929"),
+    textBrand: z.string().default("#ffffff"),
+    darkBrand: z.string().default("#fafafa"),
+    textDarkBrand: z.string().default("#292929"),
+    bookingHighlight: z.string().default("#10B981"),
+    bookingLightest: z.string().default("#E1E1E1"),
+    bookingLighter: z.string().default("#ACACAC"),
+    bookingLight: z.string().default("#888888"),
+    bookingMedian: z.string().default("#494949"),
+    bookingDark: z.string().default("#313131"),
+    bookingDarker: z.string().default("#292929"),
+    fontName: z.string().default("Cal Sans"),
+    fontSrc: z.string().default("https://cal.com/cal.ttf"),
+  })
+  .optional();
+
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
   : T;
@@ -335,7 +395,7 @@ export function denullishShape<
  * @returns The constructed tuple array from the given object
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/entries.ts
  */
-export const entries = <O>(
+export const entries = <O extends Record<string, unknown>>(
   obj: O
 ): {
   readonly [K in keyof O]: [K, O[K]];

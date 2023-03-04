@@ -1,11 +1,13 @@
-import Glide, { Options } from "@glidejs/glide";
+import type { Options } from "@glidejs/glide";
+import Glide from "@glidejs/glide";
 import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
-import { ComponentProps, FC, useEffect, useRef } from "react";
+import type { ComponentProps, FC } from "react";
+import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../components/icon";
+import { FiArrowLeft, FiArrowRight } from "../icon";
 import { SkeletonText } from "../skeleton";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
@@ -48,15 +50,8 @@ export const Slider = <T extends string | unknown>({
 
   return (
     <div className={`mb-2 ${className}`}>
-      <style jsx global>
-        {`
-          .glide__slide {
-            height: auto !important;
-          }
-        `}
-      </style>
       <div className="glide" ref={glide}>
-        <div className="flex cursor-default pb-3">
+        <div className="flex cursor-default items-center pb-3">
           {isLocaleReady ? (
             title && (
               <div>
@@ -68,10 +63,10 @@ export const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
             <SliderButton data-glide-dir="<">
-              <Icon.FiArrowLeft className="h-5 w-5" />
+              <FiArrowLeft className="h-5 w-5" />
             </SliderButton>
             <SliderButton data-glide-dir=">">
-              <Icon.FiArrowRight className="h-5 w-5" />
+              <FiArrowRight className="h-5 w-5" />
             </SliderButton>
           </div>
         </div>

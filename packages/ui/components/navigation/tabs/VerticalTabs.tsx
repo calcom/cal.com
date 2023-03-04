@@ -1,6 +1,7 @@
 import { classNames } from "@calcom/lib";
 
-import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
+import type { VerticalTabItemProps } from "./VerticalTabItem";
+import VerticalTabItem from "./VerticalTabItem";
 
 export { VerticalTabItem };
 
@@ -13,7 +14,7 @@ export interface NavTabProps {
   itemClassname?: string;
 }
 
-const NavTabs = function ({ tabs, className = "", sticky, linkProps, ...props }: NavTabProps) {
+const NavTabs = function ({ tabs, className = "", sticky, linkProps, itemClassname, ...props }: NavTabProps) {
   return (
     <nav
       className={classNames(
@@ -26,7 +27,7 @@ const NavTabs = function ({ tabs, className = "", sticky, linkProps, ...props }:
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} className={props.itemClassname} />
+        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} className={itemClassname} />
       ))}
     </nav>
   );

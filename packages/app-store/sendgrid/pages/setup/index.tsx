@@ -6,7 +6,8 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, Icon, showToast, TextField } from "@calcom/ui";
+import { Button, Form, showToast, TextField } from "@calcom/ui";
+import { FiCheck, FiX } from "@calcom/ui/components/icon";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -101,7 +102,7 @@ export default function SendgridSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Icon.FiCheck : Icon.FiX) : undefined}
+                    StartIcon={testPassed !== undefined ? (testPassed ? FiCheck : FiX) : undefined}
                     className={
                       testPassed !== undefined
                         ? testPassed

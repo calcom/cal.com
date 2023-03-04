@@ -1,19 +1,21 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, EmailField, PasswordField, TextField, HeadSeo } from "@calcom/ui";
-import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
-import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
-import prisma from "@calcom/web/lib/prisma";
-import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-import { ssrInit } from "@calcom/web/server/lib/ssr";
+import prisma from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+
+import { asStringOrNull } from "../lib/asStringOrNull";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
+import { ssrInit } from "../server/lib/ssr";
 
 type FormValues = {
   username: string;
@@ -55,7 +57,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then(handleErrors)
       .then(async () => {
-        telemetry.event(telemetryEventTypes.login, collectPageParameters());
+        telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         await signIn<"credentials">("credentials", {
           ...data,
           callbackUrl: router.query.callbackUrl

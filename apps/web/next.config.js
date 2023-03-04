@@ -35,6 +35,12 @@ if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
 
+if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
+  );
+}
+
 if (!process.env.EMAIL_FROM) {
   console.warn(
     "\x1b[33mwarn",
@@ -76,7 +82,6 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 plugins.push(withAxiom);
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -89,16 +94,21 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-  // modularizeImports: {
-  //   "@calcom/ui": {
-  //     transform: "@calcom/ui/components/{{member}}",
-  //   },
-  // },
+  modularizeImports: {
+    "@calcom/ui/components/icon": {
+      transform: "@react-icons/all-files/fi/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
+    },
+    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+    // "@calcom/ui": {
+    //   transform: "@calcom/ui/components/{{member}}",
+    // },
+  },
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -119,6 +129,8 @@ const nextConfig = {
         ],
       })
     );
+
+    config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -174,6 +186,41 @@ const nextConfig = {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/auth/:path*",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/signup",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
     ];
   },
   async redirects() {

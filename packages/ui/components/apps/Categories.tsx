@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, SkeletonText } from "@calcom/ui";
 
+import { FiArrowRight } from "../icon";
+import { SkeletonText } from "../skeleton";
 import { Slider } from "./Slider";
 
 export function AppStoreCategories({
@@ -43,7 +44,7 @@ export function AppStoreCategories({
               )}
               <p className="pt-2 text-sm font-medium text-gray-500">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
-                <Icon.FiArrowRight className="inline-block h-4 w-4" />
+                <FiArrowRight className="inline-block h-4 w-4" />
               </p>
             </div>
           </Link>

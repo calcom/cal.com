@@ -1,3 +1,5 @@
+import { CSSProperties } from "react";
+
 import { BASE_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 
 import EmailCommonDivider from "./EmailCommonDivider";
@@ -22,12 +24,13 @@ export const getHeadImage = (headerType: BodyHeadType): string => {
   }
 };
 
-const EmailSchedulingBodyHeader = (props: { headerType: BodyHeadType }) => {
+const EmailSchedulingBodyHeader = (props: { headerType: BodyHeadType; headStyles?: CSSProperties }) => {
   const image = getHeadImage(props.headerType);
 
   return (
     <>
-      <EmailCommonDivider headStyles={{ padding: "30px 30px 0 30px", borderTop: "1px solid #E1E1E1" }}>
+      <EmailCommonDivider
+        headStyles={{ padding: "30px 30px 0 30px", borderTop: "1px solid #E1E1E1", ...props.headStyles }}>
         <td
           align="center"
           style={{

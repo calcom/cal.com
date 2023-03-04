@@ -1,14 +1,15 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter } from "next/router";
-import { UIEvent, useEffect, useRef, useState } from "react";
+import type { UIEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-import { Icon } from "@calcom/ui";
 
 import { EmptyScreen } from "../empty-screen";
+import { FiChevronLeft, FiChevronRight, FiSearch } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -76,11 +77,11 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             })}
       </h2>
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
-          <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <Icon.FiChevronLeft className="h-4 w-4 text-gray-500" />
+        <button onClick={handleLeft} className="absolute bottom-0 flex md:left-1/2 md:-top-1">
+          <div className="flex h-10 w-5 items-center justify-end bg-white">
+            <FiChevronLeft className="h-4 w-4 text-gray-500" />
           </div>
-          <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
+          <div className="flex h-10 w-5 bg-gradient-to-l from-transparent to-white" />
         </button>
       )}
       <ul
@@ -118,10 +119,10 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
-          <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
-          <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <Icon.FiChevronRight className="h-4 w-4 text-gray-500" />
+        <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
+          <div className="flex h-10 w-5 bg-gradient-to-r from-transparent to-white" />
+          <div className="flex h-10 w-5 items-center justify-end bg-white">
+            <FiChevronRight className="h-4 w-4 text-gray-500" />
           </div>
         </button>
       )}
@@ -155,7 +156,12 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
           : app.category === selectedCategory
         : true
     )
-    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true));
+    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
+    .sort(function (a, b) {
+      if (a.name < b.name) return -1;
+      else if (a.name > b.name) return 1;
+      return 0;
+    });
 
   return (
     <div>
@@ -170,7 +176,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
         </div>
       ) : (
         <EmptyScreen
-          Icon={Icon.FiSearch}
+          Icon={FiSearch}
           headline={t("no_results")}
           description={searchText ? searchText?.toString() : ""}
         />

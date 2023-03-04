@@ -1,5 +1,6 @@
+import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -22,16 +23,16 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { md } from "@calcom/lib/markdownIt";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
+import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
-
-import { AvatarSSR } from "@components/ui/AvatarSSR";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -41,6 +42,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
+
+  const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
@@ -56,8 +59,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
-          <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
+          <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
             className="flex justify-between px-6 py-4"
@@ -132,21 +135,27 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
+              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="mb-1">
                 {nameOrUsername}
                 {user.verified && (
-                  <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-s text-gray-500">{user.bio}</p>
+              {!isBioEmpty && (
+                <>
+                  <div
+                    className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
+                  />
+                </>
+              )}
             </div>
           )}
           <div
             className={classNames(
               "rounded-md ",
-              !isEventListEmpty &&
-                "border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
+              !isEventListEmpty && "dark:border-darkgray-300 border border-gray-200"
             )}
             data-testid="event-types">
             {user.away ? (
@@ -163,8 +172,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
-                  <Icon.FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
+                  <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <Link
                     prefetch={false}
@@ -276,6 +285,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const isDynamicGroup = users.length > 1;
+
+  if (isDynamicGroup) {
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
 
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {

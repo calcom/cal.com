@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext } from "next";
 import { i18n } from "next-i18next.config";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
@@ -26,6 +26,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   const ssg = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,
+    // @ts-expect-error FIXME The signature expects req and res. Which we don't have in an SSG context.
     ctx: {
       prisma,
       session: null,

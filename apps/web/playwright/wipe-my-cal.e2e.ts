@@ -7,6 +7,8 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Wipe my Cal App Test", () => {
   test("Browse upcoming bookings and validate button shows and triggering wipe my cal button", async ({
     page,
@@ -38,23 +40,14 @@ test.describe("Wipe my Cal App Test", () => {
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
     const $openBookingCount = await page.locator('[data-testid="bookings"] > *').count();
-    expect($openBookingCount).toBe(3);
+    const $todayBookingCount = await page.locator('[data-testid="today-bookings"] > *').count();
+    expect($openBookingCount + $todayBookingCount).toBe(3);
 
     await page.locator("data-testid=wipe-today-button").click();
 
     // Don't await send_request click, otherwise mutation can possibly occur before observer is attached
     page.locator("data-testid=send_request").click();
-    const $openBookings = page.locator('[data-testid="bookings"]');
-    await $openBookings.evaluate((ul) => {
-      return new Promise<void>((resolve) =>
-        new window.MutationObserver(() => {
-          if (ul.childElementCount === 2) {
-            resolve();
-          }
-        }).observe(ul, { childList: true })
-      );
-    });
-
-    await users.deleteAll();
+    // There will not be any today-bookings
+    await expect(page.locator('[data-testid="today-bookings"]')).toBeHidden();
   });
 });

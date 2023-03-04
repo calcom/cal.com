@@ -1,40 +1,42 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
+import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
-import { ErrorBoundary, Icon } from "@calcom/ui";
+import { ErrorBoundary } from "@calcom/ui";
+import { FiCreditCard, FiKey, FiLock, FiTerminal, FiUser, FiUsers } from "@calcom/ui/components/icon";
 
 import NavTabs from "./NavTabs";
 
 const tabs = [
   {
     name: "profile",
-    href: "/settings/profile",
-    icon: Icon.FiUser,
+    href: "/settings/my-account/profile",
+    icon: FiUser,
   },
   {
     name: "teams",
     href: "/settings/teams",
-    icon: Icon.FiUsers,
+    icon: FiUsers,
   },
   {
     name: "security",
     href: "/settings/security",
-    icon: Icon.FiKey,
+    icon: FiKey,
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: Icon.FiTerminal,
+    icon: FiTerminal,
   },
   {
     name: "billing",
     href: "/settings/billing",
-    icon: Icon.FiCreditCard,
+    icon: FiCreditCard,
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: Icon.FiLock,
+    icon: FiLock,
     adminRequired: true,
   },
 ];

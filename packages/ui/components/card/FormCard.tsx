@@ -2,9 +2,10 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 
-import { Badge, BadgeProps } from "..";
-import { Icon } from "../..";
+import type { BadgeProps } from "../..";
+import { Badge } from "../..";
 import { Divider } from "../divider";
+import { FiArrowDown, FiArrowUp, FiTrash } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({
@@ -38,7 +39,7 @@ export default function FormCard({
             type="button"
             className="invisible absolute left-0 -ml-[13px] -mt-10 flex h-6 w-6 scale-0 items-center justify-center rounded-md border   bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black  hover:shadow group-hover:visible group-hover:scale-100 "
             onClick={() => moveUp?.fn()}>
-            <Icon.FiArrowUp />
+            <FiArrowUp />
           </button>
         ) : null}
         {moveDown?.check() ? (
@@ -46,7 +47,7 @@ export default function FormCard({
             type="button"
             className="invisible absolute left-0 -ml-[13px] -mt-2 flex h-6 w-6  scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
-            <Icon.FiArrowDown />
+            <FiArrowDown />
           </button>
         ) : null}
       </div>
@@ -67,7 +68,7 @@ export default function FormCard({
                 deleteField?.fn();
               }}
               color="secondary">
-              <Icon.FiTrash className="h-4 w-4 text-gray-400" />
+              <FiTrash className="h-4 w-4 text-gray-400" />
             </button>
           ) : null}
         </div>

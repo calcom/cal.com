@@ -1,15 +1,21 @@
-import { SelectedCalendar } from "@prisma/client";
-import { createHash } from "crypto";
+import type { SelectedCalendar } from "@prisma/client";
 import _ from "lodash";
-import cache from "memory-cache";
+import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type {
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
@@ -30,12 +36,15 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
 
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
-  selectedCalendars: { externalId: string }[]
+  selectedCalendars: { externalId: string }[],
+  destinationCalendarExternalId?: string
 ) => {
+  let destinationCalendar: IntegrationCalendar | undefined;
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
         const { calendar, integration, credential } = item;
+        let primary!: IntegrationCalendar;
 
         // Don't leak credentials to the client
         const credentialId = credential.id;
@@ -47,16 +56,28 @@ export const getConnectedCalendars = async (
         }
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
-          .map((cal) => ({
-            ...cal,
-            readOnly: cal.readOnly || false,
-            primary: cal.primary || null,
-            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-            credentialId,
-          }))
+          .map((cal) => {
+            if (cal.primary) {
+              primary = { ...cal, credentialId };
+            }
+            if (cal.externalId === destinationCalendarExternalId) {
+              destinationCalendar = cal;
+            }
+            return {
+              ...cal,
+              readOnly: cal.readOnly || false,
+              primary: cal.primary || null,
+              isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              credentialId,
+            };
+          })
           .sortBy(["primary"])
           .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
+
+        if (primary && destinationCalendar) {
+          destinationCalendar.primaryEmail = primary.email;
+          destinationCalendar.integrationTitle = integration.title;
+        }
         if (!primary) {
           return {
             integration,
@@ -94,7 +115,7 @@ export const getConnectedCalendars = async (
     })
   );
 
-  return connectedCalendars;
+  return { connectedCalendars, destinationCalendar };
 };
 
 /**
@@ -113,40 +134,27 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
-const CACHING_TIME = 30_000; // 30 seconds
-
-const getCachedResults = async (
+// here I will fetch the page json file.
+export const getCachedResults = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
-) => {
+): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
   const calendars = calendarCredentials.map((credential) => getCalendar(credential));
-
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
-    const { id, type, appId } = calendarCredentials[i];
+    const { type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
     /** We extract external Ids so we don't cache too much */
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** We create a unique hash key based on the input data */
-    const cacheKey = JSON.stringify({ id, selectedCalendarIds, dateFrom, dateTo });
-    const cacheHashedKey = createHash("md5").update(cacheKey).digest("hex");
-    /** Check if we already have cached data and return */
-    const cachedAvailability = cache.get(cacheHashedKey);
-
-    if (cachedAvailability) {
-      log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
-      return cachedAvailability;
-    }
-    log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
     const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
@@ -156,12 +164,8 @@ const getCachedResults = async (
       "eventBusyDatesStart",
       "eventBusyDatesEnd"
     );
-    const availability = eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
 
-    /** We save the availability to a few seconds so recurrent calls are nearly instant */
-
-    cache.put(cacheHashedKey, availability, CACHING_TIME);
-    return availability;
+    return eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
   });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");
@@ -173,17 +177,48 @@ const getCachedResults = async (
   return awaitedResults;
 };
 
+/**
+ * This function fetch the json file that NextJS generates and uses to hydrate the static page on browser.
+ * If for some reason NextJS still doesn't generate this file, it will wait until it finishes generating it.
+ * On development environment it takes a long time because Next must compiles the whole page.
+ * @param username
+ * @param month A string representing year and month using YYYY-MM format
+ */
+const getNextCache = async (username: string, month: string): Promise<EventBusyDate[][]> => {
+  let localCache: EventBusyDate[][] = [];
+  try {
+    const { NODE_ENV } = process.env;
+    const cacheDir = `${NODE_ENV === "development" ? NODE_ENV : process.env.BUILD_ID}`;
+    const baseUrl = `${WEBAPP_URL}/_next/data/${cacheDir}/en`;
+    console.log(`${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`);
+    localCache = await fetch(
+      `${baseUrl}/${username}/calendar-cache/${month}.json?user=${username}&month=${month}`
+    )
+      .then((r) => r.json())
+      .then((json) => json?.pageProps?.results);
+  } catch (e) {
+    log.warn(e);
+  }
+  return localCache;
+};
+
 export const getBusyCalendarTimes = async (
+  username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  dateTo: string
 ) => {
   let results: EventBusyDate[][] = [];
-  try {
-    results = await getCachedResults(withCredentials, dateFrom, dateTo, selectedCalendars);
-  } catch (error) {
-    log.warn(error);
+  if (dayjs(dateFrom).isSame(dayjs(dateTo), "month")) {
+    results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
+  } else {
+    // if dateFrom and dateTo is from different months get cache by each month
+    const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
+    for (let i = 1; dayjs(dateFrom).add(i, "month").isBefore(dateTo); i++) {
+      months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
+    }
+    const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
+    results = data.flat(1);
   }
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };

@@ -154,7 +154,8 @@ async function createApp(
   categories: Prisma.AppCreateInput["categories"],
   /** This is used so credentials gets linked to the correct app */
   type: Prisma.CredentialCreateInput["type"],
-  keys?: Prisma.AppCreateInput["keys"]
+  keys?: Prisma.AppCreateInput["keys"],
+  isTemplate?: boolean
 ) {
   await prisma.app.upsert({
     where: { slug },
@@ -165,7 +166,7 @@ async function createApp(
     where: { type },
     data: { appId: slug },
   });
-  console.log(`📲 Upserted app: '${slug}'`);
+  console.log(`📲 Upserted ${isTemplate ? "template" : "app"}: '${slug}'`);
 }
 
 export default async function main() {
@@ -293,7 +294,17 @@ export default async function main() {
   );
   for (let i = 0; i < generatedApps.length; i++) {
     const generatedApp = generatedApps[i];
-    await createApp(generatedApp.slug, generatedApp.dirName, generatedApp.categories, generatedApp.type);
+    if (generatedApp.isTemplate && process.argv[2] !== "seed-templates") {
+      continue;
+    }
+    await createApp(
+      generatedApp.slug,
+      generatedApp.dirName,
+      generatedApp.categories,
+      generatedApp.type,
+      undefined,
+      generatedApp.isTemplate
+    );
   }
 
   await seedAppData();

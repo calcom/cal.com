@@ -6,15 +6,16 @@ import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
+import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Icon } from "@calcom/ui";
+import { FiCreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
@@ -26,7 +27,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [timezone, setTimezone] = useState<string | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
-  const stripeAppData = getStripeAppData(props.eventType);
+  const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
@@ -79,7 +80,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <Icon.FiCreditCard className="h-8 w-8 text-green-600" />
+                    <FiCreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -88,11 +89,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       id="modal-headline">
                       {t("payment")}
                     </h3>
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {t("pay_later_instructions")}
-                      </p>
-                    </div>
                     <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
@@ -115,9 +111,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={stripeAppData.price / 100.0}
+                            value={paymentAppData.price / 100.0}
                             style="currency"
-                            currency={stripeAppData.currency.toUpperCase()}
+                            currency={paymentAppData?.currency?.toUpperCase()}
                           />
                         </IntlProvider>
                       </div>
@@ -128,8 +124,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   {props.payment.success && !props.payment.refunded && (
                     <div className="mt-4 text-center text-gray-700 dark:text-gray-300">{t("paid")}</div>
                   )}
-                  {!props.payment.success && (
-                    <Elements stripe={getStripe(props.payment.data.stripe_publishable_key)}>
+                  {props.payment.appId === "stripe" && !props.payment.success && (
+                    <Elements
+                      stripe={getStripe((props.payment.data as StripePaymentData).stripe_publishable_key)}>
                       <PaymentComponent
                         payment={props.payment}
                         eventType={props.eventType}

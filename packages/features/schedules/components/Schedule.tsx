@@ -12,7 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
-import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,11 +24,11 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -51,9 +51,9 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col px-5 py-1 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
       {/* Label & switch container */}
-      <div className="flex h-11 items-center justify-between sm:w-32">
+      <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
           <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
@@ -67,9 +67,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-            {watchDayRange && !!watchDayRange.length && (
-              <div className="mt-1 mb-1 sm:hidden">{CopyButton}</div>
-            )}
+            {watchDayRange && !!watchDayRange.length && <div className="sm:hidden">{CopyButton}</div>}
           </label>
         </div>
       </div>
@@ -77,7 +75,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="mt-1 hidden sm:block">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="hidden sm:block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
@@ -102,12 +100,15 @@ const CopyButton = ({
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          className={classNames(
+            "text-gray-700",
+            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+          )}
           type="button"
-          tooltip={t("duplicate")}
+          tooltip={t("copy_times_to_tooltip")}
           color="minimal"
-          size="icon"
-          StartIcon={Icon.FiCopy}
+          variant="icon"
+          StartIcon={FiCopy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -116,6 +117,7 @@ const CopyButton = ({
           disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+            setOpen(false);
           }}
           onCancel={() => setOpen(false)}
         />
@@ -139,7 +141,7 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <div className="divide-y sm:divide-none">
+    <div className="p-4">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -176,16 +178,16 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     <div>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="mb-2 flex first:mt-1">
+          <div className="mb-2 flex last:mb-0">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className=" text-gray-400"
+                className="mx-2 text-gray-700 "
                 type="button"
                 color="minimal"
-                size="icon"
-                StartIcon={Icon.FiPlus}
+                variant="icon"
+                StartIcon={FiPlus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -193,7 +195,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
           </div>
         </Fragment>
       ))}
@@ -213,9 +215,9 @@ const RemoveTimeButton = ({
   return (
     <Button
       type="button"
-      size="icon"
+      variant="icon"
       color="minimal"
-      StartIcon={Icon.FiTrash}
+      StartIcon={FiTrash}
       onClick={() => remove(index)}
       className={className}
     />
@@ -227,7 +229,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
   return (
     <div className={className}>
       <LazySelect
-        className="inline-block h-9 w-[100px]"
+        className="inline-block w-[100px]"
         value={value.start}
         max={value.end}
         onChange={(option) => {

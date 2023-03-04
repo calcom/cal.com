@@ -1,17 +1,19 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { BaseSyntheticEvent, useRef, useState } from "react";
+import type { BaseSyntheticEvent } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import { md } from "@calcom/lib/markdownIt";
+import turndown from "@calcom/lib/turndownService";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import {
   Alert,
   Avatar,
@@ -22,7 +24,6 @@ import {
   DialogFooter,
   DialogTrigger,
   Form,
-  Icon,
   ImageUploader,
   Label,
   Meta,
@@ -33,12 +34,12 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  Editor,
 } from "@calcom/ui";
+import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -46,8 +47,8 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
       <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
-          <SkeletonAvatar className=" h-12 w-12 px-4" />
-          <SkeletonButton className=" h-6 w-32 rounded-md p-5" />
+          <SkeletonAvatar className="h-12 w-12 px-4" />
+          <SkeletonButton className="h-6 w-32 rounded-md p-5" />
         </div>
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -223,13 +224,13 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6  border-neutral-200" />
+      <hr className="my-6 border-gray-200" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Icon.FiTrash2}>
+          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={FiTrash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
@@ -237,7 +238,7 @@ const ProfileView = () => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon={Icon.FiAlertTriangle}>
+          Icon={FiAlertTriangle}>
           <>
             <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
             {isCALIdentityProviver && (
@@ -278,7 +279,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon={Icon.FiAlertTriangle}>
+          Icon={FiAlertTriangle}>
           <>
             <PasswordField
               data-testid="password"
@@ -361,9 +362,16 @@ const ProfileForm = ({
         <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
       </div>
       <div className="mt-8">
-        <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
+        <Label>{t("about")}</Label>
+        <Editor
+          getText={() => md.render(formMethods.getValues("bio") || "")}
+          setText={(value: string) => {
+            formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+          }}
+          excludedToolbarItems={["blockType"]}
+          disableLists
+        />
       </div>
-
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
         {t("update")}
       </Button>
@@ -372,15 +380,5 @@ const ProfileForm = ({
 };
 
 ProfileView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ProfileView;

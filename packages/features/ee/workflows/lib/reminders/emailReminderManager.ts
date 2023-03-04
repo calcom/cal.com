@@ -38,7 +38,8 @@ export const scheduleEmailReminder = async (
   emailSubject: string,
   emailBody: string,
   workflowStepId: number,
-  template: WorkflowTemplates
+  template: WorkflowTemplates,
+  sender: string
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -107,13 +108,14 @@ export const scheduleEmailReminder = async (
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
 
-      const emailSubjectTemplate = await customTemplate(
-        emailSubject,
-        variables,
-        evt.organizer.language.locale
-      );
+      const locale =
+        action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+          ? evt.attendees[0].language?.locale
+          : evt.organizer.language.locale;
+
+      const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
       emailContent.emailSubject = emailSubjectTemplate.text;
-      emailContent.emailBody = await customTemplate(emailBody, variables, evt.organizer.language.locale);
+      emailContent.emailBody = await customTemplate(emailBody, variables, locale);
       break;
   }
 
@@ -125,7 +127,10 @@ export const scheduleEmailReminder = async (
     try {
       await sgMail.send({
         to: sendTo,
-        from: senderEmail,
+        from: {
+          email: senderEmail,
+          name: sender,
+        },
         subject: emailContent.emailSubject,
         text: emailContent.emailBody.text,
         html: emailContent.emailBody.html,
@@ -149,7 +154,10 @@ export const scheduleEmailReminder = async (
       try {
         await sgMail.send({
           to: sendTo,
-          from: senderEmail,
+          from: {
+            email: senderEmail,
+            name: sender,
+          },
           subject: emailContent.emailSubject,
           text: emailContent.emailBody.text,
           html: emailContent.emailBody.html,
@@ -186,14 +194,40 @@ export const scheduleEmailReminder = async (
   }
 };
 
-export const deleteScheduledEmailReminder = async (referenceId: string) => {
+export const deleteScheduledEmailReminder = async (
+  reminderId: number,
+  referenceId: string | null,
+  immediateDelete?: boolean
+) => {
   try {
-    await client.request({
-      url: "/v3/user/scheduled_sends",
-      method: "POST",
-      body: {
-        batch_id: referenceId,
-        status: "cancel",
+    if (!referenceId) {
+      await prisma.workflowReminder.delete({
+        where: {
+          id: reminderId,
+        },
+      });
+
+      return;
+    }
+
+    if (immediateDelete) {
+      await client.request({
+        url: "/v3/user/scheduled_sends",
+        method: "POST",
+        body: {
+          batch_id: referenceId,
+          status: "cancel",
+        },
+      });
+      return;
+    }
+
+    await prisma.workflowReminder.update({
+      where: {
+        id: reminderId,
+      },
+      data: {
+        cancelled: true,
       },
     });
   } catch (error) {

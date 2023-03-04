@@ -1,12 +1,14 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import type { ReactElement, ReactNode, Ref } from "react";
+import React, { forwardRef } from "react";
+import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import { FormProvider, useFormContext } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, showToast } from "../components";
+import { Alert, showToast } from "../";
 
 type InputProps = Omit<JSX.IntrinsicElements["input"], "name"> & { name: string };
 
@@ -75,7 +77,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           <Input
             id={id}
             placeholder={placeholder}
-            className={classNames(className, "mt-0", props.addOnLeading && "rounded-l-none")}
+            className={classNames("mt-0", props.addOnLeading && "rounded-l-none", className)}
             {...passThrough}
             ref={ref}
           />

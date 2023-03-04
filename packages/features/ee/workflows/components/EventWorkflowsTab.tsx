@@ -7,12 +7,13 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import { Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
+import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
-import { WorkflowType } from "./WorkflowListPage";
+import type { WorkflowType } from "./WorkflowListPage";
 
 type ItemProps = {
   workflow: WorkflowType;
@@ -35,6 +36,7 @@ const WorkflowListItem = (props: ItemProps) => {
   );
 
   const isActive = activeEventTypeIds.includes(eventType.id);
+  const utils = trpc.useContext();
 
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
@@ -51,6 +53,7 @@ const WorkflowListItem = (props: ItemProps) => {
         setActiveEventTypeIds(newActiveEventTypeIds);
         offOn = "on";
       }
+      await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
       showToast(
         t("workflow_turned_on_successfully", {
           workflowName: workflow.name,
@@ -62,6 +65,11 @@ const WorkflowListItem = (props: ItemProps) => {
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+      if (err.data?.code === "UNAUTHORIZED") {
+        // TODO: Add missing translation
+        const message = `${err.data.code}: You are not authorized to enable or disable this workflow`;
         showToast(message, "error");
       }
     },
@@ -90,7 +98,7 @@ const WorkflowListItem = (props: ItemProps) => {
   });
 
   return (
-    <div className="mb-4 flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
+    <div className="flex w-full items-center overflow-hidden rounded-md border border-gray-200 p-6 px-3 md:p-6">
       <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs font-medium">
         {getActionIcon(
           workflow.steps,
@@ -125,7 +133,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
           <Button type="button" color="minimal" className="mr-4">
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+            <FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
           </Button>
         </Link>
       </div>
@@ -147,14 +155,21 @@ type Props = {
   eventType: {
     id: number;
     title: string;
+    userId: number | null;
+    team: {
+      id?: number;
+    } | null;
   };
   workflows: WorkflowType[];
 };
 
 function EventWorkflowsTab(props: Props) {
-  const { workflows } = props;
+  const { workflows, eventType } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
+    teamId: eventType.team?.id,
+    userId: eventType.userId || undefined,
+  });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 
@@ -175,7 +190,7 @@ function EventWorkflowsTab(props: Props) {
     }
   }, [isLoading]);
 
-  const createMutation = trpc.viewer.workflows.createV2.useMutation({
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },
@@ -196,7 +211,7 @@ function EventWorkflowsTab(props: Props) {
     <LicenseRequired>
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
-          <div className="mt-4">
+          <div className="space-y-4">
             {sortedWorkflows.map((workflow) => {
               return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
             })}
@@ -204,14 +219,14 @@ function EventWorkflowsTab(props: Props) {
         ) : (
           <div className="pt-4 before:border-0">
             <EmptyScreen
-              Icon={Icon.FiZap}
+              Icon={FiZap}
               headline={t("workflows")}
               description={t("no_workflows_description")}
               buttonRaw={
                 <Button
                   target="_blank"
                   color="secondary"
-                  onClick={() => createMutation.mutate()}
+                  onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
                   loading={createMutation.isLoading}>
                   {t("create_workflow")}
                 </Button>

@@ -1,13 +1,14 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { Button, Icon, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -50,11 +51,11 @@ export const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter dark:hover:border-darkmodebrand absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
         active
-          ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
+          ? "dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
           : !disabled
-          ? "dark:bg-darkgray-200 bg-gray-100 hover:bg-gray-300 dark:text-white"
+          ? "dark:bg-darkgray-200 hover:border-brand dark:hover:border-darkmodebrand bg-gray-100 dark:text-white"
           : ""
       )}
       data-testid="day"
@@ -83,7 +84,7 @@ const NoAvailabilityOverlay = ({
       <h4 className="mb-4 font-medium text-gray-900 dark:text-white">
         {t("no_availability_in_month", { month: month })}
       </h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={Icon.FiArrowRight}>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={FiArrowRight}>
         {t("view_next_month")}
       </Button>
     </div>
@@ -137,8 +138,6 @@ const Days = ({
     days.push(date);
   }
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
   return (
     <>
       {days.map((day, idx) => (
@@ -157,13 +156,6 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                isMobile &&
-                  setTimeout(() => {
-                    window.scrollTo({
-                      top: 360,
-                      behavior: "smooth",
-                    });
-                  }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||

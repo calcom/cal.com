@@ -1,20 +1,16 @@
-import MarkdownIt from "markdown-it";
-import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
+import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import { z } from "zod";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import prisma from "@calcom/prisma";
-import { User } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { addListFormatting } from "@calcom/lib/markdownIt";
+import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
@@ -24,7 +20,7 @@ export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
 
   return props.away ? (
-    <div className="h-screen dark:bg-neutral-900">
+    <div className="h-screen dark:bg-gray-900">
       <main className="mx-auto max-w-3xl px-4 py-24">
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -56,13 +52,23 @@ export default function Type(props: AvailabilityPageProps) {
 
 Type.isThemeSupported = true;
 
+const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
-  const { type: slug, user: username } = paramsSchema.parse(context.params);
+  // load server side dependencies
+  const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
+  const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
+  const { EventTypeMetaDataSchema, teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
   const { ssgInit } = await import("@server/lib/ssg");
+
+  const { type: slug, user: username } = paramsSchema.parse(context.params);
   const ssg = await ssgInit(context);
+
   const user = await prisma.user.findUnique({
     where: {
-      username,
+      /** TODO: We should standarize this */
+      username: username.toLowerCase().replace(/( |%20)/g, "+"),
     },
     select: {
       id: true,
@@ -75,6 +81,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       weekStart: true,
       brandColor: true,
       darkBrandColor: true,
+      metadata: true,
       eventTypes: {
         where: {
           // Many-to-many relationship causes inclusion of the team events - cool -
@@ -114,17 +121,11 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
-  const md = new MarkdownIt("zero").enable([
-    //
-    "emphasis",
-    "list",
-    "newline",
-    "strikethrough",
-  ]);
+  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 
-  const [eventType]: (typeof user.eventTypes[number] & {
+  const [eventType]: ((typeof user.eventTypes)[number] & {
     users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
@@ -148,9 +149,9 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
+    descriptionAsSafeHTML: eventType.description ? addListFormatting(md.render(eventType.description)) : null,
   });
-  // Check if the user you are logging into has any active teams
+  // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =
     user.teams.filter((m) => {
       if (!IS_TEAM_BILLING_ENABLED) return true;
@@ -158,6 +159,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       if (metadata.success && metadata.data?.subscriptionId) return true;
       return false;
     }).length > 0;
+
+  const hasPremiumUserName = hasKeyInMetadata(user, "isPremium");
 
   return {
     props: {
@@ -175,14 +178,24 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
-      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam),
+      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam || hasPremiumUserName),
     },
     revalidate: 10, // seconds
   };
 }
 
 async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
+  // load server side dependencies
+  const { getDefaultEvent, getGroupName, getUsernameList } = await import("@calcom/lib/defaultEvents");
+  const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
+  const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const { EventTypeMetaDataSchema, userMetadata: userMetadataSchema } = await import(
+    "@calcom/prisma/zod-utils"
+  );
   const { ssgInit } = await import("@server/lib/ssg");
+  const { getAppFromSlug } = await import("@calcom/app-store/utils");
+
   const ssg = await ssgInit(context);
   const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
   const usernameList = getUsernameList(userParam);
@@ -212,6 +225,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       darkBrandColor: true,
       defaultScheduleId: true,
       allowDynamicBooking: true,
+      metadata: true,
       away: true,
       schedules: {
         select: {
@@ -230,7 +244,32 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     };
   }
 
-  const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+  // sort and be in the same order as usernameList so first user is the first user in the list
+  let sortedUsers: typeof users = [];
+  if (users.length > 1) {
+    sortedUsers = users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
+
+  let locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
+
+  // Get the prefered location type from the first user
+  const firstUsersMetadata = userMetadataSchema.parse(sortedUsers[0].metadata || {});
+  const preferedLocationType = firstUsersMetadata?.defaultConferencingApp;
+
+  if (preferedLocationType?.appSlug) {
+    const foundApp = getAppFromSlug(preferedLocationType.appSlug);
+    const appType = foundApp?.appData?.location?.type;
+    if (appType) {
+      // Replace the location with the prefered location type
+      // This will still be default to daily if the app is not found
+      locations = [{ type: appType, link: preferedLocationType.appLink }] as LocationObject[];
+    }
+  }
+
   const eventTypeObject = Object.assign({}, eventType, {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
@@ -274,8 +313,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
     revalidate: 10, // seconds
   };
 }
-
-const paramsSchema = z.object({ type: z.string(), user: z.string() });
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
   const { user: userParam } = paramsSchema.parse(context.params);

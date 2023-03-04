@@ -1,5 +1,5 @@
 import { AppCategories } from "@prisma/client";
-import { GetStaticPropsContext, InferGetStaticPropsType } from "next";
+import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -19,6 +19,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
       <Shell
         isPublic
         backPath="/apps"
+        smallHeading
         heading={
           <>
             <Link
@@ -33,8 +34,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
               </span>
             )}
           </>
-        }
-        large>
+        }>
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps.map((app) => {

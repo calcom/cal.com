@@ -1,6 +1,8 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
+import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 function todo(title: string) {
   // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
@@ -47,7 +49,7 @@ test.describe("Routing Forms", () => {
 
       await page.reload();
 
-      expect(await page.inputValue(`[data-testid="description"]`), description);
+      expect(await page.inputValue(`[data-testid="description"]`)).toMatch(description);
       expect(await page.locator('[data-testid="field"]').count()).toBe(1);
 
       await expectCurrentFormToHaveFields(page, { 0: field }, types);
@@ -118,7 +120,12 @@ test.describe("Routing Forms", () => {
 
     // TODO: How to install the app just once?
     test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing-forms" });
+      const user = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+        }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -148,7 +155,10 @@ test.describe("Routing Forms", () => {
       users: Fixtures["users"];
       page: Page;
     }) {
-      const user = await users.create({ username: "routing-forms" }, { seedRoutingForms: true });
+      const user = await users.create(
+        { username: "routing-forms" },
+        { seedRoutingForms: true, hasTeam: true }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -178,8 +188,9 @@ test.describe("Routing Forms", () => {
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
+      // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
       await headerEls.first().waitFor({
-        timeout: 500,
+        timeout: 1000,
       });
       const numHeaderEls = await headerEls.count();
       const headers = [];
@@ -233,13 +244,13 @@ test.describe("Routing Forms", () => {
       const thirdResponseCells = csvRows[3].split(",");
 
       expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,");
-      expect(new Date(firstResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(firstResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
       expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,");
-      expect(new Date(secondResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(secondResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
       expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,");
-      expect(new Date(thirdResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+      expect(new Date(thirdResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
     });
 
     test("Router URL should work", async ({ page, users }) => {
@@ -331,14 +342,9 @@ async function expectCurrentFormToHaveFields(
 ) {
   for (const [index, field] of Object.entries(fields)) {
     expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
-    expect(
-      await page
-        .locator(".data-testid-field-type")
-        .nth(+index)
-        .locator("div")
-        .nth(1)
-        .innerText()
-    ).toBe(types[field.typeIndex]);
+    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
+      types[field.typeIndex]
+    );
   }
 }
 

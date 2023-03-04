@@ -12,10 +12,10 @@ export const Info = (props: {
     <>
       {props.withSpacer && <Spacer />}
       <div style={{ lineHeight: "6px" }}>
-        <p style={{ color: "#494949" }}>{props.label}</p>
+        <p style={{ color: "#101010" }}>{props.label}</p>
         <p
           style={{
-            color: "#494949",
+            color: "#101010",
             fontWeight: 400,
             lineHeight: "24px",
             whiteSpace: "pre-wrap",

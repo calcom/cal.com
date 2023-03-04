@@ -1,11 +1,15 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 import { useRouter } from "next/router";
-import { FormEvent, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ImageUploader, showToast, TextArea } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
@@ -21,18 +25,16 @@ const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const bioRef = useRef<HTMLTextAreaElement>(null);
-  const {
-    register,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
+  const { setValue, handleSubmit, getValues } = useForm<FormData>({
+    defaultValues: { bio: user?.bio || "" },
+  });
+
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const telemetry = useTelemetry();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
@@ -62,6 +64,8 @@ const UserProfile = (props: IUserProfileProps) => {
   });
   const onSubmit = handleSubmit((data: { bio: string }) => {
     const { bio } = data;
+
+    telemetry.event(telemetryEventTypes.onboardingFinished);
 
     mutation.mutate({
       bio,
@@ -113,7 +117,7 @@ const UserProfile = (props: IUserProfileProps) => {
           name="avatar"
           id="avatar"
           placeholder="URL"
-          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-neutral-800 focus:outline-none focus:ring-neutral-800"
+          className="mt-1 block w-full rounded-sm border border-gray-300 px-3 py-2 text-sm focus:border-gray-800 focus:outline-none focus:ring-gray-800"
           defaultValue={imageSrc}
         />
         <div className="flex items-center px-4">
@@ -138,25 +142,12 @@ const UserProfile = (props: IUserProfileProps) => {
         </div>
       </div>
       <fieldset className="mt-8">
-        <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">
-          {t("about")}
-        </label>
-        <TextArea
-          {...register("bio", { required: true })}
-          ref={bioRef}
-          name="bio"
-          id="bio"
-          className="mt-1 block h-[60px] w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          defaultValue={user?.bio || undefined}
-          onChange={(event) => {
-            setValue("bio", event.target.value);
-          }}
+        <Label className="mb-2 block text-sm font-medium text-gray-700">{t("about")}</Label>
+        <Editor
+          getText={() => md.render(getValues("bio") || user?.bio || "")}
+          setText={(value: string) => setValue("bio", turndown(value))}
+          excludedToolbarItems={["blockType"]}
         />
-        {errors.bio && (
-          <p data-testid="required" className="py-2 text-xs text-red-500">
-            {t("required")}
-          </p>
-        )}
         <p className="mt-2 font-sans text-sm font-normal text-gray-600 dark:text-white">
           {t("few_sentences_about_yourself")}
         </p>

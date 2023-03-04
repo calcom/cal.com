@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ComponentProps, Fragment } from "react";
+import type { ComponentProps } from "react";
+import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Icon } from "../../..";
+import { FiChevronRight, FiExternalLink } from "../../icon";
 import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
@@ -50,7 +51,7 @@ const VerticalTabItem = function ({
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-sm font-medium leading-none text-gray-600",
-              "min-h-9 group flex w-64 flex-row items-center rounded-md px-2 py-[10px] hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
+              "min-h-8 group flex w-64 flex-row items-center rounded-md px-2 py-[10px] hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
               props.disabled && "pointer-events-none !opacity-30",
               (isChild || !props.icon) && "ml-7 w-auto ltr:mr-5 rtl:ml-5",
               !info ? "h-6" : "h-14",
@@ -63,10 +64,10 @@ const VerticalTabItem = function ({
             )}
             <div className="h-fit">
               <span className="flex items-center space-x-2 rtl:space-x-reverse">
-                <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 truncate">
+                <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 mt-px truncate">
                   {t(name)}
                 </Skeleton>
-                {props.isExternalLink ? <Icon.FiExternalLink /> : null}
+                {props.isExternalLink ? <FiExternalLink /> : null}
               </span>
               {info && (
                 <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
@@ -76,7 +77,7 @@ const VerticalTabItem = function ({
             </div>
             {!disableChevron && isCurrent && (
               <div className="ml-auto self-center">
-                <Icon.FiChevronRight
+                <FiChevronRight
                   width={20}
                   height={20}
                   className="h-auto w-[20px] stroke-[1.5px] text-gray-700"

@@ -11,8 +11,18 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { App as AppType } from "@calcom/types/App";
-import { Button, Icon, showToast, SkeletonButton, SkeletonText, HeadSeo } from "@calcom/ui";
+import type { App as AppType } from "@calcom/types/App";
+import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
+import {
+  FiBookOpen,
+  FiCheck,
+  FiExternalLink,
+  FiFile,
+  FiFlag,
+  FiMail,
+  FiPlus,
+  FiShield,
+} from "@calcom/ui/components/icon";
 
 const Component = ({
   name,
@@ -34,6 +44,7 @@ const Component = ({
   privacy,
   isProOnly,
   images,
+  isTemplate,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -106,13 +117,18 @@ const Component = ({
               </Link>{" "}
               • {t("published_by", { author })}
             </h2>
+            {isTemplate && (
+              <Badge variant="red" className="mt-4">
+                Template - Available in Dev Environment only for testing
+              </Badge>
+            )}
           </header>
         </div>
         {!appCredentials.isLoading ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
+              <Button StartIcon={FiCheck} color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
@@ -133,7 +149,7 @@ const Component = ({
                     }
                     return (
                       <Button
-                        StartIcon={Icon.FiPlus}
+                        StartIcon={FiPlus}
                         {...props}
                         // @TODO: Overriding color and size prevent us from
                         // having to duplicate InstallAppButton for now.
@@ -194,7 +210,7 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose prose-sm mt-8">{body}</div>
+        <div className="prose-sm prose mt-8">{body}</div>
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (
@@ -220,7 +236,7 @@ const Component = ({
                 rel="noreferrer"
                 className="text-sm font-normal text-black no-underline hover:underline"
                 href={docs}>
-                <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
+                <FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
                 {t("documentation")}
               </a>
             </li>
@@ -232,7 +248,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={website}>
-                <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -244,7 +260,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={"mailto:" + email}>
-                <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
 
                 {email}
               </a>
@@ -257,7 +273,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={tos}>
-                <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -269,7 +285,7 @@ const Component = ({
                 rel="noreferrer"
                 className="font-normal text-black no-underline hover:underline"
                 href={privacy}>
-                <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
+                <FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -280,11 +296,16 @@ const Component = ({
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
+          <FiFlag className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>
   );
+};
+
+const ShellHeading = () => {
+  const { t } = useLocale();
+  return <span className="block py-2">{t("app_store")}</span>;
 };
 
 export default function App(props: {
@@ -310,19 +331,14 @@ export default function App(props: {
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
   images?: string[];
+  isTemplate?: boolean;
 }) {
-  const { t } = useLocale();
-
   return (
-    <Shell large isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}
         app={{ slug: props.logo, name: props.name, description: props.description }}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
       />
       {props.licenseRequired ? (
         <LicenseRequired>

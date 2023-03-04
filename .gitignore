@@ -77,6 +77,16 @@ lint-results
 #Storybook
 apps/storybook/build-storybook.log
 
+# Infisical
+.infisical.json
+
 # Snaplet
 .snaplet/snapshots
 .snaplet/structure.d.ts
+
+# Submodules
+.gitmodules
+apps/api
+apps/website
+apps/console
+apps/auth

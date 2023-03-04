@@ -1,6 +1,8 @@
-import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -15,18 +17,15 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
   List,
-  ListItem,
-  ListItemText,
-  ListItemTitle,
   Meta,
   showToast,
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
+import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/components/icon";
 
-import { ssrInit } from "@server/lib/ssr";
+import AppListCard from "@components/AppListCard";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -44,12 +43,13 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
-    { variant: "conferencing", onlyInstalled: true },
-    {
-      suspense: true,
-    }
-  );
+  const { data: defaultConferencingApp, isLoading: defaultConferencingAppLoading } =
+    trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+
+  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery({
+    variant: "conferencing",
+    onlyInstalled: true,
+  });
   const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
@@ -62,10 +62,23 @@ const ConferencingLayout = () => {
     },
   });
 
+  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
+    onSuccess: () => {
+      showToast("Default app updated successfully", "success");
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
+    },
+    onError: (error) => {
+      showToast(`Error: ${error.message}`, "error");
+    },
+  });
+
   const [deleteAppModal, setDeleteAppModal] = useState(false);
+  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
+    undefined
+  );
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
-  if (isLoading)
+  if (isLoading || defaultConferencingAppLoading)
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
@@ -75,44 +88,67 @@ const ConferencingLayout = () => {
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
-            .map((app) => (
-              <ListItem className="flex-col border-0" key={app.title}>
-                <div className="flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse">
-                  {
-                    // eslint-disable-next-line @next/next/no-img-element
-                    app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
+            .map((app) => {
+              const appSlug = app?.slug;
+              const appIsDefault =
+                appSlug === defaultConferencingApp?.appSlug ||
+                (appSlug === "daily-video" && !defaultConferencingApp?.appSlug); // Default to cal video if the user doesnt have it set (we do this on new account creation but not old)
+              return (
+                <AppListCard
+                  description={app.description}
+                  title={app.title}
+                  logo={app.logo}
+                  key={app.title}
+                  isDefault={appIsDefault} // @TODO: Handle when a user doesnt have this value set
+                  actions={
+                    <div>
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {!appIsDefault && (
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                color="secondary"
+                                StartIcon={FiVideo}
+                                onClick={() => {
+                                  const locationType = getEventLocationTypeFromApp(
+                                    app?.locationOption?.value ?? ""
+                                  );
+                                  if (locationType?.linkType === "static") {
+                                    setLocationType({ ...locationType, slug: appSlug });
+                                  } else {
+                                    updateDefaultAppMutation.mutate({
+                                      appSlug,
+                                    });
+                                  }
+                                }}>
+                                {t("change_default_conferencing_app")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              color="destructive"
+                              disabled={app.isGlobal}
+                              StartIcon={FiTrash}
+                              onClick={() => {
+                                setDeleteCredentialId(app.credentialIds[0]);
+                                setDeleteAppModal(true);
+                              }}>
+                              {t("remove_app")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
                   }
-                  <div className="flex-grow truncate pl-2">
-                    <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
-                      <h3 className="truncate ">{app.title}</h3>
-                    </ListItemTitle>
-                    <ListItemText component="p">{app.description}</ListItemText>
-                  </div>
-                  <div>
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            color="destructive"
-                            disabled={app.isGlobal}
-                            StartIcon={Icon.FiTrash}
-                            onClick={() => {
-                              setDeleteCredentialId(app.credentialIds[0]);
-                              setDeleteAppModal(true);
-                            }}>
-                            {t("remove_app")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </div>
-                </div>
-              </ListItem>
-            ))}
+                />
+              );
+            })}
       </List>
 
       <Dialog open={deleteAppModal} onOpenChange={setDeleteAppModal}>
@@ -120,7 +156,7 @@ const ConferencingLayout = () => {
           title={t("Remove app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          Icon={Icon.FiAlertCircle}>
+          Icon={FiAlertCircle}>
           <DialogFooter>
             <Button color="primary" onClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}>
               {t("yes_remove_app")}
@@ -129,20 +165,14 @@ const ConferencingLayout = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {locationType && (
+        <AppSetDefaultLinkDailog locationType={locationType} setLocationType={setLocationType} />
+      )}
     </div>
   );
 };
 
 ConferencingLayout.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ConferencingLayout;

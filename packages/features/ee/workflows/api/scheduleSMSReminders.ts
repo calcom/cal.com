@@ -76,6 +76,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const senderID = getSenderId(sendTo, reminder.workflowStep.sender);
 
+      const locale =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? reminder.booking?.attendees[0].locale
+          : reminder.booking?.user?.locale;
+
       let message: string | null = reminder.workflowStep.reminderBody;
       switch (reminder.workflowStep.template) {
         case WorkflowTemplates.REMINDER:
@@ -104,7 +110,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const customMessage = await customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
-            reminder.booking?.user?.locale || ""
+            locale || ""
           );
           message = customMessage.text;
           break;

@@ -1,13 +1,19 @@
-import React from "react";
-import { z } from "zod";
+import type React from "react";
+import type { z } from "zod";
 
-import { _EventTypeModel } from "@calcom/prisma/zod";
-import { RouterOutputs } from "@calcom/trpc/react";
-import { ButtonProps } from "@calcom/ui";
+import type { _EventTypeModel } from "@calcom/prisma/zod";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import type { ButtonProps } from "@calcom/ui";
 
 export type IntegrationOAuthCallbackState = {
   returnTo: string;
   installGoogleVideo?: boolean;
+};
+
+type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: string };
+
+export type Tag = {
+  scripts: AppScript[];
 };
 
 export interface InstallAppButtonProps {

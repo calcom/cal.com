@@ -60,28 +60,29 @@ const config: Config = {
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "jsdom",
     },
-    {
-      displayName: "@calcom/api",
-      roots: ["<rootDir>/apps/api"],
-      testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
-      setupFilesAfterEnv: ["<rootDir>/tests/config/singleton.ts"],
-      transform: {
-        "^.+\\.ts?$": "ts-jest",
-      },
-      globals: {
-        "ts-jest": {
-          tsconfig: "<rootDir>/apps/api/tsconfig.json",
-        },
-      },
-      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
-      testEnvironment: "node",
-      clearMocks: true,
-      moduleNameMapper: {
-        "^@lib/(.*)$": "<rootDir>/apps/api/lib/$1",
-        "^@api/(.*)$": "<rootDir>/apps/api/pages/api/$1",
-      },
-      // setupFilesAfterEnv: ["<rootDir>/apps/api/jest.setup.ts"], // Uncomment when API becomes public
-    },
+    // FIXME: Prevent this breaking Jest when API module is missing
+    // {
+    //   displayName: "@calcom/api",
+    //   roots: ["<rootDir>/apps/api"],
+    //   testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+    //   setupFilesAfterEnv: ["<rootDir>/tests/config/singleton.ts"],
+    //   transform: {
+    //     "^.+\\.ts?$": "ts-jest",
+    //   },
+    //   globals: {
+    //     "ts-jest": {
+    //       tsconfig: "<rootDir>/apps/api/tsconfig.json",
+    //     },
+    //   },
+    //   transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+    //   testEnvironment: "node",
+    //   clearMocks: true,
+    //   moduleNameMapper: {
+    //     "^@lib/(.*)$": "<rootDir>/apps/api/lib/$1",
+    //     "^@api/(.*)$": "<rootDir>/apps/api/pages/api/$1",
+    //   },
+    //   // setupFilesAfterEnv: ["<rootDir>/apps/api/jest.setup.ts"], // Uncomment when API becomes public
+    // },
   ],
   watchPlugins: [
     "jest-watch-typeahead/filename",

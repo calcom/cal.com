@@ -14,16 +14,20 @@ const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
           type="radio"
           {...props}
         />
-        <div className="peer-checked:border-brand border-1 rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
+        <div className="peer-checked:border-brand rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
           {children}
         </div>
       </label>
     );
   }
 );
-
-interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
+type MaybeArray<T> = T[] | T;
+type ChildrenOfType<T extends React.ElementType> = MaybeArray<
+  React.ReactElement<React.ComponentPropsWithoutRef<T>>
+>;
+interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange" | "children"> {
   onChange?: (value: string) => void;
+  children: ChildrenOfType<typeof RadioArea>;
 }
 
 const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: RadioAreaGroupProps) => {

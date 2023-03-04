@@ -17,13 +17,21 @@ ${calEvent.type}
 };
 
 export const getWhen = (calEvent: CalendarEvent) => {
-  return `
+  return calEvent.seatsPerTimeSlot
+    ? `
+${calEvent.organizer.language.translate("organizer_timezone")}:
+${calEvent.organizer.timeZone}
+  `
+    : `
 ${calEvent.organizer.language.translate("invitee_timezone")}:
 ${calEvent.attendees[0].timeZone}
   `;
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
+    calEvent.attendees = [];
+  }
   const attendees = calEvent.attendees
     .map((attendee) => {
       return `
@@ -38,9 +46,18 @@ ${calEvent.organizer.name} - ${calEvent.organizer.language.translate("organizer"
 ${calEvent.organizer.email}
   `;
 
+  const teamMembers = calEvent.team?.members
+    ? calEvent.team.members.map((member) => {
+        return `
+${member.name} - ${calEvent.organizer.language.translate("team_member")} 
+${member.email}
+    `;
+      })
+    : [];
+
   return `
 ${calEvent.organizer.language.translate("who")}:
-${organizer + attendees}
+${organizer + attendees + teamMembers.join("")}
   `;
 };
 
@@ -54,23 +71,24 @@ ${calEvent.additionalNotes}
   `;
 };
 
-export const getCustomInputs = (calEvent: CalendarEvent) => {
-  if (!calEvent.customInputs) {
+export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
+  const responses = calEvent.userFieldsResponses || calEvent.customInputs;
+  if (!responses) {
     return "";
   }
-  const customInputsString = Object.keys(calEvent.customInputs)
+  const responsesString = Object.keys(responses)
     .map((key) => {
-      if (!calEvent.customInputs) return "";
-      if (calEvent.customInputs[key] !== "") {
+      if (!responses) return "";
+      if (responses[key] !== "") {
         return `
 ${key}:
-${calEvent.customInputs[key]}
+${responses[key]}
   `;
       }
     })
     .join("");
 
-  return customInputsString;
+  return responsesString;
 };
 
 export const getAppsStatus = (calEvent: CalendarEvent) => {
@@ -154,7 +172,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
+${getUserFieldsResponses(calEvent)}
 ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event

@@ -1,5 +1,4 @@
-import {
-  components as reactSelectComponents,
+import type {
   ControlProps,
   GroupBase,
   InputProps,
@@ -10,11 +9,12 @@ import {
   SingleValueProps,
   ValueContainerProps,
 } from "react-select";
+import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../../components/icon";
 import { UpgradeTeamsBadge } from "../../badge";
+import { FiCheck } from "../../icon";
 
 export const InputComponent = <
   Option,
@@ -62,7 +62,7 @@ export const OptionComponent = <
       <>
         <span className="mr-auto">{props.label}</span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
-        {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
+        {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
       </>
     </reactSelectComponents.Option>
   );
@@ -80,7 +80,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );
@@ -147,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 dark:border-darkgray-300 border-1 !rounded-md border-gray-900 bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
       className
     )}
   />

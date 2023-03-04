@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { WorkflowStep } from "@prisma/client";
 import {
   TimeUnit,
   WorkflowActions,
-  WorkflowStep,
   WorkflowTemplates,
   WorkflowTriggerEvents,
+  MembershipRole,
 } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
@@ -15,22 +16,24 @@ import { z } from "zod";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Button, Form, showToast } from "@calcom/ui";
+import { Alert, Button, Form, showToast, Badge } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
+import { isSMSAction } from "../lib/isSMSAction";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: WorkflowStep[];
+  steps: (WorkflowStep & { senderName: string | null })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -69,6 +72,7 @@ const formSchema = z.object({
         .refine((val) => onlyLettersNumbersSpaces(val))
         .optional()
         .nullable(),
+      senderName: z.string().optional().nullable(),
     })
     .array(),
 });
@@ -84,6 +88,7 @@ function WorkflowPage() {
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
+  const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -105,10 +110,22 @@ function WorkflowPage() {
     }
   );
 
-  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+    { teamId: workflow?.team?.id },
+    {
+      enabled: !!workflow?.id,
+    }
+  );
+
+  const readOnly =
+    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
+    MembershipRole.MEMBER;
 
   useEffect(() => {
     if (workflow && !isLoading) {
+      if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
+        setIsMixedEventType(true);
+      }
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -124,7 +141,11 @@ function WorkflowPage() {
 
       //translate dynamic variables into local language
       const steps = workflow.steps.map((step) => {
-        const updatedStep = step;
+        const updatedStep = {
+          ...step,
+          senderName: step.sender,
+          sender: isSMSAction(step.action) ? step.sender : SENDER_ID,
+        };
         if (step.reminderBody) {
           updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
             locale: i18n.language,
@@ -181,13 +202,12 @@ function WorkflowPage() {
         let isVerified = true;
 
         values.steps.forEach((step) => {
-          const isSMSAction =
-            step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER;
-
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
           const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM && !isSMSAction && strippedHtml.length <= 1;
+            step.template === WorkflowTemplates.CUSTOM &&
+            !isSMSAction(step.action) &&
+            strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
@@ -241,14 +261,23 @@ function WorkflowPage() {
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
           <div>
-            <Button type="submit">{t("save")}</Button>
+            <Button type="submit" disabled={readOnly}>
+              {t("save")}
+            </Button>
           </div>
         }
         heading={
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
-            <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
-              {workflow && workflow.name ? workflow.name : "untitled"}
+            <div className="flex">
+              <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+                {workflow && workflow.name ? workflow.name : "untitled"}
+              </div>
+              {workflow && workflow.team && (
+                <Badge className="mt-1 ml-4" variant="gray">
+                  {workflow.team.slug}
+                </Badge>
+              )}
             </div>
           )
         }>
@@ -262,6 +291,8 @@ function WorkflowPage() {
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
+                    teamId={workflow ? workflow.teamId || undefined : undefined}
+                    isMixedEventType={isMixedEventType}
                   />
                 </>
               ) : (

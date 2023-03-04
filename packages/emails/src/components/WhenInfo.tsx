@@ -56,7 +56,7 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
             {recurringEvent?.count ? `${t("starting")} ` : ""}
             {t(getRecipientStart("dddd").toLowerCase())}, {t(getRecipientStart("MMMM").toLowerCase())}{" "}
             {getRecipientStart("D, YYYY | h:mma")} - {getRecipientEnd("h:mma")}{" "}
-            <span style={{ color: "#888888" }}>({timeZone})</span>
+            <span style={{ color: "#4B5563" }}>({timeZone})</span>
           </>
         }
         withSpacer

@@ -10,8 +10,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
 } from "@calcom/ui";
+import { FiMoreHorizontal, FiEdit2, FiTrash } from "@calcom/ui/components/icon";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
@@ -43,16 +43,8 @@ const ApiKeyListItem = ({
       <div>
         <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
         <div className="flex items-center space-x-3.5">
-          {!neverExpires && isExpired && (
-            <Badge className="-p-2" variant="red">
-              {t("expired")}
-            </Badge>
-          )}
-          {!isExpired && (
-            <Badge className="-p-2" variant="green">
-              {t("active")}
-            </Badge>
-          )}
+          {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
+          {!isExpired && <Badge variant="green">{t("active")}</Badge>}
           <p className="text-xs text-gray-600">
             {" "}
             {neverExpires ? (
@@ -66,12 +58,12 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon={FiMoreHorizontal} />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon={Icon.FiEdit2}>
+              <DropdownItem type="button" onClick={onEditClick} StartIcon={FiEdit2}>
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
@@ -83,7 +75,7 @@ const ApiKeyListItem = ({
                     id: apiKey.id,
                   })
                 }
-                StartIcon={Icon.FiTrash}>
+                StartIcon={FiTrash}>
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

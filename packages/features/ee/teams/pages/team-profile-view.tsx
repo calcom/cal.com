@@ -1,16 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MembershipRole, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -19,15 +21,15 @@ import {
   Dialog,
   DialogTrigger,
   Form,
-  Icon,
   ImageUploader,
   Label,
   LinkIconButton,
   Meta,
   showToast,
-  TextArea,
   TextField,
+  Editor,
 } from "@calcom/ui";
+import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -88,7 +90,9 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
+  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
+
+  const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
@@ -213,23 +217,15 @@ const ProfileView = () => {
                   </div>
                 )}
               />
-              <Controller
-                control={form.control}
-                name="bio"
-                render={({ field: { value } }) => (
-                  <div className="mt-8">
-                    <Label>{t("about")}</Label>
-                    <TextArea
-                      name="bio"
-                      value={value}
-                      className="h-14"
-                      onChange={(e) => {
-                        form.setValue("bio", e?.target.value);
-                      }}
-                    />
-                  </div>
-                )}
-              />
+              <div className="mt-8">
+                <Label>{t("about")}</Label>
+                <Editor
+                  getText={() => md.render(form.getValues("bio") || "")}
+                  setText={(value: string) => form.setValue("bio", turndown(value))}
+                  excludedToolbarItems={["blockType"]}
+                  disableLists
+                />
+              </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
@@ -239,7 +235,7 @@ const ProfileView = () => {
                 (team.metadata as Prisma.JsonObject)?.requestedSlug && (
                   <Button
                     color="secondary"
-                    className="ml-2 mt-8"
+                    className="mt-8 ml-2"
                     type="button"
                     onClick={() => {
                       publishMutation.mutate({ teamId: team.id });
@@ -255,19 +251,22 @@ const ProfileView = () => {
                   <Label className="text-black">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
-                {team?.bio && (
+                {team && !isBioEmpty && (
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
-                    <p className="text-sm text-gray-800">{team.bio}</p>
+                    <div
+                      className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                    />
                   </>
                 )}
               </div>
               <div className="">
                 <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
+                  <LinkIconButton Icon={FiExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
-                  Icon={Icon.FiLink}
+                  Icon={FiLink}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Copied to clipboard", "success");
@@ -277,13 +276,13 @@ const ProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="border-1 my-8 border-gray-200" />
+          <hr className="my-8 border border-gray-200" />
 
           <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {team?.membership.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
+                <Button color="destructive" className="border" StartIcon={FiTrash2}>
                   {t("disband_team")}
                 </Button>
               </DialogTrigger>
@@ -298,7 +297,7 @@ const ProfileView = () => {
           ) : (
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiLogOut}>
+                <Button color="destructive" className="border" StartIcon={FiLogOut}>
                   {t("leave_team")}
                 </Button>
               </DialogTrigger>

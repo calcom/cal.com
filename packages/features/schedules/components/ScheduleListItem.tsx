@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -13,8 +13,8 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
-  Icon,
 } from "@calcom/ui";
+import { FiGlobe, FiMoreHorizontal, FiTrash, FiClock } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -50,7 +50,7 @@ export function ScheduleListItem({
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-gray-500">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
@@ -62,18 +62,24 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
-              {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
+              {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
-                  <Icon.FiGlobe />
-                  &nbsp;{schedule.timeZone}
+                  <FiGlobe />
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
             </p>
           </Link>
         </div>
         <Dropdown>
-          <DropdownMenuTrigger asChild className="mx-5">
-            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="mx-5"
+              type="button"
+              variant="icon"
+              color="secondary"
+              StartIcon={FiMoreHorizontal}
+            />
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>
@@ -81,6 +87,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
+                    StartIcon={FiClock}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -95,6 +102,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
+                  StartIcon={FiTrash}
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,

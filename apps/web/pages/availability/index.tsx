@@ -1,18 +1,17 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetServerSidePropsContext } from "next";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { EmptyScreen, Icon, showToast } from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { EmptyScreen, showToast } from "@calcom/ui";
+import { FiClock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
@@ -76,7 +75,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       {schedules.length === 0 ? (
         <div className="flex justify-center">
           <EmptyScreen
-            Icon={Icon.FiClock}
+            Icon={FiClock}
             headline={t("new_schedule_heading")}
             description={t("new_schedule_description")}
             buttonRaw={<NewScheduleButton />}
@@ -84,7 +83,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
         </div>
       ) : (
         <div className="mb-16 overflow-hidden rounded-md border border-gray-200 bg-white">
-          <ul className="divide-y divide-neutral-200" data-testid="schedules" ref={animationParentRef}>
+          <ul className="divide-y divide-gray-200" data-testid="schedules" ref={animationParentRef}>
             {schedules.map((schedule) => (
               <ScheduleListItem
                 displayOptions={{
@@ -116,13 +115,3 @@ export default function AvailabilityPage() {
     </div>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};

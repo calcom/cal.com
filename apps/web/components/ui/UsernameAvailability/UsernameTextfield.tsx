@@ -1,23 +1,15 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
-import { RefCallback, useEffect, useMemo, useState } from "react";
+import type { RefCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TRPCClientErrorLike } from "@calcom/trpc/client";
+import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  Icon,
-  Input,
-  Label,
-  TextField,
-} from "@calcom/ui";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, TextField } from "@calcom/ui";
+import { FiCheck, FiEdit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -131,7 +123,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 h-6 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
+              "mb-0 mt-0 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -145,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex flex-row">
               <span className={classNames("mx-2 py-2")}>
-                {usernameIsAvailable ? <Icon.FiCheck className="w-6" /> : <></>}
+                {usernameIsAvailable ? <FiCheck className="w-6" /> : <></>}
               </span>
             </div>
           )}
@@ -165,7 +157,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <DialogContent>
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <Icon.FiEdit2 className="m-auto h-6 w-6" />
+              <FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />

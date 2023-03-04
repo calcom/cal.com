@@ -1,8 +1,11 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { NextRouter, useRouter } from "next/router";
-import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
+import type { MutableRefObject, RefObject } from "react";
+import { createRef, forwardRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
 
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,16 +15,15 @@ import {
   DialogClose,
   DialogContent,
   HorizontalTabs,
-  Icon,
-  InputLeading,
   Label,
   showToast,
   Switch,
   TextArea,
   TextField,
+  ColorPicker,
 } from "@calcom/ui";
+import { FiCode, FiTrello, FiSun, FiArrowLeft, FiChevronRight } from "@calcom/ui/components/icon";
 
-import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
@@ -488,7 +490,7 @@ const tabs = [
   {
     name: "HTML",
     href: "embedTabName=embed-code",
-    icon: Icon.FiCode,
+    icon: FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -541,7 +543,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   {
     name: "React",
     href: "embedTabName=embed-react",
-    icon: Icon.FiCode,
+    icon: FiCode,
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
@@ -581,7 +583,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   {
     name: "Preview",
     href: "embedTabName=embed-preview",
-    icon: Icon.FiTrello,
+    icon: FiTrello,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -597,7 +599,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[100vh] border"
+          className="h-[100vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
@@ -617,7 +619,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Icon.FiSun className="ml-2 h-4 w-4 text-gray-500" />
+      <FiSun className="ml-2 h-4 w-4 text-gray-500" />
       {children}
     </components.Control>
   );
@@ -639,7 +641,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100 ltr:mr-2 rtl:ml-2"
+            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-gray-100 ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -676,7 +678,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
-  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -720,7 +722,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const calLink = decodeURIComponent(embedUrl);
 
-  const addToPalette = (update: typeof previewState["palette"]) => {
+  const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -815,7 +817,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 removeQueryParams(router, ["embedType", "embedTabName"]);
               }}>
-              <Icon.FiArrowLeft className="mr-4 w-4" />
+              <FiArrowLeft className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
@@ -835,7 +837,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       ? "Floating Popup Customization"
                       : "Element Click Customization"}
                   </div>
-                  <Icon.FiChevronRight
+                  <FiChevronRight
                     className={`${
                       isEmbedCustomizationOpen ? "rotate-90 transform" : ""
                     } ml-auto h-5 w-5 text-gray-500`}
@@ -863,7 +865,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             };
                           });
                         }}
-                        addOnLeading={<InputLeading>W</InputLeading>}
+                        addOnLeading={<>W</>}
                       />
                       <span className="p-2">×</span>
                       <TextField
@@ -883,7 +885,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             };
                           });
                         }}
-                        addOnLeading={<InputLeading>H</InputLeading>}
+                        addOnLeading={<>H</>}
                       />
                     </div>
                   </div>
@@ -1002,7 +1004,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                 <CollapsibleTrigger className="flex w-full" type="button">
                   <div className="text-base  font-medium text-gray-900">Cal Booking Customization</div>
-                  <Icon.FiChevronRight
+                  <FiChevronRight
                     className={`${
                       isBookingCustomizationOpen ? "rotate-90 transform" : ""
                     } ml-auto h-5 w-5 text-gray-500`}
@@ -1061,7 +1063,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             defaultValue="#000000"
                             onChange={(color) => {
                               addToPalette({
-                                [palette.name as keyof typeof previewState["palette"]]: color,
+                                [palette.name as keyof (typeof previewState)["palette"]]: color,
                               });
                             }}
                           />
@@ -1163,7 +1165,7 @@ export const EmbedButton = <T extends React.ElementType>({
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const router = useRouter();
-  className = classNames(className, "hidden lg:inline-flex");
+  className = classNames("hidden lg:inline-flex", className);
   const openEmbedModal = () => {
     goto(router, {
       dialog: "embed",

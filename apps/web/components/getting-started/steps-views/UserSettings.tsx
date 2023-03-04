@@ -1,9 +1,10 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect } from "@calcom/ui";
 
@@ -20,7 +21,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
-
+  const telemetry = useTelemetry();
   const {
     register,
     handleSubmit,
@@ -31,6 +32,11 @@ const UserSettings = (props: IUserSettingsProps) => {
     },
     reValidateMode: "onChange",
   });
+
+  useEffect(() => {
+    telemetry.event(telemetryEventTypes.onboardingStarted);
+  }, [telemetry]);
+
   const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();

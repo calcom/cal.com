@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -78,7 +79,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
                 .map((slot: IBusySlot) => (
                   <div
                     key={dayjs(slot.start).format("HH:mm")}
-                    className="overflow-hidden rounded-md bg-neutral-100"
+                    className="overflow-hidden rounded-md bg-gray-100"
                     data-testid="troubleshooter-busy-time">
                     <div className="px-4 py-5 text-black sm:p-6">
                       {t("calendar_shows_busy_between")}{" "}
@@ -97,7 +98,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
                   </div>
                 ));
             return (
-              <div className="overflow-hidden rounded-md bg-neutral-100">
+              <div className="overflow-hidden rounded-md bg-gray-100">
                 <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
               </div>
             );

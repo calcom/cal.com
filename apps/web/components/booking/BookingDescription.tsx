@@ -1,10 +1,12 @@
 import { SchedulingType } from "@prisma/client";
-import { FC, ReactNode, useEffect } from "react";
+import type { FC, ReactNode } from "react";
+import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Badge } from "@calcom/ui";
+import { Badge } from "@calcom/ui";
+import { FiCheckSquare, FiClock, FiInfo } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -89,14 +91,14 @@ const BookingDescription: FC<Props> = (props) => {
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
             <div>
-              <Icon.FiInfo
+              <FiInfo
                 className={classNames(
                   "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
                   isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
                 )}
               />
             </div>
-            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words">
+            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
@@ -108,7 +110,7 @@ const BookingDescription: FC<Props> = (props) => {
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
             <div>
-              <Icon.FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+              <FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
             {requiresConfirmationText}
           </div>
@@ -119,9 +121,10 @@ const BookingDescription: FC<Props> = (props) => {
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
-            isBookingPage && "dark:text-darkgray-600 text-gray-600"
+            isBookingPage && "dark:text-darkgray-600 text-gray-600",
+            !eventType.metadata?.multipleDuration && "items-center"
           )}>
-          <Icon.FiClock
+          <FiClock
             className={classNames(
               "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"

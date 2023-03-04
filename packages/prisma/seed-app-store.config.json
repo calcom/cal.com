@@ -155,5 +155,54 @@
     "categories": ["calendar"],
     "slug": "amie",
     "type": "amie_other"
+  },
+  {
+    "dirName": "booking-pages-tag",
+    "categories": ["analytics"],
+    "slug": "booking-pages-tag",
+    "type": "booking-pages-tag_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "event-type-app-card",
+    "categories": ["other"],
+    "slug": "event-type-app-card",
+    "type": "event-type-app-card_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "event-type-location-video-static",
+    "categories": ["video"],
+    "slug": "event-type-location-video-static",
+    "type": "event-type-location-video-static_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "general-app-settings",
+    "categories": ["other"],
+    "slug": "general-app-settings",
+    "type": "general-app-settings_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "link-as-an-app",
+    "categories": ["other"],
+    "slug": "link-as-an-app",
+    "type": "link-as-an-app_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "basic",
+    "categories": ["other"],
+    "slug": "basic",
+    "type": "basic_other",
+    "isTemplate": true
+  },
+  {
+    "dirName": "facetime",
+    "categories": ["video"],
+    "slug": "facetime",
+    "type": "facetime_video",
+    "isTemplate": false
   }
 ]

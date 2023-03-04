@@ -1,11 +1,12 @@
-import { NextPageContext } from "next";
+import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, Icon, HeadSeo } from "@calcom/ui";
+import { Button, HeadSeo } from "@calcom/ui";
+import { FiArrowRight, FiCalendar, FiX } from "@calcom/ui/components/icon";
 
 export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
@@ -26,7 +27,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                    <Icon.FiX className="h-6 w-6 text-red-600" />
+                    <FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="leading-6" id="modal-headline">
@@ -36,7 +37,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
                   <div className="mt-4 border-t border-b py-4">
                     <h2 className="mb-2 text-center ">{props.booking.title}</h2>
                     <p className="text-center text-gray-500">
-                      <Icon.FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
+                      <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
                     </p>
                   </div>
@@ -48,7 +49,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
                 </div>
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={Icon.FiArrowRight}>
+                    <Button data-testid="return-home" href="/event-types" EndIcon={FiArrowRight}>
                       {t("go_back")}
                     </Button>
                   </div>

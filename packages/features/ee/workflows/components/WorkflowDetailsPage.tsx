@@ -1,14 +1,19 @@
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import type { WorkflowActions } from "@prisma/client";
+import { WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { FiArrowDown, FiTrash2 } from "@calcom/ui/components/icon";
 
+import { isSMSAction } from "../lib/isSMSAction";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -19,10 +24,12 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  teamId?: number;
+  isMixedEventType: boolean;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -34,20 +41,41 @@ export default function WorkflowDetailsPage(props: Props) {
 
   const eventTypeOptions = useMemo(
     () =>
-      data?.eventTypeGroups.reduce(
-        (options, group) => [
+      data?.eventTypeGroups.reduce((options, group) => {
+        /** don't show team event types for user workflow */
+        if (!teamId && group.teamId) return options;
+        /** only show correct team event types for team workflows */
+        if (teamId && teamId !== group.teamId) return options;
+        return [
           ...options,
           ...group.eventTypes.map((eventType) => ({
             value: String(eventType.id),
             label: eventType.title,
           })),
-        ],
-        [] as Option[]
-      ) || [],
+        ];
+      }, [] as Option[]) || [],
     [data]
   );
 
-  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => {
+  let allEventTypeOptions = eventTypeOptions;
+  const distinctEventTypes = new Set();
+
+  if (!teamId && isMixedEventType) {
+    allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
+    allEventTypeOptions = allEventTypeOptions.filter((option) => {
+      const duplicate = distinctEventTypes.has(option.value);
+      distinctEventTypes.add(option.value);
+      return !duplicate;
+    });
+  }
+
+  const addAction = (
+    action: WorkflowActions,
+    sendTo?: string,
+    numberRequired?: boolean,
+    sender?: string,
+    senderName?: string
+  ) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -71,7 +99,8 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
-      sender: sender || SENDER_ID,
+      sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
+      senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
     };
     steps?.push(step);
@@ -92,7 +121,7 @@ export default function WorkflowDetailsPage(props: Props) {
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={eventTypeOptions}
+                  options={allEventTypeOptions}
                   isLoading={isLoading}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
@@ -107,7 +136,7 @@ export default function WorkflowDetailsPage(props: Props) {
           <div className="my-7 border-transparent md:border-t md:border-gray-200" />
           <Button
             type="button"
-            StartIcon={Icon.FiTrash2}
+            StartIcon={FiTrash2}
             color="destructive"
             className="border"
             onClick={() => setDeleteDialogOpen(true)}>
@@ -120,7 +149,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} teamId={teamId} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -133,13 +162,14 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    teamId={teamId}
                   />
                 );
               })}
             </>
           )}
           <div className="my-3 flex justify-center">
-            <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+            <FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
           </div>
           <div className="flex justify-center">
             <Button

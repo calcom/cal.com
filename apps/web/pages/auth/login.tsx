@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -9,15 +9,18 @@ import { FaGoogle } from "react-icons/fa";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { ErrorCode, getSession } from "@calcom/lib/auth";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
+import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { FiArrowLeft } from "@calcom/ui/components/icon";
 
-import { ErrorCode, getSession } from "@lib/auth";
-import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { WithNonceProps } from "@lib/withNonce";
+import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -39,7 +42,7 @@ export default function Login({
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
-}: inferSSRProps<typeof getServerSideProps>) {
+}: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<LoginValues>();
@@ -51,8 +54,8 @@ export default function Login({
 
   const errorMessages: { [key: string]: string } = {
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
-    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
-    [ErrorCode.UserNotFound]: t("no_account_exists"),
+    // Don't leak information about whether an email is registered or not
+    [ErrorCode.IncorrectUsernamePassword]: t("incorrect_username_password"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
@@ -85,7 +88,7 @@ export default function Login({
         setTwoFactorRequired(false);
         methods.setValue("totpCode", "");
       }}
-      StartIcon={Icon.FiArrowLeft}
+      StartIcon={FiArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>
@@ -148,7 +151,7 @@ export default function Login({
                   </div>
                   <PasswordField
                     id="password"
-                    autoComplete="current-password"
+                    autoComplete="off"
                     required
                     className="mb-0"
                     {...register("password")}
@@ -180,8 +183,6 @@ export default function Login({
                     StartIcon={FaGoogle}
                     onClick={async (e) => {
                       e.preventDefault();
-                      // track Google logins. Without personal data/payload
-                      telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
                       await signIn("google");
                     }}>
                     {t("signin_with_google")}
@@ -204,7 +205,8 @@ export default function Login({
   );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+// TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
+const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
   const session = await getSession({ req });
   const ssr = await ssrInit(context);
@@ -228,7 +230,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
-
   return {
     props: {
       csrfToken: await getCsrfToken(context),
@@ -239,4 +240,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       samlProductID,
     },
   };
-}
+};
+
+export const getServerSideProps = withNonce(_getServerSideProps);

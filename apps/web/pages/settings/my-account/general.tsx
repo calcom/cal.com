@@ -1,11 +1,12 @@
-import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { nameOfDay } from "@calcom/lib/weekday";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Form,
@@ -20,9 +21,6 @@ import {
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
-import { nameOfDay } from "@lib/core/i18n/weekday";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -69,7 +67,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Invalidate our previous i18n cache
+      await utils.viewer.public.i18n.invalidate();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
@@ -219,15 +219,5 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 };
 
 GeneralQueryView.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default GeneralQueryView;

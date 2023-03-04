@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
-import { Avatar, DatePickerField as DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
+import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";

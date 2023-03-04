@@ -1,3 +1,4 @@
+import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 import { PrismaClient } from "@prisma/client";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
@@ -11,6 +12,7 @@ export const samlTenantID = "Cal.com";
 export const samlProductID = "Cal.com";
 export const samlAudience = "https://saml.cal.com";
 export const samlPath = "/api/auth/saml/callback";
+export const oidcPath = "/api/auth/oidc";
 
 export const hostedCal = Boolean(HOSTED_CAL_FEATURES);
 export const tenantPrefix = "team-";
@@ -93,4 +95,11 @@ export const canAccess = async (user: { id: number; email: string }, teamId: num
     message: "success",
     access: true,
   };
+};
+
+export type SSOConnection = (SAMLSSORecord | OIDCSSORecord) & {
+  type: string;
+  acsUrl: string | null;
+  entityId: string | null;
+  callbackUrl: string | null;
 };
