@@ -197,9 +197,7 @@ export default class EventManager {
   public async reschedule(
     event: CalendarEvent,
     rescheduleUid: string,
-    newBookingId?: number,
-    rescheduleReason?: string,
-    currentAttendeeEmail?: string
+    newBookingId?: number
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);

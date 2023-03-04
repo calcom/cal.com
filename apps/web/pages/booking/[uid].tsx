@@ -257,10 +257,14 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
     (isCancellationMode &&
+      !!seatReferenceUid &&
+      !userIsOwner &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
   const telemetry = useTelemetry();
   useEffect(() => {
@@ -345,7 +349,6 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
-  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`

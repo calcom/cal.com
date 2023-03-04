@@ -670,7 +670,7 @@ model BookingSeat {
   bookingId    Int
   booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   attendeeId   Int      @unique
-  attendee     Attendee @relation(fields: [attendeeId], references: [id])
+  attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   data         Json?
 }
 

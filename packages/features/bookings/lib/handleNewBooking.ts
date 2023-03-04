@@ -346,23 +346,9 @@ async function ensureAvailableUsers(
 }
 
 async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
-  let bookingUid = uid;
-  // Now rescheduleUid can be bookingSeat
-  const bookingSeat = await prisma.bookingSeat.findUnique({
-    where: {
-      referenceUid: uid,
-    },
-    include: {
-      booking: true,
-    },
-  });
-  if (bookingSeat) {
-    bookingUid = bookingSeat.booking.uid;
-  }
-
   return prisma.booking.findFirst({
     where: {
-      uid: bookingUid,
+      uid: uid,
       status: {
         in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
       },
@@ -803,20 +789,35 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
   };
 
-  const rescheduleUid = reqBody.rescheduleUid;
-
+  let rescheduleUid = reqBody.rescheduleUid;
+  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
 
   if (rescheduleUid) {
+    // rescheduleUid can be bookingUid and bookingSeatUid
+    bookingSeat = await prisma.bookingSeat.findUnique({
+      where: {
+        referenceUid: rescheduleUid,
+      },
+      include: {
+        booking: true,
+        attendee: true,
+      },
+    });
+    if (bookingSeat) {
+      bookingSeat = bookingSeat;
+      rescheduleUid = bookingSeat.booking.uid;
+    }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
       rescheduleUid,
       !!eventType.seatsPerTimeSlot
     );
-  }
-
-  if (!originalRescheduledBooking && rescheduleUid) {
-    throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+    if (!originalRescheduledBooking) {
+      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+    } else {
+      rescheduleUid = originalRescheduledBooking.uid;
+    }
   }
 
   /* Used for seats bookings to update evt object with video data */
@@ -901,6 +902,7 @@ async function handler(
         status: true,
       },
     });
+
     if (!booking) {
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
@@ -909,19 +911,18 @@ async function handler(
       return booking;
     }
 
-    // If rescheduling an exisiting attendee
+    // If rescheduling an existing attendee
     if (rescheduleUid) {
       // Check if the host or attendee is rescheduling
       const host = booking.user?.email === req.body.email;
+      const host = booking.user?.email === req.body.responses.email;
 
       // If it is the host then continue rescheduling as normal
       if (host) return;
-
-      let seatAttendee: Partial<Person> | null = null;
-      if (!host) {
-        seatAttendee =
-          originalRescheduledBooking?.attendees.find((attendee) => attendee.email === req.body.email) || null;
-      }
+      const seatAttendee: Partial<Person> | null =
+        originalRescheduledBooking?.attendees.find(
+          (attendee) => attendee.email === bookingSeat?.attendee.email
+        ) || null;
 
       if (!seatAttendee) {
         throw new HttpError({ statusCode: 404, message: "Attendee not found" });
@@ -1007,7 +1008,7 @@ async function handler(
 
           const copyEvent = cloneDeep(evt);
 
-          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id, rescheduleReason);
+          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
           await sendRescheduledEmails({
             ...copyEvent,
@@ -1104,7 +1105,7 @@ async function handler(
 
         const copyEvent = cloneDeep(evt);
 
-        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id, rescheduleReason);
+        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
@@ -1125,6 +1126,12 @@ async function handler(
 
       // If there is no booking then remove the attendee from the old booking and create a new one
       if (!newTimeSlotBooking) {
+        await prisma.bookingSeat.delete({
+          where: {
+            id: seatAttendee.bookingSeat?.id,
+          },
+        });
+
         await prisma.attendee.delete({
           where: {
             id: seatAttendee.id,
@@ -1166,7 +1173,7 @@ async function handler(
 
       const copyEvent = cloneDeep(evt);
 
-      await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id, rescheduleReason);
+      await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
 
@@ -1481,9 +1488,11 @@ async function handler(
     evt.uid = booking?.uid ?? null;
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
-      const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
-      // Save description to bookingSeat
+      const currentAttendee = booking.attendees.find(
+        (attendee) => attendee.email === req.body.responses.email
+      )!;
 
+      // Save description to bookingSeat
       const uniqueAttendeeId = uuid();
       await prisma.bookingSeat.create({
         data: {
@@ -1572,13 +1581,7 @@ async function handler(
 
     // Use EventManager to conditionally use all needed integrations.
 
-    const updateManager = await eventManager.reschedule(
-      evt,
-      originalRescheduledBooking.uid,
-      booking?.id,
-      rescheduleReason,
-      bookerEmail
-    );
+    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid, booking?.id);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;

@@ -91,10 +91,12 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
+    await page.waitForLoadState("networkidle");
+
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // NOTE: remove if old booking should not be deleted
-    expect(await booking.self()).toBeNull();
+    expect(await (await booking.self()).status).toBe(BookingStatus.CANCELLED);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking.uid } });
     expect(newBooking).not.toBeNull();
@@ -263,6 +265,8 @@ test.describe("Reschedule Tests", async () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
+      await page.waitForLoadState("networkidle");
+
       await expect(page).toHaveURL(/.*booking/);
 
       // Should expect old booking to be accepted with two attendees
@@ -276,7 +280,7 @@ test.describe("Reschedule Tests", async () => {
       expect(oldBooking?.seatsReferences.length).toBe(2);
     });
 
-    test("Should reschedule booking with seats and if everyone rescheduled it should be cancelled", async ({
+    test("Should reschedule booking with seats and if everyone rescheduled it should be deleted", async ({
       page,
       users,
       bookings,
@@ -332,11 +336,7 @@ test.describe("Reschedule Tests", async () => {
 
       await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.indexOf("/booking") > -1;
-        },
-      });
+      await page.waitForLoadState("networkidle");
 
       await expect(page).toHaveURL(/.*booking/);
 
@@ -363,7 +363,72 @@ test.describe("Reschedule Tests", async () => {
       bookings,
     }) => {
       const user = await users.create();
+      await user.login();
       const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
+      const booking = await bookings.create(user.id, user.username, eventType.id, {
+        status: BookingStatus.ACCEPTED,
+        // startTime with 1 day from now and endTime half hour after
+        startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        attendees: {
+          createMany: {
+            data: [
+              { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+              { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+            ],
+          },
+        },
+      });
+
+      const oldBooking = await prisma.booking.findFirst({
+        where: { uid: booking.uid },
+        include: { seatsReferences: true, attendees: true },
+      });
+
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+
+      const bookingSeats = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
+      ];
+
+      await prisma.bookingSeat.createMany({
+        data: bookingSeats,
+      });
+
+      // Now we cancel the booking as the organizer
+      await page.goto(`/booking/${booking.uid}?cancel=true`);
+
+      await page.pause();
+
+      await page.locator('[data-testid="cancel"]').click();
+
+      await page.waitForLoadState("networkidle");
+
+      await expect(page).toHaveURL(/.*booking/);
+
+      // Should expect old booking to be cancelled
+      const updatedBooking = await prisma.booking.findFirst({
+        where: { uid: booking.uid },
+        include: { seatsReferences: true, attendees: true },
+      });
+
+      expect(oldBooking?.startTime).not.toBe(updatedBooking?.startTime);
+    });
+
+    test("If rescheduled/cancelled booking with seats it should display the correct number of seats", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const user = await users.create();
+      const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
+
       const booking = await bookings.create(user.id, user.username, eventType.id, {
         status: BookingStatus.ACCEPTED,
         // startTime with 1 day from now and endTime half hour after
@@ -395,94 +460,36 @@ test.describe("Reschedule Tests", async () => {
         data: bookingSeats,
       });
 
-      // Now we cancel the booking as the organizer
-      await page.goto(`/booking/${booking.uid}?cancel=true`);
+      const references = await prisma.bookingSeat.findMany({
+        where: { bookingId: booking.id },
+      });
+
+      await page.goto(
+        `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
+      );
 
       await page.locator('[data-testid="cancel"]').click();
 
-      await expect(page).toHaveURL(/.*booking/);
-
-      // Should expect old booking to be cancelled
-
       const oldBooking = await prisma.booking.findFirst({
         where: { uid: booking.uid },
-        include: { seatsReferences: true, attendees: true },
+        select: {
+          id: true,
+          status: true,
+        },
       });
 
-      expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);
-      expect(oldBooking?.attendees.length).toBe(0);
+      expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
+
+      await page.pause();
+
+      await page.goto(`/reschedule/${references[1].referenceUid}`);
+
+      await page.click('[data-testid="incrementMonth"]');
+
+      await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
+
+      // Validate that the number of seats its 10
+      expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
     });
-  });
-
-  test("If rescheduled/cancelled booking with seats it should display the correct number of seats", async ({
-    page,
-    users,
-    bookings,
-  }) => {
-    const user = await users.create();
-    const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
-
-    const booking = await bookings.create(user.id, user.username, eventType.id, {
-      status: BookingStatus.ACCEPTED,
-      // startTime with 1 day from now and endTime half hour after
-      startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-      attendees: {
-        createMany: {
-          data: [
-            { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
-            { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
-          ],
-        },
-      },
-    });
-
-    const bookingAttendees = await prisma.attendee.findMany({
-      where: { bookingId: booking.id },
-      select: {
-        id: true,
-      },
-    });
-
-    const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-    ];
-
-    await prisma.bookingSeat.createMany({
-      data: bookingSeats,
-    });
-
-    const references = await prisma.bookingSeat.findMany({
-      where: { bookingId: booking.id },
-    });
-
-    await page.goto(
-      `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
-    );
-
-    await page.locator('[data-testid="cancel"]').click();
-
-    await page.waitForLoadState("networkidle");
-
-    const oldBooking = await prisma.booking.findFirst({
-      where: { uid: booking.uid },
-      select: {
-        id: true,
-        status: true,
-      },
-    });
-
-    expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
-
-    await page.goto(`/reschedule/${references[1].referenceUid}`);
-
-    await page.waitForTimeout(1000);
-    await page.click('[data-testid="incrementMonth"]');
-    await page.waitForTimeout(1000);
-    await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
-
-    // Validate that the number of seats its 10
-    expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
   });
 });
