@@ -371,6 +371,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || input.duration || eventType.length,
+        organizerTimeZone:
+          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
       })
     );
   }
