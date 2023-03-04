@@ -95,9 +95,10 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (booking.seatsReferences.length > 0) {
-      return booking.seatsReferences[0].referenceUid;
+    if (!booking.seatsReferences[0]) {
+      return undefined;
     }
+    return booking.seatsReferences[0].referenceUid;
   };
 
   const pendingActions: ActionType[] = [
