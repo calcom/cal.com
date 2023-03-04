@@ -477,7 +477,7 @@ following
 
 ## License
 
-Distributed under the FAKE AGPLv3 License. See `LICENSE` for more information.
+Distributed under the AGPLv3 License. See `LICENSE` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 
