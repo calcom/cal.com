@@ -166,13 +166,19 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
                   <div className="mt-1 mb-5">
-                    <PhoneInput<AddActionFormValues>
+                    <Controller
                       control={form.control}
                       name="sendTo"
-                      className="rounded-md"
-                      placeholder={t("enter_phone_number")}
-                      id="sendTo"
-                      required
+                      render={({ field: { value, onChange } }) => (
+                        <PhoneInput
+                          className="rounded-md"
+                          placeholder={t("enter_phone_number")}
+                          id="sendTo"
+                          required
+                          value={value}
+                          onChange={onChange}
+                        />
+                      )}
                     />
                     {form.formState.errors.sendTo && (
                       <p className="mt-1 text-sm text-red-500">{form.formState.errors.sendTo.message}</p>

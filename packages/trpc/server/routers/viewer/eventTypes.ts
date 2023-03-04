@@ -8,6 +8,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps from "@calcom/app-store/utils";
+import { updateEvent } from "@calcom/core/CalendarManager";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -416,6 +417,7 @@ export const eventTypesRouter = router({
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
+
     const userId = ctx.user.id;
     // Get Users default conferncing app
 
@@ -537,11 +539,15 @@ export const eventTypesRouter = router({
       userId,
       // eslint-disable-next-line
       teamId,
+      bookingFields,
       ...rest
     } = input;
 
+    ensureUniqueBookingFields(bookingFields);
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
+      bookingFields,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
     };
     data.locations = locations ?? undefined;
@@ -786,6 +792,7 @@ export const eventTypesRouter = router({
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
+        bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };
 
       const newEventType = await ctx.prisma.eventType.create({ data });
@@ -823,3 +830,19 @@ export const eventTypesRouter = router({
     }
   }),
 });
+
+function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+  if (!fields) {
+    return;
+  }
+  fields.reduce((discoveredFields, field) => {
+    if (discoveredFields[field.name]) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Duplicate booking field name: ${field.name}`,
+      });
+    }
+    discoveredFields[field.name] = true;
+    return discoveredFields;
+  }, {} as Record<string, true>);
+}
