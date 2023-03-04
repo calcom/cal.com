@@ -148,7 +148,7 @@ const BookingFields = ({
           });
 
           field.options = options.filter(
-            (location): location is NonNullable<typeof options[number]> => !!location
+            (location): location is NonNullable<(typeof options)[number]> => !!location
           );
           // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
           // e.g. If it's just Attendee Phone Number option then we don't show `Location` label

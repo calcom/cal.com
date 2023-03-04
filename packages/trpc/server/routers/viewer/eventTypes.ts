@@ -8,7 +8,6 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps from "@calcom/app-store/utils";
-import { updateEvent } from "@calcom/core/CalendarManager";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
