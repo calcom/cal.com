@@ -91,60 +91,65 @@ export const AppDependencyComponent = ({
     <div
       className={classNames(
         "rounded-md py-3 px-4",
-        dependencyData.some((dependency) => !dependency.installed) ? "bg-blue-100" : "bg-gray-100"
+        dependencyData && dependencyData.some((dependency) => !dependency.installed)
+          ? "bg-blue-100"
+          : "bg-gray-100"
       )}>
-      {dependencyData.map((dependency) => {
-        return dependency.installed ? (
-          <div className="items-start space-x-2.5">
-            <div className="flex items-start">
-              <div>
-                <FiCheck className="mt-1 mr-2 font-semibold" />
-              </div>
-              <div>
-                <span className="font-semibold">
-                  {t("app_is_connected", { dependencyName: dependency.name })}
-                </span>
+      {dependencyData &&
+        dependencyData.map((dependency) => {
+          return dependency.installed ? (
+            <div className="items-start space-x-2.5">
+              <div className="flex items-start">
                 <div>
+                  <FiCheck className="mt-1 mr-2 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">
+                    {t("app_is_connected", { dependencyName: dependency.name })}
+                  </span>
                   <div>
-                    <span>
-                      {t("this_app_requires_connected_account", {
-                        appName,
-                        dependencyName: dependency.name,
-                      })}
-                    </span>
+                    <div>
+                      <span>
+                        {t("this_app_requires_connected_account", {
+                          appName,
+                          dependencyName: dependency.name,
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="items-start space-x-2.5">
-            <div className="flex items-start text-blue-900">
-              <div>
-                <FiAlertCircle className="mt-1 mr-2 font-semibold" />
-              </div>
-              <div>
-                <span className="font-semibold">
-                  {t("this_app_requires_connected_account", { appName, dependencyName: dependency.name })}
-                </span>
+          ) : (
+            <div className="items-start space-x-2.5">
+              <div className="flex items-start text-blue-900">
+                <div>
+                  <FiAlertCircle className="mt-1 mr-2 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">
+                    {t("this_app_requires_connected_account", { appName, dependencyName: dependency.name })}
+                  </span>
 
-                <div>
                   <div>
-                    <>
-                      <Link
-                        href={`${CAL_URL}/apps/${dependency}`}
-                        className="flex items-center text-blue-900 underline">
-                        <span className="mr-1">{t("connect_app", { dependencyName: dependency.name })}</span>
-                        <FiArrowRight />
-                      </Link>
-                    </>
+                    <div>
+                      <>
+                        <Link
+                          href={`${CAL_URL}/apps/${dependency}`}
+                          className="flex items-center text-blue-900 underline">
+                          <span className="mr-1">
+                            {t("connect_app", { dependencyName: dependency.name })}
+                          </span>
+                          <FiArrowRight />
+                        </Link>
+                      </>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
     </div>
   );
 };
