@@ -139,6 +139,9 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
             const appIsDefault =
               appSlug === defaultConferencingApp?.appSlug ||
               (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
+
+            const expandedChild = <AppSettings slug={item.slug} />;
+
             return (
               <AppListCard
                 key={item.name}
@@ -190,7 +193,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                     </Dropdown>
                   </div>
                 }>
-                <AppSettings slug={item.slug} />
+                {expandedChild && expandedChild}
               </AppListCard>
             );
           })}

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { AppSettingsComponentsMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItem } from "@calcom/ui";
@@ -62,6 +63,10 @@ export default function AppListCard(props: AppListCardProps) {
     };
   }, []);
 
+  const dirName = slug === "stripe" ? "stripepayment" : slug;
+
+  const appHasSettings = dirName && dirName in AppSettingsComponentsMap;
+
   return (
     <ListItem
       heading={title}
@@ -75,7 +80,7 @@ export default function AppListCard(props: AppListCardProps) {
         </>
       }
       actions={actions}
-      expanded={children && <div className="w-full">{children}</div>}
+      expanded={children && appHasSettings && children}
       belowHeading={
         invalidCredential && (
           <div className="mt-2 flex items-center gap-x-2">
