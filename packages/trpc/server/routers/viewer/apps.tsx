@@ -336,7 +336,7 @@ export const appsRouter = router({
 
         const app = await getAppFromSlug(dependency);
 
-        dependencyData.push({ name: app?.name, slug: dependency, installed: !!appInstalled });
+        dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
       })
     );
 
