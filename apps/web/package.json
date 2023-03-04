@@ -45,7 +45,6 @@
     "@hookform/resolvers": "^2.9.7",
     "@next-auth/prisma-adapter": "^1.0.4",
     "@next/bundle-analyzer": "^13.1.6",
-    "@next/font": "^13.1.6",
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-collapsible": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
