@@ -51,6 +51,9 @@ const signJwt = async (payload: { email: string }) => {
     .sign(secret);
 };
 
+const loginWithTotp = async (user: { email: string }) =>
+  `/auth/login?totp=${await signJwt({ email: user.email })}`;
+
 const providers: Provider[] = [
   CredentialsProvider({
     id: "credentials",
@@ -465,7 +468,7 @@ export default NextAuth({
               }
             }
             if (existingUser.twoFactorEnabled) {
-              return `/auth/login?totp=${await signJwt({ email: existingUser.email })}`;
+              return loginWithTotp(existingUser);
             } else {
               return true;
             }
@@ -481,7 +484,7 @@ export default NextAuth({
           if (!userWithNewEmail) {
             await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
             if (existingUser.twoFactorEnabled) {
-              return `/auth/login?totp=${await signJwt({ email: user.email })}`;
+              return loginWithTotp(existingUser);
             } else {
               return true;
             }
@@ -501,7 +504,7 @@ export default NextAuth({
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
           if (!hostedCal && existingUserWithEmail.emailVerified) {
             if (existingUserWithEmail.twoFactorEnabled) {
-              return `/auth/login?totp=${await signJwt({ email: existingUserWithEmail.email })}`;
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -527,8 +530,7 @@ export default NextAuth({
             });
 
             if (existingUserWithEmail.twoFactorEnabled) {
-              const jwt = await signJwt({ email: existingUserWithEmail.email });
-              return `/auth/login?totp=${jwt}`;
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -544,7 +546,7 @@ export default NextAuth({
               data: { password: null },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
-              return `/auth/login?totp=${await signJwt({ email: existingUserWithEmail.email })}`;
+              return loginWithTotp(existingUserWithEmail);
             } else {
               return true;
             }
@@ -571,7 +573,7 @@ export default NextAuth({
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
         if (account.twoFactorEnabled) {
-          return `/auth/login?totp=${await signJwt({ email: newUser.email })}`;
+          return loginWithTotp(newUser);
         } else {
           return true;
         }
