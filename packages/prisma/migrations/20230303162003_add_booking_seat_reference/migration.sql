@@ -1,8 +1,8 @@
 -- DropForeignKey
-ALTER TABLE "Attendee" DROP CONSTRAINT "Attendee_bookingId_fkey";
+ALTER TABLE "Attendee" DROP CONSTRAINT IF EXISTS "Attendee_bookingId_fkey";
 
 -- DropForeignKey
-ALTER TABLE "Booking" DROP CONSTRAINT "Booking_userId_fkey";
+ALTER TABLE "Booking" DROP CONSTRAINT IF EXISTS "Booking_userId_fkey";
 
 -- CreateTable
 CREATE TABLE "BookingSeat" (
