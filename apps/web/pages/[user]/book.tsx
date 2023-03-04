@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
   getDefaultEvent,
@@ -118,10 +119,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         });
 
   if (!eventTypeRaw) return { notFound: true };
-
   const eventType = {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
+    bookingFields: getBookingFieldsWithSystemFields(eventTypeRaw),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
@@ -183,7 +184,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       prisma,
       context.query.rescheduleUid
         ? (context.query.rescheduleUid as string)
-        : (context.query.bookingUid as string)
+        : (context.query.bookingUid as string),
+      eventTypeObject.bookingFields
     );
   }
 

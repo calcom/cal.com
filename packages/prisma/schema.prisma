@@ -63,6 +63,8 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  /// @zod.custom(imports.eventTypeBookingFields)
+  bookingFields           Json?
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -297,6 +299,8 @@ model Booking {
   title                 String
   description           String?
   customInputs          Json?
+  /// @zod.custom(imports.bookingResponses)
+  responses             Json?
   startTime             DateTime
   endTime               DateTime
   attendees             Attendee[]
