@@ -2,6 +2,8 @@ import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test("Can delete user account", async ({ page, users }) => {
   const user = await users.create({
     username: "delete-me",

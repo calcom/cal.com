@@ -4,6 +4,7 @@ import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
+test.afterEach(({ users }) => users.deleteAll());
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
@@ -32,9 +33,6 @@ test.describe("Stripe integration", () => {
       await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="stripe_payment-integration-disconnect-button"]`)
       ).toContainText("");
-
-      // Cleanup
-      await users.deleteAll();
     });
   });
 
@@ -70,9 +68,6 @@ test.describe("Stripe integration", () => {
 
     // Make sure we're navigated to the success page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    // Cleanup
-    await users.deleteAll();
   });
 
   todo("Pending payment booking should not be confirmed by default");

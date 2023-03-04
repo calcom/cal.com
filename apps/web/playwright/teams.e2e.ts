@@ -1,14 +1,14 @@
 import { expect } from "@playwright/test";
 
+import { prisma } from "@calcom/prisma";
+
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Teams", () => {
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
+test.afterEach(({ users }) => users.deleteAll());
 
+test.describe("Teams", () => {
   test("Can create teams via Wizard", async ({ page, users }) => {
     const user = await users.create();
     const inviteeEmail = `${user.username}+invitee@example.com`;
@@ -44,6 +44,8 @@ test.describe("Teams", () => {
       await removeMemberButton.click();
       await removeMemberButton.waitFor({ state: "hidden" });
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      // Cleanup here since this user is created without our fixtures.
+      await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
     await test.step("Can publish team", async () => {
