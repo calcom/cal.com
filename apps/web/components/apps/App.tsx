@@ -48,7 +48,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
-  dependency,
+  dependencies,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -80,16 +80,14 @@ const Component = ({
     }
   );
 
-  // If gCal is not installed and required then disable the install button
-  const requiresGCal = appsThatRequiresGCal.some((app) => slug === app);
-  const gCalInstalled = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
-    enabled: requiresGCal,
-  });
-  const dependencyInstalled = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependency, {
-    enabled: !!dependency,
+  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+    enabled: !!dependencies,
   });
 
-  const disableInstall = requiresGCal && !gCalInstalled.data;
+  const disableInstall =
+    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+
+  // const disableInstall = requiresGCal && !gCalInstalled.data;
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
@@ -221,16 +219,10 @@ const Component = ({
           <SkeletonButton className="h-10 w-24" />
         )}
 
-        {dependency &&
-          (!dependencyInstalled.isLoading ? (
+        {dependencies &&
+          (!dependencyData.isLoading ? (
             <div className="mt-6">
-              <AppDependencyComponent
-                appName={name}
-                dependency={dependency}
-                dependencyName={dependencyInstalled.data?.dependencyName}
-                dependencyInstalled={dependencyInstalled.data?.dependencyInstalled}
-                isLoading={dependencyInstalled.isLoading}
-              />
+              <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
             </div>
           ) : (
             <SkeletonButton className="mt-6 h-20 grow" />
@@ -366,7 +358,7 @@ export default function App(props: {
   images?: string[];
   isTemplate?: boolean;
   disableInstall?: boolean;
-  dependency?: string;
+  dependencies?: string[];
 }) {
   return (
     <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>

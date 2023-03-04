@@ -320,16 +320,26 @@ export const appsRouter = router({
 
       return !!updated;
     }),
-  queryForDependencies: authedProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    const appInstalled = await ctx.prisma.credential.findFirst({
-      where: {
-        appId: input,
-        userId: ctx.user.id,
-      },
-    });
+  queryForDependencies: authedProcedure.input(z.string().array().optional()).query(async ({ ctx, input }) => {
+    if (!input) return;
 
-    const app = getAppFromSlug(input);
+    const dependencyData: { name: string; slug: string; installed: boolean }[] = [];
 
-    return { dependencyName: app?.name, dependencyInstalled: !!appInstalled };
+    await Promise.all(
+      input.map(async (dependency) => {
+        const appInstalled = await ctx.prisma.credential.findFirst({
+          where: {
+            appId: dependency,
+            userId: ctx.user.id,
+          },
+        });
+
+        const app = await getAppFromSlug(dependency);
+
+        dependencyData.push({ name: app?.name, slug: dependency, installed: !!appInstalled });
+      })
+    );
+
+    return dependencyData;
   }),
 });

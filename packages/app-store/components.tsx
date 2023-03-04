@@ -2,11 +2,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { FiAlertCircle, FiArrowRight, FiCheck } from "@calcom/ui/components/icon";
 
@@ -78,62 +80,71 @@ export { AppConfiguration } from "./_components/AppConfiguration";
 
 export const AppDependencyComponent = ({
   appName,
-  dependency,
-  dependencyName,
-  dependencyInstalled,
+  dependencyData,
 }: {
   appName: string;
-  dependency: string;
-  dependencyName: string;
-  dependencyInstalled: boolean;
+  dependencyData: RouterOutputs["viewer"]["appsRouter"]["queryForDependencies"];
 }) => {
   const { t } = useLocale();
 
-  return dependencyInstalled ? (
-    <div className="rounded-md bg-gray-100 py-3 px-4">
-      <div className="items-start space-x-2.5">
-        <div className="flex items-start">
-          <div>
-            <FiCheck className="mt-1 mr-2 font-semibold" />
-          </div>
-          <div>
-            <span className="font-semibold">{t("app_is_connected", { dependencyName })}</span>
-            <div>
+  return (
+    <div
+      className={classNames(
+        "rounded-md py-3 px-4",
+        dependencyData.some((dependency) => !dependency.installed) ? "bg-blue-100" : "bg-gray-100"
+      )}>
+      {dependencyData.map((dependency) => {
+        return dependency.installed ? (
+          <div className="items-start space-x-2.5">
+            <div className="flex items-start">
               <div>
-                <span> {t("this_app_requires_connected_account", { appName, dependencyName })} </span>
+                <FiCheck className="mt-1 mr-2 font-semibold" />
+              </div>
+              <div>
+                <span className="font-semibold">
+                  {t("app_is_connected", { dependencyName: dependency.name })}
+                </span>
+                <div>
+                  <div>
+                    <span>
+                      {t("this_app_requires_connected_account", {
+                        appName,
+                        dependencyName: dependency.name,
+                      })}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
-      <div className="items-start space-x-2.5">
-        <div className="flex items-start">
-          <div>
-            <FiAlertCircle className="mt-1 mr-2 font-semibold" />
-          </div>
-          <div>
-            <span className="font-semibold">
-              {t("this_app_requires_connected_account", { appName, dependencyName })}
-            </span>
+        ) : (
+          <div className="items-start space-x-2.5">
+            <div className="flex items-start text-blue-900">
+              <div>
+                <FiAlertCircle className="mt-1 mr-2 font-semibold" />
+              </div>
+              <div>
+                <span className="font-semibold">
+                  {t("this_app_requires_connected_account", { appName, dependencyName: dependency.name })}
+                </span>
 
-            <div>
-              <div>
-                <>
-                  <Link
-                    href={`${CAL_URL}/apps/${dependency}`}
-                    className="flex items-center text-blue-900 underline">
-                    <span className="mr-1">{t("connect_app", { dependencyName })}</span>
-                    <FiArrowRight />
-                  </Link>
-                </>
+                <div>
+                  <div>
+                    <>
+                      <Link
+                        href={`${CAL_URL}/apps/${dependency}`}
+                        className="flex items-center text-blue-900 underline">
+                        <span className="mr-1">{t("connect_app", { dependencyName: dependency.name })}</span>
+                        <FiArrowRight />
+                      </Link>
+                    </>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 };
