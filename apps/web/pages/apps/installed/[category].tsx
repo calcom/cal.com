@@ -178,6 +178,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                                   updateDefaultAppMutation.mutate({
                                     appSlug,
                                   });
+                                  setBulkUpdateModal(true);
                                 }
                               }}>
                               {t("change_default_conferencing_app")}
