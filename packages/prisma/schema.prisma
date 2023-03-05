@@ -200,7 +200,7 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
-  country              String                  @default("")
+  country              String?
 
   @@map(name: "users")
 }

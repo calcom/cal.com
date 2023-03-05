@@ -21,6 +21,7 @@ import {
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import countryList from "@calcom/features/settings/lib/countryList";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
@@ -149,6 +150,13 @@ const publicViewerRouter = router({
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   cityTimezones: publicProcedure.query(() => cityMapping),
+  countryList: publicProcedure
+    .input(
+      z.object({
+        language: z.string(),
+      })
+    )
+    .query(async ({ input: { language } }) => countryList(language)),
 });
 
 // routes only available to authenticated users
@@ -605,6 +613,7 @@ const loggedInViewerRouter = router({
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
         metadata: userMetadata.optional(),
+        country: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

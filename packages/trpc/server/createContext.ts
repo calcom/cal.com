@@ -50,6 +50,7 @@ async function getUserFromSession({
       brandColor: true,
       darkBrandColor: true,
       away: true,
+      country: true,
       credentials: {
         select: {
           id: true,

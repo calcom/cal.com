@@ -1,10 +1,9 @@
-import type { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import CountrySelect from "@calcom/features/settings/components/CountrySelect";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -25,16 +24,6 @@ import {
 
 import { withQuery } from "@lib/QueryCell";
 
-export const getStaticProps = async () => {
-  const res = await fetch(WEBAPP_URL + "/api/countrylist");
-  const countries = await res.json();
-  return {
-    props: {
-      countries: countries.countries,
-    },
-  };
-};
-
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
@@ -54,13 +43,12 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
-  countries: InferGetStaticPropsType<typeof getStaticProps>["countries"][string];
 }
 
 const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
 
-const GeneralQueryView = ({ countries }: InferGetStaticPropsType<typeof getStaticProps>) => {
-  const { t, i18n } = useLocale();
+const GeneralQueryView = () => {
+  const { t } = useLocale();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
   if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
@@ -68,15 +56,13 @@ const GeneralQueryView = ({ countries }: InferGetStaticPropsType<typeof getStati
   }
   return (
     <WithQuery
-      success={({ data }) => (
-        <GeneralView countries={countries[i18n.language]} user={user} localeProp={data.locale} />
-      )}
+      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
       customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
     />
   );
 };
 
-const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -176,20 +162,8 @@ const GeneralView = ({ countries, localeProp, user }: GeneralViewProps) => {
         render={({ field: { onChange, value } }) => {
           return (
             <>
-              <Label className="mt-8 text-gray-900">
-                <>{t("country")}</>
-              </Label>
-              <Select
-                id="country"
-                value={value ? { label: countries[value].name, value } : undefined}
-                options={Object.keys(countries).map((countryCode) => ({
-                  label: countries[countryCode].name,
-                  value: countryCode,
-                }))}
-                onChange={(event) => {
-                  event && onChange(event.value);
-                }}
-              />
+              <Label className="mt-8 text-gray-900">{t("country")}</Label>
+              <CountrySelect onChange={onChange} defaultValue={value} />
             </>
           );
         }}
