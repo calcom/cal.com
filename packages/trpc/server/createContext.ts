@@ -8,11 +8,10 @@ import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
 
-import * as trpc from "@trpc/server";
-import { Maybe } from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
+import type { Maybe } from "@trpc/server";
+import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-type CreateContextOptions = trpcNext.CreateNextContextOptions | GetServerSidePropsContext;
+type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 async function getUserFromSession({
   session,
@@ -24,6 +23,7 @@ async function getUserFromSession({
   if (!session?.user?.id) {
     return null;
   }
+
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
@@ -143,5 +143,3 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
     res,
   };
 };
-
-export type Context = trpc.inferAsyncReturnType<typeof createContextInner>;
