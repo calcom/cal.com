@@ -196,6 +196,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
     return;
   }
   const [videoAdapter] = getVideoAdapters([
