@@ -426,8 +426,8 @@ const BookingPage = ({
     } else {
       mutation.mutate({
         ...booking,
-        start: dayjs(date).format(),
-        end: dayjs(date).add(duration, "minute").format(),
+        start: dayjs(date).tz(timeZone()).format(),
+        end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),

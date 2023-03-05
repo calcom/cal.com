@@ -1,11 +1,11 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
-import MarkdownIt from "markdown-it";
 import { useRouter } from "next/router";
 import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
@@ -13,8 +13,6 @@ import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 type FormData = {
   bio: string;
