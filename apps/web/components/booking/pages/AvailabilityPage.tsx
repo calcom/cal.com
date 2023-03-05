@@ -128,7 +128,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
 
   const { data: bookingAttendees } = trpc.viewer.bookings.getBookingAttendees.useQuery(
     {
-      bookingUid: rescheduleUid as string,
+      seatReferenceUid: rescheduleUid,
     },
     {
       enabled: !!(rescheduleUid && eventType.seatsPerTimeSlot),

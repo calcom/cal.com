@@ -981,16 +981,20 @@ export const bookingsRouter = router({
     return { message, status };
   }),
   getBookingAttendees: authedProcedure
-    .input(z.object({ bookingUid: z.string() }))
+    .input(z.object({ seatReferenceUid: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const booking = await ctx.prisma.booking.findFirst({
+      const booking = await ctx.prisma.bookingSeat.findUniqueOrThrow({
         where: {
-          uid: input.bookingUid,
+          referenceUid: input.seatReferenceUid,
         },
         select: {
-          _count: {
+          booking: {
             select: {
-              attendees: true,
+              _count: {
+                select: {
+                  seatsReferences: true,
+                },
+              },
             },
           },
         },

@@ -937,6 +937,7 @@ async function handler(
         },
         select: {
           id: true,
+          uid: true,
           attendees: true,
         },
       });
