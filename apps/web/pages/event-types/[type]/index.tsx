@@ -247,7 +247,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
-  console.log({ availability });
   const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
