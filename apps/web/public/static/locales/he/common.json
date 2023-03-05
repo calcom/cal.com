@@ -589,7 +589,6 @@
   "new_event_type_heading": "צור את סוג האירוע הראשון שלך",
   "new_event_type_description": "סוגי אירועים מאפשרים לך לשתף קישורים המציגים את המועדים הפנויים בלוח השנה שלך ומאפשרים לאנשים לשריין זמן איתך.",
   "new_event_title": "הוסף סוג אירוע חדש",
-  "new_event_subtitle": "צור סוג אירוע בשמך או עבור צוות.",
   "new_team_event": "הוסף סוג אירוע חדש עבור הצוות",
   "new_event_description": "צור סוג אירוע חדש שאנשים יוכלו לקבוע באמצעותו מועדים.",
   "event_type_created_successfully": "יצירת האירוע מסוג {{eventTypeTitle}} בוצעה בהצלחה",

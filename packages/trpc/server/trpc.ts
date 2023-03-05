@@ -1,13 +1,12 @@
 import superjson from "superjson";
-import { ZodError } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import { Context } from "./createContext";
+import type { createContext } from "./createContext";
 
-const t = initTRPC.context<Context>().create({
+const t = initTRPC.context<typeof createContext>().create({
   transformer: superjson,
 });
 
@@ -32,18 +31,15 @@ const isAuthedMiddleware = t.middleware(({ ctx, next }) => {
   });
 });
 
-const isAdminMiddleware = t.middleware(({ ctx, next }) => {
-  if (!ctx.user || !ctx.session || ctx.user.role !== "ADMIN") {
+const isAdminMiddleware = isAuthedMiddleware.unstable_pipe(({ ctx, next }) => {
+  if (ctx.user.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
-    ctx: {
-      // infers that `user` and `session` are non-nullable to downstream procedures
-      session: ctx.session,
-      user: ctx.user,
-    },
+    ctx: { user: ctx.user },
   });
 });
+
 interface IRateLimitOptions {
   intervalInMs: number;
   limit: number;
