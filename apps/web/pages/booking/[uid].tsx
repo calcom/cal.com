@@ -790,7 +790,7 @@ export function RecurringBookings({
     t,
     i18n: { language },
   } = useLocale();
-
+  console.log(timeZone());
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
@@ -817,7 +817,7 @@ export function RecurringBookings({
               {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h)} -{" "}
               {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h)}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, timeZone())})
               </span>
             </div>
           ))}
@@ -837,7 +837,7 @@ export function RecurringBookings({
                     {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
                     {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language, timeZone())})
                     </span>
                   </div>
                 ))}
@@ -854,7 +854,7 @@ export function RecurringBookings({
       <br />
       {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
       {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
-      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language)})</span>
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, timeZone())})</span>
     </div>
   );
 }

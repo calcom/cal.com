@@ -75,12 +75,14 @@ export const formatToLocalizedTime = (
 export const formatToLocalizedTimezone = (
   date: Date | Dayjs,
   locale: string | undefined = undefined,
+  timeZone: Intl.DateTimeFormatOptions["timeZone"],
   timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
 ) => {
   // Intl.DateTimeFormat doesn't format into a timezone only, so we must
   //  formatToParts() and return the piece we want
   const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
-  return Intl.DateTimeFormat(locale, { timeZoneName })
+  console.log(Intl.DateTimeFormat(locale, { timeZoneName, timeZone }).formatToParts(theDate));
+  return Intl.DateTimeFormat(locale, { timeZoneName, timeZone })
     .formatToParts(theDate)
     .find((d) => d.type == "timeZoneName")?.value;
 };
