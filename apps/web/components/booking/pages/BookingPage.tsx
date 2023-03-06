@@ -95,6 +95,7 @@ const BookingPage = ({
   const embedUiConfig = useEmbedUiConfig();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
+  const hideEmailField = isEmbed;
   const router = useRouter();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -620,7 +621,7 @@ const BookingPage = ({
                     />
                   </div>
                 </div>
-                <div className="mb-4">
+                <div className={classNames("mb-4", hideEmailField && "hidden")}>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-white">
                     {t("email_address")}
                   </label>
@@ -633,7 +634,7 @@ const BookingPage = ({
                         bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
                       )}
                       placeholder="you@example.com"
-                      type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                      type={hideEmailField ? "hidden" : "search"} // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                       disabled={disableInput}
                     />
                     {bookingForm.formState.errors.email && (
