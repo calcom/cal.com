@@ -1634,5 +1634,8 @@
   "no_responses_yet": "Aucune réponse pour l'instant",
   "this_will_be_the_placeholder": "Ce sera le texte de substitution",
   "verification_code": "Code de vérification",
-  "verify": "Vérifier"
+  "verify": "Vérifier",
+  "select_all": "Tout sélectionner",
+  "default_conferncing_bulk_title": "Mise à jour multiple des types d'événements existants",
+  "default_conferncing_bulk_description": "Mettez à jour les emplacements pour les types d'événements sélectionnés."
 }
