@@ -36,8 +36,8 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
     <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
       <DialogContent
         type="creation"
-        title={t("default_conferncing_bulk_title")}
-        description={t("default_conferncing_bulk_description")}>
+        title={t("default_conferencing_bulk_title")}
+        description={t("default_conferencing_bulk_description")}>
         <Form
           form={form}
           handleSubmit={(values) => {
