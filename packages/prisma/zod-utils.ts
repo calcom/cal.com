@@ -433,3 +433,9 @@ export const fromEntries = <
 ): FromEntries<DeepWriteable<E>> => {
   return Object.fromEntries(entries) as FromEntries<DeepWriteable<E>>;
 };
+
+export const getAccessLinkResponseSchema = z.object({
+  download_link: z.string().url(),
+});
+
+export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
