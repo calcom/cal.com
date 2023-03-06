@@ -681,6 +681,7 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
+  console.log("in input", formState);
   return (
     <div
       data-form-builder-field-name={field.name}

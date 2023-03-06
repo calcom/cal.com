@@ -22,6 +22,7 @@ import {
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
@@ -266,6 +267,7 @@ const publicViewerRouter = router({
         locations,
         isSmsReminderNumberNeeded,
         isSmsReminderNumberRequired,
+        bookingFields: getBookingFieldsWithSystemFields(event),
         recurringEvent: isRecurringEvent(event.recurringEvent)
           ? parseRecurringEvent(event.recurringEvent)
           : null,

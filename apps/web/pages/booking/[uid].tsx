@@ -23,6 +23,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import {
   SystemField,
   getBookingFieldsWithSystemFields,
@@ -50,7 +51,6 @@ import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";

@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { getEventLocationValue } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
@@ -27,11 +26,6 @@ export const mapBookingToMutationInput = ({
   language,
   rescheduleUid,
 }: BookingOptions): BookingCreateBody => {
-  const customInputs = Object.keys(values.customInputs || {}).map((inputId) => ({
-    label: event.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-    value: values.customInputs && values.customInputs[inputId] ? values.customInputs[inputId] : "",
-  }));
-
   return {
     ...values,
     start: dayjs(date).format(),
@@ -43,14 +37,7 @@ export const mapBookingToMutationInput = ({
     eventTypeSlug: event.slug,
     timeZone: timeZone,
     language: language,
-    guests: values.guests ? values.guests.map(({ email }) => email) : [],
     rescheduleUid,
-    location: getEventLocationValue(event.locations, {
-      type: (values.locationType ? values.locationType : event.locations[0]?.type) || "",
-      phone: values.phone,
-      attendeeAddress: values.attendeeAddress,
-    }),
-    customInputs,
     // @TODO:
     //metadata,
     metadata: {},

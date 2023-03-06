@@ -5,41 +5,30 @@ import { useRouter } from "next/router";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { TFunction } from "react-i18next";
+import { z } from "zod";
 
-import { LocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
-  validateCustomInputs,
   validateUniqueGuests,
   createBooking,
   createRecurringBooking,
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { HttpError } from "@calcom/lib/http-error";
-import {
-  Form,
-  TextField,
-  EmailField,
-  PhoneInput,
-  Button,
-  TextAreaField,
-  Alert,
-  EmptyScreen,
-} from "@calcom/ui";
-import { FiCalendar, FiInfo } from "@calcom/ui/components/icon";
+import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
+import { FiCalendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
-import { CustomInputFields } from "./CustomInputFields";
-import { EventLocationsFields } from "./EventLocationsFields";
-import { GuestFields } from "./GuestFields";
+import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 import type { BookingFormValues } from "./form-config";
-import { bookingFormSchema } from "./form-config";
 
 type BookEventFormProps = {
   onCancel?: () => void;
@@ -80,6 +69,14 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
 
+  const bookingFormSchema = z
+    .object({
+      responses: getBookingResponsesSchema({
+        bookingFields: getBookingFieldsWithSystemFields(event),
+      }),
+    })
+    .passthrough();
+
   const defaultValues = () => {
     if (isRescheduling) {
       return {
@@ -94,7 +91,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  const locationType = bookingForm.watch("locationType");
 
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -162,8 +158,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       return;
     }
 
-    const errors = validateCustomInputs(event.data, values);
-
     // Ensures that duration is an allowed value, if not it defaults to the
     // default event duration.
     const validDuration =
@@ -174,11 +168,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         : event.data.length;
 
     const guestErrors = validateUniqueGuests(values.guests, values.email, t);
-
-    if (errors) {
-      errors.forEach((error) => bookingForm.setError(error.key, error.error));
-      return;
-    }
 
     if (guestErrors) {
       guestErrors.forEach((error) => bookingForm.setError(error.key, error.error));
@@ -208,86 +197,14 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
 
   return (
     <div>
-      <Form className="space-y-4" form={bookingForm} handleSubmit={bookEvent}>
-        <TextField
-          {...bookingForm.register("name", { required: true })}
-          type="text"
-          name="name"
-          id="name"
-          label={t("your_name")}
-          required
-          placeholder={t("example_name")}
-          autoFocus
-          disabled={isRescheduling}
+      <Form className="space-y-4" form={bookingForm} handleSubmit={bookEvent} noValidate>
+        <BookingFields
+          // @TODO: Make dynamic
+          isDynamicGroupBooking={false}
+          fields={eventType.bookingFields}
+          locations={eventType.locations}
+          rescheduleUid={rescheduleUid || undefined}
         />
-
-        <EmailField
-          {...bookingForm.register("email")}
-          label={t("email_address")}
-          required
-          placeholder="you@example.com"
-          hintErrors={bookingForm.formState.errors.email && t("email_validation_error")}
-          disabled={isRescheduling}
-        />
-
-        <EventLocationsFields bookingForm={bookingForm} eventType={eventType} />
-        <CustomInputFields
-          bookingForm={bookingForm}
-          inputs={eventType.customInputs}
-          isRescheduling={isRescheduling}
-        />
-
-        {!eventType.disableGuests && (
-          <div className="mb-4">
-            <GuestFields bookingForm={bookingForm} />
-          </div>
-        )}
-
-        {locationType !== LocationType.Phone && eventType.isSmsReminderNumberNeeded && (
-          <div className="mb-4">
-            <label
-              htmlFor="smsReminderNumber"
-              className="block text-sm font-medium text-gray-700 dark:text-white">
-              {t("number_sms_notifications")}
-            </label>
-            <div className="mt-1">
-              <PhoneInput<BookingFormValues>
-                control={bookingForm.control}
-                name="smsReminderNumber"
-                placeholder={t("enter_phone_number")}
-                id="smsReminderNumber"
-                required={eventType.isSmsReminderNumberRequired}
-              />
-            </div>
-            {bookingForm.formState.errors.smsReminderNumber && (
-              <div className="mt-2 flex items-center text-sm text-red-700 ">
-                <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                <p>{t("invalid_number")}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {isRescheduling ? (
-          <TextAreaField
-            {...bookingForm.register("rescheduleReason")}
-            id="rescheduleReason"
-            name="rescheduleReason"
-            placeholder={t("reschedule_placeholder")}
-            label={t("reason_for_reschedule")}
-            rows={3}
-          />
-        ) : (
-          <TextAreaField
-            label={t("additional_notes")}
-            {...bookingForm.register("notes")}
-            required={!!eventType.metadata?.additionalNotesRequired}
-            id="notes"
-            name="notes"
-            rows={3}
-            placeholder={t("share_additional_notes")}
-          />
-        )}
 
         <div className="flex justify-end space-x-2 rtl:space-x-reverse">
           {!!onCancel && (
