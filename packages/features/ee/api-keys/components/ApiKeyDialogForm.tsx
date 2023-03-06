@@ -7,7 +7,7 @@ import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, DatePicker, DialogFooter, Form, showToast, Switch, TextField, Tooltip } from "@calcom/ui";
-import { ClipboardCopyIcon } from "@calcom/ui/components/icon";
+import { FiClipboard } from "@calcom/ui/components/icon";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -74,7 +74,7 @@ export default function ApiKeyDialogForm({
                   }}
                   type="button"
                   className="rounded-l-none py-[19px] text-base ">
-                  <ClipboardCopyIcon className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
+                  <FiClipboard className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
                   {t("copy")}
                 </Button>
               </Tooltip>
