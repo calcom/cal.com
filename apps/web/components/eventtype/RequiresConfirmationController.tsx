@@ -47,7 +47,7 @@ export default function RequiresConfirmationController({
             <SettingsToggle
               title={t("requires_confirmation")}
               disabled={seatsEnabled}
-              tooltip={seatsEnabled && t("seat_options_doesnt_support_confirmation")}
+              tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
               onCheckedChange={(val) => {
