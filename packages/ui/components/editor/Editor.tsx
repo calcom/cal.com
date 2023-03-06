@@ -31,6 +31,7 @@ export type TextEditorProps = {
   variables?: string[];
   height?: string;
   placeholder?: string;
+  disableLists?: boolean;
 };
 
 const editorConfig = {
@@ -74,7 +75,15 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
-            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+            <MarkdownShortcutPlugin
+              transformers={
+                props.disableLists
+                  ? TRANSFORMERS.filter((value, index) => {
+                      if (index !== 3 && index !== 4) return value;
+                    })
+                  : TRANSFORMERS
+              }
+            />
           </div>
         </div>
       </LexicalComposer>
