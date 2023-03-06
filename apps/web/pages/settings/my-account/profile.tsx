@@ -1,6 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
-import MarkdownIt from "markdown-it";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -10,6 +9,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -40,8 +40,6 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -371,6 +369,7 @@ const ProfileForm = ({
             formMethods.setValue("bio", turndown(value), { shouldDirty: true });
           }}
           excludedToolbarItems={["blockType"]}
+          disableLists
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">

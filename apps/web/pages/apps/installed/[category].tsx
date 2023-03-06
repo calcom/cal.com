@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useReducer, useState } from "react";
+import { useCallback, useReducer, useState } from "react";
 import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -9,6 +9,7 @@ import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -113,10 +114,15 @@ interface IntegrationsListProps {
 const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
-
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+
+  const onSuccessCallback = useCallback(() => {
+    setBulkUpdateModal(true);
+    showToast("Default app updated successfully", "success");
+  }, []);
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
@@ -172,6 +178,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
                                   updateDefaultAppMutation.mutate({
                                     appSlug,
                                   });
+                                  setBulkUpdateModal(true);
                                 }
                               }}>
                               {t("change_default_conferencing_app")}
@@ -199,7 +206,12 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
         <AppSetDefaultLinkDailog
           locationType={locationType}
           setLocationType={() => setLocationType(undefined)}
+          onSuccess={onSuccessCallback}
         />
+      )}
+
+      {bulkUpdateModal && (
+        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
       )}
     </>
   );
