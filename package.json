@@ -43,7 +43,6 @@
     "next-api-middleware": "^1.0.1",
     "next-axiom": "^0.16.0",
     "next-swagger-doc": "^0.3.4",
-    "next-transpile-modules": "^10.0.0",
     "next-validations": "^0.2.0",
     "typescript": "^4.9.4",
     "tzdata": "^1.0.30",
