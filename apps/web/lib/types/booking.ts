@@ -6,4 +6,5 @@ export type BookingResponse = Booking & {
   paymentUid?: string;
   attendees: Attendee[];
   appsStatus?: AppsStatus[];
+  bookingReferenceUid?: string;
 };
