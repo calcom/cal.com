@@ -14,10 +14,9 @@ const IS_STRIPE_ENABLED = !!(
 
 test.describe.configure({ mode: "parallel" });
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("Reschedule Tests", async () => {
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
 
