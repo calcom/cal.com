@@ -1,6 +1,6 @@
 import { HorizontalTabs } from "@calcom/ui";
 
-import { getSerializableForm } from "../lib/getSerializableForm";
+import type { getSerializableForm } from "../lib/getSerializableForm";
 
 export default function RoutingNavBar({
   form,

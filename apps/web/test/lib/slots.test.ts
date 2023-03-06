@@ -2,9 +2,8 @@ import { expect, it } from "@jest/globals";
 import MockDate from "mockdate";
 
 import dayjs from "@calcom/dayjs";
+import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 import getSlots from "@calcom/lib/slots";
-
-import { MINUTES_DAY_END, MINUTES_DAY_START } from "@lib/availability";
 
 MockDate.set("2021-06-20T11:59:59Z");
 
@@ -25,6 +24,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(24);
   });
@@ -46,6 +46,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(12);
   });
@@ -65,6 +66,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
   });
@@ -85,6 +87,7 @@ describe("Tests the slot logic", () => {
         minimumBookingNotice: 0,
         workingHours,
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(0);
   });
@@ -105,6 +108,7 @@ describe("Tests the slot logic", () => {
           },
         ],
         eventLength: 60,
+        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(11);
   });

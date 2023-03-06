@@ -1,10 +1,12 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import stripejs, { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
+import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
+import type stripejs from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
-import { SyntheticEvent, useEffect, useState } from "react";
+import type { SyntheticEvent} from "react";
+import { useEffect, useState } from "react";
 
-import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
@@ -29,7 +31,7 @@ const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
 
 type Props = {
   payment: {
-    data: PaymentData;
+    data: StripePaymentData;
   };
   eventType: { id: number };
   user: { username: string | null };

@@ -21,8 +21,8 @@ import { FiArrowLeft, FiCalendar, FiPlus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
+import AppListCard from "@components/AppListCard";
 import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
-import IntegrationListItem from "@components/apps/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 
 type Props = {
@@ -118,13 +118,13 @@ function CalendarList(props: Props) {
       success={({ data }) => (
         <List>
           {data.items.map((item) => (
-            <IntegrationListItem
-              name={item.name}
-              slug={item.slug}
-              key={item.title}
-              title={item.title}
+            <AppListCard
+              title={item.name}
+              key={item.name}
               logo={item.logo}
               description={item.description}
+              shouldHighlight
+              slug={item.slug}
               actions={
                 <InstallAppButton
                   type={item.type}
@@ -161,16 +161,16 @@ function ConnectedCalendarsList(props: Props) {
         }
 
         return (
-          <List className="flex flex-col gap-6" noBorderTreatment>
+          <List>
             {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
-                  <IntegrationListItem
+                  <AppListCard
+                    shouldHighlight
                     slug={item.integration.slug}
-                    title={item.integration.title}
+                    title={item.integration.name}
                     logo={item.integration.logo}
                     description={item.primary?.email ?? item.integration.description}
-                    separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
                         <DisconnectIntegration
@@ -200,7 +200,7 @@ function ConnectedCalendarsList(props: Props) {
                         </>
                       )}
                     </div>
-                  </IntegrationListItem>
+                  </AppListCard>
                 ) : (
                   <Alert
                     severity="warning"

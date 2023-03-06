@@ -2,14 +2,17 @@ import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
@@ -17,13 +20,11 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   MeetingTimeInTimezones,
   showToast,
-  TextArea,
   Tooltip,
-  ActionType,
   TableActions,
+  TextAreaField,
 } from "@calcom/ui";
 import { FiCheck, FiClock, FiMapPin, FiRefreshCcw, FiSend, FiSlash, FiX } from "@calcom/ui/components/icon";
 
@@ -53,7 +54,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
-      if (data.status === BookingStatus.REJECTED) {
+      if (data?.status === BookingStatus.REJECTED) {
         setRejectionDialogIsOpen(false);
         showToast(t("booking_rejection_success"), "success");
       } else {
@@ -222,6 +223,8 @@ function BookingListItem(booking: BookingItemProps) {
   };
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+
+  const title = decodeURIComponent(booking.title);
   return (
     <>
       <RescheduleDialog
@@ -245,24 +248,23 @@ function BookingListItem(booking: BookingItemProps) {
       )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent>
-          <DialogHeader title={t("rejection_reason_title")} />
-
-          <p className="-mt-4 text-sm text-gray-500">{t("rejection_reason_description")}</p>
-          <p className="mt-6 mb-2 text-sm font-bold text-black">
-            {t("rejection_reason")}
-            <span className="font-normal text-gray-500"> (Optional)</span>
-          </p>
-          <TextArea
-            name={t("rejection_reason")}
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            className="mb-5 sm:mb-6"
-          />
+        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
+          <div>
+            <TextAreaField
+              name="rejectionReason"
+              label={
+                <>
+                  {t("rejection_reason")}
+                  <span className="font-normal text-gray-500"> (Optional)</span>
+                </>
+              }
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
 
           <DialogFooter>
             <DialogClose />
-
             <Button
               disabled={mutation.isLoading}
               onClick={() => {
@@ -355,12 +357,12 @@ function BookingListItem(booking: BookingItemProps) {
 
           <div className="cursor-pointer py-4">
             <div
-              title={booking.title}
+              title={title}
               className={classNames(
                 "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
-              {booking.title}
+              {title}
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (

@@ -14,7 +14,8 @@ import { useMemo } from "react";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import { FiSearch, FiArrowUp, FiArrowDown, FiCornerDownLeft, FiCommand } from "@calcom/ui/components/icon";
 
@@ -208,6 +209,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       shortcut: ["u", "i"],
       keywords: "user impersonation",
       perform: () => router.push("/settings/security/impersonation"),
+    },
+    {
+      id: "license",
+      name: "choose_a_license",
+      section: "admin",
+      shortcut: ["u", "l"],
+      keywords: "license",
+      perform: () => router.push("/auth/setup?step=1"),
     },
     {
       id: "webhooks",

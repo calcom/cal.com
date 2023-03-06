@@ -1,15 +1,16 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
+import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorBoundary } from "@calcom/ui";
-import { FiCreditCard, FiKey, FiLock, FiTerminal, FiUser, FiUsers } from "@calcom/ui/components/icon";
+import { FiCreditCard, FiLock, FiTerminal, FiUser } from "@calcom/ui/components/icon";
 
 import NavTabs from "./NavTabs";
 
 const tabs = [
   {
     name: "profile",
-    href: "/settings/profile",
+    href: "/settings/my-account/profile",
     icon: FiUser,
   },
   // {

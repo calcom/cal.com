@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@prisma/client";
 import cache from "memory-cache";
 import { z } from "zod";
 
@@ -18,10 +19,21 @@ const schemaLicenseKey = z
       : v;
   });
 
-async function checkLicense(license: string): Promise<boolean> {
+async function checkLicense(
+  /** The prisma client to use (necessary for public API to handle custom prisma instances) */
+  prisma: PrismaClient
+): Promise<boolean> {
+  /** We skip for E2E testing */
   if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
-  if (!license) return false;
-  const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(license)}`;
+  /** We check first on env */
+  let licenseKey = process.env.CALCOM_LICENSE_KEY;
+  if (!licenseKey) {
+    /** We try to check on DB only if env is undefined */
+    const deployment = await prisma.deployment.findFirst({ where: { id: 1 } });
+    licenseKey = deployment?.licenseKey ?? undefined;
+  }
+  if (!licenseKey) return false;
+  const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(licenseKey)}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
     return cachedResponse;

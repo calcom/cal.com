@@ -1,8 +1,9 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
+import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { HorizontalTabs } from "@calcom/ui";
-import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
+import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
 
 import { FiltersContainer } from "../components/FiltersContainer";
 
@@ -36,7 +37,7 @@ export default function BookingLayout({
   return (
     <Shell {...rest}>
       <div className="flex max-w-6xl flex-col">
-        <div className="flex flex-col gap-2 lg:flex-row">
+        <div className="flex flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />
           <div className="overflow-x-auto lg:ml-auto">
             <FiltersContainer />

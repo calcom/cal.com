@@ -1,18 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MembershipRole, Prisma } from "@prisma/client";
-import MarkdownIt from "markdown-it";
+import type { Prisma } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
-import turndownService from "@calcom/lib/turndownService";
+import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
@@ -32,8 +32,6 @@ import {
 import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -92,7 +90,7 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
+  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
@@ -223,8 +221,9 @@ const ProfileView = () => {
                 <Label>{t("about")}</Label>
                 <Editor
                   getText={() => md.render(form.getValues("bio") || "")}
-                  setText={(value: string) => form.setValue("bio", turndownService.turndown(value))}
+                  setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
+                  disableLists
                 />
               </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
@@ -256,7 +255,7 @@ const ProfileView = () => {
                   <>
                     <Label className="mt-5 text-black">{t("about")}</Label>
                     <div
-                      className="dark:text-darkgray-600 text-s text-gray-500"
+                      className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                       dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>

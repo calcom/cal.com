@@ -1,12 +1,11 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import prisma from "@lib/prisma";
+import prisma from "@calcom/prisma";
 
 // CUSTOM_CODE: Update Properties from App DB
 const OnboardedPage = () => {

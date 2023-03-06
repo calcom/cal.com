@@ -6,22 +6,22 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
-import { MultiValue } from "react-select";
+import type { MultiValue } from "react-select";
 import { z } from "zod";
 
-import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { md } from "@calcom/lib/markdownIt";
+import { slugify } from "@calcom/lib/slugify";
+import turndown from "@calcom/lib/turndownService";
+import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
-import { slugify } from "@lib/slugify";
-
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import LocationSelect, {
-  SingleValueLocationOption,
-  LocationOption,
-} from "@components/ui/form/LocationSelect";
+import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
+import LocationSelect from "@components/ui/form/LocationSelect";
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -35,12 +35,25 @@ const getLocationFromType = (
   }
 };
 
+const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"], type: string) => {
+  for (const locationType of options) {
+    for (const location of locationType.options) {
+      if (location.value === type && location.disabled === false) {
+        return location;
+      }
+    }
+  }
+};
+
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
@@ -67,10 +80,15 @@ export const EventSetupTab = (
     setShowLocationModal(true);
   };
 
-  const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
+  const removeLocation = (selectedLocation: (typeof eventType.locations)[number]) => {
     formMethods.setValue(
       "locations",
-      formMethods.getValues("locations").filter((location) => location.type !== selectedLocation.type),
+      formMethods.getValues("locations").filter((location) => {
+        if (location.type === LocationType.InPerson) {
+          return location.address !== selectedLocation.address;
+        }
+        return location.type !== selectedLocation.type;
+      }),
       { shouldValidate: true }
     );
   };
@@ -85,14 +103,14 @@ export const EventSetupTab = (
           ...details,
           type: newLocationType,
         };
-      } else {
-        copy[existingIdx] = {
-          ...formMethods.getValues("locations")[existingIdx],
-          ...details,
-        };
       }
 
-      formMethods.setValue("locations", copy);
+      formMethods.setValue("locations", [
+        ...copy,
+        ...(newLocationType === LocationType.InPerson && editingLocationType === ""
+          ? [{ ...details, type: newLocationType }]
+          : []),
+      ]);
     } else {
       formMethods.setValue(
         "locations",
@@ -139,17 +157,16 @@ export const EventSetupTab = (
       return true;
     });
 
-    const defaultValue = locationOptions.find((item) => item.label === "video")?.options;
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
             <LocationSelect
-              defaultValue={defaultValue}
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+              menuPlacement="auto"
               onChange={(e: SingleValueLocationOption) => {
                 if (e?.value) {
                   const newLocationType = e.value;
@@ -175,18 +192,24 @@ export const EventSetupTab = (
               if (!eventLocationType) {
                 return null;
               }
+              // We dont want to translate the string link - it doesnt exist in common.json and it gets prefixed/suffixed with __ or //
+              const eventLabel =
+                eventLocationType.defaultValueVariable === "link"
+                  ? eventLocationType.label
+                  : t(location[eventLocationType.defaultValueVariable] || eventLocationType.label);
+
               return (
-                <li key={location.type} className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
-                  <div className="flex max-w-full justify-between">
-                    <div key={index} className="flex flex-grow items-center">
+                <li
+                  key={`${location.type}${index}`}
+                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
                         className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
-                      </span>
+                      <span className="line-clamp-1 text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -211,7 +234,10 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === MeetLocationType) && (
+            {validLocations.some(
+              (location) =>
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
+            ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
@@ -223,14 +249,17 @@ export const EventSetupTab = (
                       className="underline">
                       here.
                     </Link>{" "}
-                    We will fall back to Cal video if you do not change it.
                   </p>
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
+            {validLocations.length > 0 && (
               <li>
-                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button
+                  data-testid="add-location"
+                  StartIcon={FiPlus}
+                  color="minimal"
+                  onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>
@@ -250,12 +279,15 @@ export const EventSetupTab = (
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
-        <TextField
-          label={t("description")}
-          placeholder={t("quick_video_meeting")}
-          defaultValue={eventType.description ?? ""}
-          {...formMethods.register("description")}
-        />
+        <div>
+          <Label>{t("description")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+            setText={(value: string) => formMethods.setValue("description", turndown(value))}
+            excludedToolbarItems={["blockType"]}
+            placeholder={t("quick_video_meeting")}
+          />
+        </div>
         <TextField
           required
           label={t("URL")}

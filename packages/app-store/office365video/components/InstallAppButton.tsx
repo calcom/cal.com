@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { InstallAppButtonProps } from "../../types";
+import type { InstallAppButtonProps } from "../../types";
 import AddIntegration from "./AccountDialog";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {

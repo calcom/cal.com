@@ -1,7 +1,7 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import { UrlObject } from "url";
+import type { UrlObject } from "url";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 

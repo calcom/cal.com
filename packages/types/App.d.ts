@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
-import { Tag } from "@calcom/app-store/types";
+import type { Tag } from "@calcom/app-store/types";
 
-import { Optional } from "./utils";
+import type { Optional } from "./utils";
 
 type CommonProperties = {
   default?: false;
@@ -142,6 +142,7 @@ export interface App {
 
 export type AppFrontendPayload = Omit<App, "key"> & {
   /** We should type error if keys are leaked to the frontend */
+  isDefault?: boolean;
   key?: never;
 };
 

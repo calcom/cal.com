@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
@@ -11,6 +11,7 @@ export type TeamInvite = {
   to: string;
   teamName: string;
   joinLink: string;
+  isCalcomMember: boolean;
 };
 
 export default class TeamInviteEmail extends BaseEmail {

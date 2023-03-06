@@ -1,6 +1,6 @@
 {
   "name": "@calcom/embed-core",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "This is the vanilla JS core script that embeds Cal Link",
   "main": "./dist/embed/embed.js",
   "types": "./dist/index.d.ts",
@@ -24,6 +24,7 @@
     "dev-real": "vite dev --port 3100",
     "type-check": "tsc --pretty --noEmit",
     "lint": "eslint --ext .ts,.js src",
+    "lint:fix": "eslint --ext .ts,.js src --fix",
     "embed-tests": "yarn playwright test --config=playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
@@ -43,11 +44,11 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.12",
-    "eslint": "^8.22.0",
+    "eslint": "^8.34.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
-    "typescript": "^4.7.4",
-    "vite": "^2.9.15",
-    "tailwindcss": "^3.2.1"
+    "tailwindcss": "^3.2.1",
+    "typescript": "^4.9.4",
+    "vite": "^4.1.2"
   }
 }

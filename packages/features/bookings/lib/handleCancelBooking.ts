@@ -1,17 +1,11 @@
-import {
-  BookingStatus,
-  Prisma,
-  PrismaPromise,
-  WebhookTriggerEvents,
-  WorkflowMethods,
-  WorkflowReminder,
-} from "@prisma/client";
-import { NextApiRequest } from "next";
+import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
+import type { NextApiRequest } from "next";
 
+import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { refund } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
@@ -20,9 +14,11 @@ import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError } from "@calcom/lib/http-error";
+import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
@@ -65,6 +61,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       paid: true,
       eventType: {
         select: {
+          owner: true,
+          teamId: true,
           recurringEvent: true,
           title: true,
           description: true,
@@ -72,6 +70,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           price: true,
           currency: true,
           length: true,
+          hosts: {
+            select: {
+              user: true,
+            },
+          },
           workflows: {
             include: {
               workflow: {
@@ -116,8 +119,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     },
   });
 
-  const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
-    return {
+  const teamMembersPromises = [];
+  const attendeesListPromises = [];
+  const hostsPresent = !!bookingToDelete.eventType?.hosts;
+
+  for (const attendee of bookingToDelete.attendees) {
+    const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
@@ -126,9 +133,24 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         locale: attendee.locale ?? "en",
       },
     };
-  });
+
+    // Check for the presence of hosts to determine if it is a team event type
+    if (hostsPresent) {
+      // If the attendee is a host then they are a team member
+      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
+      if (teamMember) {
+        teamMembersPromises.push(attendeeObject);
+        // If not then they are an attendee
+      } else {
+        attendeesListPromises.push(attendeeObject);
+      }
+    } else {
+      attendeesListPromises.push(attendeeObject);
+    }
+  }
 
   const attendeesList = await Promise.all(attendeesListPromises);
+  const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
@@ -153,7 +175,9 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     location: bookingToDelete?.location,
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
+    ...(teamMembers && { team: { name: "", members: teamMembers } }),
   };
+
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
   // Send Webhook call if hooked to BOOKING.CANCELLED
@@ -408,7 +432,76 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       uid: bookingToDelete.uid ?? "",
       destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     };
-    await refund(bookingToDelete, evt);
+
+    const successPayment = bookingToDelete.payment.find((payment) => payment.success);
+    if (!successPayment) {
+      throw new Error("Cannot reject a booking without a successful payment");
+    }
+
+    let eventTypeOwnerId;
+    if (bookingToDelete.eventType?.owner) {
+      eventTypeOwnerId = bookingToDelete.eventType.owner.id;
+    } else if (bookingToDelete.eventType?.teamId) {
+      const teamOwner = await prisma.membership.findFirst({
+        where: {
+          teamId: bookingToDelete.eventType.teamId,
+          role: MembershipRole.OWNER,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      eventTypeOwnerId = teamOwner?.userId;
+    }
+
+    if (!eventTypeOwnerId) {
+      throw new Error("Event Type owner not found for obtaining payment app credentials");
+    }
+
+    const paymentAppCredentials = await prisma.credential.findMany({
+      where: {
+        userId: eventTypeOwnerId,
+        appId: successPayment.appId,
+      },
+      select: {
+        key: true,
+        appId: true,
+        app: {
+          select: {
+            categories: true,
+            dirName: true,
+          },
+        },
+      },
+    });
+
+    const paymentAppCredential = paymentAppCredentials.find((credential) => {
+      return credential.appId === successPayment.appId;
+    });
+
+    if (!paymentAppCredential) {
+      throw new Error("Payment app credentials not found");
+    }
+
+    // Posible to refactor TODO:
+    const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+      console.warn(`payment App service of type ${paymentApp} is not implemented`);
+      return null;
+    }
+
+    const PaymentService = paymentApp.lib.PaymentService;
+    const paymentInstance = new PaymentService(paymentAppCredential);
+    try {
+      await paymentInstance.refund(successPayment.id);
+    } catch (error) {
+      await handleRefundError({
+        event: evt,
+        reason: error?.toString() || "unknown",
+        paymentId: successPayment.externalId,
+      });
+    }
+
     await prisma.booking.update({
       where: {
         id: bookingToDelete.id,
@@ -441,29 +534,18 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     cancelScheduledJobs(booking);
   });
 
-  //Workflows - delete all reminders for bookings
-  const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
+  //Workflows - cancel all reminders for cancelled bookings
   updatedBookings.forEach((booking) => {
     booking.workflowReminders.forEach((reminder) => {
-      if (reminder.scheduled && reminder.referenceId) {
-        if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.referenceId);
-        } else if (reminder.method === WorkflowMethods.SMS) {
-          deleteScheduledSMSReminder(reminder.referenceId);
-        }
+      if (reminder.method === WorkflowMethods.EMAIL) {
+        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      } else if (reminder.method === WorkflowMethods.SMS) {
+        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
       }
-      const reminderToDelete = prisma.workflowReminder.deleteMany({
-        where: {
-          id: reminder.id,
-        },
-      });
-      remindersToDelete.push(reminderToDelete);
     });
   });
 
-  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes].concat(
-    remindersToDelete
-  );
+  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes];
 
   await Promise.all(prismaPromises.concat(apiDeletes));
 

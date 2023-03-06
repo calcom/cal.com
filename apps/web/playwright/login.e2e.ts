@@ -60,7 +60,7 @@ test.describe("Login and logout tests", () => {
 
   test.describe("Login flow validations", async () => {
     test("Should warn when user does not exist", async ({ page }) => {
-      const alertMessage = (await localize("en"))("no_account_exists");
+      const alertMessage = (await localize("en"))("incorrect_username_password");
 
       // Login with a non-existent user
       const never = "never";
@@ -71,7 +71,7 @@ test.describe("Login and logout tests", () => {
     });
 
     test("Should warn when password is incorrect", async ({ page, users }) => {
-      const alertMessage = (await localize("en"))("incorrect_password");
+      const alertMessage = (await localize("en"))("incorrect_username_password");
       // by default password===username with the users fixture
       const pro = await users.create({ username: "pro" });
 

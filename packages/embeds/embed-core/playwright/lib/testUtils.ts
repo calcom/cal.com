@@ -1,4 +1,5 @@
-import { Page, Frame, test, expect } from "@playwright/test";
+import type { Page, Frame } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
@@ -38,7 +39,7 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
   const iframeReady = await page.evaluate(() => {
     return new Promise((resolve) => {
       const interval = setInterval(() => {
-        const iframe = document.querySelector(".cal-embed") as HTMLIFrameElement | null;
+        const iframe = document.querySelector<HTMLIFrameElement>(".cal-embed");
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (iframe && iframe.contentWindow && window.iframeReady) {
@@ -55,7 +56,8 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
       setTimeout(() => {
         clearInterval(interval);
         resolve(false);
-      }, 5000);
+        // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
+      }, 15000);
     });
   });
   if (!iframeReady) {

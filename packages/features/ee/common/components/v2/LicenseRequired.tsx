@@ -1,8 +1,9 @@
 import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
-import React, { AriaRole, ComponentType, Fragment } from "react";
+import type { AriaRole, ComponentType } from "react";
+import React, { Fragment } from "react";
 
-import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui";
 import { FiAlertTriangle } from "@calcom/ui/components/icon";
@@ -36,9 +37,9 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
                     consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 ${APP_NAME}
               </a>`,
+                    setupUrl: `<a href="${WEBAPP_URL}/auth/setup" class="underline">/auth/setup</a>`,
                     supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
-                ${SUPPORT_MAIL_ADDRESS}
-              </a>`,
+                ${SUPPORT_MAIL_ADDRESS}</a>`,
                   })
                 ),
               }}
@@ -51,7 +52,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
 };
 
 export const withLicenseRequired =
-  <T,>(Component: ComponentType<T>) =>
+  <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (

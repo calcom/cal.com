@@ -1,4 +1,6 @@
-import { PlaywrightTestConfig, Frame, devices, expect } from "@playwright/test";
+/* eslint-disable */
+import type { PlaywrightTestConfig, Frame } from "@playwright/test";
+import { devices, expect } from "@playwright/test";
 import * as path from "path";
 
 require("dotenv").config({ path: "../../../../../.env" });
@@ -14,6 +16,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   reporter: [
     [CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },
@@ -77,6 +80,7 @@ declare global {
     interface Matchers<R> {
       toBeEmbedCalLink(
         calNamespace: string,
+        // eslint-disable-next-line
         getActionFiredDetails: Function,
         expectedUrlDetails?: ExpectedUrlDetails
       ): Promise<R>;

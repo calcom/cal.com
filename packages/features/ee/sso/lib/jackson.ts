@@ -1,13 +1,15 @@
-import jackson, {
+/* eslint-disable */
+import jackson from "@boxyhq/saml-jackson";
+import type {
   IConnectionAPIController,
   IOAuthController,
   JacksonOption,
   ISPSAMLConfig,
 } from "@boxyhq/saml-jackson";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import {WEBAPP_URL} from "@calcom/lib/constants";
 
-import { samlDatabaseUrl, samlAudience, samlPath, oidcPath } from "./saml";
+import {samlDatabaseUrl, samlAudience, samlPath, oidcPath} from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
@@ -27,10 +29,19 @@ let connectionController: IConnectionAPIController;
 let oauthController: IOAuthController;
 let samlSPConfig: ISPSAMLConfig;
 
-const g = global as any;
+const g = global;
+
+declare global {
+  // eslint-disable-next-line no-var
+  var connectionController: IConnectionAPIController | undefined;
+  // eslint-disable-next-line no-var
+  var oauthController: IOAuthController | undefined;
+  // eslint-disable-next-line no-var
+  var samlSPConfig: ISPSAMLConfig | undefined;
+}
 
 export default async function init() {
-  if (!g.connectionController || !g.oauthController) {
+  if (!g.connectionController || !g.oauthController || !g.samlSPConfig) {
     const ret = await jackson(opts);
 
     connectionController = ret.connectionAPIController;
