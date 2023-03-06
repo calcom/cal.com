@@ -46,11 +46,14 @@ const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"]
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
@@ -231,7 +234,10 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === MeetLocationType) && (
+            {validLocations.some(
+              (location) =>
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
+            ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
@@ -243,7 +249,6 @@ export const EventSetupTab = (
                       className="underline">
                       here.
                     </Link>{" "}
-                    We will fall back to Cal video if you do not change it.
                   </p>
                 </Trans>
               </div>
