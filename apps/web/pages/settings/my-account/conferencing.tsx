@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -62,17 +63,20 @@ const ConferencingLayout = () => {
     },
   });
 
+  const onSuccessCallback = useCallback(() => {
+    setBulkUpdateModal(true);
+    showToast("Default app updated successfully", "success");
+  }, []);
+
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
-    onSuccess: () => {
-      showToast("Default app updated successfully", "success");
-      utils.viewer.getUsersDefaultConferencingApp.invalidate();
-    },
+    onSuccess: onSuccessCallback,
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
     },
   });
 
   const [deleteAppModal, setDeleteAppModal] = useState(false);
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
@@ -167,7 +171,14 @@ const ConferencingLayout = () => {
       </Dialog>
 
       {locationType && (
-        <AppSetDefaultLinkDailog locationType={locationType} setLocationType={setLocationType} />
+        <AppSetDefaultLinkDailog
+          locationType={locationType}
+          setLocationType={setLocationType}
+          onSuccess={onSuccessCallback}
+        />
+      )}
+      {bulkUpdateModal && (
+        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
       )}
     </div>
   );
