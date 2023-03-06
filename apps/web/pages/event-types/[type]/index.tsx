@@ -182,10 +182,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
-  const customInputs: Prisma.JsonObject = {};
+  const bookingFields: Prisma.JsonObject = {};
 
-  eventType.customInputs.forEach(({ label }) => {
-    customInputs[label] = label;
+  eventType.bookingFields.forEach(({ name }) => {
+    bookingFields[name] = name;
   });
 
   const defaultValues = {
@@ -229,7 +229,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           eventName: z
             .string()
             .refine(
-              (val) => validateCustomEventName(val, t("invalid_event_name_variables"), customInputs) === true,
+              (val) =>
+                validateCustomEventName(val, t("invalid_event_name_variables"), bookingFields) === true,
               {
                 message: t("invalid_event_name_variables"),
               }

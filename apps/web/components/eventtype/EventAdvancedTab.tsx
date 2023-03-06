@@ -38,10 +38,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
 
-  const previewCustomInputs: Prisma.JsonObject = {};
+  const bookingFields: Prisma.JsonObject = {};
 
-  eventType.customInputs.forEach(({ label }) => {
-    previewCustomInputs[label] = label + " input";
+  eventType.bookingFields.forEach(({ name }) => {
+    bookingFields[name] = name + " input";
   });
 
   const eventNameObject: EventNameObjectType = {
@@ -49,7 +49,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: eventType.users[0]?.name || "Nameless",
-    customInputs: previewCustomInputs,
+    bookingFields: bookingFields,
     t,
   };
 

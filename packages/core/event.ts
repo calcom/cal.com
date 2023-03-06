@@ -9,7 +9,7 @@ export type EventNameObjectType = {
   eventName?: string | null;
   host: string;
   location?: string;
-  customInputs?: Prisma.JsonObject;
+  bookingFields?: Prisma.JsonObject;
   t: TFunction;
 };
 
@@ -48,12 +48,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   });
 
   customInputvariables?.forEach((variable) => {
-    if (eventNameObj.customInputs) {
-      Object.keys(eventNameObj.customInputs).forEach((customInput) => {
-        if (variable === customInput) {
+    if (eventNameObj.bookingFields) {
+      Object.keys(eventNameObj.bookingFields).forEach((bookingField) => {
+        if (variable === bookingField) {
           dynamicEventName = dynamicEventName.replace(
             `{${variable}}`,
-            eventNameObj.customInputs[customInput as keyof typeof eventNameObj.customInputs]
+            eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields]
           );
         }
       });
@@ -63,10 +63,14 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
-export const validateCustomEventName = (value: string, message: string, customInputs?: Prisma.JsonObject) => {
+export const validateCustomEventName = (
+  value: string,
+  message: string,
+  bookingFields?: Prisma.JsonObject
+) => {
   let customInputVariables: string[] = [];
-  if (customInputs) {
-    customInputVariables = Object.keys(customInputs).map((customInput) => {
+  if (bookingFields) {
+    customInputVariables = Object.keys(bookingFields).map((customInput) => {
       return `{${customInput}}`;
     });
   }
