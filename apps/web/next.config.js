@@ -2,20 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
-const withTM = require("next-transpile-modules")([
-  "@calcom/app-store",
-  "@calcom/core",
-  "@calcom/dayjs",
-  "@calcom/emails",
-  "@calcom/embed-core",
-  "@calcom/embed-react",
-  "@calcom/embed-snippet",
-  "@calcom/features",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/trpc",
-  "@calcom/ui",
-]);
 
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -80,7 +66,6 @@ if (process.env.ANALYZE === "true") {
   plugins.push(withBundleAnalyzer);
 }
 
-plugins.push(withTM);
 plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -94,6 +79,20 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
+  transpilePackages: [
+    "@calcom/app-store",
+    "@calcom/core",
+    "@calcom/dayjs",
+    "@calcom/emails",
+    "@calcom/embed-core",
+    "@calcom/embed-react",
+    "@calcom/embed-snippet",
+    "@calcom/features",
+    "@calcom/lib",
+    "@calcom/prisma",
+    "@calcom/trpc",
+    "@calcom/ui",
+  ],
   modularizeImports: {
     "@calcom/ui/components/icon": {
       transform: "@react-icons/all-files/fi/{{member}}",
