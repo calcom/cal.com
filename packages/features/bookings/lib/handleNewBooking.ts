@@ -701,14 +701,6 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
-  let requiresConfirmation = eventType?.requiresConfirmation;
-  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
-  if (rcThreshold) {
-    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
-      requiresConfirmation = false;
-    }
-  }
-
   const responses = "responses" in reqBody ? reqBody.responses : null;
   const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
 
@@ -723,6 +715,14 @@ async function handler(
     bookingFields: { ...responses, ...userFieldsResponses },
     t: tOrganizer,
   };
+
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
 
   let evt: CalendarEvent = {
     type: eventType.title,
