@@ -98,7 +98,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
       label: t(category),
       options: apps[category].map((l) => ({
         ...l,
-        label: l.value.startsWith("integrations:") ? l.label : t(l.label.toLowerCase().split(" ").join("_")),
+        label: t(l.label),
       })),
     };
 
