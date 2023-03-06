@@ -790,7 +790,6 @@ export function RecurringBookings({
     t,
     i18n: { language },
   } = useLocale();
-  console.log(timeZone());
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;

@@ -81,7 +81,6 @@ export const formatToLocalizedTimezone = (
   // Intl.DateTimeFormat doesn't format into a timezone only, so we must
   //  formatToParts() and return the piece we want
   const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
-  console.log(Intl.DateTimeFormat(locale, { timeZoneName, timeZone }).formatToParts(theDate));
   return Intl.DateTimeFormat(locale, { timeZoneName, timeZone })
     .formatToParts(theDate)
     .find((d) => d.type == "timeZoneName")?.value;
