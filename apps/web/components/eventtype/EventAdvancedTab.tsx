@@ -14,17 +14,7 @@ import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Button,
-  Checkbox,
-  Label,
-  SettingsToggle,
-  showToast,
-  TextField,
-  Tooltip,
-} from "@calcom/ui";
-
+import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -63,20 +53,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     t,
   };
 
-  const [customInputs, setCustomInputs] = useState<CustomInputParsed[]>(
-    eventType.customInputs.sort((a, b) => a.id - b.id) || []
-  );
-  const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
-  const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-
-  const removeCustom = (index: number) => {
-    formMethods.getValues("customInputs").splice(index, 1);
-    customInputs.splice(index, 1);
-    setCustomInputs([...customInputs]);
-  };
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -124,7 +103,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               {t("add_another_calendar")}
             </Link>
           </div>
-          <div className="w-full -mt-1">
+          <div className="-mt-1 w-full">
             <Controller
               control={formMethods.control}
               name="destinationCalendar"
@@ -155,7 +134,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               StartIcon={FiEdit}
               variant="icon"
               color="minimal"
-              className="px-0 hover:stroke-3 min-w-fit hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}
               aria-label="edit custom name"
             />
@@ -215,7 +194,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
-                <div className="flex mt-2">
+                <div className="mt-2 flex">
                   <Checkbox
                     description={t("disable_success_page")}
                     // Disable if it's not Self Hosted or if the redirect url is not set
