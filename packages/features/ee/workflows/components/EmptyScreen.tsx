@@ -38,6 +38,7 @@ export default function EmptyScreen(props: {
     label: string | null;
     image?: string | null;
     teamId: number | null | undefined;
+    slug: string | null;
   }[];
   isFilteredView: boolean;
 }) {

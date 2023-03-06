@@ -4,6 +4,9 @@ on:
   pull_request_target:
     branches:
       - main
+    paths-ignore:
+      - "**.md"
+      - ".github/CODEOWNERS"
   workflow_dispatch:
 
 concurrency:
@@ -75,7 +78,7 @@ jobs:
     name: E2E embeds tests
     if: ${{ needs.changes.outputs.embed == 'true' }}
     needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e.yml
+    uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   analyze:
