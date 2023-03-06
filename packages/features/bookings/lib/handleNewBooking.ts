@@ -1022,7 +1022,10 @@ async function handler(
       }
 
       // Confirm that the new event will have enough available seats
-      if (attendeesToMove.length + newTimeSlotBooking.attendees.length > eventType.seatsPerTimeSlot) {
+      if (
+        !eventType.seatsPerTimeSlot ||
+        attendeesToMove.length + newTimeSlotBooking.attendees.length > eventType.seatsPerTimeSlot
+      ) {
         throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
       }
 
