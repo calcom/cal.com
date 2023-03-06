@@ -95,7 +95,6 @@ const BookingPage = ({
   const embedUiConfig = useEmbedUiConfig();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const hideEmailField = isEmbed;
   const router = useRouter();
   const { data: session } = useSession();
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -252,6 +251,8 @@ const BookingPage = ({
       ),
     };
   };
+
+  const hideEmailField = isEmbed && !!defaultUserValues.email;
 
   const bookingFormSchema = z
     .object({
