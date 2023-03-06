@@ -46,7 +46,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Label } from "@calcom/ui";
+import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -497,7 +497,12 @@ export default function Success(props: SuccessProps) {
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
+                                <p>
+                                  <span className="mr-2">{bookingInfo.user.name}</span>
+                                  <Badge variant="blue" bold>
+                                    {t("Host")}
+                                  </Badge>
+                                </p>
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
@@ -554,9 +559,10 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <Label className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{label}</Label>
-                          {/* Might be a good idea to use the readonly variant of respective components here */}
-                          <div className="col-span-3 mt-1 mb-2">{response.toString()}</div>
+                          <div className="mt-9 font-medium">{label}</div>
+                          <div className="col-span-2 mb-2 mt-9">
+                            <p className="break-words">{response.toString()}</p>
+                          </div>
                         </>
                       );
                     })}
