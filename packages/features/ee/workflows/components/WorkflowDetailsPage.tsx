@@ -42,8 +42,10 @@ export default function WorkflowDetailsPage(props: Props) {
   const eventTypeOptions = useMemo(
     () =>
       data?.eventTypeGroups.reduce((options, group) => {
-        /** only show event types that belong to team or user */
-        if (!(!teamId && !group.teamId) || teamId !== group.teamId) return options;
+        /** don't show team event types for user workflow */
+        if (!teamId && group.teamId) return options;
+        /** only show correct team event types for team workflows */
+        if (teamId && teamId !== group.teamId) return options;
         return [
           ...options,
           ...group.eventTypes.map((eventType) => ({

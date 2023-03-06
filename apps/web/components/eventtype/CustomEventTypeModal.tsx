@@ -58,22 +58,22 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         className="mb-0"
       />
       <div className="pt-6 text-sm">
-        <div className="mb-6 rounded-md bg-gray-100 p-2">
+        <div className="p-2 mb-6 bg-gray-100 rounded-md">
           <h1 className="mb-2 ml-1 font-medium text-gray-900">{t("available_variables")}</h1>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Event type title}`}</p>
+            <p className="ml-1 mr-5 text-gray-400 w-28">{`{Event type title}`}</p>
             <p className="text-gray-900">{t("event_name_info")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Organiser}`}</p>
+            <p className="ml-1 mr-5 text-gray-400 w-28">{`{Organiser}`}</p>
             <p className="text-gray-900">{t("your_full_name")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Scheduler}`}</p>
+            <p className="ml-1 mr-5 text-gray-400 w-28">{`{Scheduler}`}</p>
             <p className="text-gray-900">{t("scheduler_full_name")}</p>
           </div>
-          <div className="mb-1 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Location}`}</p>
+          <div className="flex mb-1 font-normal">
+            <p className="ml-1 mr-5 text-gray-400 w-28">{`{Location}`}</p>
             <p className="text-gray-900">{t("location_info")}</p>
           </div>
         </div>
@@ -83,7 +83,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
           style={{
             backgroundImage: "url(/calendar-preview.svg)",
           }}>
-          <div className="m-auto flex items-center justify-center self-stretch">
+          <div className="flex items-center self-stretch justify-center m-auto">
             <div className="mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black bg-gray-100 text-[12px] leading-3">
               <p className="overflow-hidden text-ellipsis p-1.5 font-medium text-gray-900">{previewText}</p>
               <p className="ml-1.5 text-[10px] font-normal text-gray-600">8 - 10 AM</p>

@@ -14,7 +14,7 @@ import {
   DropdownItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { FiGlobe, FiMoreHorizontal, FiTrash, FiClock } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -87,6 +87,7 @@ export function ScheduleListItem({
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
+                    StartIcon={FiClock}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,

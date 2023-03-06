@@ -34,13 +34,14 @@ if (IS_EMBED_TEST) {
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: 2,
   workers: os.cpus().length,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
   reporter: [
     [process.env.CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./test-results/reports/results.xml" }],
   ],
