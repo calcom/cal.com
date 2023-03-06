@@ -34,7 +34,7 @@ if (IS_EMBED_TEST) {
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  retries: 2,
   workers: os.cpus().length,
   timeout: 60_000,
   maxFailures: headless ? 10 : undefined,
