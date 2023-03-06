@@ -1,7 +1,8 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { FiCheck, FiSlash } from "@calcom/ui/components/icon";
 
-import { CallToAction, CallToActionTable, Separator } from "../components";
+import { CallToAction, Separator, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
@@ -23,13 +24,16 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           <CallToAction
             label={props.calEvent.organizer.language.translate("accept")}
             href={`${actionHref}&action=accept`}
-            iconName="confirmIcon"
+            icon={FiCheck}
+            color="primary"
           />
           <Separator />
           <CallToAction
             label={props.calEvent.organizer.language.translate("reject")}
             href={`${actionHref}&action=reject`}
             iconName="rejectIcon"
+            color="secondary"
+            icon={FiSlash}
             secondary
           />
         </CallToActionTable>
