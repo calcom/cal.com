@@ -246,7 +246,7 @@ export default function Success(props: SuccessProps) {
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     location: location,
-    customInputs: (bookingInfo?.customInputs as Prisma.JsonObject) || undefined,
+    bookingFields: bookingInfo.responses,
     t,
   };
 

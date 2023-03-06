@@ -699,24 +699,7 @@ async function handler(
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  if (reqBody.customInputs.length > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputs[label] = value;
-    });
-  }
-
   const attendeesList = [...invitee, ...guests];
-  const eventNameObject = {
-    //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: bookerName || "Nameless",
-    eventType: eventType.title,
-    eventName: eventType.eventName,
-    // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
-    host: organizerUser.name || "Nameless",
-    location: bookingLocation,
-    customInputs: customInputs,
-    t: tOrganizer,
-  };
 
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
@@ -728,6 +711,19 @@ async function handler(
 
   const responses = "responses" in reqBody ? reqBody.responses : null;
   const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
+
+  const eventNameObject = {
+    //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
+    attendeeName: bookerName || "Nameless",
+    eventType: eventType.title,
+    eventName: eventType.eventName,
+    // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
+    host: organizerUser.name || "Nameless",
+    location: bookingLocation,
+    bookingFields: { ...responses, ...userFieldsResponses },
+    t: tOrganizer,
+  };
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
