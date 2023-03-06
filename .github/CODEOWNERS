@@ -31,3 +31,5 @@ packages/features/tips                @PeerRich @calcom/core
 packages/ui                           @calcom/ui
 packages/config                       @calcom/core
 packages/app-store/ee/routing-forms   @hariombalhara @calcom/core
+
+apps/web/public/static/locales    @kodiakhq @calcom/core
