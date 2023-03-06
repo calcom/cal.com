@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,6 +19,13 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
           // It's possible that the location app got uninstalled
           return null;
         }
+
+        const locationKey = z.string().default("").parse(locationKeyToString(location));
+
+        const translatedLocation = location.type.startsWith("integrations:")
+          ? eventLocationType.label
+          : t(locationKey.toLowerCase().replace(/ /g, "_"));
+
         return (
           <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
             {eventLocationType.iconUrl === "/link.svg" ? (
@@ -31,14 +40,12 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
                 alt={`${eventLocationType.label} icon`}
               />
             )}
-            <Tooltip content={t(locationKeyToString(location) ?? "")}>
-              <p className="line-clamp-1">{t(locationKeyToString(location) ?? "")}</p>
+            <Tooltip content={translatedLocation}>
+              <p className="line-clamp-1">{translatedLocation}</p>
             </Tooltip>
           </div>
         );
       })}
     </div>
-  ) : (
-    <></>
-  );
+  ) : null;
 }
