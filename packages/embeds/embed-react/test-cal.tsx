@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import ReactDom from "react-dom";

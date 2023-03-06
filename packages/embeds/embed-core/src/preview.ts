@@ -2,8 +2,7 @@ const WEBAPP_URL =
   import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
 const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
-(window as any).fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
-
+//TODO: Load this snippet from a separate JS file so that it doesn't need to be typed again
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
   const p = function (a: any, ar: any) {
@@ -13,7 +12,7 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
   C.Cal =
     C.Cal ||
     function () {
-      const cal = C.Cal!;
+      const cal = C.Cal;
       // eslint-disable-next-line prefer-rest-params
       const ar = arguments;
       if (!cal.loaded) {
@@ -29,7 +28,9 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
         };
         const namespace = ar[1];
         api!.q = api.q || [];
-        typeof namespace === "string" ? (cal!.ns![namespace] = api) && p(api, ar) : p(cal, ar);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
         return;
       }
       p(cal, ar);
@@ -37,20 +38,24 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
 })(window, EMBED_LIB_URL, "init");
 
 const previewWindow = window;
+previewWindow.Cal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
-previewWindow.Cal!("init", {
+previewWindow.Cal("init", {
   origin: WEBAPP_URL,
 });
 const searchParams = new URL(document.URL).searchParams;
 const embedType = searchParams.get("embedType");
 const calLink = searchParams.get("calLink");
-if (embedType! === "inline") {
-  previewWindow.Cal!("inline", {
+if (!calLink) {
+  throw new Error('Missing "calLink" query parameter');
+}
+if (embedType === "inline") {
+  previewWindow.Cal("inline", {
     elementOrSelector: "#my-embed",
     calLink: calLink,
   });
 } else if (embedType === "floating-popup") {
-  previewWindow.Cal!("floatingButton", {
+  previewWindow.Cal("floatingButton", {
     calLink: calLink,
     attributes: {
       id: "my-floating-button",
@@ -58,7 +63,7 @@ if (embedType! === "inline") {
   });
 } else if (embedType === "element-click") {
   const button = document.createElement("button");
-  button.setAttribute("data-cal-link", calLink!);
+  button.setAttribute("data-cal-link", calLink);
   button.innerHTML = "I am a button that exists on your website";
   document.body.appendChild(button);
 }

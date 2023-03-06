@@ -1,27 +1,15 @@
 import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
+import type { Message } from "src/embed";
 
 import { sdkActionManager } from "./sdk-event";
 
-export interface UiConfig {
+export type UiConfig = {
   hideEventTypeDetails?: boolean;
   theme?: "dark" | "light" | "auto";
   styles?: EmbedStyles;
-}
-declare global {
-  interface Window {
-    CalEmbed: {
-      __logQueue?: any[];
-      embedStore: any;
-    };
-    CalComPageStatus: string;
-    isEmbed: () => boolean;
-    resetEmbedStatus: () => void;
-    getEmbedNamespace: () => string | null;
-    getEmbedTheme: () => "dark" | "light" | null;
-  }
-}
+};
 
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
@@ -36,7 +24,10 @@ const embedStore = {
   styles: UiConfig["styles"];
   namespace: string | null;
   embedType: undefined | null | string;
-  reactStylesStateSetters: any;
+  reactStylesStateSetters: Record<
+    keyof EmbedStyles | keyof EmbedNonStylesConfig,
+    Parameters<typeof registerNewSetter>[0]["setStyles"]
+  >;
   parentInformedAboutContentHeight: boolean;
   windowLoadEventFired: boolean;
   theme?: UiConfig["theme"];
@@ -44,6 +35,20 @@ const embedStore = {
   setTheme?: (arg0: string) => void;
   setUiConfig?: (arg0: UiConfig) => void;
 };
+
+declare global {
+  interface Window {
+    CalEmbed: {
+      __logQueue?: unknown[];
+      embedStore: typeof embedStore;
+    };
+    CalComPageStatus: string;
+    isEmbed: () => boolean;
+    resetEmbedStatus: () => void;
+    getEmbedNamespace: () => string | null;
+    getEmbedTheme: () => "dark" | "light" | null;
+  }
+}
 
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
@@ -58,7 +63,7 @@ if (isBrowser) {
   }
 }
 
-function runAsap(fn: (...arg: any) => void) {
+function runAsap(fn: (...arg: unknown[]) => void) {
   if (isSafariBrowser) {
     // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
     return setTimeout(fn, 50);
@@ -66,7 +71,7 @@ function runAsap(fn: (...arg: any) => void) {
   return requestAnimationFrame(fn);
 }
 
-function log(...args: any[]) {
+function log(...args: unknown[]) {
   if (isBrowser) {
     const namespace = getNamespace();
 
@@ -111,7 +116,7 @@ interface EmbedNonStylesConfig {
 const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   embedStore.styles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
-    (setEmbedStyle as any)((styles: any) => {
+    setEmbedStyle((styles) => {
       return {
         ...styles,
         ...stylesConfig,
@@ -120,11 +125,27 @@ const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   }
 };
 
-const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig, setStyles: any) => {
-  embedStore.reactStylesStateSetters[elementName] = setStyles;
+const registerNewSetter = (
+  registration:
+    | {
+        elementName: keyof EmbedStyles;
+        setStyles: (a: EmbedStyles) => void;
+        styles: true;
+      }
+    | {
+        elementName: keyof EmbedNonStylesConfig;
+        setStyles: (a: EmbedNonStylesConfig) => void;
+        styles: false;
+      }
+) => {
+  embedStore.reactStylesStateSetters[
+    registration.elementName as keyof EmbedStyles | keyof EmbedNonStylesConfig
+  ] = registration.setStyles;
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
-  setStyles(embedStore.styles);
+  if (registration.styles) {
+    registration.setStyles(embedStore.styles || {});
+  }
 };
 
 const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig) => {
@@ -155,10 +176,10 @@ export const useEmbedUiConfig = () => {
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
-  const [styles, setStyles] = useState({} as EmbedStyles);
+  const [styles, setStyles] = useState<EmbedStyles>({});
 
   useEffect(() => {
-    registerNewSetter(elementName, setStyles);
+    registerNewSetter({ elementName, setStyles, styles: true });
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
     return () => {
       // Once the component is unmounted, we can remove that state setter.
@@ -173,7 +194,7 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
   const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
-    registerNewSetter(elementName, setStyles);
+    registerNewSetter({ elementName, setStyles, styles: false });
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
     return () => {
       // Once the component is unmounted, we can remove that state setter.
@@ -251,8 +272,8 @@ function unhideBody() {
   document.body.style.visibility = "visible";
 }
 
-// If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
-export const methods = {
+// It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
+const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
@@ -278,7 +299,8 @@ export const methods = {
 
     setEmbedStyles(stylesConfig || {});
   },
-  parentKnowsIframeReady: () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
@@ -293,7 +315,14 @@ export const methods = {
   },
 };
 
-const messageParent = (data: any) => {
+export type InterfaceWithParent = {
+  // Ensure that only one argument is read by the method
+  [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
+};
+
+export const interfaceWithParent: InterfaceWithParent = methods;
+
+const messageParent = (data: CustomEvent["detail"]) => {
   parent.postMessage(
     {
       originator: "CAL",
@@ -408,13 +437,13 @@ if (isBrowser) {
     });
 
     window.addEventListener("message", (e) => {
-      const data: Record<string, any> = e.data;
+      const data: Message = e.data;
       if (!data) {
         return;
       }
-      const method: keyof typeof methods = data.method;
+      const method: keyof typeof interfaceWithParent = data.method;
       if (data.originator === "CAL" && typeof method === "string") {
-        methods[method]?.(data.arg);
+        interfaceWithParent[method]?.(data.arg as never);
       }
     });
 
