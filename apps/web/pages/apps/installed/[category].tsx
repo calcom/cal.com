@@ -7,7 +7,7 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
-import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -203,7 +203,7 @@ const IntegrationsList = ({ data, handleDisconnect, variant }: IntegrationsListP
           })}
       </List>
       {locationType && (
-        <AppSetDefaultLinkDailog
+        <AppSetDefaultLinkDialog
           locationType={locationType}
           setLocationType={() => setLocationType(undefined)}
           onSuccess={onSuccessCallback}
