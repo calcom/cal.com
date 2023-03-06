@@ -1,7 +1,8 @@
 import type { ITimezoneOption } from "react-timezone-select";
-import { allTimezones } from "react-timezone-select";
 
 import type { ICity } from "@calcom/ui/components/form/timezone-select";
+
+import isProblematicTimezone from "./isProblematicTimezone";
 
 function findPartialMatch(itemsToSearch: string, searchString: string) {
   const searchItems = searchString.split(" ");
@@ -23,7 +24,7 @@ export const filterByCities = (tz: string, data: ICity[]): ICity[] => {
 
 export const addCitiesToDropdown = (cities: ICity[]) => {
   const cityTimezones = cities?.reduce((acc: { [key: string]: string }, city: ICity) => {
-    if (Object.keys(allTimezones).includes(city.timezone)) {
+    if (city.timezone !== null && !isProblematicTimezone(city.timezone)) {
       acc[city.timezone] = city.city;
     }
     return acc;
