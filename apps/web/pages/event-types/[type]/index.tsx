@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -218,6 +219,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .object({
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
+          eventName: z
+            .string()
+            .refine((val) => validateCustomEventName(val, t("invalid_event_name_variables")) === true, {
+              message: t("invalid_event_name_variables"),
+            })
+            .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
         })
