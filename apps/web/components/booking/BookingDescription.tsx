@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
-import { FiCheckSquare, FiClock, FiInfo } from "@calcom/ui/components/icon";
+import { FiCheckSquare, FiClock } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -94,15 +94,7 @@ const BookingDescription: FC<Props> = (props) => {
               "flex",
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
-            <div>
-              <FiInfo
-                className={classNames(
-                  "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
-                  isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
-                )}
-              />
-            </div>
-            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
+            <div className="scroll-bar scrollbar-track-w-20 max-h-[200px] max-w-full flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
