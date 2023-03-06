@@ -900,7 +900,10 @@ async function handler(
       throw new HttpError({ statusCode: 404, message: "Booking not found" });
     }
 
-    if (dayjs.utc(booking.startTime).format() === evt.startTime) {
+    if (
+      booking.attendees.filter((attendee) => attendee.email === req.body.responses.email) &&
+      dayjs.utc(booking.startTime).format() === evt.startTime
+    ) {
       throw new Error("You are trying to reschedule to the same time.");
     }
 
@@ -921,7 +924,11 @@ async function handler(
       select: {
         id: true,
         uid: true,
-        attendees: true,
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
       },
     });
 
@@ -1024,7 +1031,9 @@ async function handler(
       // Confirm that the new event will have enough available seats
       if (
         !eventType.seatsPerTimeSlot ||
-        attendeesToMove.length + newTimeSlotBooking.attendees.length > eventType.seatsPerTimeSlot
+        attendeesToMove.length +
+          newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
+          eventType.seatsPerTimeSlot
       ) {
         throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
       }
