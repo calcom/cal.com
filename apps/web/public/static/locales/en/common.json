@@ -1634,5 +1634,9 @@
   "no_responses_yet": "No responses yet",
   "this_will_be_the_placeholder": "This will be the placeholder",
   "verification_code": "Verification code",
-  "verify": "Verify"
+  "verify": "Verify",
+  "select_all":"Select All",
+  "default_conferncing_bulk_title":"Bulk update existing event types",
+  "default_conferncing_bulk_description":"Update the locations for the selected event types"
+
 }
