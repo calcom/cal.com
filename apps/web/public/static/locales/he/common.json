@@ -1635,8 +1635,8 @@
   "this_will_be_the_placeholder": "זה יהיה הממלא מקום",
   "verification_code": "קוד אימות",
   "verify": "אמת",
-  "invalid_event_name_variables": "יש משתנה שגוי בשם הארוע שלך",
   "select_all": "בחר הכל",
-  "default_conferncing_bulk_title": "בצע עדכון אצווה של סוגי הארועים הקיימים",
-  "default_conferncing_bulk_description": "עדכן את המיקומים עבור סוגי הארועים שנבחרו"
+  "default_conferencing_bulk_title": "בצע עדכון אצווה של סוגי הארועים הקיימים",
+  "default_conferencing_bulk_description": "עדכן את המיקומים עבור סוגי הארועים שנבחרו",
+  "invalid_event_name_variables": "יש משתנה שגוי בשם הארוע שלך"
 }
