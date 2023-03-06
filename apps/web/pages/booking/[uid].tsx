@@ -46,7 +46,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -497,7 +497,12 @@ export default function Success(props: SuccessProps) {
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
+                                <p>
+                                  <span className="mr-2">{bookingInfo.user.name}</span>
+                                  <Badge variant="blue" bold>
+                                    {t("Host")}
+                                  </Badge>
+                                </p>
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
