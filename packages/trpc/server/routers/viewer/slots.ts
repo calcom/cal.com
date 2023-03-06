@@ -19,10 +19,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { createContext } from "../../createContext";
 import { publicProcedure, router } from "../../trpc";
-
-type Context = Awaited<ReturnType<typeof createContext>>;
 
 const getScheduleSchema = z
   .object({
@@ -123,45 +120,39 @@ export const slotsRouter = router({
   getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
     return await getSchedule(input, ctx);
   }),
-  markSelectedSlot: publicProcedure
-    .input(markSelectedSlotSchema)
-    .mutation(({ ctx, input }) => markSelectedSlot(ctx, input)),
-  removeSelectedSlotMark: publicProcedure.mutation(({ ctx }) => removeSelectedSlotMark(ctx)),
+  markSelectedSlot: publicProcedure.input(markSelectedSlotSchema).mutation(async ({ ctx, input }) => {
+    const { prisma, req, res } = ctx;
+    const uid = req?.cookies?.uid || uuid();
+    const { slotUtcDate, eventTypeId } = input;
+    const releaseAt = dayjs
+      .utc()
+      .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5"), "minutes")
+      .format();
+    await prisma.selectedSlots.upsert({
+      where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
+      update: {
+        slotUtcDate,
+        releaseAt,
+      },
+      create: {
+        eventTypeId,
+        slotUtcDate,
+        uid,
+        releaseAt,
+      },
+    });
+    res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
+    return;
+  }),
+  removeSelectedSlotMark: publicProcedure.mutation(async ({ ctx }) => {
+    const { req, prisma } = ctx;
+    const uid = req?.cookies?.uid;
+    if (uid) {
+      await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
+    }
+    return;
+  }),
 });
-
-async function markSelectedSlot(ctx: Context, input: z.infer<typeof markSelectedSlotSchema>) {
-  const { prisma, req, res } = ctx;
-  const uid = req?.cookies?.uid || uuid();
-  const { slotUtcDate, eventTypeId } = input;
-  const releaseAt = dayjs
-    .utc()
-    .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5"), "minutes")
-    .format();
-  await prisma.selectedSlots.upsert({
-    where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
-    update: {
-      slotUtcDate,
-      releaseAt,
-    },
-    create: {
-      eventTypeId,
-      slotUtcDate,
-      uid,
-      releaseAt,
-    },
-  });
-  res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
-  return;
-}
-
-async function removeSelectedSlotMark(ctx: Context) {
-  const { req, prisma } = ctx;
-  const uid = req?.cookies?.uid;
-  if (uid) {
-    await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
-  }
-  return;
-}
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
   const eventType = await ctx.prisma.eventType.findUnique({
