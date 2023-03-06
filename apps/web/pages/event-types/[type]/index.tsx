@@ -123,7 +123,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     extendsFeature: "EventType",
   });
 
-  const { eventType, locationOptions, team, teamMembers, currentUserMembership } = props;
+  const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -261,6 +261,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         locationOptions={locationOptions}
         team={team}
         teamMembers={teamMembers}
+        destinationCalendar={destinationCalendar}
       />
     ),
     availability: <AvailabilityTab isTeamEvent={!!team} />,
