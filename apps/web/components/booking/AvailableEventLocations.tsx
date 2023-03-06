@@ -8,7 +8,7 @@ import { FiLink } from "@calcom/ui/components/icon";
 
 import type { Props } from "./pages/AvailabilityPage";
 
-export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
+export function AvailableEventLocations({ locations }: Props["eventType"]["locations"]) {
   const { t } = useLocale();
 
   return locations.length ? (
@@ -20,11 +20,21 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
           return null;
         }
 
+        const translateAbleKeys = [
+          "attendee_in_person",
+          "in_person",
+          "attendee_phone_number",
+          "link_meeting",
+          "organizer_phone_number",
+        ];
+
         const locationKey = z.string().default("").parse(locationKeyToString(location));
 
         const translatedLocation = location.type.startsWith("integrations:")
           ? eventLocationType.label
-          : t(locationKey.toLowerCase().replace(/ /g, "_"));
+          : translateAbleKeys.includes(locationKey)
+          ? t(locationKey)
+          : locationKey;
 
         return (
           <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
