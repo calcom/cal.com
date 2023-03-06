@@ -5,6 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { addListFormatting } from "@calcom/lib/markdownIt";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -152,7 +153,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
+    descriptionAsSafeHTML: eventType.description ? addListFormatting(md.render(eventType.description)) : null,
   });
   // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =
