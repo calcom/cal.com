@@ -641,8 +641,10 @@ async function handler(
         }),
       },
       {
-        email: reqBody.email,
-        guests: reqBody.guests,
+        // @ts-ignore
+        email: reqBody?.email,
+        // @ts-ignore
+        guests: reqBody?.guests,
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
         timeZone: reqBody.timeZone,
