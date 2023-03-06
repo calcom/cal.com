@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -15,8 +14,10 @@ import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/ap
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
+import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
-import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import turndown from "@calcom/lib/turndownService";
+import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -46,11 +47,14 @@ const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"]
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
@@ -232,7 +236,10 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === MeetLocationType) && (
+            {validLocations.some(
+              (location) =>
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
+            ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
@@ -244,7 +251,6 @@ export const EventSetupTab = (
                       className="underline">
                       here.
                     </Link>{" "}
-                    We will fall back to Cal video if you do not change it.
                   </p>
                 </Trans>
               </div>
@@ -281,38 +287,29 @@ export const EventSetupTab = (
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
-        <TextField
-          label={t("description")}
-          placeholder={t("quick_video_meeting")}
-          {...shouldLockDisableProps("description")}
-          defaultValue={eventType.description ?? ""}
-          {...formMethods.register("description")}
-        />
         <div>
-          <TextField
-            required
-            label={t("URL")}
-            {...shouldLockDisableProps("slug")}
-            defaultValue={eventType.slug}
-            addOnLeading={
-              <>
-                {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
-                {eventType.schedulingType === SchedulingType.MANAGED
-                  ? "{username}"
-                  : team
-                  ? "team/" + team.slug
-                  : eventType.users[0].username}
-                /
-              </>
-            }
-            {...formMethods.register("slug", {
-              setValueAs: (v) => slugify(v),
-            })}
+          <Label>{t("description")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+            setText={(value: string) => formMethods.setValue("description", turndown(value))}
+            excludedToolbarItems={["blockType"]}
+            placeholder={t("quick_video_meeting")}
           />
-          {eventType.schedulingType === SchedulingType.MANAGED && (
-            <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-          )}
         </div>
+        <TextField
+          required
+          label={t("URL")}
+          defaultValue={eventType.slug}
+          addOnLeading={
+            <>
+              {CAL_URL?.replace(/^(https?:|)\/\//, "")}/
+              {team ? "team/" + team.slug : eventType.users[0].username}/
+            </>
+          }
+          {...formMethods.register("slug", {
+            setValueAs: (v) => slugify(v),
+          })}
+        />
         {multipleDuration ? (
           <div className="space-y-4">
             <div>

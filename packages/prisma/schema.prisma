@@ -67,6 +67,8 @@ model EventType {
   parentId                Int?
   parent                  EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
   children                EventType[]             @relation("managed_eventtype")
+  /// @zod.custom(imports.eventTypeBookingFields)
+  bookingFields           Json?
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -302,6 +304,8 @@ model Booking {
   title                 String
   description           String?
   customInputs          Json?
+  /// @zod.custom(imports.bookingResponses)
+  responses             Json?
   startTime             DateTime
   endTime               DateTime
   attendees             Attendee[]

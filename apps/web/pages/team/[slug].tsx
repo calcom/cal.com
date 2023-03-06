@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,6 +10,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { md } from "@calcom/lib/markdownIt";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
@@ -22,8 +22,6 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import Team from "@components/team/screens/Team";
 
 import { ssrInit } from "@server/lib/ssr";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
