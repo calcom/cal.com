@@ -8,7 +8,7 @@ import { FiLink } from "@calcom/ui/components/icon";
 
 import type { Props } from "./pages/AvailabilityPage";
 
-export function AvailableEventLocations({ locations }: Props["eventType"]["locations"]) {
+export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
   const { t } = useLocale();
 
   return locations.length ? (
