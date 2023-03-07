@@ -12,6 +12,7 @@ import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
