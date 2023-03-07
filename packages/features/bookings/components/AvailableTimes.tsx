@@ -60,7 +60,8 @@ export const AvailableTimes = ({
               key={slot.time}
               disabled={bookingFull}
               data-testid="time"
-              onClick={() => onTimeSelect(dayjs.utc(slot.time).tz(timezone).format())}
+              data-time={slot.time}
+              onClick={() => onTimeSelect(slot.time)}
               className="mb-3 block flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
               color="secondary">
               {dayjs(slot.time).tz(timezone).format(timeFormat)}

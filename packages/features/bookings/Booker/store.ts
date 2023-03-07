@@ -128,7 +128,7 @@ export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | B
         get().month === month &&
         get().eventId === eventId &&
         get().rescheduleUid === rescheduleUid &&
-        get().rescheduleBooking?.attendees[0].email === rescheduleBooking?.attendees[0].email
+        get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
       )
         return;
       set({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, initialized: true });

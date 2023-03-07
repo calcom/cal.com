@@ -11,6 +11,7 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const newBookerEnabled = context.req.cookies["new-booker-enabled"];
   const booking = await prisma.booking.findUnique({
     where: {
       uid: asStringOrUndefined(context.query.uid),
@@ -63,7 +64,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? "team/" + eventType.team.slug
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick") /* This shouldn't happen */ +
+      : (booking.user?.username || "rick") /* This shouldn't happen */ +
+        (newBookerEnabled ? "/new-booker" : "")) +
     "/" +
     eventType?.slug;
   return {
