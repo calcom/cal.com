@@ -26,7 +26,6 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   const ssg = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,
-    // @ts-expect-error FIXME The signature expects req and res. Which we don't have in an SSG context.
     ctx: {
       prisma,
       session: null,
