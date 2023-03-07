@@ -67,8 +67,7 @@ export const getConnectedCalendars = async (
           })
           .sortBy(["primary"])
           .value();
-        const primary!: IntegrationCalendar =
-          calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
             integration,
