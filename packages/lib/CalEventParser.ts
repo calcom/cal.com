@@ -4,6 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
+import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 
 const translator = short();
 
@@ -72,16 +73,8 @@ ${calEvent.additionalNotes}
 };
 
 export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
-  const { customInputs, userFieldsResponses } = calEvent;
+  const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
-  let labelValueMap: Record<string, string | string[]> = {};
-  if (userFieldsResponses) {
-    for (const [, value] of Object.entries(userFieldsResponses)) {
-      labelValueMap[value.label] = value.value;
-    }
-  } else {
-    labelValueMap = customInputs as Record<string, string | string[]>;
-  }
   if (!labelValueMap) {
     return "";
   }

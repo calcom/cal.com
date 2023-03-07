@@ -1,17 +1,11 @@
+import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
 export function UserFieldsResponses(props: { calEvent: CalendarEvent }) {
-  const { customInputs, userFieldsResponses } = props.calEvent;
-  let labelValueMap: Record<string, string | string[]> = {};
-  if (userFieldsResponses) {
-    for (const [, value] of Object.entries(userFieldsResponses)) {
-      labelValueMap[value.label] = value.value;
-    }
-  } else {
-    labelValueMap = customInputs as Record<string, string | string[]>;
-  }
+  const labelValueMap = getLabelValueMapFromResponses(props.calEvent);
+
   if (!labelValueMap) return null;
   return (
     <>
