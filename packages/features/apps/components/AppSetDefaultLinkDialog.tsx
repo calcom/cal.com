@@ -24,7 +24,7 @@ type LocationTypeSetLinkDialogFormProps = {
   type: EventLocationType["type"];
 };
 
-export function AppSetDefaultLinkDailog({
+export function AppSetDefaultLinkDialog({
   locationType,
   setLocationType,
   onSuccess,
@@ -33,8 +33,6 @@ export function AppSetDefaultLinkDailog({
   setLocationType: Dispatch<SetStateAction<(EventLocationType & { slug: string }) | undefined>>;
   onSuccess: () => void;
 }) {
-  const utils = trpc.useContext();
-
   const { t } = useLocale();
   const eventLocationTypeOptions = getEventLocationType(locationType.type);
 
