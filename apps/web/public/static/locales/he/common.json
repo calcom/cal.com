@@ -110,6 +110,7 @@
   "hidden_team_owner_message": "נדרש חשבון Pro כדי להשתמש בתכונות הצוותים. תהיה מוסתר עד שתבצע שידרוג.",
   "link_expires": "נ.ב. תוקף הקישור יפוג תוך {{expiresIn}} שעות.",
   "upgrade_to_per_seat": "שדרג למינוי לפי מקום",
+  "seat_options_doesnt_support_confirmation": "אפשרויות המושבים אינם תומכים בדרישת האישור",
   "team_upgrade_seats_details": "לא התבצע תשלום עבור {{unpaidCount}} מקומות מתוך {{memberCount}} חברי הצוות שלך. תמורת ${{seatPrice}} לחודש למקום, עלות המינוי הכוללת המשוערת שלך היא ${{totalCost}} לחודש.",
   "team_upgrade_banner_description": "אנחנו מודים לך על כך שניסית את החבילה החדשה שלנו לצוותים. שמנו לב שהצוות שלך, \"{{teamName}}\", זקוק לשדרוג.",
   "team_upgrade_banner_action": "כאן משדרגים",
