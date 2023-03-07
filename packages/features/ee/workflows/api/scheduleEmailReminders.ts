@@ -150,6 +150,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       switch (reminder.workflowStep.template) {
         case WorkflowTemplates.REMINDER:
           emailContent = emailReminderTemplate(
+            false,
             reminder.booking?.startTime.toISOString() || "",
             reminder.booking?.endTime.toISOString() || "",
             reminder.booking?.eventType?.title || "",

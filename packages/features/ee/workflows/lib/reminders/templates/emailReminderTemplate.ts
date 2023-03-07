@@ -2,13 +2,23 @@ import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 
 const emailReminderTemplate = (
-  startTime: string,
-  endTime: string,
-  eventName: string,
-  timeZone: string,
-  attendee: string,
-  name: string
+  isEditingMode: boolean,
+  startTime?: string,
+  endTime?: string,
+  eventName?: string,
+  timeZone?: string,
+  attendee?: string,
+  name?: string
 ) => {
+  if (isEditingMode) {
+    startTime = "{EVENT_TIME}";
+    endTime = "{EVENT_END_TIME}";
+    eventName = "{EVENT_NAME}";
+    timeZone = "{TIMEZONE}";
+    attendee = "{ATTENDEE_NAME}";
+    name = "{NAME}";
+  }
+
   const emailSubject = `Reminder: ${eventName} - ${dayjs(startTime)
     .tz(timeZone)
     .format("ddd, MMM D, YYYY")} ${dayjs(startTime).tz(timeZone).format("H:mmA")}`;

@@ -87,7 +87,15 @@ export const scheduleEmailReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      emailContent = emailReminderTemplate(startTime, endTime, evt.title, timeZone, attendeeName, name);
+      emailContent = emailReminderTemplate(
+        false,
+        startTime,
+        endTime,
+        evt.title,
+        timeZone,
+        attendeeName,
+        name
+      );
       break;
     case WorkflowTemplates.CUSTOM:
       const variables: VariablesType = {

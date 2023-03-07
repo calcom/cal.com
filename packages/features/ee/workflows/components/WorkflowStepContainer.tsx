@@ -40,6 +40,7 @@ import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle } from "@calcom/u
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { isSMSAction } from "../lib/isSMSAction";
+import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -84,10 +85,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
-  );
-
-  const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
-    step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
@@ -550,9 +547,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
+                            if (val.value === WorkflowTemplates.REMINDER) {
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.reminderBody`,
+                                emailReminderTemplate(true).emailBody.html
+                              );
+                            }
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
-                            const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
-                            setIsCustomReminderBodyNeeded(isCustomTemplate);
                           }
                         }}
                         defaultValue={selectedTemplate}
@@ -562,98 +563,97 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
               </div>
-              {isCustomReminderBodyNeeded && (
-                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
-                  {isEmailSubjectNeeded && (
-                    <div className="mb-6">
-                      <div className="flex items-center">
-                        <Label className="mb-0 flex-none">{t("subject")}</Label>
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableEmailSubject}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
+              <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
+                {isEmailSubjectNeeded && (
+                  <div className="mb-6">
+                    <div className="flex items-center">
+                      <Label className="mb-0 flex-none">{t("subject")}</Label>
+                      <div className="flex-grow text-right">
+                        <AddVariablesDropdown
+                          addVariable={addVariableEmailSubject}
+                          variables={DYNAMIC_TEXT_VARIABLES}
+                        />
                       </div>
-                      <TextArea
-                        ref={(e) => {
-                          emailSubjectFormRef?.(e);
-                          refEmailSubject.current = e;
-                        }}
-                        rows={1}
-                        className="my-0 focus:ring-transparent"
-                        required
-                        {...restEmailSubjectForm}
-                      />
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
-                          </p>
-                        )}
                     </div>
-                  )}
-
-                  {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                  step.action !== WorkflowActions.SMS_NUMBER ? (
-                    <>
-                      <div className="mb-2 flex items-center pb-[1.5px]">
-                        <Label className="mb-0 flex-none ">
-                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                        </Label>
-                      </div>
-                      <Editor
-                        getText={() => {
-                          return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                        }}
-                        setText={(text: string) => {
-                          props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                          props.form.clearErrors();
-                        }}
-                        variables={DYNAMIC_TEXT_VARIABLES}
-                        height="200px"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center">
-                        <Label className="mb-0 flex-none">
-                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                        </Label>
-                        <div className="flex-grow text-right">
-                          <AddVariablesDropdown
-                            addVariable={addVariableBody}
-                            variables={DYNAMIC_TEXT_VARIABLES}
-                          />
-                        </div>
-                      </div>
-                      <TextArea
-                        ref={(e) => {
-                          reminderBodyFormRef?.(e);
-                          refReminderBody.current = e;
-                        }}
-                        className="my-0 h-24"
-                        required
-                        {...restReminderBodyForm}
-                      />
-                    </>
-                  )}
-                  {form.formState.errors.steps &&
-                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
-                      </p>
-                    )}
-                  <div className="mt-3 ">
-                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="mt-2 flex text-sm text-gray-600">
-                        <FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
-                      </div>
-                    </button>
+                    <TextArea
+                      ref={(e) => {
+                        emailSubjectFormRef?.(e);
+                        refEmailSubject.current = e;
+                      }}
+                      rows={1}
+                      className="my-0 focus:ring-transparent"
+                      required
+                      {...restEmailSubjectForm}
+                    />
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                        </p>
+                      )}
                   </div>
+                )}
+
+                {step.action !== WorkflowActions.SMS_ATTENDEE &&
+                step.action !== WorkflowActions.SMS_NUMBER ? (
+                  <>
+                    <div className="mb-2 flex items-center pb-[1.5px]">
+                      <Label className="mb-0 flex-none ">
+                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                      </Label>
+                    </div>
+                    <Editor
+                      getText={() => {
+                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                      }}
+                      setText={(text: string) => {
+                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                        props.form.clearErrors();
+                      }}
+                      variables={DYNAMIC_TEXT_VARIABLES}
+                      height="200px"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center">
+                      <Label className="mb-0 flex-none">
+                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                      </Label>
+                      <div className="flex-grow text-right">
+                        <AddVariablesDropdown
+                          addVariable={addVariableBody}
+                          variables={DYNAMIC_TEXT_VARIABLES}
+                        />
+                      </div>
+                    </div>
+                    <TextArea
+                      ref={(e) => {
+                        reminderBodyFormRef?.(e);
+                        refReminderBody.current = e;
+                      }}
+                      className="my-0 h-24"
+                      required
+                      {...restReminderBodyForm}
+                    />
+                  </>
+                )}
+                {form.formState.errors.steps &&
+                  form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                    </p>
+                  )}
+                <div className="mt-3 ">
+                  <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                    <div className="mt-2 flex text-sm text-gray-600">
+                      <FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
+                    </div>
+                  </button>
                 </div>
-              )}
+              </div>
+
               {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
