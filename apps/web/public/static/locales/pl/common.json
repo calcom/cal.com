@@ -410,6 +410,7 @@
   "password_updated_successfully": "Hasło zaktualizowane pomyślnie",
   "password_has_been_changed": "Twoje hasło zostało pomyślnie zmienione.",
   "error_changing_password": "Błąd zmiany hasła",
+  "session_timeout_changed": "Twoja konfiguracja sesji została pomyślnie zaktualizowana.",
   "something_went_wrong": "Coś się zepsuło.",
   "something_doesnt_look_right": "Coś nie wygląda poprawnie?",
   "please_try_again": "Proszę spróbuj ponownie.",
