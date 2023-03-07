@@ -1,6 +1,6 @@
 ---
 items:
-  - 1.jpeg
+  - 1.png
 ---
 
 {DESCRIPTION}
