@@ -416,7 +416,7 @@ export const workflowsRouter = router({
         }
       });
 
-      for (const activeRef of workflowToDelete.activeOn) {
+      for (const activeOn of workflowToDelete.activeOn) {
         await removeBookingField(
           {
             name: "smsReminderNumber",
@@ -425,7 +425,7 @@ export const workflowsRouter = router({
             id: "" + id,
             type: "workflow",
           },
-          activeRef.eventTypeId
+          activeOn.eventTypeId
         );
       }
 
@@ -620,6 +620,9 @@ export const workflowsRouter = router({
         },
       });
 
+      const smsReminderNumberNeeded =
+        activeOn.length && steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE);
+
       let newEventTypes: number[] = [];
       if (activeOn.length) {
         if (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) {
@@ -735,7 +738,7 @@ export const workflowsRouter = router({
         });
       }
 
-      if (input.steps.some((s) => s.action === WorkflowActions.SMS_ATTENDEE)) {
+      if (smsReminderNumberNeeded) {
         for (const eventTypeId of activeOn) {
           await upsertSmsReminderFieldForBooking({
             workflowId: id,
@@ -757,7 +760,7 @@ export const workflowsRouter = router({
             booking: true,
           },
         });
-        const smsReminderNumberNeeded = steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE);
+
         //step was deleted
         if (!newStep) {
           // cancel all workflow reminders from deleted steps
@@ -777,10 +780,10 @@ export const workflowsRouter = router({
           });
 
           if (!smsReminderNumberNeeded) {
-            for (const activeOnRef of userWorkflow.activeOn)
+            for (const activeOn of userWorkflow.activeOn)
               await removeSmsReminderFieldForBooking({
                 workflowId: id,
-                eventTypeId: activeOnRef.eventTypeId,
+                eventTypeId: activeOn.eventTypeId,
               });
           }
 
