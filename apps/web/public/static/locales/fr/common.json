@@ -110,6 +110,7 @@
   "hidden_team_owner_message": "Vous avez besoin d'un compte Pro pour utiliser les équipes, vous êtes masqué(e) jusqu'à ce que vous mettiez à niveau.",
   "link_expires": "p.s. Il expire dans {{expiresIn}} heures.",
   "upgrade_to_per_seat": "Mise à niveau vers la place",
+  "seat_options_doesnt_support_confirmation": "L'option de places ne prend pas en charge l'exigence de confirmation",
   "team_upgrade_seats_details": "Parmi les {{memberCount}} membres de votre équipe, {{unpaidCount}} place(s) sont impayées. À {{seatPrice}} $/mois par place, le coût total estimé de votre abonnement est de {{totalCost}} $/mois.",
   "team_upgrade_banner_description": "Merci d'avoir essayé notre nouveau plan Équipes. Nous avons remarqué que votre équipe « {{teamName}} » doit être mise à niveau.",
   "team_upgrade_banner_action": "Mettre à niveau",
@@ -1634,5 +1635,9 @@
   "no_responses_yet": "Aucune réponse pour l'instant",
   "this_will_be_the_placeholder": "Ce sera le texte de substitution",
   "verification_code": "Code de vérification",
-  "verify": "Vérifier"
+  "verify": "Vérifier",
+  "select_all": "Tout sélectionner",
+  "default_conferencing_bulk_title": "Mise à jour multiple des types d'événements existants",
+  "default_conferencing_bulk_description": "Mettez à jour les emplacements pour les types d'événements sélectionnés.",
+  "invalid_event_name_variables": "Il y a une variable invalide dans le nom de votre événement"
 }

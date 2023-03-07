@@ -481,7 +481,7 @@ const BookingPage = ({
         )}>
         <div
           className={classNames(
-            "main overflow-hidden",
+            "main",
             isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
