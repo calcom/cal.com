@@ -1,20 +1,15 @@
-import { GetServerSidePropsContext } from "next";
-import { ChangeEventHandler, useState } from "react";
+import type { GetServerSidePropsContext } from "next";
+import type { ChangeEventHandler } from "react";
+import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import {
-  AllApps,
-  AppStoreCategories,
-  HorizontalTabItemProps,
-  HorizontalTabs,
-  TextField,
-  PopularAppsSlider,
-} from "@calcom/ui";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { HorizontalTabItemProps } from "@calcom/ui";
+import { AllApps, AppStoreCategories, HorizontalTabs, TextField, PopularAppsSlider } from "@calcom/ui";
 import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
@@ -62,8 +57,8 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
-        <div className="flex w-full flex-col  md:flex-row md:justify-between lg:w-auto">
-          <div className="lg:hidden">
+        <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
+          <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
             <HorizontalTabs tabs={tabs} />
           </div>
           <div>

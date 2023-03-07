@@ -33,6 +33,9 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
         },
       },
     },
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
     eventTypes: {
       where: {
         hidden: false,

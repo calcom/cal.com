@@ -29,7 +29,7 @@ export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, profile, team, allRemainingBookings } = props;
+  const { booking, allRemainingBookings } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));

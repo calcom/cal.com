@@ -1,4 +1,5 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 
 // converts a date to 2022-04-25 for example.
 export const yyyymmdd = (date: Date | Dayjs) =>
@@ -27,6 +28,62 @@ export const formatTime = (
         .tz(timeZone)
         .format(timeFormat === 12 ? "h:mma" : "HH:mm")
     : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+};
+
+/**
+ * Returns a localized and translated date or time, based on the native
+ * Intl.DateTimeFormat available to JS. Undefined values mean the browser's
+ * locale will be used.
+ */
+export const formatLocalizedDateTime = (
+  date: Date | Dayjs,
+  options: Intl.DateTimeFormatOptions = {},
+  locale: string | undefined = undefined
+) => {
+  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
+  return Intl.DateTimeFormat(locale, options).format(theDate);
+};
+
+/**
+ * Returns a localized and translated calendar day based on the
+ * given Date object and locale. Undefined values mean the defaults
+ * associated with the browser's current locale will be used.
+ */
+export const formatToLocalizedDate = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long"
+) => formatLocalizedDateTime(date, { dateStyle }, locale);
+
+/**
+ * Returns a localized and translated time of day based on the
+ * given Date object and locale. Undefined values mean the defaults
+ * associated with the browser's current locale will be used.
+ */
+export const formatToLocalizedTime = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
+  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined
+) => formatLocalizedDateTime(date, { timeStyle, hour12 }, locale);
+
+/**
+ * Returns a translated timezone based on the given Date object and
+ * locale. Undefined values mean the browser's current locale
+ * will be used.
+ */
+export const formatToLocalizedTimezone = (
+  date: Date | Dayjs,
+  locale: string | undefined = undefined,
+  timeZone: Intl.DateTimeFormatOptions["timeZone"],
+  timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
+) => {
+  // Intl.DateTimeFormat doesn't format into a timezone only, so we must
+  //  formatToParts() and return the piece we want
+  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
+  return Intl.DateTimeFormat(locale, { timeZoneName, timeZone })
+    .formatToParts(theDate)
+    .find((d) => d.type == "timeZoneName")?.value;
 };
 
 /**
@@ -69,4 +126,70 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
   // If it is 09:00, does timezoneA come before or after timezoneB in GMT?
   const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
   return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
+};
+
+/**
+ * Dayjs does not expose the timeZone value publicly through .get("timeZone")
+ * instead, we as devs are required to somewhat hack our way to get the
+ * tz value as string
+ * @param date Dayjs
+ * @returns Time Zone name
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+
+/**
+ * Verify if timeZone has Daylight Saving Time (DST).
+ *
+ * Many countries in the Northern Hemisphere. Daylight Saving Time usually starts in March-April and ends in
+ * September-November when the countries return to standard time, or winter time as it is also known.
+ *
+ * In the Southern Hemisphere (south of the equator) the participating countries usually start the DST period
+ * in September-November and end DST in March-April.
+ *
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns boolean
+ */
+export const timeZoneWithDST = (timeZone: string): boolean => {
+  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+  return jan.utcOffset() !== jul.utcOffset();
+};
+
+/**
+ * Get DST difference.
+ * Today clocks are almost always set one hour back or ahead.
+ * However, on Lord Howe Island, Australia, clocks are set only 30 minutes forward
+ * from LHST (UTC+10:30) to LHDT (UTC+11) during DST.
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns minutes
+ */
+export const getDSTDifference = (timeZone: string): number => {
+  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+  return jul.utcOffset() - jan.utcOffset();
+};
+
+/**
+ * Get UTC offset of given time zone when in DST
+ * @param timeZone Time Zone Name (Ex. America/Mazatlan)
+ * @returns minutes
+ */
+export const getUTCOffsetInDST = (timeZone: string) => {
+  if (timeZoneWithDST(timeZone)) {
+    const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
+    const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
+    return jan.utcOffset() < jul.utcOffset() ? jul.utcOffset() : jan.utcOffset();
+  }
+  return 0;
+};
+/**
+ * Verifies if given time zone is in DST
+ * @param date
+ * @returns
+ */
+export const isInDST = (date: Dayjs) => {
+  const timeZone = getTimeZone(date);
+
+  return timeZoneWithDST(timeZone) && date.utcOffset() === getUTCOffsetInDST(timeZone);
 };

@@ -14,7 +14,7 @@ export const CallToAction = (props: { label: string; href: string; secondary?: b
       margin: 0,
       textDecoration: "none",
       textTransform: "none",
-      padding: "10px 16px",
+      padding: "16px 24px",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       msoPaddingAlt: "0px",

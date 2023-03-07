@@ -1,4 +1,5 @@
-import React, { forwardRef, InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes } from "react";
+import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
 

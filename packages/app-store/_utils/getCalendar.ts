@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 import type { Calendar } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 

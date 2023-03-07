@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import type { InstallAppButtonProps } from "@calcom/app-store/types";
 import useApp from "@calcom/lib/hooks/useApp";

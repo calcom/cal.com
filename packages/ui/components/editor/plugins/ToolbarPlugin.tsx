@@ -12,18 +12,14 @@ import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $isAtNodeEnd, $wrapNodes } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import classNames from "classnames";
+import type { EditorState, GridSelection, LexicalEditor, NodeSelection, RangeSelection } from "lexical";
 import {
   $createParagraphNode,
   $getRoot,
   $getSelection,
   $insertNodes,
   $isRangeSelection,
-  EditorState,
   FORMAT_TEXT_COMMAND,
-  GridSelection,
-  LexicalEditor,
-  NodeSelection,
-  RangeSelection,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,7 +28,7 @@ import { createPortal } from "react-dom";
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
 import { FiChevronDown } from "../../icon";
-import { TextEditorProps } from "../Editor";
+import type { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;

@@ -1,11 +1,11 @@
-import jsforce, { TokenResponse } from "jsforce";
+import type { TokenResponse } from "jsforce";
+import jsforce from "jsforce";
 import { RRule } from "rrule";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
@@ -13,7 +13,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 

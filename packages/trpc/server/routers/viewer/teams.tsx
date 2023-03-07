@@ -125,6 +125,9 @@ export const viewerTeamsRouter = router({
         slug: z.string().optional(),
         hideBranding: z.boolean().optional(),
         hideBookATeamMember: z.boolean().optional(),
+        brandColor: z.string().optional(),
+        darkBrandColor: z.string().optional(),
+        theme: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -153,6 +156,9 @@ export const viewerTeamsRouter = router({
         bio: input.bio,
         hideBranding: input.hideBranding,
         hideBookATeamMember: input.hideBookATeamMember,
+        brandColor: input.brandColor,
+        darkBrandColor: input.darkBrandColor,
+        theme: input.theme,
       };
 
       if (
@@ -171,7 +177,7 @@ export const viewerTeamsRouter = router({
         // If we save slug, we don't need the requestedSlug anymore
         const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
         if (metadataParse.success) {
-          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
           data.metadata = {
             ...cleanMetadata,
           };
@@ -279,8 +285,6 @@ export const viewerTeamsRouter = router({
         },
       });
 
-      let inviteeUserId: number | undefined = invitee?.id;
-
       if (!invitee) {
         // liberal email match
 
@@ -291,7 +295,7 @@ export const viewerTeamsRouter = router({
           });
 
         // valid email given, create User and add to team
-        const user = await ctx.prisma.user.create({
+        await ctx.prisma.user.create({
           data: {
             email: input.usernameOrEmail,
             invitedTo: input.teamId,
@@ -303,7 +307,6 @@ export const viewerTeamsRouter = router({
             },
           },
         });
-        inviteeUserId = user.id;
 
         const token: string = randomBytes(32).toString("hex");
 
@@ -314,7 +317,6 @@ export const viewerTeamsRouter = router({
             expires: new Date(new Date().setHours(168)), // +1 week
           },
         });
-
         if (ctx?.user?.name && team?.name) {
           await sendTeamInviteEmail({
             language: translation,
@@ -322,6 +324,7 @@ export const viewerTeamsRouter = router({
             to: input.usernameOrEmail,
             teamName: team.name,
             joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/teams`,
+            isCalcomMember: false,
           });
         }
       } else {
@@ -357,6 +360,7 @@ export const viewerTeamsRouter = router({
             to: sendTo,
             teamName: team.name,
             joinLink: WEBAPP_URL + "/settings/teams",
+            isCalcomMember: true,
           });
         }
       }
@@ -442,7 +446,11 @@ export const viewerTeamsRouter = router({
         });
       }
 
-      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+      if (
+        myMembership?.role === MembershipRole.ADMIN &&
+        input.memberId === ctx.user.id &&
+        input.role !== MembershipRole.MEMBER
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not change yourself to a higher role.",
@@ -683,7 +691,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
+      type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)

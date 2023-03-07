@@ -1,4 +1,5 @@
-import { expect, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
@@ -86,6 +87,8 @@ async function expectToContainValidPreviewIframe(
 }
 
 test.describe.configure({ mode: "parallel" });
+
+test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Embed Code Generator Tests", () => {
   test.beforeEach(async ({ users }) => {

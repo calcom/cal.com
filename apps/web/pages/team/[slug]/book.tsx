@@ -1,16 +1,20 @@
-import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
+import type { GetServerSidePropsContext } from "next";
 
-import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { privacyFilteredLocations } from "@calcom/app-store/locations";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import getBooking, { GetBookingType } from "@lib/getBooking";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { GetBookingType } from "@lib/getBooking";
+import getBooking from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -21,6 +25,7 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 TeamBookingPage.isThemeSupported = true;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   const recurringEventCountQuery = asStringOrNull(context.query.count);
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
@@ -54,6 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       metadata: true,
       seatsPerTimeSlot: true,
       schedulingType: true,
+      bookingFields: true,
       workflows: {
         include: {
           workflow: {
@@ -68,6 +74,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           name: true,
           logo: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
         },
       },
       users: {
@@ -88,12 +97,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     //TODO: Use zodSchema to verify it instead of using Type Assertion
     locations: privacyFilteredLocations((eventTypeRaw.locations || []) as LocationObject[]),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
   };
-
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
-      metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+      metadata: EventTypeMetaDataSchema.parse(e.metadata || {}),
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       customInputs: customInputSchema.array().parse(e.customInputs || []),
@@ -110,7 +120,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (context.query.rescheduleUid) {
-    booking = await getBooking(prisma, context.query.rescheduleUid as string);
+    booking = await getBooking(prisma, context.query.rescheduleUid as string, eventTypeObject.bookingFields);
   }
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
@@ -124,14 +134,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       profile: {
         ...eventTypeObject.team,
         // FIXME: This slug is used as username on success page which is wrong. This is correctly set as username for user booking.
         slug: "team/" + eventTypeObject.slug,
         image: eventTypeObject.team?.logo || null,
-        theme: null as string | null /* Teams don't have a theme, and `BookingPage` uses it */,
-        brandColor: null /* Teams don't have a brandColor, and `BookingPage` uses it */,
-        darkBrandColor: null /* Teams don't have a darkBrandColor, and `BookingPage` uses it */,
         eventName: null,
       },
       eventType: eventTypeObject,

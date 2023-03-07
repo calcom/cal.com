@@ -11,7 +11,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { App as AppType } from "@calcom/types/App";
+import type { App as AppType } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
 import {
   FiBookOpen,
@@ -210,7 +210,7 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose prose-sm mt-8">{body}</div>
+        <div className="prose-sm prose mt-8">{body}</div>
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (
@@ -303,6 +303,11 @@ const Component = ({
   );
 };
 
+const ShellHeading = () => {
+  const { t } = useLocale();
+  return <span className="block py-2">{t("app_store")}</span>;
+};
+
 export default function App(props: {
   name: string;
   description: AppType["description"];
@@ -328,18 +333,12 @@ export default function App(props: {
   images?: string[];
   isTemplate?: boolean;
 }) {
-  const { t } = useLocale();
-
   return (
-    <Shell smallHeading isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}
         app={{ slug: props.logo, name: props.name, description: props.description }}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
       />
       {props.licenseRequired ? (
         <LicenseRequired>

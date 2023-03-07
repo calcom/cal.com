@@ -1,4 +1,6 @@
-import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import { cityMapping } from "city-timezones";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -6,23 +8,27 @@ import z from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
-import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
+import {
+  getRecordingsOfCalVideoByRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+} from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -42,6 +48,7 @@ import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
+import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
 import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
@@ -141,6 +148,7 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  cityTimezones: publicProcedure.query(() => cityMapping),
 });
 
 // routes only available to authenticated users
@@ -163,6 +171,7 @@ const loggedInViewerRouter = router({
       avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
+      defaultScheduleId: user.defaultScheduleId,
       completedOnboarding: user.completedOnboarding,
       twoFactorEnabled: user.twoFactorEnabled,
       disableImpersonation: user.disableImpersonation,
@@ -319,7 +328,11 @@ const loggedInViewerRouter = router({
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
-    const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+    const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
+      calendarCredentials,
+      user.selectedCalendars,
+      user.destinationCalendar?.externalId
+    );
 
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
@@ -334,7 +347,7 @@ const loggedInViewerRouter = router({
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-      const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", credentialId, email } = connectedCalendars[0].primary ?? {};
       user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
         data: {
           userId: user.id,
@@ -353,6 +366,7 @@ const loggedInViewerRouter = router({
           cal.externalId === user.destinationCalendar?.externalId &&
           cal.integration === user.destinationCalendar?.integration
       );
+
       if (!destinationCal) {
         // If destinationCalendar is out of date, update it with the first primary connected calendar
         const { integration = "", externalId = "" } = connectedCalendars[0].primary ?? {};
@@ -368,7 +382,10 @@ const loggedInViewerRouter = router({
 
     return {
       connectedCalendars,
-      destinationCalendar: user.destinationCalendar,
+      destinationCalendar: {
+        ...(user.destinationCalendar as DestinationCalendar),
+        ...destinationCalendar,
+      },
     };
   }),
   setDestinationCalendar: authedProcedure
@@ -384,7 +401,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       const credentialId = allCals.find(
@@ -444,9 +461,9 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
-
+      //TODO: Refactor this to pick up only needed fields and prevent more leaking
       let apps = enabledApps.map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+        ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
             .filter((c) => c.type === app.type && c.invalid)
@@ -586,12 +603,14 @@ const loggedInViewerRouter = router({
         locale: z.string().optional(),
         timeFormat: z.number().optional(),
         disableImpersonation: z.boolean().optional(),
+        metadata: userMetadata.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
+        metadata: input.metadata as Prisma.InputJsonValue,
       };
       let isPremiumUsername = false;
       if (input.username) {
@@ -807,11 +826,14 @@ const loggedInViewerRouter = router({
           id: id,
           userId: ctx.user.id,
         },
-        include: {
+        select: {
+          key: true,
+          appId: true,
           app: {
             select: {
               slug: true,
               categories: true,
+              dirName: true,
             },
           },
         },
@@ -828,7 +850,11 @@ const loggedInViewerRouter = router({
         select: {
           id: true,
           locations: true,
-          destinationCalendar: true,
+          destinationCalendar: {
+            include: {
+              credential: true,
+            },
+          },
           price: true,
           currency: true,
           metadata: true,
@@ -872,7 +898,7 @@ const loggedInViewerRouter = router({
 
         // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
-          if (eventType.destinationCalendar?.integration === credential.type) {
+          if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
             const destinationCalendar = await prisma.destinationCalendar.findFirst({
               where: {
                 id: eventType.destinationCalendar?.id,
@@ -910,7 +936,7 @@ const loggedInViewerRouter = router({
 
         const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
-        const stripeAppData = getStripeAppData({ ...eventType, metadata });
+        const stripeAppData = getPaymentAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
@@ -997,12 +1023,11 @@ const loggedInViewerRouter = router({
                 });
 
                 for (const payment of booking.payment) {
-                  // Right now we only close payments on Stripe
-                  const stripeKeysSchema = z.object({
-                    stripe_user_id: z.string(),
-                  });
-                  const { stripe_user_id } = stripeKeysSchema.parse(credential.key);
-                  await closePayments(payment.externalId, stripe_user_id);
+                  try {
+                    await deletePayment(payment.id, credential);
+                  } catch (e) {
+                    console.error(e);
+                  }
                   await prisma.payment.delete({
                     where: {
                       id: payment.id,
@@ -1073,6 +1098,7 @@ const loggedInViewerRouter = router({
         });
         await prisma.webhook.deleteMany({
           where: {
+            userId: ctx.user.id,
             appId: "zapier",
           },
         });
@@ -1095,6 +1121,11 @@ const loggedInViewerRouter = router({
           id: id,
         },
       });
+      // Revalidate user calendar cache.
+      if (credential.app?.slug.includes("calendar")) {
+        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+      }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const { prisma, user } = ctx;
@@ -1129,8 +1160,9 @@ const loggedInViewerRouter = router({
         roomName: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { roomName } = input;
+
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
         return res;
@@ -1140,6 +1172,82 @@ const loggedInViewerRouter = router({
         });
       }
     }),
+  getDownloadLinkOfCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        recordingId: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { recordingId } = input;
+      const { session } = ctx;
+
+      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+
+      if (!isDownloadAllowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
+
+      try {
+        const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
+        return res;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
+      }
+    }),
+  getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
+    return userMetadata.parse(ctx.user.metadata)?.defaultConferencingApp;
+  }),
+  updateUserDefaultConferencingApp: authedProcedure
+    .input(
+      z.object({
+        appSlug: z.string().optional(),
+        appLink: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const currentMetadata = userMetadata.parse(ctx.user.metadata);
+      const credentials = ctx.user.credentials;
+      const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
+      const appLocation = foundApp?.appData?.location;
+
+      if (!foundApp || !appLocation)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
+
+      if (appLocation.linkType === "static" && !input.appLink) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
+      }
+
+      if (appLocation.linkType === "static" && appLocation.urlRegExp) {
+        const validLink = z
+          .string()
+          .regex(new RegExp(appLocation.urlRegExp), "Invalid App Link")
+          .parse(input.appLink);
+        if (!validLink) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid app link" });
+        }
+      }
+
+      await ctx.prisma.user.update({
+        where: {
+          id: ctx.user.id,
+        },
+        data: {
+          metadata: {
+            ...currentMetadata,
+            defaultConferencingApp: {
+              appSlug: input.appSlug,
+              appLink: input.appLink,
+            },
+          },
+        },
+      });
+      return input;
+    }),
 });
 
 export const viewerRouter = mergeRouters(
@@ -1148,6 +1256,7 @@ export const viewerRouter = mergeRouters(
     loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
+    deploymentSetup: deploymentSetupRouter,
     bookings: bookingsRouter,
     eventTypes: eventTypesRouter,
     availability: availabilityRouter,

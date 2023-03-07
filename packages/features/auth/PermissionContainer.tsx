@@ -1,7 +1,7 @@
+import { UserPermissionRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { FC, Fragment } from "react";
-
-import { UserPermissionRole } from ".prisma/client";
+import type { FC } from "react";
+import { Fragment } from "react";
 
 type AdminRequiredProps = {
   as?: keyof JSX.IntrinsicElements;

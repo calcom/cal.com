@@ -7,6 +7,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
@@ -38,6 +39,42 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     },
   });
+
+  //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
+  const remindersToCancel = await prisma.workflowReminder.findMany({
+    where: {
+      cancelled: true,
+      scheduledDate: {
+        lte: dayjs().add(1, "hour").toISOString(),
+      },
+    },
+  });
+
+  try {
+    const workflowRemindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder, never>[] = [];
+
+    for (const reminder of remindersToCancel) {
+      await client.request({
+        url: "/v3/user/scheduled_sends",
+        method: "POST",
+        body: {
+          batch_id: reminder.referenceId,
+          status: "cancel",
+        },
+      });
+
+      const workflowReminderToDelete = prisma.workflowReminder.delete({
+        where: {
+          id: reminder.id,
+        },
+      });
+
+      workflowRemindersToDelete.push(workflowReminderToDelete);
+    }
+    await Promise.all(workflowRemindersToDelete);
+  } catch (error) {
+    console.log(`Error cancelling scheduled Emails: ${error}`);
+  }
 
   //find all unscheduled Email reminders
   const unscheduledReminders = await prisma.workflowReminder.findMany({
@@ -95,6 +132,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const locale =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? reminder.booking?.attendees[0].locale
+          : reminder.booking?.user?.locale;
+
       let emailContent = {
         emailSubject: reminder.workflowStep.emailSubject || "",
         emailBody: {
@@ -131,13 +174,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const emailSubject = await customTemplate(
             reminder.workflowStep.emailSubject || "",
             variables,
-            reminder.booking?.user?.locale || ""
+            locale || ""
           );
           emailContent.emailSubject = emailSubject.text;
           emailContent.emailBody = await customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
-            reminder.booking?.user?.locale || ""
+            locale || ""
           );
           break;
       }
