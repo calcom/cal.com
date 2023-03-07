@@ -483,6 +483,7 @@ export const workflowsRouter = router({
             },
           },
           steps: true,
+          activeOn: true,
         },
       });
 
@@ -756,6 +757,7 @@ export const workflowsRouter = router({
             booking: true,
           },
         });
+        const smsReminderNumberNeeded = steps.some((step) => step.action === WorkflowActions.SMS_ATTENDEE);
         //step was deleted
         if (!newStep) {
           // cancel all workflow reminders from deleted steps
@@ -773,6 +775,15 @@ export const workflowsRouter = router({
               id: oldStep.id,
             },
           });
+
+          if (!smsReminderNumberNeeded) {
+            for (const activeOnRef of userWorkflow.activeOn)
+              await removeSmsReminderFieldForBooking({
+                workflowId: id,
+                eventTypeId: activeOnRef.eventTypeId,
+              });
+          }
+
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
           if (
@@ -924,6 +935,20 @@ export const workflowsRouter = router({
                 );
               }
             });
+          }
+
+          for (const eventTypeId of activeOn) {
+            if (smsReminderNumberNeeded) {
+              await upsertSmsReminderFieldForBooking({
+                workflowId: id,
+                isSmsReminderNumberRequired: steps.some(
+                  (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+                ),
+                eventTypeId,
+              });
+            } else {
+              removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId });
+            }
           }
         }
       });
@@ -1337,16 +1362,11 @@ action === WorkflowActions.EMAIL_ADDRESS*/
             eventTypeId,
           },
         });
-        await removeBookingField(
-          {
-            name: "smsReminderNumber",
-          },
-          {
-            id: "" + workflowId,
-            type: "workflow",
-          },
-          eventTypeId
-        );
+
+        await removeSmsReminderFieldForBooking({
+          workflowId,
+          eventTypeId,
+        });
       } else {
         await ctx.prisma.workflowsOnEventTypes.create({
           data: {
