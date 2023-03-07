@@ -92,6 +92,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
         const dependencyInstalled = dbApps.some(
           (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
         );
+       // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
         const dependencyName = getAppFromSlug(dependency)?.name;
         return { name: dependencyName, installed: dependencyInstalled };
       });
@@ -111,20 +112,6 @@ export async function getAppRegistryWithCredentials(userId: number) {
       ...(app.dependencies && { dependencyData }),
     });
 
-    if (app.slug === "typeform") {
-      console.log({
-        rating: rating || 0,
-        reviews: reviews || 0,
-        trending: trending || true,
-        verified: verified || true,
-        ...remainingAppProps,
-        categories: dbapp.categories,
-        credentials: dbapp.credentials,
-        installed: true,
-        isDefault: usersDefaultApp === dbapp.slug,
-        ...(app.dependencies && { dependencyData }),
-      });
-    }
   }
 
   return apps;
