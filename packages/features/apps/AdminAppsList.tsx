@@ -1,14 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
+import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { useState, useReducer, FC } from "react";
+import type { FC } from "react";
+import { useReducer, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import { classNames as cs } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   ConfirmationDialogContent,
@@ -16,11 +20,6 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   EmptyScreen,
   Form,
   List,
@@ -29,14 +28,9 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  Switch,
 } from "@calcom/ui";
-import {
-  FiAlertCircle,
-  FiEdit,
-  FiMoreHorizontal,
-  FiCheckCircle,
-  FiXCircle,
-} from "@calcom/ui/components/icon";
+import { FiAlertCircle, FiEdit } from "@calcom/ui/components/icon";
 
 import AppListCard from "../../../apps/web/components/AppListCard";
 
@@ -56,6 +50,7 @@ const IntegrationContainer = ({
   const [disableDialog, setDisableDialog] = useState(false);
 
   const showKeyModal = () => {
+    // FIXME: This is preventing the modal from opening for apps that has null keys
     if (app.keys) {
       handleModelOpen({
         dirName: app.dirName,
@@ -92,33 +87,23 @@ const IntegrationContainer = ({
         title={app.name}
         isTemplate={app.isTemplate}
         actions={
-          <div className="flex justify-self-end">
-            <Dropdown modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {app.keys && (
-                  <DropdownMenuItem>
-                    <DropdownItem onClick={showKeyModal} type="button" StartIcon={FiEdit}>
-                      {t("edit_keys")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (app.enabled) {
-                      setDisableDialog(true);
-                    } else {
-                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                    }
-                  }}>
-                  <DropdownItem StartIcon={app.enabled ? FiXCircle : FiCheckCircle} type="button">
-                    {app.enabled ? t("disable") : t("enable")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </Dropdown>
+          <div className="flex items-center justify-self-end">
+            {app.keys && (
+              <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
+                <FiEdit />
+              </Button>
+            )}
+
+            <Switch
+              checked={app.enabled}
+              onClick={() => {
+                if (app.enabled) {
+                  setDisableDialog(true);
+                } else {
+                  enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                }
+              }}
+            />
           </div>
         }
       />
@@ -148,26 +133,39 @@ const AdminAppsList = ({
   baseURL,
   className,
   useQueryParam = false,
+  classNames,
+  onSubmit = noop,
+  ...rest
 }: {
   baseURL: string;
+  classNames?: {
+    form?: string;
+    appCategoryNavigationRoot?: string;
+    appCategoryNavigationContainer?: string;
+    verticalTabsItem?: string;
+  };
   className?: string;
   useQueryParam?: boolean;
-}) => {
-  const router = useRouter();
+  onSubmit?: () => void;
+} & Omit<JSX.IntrinsicElements["form"], "onSubmit">) => {
   return (
     <form
-      id="wizard-step-2"
-      name="wizard-step-2"
+      {...rest}
+      className={
+        classNames?.form ?? "max-w-80 mb-4 rounded-md bg-white px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+      }
       onSubmit={(e) => {
         e.preventDefault();
-        router.replace("/");
+        onSubmit();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
-        fromAdmin
         useQueryParam={useQueryParam}
-        containerClassname="min-w-0 w-full"
-        className={className}>
+        classNames={{
+          root: className,
+          verticalTabsItem: classNames?.verticalTabsItem,
+          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
+        }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
     </form>

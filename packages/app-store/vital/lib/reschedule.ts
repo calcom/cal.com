@@ -1,4 +1,5 @@
-import { Booking, BookingReference, BookingStatus, User } from "@prisma/client";
+import type { Booking, BookingReference, User } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";

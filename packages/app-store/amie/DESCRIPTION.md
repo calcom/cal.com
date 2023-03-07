@@ -15,4 +15,3 @@ items:
 - Track what you listened to when
 - Send scheduling links guests love
 - Always know what your team is up to
-

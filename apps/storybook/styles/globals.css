@@ -2,4 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "../../../packages/ui/styles/shared-globals.css"
+@import "../../../packages/ui/styles/shared-globals.css";
+
+:root {
+  --font-inter: "Inter var";
+  --font-cal: "Cal Sans";
+}

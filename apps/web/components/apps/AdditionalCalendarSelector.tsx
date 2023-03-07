@@ -1,4 +1,4 @@
-import { OptionProps } from "react-select";
+import type { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

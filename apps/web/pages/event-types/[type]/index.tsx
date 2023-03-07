@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PeriodType, SchedulingType } from "@prisma/client";
-import { GetServerSidePropsContext } from "next";
-import { useState } from "react";
+import type { PeriodType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
+import type { GetServerSidePropsContext } from "next";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { EventLocationType } from "@calcom/core/location";
+import { validateCustomEventName } from "@calcom/core/event";
+import type { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -15,14 +17,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { trpc, RouterOutputs } from "@calcom/trpc/react";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
@@ -62,7 +66,7 @@ export type FormValues = {
     phone?: string;
   }[];
   customInputs: CustomInputParsed[];
-  schedule: number;
+  schedule: number | null;
   periodType: PeriodType;
   periodDays: number;
   periodCountCalendarDays: "1" | "0";
@@ -84,6 +88,7 @@ export type FormValues = {
   bookingLimits?: BookingLimit;
   hosts: { userId: number }[];
   hostsFixed: { userId: number }[];
+  bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -118,7 +123,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     extendsFeature: "EventType",
   });
 
-  const { eventType, locationOptions, team, teamMembers, currentUserMembership } = props;
+  const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -176,47 +181,64 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
-  const formMethods = useForm<FormValues>({
-    defaultValues: {
-      title: eventType.title,
-      locations: eventType.locations || [],
-      recurringEvent: eventType.recurringEvent || null,
-      description: eventType.description ?? undefined,
-      schedule: eventType.schedule || undefined,
-      bookingLimits: eventType.bookingLimits || undefined,
-      length: eventType.length,
-      hidden: eventType.hidden,
-      periodDates: {
-        startDate: periodDates.startDate,
-        endDate: periodDates.endDate,
-      },
-      periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
-      schedulingType: eventType.schedulingType,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      metadata,
-      hosts: !!eventType.hosts?.length
-        ? eventType.hosts.filter((host) => !host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
-            .map((user) => ({ userId: user.id })),
-      hostsFixed: !!eventType.hosts?.length
-        ? eventType.hosts.filter((host) => host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
-            .map((user) => ({ userId: user.id })),
+  const defaultValues = {
+    title: eventType.title,
+    locations: eventType.locations || [],
+    recurringEvent: eventType.recurringEvent || null,
+    description: eventType.description ?? undefined,
+    schedule: eventType.schedule || undefined,
+    bookingLimits: eventType.bookingLimits || undefined,
+    length: eventType.length,
+    hidden: eventType.hidden,
+    periodDates: {
+      startDate: periodDates.startDate,
+      endDate: periodDates.endDate,
     },
+    bookingFields: eventType.bookingFields,
+    periodType: eventType.periodType,
+    periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+    schedulingType: eventType.schedulingType,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    metadata,
+    hosts: !!eventType.hosts?.length
+      ? eventType.hosts.filter((host) => !host.isFixed)
+      : eventType.users
+          .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
+          .map((user) => ({ userId: user.id })),
+    hostsFixed: !!eventType.hosts?.length
+      ? eventType.hosts.filter((host) => host.isFixed)
+      : eventType.users
+          .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
+          .map((user) => ({ userId: user.id })),
+  } as const;
+
+  const formMethods = useForm<FormValues>({
+    defaultValues,
     resolver: zodResolver(
       z
         .object({
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
+          eventName: z
+            .string()
+            .refine((val) => validateCustomEventName(val, t("invalid_event_name_variables")) === true, {
+              message: t("invalid_event_name_variables"),
+            })
+            .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
+          bookingFields: eventTypeBookingFields,
         })
         // TODO: Add schema for other fields later.
         .passthrough()
     ),
   });
+
+  useEffect(() => {
+    if (!formMethods.formState.isDirty) {
+      //TODO: What's the best way to sync the form with backend
+      formMethods.setValue("bookingFields", defaultValues.bookingFields);
+    }
+  }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
@@ -239,6 +261,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         locationOptions={locationOptions}
         team={team}
         teamMembers={teamMembers}
+        destinationCalendar={destinationCalendar}
       />
     ),
     availability: <AvailabilityTab isTeamEvent={!!team} />,
@@ -293,7 +316,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             ...input
           } = values;
 
-          const hosts: (typeof hostsInput[number] & { isFixed?: boolean })[] = [];
+          const hosts: ((typeof hostsInput)[number] & { isFixed?: boolean })[] = [];
           if (hostsInput || hostsFixed) {
             hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
           }
@@ -340,13 +363,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery(
-    { id: props.type },
-    {
-      initialData: props.initialData,
-    }
-  );
-
+  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
   if (isLoading || !data) return null;
   return <EventTypePage {...data} />;
 };
@@ -389,9 +406,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   } catch (err) {
-    return {
-      notFound: true,
-    };
+    throw err;
   }
 };
 

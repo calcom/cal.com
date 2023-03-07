@@ -1,6 +1,6 @@
-import { z } from "zod";
+import type { z } from "zod";
 
-import { zodFieldView, zodField, zodRouterField, zodRouterFieldView } from "../zod";
+import type { zodFieldView, zodField, zodRouterField, zodRouterFieldView } from "../zod";
 
 export default function isRouterLinkedField(
   field: z.infer<typeof zodFieldView> | z.infer<typeof zodField>

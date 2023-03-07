@@ -22,7 +22,11 @@ export const createPaymentsFixture = (page: Page) => {
           currency: "usd",
           success,
           refunded,
-          type: "STRIPE",
+          app: {
+            connect: {
+              slug: "stripe",
+            },
+          },
           data: {},
           externalId: "DEMO_PAYMENT_FROM_DB_" + Date.now(),
           booking: {

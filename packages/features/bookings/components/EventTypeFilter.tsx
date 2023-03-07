@@ -2,7 +2,8 @@ import { useSession } from "next-auth/react";
 import { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover } from "@calcom/ui";
 
 import { groupBy } from "../groupBy";

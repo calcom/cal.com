@@ -5,7 +5,6 @@ import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { FiLock } from "@calcom/ui/components/icon";
@@ -23,7 +22,6 @@ const schema = z.object({
 export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
-  const telemetry = useTelemetry();
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
@@ -42,9 +40,6 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
       className="flex w-full justify-center"
       onClick={async (event) => {
         event.preventDefault();
-
-        // track Google logins. Without personal data/payload
-        telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
 
         if (!HOSTED_CAL_FEATURES) {
           await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });

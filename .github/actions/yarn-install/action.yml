@@ -1,0 +1,19 @@
+name: Yarn install
+description: "Install all NPM dependencies, caches them and restores if necessary"
+inputs:
+  node_version:
+    required: false
+    default: v16.x
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node ${{ inputs.node_version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: "yarn"
+    - name: Yarn install
+      shell: bash
+      run: |
+        yarn install --prefer-offline --frozen-lockfile
+        yarn prisma generate

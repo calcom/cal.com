@@ -1,4 +1,5 @@
-import React, { BaseSyntheticEvent, useState } from "react";
+import type { BaseSyntheticEvent } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";

@@ -2,20 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
-const withTM = require("next-transpile-modules")([
-  "@calcom/app-store",
-  "@calcom/core",
-  "@calcom/dayjs",
-  "@calcom/emails",
-  "@calcom/embed-core",
-  "@calcom/embed-react",
-  "@calcom/embed-snippet",
-  "@calcom/features",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/trpc",
-  "@calcom/ui",
-]);
 
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -33,6 +19,12 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
+}
+
+if (process.env.CSP_POLICY === "strict" && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "Strict CSP policy(for style-src) is not yet supported in production. You can experiment with it in Dev Mode"
+  );
 }
 
 if (!process.env.EMAIL_FROM) {
@@ -74,9 +66,7 @@ if (process.env.ANALYZE === "true") {
   plugins.push(withBundleAnalyzer);
 }
 
-plugins.push(withTM);
 plugins.push(withAxiom);
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -89,16 +79,35 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-  // modularizeImports: {
-  //   "@calcom/ui": {
-  //     transform: "@calcom/ui/components/{{member}}",
-  //   },
-  // },
+  transpilePackages: [
+    "@calcom/app-store",
+    "@calcom/core",
+    "@calcom/dayjs",
+    "@calcom/emails",
+    "@calcom/embed-core",
+    "@calcom/embed-react",
+    "@calcom/embed-snippet",
+    "@calcom/features",
+    "@calcom/lib",
+    "@calcom/prisma",
+    "@calcom/trpc",
+    "@calcom/ui",
+  ],
+  modularizeImports: {
+    "@calcom/ui/components/icon": {
+      transform: "@react-icons/all-files/fi/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
+    },
+    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+    // "@calcom/ui": {
+    //   transform: "@calcom/ui/components/{{member}}",
+    // },
+  },
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -119,6 +128,8 @@ const nextConfig = {
         ],
       })
     );
+
+    config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -179,12 +190,33 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // prettier-ignore
-        source: "/:path*((?<!\/embed$)(?<!\/embed\/preview\.html$))",
+        source: "/auth/:path*",
         headers: [
           {
             key: "X-Frame-Options",
             value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/signup",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
         ],
       },
