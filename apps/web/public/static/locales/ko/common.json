@@ -1606,7 +1606,7 @@
   "form_deleted": "양식 삭제됨",
   "delete_form": "양식 삭제",
   "delete_form_action": "예, 양식을 삭제하겠습니다",
-  "delete_form_confirmation_1": "이 양식을 삭제하시겠습니까? 링크를 공유한 사용자는 더 이상 링크를 사용하여 예약할 수 없습니다. 또한 모든 관련 응답도 삭제됩니다.",
+  "delete_form_confirmation": "이 양식을 삭제하시겠습니까? 링크를 공유한 사용자는 더 이상 링크를 사용하여 예약할 수 없습니다. 또한 모든 관련 응답도 삭제됩니다.",
   "typeform_redirect_url_copied": "Typeform Redirect URL이 복사되었습니다! Typeform 형식으로 이동하여 URL을 설정할 수 있습니다.",
   "modifications_in_fields_warning": "다음 양식의 필드 및 경로 수정은 이 양식에 반영됩니다.",
   "connected_forms": "연결된 양식",

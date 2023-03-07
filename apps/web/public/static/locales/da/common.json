@@ -1611,7 +1611,7 @@
   "form_deleted": "Formular slettet",
   "delete_form": "Slet Formular",
   "delete_form_action": "Ja, slet formular",
-  "delete_form_confirmation_1": "Er du sikker på, at du vil slette denne formular? Enhver, som du har delt linket med, vil ikke længere kunne booke via dette. Desuden ville alle tilknyttede svar blive slettet.",
+  "delete_form_confirmation": "Er du sikker på, at du vil slette denne formular? Enhver, som du har delt linket med, vil ikke længere kunne booke via dette. Desuden ville alle tilknyttede svar blive slettet.",
   "typeform_redirect_url_copied": "Typeform Redirect URL kopieret! Du kan nu angive URL i Typeform form.",
   "modifications_in_fields_warning": "Ændringer i felter og ruter af følgende formularer vil blive afspejlet i denne form.",
   "connected_forms": "Tilsluttede Formularer",

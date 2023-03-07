@@ -231,7 +231,7 @@ function Dialogs({
             });
           }}>
           <ul className="list-disc pl-3">
-            <li> {t("delete_form_confirmation_1")}</li>
+            <li> {t("delete_form_confirmation")}</li>
             <li> {t("delete_form_confirmation_2")}</li>
           </ul>
         </ConfirmationDialogContent>

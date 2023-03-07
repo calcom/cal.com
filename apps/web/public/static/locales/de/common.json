@@ -1605,7 +1605,7 @@
   "form_deleted": "Formular gelöscht",
   "delete_form": "Formular löschen",
   "delete_form_action": "Ja, Formular löschen",
-  "delete_form_confirmation_1": "Sind Sie sicher, dass Sie dieses Formular löschen möchten? Jede Person, mit dem Link kann nicht mehr mit dem Formular buchen. Außerdem wurden alle zugehörigen Antworten gelöscht.",
+  "delete_form_confirmation": "Sind Sie sicher, dass Sie dieses Formular löschen möchten? Jede Person, mit dem Link kann nicht mehr mit dem Formular buchen. Außerdem wurden alle zugehörigen Antworten gelöscht.",
   "typeform_redirect_url_copied": "Typeform Umleitungs-URL kopiert! Sie können die URL in Typeform einstellen.",
   "modifications_in_fields_warning": "Änderungen in den Feldern und Routen der folgenden Formulare werden in diesem Formular reflektiert.",
   "connected_forms": "Verbundene Formulare",

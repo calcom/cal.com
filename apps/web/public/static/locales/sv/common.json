@@ -1606,7 +1606,7 @@
   "form_deleted": "Formulär borttaget",
   "delete_form": "Ta bort formulär",
   "delete_form_action": "Ja, ta bort formulär",
-  "delete_form_confirmation_1": "Är du säker på att du vill ta bort det här formuläret? Alla som du har delat länken med kommer inte längre att kunna boka med hjälp av den. Dessutom raderas alla tillhörande svar.",
+  "delete_form_confirmation": "Är du säker på att du vill ta bort det här formuläret? Alla som du har delat länken med kommer inte längre att kunna boka med hjälp av den. Dessutom raderas alla tillhörande svar.",
   "typeform_redirect_url_copied": "Typeform Redirect URL kopierad! Du kan ange URL:n i Typeform-formuläret.",
   "modifications_in_fields_warning": "Ändringar i fält och omdirigeringar av följande formulär kommer att återspeglas i detta formulär.",
   "connected_forms": "Anslutna formulär",

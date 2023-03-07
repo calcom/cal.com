@@ -1620,7 +1620,7 @@
   "form_deleted": "Formulaire supprimé",
   "delete_form": "Supprimer le formulaire",
   "delete_form_action": "Oui, supprimer le formulaire",
-  "delete_form_confirmation_1": "Voulez-vous vraiment supprimer ce formulaire ? Toute personne avec qui vous avez partagé le lien ne pourra plus passer de réservation en l'utilisant. De plus, toutes les réponses associées seraient supprimées.",
+  "delete_form_confirmation": "Voulez-vous vraiment supprimer ce formulaire ? Toute personne avec qui vous avez partagé le lien ne pourra plus passer de réservation en l'utilisant. De plus, toutes les réponses associées seraient supprimées.",
   "typeform_redirect_url_copied": "Lien de redirection Typeform copié ! Vous pouvez aller définir le lien dans le formulaire Typeform.",
   "modifications_in_fields_warning": "Les modifications dans les champs et les routes des formulaires suivants seront répercutées dans ce formulaire.",
   "connected_forms": "Formulaires connectés",
