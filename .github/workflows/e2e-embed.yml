@@ -32,12 +32,12 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-core
+          name: test-results-embed-core
           path: packages/embeds/embed-core/playwright/results
 
       - name: Upload embed-react results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-react
+          name: test-results-embed-react
           path: packages/embeds/embed-react/playwright/results

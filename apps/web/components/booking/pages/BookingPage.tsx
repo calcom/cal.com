@@ -426,8 +426,8 @@ const BookingPage = ({
     } else {
       mutation.mutate({
         ...booking,
-        start: dayjs(date).format(),
-        end: dayjs(date).add(duration, "minute").format(),
+        start: dayjs(date).tz(timeZone()).format(),
+        end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
@@ -481,7 +481,7 @@ const BookingPage = ({
         )}>
         <div
           className={classNames(
-            "main overflow-hidden",
+            "main",
             isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
