@@ -141,7 +141,7 @@ export const CreateANewTeamForm = () => {
           </Button>
           <Button
             disabled={
-              newTeamFormMethods.formState.isSubmitted ||
+              newTeamFormMethods.formState.isSubmitting ||
               createTeamMutation.isError ||
               createTeamMutation.isLoading
             }
