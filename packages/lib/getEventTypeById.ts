@@ -282,9 +282,20 @@ export default async function getEventTypeById({
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 
+  let destinationCalendar = eventTypeObject.destinationCalendar;
+  if (!destinationCalendar) {
+    destinationCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: userId,
+        eventTypeId: null,
+      },
+    });
+  }
+
   const finalObj = {
     eventType: eventTypeObject,
     locationOptions,
+    destinationCalendar,
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,
