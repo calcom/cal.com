@@ -25,7 +25,6 @@ import {
 } from "@calcom/ui/components/icon";
 
 /* These app slugs all require Google Cal to be installed */
-const appsThatRequiresGCal = ["google-meet", "amie", "vimcal"];
 
 const Component = ({
   name,
