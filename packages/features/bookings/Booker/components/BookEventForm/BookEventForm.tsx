@@ -7,17 +7,16 @@ import { useForm } from "react-hook-form";
 import type { TFunction } from "react-i18next";
 import { z } from "zod";
 
+import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import {
   useTimePreferences,
   mapBookingToMutationInput,
-  validateUniqueGuests,
   createBooking,
   createRecurringBooking,
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { HttpError } from "@calcom/lib/http-error";
@@ -28,7 +27,6 @@ import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
-import type { BookingFormValues } from "./form-config";
 
 type BookEventFormProps = {
   onCancel?: () => void;
@@ -69,22 +67,35 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
 
-  const bookingFormSchema = z
-    .object({
-      responses: getBookingResponsesSchema({
-        bookingFields: getBookingFieldsWithSystemFields(event),
-      }),
-    })
-    .passthrough();
-
   const defaultValues = () => {
     if (isRescheduling) {
       return {
-        email: rescheduleBooking?.attendees?.[0].email,
-        name: rescheduleBooking?.attendees?.[0].name,
+        responses: {
+          email: rescheduleBooking?.attendees?.[0].email,
+          name: rescheduleBooking?.attendees?.[0].name,
+        },
       };
     }
     return {};
+  };
+
+  const bookingFormSchema = z
+    .object({
+      responses: event?.data?.bookingFields
+        ? getBookingResponsesSchema({
+            bookingFields: event.data.bookingFields,
+          })
+        : // Fallback until event is loaded.
+          z.object({}),
+    })
+    .passthrough();
+
+  type BookingFormValues = {
+    locationType?: EventLocationType["type"];
+    responses: z.infer<typeof bookingFormSchema>["responses"];
+    // Key is not really part of form values, but only used to have a key
+    // to set generic error messages on. Needed until RHF has implemented root error keys.
+    globalError: undefined;
   };
 
   const bookingForm = useForm<BookingFormValues>({
@@ -100,8 +111,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
           createPaymentLink({
             paymentUid,
             date: timeslot,
-            name: bookingForm.getValues("name"),
-            email: bookingForm.getValues("email"),
+            name: bookingForm.getValues("responses.name"),
+            email: bookingForm.getValues("responses.email"),
             absolute: false,
           })
         );
@@ -110,7 +121,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       return await router.push(
         getSuccessPath({
           uid,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           formerTime: rescheduleBooking?.startTime
             ? dayjs(rescheduleBooking?.startTime).toISOString()
             : undefined,
@@ -127,7 +138,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       return await router.push(
         getSuccessPath({
           uid,
-          email: bookingForm.getValues("email"),
+          email: bookingForm.getValues("responses.email"),
           slug: `${eventSlug}`,
           isRecurring: true,
         })
@@ -166,13 +177,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       event.data.metadata?.multipleDuration.includes(duration)
         ? duration
         : event.data.length;
-
-    const guestErrors = validateUniqueGuests(values.guests, values.email, t);
-
-    if (guestErrors) {
-      guestErrors.forEach((error) => bookingForm.setError(error.key, error.error));
-      return;
-    }
 
     const bookingInput = {
       values,

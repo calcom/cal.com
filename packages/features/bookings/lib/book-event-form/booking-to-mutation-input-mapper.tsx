@@ -3,11 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
-import type { BookingFormValues } from "../../Booker/components/BookEventForm/form-config";
 import type { PublicEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
 
 type BookingOptions = {
-  values: BookingFormValues;
+  values: Record<string, unknown>;
   event: PublicEvent;
   date: string;
   // @NOTE: duration is not validated in this function

@@ -223,6 +223,7 @@ const publicViewerRouter = router({
           price: true,
           currency: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
           workflows: {
             include: {
               workflow: {
