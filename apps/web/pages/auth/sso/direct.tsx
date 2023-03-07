@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 // This page is used to initiate the SAML authentication flow by redirecting to the SAML provider.
 // Accessible only on self-hosted Cal.com instances.
