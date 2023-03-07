@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.6.6",
+  "version": "2.6.7",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -45,7 +45,6 @@
     "@hookform/resolvers": "^2.9.7",
     "@next-auth/prisma-adapter": "^1.0.4",
     "@next/bundle-analyzer": "^13.1.6",
-    "@next/font": "^13.1.6",
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-collapsible": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
@@ -76,6 +75,7 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
+    "jose": "^4.13.1",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.10.12",
     "lodash": "^4.17.21",
@@ -92,7 +92,6 @@
     "next-i18next": "^11.3.0",
     "next-seo": "^4.26.0",
     "next-themes": "^0.2.0",
-    "next-transpile-modules": "^10.0.0",
     "nodemailer": "^6.7.8",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.1",

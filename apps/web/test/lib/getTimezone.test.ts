@@ -63,7 +63,10 @@ it("should filter cities for a valid city name", () => {
 it("should return appropriate timezone(s) for a given city name array", () => {
   expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
     Object {
+      "America/Argentina/Cordoba": "San Francisco",
+      "America/El_Salvador": "San Francisco Gotera",
       "America/Los_Angeles": "San Francisco",
+      "America/Santo_Domingo": "San Francisco de Macoris",
       "America/Sao_Paulo": "Sao Francisco do Sul",
     }
   `);

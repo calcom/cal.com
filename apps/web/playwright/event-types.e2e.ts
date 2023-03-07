@@ -139,6 +139,8 @@ test.describe("Event Types tests", () => {
       const fillLocation = async (inputText: string) => {
         await page.locator("#location-select").click();
         await page.locator("text=In Person (Organizer Address)").click();
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(250);
         await page.locator('input[name="locationAddress"]').fill(inputText);
         await page.locator("[data-testid=display-location]").check();
         await page.locator("[data-testid=update-location]").click();
