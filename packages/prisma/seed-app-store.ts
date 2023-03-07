@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import dotEnv from "dotenv";
 import fs from "fs";
 import path from "path";
@@ -229,6 +229,12 @@ export default async function main() {
     await createApp("zoom", "zoomvideo", ["video"], "zoom_video", {
       client_id: process.env.ZOOM_CLIENT_ID,
       client_secret: process.env.ZOOM_CLIENT_SECRET,
+    });
+  }
+  if (process.env.WEBEX_CLIENT_ID && process.env.WEBEX_CLIENT_SECRET) {
+    await createApp("webex", "webex", ["video"], "webex_video", {
+      client_id: process.env.WEBEX_CLIENT_ID,
+      client_secret: process.env.WEBEX_CLIENT_SECRET,
     });
   }
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");

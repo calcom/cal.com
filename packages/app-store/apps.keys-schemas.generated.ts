@@ -21,6 +21,7 @@ import { appKeysSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appKeysSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appKeysSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
 import { appKeysSchema as vital_zod_ts } from "./vital/zod";
+import { appKeysSchema as webex_zod_ts } from "./webex/zod";
 import { appKeysSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appKeysSchema as zapier_zod_ts } from "./zapier/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
@@ -45,6 +46,7 @@ export const appKeysSchemas = {
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
   vital: vital_zod_ts,
+  webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
