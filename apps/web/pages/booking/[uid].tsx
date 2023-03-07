@@ -561,7 +561,12 @@ export default function Success(props: SuccessProps) {
                         <>
                           <div className="mt-9 font-medium">{label}</div>
                           <div className="col-span-2 mb-2 mt-9">
-                            <p className="break-words">{response.toString()}</p>
+                            <p
+                              className="break-words"
+                              data-testid="field-response"
+                              data-fob-field={field.name}>
+                              {response.toString()}
+                            </p>
                           </div>
                         </>
                       );
