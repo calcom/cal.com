@@ -110,6 +110,7 @@
   "hidden_team_owner_message": "Vous avez besoin d'un compte Pro pour utiliser les équipes, vous êtes masqué(e) jusqu'à ce que vous mettiez à niveau.",
   "link_expires": "p.s. Il expire dans {{expiresIn}} heures.",
   "upgrade_to_per_seat": "Mise à niveau vers la place",
+  "seat_options_doesnt_support_confirmation": "L'option de places ne prend pas en charge l'exigence de confirmation",
   "team_upgrade_seats_details": "Parmi les {{memberCount}} membres de votre équipe, {{unpaidCount}} place(s) sont impayées. À {{seatPrice}} $/mois par place, le coût total estimé de votre abonnement est de {{totalCost}} $/mois.",
   "team_upgrade_banner_description": "Merci d'avoir essayé notre nouveau plan Équipes. Nous avons remarqué que votre équipe « {{teamName}} » doit être mise à niveau.",
   "team_upgrade_banner_action": "Mettre à niveau",
