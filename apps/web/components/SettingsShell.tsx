@@ -1,4 +1,5 @@
-import React, { ComponentProps } from "react";
+import type { ComponentProps } from "react";
+import React from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorBoundary } from "@calcom/ui";
@@ -9,7 +10,7 @@ import NavTabs from "./NavTabs";
 const tabs = [
   {
     name: "profile",
-    href: "/settings/profile",
+    href: "/settings/my-account/profile",
     icon: FiUser,
   },
   {

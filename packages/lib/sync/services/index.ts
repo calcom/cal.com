@@ -1,4 +1,4 @@
-import { ISyncServices } from "../ISyncService";
+import type { ISyncServices } from "../ISyncService";
 import SendgridService from "./SendgridService";
 
 const services: ISyncServices[] = [

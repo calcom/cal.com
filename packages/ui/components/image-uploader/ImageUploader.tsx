@@ -1,5 +1,6 @@
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";

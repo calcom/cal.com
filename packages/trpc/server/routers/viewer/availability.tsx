@@ -1,13 +1,18 @@
-import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, User } from "@prisma/client";
+import type {
+  Availability as AvailabilityModel,
+  Prisma,
+  Schedule as ScheduleModel,
+  User,
+} from "@prisma/client";
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
-import { PrismaClient } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { Schedule, TimeRange } from "@calcom/types/schedule";
+import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -87,6 +92,9 @@ export const availabilityRouter = router({
             code: "UNAUTHORIZED",
           });
         }
+
+        const timeZone = schedule.timeZone || user.timeZone;
+
         return {
           id: schedule.id,
           name: schedule.name,
@@ -102,10 +110,10 @@ export const availabilityRouter = router({
               end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
             }))
           ),
-          timeZone: schedule.timeZone || user.timeZone,
+          timeZone,
           dateOverrides: schedule.availability.reduce((acc, override) => {
             // only iff future date override
-            if (!override.date || override.date < new Date()) {
+            if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {
               return acc;
             }
             const newValue = {
@@ -428,10 +436,6 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
       defaultScheduleId: scheduleId,
     },
   });
-};
-
-const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
-  return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
 };
 
 const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {

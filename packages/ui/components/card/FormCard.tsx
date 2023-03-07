@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 
-import { Badge, BadgeProps } from "../..";
+import type { BadgeProps } from "../..";
+import { Badge } from "../..";
 import { Divider } from "../divider";
 import { FiArrowDown, FiArrowUp, FiTrash } from "../icon";
 

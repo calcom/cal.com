@@ -1,6 +1,9 @@
-import { GetServerSidePropsContext } from "next";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
+import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,11 +24,9 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { FiAlertCircle, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { FiAlertCircle, FiMoreHorizontal, FiTrash, FiVideo } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -43,12 +44,13 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
-    { variant: "conferencing", onlyInstalled: true },
-    {
-      suspense: true,
-    }
-  );
+  const { data: defaultConferencingApp, isLoading: defaultConferencingAppLoading } =
+    trpc.viewer.getUsersDefaultConferencingApp.useQuery();
+
+  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery({
+    variant: "conferencing",
+    onlyInstalled: true,
+  });
   const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
@@ -61,10 +63,26 @@ const ConferencingLayout = () => {
     },
   });
 
+  const onSuccessCallback = useCallback(() => {
+    setBulkUpdateModal(true);
+    showToast("Default app updated successfully", "success");
+  }, []);
+
+  const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
+    onSuccess: onSuccessCallback,
+    onError: (error) => {
+      showToast(`Error: ${error.message}`, "error");
+    },
+  });
+
   const [deleteAppModal, setDeleteAppModal] = useState(false);
+  const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
+  const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
+    undefined
+  );
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
-  if (isLoading)
+  if (isLoading || defaultConferencingAppLoading)
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
@@ -74,39 +92,67 @@ const ConferencingLayout = () => {
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
-            .map((app) => (
-              <AppListCard
-                description={app.description}
-                title={app.title}
-                logo={app.logo}
-                key={app.title}
-                isDefault={app.isGlobal}
-                actions={
-                  <div>
-                    <Dropdown>
-                      <DropdownMenuTrigger asChild>
-                        <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <DropdownItem
-                            type="button"
-                            color="destructive"
-                            disabled={app.isGlobal}
-                            StartIcon={FiTrash}
-                            onClick={() => {
-                              setDeleteCredentialId(app.credentialIds[0]);
-                              setDeleteAppModal(true);
-                            }}>
-                            {t("remove_app")}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </Dropdown>
-                  </div>
-                }
-              />
-            ))}
+            .map((app) => {
+              const appSlug = app?.slug;
+              const appIsDefault =
+                appSlug === defaultConferencingApp?.appSlug ||
+                (appSlug === "daily-video" && !defaultConferencingApp?.appSlug); // Default to cal video if the user doesnt have it set (we do this on new account creation but not old)
+              return (
+                <AppListCard
+                  description={app.description}
+                  title={app.title}
+                  logo={app.logo}
+                  key={app.title}
+                  isDefault={appIsDefault} // @TODO: Handle when a user doesnt have this value set
+                  actions={
+                    <div>
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {!appIsDefault && (
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                color="secondary"
+                                StartIcon={FiVideo}
+                                onClick={() => {
+                                  const locationType = getEventLocationTypeFromApp(
+                                    app?.locationOption?.value ?? ""
+                                  );
+                                  if (locationType?.linkType === "static") {
+                                    setLocationType({ ...locationType, slug: appSlug });
+                                  } else {
+                                    updateDefaultAppMutation.mutate({
+                                      appSlug,
+                                    });
+                                  }
+                                }}>
+                                {t("change_default_conferencing_app")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              color="destructive"
+                              disabled={app.isGlobal}
+                              StartIcon={FiTrash}
+                              onClick={() => {
+                                setDeleteCredentialId(app.credentialIds[0]);
+                                setDeleteAppModal(true);
+                              }}>
+                              {t("remove_app")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
+                  }
+                />
+              );
+            })}
       </List>
 
       <Dialog open={deleteAppModal} onOpenChange={setDeleteAppModal}>
@@ -123,20 +169,21 @@ const ConferencingLayout = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {locationType && (
+        <AppSetDefaultLinkDialog
+          locationType={locationType}
+          setLocationType={setLocationType}
+          onSuccess={onSuccessCallback}
+        />
+      )}
+      {bulkUpdateModal && (
+        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
+      )}
     </div>
   );
 };
 
 ConferencingLayout.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
 
 export default ConferencingLayout;

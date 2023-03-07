@@ -1,6 +1,6 @@
 import client from "@sendgrid/client";
-import { ClientRequest } from "@sendgrid/client/src/request";
-import { ClientResponse } from "@sendgrid/client/src/response";
+import type { ClientRequest } from "@sendgrid/client/src/request";
+import type { ClientResponse } from "@sendgrid/client/src/response";
 
 import logger from "@calcom/lib/logger";
 

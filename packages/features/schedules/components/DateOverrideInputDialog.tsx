@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours } from "@calcom/types/schedule";
 import {
   Dialog,
   DialogContent,
@@ -18,12 +19,8 @@ import {
 } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
-import { DayRanges, TimeRange } from "./Schedule";
-
-const ALL_DAY_RANGE = {
-  start: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
-  end: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
-};
+import type { TimeRange } from "./Schedule";
+import { DayRanges } from "./Schedule";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
@@ -53,43 +50,33 @@ const DateOverrideForm = ({
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
 
-  const form = useForm<{ range: TimeRange[] }>();
-  const { reset } = form;
-
-  useEffect(() => {
-    if (value) {
-      reset({
-        range: value.map((range) => ({
-          start: new Date(
-            dayjs.utc().hour(range.start.getUTCHours()).minute(range.start.getUTCMinutes()).second(0).format()
-          ),
-          end: new Date(
-            dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
-          ),
-        })),
-      });
-      return;
-    }
-    const dayRanges = (workingHours || []).reduce((dayRanges, workingHour) => {
-      if (date && workingHour.days.includes(date.day())) {
-        dayRanges.push({
-          start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
-          end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
-        });
-      }
-      return dayRanges;
-    }, [] as TimeRange[]);
-    if (!dayRanges.length) {
-      dayRanges.push({
-        start: new Date(dayjs.utc().hour(9).minute(0).second(0).format()),
-        end: new Date(dayjs.utc().hour(17).minute(0).second(0).format()),
-      });
-    }
-    reset({
-      range: dayRanges,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, value]);
+  const form = useForm({
+    values: {
+      range: value
+        ? value.map((range) => ({
+            start: new Date(
+              dayjs
+                .utc()
+                .hour(range.start.getUTCHours())
+                .minute(range.start.getUTCMinutes())
+                .second(0)
+                .format()
+            ),
+            end: new Date(
+              dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
+            ),
+          }))
+        : (workingHours || []).reduce((dayRanges, workingHour) => {
+            if (date && workingHour.days.includes(date.day())) {
+              dayRanges.push({
+                start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
+                end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+              });
+            }
+            return dayRanges;
+          }, [] as TimeRange[]),
+    },
+  });
 
   return (
     <Form
@@ -97,7 +84,15 @@ const DateOverrideForm = ({
       handleSubmit={(values) => {
         if (!date) return;
         onChange(
-          (datesUnavailable ? [ALL_DAY_RANGE] : values.range).map((item) => ({
+          (datesUnavailable
+            ? [
+                {
+                  start: date.utc(true).startOf("day").toDate(),
+                  end: date.utc(true).startOf("day").add(1, "day").toDate(),
+                },
+              ]
+            : values.range
+          ).map((item) => ({
             start: date.hour(item.start.getHours()).minute(item.start.getMinutes()).toDate(),
             end: date.hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
           }))

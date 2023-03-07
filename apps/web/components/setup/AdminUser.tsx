@@ -15,7 +15,14 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
   const { t } = useLocale();
   if (props.userCount > 0)
     return (
-      <form id="wizard-step-1" name="wizard-step-1" className="space-y-4" onSubmit={props.onSuccess}>
+      <form
+        id="wizard-step-1"
+        name="wizard-step-1"
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          props.onSuccess();
+        }}>
         <EmptyScreen
           Icon={FiUserCheck}
           headline={t("admin_user_created")}

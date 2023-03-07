@@ -1,14 +1,14 @@
 import fs from "fs";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
-import { GetStaticPaths, GetStaticPropsContext } from "next";
+import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import ExisitingGoogleCal from "@calcom/app-store/googlevideo/components/ExistingGoogleCal";
 import prisma from "@calcom/prisma";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/apps/App";
 

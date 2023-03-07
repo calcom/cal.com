@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppFrontendPayload as App } from "@calcom/types/App";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button } from "../button";
@@ -149,7 +149,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
 
-        {app.isGlobal && (
+        {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
           </span>

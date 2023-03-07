@@ -1,4 +1,4 @@
-import { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 

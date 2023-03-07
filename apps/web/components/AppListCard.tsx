@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -62,8 +63,8 @@ export default function AppListCard(props: AppListCardProps) {
   }, []);
 
   return (
-    <div className={`p-4 ${highlight ? "bg-yellow-100" : ""}`}>
-      <div className="flex  gap-x-3">
+    <div className={`${highlight ? "bg-yellow-100" : ""}`}>
+      <div className="flex gap-x-3 p-4">
         {logo ? <img className="h-10 w-10" src={logo} alt={`${title} logo`} /> : null}
         <div className="flex grow flex-col gap-y-1 truncate">
           <div className="flex items-center gap-x-2">

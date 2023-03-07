@@ -1,4 +1,4 @@
-import { NextPageContext } from "next";
+import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,7 +7,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button, HeadSeo } from "@calcom/ui";
 import { FiArrowRight, FiCalendar, FiX } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();

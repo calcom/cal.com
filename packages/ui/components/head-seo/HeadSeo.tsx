@@ -1,14 +1,10 @@
 import merge from "lodash/merge";
-import { NextSeo, NextSeoProps } from "next-seo";
+import type { NextSeoProps } from "next-seo";
+import { NextSeo } from "next-seo";
 import { useRouter } from "next/router";
 
-import {
-  AppImageProps,
-  constructAppImage,
-  constructGenericImage,
-  constructMeetingImage,
-  MeetingImageProps,
-} from "@calcom/lib/OgImages";
+import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
+import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { APP_NAME } from "@calcom/lib/constants";
 import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
