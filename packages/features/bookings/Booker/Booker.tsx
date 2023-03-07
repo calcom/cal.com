@@ -119,7 +119,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
         )}>
         <AnimatePresence>
-          <StickyOnDesktop key="meta">
+          <StickyOnDesktop key="meta" className="relative z-10">
             <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
               <EventMeta
                 event={event.data}

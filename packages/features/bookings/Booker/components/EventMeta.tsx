@@ -43,15 +43,15 @@ export const EventMeta = ({ isLoading, event, selectedTime, duration }: EventMet
               className="[&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative"
               icon={FiGlobe}>
-              <span className="current-timezone dark:before:bg-darkgray-200 dark:bg-darkgray-100 pointer-events-none absolute left-0 -top-1 z-10 flex h-full w-full min-w-[120px] items-center bg-white before:absolute before:inset-0 before:left-[-30px] before:z-[-1] before:w-[calc(100%+30px)] before:rounded-md before:bg-gray-100 before:opacity-0 before:transition-opacity">
-                {timezone} <FiChevronDown className="min-h-4 min-w-4 ml-2 inline-block" />
+              <span className="current-timezone flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:h-[calc(100%_+_10px)] before:w-[calc(100%_+_30px)] before:rounded-md before:bg-gray-100 before:py-3 before:opacity-0 before:transition-opacity dark:before:bg-gray-100">
+                <TimezoneSelect
+                  menuPosition="fixed"
+                  className="relative isolate z-40 h-auto [&_.cal-react-select\_\_control]:h-[20px] [&_.cal-react-select\_\_control]:!min-h-0 [&_.cal-react-select\_\_control]:cursor-pointer [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:bg-transparent [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px] [&_.cal-react-select\_\_value-container]:p-0"
+                  value={timezone}
+                  onChange={(tz) => setTimezone(tz.value)}
+                />
+                <FiChevronDown className="min-h-4 min-w-4 relative z-10 mx-2 mt-1 inline-block" />
               </span>
-              <TimezoneSelect
-                menuPosition="fixed"
-                className="[&_.cal-react-select\_\_control]:h-auto [&_.cal-react-select\_\_control]:min-h-0 [&_.cal-react-select\_\_control]:cursor-pointer [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px] [&_.cal-react-select\_\_menu-portal]:z-30"
-                value={timezone}
-                onChange={(tz) => setTimezone(tz.value)}
-              />
             </EventMetaBlock>
           </div>
         </m.div>
