@@ -1635,6 +1635,8 @@
   "this_will_be_the_placeholder": "This will be the placeholder",
   "verification_code": "Verification code",
   "verify": "Verify",
+  "timezone_variable": "Timezone",
+  "timezone_info": "The person booking or your timezone",
   "event_end_time_variable": "Event end time",
   "event_end_time_info": "The event end time"
 }

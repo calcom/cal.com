@@ -43,7 +43,8 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", translatedDate)
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
-    .replaceAll("{EVENT_END_TIME}", endTimeWithTimeZone)
+    .replaceAll("{EVENT_END_TIME}", variables.timeZone || "")
+    .replaceAll("{TIMEZONE_TIME}", endTimeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")

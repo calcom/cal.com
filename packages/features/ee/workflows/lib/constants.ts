@@ -25,6 +25,7 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "event_date",
   "event_time",
   "event_end_time",
+  "timezone",
   "location",
   "organizer_name",
   "attendee_name",
