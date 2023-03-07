@@ -68,6 +68,12 @@ const publicViewerRouter = router({
       locale,
     };
   }),
+  countryCode: publicProcedure.query(({ ctx }) => {
+    const { req } = ctx;
+    const countryCode = req?.headers?.["x-vercel-ip-country"] ?? "";
+
+    return { countryCode };
+  }),
   samlTenantProduct: publicProcedure
     .input(
       z.object({
