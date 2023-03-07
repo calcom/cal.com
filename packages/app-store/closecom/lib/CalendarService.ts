@@ -1,6 +1,7 @@
 import z from "zod";
 
-import CloseCom, { CloseComFieldOptions } from "@calcom/lib/CloseCom";
+import type { CloseComFieldOptions } from "@calcom/lib/CloseCom";
+import CloseCom from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
@@ -11,7 +12,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),

@@ -1,8 +1,10 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { NextRouter, useRouter } from "next/router";
-import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -22,7 +24,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Button,
   Credits,
@@ -134,10 +136,6 @@ const Layout = (props: LayoutProps) => {
         <HeadSeo
           title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
-          nextSeoProps={{
-            nofollow: true,
-            noindex: true,
-          }}
         />
       )}
       <div>
@@ -272,7 +270,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="radix-state-open:bg-gray-200 group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
@@ -296,10 +294,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="block truncate font-medium text-gray-900">
+                  <span className="mb-1 block truncate font-medium leading-none text-gray-900">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="block truncate font-normal text-gray-900">
+                  <span className="block truncate font-normal leading-none text-gray-600">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -400,13 +398,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   {t("help")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={FiDownload}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="desktop-hidden hidden lg:flex"
-                  href={DESKTOP_APP_LINK}>
+              <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                <DropdownItem StartIcon={FiDownload} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                   {t("download_desktop_app")}
                 </DropdownItem>
               </DropdownMenuItem>
@@ -649,7 +642,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -678,7 +671,7 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
-      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-gray-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium text-gray-400 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
@@ -784,37 +777,42 @@ function SideBar() {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+
   return (
     <>
       <div
-        className={classNames("mb-6 flex items-center sm:mt-0", props.smallHeading ? "lg:mb-7" : "lg:mb-10")}>
+        className={classNames(
+          "flex items-center md:mt-0 md:mb-6",
+          props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+        )}>
         {!!props.backPath && (
           <Button
             variant="icon"
+            size="sm"
             color="minimal"
             onClick={() =>
               typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
             }
             StartIcon={FiArrowLeft}
             aria-label="Go Back"
-            className="mt-1 ltr:mr-2 rtl:ml-2"
+            className="rounded-md ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
-          <header className={classNames(props.large && "py-8", "flex w-full max-w-full")}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
+            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
               {props.heading && (
-                <h1
+                <h3
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate  font-semibold tracking-wide text-black sm:block xl:max-w-full",
-                    props.smallHeading ? "text-base" : "text-2xl"
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
+                    props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                </h1>
+                </h3>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-gray-500 sm:block">
+                <p className="hidden text-sm text-gray-500 md:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -824,8 +822,8 @@ export function ShellMain(props: LayoutProps) {
                 className={classNames(
                   props.backPath
                     ? "relative"
-                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
-                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
+                    : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                  "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                 )}>
                 {props.CTA}
               </div>
@@ -850,7 +848,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 py-8 lg:px-12">
+      <div className="max-w-full py-4 px-4 md:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
@@ -884,7 +882,7 @@ function TopNav() {
           </span>
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
-            <Link href="/settings/profile">
+            <Link href="/settings/my-account/profile">
               <FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </Link>
           </button>

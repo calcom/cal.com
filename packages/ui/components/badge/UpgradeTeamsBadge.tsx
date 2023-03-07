@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasTeamPlan";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Tooltip } from "../tooltip";
@@ -8,9 +8,9 @@ import { Badge } from "./Badge";
 
 export const UpgradeTeamsBadge = function UpgradeTeamsBadge() {
   const { t } = useLocale();
-  const { hasTeamPlan } = useHasTeamPlan();
+  const { hasPaidPlan } = useHasPaidPlan();
 
-  if (hasTeamPlan) return null;
+  if (hasPaidPlan) return null;
 
   return (
     <Tooltip content={t("upgrade_to_enable_feature")}>

@@ -1,4 +1,5 @@
-import { PlaywrightTestConfig, Frame, devices, expect } from "@playwright/test";
+import type { PlaywrightTestConfig, Frame } from "@playwright/test";
+import { devices, expect } from "@playwright/test";
 import * as path from "path";
 
 require("dotenv").config({ path: "../../../../../.env" });
@@ -14,6 +15,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   reporter: [
     [CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },

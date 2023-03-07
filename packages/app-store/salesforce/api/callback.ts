@@ -11,7 +11,6 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let consumer_key = "";
 let consumer_secret = "";
-const instance_url = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;

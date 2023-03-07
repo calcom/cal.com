@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z, ZodError } from "zod";
 
-import prisma from "@calcom/prisma";
-
 import { GiphyManager } from "../lib";
 
 const giphyUrlRegexp = new RegExp("^https://(.*).giphy.com/media/(.*)/giphy.gif(.*)");

@@ -1,11 +1,11 @@
-import {
+import type {
   QueryObserverLoadingErrorResult,
   QueryObserverLoadingResult,
   QueryObserverRefetchErrorResult,
   QueryObserverSuccessResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -88,7 +88,7 @@ const withQuery = <
   TInput = inferProcedureInput<TQuery>,
   TOutput = inferProcedureOutput<TQuery>
 >(
-  queryProcedure: DecorateProcedure<TQuery, any>,
+  queryProcedure: DecorateProcedure<TQuery, any, any>,
   input?: TInput,
   params?: UseTRPCQueryOptions<any, TInput, TOutput, TOutput, TError>
 ) => {

@@ -26,8 +26,8 @@ export const V2BaseEmailHtml = (props: {
   return (
     <Html>
       <EmailHead title={props.subject} />
-      <body style={{ wordSpacing: "normal", backgroundColor: "#F5F5F5" }}>
-        <div style={{ backgroundColor: "#F5F5F5" }}>
+      <body style={{ wordSpacing: "normal", backgroundColor: "#F3F4F6" }}>
+        <div style={{ backgroundColor: "#F3F4F6" }}>
           <RawHtml
             html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->`}
           />

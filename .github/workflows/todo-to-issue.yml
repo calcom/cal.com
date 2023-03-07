@@ -1,0 +1,28 @@
+name: TODO to Issue
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      MANUAL_COMMIT_REF:
+        description: "The SHA of the commit to get the diff for"
+        required: true
+      MANUAL_BASE_REF:
+        description: "By default, the commit entered above is compared to the one directly before it; to go back further, enter an earlier SHA here"
+        required: false
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  todos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Add TODOs to issues"
+        uses: "alstr/todo-to-issue-action@v4"
+        env:
+          MANUAL_COMMIT_REF: ${{ inputs.MANUAL_COMMIT_REF }}
+          MANUAL_BASE_REF: ${{ inputs.MANUAL_BASE_REF }}
+        with:
+          IDENTIFIERS: '[{"name": "TODO", "labels": ["🙋🏻‍♂️help wanted"]}, {"name": "FIXME", "labels": ["🐛 bug"]}]'

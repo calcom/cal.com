@@ -109,7 +109,6 @@ export {
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
 export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
 export { Meta, MetaProvider, useMeta } from "./components/meta";
-export { Swatch } from "./components/swatch";
 export { ShellSubHeading } from "./components/layout";
 
 /** ⬇️ TODO - Move these to components */
@@ -129,3 +128,4 @@ export { default as MultiSelectCheckboxes } from "./components/form/checkbox/Mul
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
+export { CreateButton } from "./components/createButton";
