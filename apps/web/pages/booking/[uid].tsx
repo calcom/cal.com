@@ -627,7 +627,7 @@ export default function Success(props: SuccessProps) {
                   !needsConfirmation &&
                   !isCancellationMode &&
                   !isCancelled &&
-                  calculatedDuration && (
+                  !!calculatedDuration && (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                       <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
@@ -735,6 +735,7 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </>
                   )}
+
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
