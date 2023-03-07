@@ -44,7 +44,6 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { calendar, integration, credential } = item;
-        let primary!: IntegrationCalendar;
 
         // Don't leak credentials to the client
         const credentialId = credential.id;
@@ -57,12 +56,7 @@ export const getConnectedCalendars = async (
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
           .map((cal) => {
-            if (cal.primary) {
-              primary = { ...cal, credentialId };
-            }
-            if (cal.externalId === destinationCalendarExternalId) {
-              destinationCalendar = cal;
-            }
+            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
               readOnly: cal.readOnly || false,
@@ -73,11 +67,7 @@ export const getConnectedCalendars = async (
           })
           .sortBy(["primary"])
           .value();
-
-        if (primary && destinationCalendar) {
-          destinationCalendar.primaryEmail = primary.email;
-          destinationCalendar.integrationTitle = integration.title;
-        }
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
             integration,
@@ -86,6 +76,10 @@ export const getConnectedCalendars = async (
               message: "No primary calendar found",
             },
           };
+        }
+        if (destinationCalendar) {
+          destinationCalendar.primaryEmail = primary.email;
+          destinationCalendar.integrationTitle = integration.title;
         }
 
         return {
