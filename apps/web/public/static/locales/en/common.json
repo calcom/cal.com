@@ -110,6 +110,7 @@
   "hidden_team_owner_message": "You need a pro account to use teams, you are hidden until you upgrade.",
   "link_expires": "p.s. It expires in {{expiresIn}} hours.",
   "upgrade_to_per_seat": "Upgrade to Per-Seat",
+  "seat_options_doesnt_support_confirmation":"Seats option doesn't support confirmation requirement",
   "team_upgrade_seats_details": "Of the {{memberCount}} members in your team, {{unpaidCount}} seat(s) are unpaid. At ${{seatPrice}}/month per seat the estimated total cost of your membership is ${{totalCost}}/month.",
   "team_upgrade_banner_description": "Thank you for trialing our new team plan. We noticed your team \"{{teamName}}\" needs to be upgraded.",
   "team_upgrade_banner_action": "Upgrade here",
