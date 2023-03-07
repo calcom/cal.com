@@ -4,7 +4,6 @@ import { Prisma } from "@prisma/client";
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
