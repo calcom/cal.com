@@ -20,7 +20,6 @@
     ·
     <a href="https://cal.com/roadmap">Roadmap</a>
   </p>
-</p>
 
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
@@ -350,17 +349,16 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
     <img alt="Bounties of cal" src="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=light">
   </picture>
 </a>  
-  
+
 
 <!-- CONTRIBUTORS -->
 
 ### Contributors
-  
+
 <a href="https://github.com/calcom/cal.com/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=calcom/cal.com" />
 </a>
 
- 
 <!-- TRANSLATIONS -->
 
 ### Translations

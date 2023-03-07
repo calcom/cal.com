@@ -181,7 +181,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     // Make sure non-team events NEVER have this config key;
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
-  
+
   const defaultValues = {
     title: eventType.title,
     locations: eventType.locations || [],
