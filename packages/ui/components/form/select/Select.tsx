@@ -120,6 +120,7 @@ export const SelectField = function SelectField<
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
   props: {
+    required?: boolean;
     name?: string;
     containerClassName?: string;
     label?: string;

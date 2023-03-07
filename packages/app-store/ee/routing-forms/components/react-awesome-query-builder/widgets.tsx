@@ -4,19 +4,73 @@ import type {
   ButtonProps,
   ConjsProps,
   FieldProps,
-  NumberWidgetProps,
   ProviderProps,
-  SelectWidgetProps,
-  TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { Button as CalButton, SelectWithValidation as Select, TextField } from "@calcom/ui";
 import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
-// import { mapListValues } from "../../../../utils/stuff";
+export type CommonProps<
+  TVal extends
+    | string
+    | boolean
+    | string[]
+    | {
+        value: string;
+        optionValue: string;
+      }
+> = {
+  placeholder?: string;
+  readOnly?: boolean;
+  className?: string;
+  label?: string;
+  value: TVal;
+  setValue: (value: TVal) => void;
+  /**
+   * required and other validations are supported using zodResolver from react-hook-form
+   */
+  // required?: boolean;
+};
 
-const TextAreaWidget = (props: TextWidgetProps) => {
-  const { value, setValue, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
+export type SelectLikeComponentProps<
+  TVal extends
+    | string
+    | string[]
+    | {
+        value: string;
+        optionValue: string;
+      } = string
+> = {
+  options: {
+    label: string;
+    value: TVal extends (infer P)[]
+      ? P
+      : TVal extends {
+          value: string;
+        }
+      ? TVal["value"]
+      : TVal;
+  }[];
+} & CommonProps<TVal>;
+
+export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string> = {
+  listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
+} & CommonProps<TVal>;
+
+export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal> & {
+  name?: string;
+};
+
+export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+  TextLikeComponentProps<TVal> & {
+    customProps?: object;
+    type?: "text" | "number" | "email" | "tel";
+    maxLength?: number;
+    noLabel?: boolean;
+  };
+
+const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
+  const { value, setValue, readOnly, placeholder, maxLength, customProps, ...remainingProps } = props;
 
   const onChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -25,23 +79,30 @@ const TextAreaWidget = (props: TextWidgetProps) => {
 
   const textValue = value || "";
   return (
-    <TextArea
+    <textarea
       value={textValue}
       placeholder={placeholder}
-      disabled={readonly}
+      disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       {...customProps}
       {...remainingProps}
     />
   );
 };
 
-const TextWidget = (props: TextWidgetProps & { type?: string }) => {
-  const { value, setValue, readonly, placeholder, customProps, ...remainingProps } = props;
-  let { type } = props;
-  type = type || "text";
+const TextWidget = (props: TextLikeComponentPropsRAQB) => {
+  const {
+    value,
+    noLabel,
+    setValue,
+    readOnly,
+    placeholder,
+    customProps,
+    type = "text",
+    ...remainingProps
+  } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setValue(val);
@@ -51,10 +112,11 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}
+      labelSrOnly={noLabel}
       placeholder={placeholder}
-      disabled={readonly}
+      disabled={readOnly}
       onChange={onChange}
       {...remainingProps}
       {...customProps}
@@ -62,12 +124,13 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
+function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
       type="number"
+      labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="dark:border-darkgray-300 mt-0 border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -82,10 +145,7 @@ const MultiSelectWidget = ({
   setValue,
   value,
   ...remainingProps
-}: Omit<SelectWidgetProps, "value"> & {
-  listValues: { title: string; value: string }[];
-  value?: string[];
-}) => {
+}: SelectLikeComponentPropsRAQB<string[]>) => {
   //TODO: Use Select here.
   //TODO: Let's set listValue itself as label and value instead of using title.
   if (!listValues) {
@@ -108,20 +168,14 @@ const MultiSelectWidget = ({
       }}
       defaultValue={defaultValue}
       isMulti={true}
+      isDisabled={remainingProps.readOnly}
       options={selectItems}
       {...remainingProps}
     />
   );
 };
 
-function SelectWidget({
-  listValues,
-  setValue,
-  value,
-  ...remainingProps
-}: SelectWidgetProps & {
-  listValues: { title: string; value: string }[];
-}) {
+function SelectWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
   if (!listValues) {
     return null;
   }
@@ -142,6 +196,7 @@ function SelectWidget({
         }
         setValue(item.value);
       }}
+      isDisabled={remainingProps.readOnly}
       defaultValue={defaultValue}
       options={selectItems}
       {...remainingProps}
