@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -12,23 +13,12 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  Button,
-  Checkbox,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  Label,
-  SettingsToggle,
-  showToast,
-  TextField,
-  Tooltip,
-} from "@calcom/ui";
+import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
 const generateHashedLink = (id: number) => {
   const translator = short();
@@ -53,20 +43,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     host: eventType.users[0]?.name || "Nameless",
     t,
   };
-  const [previewText, setPreviewText] = useState(getEventName(eventNameObject));
+
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-
-  const replaceEventNamePlaceholder = (eventNameObject: EventNameObjectType, previewEventName: string) =>
-    previewEventName
-      .replace("{Event type title}", eventNameObject.eventType)
-      .replace("{Scheduler}", eventNameObject.attendeeName)
-      .replace("{Organiser}", eventNameObject.host);
-
-  const changePreviewText = (eventNameObject: EventNameObjectType, previewEventName: string) => {
-    setPreviewText(replaceEventNamePlaceholder(eventNameObject, previewEventName));
-  };
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
@@ -88,8 +68,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const eventNamePlaceholder = replaceEventNamePlaceholder(eventNameObject, t("meeting_with_user"));
+  const eventNamePlaceholder = getEventName({
+    ...eventNameObject,
+    eventName: formMethods.watch("eventName"),
+  });
 
+  const closeEventNameTip = () => setShowEventNameTip(false);
+
+  const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -132,14 +118,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           type="text"
           placeholder={eventNamePlaceholder}
           defaultValue={eventType.eventName || ""}
-          {...formMethods.register("eventName", {
-            onChange: (e) => {
-              if (!e.target.value || !formMethods.getValues("eventName")) {
-                return setPreviewText(getEventName(eventNameObject));
-              }
-              changePreviewText(eventNameObject, e.target.value);
-            },
-          })}
+          {...formMethods.register("eventName")}
           addOnSuffix={
             <Button
               type="button"
@@ -148,6 +127,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               color="minimal"
               className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}
+              aria-label="edit custom name"
             />
           }
         />
@@ -325,73 +305,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
 
       {showEventNameTip && (
-        <Dialog open={showEventNameTip} onOpenChange={setShowEventNameTip}>
-          <DialogContent
-            title={t("custom_event_name")}
-            description={t("custom_event_name_description")}
-            type="creation"
-            enableOverflow>
-            <TextField
-              label={t("event_name_in_calendar")}
-              type="text"
-              placeholder={eventNamePlaceholder}
-              defaultValue={eventType.eventName || ""}
-              {...formMethods.register("eventName", {
-                onChange: (e) => {
-                  if (!e.target.value || !formMethods.getValues("eventName")) {
-                    return setPreviewText(getEventName(eventNameObject));
-                  }
-                  changePreviewText(eventNameObject, e.target.value);
-                },
-              })}
-              className="mb-0"
-            />
-            <div className="text-sm">
-              <div className="mb-6 rounded-md bg-gray-100 p-2">
-                <h1 className="mb-2 ml-1 font-medium text-gray-900">{t("available_variables")}</h1>
-                <div className="mb-2.5 flex font-normal">
-                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Event type title}`}</p>
-                  <p className="text-gray-900">{t("event_name_info")}</p>
-                </div>
-                <div className="mb-2.5 flex font-normal">
-                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Organiser}`}</p>
-                  <p className="text-gray-900">{t("your_full_name")}</p>
-                </div>
-                <div className="mb-2.5 flex font-normal">
-                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Scheduler}`}</p>
-                  <p className="text-gray-900">{t("scheduler_full_name")}</p>
-                </div>
-                <div className="mb-1 flex font-normal">
-                  <p className="ml-1 mr-5 w-28 text-gray-400">{`{Location}`}</p>
-                  <p className="text-gray-900">{t("location_info")}</p>
-                </div>
-              </div>
-              <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
-              <div
-                className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center"
-                style={{
-                  backgroundImage: "url(/calendar-preview.svg)",
-                }}>
-                <div className="m-auto flex items-center justify-center self-stretch">
-                  <div className="mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black bg-gray-100 text-[12px] leading-3">
-                    <p className="overflow-hidden text-ellipsis p-1.5 font-medium text-gray-900">
-                      {previewText}
-                    </p>
-                    <p className="ml-1.5 text-[10px] font-normal text-gray-600">8 - 10 AM</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")}>
-                {t("cancel")}
-              </DialogClose>
-              <Button color="primary" onClick={() => setShowEventNameTip(false)}>
-                {t("create")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <CustomEventTypeModal
+          close={closeEventNameTip}
+          setValue={setEventName}
+          defaultValue={eventType.eventName || ""}
+          placeHolder={eventNamePlaceholder}
+          event={eventNameObject}
+        />
       )}
     </div>
   );

@@ -1,20 +1,21 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps from "@calcom/app-store/utils";
-import { updateEvent } from "@calcom/core/CalendarManager";
+import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -829,6 +830,70 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const eventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        userId: ctx.user.id,
+        team: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        locations: true,
+      },
+    });
+
+    const eventTypesWithLogo = eventTypes.map((eventType) => {
+      const locationParsed = eventTypeLocationsSchema.parse(eventType.locations);
+      const app = getAppFromLocationValue(locationParsed[0].type);
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    });
+
+    return {
+      eventTypes: eventTypesWithLogo,
+    };
+  }),
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeIds } = input;
+      const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
+
+      if (!defaultApp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Default conferencing app not set",
+        });
+      }
+
+      const foundApp = getAppFromSlug(defaultApp.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (!appType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
+        });
+      }
+
+      return await ctx.prisma.eventType.updateMany({
+        where: {
+          id: {
+            in: eventTypeIds,
+          },
+          userId: ctx.user.id,
+        },
+        data: {
+          locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+        },
+      });
+    }),
 });
 
 function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
