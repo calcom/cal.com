@@ -152,6 +152,13 @@ select:focus {
 input[type='text']:focus { box-shadow: none; }
 
 
+@layer components {
+  .scroll-bar{
+    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent
+  }
+}
+
+
 button[role="switch"][data-state="checked"] {
   @apply bg-gray-900;
 }
