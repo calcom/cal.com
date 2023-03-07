@@ -70,9 +70,9 @@ const publicViewerRouter = router({
   }),
   countryCode: publicProcedure.query(({ ctx }) => {
     const { req } = ctx;
-    const countryCode = req?.headers?.["x-vercel-ip-country"] ?? "";
 
-    return { countryCode };
+    const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "";
+    return { countryCode: Array.isArray(countryCode) ? countryCode[0] : countryCode };
   }),
   samlTenantProduct: publicProcedure
     .input(
