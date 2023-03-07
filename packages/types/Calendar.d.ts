@@ -163,6 +163,12 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsPerTimeSlot?: number | null;
+
+  // It has responses to all the fields(system + user)
+  responses?: Prisma.JsonObject | null;
+
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
+  userFieldsResponses?: Prisma.JsonObject | null;
 }
 
 export interface EntryPoint {
