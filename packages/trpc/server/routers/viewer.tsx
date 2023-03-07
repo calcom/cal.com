@@ -14,13 +14,17 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
-import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
+import {
+  getRecordingsOfCalVideoByRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+} from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -1158,8 +1162,36 @@ const loggedInViewerRouter = router({
     )
     .query(async ({ input }) => {
       const { roomName } = input;
+
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
+        return res;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
+      }
+    }),
+  getDownloadLinkOfCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        recordingId: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { recordingId } = input;
+      const { session } = ctx;
+
+      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+
+      if (!isDownloadAllowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
+
+      try {
+        const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
         return res;
       } catch (err) {
         throw new TRPCError({

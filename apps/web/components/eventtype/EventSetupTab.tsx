@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import MarkdownIt from "markdown-it";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -14,6 +13,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
@@ -22,8 +22,6 @@ import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 const getLocationFromType = (
   type: EventLocationType["type"],
@@ -48,11 +46,14 @@ const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"]
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
@@ -233,7 +234,10 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === MeetLocationType) && (
+            {validLocations.some(
+              (location) =>
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
+            ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
@@ -245,7 +249,6 @@ export const EventSetupTab = (
                       className="underline">
                       here.
                     </Link>{" "}
-                    We will fall back to Cal video if you do not change it.
                   </p>
                 </Trans>
               </div>

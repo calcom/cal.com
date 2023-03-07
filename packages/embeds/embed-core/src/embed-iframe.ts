@@ -340,8 +340,15 @@ function keepParentInformedAboutDimensionChanges() {
       throw new Error("Main element should be an HTMLElement");
     }
 
-    const contentHeight = mainElement.offsetHeight;
-    const contentWidth = mainElement.offsetWidth;
+    const mainElementStyles = getComputedStyle(mainElement);
+    const contentHeight =
+      mainElement.offsetHeight +
+      parseInt(mainElementStyles.marginTop) +
+      parseInt(mainElementStyles.marginBottom);
+    const contentWidth =
+      mainElement.offsetWidth +
+      parseInt(mainElementStyles.marginLeft) +
+      parseInt(mainElementStyles.marginRight);
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.

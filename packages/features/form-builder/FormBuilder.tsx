@@ -255,7 +255,7 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = FieldTypesMap[fieldForm.watch("type")];
+  const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
@@ -375,12 +375,13 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent>
+        <DialogContent enableOverflow>
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
               form={fieldForm}
               handleSubmit={(data) => {
+                const type = data.type || "text";
                 const isNewField = fieldDialog.fieldIndex == -1;
                 if (isNewField && fields.some((f) => f.name === data.name)) {
                   showToast(t("form_builder_field_already_exists"), "error");
@@ -391,6 +392,7 @@ export const FormBuilder = function FormBuilder({
                 } else {
                   const field: RhfFormField = {
                     ...data,
+                    type,
                     sources: [
                       {
                         label: "User",
@@ -409,7 +411,7 @@ export const FormBuilder = function FormBuilder({
                 });
               }}>
               <SelectField
-                required
+                defaultValue={FieldTypes[3]} // "text" as defaultValue
                 id="test-field-type"
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
@@ -553,7 +555,7 @@ export const ComponentForField = ({
   };
   readOnly: boolean;
 } & ValueProps) => {
-  const fieldType = field.type;
+  const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
