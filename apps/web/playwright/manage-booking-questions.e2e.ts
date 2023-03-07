@@ -106,9 +106,18 @@ test.describe("Manage Booking Questions", () => {
           const payload = (request.body as any).payload as any;
 
           expect(payload.responses).toMatchObject({
-            name: "Booker",
-            email: "booker@example.com",
-            how_are_you: "I am great!",
+            email: {
+              label: "email_address",
+              value: "booker@example.com",
+            },
+            how_are_you: {
+              label: "How are you?",
+              value: "I am great!",
+            },
+            name: {
+              label: "your_name",
+              value: "Booker",
+            },
           });
 
           expect(payload.location).toBe("integrations:daily");
@@ -119,7 +128,10 @@ test.describe("Manage Booking Questions", () => {
           });
 
           expect(payload.userFieldsResponses).toMatchObject({
-            how_are_you: "I am great!",
+            how_are_you: {
+              label: "How are you?",
+              value: "I am great!",
+            },
           });
         });
       });
@@ -233,9 +245,18 @@ async function runTestStepsCommonForTeamAndUserEventType(
       const payload = (request.body as any).payload as any;
 
       expect(payload.responses).toMatchObject({
-        name: "Booker",
-        email: "booker@example.com",
-        how_are_you: "I am great!",
+        email: {
+          label: "email_address",
+          value: "booker@example.com",
+        },
+        how_are_you: {
+          label: "How are you?",
+          value: "I am great!",
+        },
+        name: {
+          label: "your_name",
+          value: "Booker",
+        },
       });
 
       expect(payload.location).toBe("integrations:daily");
@@ -246,7 +267,10 @@ async function runTestStepsCommonForTeamAndUserEventType(
       });
 
       expect(payload.userFieldsResponses).toMatchObject({
-        how_are_you: "I am great!",
+        how_are_you: {
+          label: "How are you?",
+          value: "I am great!",
+        },
       });
     });
   });
