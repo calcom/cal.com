@@ -30,6 +30,8 @@ export type TextEditorProps = {
   excludedToolbarItems?: string[];
   variables?: string[];
   height?: string;
+  placeholder?: string;
+  disableLists?: boolean;
 };
 
 const editorConfig = {
@@ -67,13 +69,21 @@ export const Editor = (props: TextEditorProps) => {
           <div className="editor-inner" style={{ height: props.height }}>
             <RichTextPlugin
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
-              placeholder=""
+              placeholder={<div className="-mt-11 p-3 text-sm text-gray-300">{props.placeholder || ""}</div>}
             />
             <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
-            <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+            <MarkdownShortcutPlugin
+              transformers={
+                props.disableLists
+                  ? TRANSFORMERS.filter((value, index) => {
+                      if (index !== 3 && index !== 4) return value;
+                    })
+                  : TRANSFORMERS
+              }
+            />
           </div>
         </div>
       </LexicalComposer>

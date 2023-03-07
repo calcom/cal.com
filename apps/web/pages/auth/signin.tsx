@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { getProviders, signIn, getSession, getCsrfToken } from "next-auth/react";
 
 import { Button } from "@calcom/ui";

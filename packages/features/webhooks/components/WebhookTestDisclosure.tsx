@@ -31,7 +31,7 @@ export default function WebhookTestDisclosure() {
           {t("ping_test")}
         </Button>
       </div>
-      <div className="space-y-0 rounded-md  border border-neutral-200 sm:mx-0">
+      <div className="space-y-0 rounded-md border border-neutral-200 sm:mx-0">
         <div className="flex justify-between border-b p-4">
           <div className="flex items-center space-x-1">
             <h3 className="self-center text-sm font-semibold leading-4">{t("webhook_response")}</h3>
@@ -45,7 +45,7 @@ export default function WebhookTestDisclosure() {
         <div className="rounded-b-md bg-black p-4 font-mono text-[13px] leading-4 text-white">
           {!mutation.data && <p>{t("no_data_yet")}</p>}
           {mutation.status === "success" && (
-            <div className="overflow-x-auto  text-gray-900">{JSON.stringify(mutation.data, null, 4)}</div>
+            <div className="overflow-x-auto text-white">{JSON.stringify(mutation.data, null, 4)}</div>
           )}
         </div>
       </div>

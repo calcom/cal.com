@@ -63,6 +63,8 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  /// @zod.custom(imports.eventTypeBookingFields)
+  bookingFields           Json?
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -203,23 +205,25 @@ model User {
 }
 
 model Team {
-  id                  Int          @id @default(autoincrement())
+  id                  Int              @id @default(autoincrement())
   /// @zod.min(1)
   name                String
   /// @zod.min(1)
-  slug                String?      @unique
+  slug                String?          @unique
   logo                String?
   bio                 String?
-  hideBranding        Boolean      @default(false)
-  hideBookATeamMember Boolean      @default(false)
+  hideBranding        Boolean          @default(false)
+  hideBookATeamMember Boolean          @default(false)
   members             Membership[]
   eventTypes          EventType[]
-  createdAt           DateTime     @default(now())
+  workflows           Workflow[]
+  createdAt           DateTime         @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata            Json?
   theme               String?
-  brandColor          String       @default("#292929")
-  darkBrandColor      String       @default("#fafafa")
+  brandColor          String           @default("#292929")
+  darkBrandColor      String           @default("#fafafa")
+  verifiedNumbers     VerifiedNumber[]
 }
 
 enum MembershipRole {
@@ -295,6 +299,8 @@ model Booking {
   title                 String
   description           String?
   customInputs          Json?
+  /// @zod.custom(imports.bookingResponses)
+  responses             Json?
   startTime             DateTime
   endTime               DateTime
   attendees             Attendee[]
@@ -598,8 +604,10 @@ model WorkflowStep {
 model Workflow {
   id       Int                     @id @default(autoincrement())
   name     String
-  userId   Int
-  user     User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int?
+  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   Int?
   activeOn WorkflowsOnEventTypes[]
   trigger  WorkflowTriggerEvents
   time     Int?
@@ -641,6 +649,7 @@ model WorkflowReminder {
   scheduled      Boolean
   workflowStepId Int
   workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  cancelled      Boolean?
 }
 
 enum WorkflowTemplates {
@@ -655,7 +664,9 @@ enum WorkflowMethods {
 
 model VerifiedNumber {
   id          Int    @id @default(autoincrement())
-  userId      Int
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int?
+  user        User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId      Int?
+  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
 }

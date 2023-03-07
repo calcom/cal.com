@@ -1,4 +1,4 @@
-import { Field } from "../types/types";
+import type { Field } from "../types/types";
 
 const getFieldIdentifier = (field: Field) => field.identifier || field.label;
 

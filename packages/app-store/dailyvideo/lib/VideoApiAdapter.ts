@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
-import { GetRecordingsResponseSchema, getRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -156,6 +157,17 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         return Promise.resolve(res);
       } catch (err) {
         throw new Error("Something went wrong! Unable to get recording");
+      }
+    },
+    getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
+      try {
+        const res = await fetcher(`/recordings/${recordingId}/access-link`).then(
+          getAccessLinkResponseSchema.parse
+        );
+        return Promise.resolve(res);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get recording access link");
       }
     },
   };

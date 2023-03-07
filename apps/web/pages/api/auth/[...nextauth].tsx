@@ -1,13 +1,17 @@
-import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import type { UserPermissionRole } from "@prisma/client";
+import { IdentityProvider } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
-import NextAuth, { Session } from "next-auth";
+import { SignJWT } from "jose";
+import type { Session } from "next-auth";
+import NextAuth from "next-auth";
 import { encode } from "next-auth/jwt";
-import { Provider } from "next-auth/providers";
+import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import nodemailer, { TransportOptions } from "nodemailer";
+import type { TransportOptions } from "nodemailer";
+import nodemailer from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
@@ -15,7 +19,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
-import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { randomString } from "@calcom/lib/random";
@@ -34,6 +38,21 @@ const transporter = nodemailer.createTransport<TransportOptions>({
 } as TransportOptions);
 
 const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+
+const signJwt = async (payload: { email: string }) => {
+  const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(payload.email)
+    .setIssuedAt()
+    .setIssuer(WEBSITE_URL)
+    .setAudience(`${WEBSITE_URL}/auth/login`)
+    .setExpirationTime("2m")
+    .sign(secret);
+};
+
+const loginWithTotp = async (user: { email: string }) =>
+  `/auth/login?totp=${await signJwt({ email: user.email })}`;
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -79,17 +98,19 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
-      if (user.identityProvider !== IdentityProvider.CAL) {
+      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
 
-      if (!user.password) {
+      if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
-      const isCorrectPassword = await verifyPassword(credentials.password, user.password);
-      if (!isCorrectPassword) {
-        throw new Error(ErrorCode.IncorrectUsernamePassword);
+      if (user.password) {
+        const isCorrectPassword = await verifyPassword(credentials.password, user.password);
+        if (!isCorrectPassword) {
+          throw new Error(ErrorCode.IncorrectUsernamePassword);
+        }
       }
 
       if (user.twoFactorEnabled) {
@@ -127,7 +148,7 @@ const providers: Provider[] = [
       await limiter.check(10, user.email); // 10 requests per minute
       // Check if the user you are logging into has any active teams
       const hasActiveTeams =
-        user.teams.filter((m) => {
+        user.teams.filter((m: { team: { metadata: unknown } }) => {
           if (!IS_TEAM_BILLING_ENABLED) return true;
           const metadata = teamMetadataSchema.safeParse(m.team.metadata);
           if (metadata.success && metadata.data?.subscriptionId) return true;
@@ -446,7 +467,11 @@ export default NextAuth({
                 console.error("Error while linking account of already existing user");
               }
             }
-            return true;
+            if (existingUser.twoFactorEnabled) {
+              return loginWithTotp(existingUser);
+            } else {
+              return true;
+            }
           }
 
           // If the email address doesn't match, check if an account already exists
@@ -458,7 +483,11 @@ export default NextAuth({
 
           if (!userWithNewEmail) {
             await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
-            return true;
+            if (existingUser.twoFactorEnabled) {
+              return loginWithTotp(existingUser);
+            } else {
+              return true;
+            }
           } else {
             return "/auth/error?error=new-email-conflict";
           }
@@ -474,7 +503,11 @@ export default NextAuth({
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
           if (!hostedCal && existingUserWithEmail.emailVerified) {
-            return true;
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail);
+            } else {
+              return true;
+            }
           }
 
           // check if user was invited
@@ -496,7 +529,11 @@ export default NextAuth({
               },
             });
 
-            return true;
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail);
+            } else {
+              return true;
+            }
           }
 
           // User signs up with email/password and then tries to login with Google/SAML using the same email
@@ -504,7 +541,15 @@ export default NextAuth({
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
             (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
           ) {
-            return true;
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              data: { password: null },
+            });
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail);
+            } else {
+              return true;
+            }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
           }
@@ -527,7 +572,11 @@ export default NextAuth({
         const linkAccountNewUserData = { ...account, userId: newUser.id };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
-        return true;
+        if (account.twoFactorEnabled) {
+          return loginWithTotp(newUser);
+        } else {
+          return true;
+        }
       }
 
       return false;

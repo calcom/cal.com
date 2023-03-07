@@ -1,13 +1,13 @@
+import type { App_RoutingForms_Form } from "@prisma/client";
 import jsonLogic from "json-logic-js";
 import { Utils as QbUtils } from "react-awesome-query-builder";
-import { z } from "zod";
+import type { z } from "zod";
 
-import { Response, Route, SerializableForm } from "../types/types";
-import { zodNonRouterRoute } from "../zod";
+import type { Response, Route, SerializableForm } from "../types/types";
+import type { zodNonRouterRoute } from "../zod";
 import { getQueryBuilderConfig } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
-import { App_RoutingForms_Form } from ".prisma/client";
 
 export function processRoute({
   form,

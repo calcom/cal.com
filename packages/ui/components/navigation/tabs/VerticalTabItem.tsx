@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ComponentProps, Fragment } from "react";
+import type { ComponentProps } from "react";
+import { Fragment } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { FiChevronRight, FiExternalLink } from "../../icon";
 import { Skeleton } from "../../skeleton";

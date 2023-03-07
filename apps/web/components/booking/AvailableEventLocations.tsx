@@ -4,7 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 import { FiLink } from "@calcom/ui/components/icon";
 
-import { Props } from "./pages/AvailabilityPage";
+import type { Props } from "./pages/AvailabilityPage";
 
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
   const { t } = useLocale();
@@ -32,7 +32,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               />
             )}
             <Tooltip content={t(locationKeyToString(location) ?? "")}>
-              <p className="truncate">{t(locationKeyToString(location) ?? "")}</p>
+              <p className="line-clamp-1">{t(locationKeyToString(location) ?? "")}</p>
             </Tooltip>
           </div>
         );

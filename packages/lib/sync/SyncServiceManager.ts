@@ -1,8 +1,8 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 
-import { ConsoleUserInfoType, TeamInfoType, WebUserInfoType } from "./ISyncService";
+import type { ConsoleUserInfoType, TeamInfoType, WebUserInfoType } from "./ISyncService";
 import services from "./services";
 import CloseComService from "./services/CloseComService";
 

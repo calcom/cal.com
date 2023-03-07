@@ -3,7 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
-import { Ensure, Optional } from "@calcom/types/utils";
+import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
 
@@ -15,7 +15,7 @@ export type DefaultEventLocationType = {
   category: string;
 
   iconUrl: string;
-
+  urlRegExp?: string;
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
   variable: "locationType" | "locationAddress" | "address" | "locationLink" | "locationPhoneNumber" | "phone";
   defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone";

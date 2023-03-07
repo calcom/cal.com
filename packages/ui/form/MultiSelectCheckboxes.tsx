@@ -3,9 +3,11 @@
  * All new changes should be made to the V2 file in
  * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
  */
-import React, { Dispatch, SetStateAction } from "react";
-import { components, GroupBase, OptionProps } from "react-select";
-import { Props } from "react-select";
+import type { Dispatch, SetStateAction } from "react";
+import React from "react";
+import type { GroupBase, OptionProps } from "react-select";
+import { components } from "react-select";
+import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
