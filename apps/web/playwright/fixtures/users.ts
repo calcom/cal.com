@@ -44,9 +44,6 @@ const createTeamAndAddUser = async (
       slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
     },
   });
-  if (!team) {
-    return;
-  }
 
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
@@ -54,8 +51,10 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
+      accepted: true,
     },
   });
+  return team;
 };
 
 // creates a user fixture instance and stores the collection
@@ -246,7 +245,29 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        const team = await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        await prisma.eventType.create({
+          data: {
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            users: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            owner: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            title: "Team Event - 30min",
+            slug: "team-event-30min",
+            length: 30,
+          },
+        });
       }
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);
