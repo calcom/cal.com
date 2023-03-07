@@ -1,12 +1,12 @@
-import type { CalWindow } from "@calcom/embed-core";
+import type { GlobalCal } from "@calcom/embed-core";
 import EmbedSnippet from "@calcom/embed-snippet";
 
 import Cal from "./Cal";
 
-export const getCalApi = (): Promise<CalWindow["Cal"]> =>
+export const getCalApi = (): Promise<GlobalCal> =>
   new Promise(function tryReadingFromWindow(resolve) {
     EmbedSnippet();
-    const api = (window as CalWindow).Cal;
+    const api = window.Cal;
     if (!api) {
       setTimeout(() => {
         tryReadingFromWindow(resolve);

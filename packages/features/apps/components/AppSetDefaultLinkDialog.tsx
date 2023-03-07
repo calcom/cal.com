@@ -24,15 +24,15 @@ type LocationTypeSetLinkDialogFormProps = {
   type: EventLocationType["type"];
 };
 
-export function AppSetDefaultLinkDailog({
+export function AppSetDefaultLinkDialog({
   locationType,
   setLocationType,
+  onSuccess,
 }: {
   locationType: EventLocationType & { slug: string };
   setLocationType: Dispatch<SetStateAction<(EventLocationType & { slug: string }) | undefined>>;
+  onSuccess: () => void;
 }) {
-  const utils = trpc.useContext();
-
   const { t } = useLocale();
   const eventLocationTypeOptions = getEventLocationType(locationType.type);
 
@@ -44,8 +44,7 @@ export function AppSetDefaultLinkDailog({
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
     onSuccess: () => {
-      showToast("Default app updated successfully", "success");
-      utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      onSuccess();
     },
     onError: () => {
       showToast(`Invalid App Link Format`, "error");

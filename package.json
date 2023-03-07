@@ -57,14 +57,15 @@
     "tdd": "jest --watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
-    "test-e2e": "yarn db-seed && yarn build && yarn e2e",
-    "test-e2e:app-store": "yarn db-seed && yarn build && yarn e2e:app-store",
+    "test-e2e": "yarn db-seed && yarn e2e",
+    "test-e2e:app-store": "yarn db-seed && yarn e2e:app-store",
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "jest",
     "type-check": "turbo run type-check",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
+    "@deploysentinel/playwright": "^0.3.3",
     "@snaplet/copycat": "^0.3.0",
     "@types/dompurify": "^2.4.0",
     "@types/jest": "^28.1.7",
@@ -80,6 +81,7 @@
     "ts-jest": "^28.0.8"
   },
   "dependencies": {
+    "city-timezones": "^1.2.1",
     "turbo": "^1.4.3"
   },
   "resolutions": {

@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
@@ -78,6 +79,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           availability: true,
           description: true,
           length: true,
+          disableGuests: true,
           schedulingType: true,
           periodType: true,
           periodStartDate: true,
@@ -96,10 +98,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           slotInterval: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
+          customInputs: true,
           schedule: {
             select: {
               timeZone: true,
               availability: true,
+            },
+          },
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  id: true,
+                  steps: true,
+                },
+              },
             },
           },
           team: {
@@ -163,7 +177,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(prisma, rescheduleUid);
+    booking = await getBooking(prisma, rescheduleUid, getBookingFieldsWithSystemFields(eventTypeObject));
   }
 
   const weekStart = eventType.team?.members?.[0]?.user?.weekStart;

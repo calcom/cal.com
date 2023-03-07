@@ -5,6 +5,8 @@ import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -101,6 +103,7 @@ export default async function getEventTypeById({
       durationLimits: true,
       successRedirectUrl: true,
       currency: true,
+      bookingFields: true,
       team: {
         select: {
           id: true,
@@ -153,6 +156,14 @@ export default async function getEventTypeById({
         include: {
           workflow: {
             include: {
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
               activeOn: {
                 select: {
                   eventType: {
@@ -175,7 +186,7 @@ export default async function getEventTypeById({
     if (isTrpcCall) {
       throw new TRPCError({ code: "NOT_FOUND" });
     } else {
-      throw new Error("Event type noy found");
+      throw new Error("Event type not found");
     }
   }
 
@@ -259,6 +270,7 @@ export default async function getEventTypeById({
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
   });
 
   const teamMembers = eventTypeObject.team
@@ -273,9 +285,20 @@ export default async function getEventTypeById({
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
 
+  let destinationCalendar = eventTypeObject.destinationCalendar;
+  if (!destinationCalendar) {
+    destinationCalendar = await prisma.destinationCalendar.findFirst({
+      where: {
+        userId: userId,
+        eventTypeId: null,
+      },
+    });
+  }
+
   const finalObj = {
     eventType: eventTypeObject,
     locationOptions,
+    destinationCalendar,
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,

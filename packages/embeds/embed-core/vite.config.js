@@ -8,12 +8,7 @@ module.exports = defineConfig((configEnv) => {
     ...viteBaseConfig,
     base: "/embed/",
     build: {
-      minify: "terser",
-      terserOptions: {
-        format: {
-          comments: false,
-        },
-      },
+      emptyOutDir: true,
       rollupOptions: {
         input: {
           preview: path.resolve(__dirname, "preview.html"),

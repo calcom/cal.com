@@ -1,5 +1,6 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
@@ -61,8 +62,19 @@ export async function getAppRegistryWithCredentials(userId: number) {
       },
     },
   });
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      metadata: true,
+    },
+  });
+
+  const usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
   const apps = [] as (App & {
     credentials: Credential[];
+    isDefault?: boolean;
   })[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
@@ -70,7 +82,6 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
-
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
       rating: rating || 0,
@@ -81,6 +92,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
       categories: dbapp.categories,
       credentials: dbapp.credentials,
       installed: true,
+      isDefault: usersDefaultApp === dbapp.slug,
     });
   }
   return apps;

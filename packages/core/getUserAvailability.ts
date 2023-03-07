@@ -191,21 +191,19 @@ export async function getUserAvailability(
 
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
-      ? { ...eventType?.schedule }
-      : {
-          ...userSchedule,
-          availability: userSchedule?.availability.map((a) => ({
-            ...a,
-            userId: user.id,
-          })),
-        };
+      ? eventType.schedule
+      : userSchedule;
 
   const startGetWorkingHours = performance.now();
 
   const timeZone = schedule.timeZone || eventType?.timeZone || user.timeZone;
 
-  const availability =
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability);
+  const availability = (
+    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+  ).map((a) => ({
+    ...a,
+    userId: user.id,
+  }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

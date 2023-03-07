@@ -1,7 +1,7 @@
 import Script from "next/script";
 
+import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 
 import type { appDataSchemas } from "./apps.schemas.generated";
 
