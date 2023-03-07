@@ -144,6 +144,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
   }
 
+  const credentials = await prisma.credential.findFirst({
+    where: {
+      userId: user?.id,
+      appId: "google-meet",
+    },
+  });
+
+  if (!credentials) {
+    await prisma.credential.create({
+      data: {
+        type: "google_video",
+        key: {},
+        userId: user?.id,
+        appId: "google-meet",
+        invalid: false,
+      },
+    });
+  }
+
   return { props: {} };
 };
 
