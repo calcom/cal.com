@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,7 +21,6 @@ export const CreateANewTeamForm = () => {
   const router = useRouter();
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
-  const [disabledContinue, setDisabledContinue] = useState(false);
 
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
@@ -34,9 +32,6 @@ export const CreateANewTeamForm = () => {
     onSuccess: (data) => {
       telemetry.event(telemetryEventTypes.team_created);
       router.push(`/settings/teams/${data.id}/onboard-members`);
-    },
-    onError: () => {
-      setDisabledContinue(false);
     },
   });
 
@@ -145,10 +140,14 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={disabledContinue || createTeamMutation.isLoading}
+            disabled={
+              newTeamFormMethods.formState.isSubmitted ||
+              createTeamMutation.isError ||
+              createTeamMutation.isLoading
+            }
             color="primary"
             EndIcon={FiArrowRight}
-            onClick={() => setDisabledContinue(true)}
+            type="submit"
             className="w-full justify-center">
             {t("continue")}
           </Button>
