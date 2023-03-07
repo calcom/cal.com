@@ -384,6 +384,9 @@ export const workflowsRouter = router({
         where: {
           id,
         },
+        include: {
+          activeOn: true,
+        },
       });
 
       const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.prisma, ctx.user.id, true);
@@ -412,6 +415,19 @@ export const workflowsRouter = router({
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
       });
+
+      for (const activeRef of workflowToDelete.activeOn) {
+        await removeBookingField(
+          {
+            name: "smsReminderNumber",
+          },
+          {
+            id: "" + id,
+            type: "workflow",
+          },
+          activeRef.eventTypeId
+        );
+      }
 
       await ctx.prisma.workflow.deleteMany({
         where: {
@@ -718,14 +734,16 @@ export const workflowsRouter = router({
         });
       }
 
-      for (const eventTypeId of activeOn) {
-        await upsertSmsReminderFieldForBooking({
-          workflowId: id,
-          isSmsReminderNumberRequired: input.steps.some(
-            (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
-          ),
-          eventTypeId,
-        });
+      if (input.steps.some((s) => s.action === WorkflowActions.SMS_ATTENDEE)) {
+        for (const eventTypeId of activeOn) {
+          await upsertSmsReminderFieldForBooking({
+            workflowId: id,
+            isSmsReminderNumberRequired: input.steps.some(
+              (s) => s.action === WorkflowActions.SMS_ATTENDEE && s.numberRequired
+            ),
+            eventTypeId,
+          });
+        }
       }
 
       userWorkflow.steps.map(async (oldStep) => {
@@ -1183,7 +1201,7 @@ evt = {
 attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
 organizer: {
 language: {
-  locale: ctx.user.locale,
+locale: ctx.user.locale,
 },
 name: ctx.user.name || "",
 email: ctx.user.email,
@@ -1337,15 +1355,20 @@ action === WorkflowActions.EMAIL_ADDRESS*/
           },
         });
 
-        const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
-          return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
-        });
-
-        await upsertSmsReminderFieldForBooking({
-          workflowId,
-          isSmsReminderNumberRequired,
-          eventTypeId,
-        });
+        if (
+          eventTypeWorkflow.steps.some((step) => {
+            return step.action === WorkflowActions.SMS_ATTENDEE;
+          })
+        ) {
+          const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
+            return step.action === WorkflowActions.SMS_ATTENDEE && step.numberRequired;
+          });
+          await upsertSmsReminderFieldForBooking({
+            workflowId,
+            isSmsReminderNumberRequired,
+            eventTypeId,
+          });
+        }
       }
     }),
   sendVerificationCode: authedProcedure
