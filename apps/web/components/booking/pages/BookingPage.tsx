@@ -229,7 +229,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { uid, paymentUid } = responseData;
+      const { uid, paymentUid, seatReferenceUid } = responseData;
 
       if (paymentUid) {
         return await router.push(
@@ -249,6 +249,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          seatReferenceUid,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
@@ -444,7 +445,6 @@ const BookingPage = ({
         hashedLink,
         ethSignature: gateState.rainbowToken,
         seatReferenceUid: router.query.seatReferenceUid as string,
-        seatsOwnerRescheduling: seatsBookingOwner,
       });
     }
   };
