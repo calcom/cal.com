@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -10,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { NewTeamFormValues } from "../lib/types";
+import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
   returnTo: z.string(),
@@ -21,6 +22,7 @@ export const CreateANewTeamForm = () => {
   const router = useRouter();
   const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
+  const [disabledContinue, setDisabledContinue] = useState(false);
 
   const returnToParam =
     (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
@@ -32,6 +34,9 @@ export const CreateANewTeamForm = () => {
     onSuccess: (data) => {
       telemetry.event(telemetryEventTypes.team_created);
       router.push(`/settings/teams/${data.id}/onboard-members`);
+    },
+    onError: () => {
+      setDisabledContinue(false);
     },
   });
 
@@ -140,10 +145,10 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={disabledContinue || createTeamMutation.isLoading}
             color="primary"
-            type="submit"
             EndIcon={FiArrowRight}
+            onClick={() => setDisabledContinue(true)}
             className="w-full justify-center">
             {t("continue")}
           </Button>
