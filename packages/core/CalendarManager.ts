@@ -110,7 +110,7 @@ export const getConnectedCalendars = async (
     })
   );
 
-  return connectedCalendars;
+  return { connectedCalendars, destinationCalendar };
 };
 
 /**
