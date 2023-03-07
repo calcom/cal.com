@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
-import type { Message } from "src/embed";
 
+import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
 export type UiConfig = {
@@ -11,29 +11,23 @@ export type UiConfig = {
   styles?: EmbedStyles;
 };
 
+type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
+type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {},
-  namespace: null,
-  embedType: undefined,
+  styles: {} as UiConfig["styles"],
+  namespace: null as string | null,
+  embedType: undefined as undefined | null | string,
   // Store all React State setters here.
-  reactStylesStateSetters: {},
+  reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
+  reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
   parentInformedAboutContentHeight: false,
   windowLoadEventFired: false,
-} as {
-  styles: UiConfig["styles"];
-  namespace: string | null;
-  embedType: undefined | null | string;
-  reactStylesStateSetters: Record<
-    keyof EmbedStyles | keyof EmbedNonStylesConfig,
-    Parameters<typeof registerNewSetter>[0]["setStyles"]
-  >;
-  parentInformedAboutContentHeight: boolean;
-  windowLoadEventFired: boolean;
-  theme?: UiConfig["theme"];
-  uiConfig?: Omit<UiConfig, "styles" | "theme">;
-  setTheme?: (arg0: string) => void;
-  setUiConfig?: (arg0: UiConfig) => void;
+  setTheme: undefined as ((arg0: string) => void) | undefined,
+  theme: undefined as UiConfig["theme"],
+  uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
+  setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
 };
 
 declare global {
@@ -129,27 +123,30 @@ const registerNewSetter = (
   registration:
     | {
         elementName: keyof EmbedStyles;
-        setStyles: (a: EmbedStyles) => void;
+        setState: SetStyles;
         styles: true;
       }
     | {
         elementName: keyof EmbedNonStylesConfig;
-        setStyles: (a: EmbedNonStylesConfig) => void;
+        setState: setNonStylesConfig;
         styles: false;
       }
 ) => {
-  embedStore.reactStylesStateSetters[
-    registration.elementName as keyof EmbedStyles | keyof EmbedNonStylesConfig
-  ] = registration.setStyles;
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
   if (registration.styles) {
-    registration.setStyles(embedStore.styles || {});
+    embedStore.reactStylesStateSetters[registration.elementName as keyof EmbedStyles] = registration.setState;
+    registration.setState(embedStore.styles || {});
+    return () => {
+      delete embedStore.reactStylesStateSetters[registration.elementName];
+    };
+  } else {
+    embedStore.reactNonStylesStateSetters[registration.elementName as keyof EmbedNonStylesConfig] =
+      registration.setState;
+    return () => {
+      delete embedStore.reactNonStylesStateSetters[registration.elementName];
+    };
   }
-};
-
-const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig) => {
-  delete embedStore.reactStylesStateSetters[elementName];
 };
 
 function isValidNamespace(ns: string | null | undefined) {
@@ -179,12 +176,8 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   const [styles, setStyles] = useState<EmbedStyles>({});
 
   useEffect(() => {
-    registerNewSetter({ elementName, setStyles, styles: true });
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
-    return () => {
-      // Once the component is unmounted, we can remove that state setter.
-      removeFromEmbedStylesSetterMap(elementName);
-    };
+    return registerNewSetter({ elementName, setState: setStyles, styles: true });
   }, []);
 
   return styles[elementName] || {};
@@ -194,12 +187,8 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
   const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
-    registerNewSetter({ elementName, setStyles, styles: false });
+    return registerNewSetter({ elementName, setState: setStyles, styles: false });
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
-    return () => {
-      // Once the component is unmounted, we can remove that state setter.
-      removeFromEmbedStylesSetterMap(elementName);
-    };
   }, []);
 
   return styles[elementName] || {};

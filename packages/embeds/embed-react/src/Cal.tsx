@@ -23,7 +23,7 @@ const Cal = function Cal(props: CalProps) {
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!Cal || initializedRef.current) {
+    if (!Cal || initializedRef.current || !ref.current) {
       return;
     }
     initializedRef.current = true;

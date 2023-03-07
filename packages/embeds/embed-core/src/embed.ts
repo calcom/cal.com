@@ -24,7 +24,7 @@ customElements.define("cal-inline", Inline);
 declare module "*.css";
 type Namespace = string;
 type Config = {
-  origin: string;
+  origin?: string;
   debug?: boolean;
   uiDebug?: boolean;
 };
@@ -147,7 +147,9 @@ export class Cal {
     };
   }
 
-  processInstruction(instruction: Instruction) {
+  processInstruction(instructionAsArgs: IArguments | Instruction) {
+    // The instruction is actually an array-like object(arguments). Make it an array.
+    const instruction: Instruction = [].slice.call(instructionAsArgs);
     // If there are multiple instructions in the array, process them one by one
     if (typeof instruction[0] !== "string") {
       // It is an instruction
@@ -173,7 +175,7 @@ export class Cal {
     return instruction;
   }
 
-  processQueue(queue: InstructionQueue) {
+  processQueue(queue: IArguments[]) {
     queue.forEach((instruction) => {
       this.processInstruction(instruction);
     });
@@ -273,7 +275,7 @@ export class Cal {
     }
   }
 
-  constructor(namespace: string, q: InstructionQueue) {
+  constructor(namespace: string, q: IArguments[]) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
       origin: WEBAPP_URL,
@@ -586,7 +588,7 @@ export interface GlobalCalWithoutNs {
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
-  q: InstructionQueue;
+  q: IArguments[];
   /** If user registers multiple namespaces, those are available here */
   instance?: Cal;
   __css?: string;
