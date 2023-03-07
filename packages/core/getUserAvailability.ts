@@ -271,6 +271,7 @@ export async function getUserAvailability(
       dateFrom: dateFrom.toDate(),
       dateTo: dateTo.toDate(),
     }),
+    userId,
     timeZone,
     workingHours,
     dateOverrides,

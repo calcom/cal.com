@@ -28,14 +28,41 @@ const slotExtractor = ({ eventLength, frequency }: { eventLength: number; freque
 };
 
 export type GetSlots = {
-  availability: { start: Dayjs; end: Dayjs }[];
+  userAvailabilities: {
+    userId?: number;
+    timeZone: string;
+    availability: {
+      start: Dayjs;
+      end: Dayjs;
+    }[];
+  }[];
 } & Parameters<typeof slotExtractor>[0];
 
-const getSlots = ({ availability, ...slotExtractorProps }: GetSlots) => {
+const getSlots = ({ userAvailabilities, ...slotExtractorProps }: GetSlots) => {
   const { extract } = slotExtractor(slotExtractorProps);
-  return availability.reduce((slots, block) => {
-    return slots.concat(extract(block));
-  }, [] as Slots);
+
+  const slotsGroupedByTime = userAvailabilities.reduce((slots, userAvailability) => {
+    const newSlots = userAvailability.availability
+      .map((block) => extract(block))
+      .flat()
+      .map((block) => ({
+        ...block,
+        userIds: userAvailability.userId ? [userAvailability.userId] : [],
+      }));
+
+    newSlots.forEach((slot) => {
+      slots[slot.time.format()] = slots[slot.time.format()]
+        ? {
+            time: slot.time,
+            userIds: userAvailability.userId ? slot.userIds.concat(userAvailability.userId) : slot.userIds,
+          }
+        : slot;
+    });
+
+    return slots;
+  }, {} as { [x: string]: { time: Dayjs; userIds: number[] } });
+
+  return Object.values(slotsGroupedByTime);
 };
 
 export default getSlots;

@@ -285,7 +285,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   const timeSlots = getSlots({
     eventLength: input.duration || eventType.length,
-    availability: userAvailability.map((item) => item.availability).flat(),
+    userAvailabilities: userAvailability.map(({ availability, timeZone, user: { id: userId } }) => ({
+      userId,
+      timeZone,
+      availability,
+    })),
     frequency: eventType.slotInterval || input.duration || eventType.length,
   });
 

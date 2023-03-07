@@ -8,6 +8,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import classNames from "@calcom/lib/classNames";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -41,6 +42,10 @@ const useSlots = ({
   duration?: string;
   enabled?: boolean;
 }) => {
+  const [groupedByDate, setGroupedByDate] = useState<{
+    [x: string]: RouterOutputs["viewer"]["public"]["slots"]["getSchedule"]["slots"];
+  }>({});
+
   const [refetchCount, setRefetchCount] = useState(0);
   const refetchInterval = getRefetchInterval(refetchCount);
   const { data, isLoading, isPaused, fetchStatus } = trpc.viewer.public.slots.getSchedule.useQuery(
@@ -66,8 +71,27 @@ const useSlots = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchStatus, data]);
 
+  useEffect(() => {
+    setGroupedByDate({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeZone]);
+  useEffect(() => {
+    if (data?.slots) {
+      const newGroupedByDate: typeof groupedByDate = {};
+      data.slots.forEach((slot) => {
+        const time = timeZone ? dayjs.utc(slot.time).tz(timeZone) : new Date(slot.time);
+        newGroupedByDate[yyyymmdd(time)] = newGroupedByDate[yyyymmdd(time)] || [];
+        newGroupedByDate[yyyymmdd(time)].push(slot);
+      });
+      setGroupedByDate({
+        ...groupedByDate,
+        ...newGroupedByDate,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.slots]);
   // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
+  return { slots: groupedByDate, isLoading: isLoading || isPaused };
 };
 
 export const SlotPicker = ({
