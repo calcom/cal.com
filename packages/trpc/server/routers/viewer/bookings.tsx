@@ -983,7 +983,7 @@ export const bookingsRouter = router({
   getBookingAttendees: authedProcedure
     .input(z.object({ seatReferenceUid: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const booking = await ctx.prisma.bookingSeat.findUniqueOrThrow({
+      const bookingSeat = await ctx.prisma.bookingSeat.findUniqueOrThrow({
         where: {
           referenceUid: input.seatReferenceUid,
         },
@@ -1000,9 +1000,9 @@ export const bookingsRouter = router({
         },
       });
 
-      if (!booking) {
+      if (!bookingSeat) {
         throw new Error("Booking not found");
       }
-      return booking._count.attendees;
+      return bookingSeat.booking._count.seatsReferences;
     }),
 });
