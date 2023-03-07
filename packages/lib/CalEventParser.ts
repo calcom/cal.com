@@ -72,17 +72,26 @@ ${calEvent.additionalNotes}
 };
 
 export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
-  const responses = calEvent.userFieldsResponses || calEvent.customInputs;
-  if (!responses) {
+  const { customInputs, userFieldsResponses } = calEvent;
+
+  let labelValueMap: Record<string, string | string[]> = {};
+  if (userFieldsResponses) {
+    for (const [, value] of Object.entries(userFieldsResponses)) {
+      labelValueMap[value.label] = value.value;
+    }
+  } else {
+    labelValueMap = customInputs as Record<string, string | string[]>;
+  }
+  if (!labelValueMap) {
     return "";
   }
-  const responsesString = Object.keys(responses)
+  const responsesString = Object.keys(labelValueMap)
     .map((key) => {
-      if (!responses) return "";
-      if (responses[key] !== "") {
+      if (!labelValueMap) return "";
+      if (labelValueMap[key] !== "") {
         return `
 ${key}:
-${responses[key]}
+${labelValueMap[key]}
   `;
       }
     })
