@@ -417,16 +417,7 @@ export const workflowsRouter = router({
       });
 
       for (const activeOn of workflowToDelete.activeOn) {
-        await removeBookingField(
-          {
-            name: "smsReminderNumber",
-          },
-          {
-            id: "" + id,
-            type: "workflow",
-          },
-          activeOn.eventTypeId
-        );
+        await removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId: activeOn.eventTypeId });
       }
 
       await ctx.prisma.workflow.deleteMany({
@@ -950,7 +941,7 @@ export const workflowsRouter = router({
                 eventTypeId,
               });
             } else {
-              removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId });
+              await removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId });
             }
           }
         }
