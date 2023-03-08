@@ -1,9 +1,10 @@
 import DailyIframe from "@daily-co/daily-js";
 import type { GetServerSidePropsContext } from "next";
-import { getSession } from "next-auth/react";
 import Head from "next/head";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useEffect } from "react";
 
+import { getServerSession } from "@calcom/lib/auth";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -82,6 +83,8 @@ export default function JoinCall(props: JoinCallPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { req, res } = context;
+
   const ssr = await ssrInit(context);
 
   const booking = await prisma.booking.findUnique({
@@ -139,7 +142,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     startTime: booking.startTime.toString(),
     endTime: booking.endTime.toString(),
   });
-  const session = await getSession();
+
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {

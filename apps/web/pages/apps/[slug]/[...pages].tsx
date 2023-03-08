@@ -1,13 +1,14 @@
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
+import { getServerSession } from "@calcom/lib/auth";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
-import { getSession } from "@lib/auth";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -103,7 +104,7 @@ export async function getServerSideProps(
     appPages?: string[];
   }>
 ) {
-  const { params } = context;
+  const { params, req, res } = context;
   if (!params) {
     return {
       notFound: true,
@@ -120,7 +121,7 @@ export async function getServerSideProps(
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
     params.appPages = pages.slice(1);
-    const session = await getSession({ req: context.req });
+    const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
     const user = session?.user;
 
     const result = await route.getServerSideProps(

@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -12,11 +13,11 @@ import {
   samlTenantID,
   samlTenantProduct,
 } from "@calcom/features/ee/sso/lib/saml";
+import { getServerSession } from "@calcom/lib/auth";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -60,9 +61,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named sso/[provider]`);
   }
 
-  const { req } = context;
+  const { req, res } = context;
 
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
   const ssr = await ssrInit(context);
 
   if (session) {

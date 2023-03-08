@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/react";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 
+import { getServerSession } from "@calcom/lib/auth";
 import { performance } from "@calcom/lib/server/perfObserver";
 
 let isCold = true;
@@ -9,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const prePrismaDate = performance.now();
   const prisma = (await import("@calcom/prisma")).default;
   const preSessionDate = performance.now();
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
   if (!session) return res.status(409).json({ message: "Unauthorized" });
   const preUserDate = performance.now();
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });

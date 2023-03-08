@@ -1,7 +1,9 @@
 import { IdentityProvider } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse, GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
+import type { AuthOptions } from "next-auth";
+import { getServerSession as getServerSessionInner } from "next-auth/next";
 import type { GetSessionParams } from "next-auth/react";
 import { getSession as getSessionInner } from "next-auth/react";
 
@@ -29,6 +31,19 @@ export function validPassword(password: string) {
 
 export async function getSession(options: GetSessionParams): Promise<Session | null> {
   const session = await getSessionInner(options);
+
+  // that these are equal are ensured in `[...nextauth]`'s callback
+  return session as Session | null;
+}
+
+export async function getServerSession(options: {
+  req: NextApiRequest | GetServerSidePropsContext["req"];
+  res: NextApiResponse | GetServerSidePropsContext["res"];
+  authOptions: AuthOptions;
+}) {
+  const { req, res, authOptions } = options;
+
+  const session = await getServerSessionInner(req, res, authOptions);
 
   // that these are equal are ensured in `[...nextauth]`'s callback
   return session as Session | null;

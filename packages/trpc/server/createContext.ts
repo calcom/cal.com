@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -108,6 +108,15 @@ type CreateInnerContextOptions = {
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
+export type GetSessionFn =
+  | ((_options: {
+      req: GetServerSidePropsContext["req"] | NextApiRequest;
+      res: GetServerSidePropsContext["res"] | NextApiResponse;
+    }) => Promise<Session | null>)
+  | (() => Promise<Session | null>);
+
+const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req }) => getSession({ req });
+
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
@@ -128,9 +137,12 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter = getSession) => {
+export const createContext = async (
+  { req, res }: CreateContextOptions,
+  sessionGetter: GetSessionFn = DEFAULT_SESSION_GETTER
+) => {
   // for API-response caching see https://trpc.io/docs/caching
-  const session = await sessionGetter({ req });
+  const session = await sessionGetter({ req, res });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);

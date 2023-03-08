@@ -4,13 +4,14 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
-import { ErrorCode, getSession } from "@calcom/lib/auth";
+import { ErrorCode, getServerSession } from "@calcom/lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -220,8 +221,9 @@ export default function Login({
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req } = context;
-  const session = await getSession({ req });
+  const { req, res } = context;
+
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
   const ssr = await ssrInit(context);
 
   const verifyJwt = (jwt: string) => {

@@ -1,17 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 
+import { getServerSession, ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
-
-import { ErrorCode, getSession, verifyPassword } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
   if (!session) {
     return res.status(401).json({ message: "Not authenticated" });
   }

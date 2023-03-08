@@ -1,13 +1,15 @@
-import type { NextPageContext } from "next";
+import type { GetServerSidePropsContext } from "next";
+import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 
-import { getSession } from "@lib/auth";
+import { getServerSession } from "@calcom/lib/auth";
 
 function RedirectPage() {
   return;
 }
 
-export async function getServerSideProps(context: NextPageContext) {
-  const session = await getSession(context);
+export async function getServerSideProps({ req, res }: GetServerSidePropsContext) {
+  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
