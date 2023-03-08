@@ -192,6 +192,7 @@ export const eventTypesRouter = router({
       hashedLink: true,
       locations: true,
       destinationCalendar: true,
+      userId: true,
       team: {
         select: {
           id: true,
@@ -328,7 +329,9 @@ export const eventTypesRouter = router({
       hashMap[newItem.id] = { ...oldItem, ...newItem };
       return hashMap;
     }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
-    const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
+    const mergedEventTypes = Object.values(eventTypesHashMap)
+      .map((eventType) => eventType)
+      .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
     eventTypeGroups.push({
       teamId: null,
       membershipRole: null,
@@ -358,7 +361,9 @@ export const eventTypesRouter = router({
           membershipCount: membership.team.members.length,
           readOnly: membership.role === MembershipRole.MEMBER,
         },
-        eventTypes: membership.team.eventTypes.map(mapEventType),
+        eventTypes: membership.team.eventTypes
+          .map(mapEventType)
+          .filter((evType) => evType.userId === null || evType.userId === ctx.user.id),
       }))
     );
     return {
@@ -448,8 +453,8 @@ export const eventTypesRouter = router({
 
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
-      owner: teamId ? undefined : { connect: { id: userId } },
-      metadata: metadata as Prisma.InputJsonObject,
+      owner: !teamId || schedulingType === SchedulingType.MANAGED ? { connect: { id: userId } } : undefined,
+      metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
       // Only connecting the current user for non-managed event type
       users: schedulingType === SchedulingType.MANAGED ? undefined : { connect: { id: userId } },
       locations,
@@ -618,6 +623,10 @@ export const eventTypesRouter = router({
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
+      };
+    } else {
+      data.users = {
+        set: [],
       };
     }
     if (hosts) {

@@ -64,6 +64,7 @@ export const availabilityRouter = router({
       .input(
         z.object({
           scheduleId: z.optional(z.number()),
+          isManagedEventType: z.optional(z.boolean()),
         })
       )
       .query(async ({ ctx, input }) => {
@@ -81,6 +82,7 @@ export const availabilityRouter = router({
             eventType: {
               select: {
                 _count: true,
+                parentId: true,
                 id: true,
                 eventName: true,
               },

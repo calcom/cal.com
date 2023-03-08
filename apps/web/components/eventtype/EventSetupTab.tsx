@@ -29,7 +29,7 @@ const getLocationFromType = (
   locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
 ) => {
   for (const locationOption of locationOptions) {
-    const option = locationOption.options.find((option) => option.value === type);
+    const option = locationOption.options.find((option: { value: string }) => option.value === type);
     if (option) {
       return option;
     }
@@ -144,7 +144,13 @@ export const EventSetupTab = (
     resolver: zodResolver(locationFormSchema),
   });
 
-  const Locations = ({ isDisabled }: { isDisabled: boolean }) => {
+  const Locations = ({
+    isDisabled,
+    isManagedEventType,
+  }: {
+    isDisabled: boolean;
+    isManagedEventType: boolean;
+  }) => {
     const { t } = useLocale();
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -158,6 +164,10 @@ export const EventSetupTab = (
       return true;
     });
 
+    const defaultValue = isManagedEventType
+      ? locationOptions.find((op) => op.label === t("default"))?.options[0]
+      : undefined;
+
     return (
       <div className="w-full">
         {validLocations.length === 0 && (
@@ -166,6 +176,7 @@ export const EventSetupTab = (
               placeholder={t("select")}
               options={locationOptions}
               isDisabled={isDisabled}
+              defaultValue={defaultValue}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
               menuPlacement="auto"
@@ -270,10 +281,13 @@ export const EventSetupTab = (
     );
   };
 
-  const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
     eventType,
     t("locked_fields_description")
   );
+
+  const lengthLockedProps = shouldLockDisableProps("length");
+  const descriptionLockedProps = shouldLockDisableProps("description");
 
   return (
     <div>
@@ -286,17 +300,25 @@ export const EventSetupTab = (
           {...formMethods.register("title")}
         />
         <div>
-          <Label>{t("description")}</Label>
-          <Editor
-            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
-            setText={(value: string) => formMethods.setValue("description", turndown(value))}
-            excludedToolbarItems={["blockType"]}
-            placeholder={t("quick_video_meeting")}
-          />
+          <Label>
+            {t("description")}
+            {shouldLockIndicator("description")}
+          </Label>
+          {descriptionLockedProps.disabled ? (
+            <TextField value={formMethods.getValues("description")} disabled />
+          ) : (
+            <Editor
+              getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+              setText={(value: string) => formMethods.setValue("description", turndown(value))}
+              excludedToolbarItems={["blockType"]}
+              placeholder={t("quick_video_meeting")}
+            />
+          )}
         </div>
         <TextField
           required
           label={t("URL")}
+          {...shouldLockDisableProps("slug")}
           defaultValue={eventType.slug}
           addOnLeading={
             <>
@@ -356,7 +378,7 @@ export const EventSetupTab = (
                 isSearchable={false}
                 name="length"
                 className="text-sm"
-                isDisabled={shouldLockDisableProps("length").disabled}
+                isDisabled={lengthLockedProps.disabled}
                 noOptionsMessage={() => t("default_duration_no_options")}
                 options={selectedMultipleDuration}
                 onChange={(option) => {
@@ -372,30 +394,32 @@ export const EventSetupTab = (
           <TextField
             required
             type="number"
-            {...shouldLockDisableProps("length")}
+            {...lengthLockedProps}
             label={t("duration")}
             defaultValue={eventType.length ?? 15}
             {...formMethods.register("length")}
             addOnSuffix={<>{t("minutes")}</>}
           />
         )}
-        <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
-          <SettingsToggle
-            title={t("allow_booker_to_select_duration")}
-            checked={multipleDuration !== undefined}
-            onCheckedChange={() => {
-              if (multipleDuration !== undefined) {
-                setMultipleDuration(undefined);
-                formMethods.setValue("metadata.multipleDuration", undefined);
-                formMethods.setValue("length", eventType.length);
-              } else {
-                setMultipleDuration([]);
-                formMethods.setValue("metadata.multipleDuration", []);
-                formMethods.setValue("length", 0);
-              }
-            }}
-          />
-        </div>
+        {!lengthLockedProps.disabled && (
+          <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+            <SettingsToggle
+              title={t("allow_booker_to_select_duration")}
+              checked={multipleDuration !== undefined}
+              onCheckedChange={() => {
+                if (multipleDuration !== undefined) {
+                  setMultipleDuration(undefined);
+                  formMethods.setValue("metadata.multipleDuration", undefined);
+                  formMethods.setValue("length", eventType.length);
+                } else {
+                  setMultipleDuration([]);
+                  formMethods.setValue("metadata.multipleDuration", []);
+                  formMethods.setValue("length", 0);
+                }
+              }}
+            />
+          </div>
+        )}
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
@@ -406,7 +430,12 @@ export const EventSetupTab = (
             name="locations"
             control={formMethods.control}
             defaultValue={eventType.locations || []}
-            render={() => <Locations isDisabled={shouldLockDisableProps("locations").disabled} />}
+            render={() => (
+              <Locations
+                isManagedEventType={isManagedEventType}
+                isDisabled={shouldLockDisableProps("locations").disabled}
+              />
+            )}
           />
         </div>
       </div>

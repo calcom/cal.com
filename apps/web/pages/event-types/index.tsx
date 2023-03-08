@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { FC } from "react";
@@ -36,6 +37,7 @@ import {
   Tooltip,
   CreateButton,
   HorizontalTabs,
+  VerticalDivider,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -126,7 +128,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           data-testid={"event-type-title-" + type.id}>
           {type.title}
         </span>
-        {group.profile.slug ? (
+        {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
           <small
             className="hidden font-normal leading-4 text-gray-600 sm:inline"
             data-testid={"event-type-slug-" + type.id}>
@@ -338,59 +340,69 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.users?.length > 1 && (
-                        <AvatarGroup
-                          className="relative top-1 right-3"
-                          size="sm"
-                          truncateAfter={4}
-                          items={type.users.map((organizer) => ({
-                            alt: organizer.name || "",
-                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                            title: organizer.name || "",
-                          }))}
-                        />
+                      {type.users?.length > (type.schedulingType !== SchedulingType.MANAGED ? 1 : 0) && (
+                        <>
+                          <AvatarGroup
+                            className="relative top-1 right-3"
+                            size="sm"
+                            truncateAfter={4}
+                            items={type.users.map((organizer) => ({
+                              alt: organizer.name || "",
+                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                              title: organizer.name || "",
+                            }))}
+                          />
+                          <VerticalDivider className="mt-2.5 hidden lg:block" />
+                        </>
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {type.hidden && (
-                          <Badge variant="gray" size="lg">
-                            {t("hidden")}
-                          </Badge>
+                        {type.schedulingType !== SchedulingType.MANAGED && (
+                          <>
+                            {type.hidden && (
+                              <Badge variant="gray" size="lg">
+                                {t("hidden")}
+                              </Badge>
+                            )}
+                            <Tooltip content={t("show_eventtype_on_profile")}>
+                              <div className="self-center rounded-md p-2 hover:bg-gray-200">
+                                <Switch
+                                  name="Hidden"
+                                  checked={!type.hidden}
+                                  onCheckedChange={() => {
+                                    setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                  }}
+                                />
+                              </div>
+                            </Tooltip>
+                          </>
                         )}
-                        <Tooltip content={t("show_eventtype_on_profile")}>
-                          <div className="self-center rounded-md p-2 hover:bg-gray-200">
-                            <Switch
-                              name="Hidden"
-                              checked={!type.hidden}
-                              onCheckedChange={() => {
-                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
-                              }}
-                            />
-                          </div>
-                        </Tooltip>
-
                         <ButtonGroup combined>
-                          <Tooltip content={t("preview")}>
-                            <Button
-                              data-testid="preview-link-button"
-                              color="secondary"
-                              target="_blank"
-                              variant="icon"
-                              href={calLink}
-                              StartIcon={FiExternalLink}
-                            />
-                          </Tooltip>
+                          {type.schedulingType !== SchedulingType.MANAGED && (
+                            <>
+                              <Tooltip content={t("preview")}>
+                                <Button
+                                  data-testid="preview-link-button"
+                                  color="secondary"
+                                  target="_blank"
+                                  variant="icon"
+                                  href={calLink}
+                                  StartIcon={FiExternalLink}
+                                />
+                              </Tooltip>
 
-                          <Tooltip content={t("copy_link")}>
-                            <Button
-                              color="secondary"
-                              variant="icon"
-                              StartIcon={FiLink}
-                              onClick={() => {
-                                showToast(t("link_copied"), "success");
-                                navigator.clipboard.writeText(calLink);
-                              }}
-                            />
-                          </Tooltip>
+                              <Tooltip content={t("copy_link")}>
+                                <Button
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon={FiLink}
+                                  onClick={() => {
+                                    showToast(t("link_copied"), "success");
+                                    navigator.clipboard.writeText(calLink);
+                                  }}
+                                />
+                              </Tooltip>
+                            </>
+                          )}
                           <Dropdown modal={false}>
                             <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                               <Button
@@ -411,25 +423,29 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  type="button"
-                                  data-testid={"event-type-duplicate-" + type.id}
-                                  StartIcon={FiCopy}
-                                  onClick={() => openDuplicateModal(type, group)}>
-                                  {t("duplicate")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="outline-none">
-                                <EmbedButton
-                                  as={DropdownItem}
-                                  type="button"
-                                  StartIcon={FiCode}
-                                  className="w-full rounded-none"
-                                  embedUrl={encodeURIComponent(embedLink)}>
-                                  {t("embed")}
-                                </EmbedButton>
-                              </DropdownMenuItem>
+                              {type.schedulingType !== SchedulingType.MANAGED && (
+                                <>
+                                  <DropdownMenuItem className="outline-none">
+                                    <DropdownItem
+                                      type="button"
+                                      data-testid={"event-type-duplicate-" + type.id}
+                                      StartIcon={FiCopy}
+                                      onClick={() => openDuplicateModal(type, group)}>
+                                      {t("duplicate")}
+                                    </DropdownItem>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="outline-none">
+                                    <EmbedButton
+                                      as={DropdownItem}
+                                      type="button"
+                                      StartIcon={FiCode}
+                                      className="w-full rounded-none"
+                                      embedUrl={encodeURIComponent(embedLink)}>
+                                      {t("embed")}
+                                    </EmbedButton>
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                               <DropdownMenuSeparator />
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (

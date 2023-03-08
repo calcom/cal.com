@@ -3,6 +3,7 @@ import { SchedulingType } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -77,6 +78,7 @@ export default function CreateEventTypeDialog({
 }) {
   const { t } = useLocale();
   const router = useRouter();
+
   const {
     data: { teamId, eventPage: pageSlug },
   } = useTypedQuery(querySchema);
@@ -91,11 +93,13 @@ export default function CreateEventTypeDialog({
 
   const schedulingTypeWatch = form.watch("schedulingType");
 
-  if (schedulingTypeWatch === SchedulingType.MANAGED) {
-    form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
-  } else {
-    form.setValue("metadata", null);
-  }
+  useEffect(() => {
+    if (schedulingTypeWatch === SchedulingType.MANAGED) {
+      form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
+    } else {
+      form.setValue("metadata", null);
+    }
+  }, [schedulingTypeWatch]);
 
   const { register } = form;
 

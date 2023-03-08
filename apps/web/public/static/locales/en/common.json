@@ -1652,5 +1652,8 @@
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
-  "invalid_event_name_variables": "There is an invalid variable in your event name"
+  "invalid_event_name_variables": "There is an invalid variable in your event name",
+  "members_default_schedule": "Member's default schedule",
+  "members_default_location": "Member's default location",
+  "members_default_schedule_description": "We will use each members default availability schedule. They will be able to edit or change it."
 }

@@ -1,5 +1,4 @@
 import type { Webhook } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
@@ -95,7 +94,10 @@ export const EventTeamWebhooksTab = ({
     );
   };
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (
@@ -107,7 +109,7 @@ export const EventTeamWebhooksTab = ({
               <>
                 {webhooks.length ? (
                   <>
-                    {eventType.schedulingType === SchedulingType.MANAGED && (
+                    {isManagedEventType && (
                       <Alert
                         severity="neutral"
                         className="mb-2"

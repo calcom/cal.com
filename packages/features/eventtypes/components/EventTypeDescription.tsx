@@ -19,6 +19,7 @@ import {
   FiClipboard,
   FiPlus,
   FiUser,
+  FiLock,
 } from "@calcom/ui/components/icon";
 
 export type EventTypeDescriptionProps = {
@@ -31,12 +32,14 @@ export type EventTypeDescriptionProps = {
   };
   className?: string;
   shortenDescription?: boolean;
+  isPublic?: boolean;
 };
 
 export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
+  isPublic,
 }: EventTypeDescriptionProps) => {
   const { t } = useLocale();
 
@@ -46,7 +49,7 @@ export const EventTypeDescription = ({
   );
 
   const stripeAppData = getPaymentAppData(eventType);
-
+  console.log({ isPublic });
   return (
     <>
       <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
@@ -62,6 +65,11 @@ export const EventTypeDescription = ({
           />
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
+          {eventType.metadata?.managedEventConfig && !isPublic && (
+            <Badge variant="blue" size="lg" StartIcon={FiLock}>
+              {t("managed")}
+            </Badge>
+          )}
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
@@ -77,7 +85,7 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.schedulingType && (
+          {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
               <Badge variant="gray" size="lg" StartIcon={FiUsers}>
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}

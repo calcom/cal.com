@@ -145,6 +145,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               className,
               addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
               addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
+              disabled && "bg-gray-100",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
@@ -156,7 +157,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               },
               value: inputValue,
             })}
-            readOnly={readOnly || disabled}
+            disabled={readOnly || disabled}
             ref={ref}
           />
           {addOnSuffix && (
@@ -184,11 +185,12 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           id={id}
           type={type}
           placeholder={placeholder}
-          className={className}
+          className={classNames(className, disabled && "bg-gray-100")}
           {...passThrough}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
+          disabled={readOnly || disabled}
         />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />

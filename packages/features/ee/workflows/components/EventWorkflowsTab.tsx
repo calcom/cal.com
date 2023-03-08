@@ -1,5 +1,4 @@
 import { WorkflowActions } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -205,7 +204,10 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
   const workflowLockedStatus = shouldLockDisableProps("workflow");
 
   return (
@@ -213,7 +215,7 @@ function EventWorkflowsTab(props: Props) {
       {!isLoading ? (
         data?.workflows && data?.workflows.length > 0 ? (
           <div>
-            {eventType.schedulingType === SchedulingType.MANAGED && (
+            {isManagedEventType && (
               <Alert
                 severity="neutral"
                 className="mb-2"

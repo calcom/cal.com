@@ -44,11 +44,15 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  disabled,
+  isLocked,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  disabled: boolean;
+  isLocked: false | JSX.Element;
 }) {
   const FieldTypesMap: Record<
     string,
@@ -260,7 +264,10 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{title}</div>
+        <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
+          {title}
+          {isLocked}
+        </div>
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
@@ -324,8 +331,12 @@ export const FormBuilder = function FormBuilder({
                   <div className="flex items-center space-x-2">
                     <Switch
                       data-testid="toggle-field"
-                      disabled={field.editable === "system"}
-                      tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
+                      disabled={field.editable === "system" || disabled}
+                      tooltip={
+                        field.editable === "system" && !disabled
+                          ? t("form_builder_system_field_cant_toggle")
+                          : ""
+                      }
                       checked={!field.hidden}
                       onCheckedChange={(checked) => {
                         update(index, { ...field, hidden: !checked });

@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
@@ -57,7 +56,10 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
   const appsLockedStatus = shouldLockDisableProps("apps");
 
   return (
@@ -77,7 +79,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               }
             />
           ) : null}
-          {!!installedApps?.length && eventType.schedulingType === SchedulingType.MANAGED && (
+          {!!installedApps?.length && isManagedEventType && (
             <Alert
               severity="neutral"
               title="Locked for members"

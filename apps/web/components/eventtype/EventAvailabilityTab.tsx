@@ -54,48 +54,19 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
 
 const AvailabilitySelect = ({
   className = "",
-  isManaged,
+  options,
+  value,
   ...props
 }: {
   className?: string;
   name: string;
-  value: number;
-  isManaged?: boolean;
+  value: AvailabilityOption | undefined;
+  options: AvailabilityOption[];
   isDisabled?: boolean;
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
   const { t } = useLocale();
-
-  if (isLoading) {
-    return <SelectSkeletonLoader />;
-  }
-
-  const schedules = data?.schedules || [];
-
-  const options = schedules.map((schedule) => ({
-    value: schedule.id,
-    label: schedule.name,
-    isDefault: schedule.isDefault,
-  }));
-
-  if (isManaged) {
-    options.push({
-      value: 0,
-      label: "Member's default schedule",
-      isDefault: false,
-    });
-  }
-
-  const value = options.find((option) =>
-    props.value
-      ? option.value === props.value
-      : isManaged
-      ? option.value === 0
-      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-  );
-
   return (
     <Select
       placeholder={t("select")}
@@ -116,7 +87,13 @@ const format = (date: Date, hour12: boolean) =>
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
-const EventTypeScheduleDetails = () => {
+const EventTypeScheduleDetails = ({
+  isManagedEventType,
+  selectedScheduleValue,
+}: {
+  isManagedEventType: boolean;
+  selectedScheduleValue: AvailabilityOption | undefined;
+}) => {
   const { data: loggedInUser } = useMeQuery();
   const timeFormat = loggedInUser?.timeFormat;
   const { t, i18n } = useLocale();
@@ -124,8 +101,11 @@ const EventTypeScheduleDetails = () => {
 
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
-    { scheduleId: scheduleId || loggedInUser?.defaultScheduleId || undefined },
-    { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId }
+    {
+      scheduleId: scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
+      isManagedEventType,
+    },
+    { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
   );
 
   const filterDays = (dayNum: number) =>
@@ -190,12 +170,39 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
     eventType,
     t("locked_fields_description")
   );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
+
+  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
+
+  const schedules = data?.schedules || [];
+
+  const options = schedules.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+    isDefault: schedule.isDefault,
+  }));
+
+  if (isManagedEventType) {
+    options.push({
+      value: 0,
+      label: t("members_default_schedule"),
+      isDefault: false,
+    });
+  }
+
+  const value = options.find((option) =>
+    watchSchedule
+      ? option.value === watchSchedule
+      : isManagedEventType
+      ? option.value === 0
+      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
+  );
+
   return (
     <div className="space-y-4">
       <div>
@@ -207,26 +214,30 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         </label>
         <Controller
           name="schedule"
-          render={({ field }) => (
-            <AvailabilitySelect
-              value={field.value}
-              isManaged={eventType.schedulingType === SchedulingType.MANAGED}
-              onBlur={field.onBlur}
-              isDisabled={shouldLockDisableProps("availability").disabled}
-              name={field.name}
-              onChange={(selected) => {
-                field.onChange(selected?.value || null);
-              }}
-            />
-          )}
+          render={({ field }) =>
+            isLoading ? (
+              <SelectSkeletonLoader />
+            ) : (
+              <AvailabilitySelect
+                value={value}
+                options={options}
+                onBlur={field.onBlur}
+                isDisabled={shouldLockDisableProps("availability").disabled}
+                name={field.name}
+                onChange={(selected) => {
+                  field.onChange(selected?.value || null);
+                }}
+              />
+            )
+          }
         />
       </div>
-      {eventType.schedulingType !== SchedulingType.MANAGED || watchSchedule !== null ? (
-        <EventTypeScheduleDetails />
+      {isManagedEventType || value?.value !== 0 ? (
+        <EventTypeScheduleDetails selectedScheduleValue={value} isManagedEventType={isManagedEventType} />
       ) : (
-        <p className="!mt-2 text-sm text-gray-600">
-          We will use each members default availability schedule. They will be able to edit or change it.
-        </p>
+        isManagedEventType && (
+          <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+        )
       )}
     </div>
   );

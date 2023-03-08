@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -239,6 +240,7 @@ export default async function getEventTypeById({
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
+    users: rawEventType.users,
   };
 
   // backwards compat
@@ -265,6 +267,18 @@ export default async function getEventTypeById({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = await getEnabledApps(credentials);
   const locationOptions = getLocationGroupedOptions(integrations, t);
+  if (eventType.schedulingType === SchedulingType.MANAGED) {
+    locationOptions.push({
+      label: t("default"),
+      options: [
+        {
+          label: t("members_default_location"),
+          value: "",
+          icon: "/user-check.svg",
+        },
+      ],
+    });
+  }
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

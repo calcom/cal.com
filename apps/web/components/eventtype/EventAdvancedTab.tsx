@@ -141,6 +141,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
+        {...shouldLockDisableProps("bookingFields")}
       />
       <hr />
       <RequiresConfirmationController

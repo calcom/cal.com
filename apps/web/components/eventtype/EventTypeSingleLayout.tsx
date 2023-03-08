@@ -179,8 +179,9 @@ function EventTypeSingleLayout({
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          eventType.schedulingType === SchedulingType.MANAGED &&
-          ` - ${t("count_members", { count: eventType.users.length || 0 })}`
+          eventType.schedulingType === SchedulingType.MANAGED
+            ? ` - ${t("count_members", { count: eventType.users.length || 0 })}`
+            : ""
         }`,
       });
       navigation.push({
@@ -206,55 +207,63 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:hover:bg-gray-100 lg:flex">
-            <Skeleton
-              as={Label}
-              htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
-              {t("hide_from_profile")}
-            </Skeleton>
-            <Switch
-              id="hiddenSwitch"
-              checked={formMethods.watch("hidden")}
-              onCheckedChange={(e) => {
-                formMethods.setValue("hidden", e);
-              }}
-            />
-          </div>
-          <VerticalDivider className="hidden lg:block" />
+          {eventType.schedulingType !== SchedulingType.MANAGED && (
+            <>
+              <div className="hidden items-center rounded-md px-2 sm:hover:bg-gray-100 lg:flex">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
+                  {t("hide_from_profile")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  checked={formMethods.watch("hidden")}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("hidden", e);
+                  }}
+                />
+              </div>
+              <VerticalDivider className="hidden lg:block" />
+            </>
+          )}
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
-            {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
-            <Tooltip content={t("preview")}>
-              <Button
-                color="secondary"
-                data-testid="preview-button"
-                target="_blank"
-                variant="icon"
-                href={permalink}
-                rel="noreferrer"
-                StartIcon={FiExternalLink}
-              />
-            </Tooltip>
+            {eventType.schedulingType !== SchedulingType.MANAGED && (
+              <>
+                {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
+                <Tooltip content={t("preview")}>
+                  <Button
+                    color="secondary"
+                    data-testid="preview-button"
+                    target="_blank"
+                    variant="icon"
+                    href={permalink}
+                    rel="noreferrer"
+                    StartIcon={FiExternalLink}
+                  />
+                </Tooltip>
 
-            <Button
-              color="secondary"
-              variant="icon"
-              StartIcon={FiLink}
-              tooltip={t("copy_link")}
-              onClick={() => {
-                navigator.clipboard.writeText(permalink);
-                showToast("Link copied!", "success");
-              }}
-            />
-            <EmbedButton
-              embedUrl={encodeURIComponent(embedLink)}
-              StartIcon={FiCode}
-              color="secondary"
-              variant="icon"
-              tooltip={t("embed")}
-            />
+                <Button
+                  color="secondary"
+                  variant="icon"
+                  StartIcon={FiLink}
+                  tooltip={t("copy_link")}
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Link copied!", "success");
+                  }}
+                />
+                <EmbedButton
+                  embedUrl={encodeURIComponent(embedLink)}
+                  StartIcon={FiCode}
+                  color="secondary"
+                  variant="icon"
+                  tooltip={t("embed")}
+                />
+              </>
+            )}
             <Button
               color="secondary"
               variant="icon"

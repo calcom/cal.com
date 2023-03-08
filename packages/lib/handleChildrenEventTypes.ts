@@ -1,7 +1,6 @@
 import type { Prisma, PrismaClient, EventType } from "@prisma/client";
 import { isEqual, pick } from "lodash";
 
-import logger from "@calcom/lib/logger";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 
 interface handleChildrenEventTypesProps {
@@ -52,6 +51,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   slotInterval: true,
   scheduleId: true,
   workflows: true,
+  bookingFields: true,
 };
 
 // All properties that are defined as locked based on all managed props
@@ -78,7 +78,7 @@ export default async function handleChildrenEventTypes({
   }
 
   // Define what values are expected to be changed from a managed event type
-  const managedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps as { [k: string]: true });
+  const managedEventTypePropsZod = _EventTypeModel.omit(unlockedManagedEventTypeProps);
   const managedEventTypeValues = managedEventTypePropsZod.parse(updatedEventType);
 
   // Calculate if there are new/deleted users for which the event type needs to be created/deleted
@@ -93,36 +93,41 @@ export default async function handleChildrenEventTypes({
     {} as typeof oldEventType
   );
 
-  logger.debug(
+  console.log(
     "handleChildrenEventTypes",
     JSON.stringify([{ diffEventType, newUsersIds, oldUserIds }], null, 2)
   );
 
   // New users added
   if (newUsersIds?.length) {
-    const newEventTypes = await prisma.eventType.createMany({
-      data: newUsersIds.map((userId) => ({
-        ...managedEventTypeValues,
-        bookingLimits:
-          (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-        recurringEvent:
-          (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-        metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-        userId,
-        parentId,
-        workflows: {
-          createMany: {
-            data: updatedEventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
+    const newEventTypes = await prisma.$transaction(
+      newUsersIds.map((userId) => {
+        return prisma.eventType.create({
+          data: {
+            ...managedEventTypeValues,
+            bookingLimits:
+              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+            recurringEvent:
+              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+            bookingFields: (diffEventType.bookingFields as Prisma.InputJsonValue) ?? undefined,
+            userId,
+            parentId,
+            workflows: updatedEventType.workflows && {
+              createMany: {
+                data: updatedEventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
+              },
+            },
+            webhooks: updatedEventType.webhooks && {
+              createMany: {
+                data: updatedEventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
+              },
+            },
           },
-        },
-        webhooks: {
-          createMany: {
-            data: updatedEventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
-          },
-        },
-      })),
-    });
-    logger.debug("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));
+        });
+      })
+    );
+    console.log("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));
   }
 
   // Old users updated
@@ -137,9 +142,10 @@ export default async function handleChildrenEventTypes({
         recurringEvent: (diffEventType.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
         metadata: (diffEventType.metadata as Prisma.InputJsonValue) ?? undefined,
         locations: (diffEventType.locations as Prisma.InputJsonValue) ?? undefined,
+        bookingFields: (diffEventType.bookingFields as Prisma.InputJsonValue) ?? undefined,
       },
     });
-    logger.debug(
+    console.log(
       "handleChildrenEventTypes:updatedEventTypes",
       JSON.stringify({ updatedOldEventTypes }, null, 2)
     );
@@ -153,7 +159,7 @@ export default async function handleChildrenEventTypes({
         ...updatedEventType.workflows,
       },
     });
-    logger.debug(
+    console.log(
       "handleChildrenEventTypes:updatedOldWorkflows",
       JSON.stringify({ updatedOldWorkflows }, null, 2)
     );
@@ -174,18 +180,15 @@ export default async function handleChildrenEventTypes({
   }
 
   // Old users deleted
-  if (updatedEventType.users?.length) {
+  if (oldUserIds?.length) {
     const deletedEventTypes = await prisma.eventType.deleteMany({
       where: {
         id: {
-          notIn: updatedEventType.users.map((user) => user.id),
+          in: oldUserIds,
         },
         parentId,
       },
     });
-    logger.debug(
-      "handleChildrenEventTypes:deletedEventTypes",
-      JSON.stringify({ deletedEventTypes }, null, 2)
-    );
+    console.log("handleChildrenEventTypes:deletedEventTypes", JSON.stringify({ deletedEventTypes }, null, 2));
   }
 }

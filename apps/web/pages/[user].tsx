@@ -196,7 +196,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                           {type.title}
                         </h2>
                       </div>
-                      <EventTypeDescription eventType={type} />
+                      <EventTypeDescription eventType={type} isPublic={true} />
                     </Link>
                   </div>
                 </div>
