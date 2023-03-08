@@ -159,21 +159,6 @@ const publicViewerRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // @TODO: Eventtype queries uniquely on userid instead of name,
-      // is there a way we can removed this extra query?
-      const user = await ctx.prisma.user.findUnique({
-        where: {
-          username: input.username,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!user) {
-        throw new Error(ErrorCode.UserNotFound);
-      }
-
       const event = await ctx.prisma.eventType.findFirst({
         where: {
           AND: [
@@ -182,21 +167,14 @@ const publicViewerRouter = router({
                 {
                   users: {
                     some: {
-                      id: user.id,
+                      username: input.username,
                     },
                   },
                 },
                 {
                   team: {
-                    members: {
-                      some: {
-                        userId: user.id,
-                      },
-                    },
+                    slug: input.username,
                   },
-                },
-                {
-                  userId: user.id,
                 },
               ],
             },

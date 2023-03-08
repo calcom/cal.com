@@ -1,4 +1,4 @@
-import { GetBookingType } from "../lib/get-booking";
+import type { GetBookingType } from "../lib/get-booking";
 
 export interface BookerProps {
   eventSlug: string;

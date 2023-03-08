@@ -15,7 +15,7 @@ type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
   // @TODO: Add gates
-  // @TODO: Away state + dynamic booking not allowed.
+  // @TODO: Dynamic booking not allowed.
   // @TODO: Test dynamic booking.
 
   return (
