@@ -39,6 +39,7 @@
     "docs-start": "turbo run start --scope=\"@calcom/docs\"",
     "build-storybook": "turbo run build --scope=\"@calcom/storybook\"",
     "dx": "turbo run dx",
+    "i-dev": "infisical run -- turbo run dev --scope=\"@calcom/web\"",
     "i-dx": "infisical run -- turbo run dx",
     "i-gen-web-example-env": "infisical secrets generate-example-env --tags=web > .env.example",
     "i-gen-app-store-example-env": "infisical secrets generate-example-env --tags=appstore > .env.appStore.example",
