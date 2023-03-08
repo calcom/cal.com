@@ -19,7 +19,7 @@ export const LinkIcon = ({
       height: "1rem",
       width: "1rem",
       marginLeft: "0.5rem",
-      ...(secondary && { filter: "brightness(80%)" }),
+      ...(secondary && { filter: "brightness(50%)" }),
       ...style,
     }}
     alt=""
