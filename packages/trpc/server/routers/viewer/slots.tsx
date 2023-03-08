@@ -369,22 +369,23 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
       { time: time, ...passThroughProps }
     ) => {
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+      const timeTZ = time.tz(input.timeZone);
+      r[timeTZ.format("YYYY-MM-DD")] = r[timeTZ.format("YYYY-MM-DD")] || [];
+      r[timeTZ.format("YYYY-MM-DD")].push({
         ...passThroughProps,
-        time: time.toISOString(),
+        time: timeTZ.toISOString(),
         users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
           (user) => user.username || ""
         ),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === timeTZ.toISOString()) && {
           attendees:
             currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === timeTZ.toISOString())
             ]._count.attendees,
           bookingUid:
             currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === timeTZ.toISOString())
             ].uid,
         }),
       });
