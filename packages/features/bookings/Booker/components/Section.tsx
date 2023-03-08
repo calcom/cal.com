@@ -1,9 +1,10 @@
-import { m, MotionProps } from "framer-motion";
+import type { MotionProps } from "framer-motion";
+import { m } from "framer-motion";
 
 import { classNames } from "@calcom/lib";
 
 import { useBookerStore } from "../store";
-import { BookerAreas, BookerLayout } from "../types";
+import type { BookerAreas, BookerLayout } from "../types";
 
 /**
  * Define what grid area a section should be in.
