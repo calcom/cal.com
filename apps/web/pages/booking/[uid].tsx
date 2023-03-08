@@ -49,6 +49,7 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
+import { timeZone } from "@lib/clock";
 import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -198,9 +199,10 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
-  const tz = isSuccessBookingPage
-    ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
-    : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone;
+  const tz =
+    (isSuccessBookingPage
+      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
+      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
