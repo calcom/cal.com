@@ -14,6 +14,7 @@ type BookingOptions = {
   timeZone: string;
   language: string;
   rescheduleUid: string | undefined;
+  username: string;
 };
 
 export const mapBookingToMutationInput = ({
@@ -24,9 +25,11 @@ export const mapBookingToMutationInput = ({
   timeZone,
   language,
   rescheduleUid,
+  username,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
+    user: username,
     start: dayjs(date).format(),
     end: dayjs(date)
       // Defaults to the default event length in case no custom duration is set.
@@ -42,12 +45,8 @@ export const mapBookingToMutationInput = ({
     metadata: {},
     hasHashedBookingLink: false,
     // hasHashedBookingLink,
-    //     hashedLink,
-    //     smsReminderNumber:
-    //       selectedLocationType === LocationType.Phone
-    //         ? booking.phone
-    //         : booking.smsReminderNumber || undefined,
-    //     ethSignature: gateState.rainbowToken,
+    // hashedLink,
+    // ethSignature: gateState.rainbowToken,
   };
 };
 

@@ -26,7 +26,7 @@ export const useSchedule = ({
   // no satisfy typscript.
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
-      usernameList: [username!],
+      usernameList: username && username.indexOf("+") > -1 ? username.split("+") : [username!],
       eventTypeSlug: eventSlug!,
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
@@ -39,7 +39,11 @@ export const useSchedule = ({
     {
       refetchOnWindowFocus: false,
       enabled:
-        Boolean(username) && Boolean(eventSlug) && Boolean(eventId) && Boolean(month) && Boolean(timezone),
+        Boolean(username) &&
+        Boolean(eventSlug) &&
+        (Boolean(eventId) || eventId === 0) &&
+        Boolean(month) &&
+        Boolean(timezone),
     }
   );
 };

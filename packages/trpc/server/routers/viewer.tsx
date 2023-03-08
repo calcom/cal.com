@@ -1,6 +1,5 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
-import { WorkflowActions } from "@prisma/client";
 import { cityMapping } from "city-timezones";
 import _ from "lodash";
 import { authenticator } from "otplib";
@@ -14,20 +13,19 @@ import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/uti
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import type { LocationObject } from "@calcom/core/location";
-import { DailyLocationType, privacyFilteredLocations } from "@calcom/core/location";
+import { DailyLocationType } from "@calcom/core/location";
 import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
-import { isPrismaObjOrUndefined, isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
+import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -41,7 +39,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, userMetadata, customInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -159,107 +157,8 @@ const publicViewerRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const event = await ctx.prisma.eventType.findFirst({
-        where: {
-          AND: [
-            {
-              OR: [
-                {
-                  users: {
-                    some: {
-                      username: input.username,
-                    },
-                  },
-                },
-                {
-                  team: {
-                    slug: input.username,
-                  },
-                },
-              ],
-            },
-            {
-              slug: input.eventSlug,
-            },
-          ],
-        },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          eventName: true,
-          slug: true,
-          schedulingType: true,
-          length: true,
-          locations: true,
-          customInputs: true,
-          disableGuests: true,
-          // @TODO: Could this contain sensitive data?
-          metadata: true,
-          requiresConfirmation: true,
-          recurringEvent: true,
-          price: true,
-          currency: true,
-          seatsPerTimeSlot: true,
-          bookingFields: true,
-          workflows: {
-            include: {
-              workflow: {
-                include: {
-                  steps: true,
-                },
-              },
-            },
-          },
-
-          users: {
-            select: {
-              username: true,
-              name: true,
-              weekStart: true,
-            },
-          },
-        },
-      });
-
-      if (!event) return null;
-
-      let isSmsReminderNumberNeeded = false;
-      let isSmsReminderNumberRequired = false;
-      event.workflows.forEach((workflowReference) => {
-        if (workflowReference.workflow.steps.length > 0) {
-          workflowReference.workflow.steps.forEach((step) => {
-            if (step.action === WorkflowActions.SMS_ATTENDEE) {
-              isSmsReminderNumberNeeded = true;
-              isSmsReminderNumberRequired = step.numberRequired || false;
-              return;
-            }
-          });
-        }
-      });
-
-      const locations = privacyFilteredLocations((event.locations || []) as LocationObject[]);
-      return {
-        ...event,
-        metadata: EventTypeMetaDataSchema.parse(event.metadata || {}),
-        customInputs: customInputSchema.array().parse(event.customInputs || []),
-        locations,
-        isSmsReminderNumberNeeded,
-        isSmsReminderNumberRequired,
-        bookingFields: getBookingFieldsWithSystemFields(event),
-        recurringEvent: isRecurringEvent(event.recurringEvent)
-          ? parseRecurringEvent(event.recurringEvent)
-          : null,
-        // Unset workflows since we don't want to send this in the public api.
-        workflows: undefined,
-        // Sets user data on profile object for easier access
-        profile: {
-          username: event.users[0].username,
-          name: event.users[0].name,
-          weekStart: event.users[0].weekStart,
-          image: `${WEBAPP_URL}/${event.users[0].username}/avatar.png`,
-        },
-      };
+      const event = await getPublicEvent(input.username, input.eventSlug, ctx.prisma);
+      return event;
     }),
   cityTimezones: publicProcedure.query(() => cityMapping),
 });

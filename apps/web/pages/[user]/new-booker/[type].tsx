@@ -15,7 +15,7 @@ type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
   // @TODO: Add gates
-  // @TODO: Dynamic booking not allowed.
+  // @TODO: dynamic booking not allowed.
   // @TODO: Test dynamic booking.
 
   return (
@@ -65,7 +65,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       away: false,
       trpcState: ssg.dehydrate(),
     },
-    revalidate: 10,
   };
 }
 
