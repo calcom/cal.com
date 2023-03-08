@@ -77,7 +77,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 size="sm"
                 items={props.users.map((user) => ({
                   alt: user.name || "",
-                  image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+                  image: user.avatar,
                 }))}
               />
             </div>
@@ -136,7 +136,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
-              <Avatar imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png`} size="xl" alt={nameOrUsername} />
+              <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
               <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
@@ -260,7 +260,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
-  const users = await prisma.user.findMany({
+  let users = await prisma.user.findMany({
     where: {
       username: {
         in: usernameList,
@@ -274,13 +274,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bio: true,
       brandColor: true,
       darkBrandColor: true,
-      avatar: true,
       theme: true,
       away: true,
       verified: true,
       allowDynamicBooking: true,
     },
   });
+
+  users = users.map((user) => ({
+    ...user,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+  }));
 
   if (!users.length) {
     return {
