@@ -206,14 +206,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 md:inline-flex" />
+              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 ltr:-ml-1 rtl:-mr-1 rtl:ml-2 md:inline-flex" />
               <FiPlus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
             <StartIcon
               className={classNames(
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
               )}
             />
           )}
@@ -223,7 +223,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
-            className="mx-4 h-5 w-5 animate-spin text-black dark:text-white"
+            className={classNames(
+              "mx-4 h-5 w-5 animate-spin",
+              color === "primary" ? "text-white dark:text-black" : "text-black dark:text-white"
+            )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24">
@@ -248,7 +251,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               className={classNames(
                 "inline-flex",
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:ml-2 rtl:mr-2"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:ml-2 ltr:-mr-1 rtl:mr-2 rtl:-ml-1"
               )}
             />
           )}

@@ -1,3 +1,4 @@
 {
-  "extends": "@calcom/tsconfig/react-library.json"
+  "extends": "@calcom/tsconfig/react-library.json",
+  "include": ["client", "next", "react", "server"]
 }

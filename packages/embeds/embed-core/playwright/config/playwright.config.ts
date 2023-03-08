@@ -15,6 +15,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   reporter: [
     [CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },
@@ -32,7 +33,7 @@ const config: PlaywrightTestConfig = {
   },
   webServer: {
     // Run servers in parallel as Playwright doesn't support two different webserver commands at the moment See https://github.com/microsoft/playwright/issues/8206
-    command: "yarn run-p 'embed-dev' 'embed-web-start'",
+    command: "yarn embed-dev",
     port: 3100,
     timeout: 60_000,
     reuseExistingServer: !CI,
