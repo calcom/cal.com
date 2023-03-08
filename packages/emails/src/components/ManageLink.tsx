@@ -5,10 +5,9 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   // Only the original attendee can make changes to the event
   // Guests cannot
   const t = props.attendee.language.translate;
-
   if (
-    props.calEvent.organizer.email === props.attendee.email ||
-    props.calEvent.attendees.find((attendee) => attendee.email === props.attendee.email)
+    props.attendee.email === props.calEvent.attendees[0]?.email ||
+    props.calEvent.organizer.email === props.attendee.email
   ) {
     return (
       <div

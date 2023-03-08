@@ -4,7 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
+import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -32,17 +32,7 @@ test.describe("Event Types tests", () => {
       await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
-
-      await page.fill("[name=title]", eventTitle);
-      await page.fill("[name=length]", "10");
-      await page.click("[type=submit]");
-
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname !== "/event-types";
-        },
-      });
-
+      await createNewEventType(page, { eventTitle });
       await page.goto("/event-types");
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
@@ -51,16 +41,7 @@ test.describe("Event Types tests", () => {
       await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
-
-      await page.fill("[name=title]", eventTitle);
-      await page.fill("[name=length]", "15");
-      await page.click("[type=submit]");
-
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname !== "/event-types";
-        },
-      });
+      await createNewEventType(page, { eventTitle });
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
