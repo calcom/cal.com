@@ -1,12 +1,13 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { Slots } from "@calcom/features/schedules";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { ToggleGroup, Button, SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
 
 import { useTimePreferences } from "../lib";
+import { TimeFormatToggle } from "./TimeFormatToggle";
 
 type AvailableTimesProps = {
   date: Dayjs;
@@ -14,6 +15,8 @@ type AvailableTimesProps = {
   timezone: string;
   onTimeSelect: (time: string) => void;
   seatsPerTimeslot?: number | null;
+  showTimeformatToggle?: boolean;
+  className?: string;
 };
 
 export const AvailableTimes = ({
@@ -22,15 +25,16 @@ export const AvailableTimes = ({
   timezone,
   onTimeSelect,
   seatsPerTimeslot,
+  showTimeformatToggle = true,
+  className,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
   const timeFormat = useTimePreferences((state) => state.timeFormat);
-  const setTimeFormat = useTimePreferences((state) => state.setTimeFormat);
   const hasTimeSlots = !!seatsPerTimeslot;
 
   return (
-    <div className="dark:text-white">
-      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-6 flex w-full items-center bg-white before:absolute before:-top-8 before:h-8 before:w-full before:bg-white">
+    <div className={classNames("dark:text-white", className)}>
+      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-12 flex w-full items-center bg-white before:absolute before:-top-12 before:h-12 before:w-full before:bg-white">
         <span className="font-semibold text-gray-900 dark:text-white">
           {nameOfDay(i18n.language, Number(date.format("d")), "short")}
         </span>
@@ -38,19 +42,11 @@ export const AvailableTimes = ({
           , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
         </span>
 
-        <div className="ml-auto">
-          <ToggleGroup
-            onValueChange={(newFormat) => {
-              if (newFormat !== timeFormat) setTimeFormat(newFormat as TimeFormat);
-            }}
-            defaultValue={timeFormat}
-            value={timeFormat}
-            options={[
-              { value: TimeFormat.TWELVE_HOUR, label: t("12_hour_short") },
-              { value: TimeFormat.TWENTY_FOUR_HOUR, label: t("24_hour_short") },
-            ]}
-          />
-        </div>
+        {showTimeformatToggle && (
+          <div className="ml-auto">
+            <TimeFormatToggle />
+          </div>
+        )}
       </header>
       <div>
         {slots.map((slot) => {

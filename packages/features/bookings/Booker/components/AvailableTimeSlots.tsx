@@ -55,13 +55,14 @@ export const AvailableTimeSlots = ({
     [date, extraDays]
   );
 
+  const isMultipleDates = dates.length > 1;
   const slotsPerDay = useSlotsForMultipleDates(dates, schedule?.data?.slots);
 
   return (
     <div
       className={classNames(
         limitHeight && "flex-grow md:h-[400px]",
-        !limitHeight && "flex w-full flex-row gap-4 [&_header]:top-8"
+        !limitHeight && "flex w-full flex-row gap-4 [&_header]:top-12"
       )}>
       {schedule.isLoading
         ? // Shows exact amount of days as skeleton.
@@ -69,7 +70,9 @@ export const AvailableTimeSlots = ({
         : slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
             <AvailableTimes
+              className="w-full"
               key={slots.date}
+              showTimeformatToggle={!isMultipleDates}
               onTimeSelect={onTimeSelect}
               date={dayjs(slots.date)}
               slots={slots.slots}
