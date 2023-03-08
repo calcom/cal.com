@@ -844,8 +844,14 @@ export const eventTypesRouter = router({
     });
 
     const eventTypesWithLogo = eventTypes.map((eventType) => {
-      const locationParsed = eventTypeLocationsSchema.parse(eventType.locations);
-      const app = getAppFromLocationValue(locationParsed[0].type);
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
       return {
         ...eventType,
         logo: app?.logo,
@@ -856,6 +862,7 @@ export const eventTypesRouter = router({
       eventTypes: eventTypesWithLogo,
     };
   }),
+
   bulkUpdateToDefaultLocation: authedProcedure
     .input(
       z.object({
