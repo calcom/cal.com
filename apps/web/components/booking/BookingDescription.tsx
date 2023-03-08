@@ -94,7 +94,7 @@ const BookingDescription: FC<Props> = (props) => {
               "flex",
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
-            <div className="scroll-bar scrollbar-track-w-20 max-h-[200px] max-w-full flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
+            <div className="scroll-bar scrollbar-track-w-20 max-h-[200px] max-w-full flex-shrink overflow-scroll break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
