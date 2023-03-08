@@ -8,7 +8,7 @@ import type {
 
 import {WEBAPP_URL} from "@calcom/lib/constants";
 
-import {samlDatabaseUrl, samlAudience, samlPath, oidcPath} from "./saml";
+import { samlDatabaseUrl, samlAudience, samlPath, oidcPath, clientSecretVerifier } from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
@@ -22,6 +22,8 @@ const opts: JacksonOption = {
     url: samlDatabaseUrl,
     encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
+  idpEnabled: true,
+  clientSecretVerifier,
 };
 
 let connectionController: IConnectionAPIController;

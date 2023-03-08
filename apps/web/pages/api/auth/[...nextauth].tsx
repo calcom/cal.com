@@ -17,7 +17,8 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { hostedCal, isSAMLLoginEnabled, clientSecretVerifier } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -222,10 +223,65 @@ if (isSAMLLoginEnabled) {
     },
     options: {
       clientId: "dummy",
-      clientSecret: "dummy",
+      clientSecret: clientSecretVerifier,
     },
     allowDangerousEmailAccountLinking: true,
   });
+
+  // Idp initiated login
+  providers.push(
+    CredentialsProvider({
+      id: "saml-idp",
+      name: "IdP Login",
+      credentials: {
+        code: {},
+      },
+      async authorize(credentials) {
+        if (!credentials) {
+          return null;
+        }
+
+        const { code } = credentials;
+
+        if (!code) {
+          return null;
+        }
+
+        const { oauthController } = await jackson();
+
+        // Fetch access token
+        const { access_token } = await oauthController.token({
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: `${process.env.NEXTAUTH_URL}`,
+          client_id: "dummy",
+          client_secret: clientSecretVerifier,
+        });
+
+        if (!access_token) {
+          return null;
+        }
+
+        // Fetch user info
+        const userInfo = await oauthController.userInfo(access_token);
+
+        if (!userInfo) {
+          return null;
+        }
+
+        const { id, firstName, lastName, email } = userInfo;
+
+        return {
+          id: id as unknown as number,
+          firstName,
+          lastName,
+          email,
+          name: `${firstName} ${lastName}`.trim(),
+          email_verified: true,
+        };
+      },
+    })
+  );
 }
 
 if (true) {
@@ -326,12 +382,18 @@ export default NextAuth({
           ...token,
         };
       };
-
       if (!user) {
         return await autoMergeIdentities();
       }
-
-      if (account && account.type === "credentials") {
+      if (!account) {
+        return token;
+      }
+      if (account.type === "credentials") {
+        // return token if credentials,saml-idp
+        if (account.provider === "saml-idp") {
+          return token;
+        }
+        // any other credentials, add user info
         return {
           ...token,
           id: user.id,
@@ -346,11 +408,12 @@ export default NextAuth({
 
       // The arguments above are from the provider so we need to look up the
       // user based on those values in order to construct a JWT.
-      if (account && account.type === "oauth" && account.provider && account.providerAccountId) {
-        let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml") {
-          idP = IdentityProvider.SAML;
+      if (account.type === "oauth") {
+        if (!account.provider || !account.providerAccountId) {
+          return token;
         }
+        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
+
         const existingUser = await prisma.user.findFirst({
           where: {
             AND: [
@@ -405,14 +468,18 @@ export default NextAuth({
       if (account?.provider === "email") {
         return true;
       }
+
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
-      if (account?.type === "credentials") {
-        return true;
-      }
+      // Only if provider is not saml-idp
+      if (account?.provider !== "saml-idp") {
+        if (account?.type === "credentials") {
+          return true;
+        }
 
-      if (account?.type !== "oauth") {
-        return false;
+        if (account?.type !== "oauth") {
+          return false;
+        }
       }
 
       if (!user.email) {
@@ -425,7 +492,7 @@ export default NextAuth({
 
       if (account?.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml") {
+        if (account.provider === "saml" || account.provider === "saml-idp") {
           idP = IdentityProvider.SAML;
         }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -435,19 +502,18 @@ export default NextAuth({
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
         }
-        // Only google oauth on this path
-        const provider = account.provider.toUpperCase() as IdentityProvider;
 
+        // Only google oauth on this path
         const existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
               where: {
-                provider: account.provider,
+                provider: idP,
               },
             },
           },
           where: {
-            identityProvider: provider,
+            identityProvider: idP as IdentityProvider,
             identityProviderId: account.providerAccountId,
           },
         });
@@ -569,6 +635,7 @@ export default NextAuth({
             identityProviderId: String(user.id),
           },
         });
+
         const linkAccountNewUserData = { ...account, userId: newUser.id };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
