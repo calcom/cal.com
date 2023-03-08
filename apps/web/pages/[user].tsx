@@ -65,7 +65,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
             className="flex justify-between px-6 py-4"
             data-testid="event-type-link">
-            <div className="">
+            <div className="flex-shrink">
               <p className="dark:text-darkgray-700 text-sm font-semibold text-gray-900">{type.title}</p>
               <EventTypeDescription className="text-sm" eventType={type} />
             </div>
