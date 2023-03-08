@@ -177,26 +177,28 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
                   <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                  <Link
-                    prefetch={false}
-                    href={{
-                      pathname: `/${user.username}/${type.slug}`,
-                      query,
-                    }}
-                    onClick={async () => {
-                      sdkActionManager?.fire("eventTypeSelected", {
-                        eventType: type,
-                      });
-                    }}
-                    className="block w-full p-5"
-                    data-testid="event-type-link">
-                    <div className="flex flex-wrap items-center">
-                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                        {type.title}
-                      </h2>
-                    </div>
-                    <EventTypeDescription eventType={type} />
-                  </Link>
+                  <div className="block w-full p-5">
+                    <Link
+                      prefetch={false}
+                      href={{
+                        pathname: `/${user.username}/${type.slug}`,
+                        query,
+                      }}
+                      passHref
+                      onClick={async () => {
+                        sdkActionManager?.fire("eventTypeSelected", {
+                          eventType: type,
+                        });
+                      }}
+                      data-testid="event-type-link">
+                      <div className="flex flex-wrap items-center">
+                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                          {type.title}
+                        </h2>
+                      </div>
+                      <EventTypeDescription eventType={type} />
+                    </Link>
+                  </div>
                 </div>
               ))
             )}
