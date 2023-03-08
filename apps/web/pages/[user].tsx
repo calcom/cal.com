@@ -260,7 +260,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
-  let users = await prisma.user.findMany({
+  const usersWithoutAvatar = await prisma.user.findMany({
     where: {
       username: {
         in: usernameList,
@@ -281,7 +281,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  users = users.map((user) => ({
+  const users = usersWithoutAvatar.map((user) => ({
     ...user,
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
   }));
