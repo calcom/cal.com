@@ -1093,8 +1093,6 @@ describe("getSchedule", () => {
         ctx
       );
 
-      console.log(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots);
-
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
         [

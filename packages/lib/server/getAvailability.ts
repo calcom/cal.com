@@ -1,4 +1,5 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 
 const combineConsecutiveBlocks = (blocks: { start: Dayjs; end: Dayjs }[]) => {
   const result = blocks.reduce((acc, date) => {
@@ -20,7 +21,7 @@ const getAvailability = ({
   dateTo,
 }: {
   timeZone?: string;
-  availability: { startTime: Date; endTime: Date; date: Date | null; days: number[] }[];
+  availability: { startTime: Date | string; endTime: Date | string; date: Date | null; days: number[] }[];
   dateTo: Date;
   dateFrom: Date;
 }) => {
@@ -33,7 +34,7 @@ const getAvailability = ({
         date = date.add(1, "day")
       ) {
         const startDate = (timeZone ? date.tz(timeZone, true) : date).add(
-          block.startTime.getUTCHours() * 60 + block.startTime.getUTCMinutes(),
+          new Date(block.startTime).getUTCHours() * 60 + new Date(block.startTime).getUTCMinutes(),
           "minutes"
         );
         if (block.days?.includes(startDate.day())) {
@@ -41,7 +42,7 @@ const getAvailability = ({
           dates[startDate.format("YYYY-MM-DD")].push({
             start: startDate,
             end: (timeZone ? date.tz(timeZone, true) : date).add(
-              block.endTime.getUTCHours() * 60 + block.endTime.getUTCMinutes(),
+              new Date(block.endTime).getUTCHours() * 60 + new Date(block.endTime).getUTCMinutes(),
               "minutes"
             ),
           });
@@ -54,15 +55,15 @@ const getAvailability = ({
     .filter((availability) => !!availability.date)
     .reduce((dates, override) => {
       const start = (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
-        .hour(override.startTime.getUTCHours())
-        .minute(override.startTime.getUTCMinutes());
+        .hour(new Date(override.startTime).getUTCHours())
+        .minute(new Date(override.startTime).getUTCMinutes());
       // [)
       if (+start < +dateFrom || +start >= +dateTo) {
         return dates;
       }
       const end = (timeZone ? dayjs.tz(override.date, timeZone) : dayjs.utc(override.date))
-        .hour(override.endTime.getUTCHours())
-        .minute(override.endTime.getUTCMinutes());
+        .hour(new Date(override.endTime).getUTCHours())
+        .minute(new Date(override.endTime).getUTCMinutes());
       // (]
       if (+end <= +dateFrom || +end > +dateTo) {
         return dates;

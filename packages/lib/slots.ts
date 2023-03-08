@@ -54,7 +54,9 @@ const getSlots = ({ userAvailabilities, ...slotExtractorProps }: GetSlots) => {
       slots[slot.time.format()] = slots[slot.time.format()]
         ? {
             time: slot.time,
-            userIds: userAvailability.userId ? slot.userIds.concat(userAvailability.userId) : slot.userIds,
+            userIds: userAvailability.userId
+              ? slots[slot.time.format()].userIds.concat(userAvailability.userId)
+              : slot.userIds,
           }
         : slot;
     });
