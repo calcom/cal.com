@@ -252,13 +252,13 @@ export async function getUserAvailability(
       return {
         start: dayjs
           .tz(override.date, timeZone)
-          .hour(override.startTime.getUTCHours())
-          .minute(override.startTime.getUTCMinutes())
+          .hour(new Date(override.startTime).getUTCHours())
+          .minute(new Date(override.startTime).getUTCMinutes())
           .utc(),
         end: dayjs
           .tz(override.date, timeZone)
-          .hour(override.endTime.getUTCHours())
-          .minute(override.endTime.getUTCMinutes())
+          .hour(new Date(override.endTime).getUTCHours())
+          .minute(new Date(override.endTime).getUTCMinutes())
           .utc(),
       };
     });
