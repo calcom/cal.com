@@ -35,18 +35,18 @@ declare global {
 
 expect.extend({
   toHaveTimeSlots(
-    schedule: { slots: Record<string, Slot[]> },
+    schedule: { slots: Slot[] },
     expectedSlots: string[],
     { dateString }: { dateString: string }
   ) {
-    if (!schedule.slots[`${dateString}`]) {
+    if (!schedule.slots.length) {
       return {
         pass: false,
         message: () => `has no timeslots for ${dateString}`,
       };
     }
     if (
-      !schedule.slots[`${dateString}`]
+      !schedule.slots
         .map((slot) => slot.time)
         .every((actualSlotTime, index) => {
           return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
@@ -57,7 +57,7 @@ expect.extend({
         message: () =>
           `has incorrect timeslots for ${dateString}.\n\r ${diff(
             expectedSlots.map((expectedSlot) => `${dateString}T${expectedSlot}`),
-            schedule.slots[`${dateString}`].map((slot) => slot.time)
+            schedule.slots.map((slot) => slot.time)
           )}`,
       };
     }
@@ -270,9 +270,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -357,9 +357,9 @@ describe("getSchedule", () => {
           eventTypeId: 1,
           // EventTypeSlug doesn't matter for non-dynamic events
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -389,9 +389,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus2DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus3DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -454,9 +454,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -489,9 +489,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 2,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -551,9 +551,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${minus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${todayDateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -572,9 +572,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 2,
           eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${minus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${todayDateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -637,9 +637,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus2DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus3DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -712,9 +712,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -765,9 +765,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -851,9 +851,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 2,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -949,9 +949,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${todayDateString}T18:30:00.000Z`,
-          endTime: `${plus1DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${todayDateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus1DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -979,9 +979,9 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
@@ -1086,12 +1086,15 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus1DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus2DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
+
+      console.log(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots);
+
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
         [
@@ -1114,12 +1117,13 @@ describe("getSchedule", () => {
         {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: new Date(`${plus2DateString}T18:30:00.000Z`),
+          endTime: new Date(`${plus3DateString}T18:29:59.999Z`),
+          // timeZone: Timezones["+5:30"],
         },
         ctx
       );
+
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
         [
