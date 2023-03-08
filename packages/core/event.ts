@@ -17,6 +17,9 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
       eventName: eventNameObj.eventType,
       host: eventNameObj.host,
       attendeeName: eventNameObj.attendeeName,
+      interpolation: {
+        escapeValue: false,
+      },
     });
 
   let eventName = eventNameObj.eventName;
