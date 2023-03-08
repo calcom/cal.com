@@ -25,7 +25,7 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
-   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
+   <a href="https://status.cal.com"><img height="20px" src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=34507672"><img src="https://img.shields.io/badge/Hacker%20News-%231-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
@@ -339,11 +339,11 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 ### Good First Issues
 
 We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
-  
+
 <!-- BOUNTIES -->
 
 ### Bounties
-  
+
 <a href="https://console.algora.io/org/cal/bounties?status=open">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=dark">
@@ -352,6 +352,15 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
 </a>  
   
 
+<!-- CONTRIBUTORS -->
+
+### Contributors
+  
+<a href="https://github.com/calcom/cal.com/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=calcom/cal.com" />
+</a>
+
+ 
 <!-- TRANSLATIONS -->
 
 ### Translations

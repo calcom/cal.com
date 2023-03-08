@@ -1,14 +1,16 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import type { ReactNode } from "react";
+import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Button, ButtonProps } from "../../components/button";
+import type { ButtonProps } from "../../components/button";
+import { Button } from "../../components/button";
 
-export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
+export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
@@ -55,7 +57,7 @@ export function Dialog(props: DialogProps) {
 
   return <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>;
 }
-type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
+type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
   size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
@@ -71,11 +73,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
   ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 bg-gray-500 bg-opacity-80 transition-opacity" />
+        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-gray-500 bg-opacity-80 transition-opacity" />
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "fadeIn fixed left-1/2 top-1/2 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
+            "fadeIn fixed left-1/2 top-1/2 z-50 min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
             props.size == "xl"
               ? "p-8 sm:max-w-[90rem]"
               : props.size == "lg"
@@ -142,7 +144,7 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 
 export function DialogClose(
   props: {
-    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
+    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;

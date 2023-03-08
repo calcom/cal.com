@@ -1,5 +1,7 @@
-import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
-import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import type { ReactElement, ReactNode, Ref } from "react";
+import React, { forwardRef, useCallback, useId, useState } from "react";
+import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import { FormProvider, useFormContext } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -178,6 +180,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           placeholder={placeholder}
           className={className}
           {...passThrough}
+          readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
         />
@@ -338,6 +341,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
+              // FIXME: Booking Pages don't have toast, so this error is never shown
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
         }}

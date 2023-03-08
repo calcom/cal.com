@@ -10,14 +10,12 @@ import {
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
+test.afterEach(async ({ users }) => users.deleteAll());
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create();
     await page.goto(`/${free.username}`);
-  });
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
   });
 
   test("cannot book same slot multiple times", async ({ page }) => {
@@ -57,9 +55,6 @@ test.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
-  });
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
   });
 
   test("pro user's page has at least 2 visible events", async ({ page }) => {

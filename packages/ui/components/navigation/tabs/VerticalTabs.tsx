@@ -1,6 +1,7 @@
 import { classNames } from "@calcom/lib";
 
-import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
+import type { VerticalTabItemProps } from "./VerticalTabItem";
+import VerticalTabItem from "./VerticalTabItem";
 
 export { VerticalTabItem };
 

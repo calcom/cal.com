@@ -4,7 +4,7 @@ import { FiCheck } from "react-icons/fi";
 import { classNames as cn } from "@calcom/lib";
 
 import { useSelectContext } from "./SelectProvider";
-import { Option } from "./type";
+import type { Option } from "./type";
 
 interface ItemProps {
   item: Option;

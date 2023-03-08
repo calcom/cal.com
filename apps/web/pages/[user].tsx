@@ -1,6 +1,6 @@
+import { BadgeCheckIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import MarkdownIt from "markdown-it";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -23,19 +23,18 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { md } from "@calcom/lib/markdownIt";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { HeadSeo, AvatarGroup, Avatar } from "@calcom/ui";
-import { BadgeCheckIcon, FiArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
+import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
-
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
@@ -146,7 +145,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               {!isBioEmpty && (
                 <>
                   <div
-                    className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
@@ -178,26 +177,28 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
                   <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                  <Link
-                    prefetch={false}
-                    href={{
-                      pathname: `/${user.username}/${type.slug}`,
-                      query,
-                    }}
-                    onClick={async () => {
-                      sdkActionManager?.fire("eventTypeSelected", {
-                        eventType: type,
-                      });
-                    }}
-                    className="block w-full p-5"
-                    data-testid="event-type-link">
-                    <div className="flex flex-wrap items-center">
-                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                        {type.title}
-                      </h2>
-                    </div>
-                    <EventTypeDescription eventType={type} />
-                  </Link>
+                  <div className="block w-full p-5">
+                    <Link
+                      prefetch={false}
+                      href={{
+                        pathname: `/${user.username}/${type.slug}`,
+                        query,
+                      }}
+                      passHref
+                      onClick={async () => {
+                        sdkActionManager?.fire("eventTypeSelected", {
+                          eventType: type,
+                        });
+                      }}
+                      data-testid="event-type-link">
+                      <div className="flex flex-wrap items-center">
+                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                          {type.title}
+                        </h2>
+                      </div>
+                      <EventTypeDescription eventType={type} />
+                    </Link>
+                  </div>
                 </div>
               ))
             )}
@@ -290,6 +291,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
   const isDynamicGroup = users.length > 1;
+
+  if (isDynamicGroup) {
+    // sort and be in the same order as usernameList so first user is the first user in the list
+    users.sort((a, b) => {
+      const aIndex = (a.username && usernameList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && usernameList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+  }
 
   const dynamicNames = isDynamicGroup
     ? users.map((user) => {

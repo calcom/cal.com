@@ -1,6 +1,8 @@
 import { ImageResponse } from "@vercel/og";
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
+import { remark } from "remark";
 import type { SatoriOptions } from "satori";
+import strip from "strip-markdown";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
@@ -18,7 +20,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
 );
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const meetingSchema = z.object({
@@ -106,8 +108,8 @@ export default async function handler(req: NextApiRequest) {
         description: searchParams.get("description"),
         imageType,
       });
-
-      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
+      const description_ = await (await remark().use(strip).process(description)).toString();
+      const img = new ImageResponse(<Generic title={title} description={description_} />, ogConfig) as {
         body: Buffer;
       };
 

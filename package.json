@@ -61,14 +61,15 @@
     "tdd": "jest --watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
-    "test-e2e": "yarn db-seed && yarn build && yarn e2e",
-    "test-e2e:app-store": "yarn db-seed && yarn build && yarn e2e:app-store",
+    "test-e2e": "yarn db-seed && yarn e2e",
+    "test-e2e:app-store": "yarn db-seed && yarn e2e:app-store",
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "jest",
     "type-check": "turbo run type-check",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
+    "@deploysentinel/playwright": "^0.3.3",
     "@snaplet/copycat": "^0.3.0",
     "@types/dompurify": "^2.4.0",
     "@types/jest": "^28.1.7",
@@ -80,17 +81,18 @@
     "jest-watch-select-projects": "^2.0.0",
     "jest-watch-typeahead": "^2.0.0",
     "lint-staged": "^12.5.0",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.4",
     "ts-jest": "^28.0.8"
   },
   "dependencies": {
+    "city-timezones": "^1.2.1",
     "turbo": "^1.4.3"
   },
   "resolutions": {
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/node": "16.9.1",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6"
+    "@types/react": "18.0.26",
+    "@types/react-dom": "18.0.9"
   },
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [

@@ -1,4 +1,4 @@
-import { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
+import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
 // Figure out why ee/routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
@@ -44,6 +44,8 @@ const settings: Settings = {
 };
 
 // react-query-builder types have missing type property on Widget
+//TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
+// So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
 const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string } } = {
   ...BasicConfig.widgets,
   text: {
@@ -90,6 +92,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
+      // TODO: Use EmailField component for Routing Form Email field
       return <TextWidget type="email" {...props} />;
     },
   },

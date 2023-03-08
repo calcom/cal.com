@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
+import { jwtVerify } from "jose";
+import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -18,8 +19,9 @@ import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { FiArrowLeft } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import withNonce, { WithNonceProps } from "@lib/withNonce";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { WithNonceProps } from "@lib/withNonce";
+import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -41,14 +43,14 @@ export default function Login({
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
+  totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<LoginValues>();
 
   const { register, formState } = methods;
-
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
@@ -93,6 +95,16 @@ export default function Login({
     </Button>
   );
 
+  const ExternalTotpFooter = (
+    <Button
+      onClick={() => {
+        window.location.replace("/");
+      }}
+      color="minimal">
+      {t("cancel")}
+    </Button>
+  );
+
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
@@ -119,7 +131,9 @@ export default function Login({
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
         footerText={
           twoFactorRequired
-            ? TwoFactorFooter
+            ? !totpEmail
+              ? TwoFactorFooter
+              : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
             ? LoginFooter
             : null
@@ -134,7 +148,7 @@ export default function Login({
                 <EmailField
                   id="email"
                   label={t("email_address")}
-                  defaultValue={router.query.email as string}
+                  defaultValue={totpEmail || (router.query.email as string)}
                   placeholder="john.doe@example.com"
                   required
                   {...register("email")}
@@ -151,7 +165,7 @@ export default function Login({
                   <PasswordField
                     id="password"
                     autoComplete="off"
-                    required
+                    required={!totpEmail}
                     className="mb-0"
                     {...register("password")}
                   />
@@ -210,6 +224,40 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   const session = await getSession({ req });
   const ssr = await ssrInit(context);
 
+  const verifyJwt = (jwt: string) => {
+    const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
+
+    return jwtVerify(jwt, secret, {
+      issuer: WEBSITE_URL,
+      audience: `${WEBSITE_URL}/auth/login`,
+      algorithms: ["HS256"],
+    });
+  };
+
+  let totpEmail = null;
+  if (context.query.totp) {
+    try {
+      const decryptedJwt = await verifyJwt(context.query.totp as string);
+      if (decryptedJwt.payload) {
+        totpEmail = decryptedJwt.payload.email as string;
+      } else {
+        return {
+          redirect: {
+            destination: "/auth/error?error=JWT%20Invalid%20Payload",
+            permanent: false,
+          },
+        };
+      }
+    } catch (e) {
+      return {
+        redirect: {
+          destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",
+          permanent: false,
+        },
+      };
+    }
+  }
+
   if (session) {
     return {
       redirect: {
@@ -237,6 +285,7 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
       isSAMLLoginEnabled,
       samlTenantID,
       samlProductID,
+      totpEmail,
     },
   };
 };

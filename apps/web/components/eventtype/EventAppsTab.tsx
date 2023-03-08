@@ -1,10 +1,10 @@
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
-import { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
+import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
-import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
-import { EventTypeAppsList } from "@calcom/app-store/utils";
+import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen } from "@calcom/ui";
