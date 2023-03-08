@@ -194,7 +194,7 @@ model User {
   apiKeys              ApiKey[]
   accounts             Account[]
   sessions             Session[]
-  Feedback             Feedback[]
+  feedbacks            Feedback[]
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
@@ -348,7 +348,7 @@ model Availability {
   startTime   DateTime   @db.Time
   endTime     DateTime   @db.Time
   date        DateTime?  @db.Date
-  Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
+  schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
 
   @@index([eventTypeId])
@@ -528,8 +528,8 @@ model App {
   updatedAt   DateTime        @updatedAt
   credentials Credential[]
   payments    Payment[]
-  Webhook     Webhook[]
-  ApiKey      ApiKey[]
+  webhooks    Webhook[]
+  apiKeys     ApiKey[]
   enabled     Boolean         @default(false)
 }
 
