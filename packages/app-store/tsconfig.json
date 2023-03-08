@@ -18,8 +18,6 @@
     "../types/*.d.ts",
     "../types/next-auth.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "../../apps/web/server/**/*.ts",
-    "../../apps/web/server/**/*.tsx"
+    "**/*.tsx"
   ]
 }

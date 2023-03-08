@@ -65,6 +65,7 @@ export default trpcNext.createNextApiHandler({
       "viewer.public.i18n": `no-cache`,
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
       "viewer.public.slots.getSchedule": `no-cache`, // FIXME
+      "viewer.public.cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
     } as const;
 
     // Find which element above is an exact match for this group of paths
