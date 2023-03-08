@@ -35,6 +35,7 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
+import { getDSTDifference, isInDST } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -106,20 +107,58 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
+const getDSTMinutesDifference = ({
+  timeSlot,
+  organizerTimeZone,
+  inviteeTimeZone,
+}: {
+  timeSlot: Dayjs;
+  organizerTimeZone: string;
+  inviteeTimeZone: string;
+}) => {
+  const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
+  const isInviteeInDST = isInDST(dayjs().tz(inviteeTimeZone));
+  const isOrganizerInDSTWhenSlotStart = isInDST(timeSlot.tz(organizerTimeZone));
+  const isInviteeInDSTWhenSlotStart = isInDST(timeSlot.tz(inviteeTimeZone));
+  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
+  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
+  const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
+  const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
+  const inviteeDST = isInviteeInDST === isInviteeInDSTWhenSlotStart;
+
+  return sameDSTUsers && organizerDST && inviteeDST
+    ? 0
+    : isOrganizerInDSTWhenSlotStart || isOrganizerInDST
+    ? organizerDSTDifference
+    : inviteeDSTDifference;
+};
+
 const isWithinAvailableHours = (
   timeSlot: { start: ConfigType; end: ConfigType },
   {
+    organizerTimeZone,
+    inviteeTimeZone,
     availability,
   }: {
+    organizerTimeZone: string;
+    inviteeTimeZone: string;
     availability: { start: Dayjs; end: Dayjs }[];
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
   for (const block of availability) {
+    const startTime = block.start.add(
+      getDSTMinutesDifference({ timeSlot: timeSlotStart, inviteeTimeZone, organizerTimeZone }),
+      "minutes"
+    );
+    const endTime = block.end.add(
+      getDSTMinutesDifference({ timeSlot: timeSlotEnd, inviteeTimeZone, organizerTimeZone }),
+      "minutes"
+    );
     if (
-      timeSlotStart.isBetween(block.start, block.end, null, "[)") &&
-      timeSlotEnd.isBetween(block.start, block.end, null, "(]")
+      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
+      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
     ) {
       return true;
     }
