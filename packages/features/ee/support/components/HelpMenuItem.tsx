@@ -7,6 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
 import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
+import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
+import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
@@ -20,6 +22,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [active, setActive] = useState(false);
   const [, loadChat] = useChat();
   const { t } = useLocale();
+
+  const { setActive: setFreshChat } = useFreshChat();
 
   const mutation = trpc.viewer.submitFeedback.useMutation({
     onSuccess: () => {
@@ -43,7 +47,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="w-full py-5">
         <p className="mb-1 px-5 text-gray-500">{t("resources").toUpperCase()}</p>
         <a
-          onClick={() => onHelpItemSelect()}
           href="https://docs.cal.com/"
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -57,7 +60,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           />
         </a>
         <a
-          onClick={() => onHelpItemSelect()}
           href="https://developer.cal.com/"
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -70,8 +72,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             )}
           />
         </a>
-        <div onClick={() => onHelpItemSelect()}>
-          <ContactMenuItem />
+        <div>
+          <ContactMenuItem onHelpItemSelect={onHelpItemSelect} />
         </div>
       </div>
 
@@ -202,7 +204,11 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="font-medium  underline hover:text-gray-700"
           onClick={() => {
             setActive(true);
-            loadChat({ open: true });
+            if (isFreshChatEnabled) {
+              setFreshChat(true);
+            } else {
+              loadChat({ open: true });
+            }
             onHelpItemSelect();
           }}>
           {t("contact_support")}

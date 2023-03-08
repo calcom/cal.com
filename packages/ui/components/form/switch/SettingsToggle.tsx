@@ -13,6 +13,7 @@ type Props = {
   isLocked?: React.ReactNode;
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
+  tooltip?: string;
 };
 
 function SettingsToggle({
@@ -23,6 +24,7 @@ function SettingsToggle({
   title,
   children,
   disabled,
+  tooltip,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -38,9 +40,10 @@ function SettingsToggle({
               checked={checked}
               onCheckedChange={onCheckedChange}
               disabled={disabled}
+              tooltip={tooltip}
             />
 
-            <div className="">
+            <div>
               <Label className="text-sm font-semibold leading-none text-black">
                 {title}
                 {isLocked}

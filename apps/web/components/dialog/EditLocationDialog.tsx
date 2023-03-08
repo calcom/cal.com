@@ -288,16 +288,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               }}>
               <QueryCell
                 query={locationsQuery}
-                success={({ data: locationOptions }) => {
-                  if (!locationOptions.length) return null;
+                success={({ data }) => {
+                  if (!data.length) return null;
+                  const locationOptions = [...data];
                   if (booking) {
-                    locationOptions.forEach((location) => {
-                      if (location.label === "phone") {
-                        location.options.filter((l) => l.value !== "phone");
-                      } else if (location.label === "in person") {
-                        location.options.filter((l) => l.value !== "attendeeInPerson");
-                      }
-                    });
+                    locationOptions.map((location) =>
+                      location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
+                    );
                   }
                   return (
                     <Controller
