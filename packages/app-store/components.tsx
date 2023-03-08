@@ -135,7 +135,7 @@ export const AppDependencyComponent = ({
                     <div>
                       <>
                         <Link
-                          href={`${CAL_URL}/apps/${dependency}`}
+                          href={`${CAL_URL}/apps/${dependency.slug}`}
                           className="flex items-center text-blue-900 underline">
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
