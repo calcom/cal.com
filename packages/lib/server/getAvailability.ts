@@ -14,6 +14,9 @@ const combineConsecutiveBlocks = (blocks: { start: Dayjs; end: Dayjs }[]) => {
   return result;
 };
 
+const dateMax = (compare: Dayjs, other: Dayjs) => (+compare > +other ? compare : other);
+const dateMin = (compare: Dayjs, other: Dayjs) => (+compare < +other ? compare : other);
+
 const getAvailability = ({
   timeZone,
   availability,
@@ -38,13 +41,24 @@ const getAvailability = ({
           "minutes"
         );
         if (block.days?.includes(startDate.day())) {
-          dates[startDate.format("YYYY-MM-DD")] = dates[startDate.format("YYYY-MM-DD")] ?? [];
-          dates[startDate.format("YYYY-MM-DD")].push({
-            start: startDate,
-            end: (timeZone ? date.tz(timeZone, true) : date).add(
+          const maxStartDate = dateMax(
+            startDate,
+            timeZone ? dayjs.utc(dateFrom).tz(timeZone) : dayjs.utc(dateFrom)
+          );
+          const maxEndDate = dateMin(
+            (timeZone ? date.tz(timeZone, true) : date).add(
               new Date(block.endTime).getUTCHours() * 60 + new Date(block.endTime).getUTCMinutes(),
               "minutes"
             ),
+            timeZone ? dayjs.utc(dateTo).tz(timeZone) : dayjs.utc(dateTo)
+          );
+
+          if (+maxEndDate < +maxStartDate) continue;
+
+          dates[startDate.format("YYYY-MM-DD")] = dates[startDate.format("YYYY-MM-DD")] ?? [];
+          dates[startDate.format("YYYY-MM-DD")].push({
+            start: maxStartDate,
+            end: maxEndDate,
           });
         }
       }
