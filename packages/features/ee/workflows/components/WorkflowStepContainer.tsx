@@ -70,6 +70,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
 
+  const [updateTemplate, setUpdateTemplate] = useState(false);
+
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
       ? true
@@ -552,8 +554,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 `steps.${step.stepNumber - 1}.reminderBody`,
                                 emailReminderTemplate(true).emailBody.html
                               );
+                            } else {
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                             }
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
+                            setUpdateTemplate(!updateTemplate);
                           }
                         }}
                         defaultValue={selectedTemplate}
@@ -612,6 +617,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }}
                       variables={DYNAMIC_TEXT_VARIABLES}
                       height="200px"
+                      updateTemplate={updateTemplate}
                     />
                   </>
                 ) : (

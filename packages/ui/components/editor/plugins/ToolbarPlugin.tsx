@@ -341,6 +341,27 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
   useEffect(() => {
     editor.update(() => {
+      const root = $getRoot();
+      if (root) {
+        editor.update(() => {
+          const parser = new DOMParser();
+
+          // Create a new TextNode
+          const dom = parser.parseFromString(props.getText(), "text/html");
+
+          const nodes = $generateNodesFromDOM(editor, dom);
+          root.clear();
+          const paragraph = $createParagraphNode();
+          root.append(paragraph);
+          paragraph.select();
+          $insertNodes(nodes);
+        });
+      }
+    });
+  }, [props.updateTemplate]);
+
+  useEffect(() => {
+    editor.update(() => {
       const parser = new DOMParser();
       const dom = parser.parseFromString(props.getText(), "text/html");
 

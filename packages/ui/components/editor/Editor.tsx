@@ -32,6 +32,7 @@ export type TextEditorProps = {
   height?: string;
   placeholder?: string;
   disableLists?: boolean;
+  updateTemplate?: boolean;
 };
 
 const editorConfig = {
@@ -65,6 +66,7 @@ export const Editor = (props: TextEditorProps) => {
             setText={props.setText}
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
+            updateTemplate={props.updateTemplate}
           />
           <div className="editor-inner" style={{ height: props.height }}>
             <RichTextPlugin

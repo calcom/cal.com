@@ -54,7 +54,27 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     return variable.replace("{", "").replace("}", "");
   });
 
+  //and event date/time with formatting
   customInputvariables?.forEach((variable) => {
+    if (variable.startsWith("EVENT_DATE_")) {
+      const dateFormat = variable.substring(11, text.length);
+      const formattedDate = variables.eventDate?.format(dateFormat);
+      dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
+      return;
+    }
+
+    if (variable.startsWith("EVENT_TIME_")) {
+      const dateFormat = variable.substring(11, text.length);
+      const formattedDate = variables.eventTime?.format(dateFormat);
+      dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
+      return;
+    }
+    if (variable.startsWith("EVENT_END_TIME_")) {
+      const dateFormat = variable.substring(15, text.length);
+      const formattedDate = variables.eventEndTime?.format(dateFormat);
+      dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
+      return;
+    }
     if (variables.customInputs) {
       Object.keys(variables.customInputs).forEach((customInput) => {
         const formatedToVariable = customInput

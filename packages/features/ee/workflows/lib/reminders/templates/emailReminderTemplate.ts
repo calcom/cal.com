@@ -10,24 +10,31 @@ const emailReminderTemplate = (
   attendee?: string,
   name?: string
 ) => {
+  let eventDateSubject = "";
+  let eventDateBody = "";
+
   if (isEditingMode) {
-    startTime = "{EVENT_TIME}";
-    endTime = "{EVENT_END_TIME}";
+    startTime = "{EVENT_TIME_H:mmA}";
+    endTime = "{EVENT_END_TIME_H:mmA}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
     attendee = "{ATTENDEE_NAME}";
     name = "{NAME}";
+    eventDateSubject = "{EVENT_DATE_ddd, MMM D, YYYY}";
+    eventDateBody = "{EVENT_DATE_YYYY MMM D}";
+  } else {
+    eventDateSubject = dayjs(startTime).tz(timeZone).format("ddd, MMM D, YYYY");
+
+    startTime = dayjs(startTime).tz(timeZone).format("H:mmA");
+
+    endTime = dayjs(endTime).tz(timeZone).format("H:mmA");
+
+    eventDateBody = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
   }
 
-  const emailSubject = `Reminder: ${eventName} - ${dayjs(startTime)
-    .tz(timeZone)
-    .format("ddd, MMM D, YYYY")} ${dayjs(startTime).tz(timeZone).format("H:mmA")}`;
+  const emailSubject = `Reminder: ${eventName} - ${eventDateSubject} ${startTime}`;
 
-  const templateBodyText = `Hi ${name},this is a reminder that your meeting (${eventName}) with ${attendee} is on ${dayjs(
-    startTime
-  )
-    .tz(timeZone)
-    .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
+  const templateBodyText = `Hi ${name},this is a reminder that your meeting (${eventName}) with ${attendee} is on ${startTime} ${timeZone}.`;
 
   const introHtml = `<body>Hi${
     name ? " " + name : ""
@@ -35,11 +42,7 @@ const emailReminderTemplate = (
 
   const eventHtml = `<div style="font-weight: bold;">Event:</div>${eventName}<br><br>`;
 
-  const dateTimeHtml = `<div style="font-weight: bold;">Date & Time:</div>${dayjs(startTime)
-    .tz(timeZone)
-    .format("ddd, MMM D, YYYY H:mmA")} - ${dayjs(endTime)
-    .tz(timeZone)
-    .format("H:mmA")} (${timeZone})<br><br>`;
+  const dateTimeHtml = `<div style="font-weight: bold;">Date & Time:</div>${eventDateSubject} ${startTime} - ${endTime} (${timeZone})<br><br>`;
 
   const attendeeHtml = `<div style="font-weight: bold;">Attendees:</div>You & ${attendee}<br><br>`;
 
