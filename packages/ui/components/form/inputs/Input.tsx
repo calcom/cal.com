@@ -74,6 +74,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
     className={classNames(
       "addon-wrapper dark:border-darkgray-500 relative z-10 h-9 border border-gray-300 px-3",
       isFilled && "dark:bg-darkgray-100 dark:text-darkgray-600 dark:bg-darkgray-100 bg-gray-50",
+      !isFilled && "border-l-0",
       className
     )}>
     <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
@@ -124,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div className="group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+        <div className="dark:[&_.addon-wrapper]:focus-within:border-darkgray-500 dark:[&_.addon-wrapper]:hover:border-darkgray-300 group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1 [&_.addon-wrapper]:focus-within:border-neutral-800 [&_.addon-wrapper]:hover:border-gray-400">
           {addOnLeading && (
             <Addon
               isFilled={addOnFilled}
@@ -208,20 +209,17 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
   return (
-    <div className="relative [&_.group:hover_.addon-wrapper]:border-gray-400 [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
+    <div>
       <InputField
         type={isPasswordVisible ? "text" : "password"}
         placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
-        className={classNames("mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10", props.className)}
+        className={classNames("mb-0", props.className)}
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
-            <button
-              className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}>
+            <button className="h-9 text-gray-900" type="button" onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
                 <FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
