@@ -1636,6 +1636,7 @@
   "no_responses_yet": "No responses yet",
   "this_will_be_the_placeholder": "This will be the placeholder",
   "verification_code": "Verification code",
+  "can_you_try_again": "Can you try again with a different time?",
   "verify": "Verify",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
