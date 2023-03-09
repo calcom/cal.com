@@ -715,7 +715,6 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = "responses" in reqBody ? reqBody.responses : null;
-  const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
 
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
@@ -725,7 +724,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
-    bookingFields: { ...responses, ...userFieldsResponses },
+    bookingFields: { ...responses },
     t: tOrganizer,
   };
 
