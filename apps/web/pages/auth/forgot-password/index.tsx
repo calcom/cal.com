@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { SyntheticEvent } from "react";
@@ -144,5 +145,6 @@ ForgotPassword.getInitialProps = async (context: GetServerSidePropsContext) => {
 
   return {
     csrfToken: await getCsrfToken(context),
+    ...(await serverSideTranslations(context.locale || "en", ["common"])),
   };
 };
