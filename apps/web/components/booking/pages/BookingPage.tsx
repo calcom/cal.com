@@ -628,8 +628,8 @@ function ErrorMessage({ error }: { error: unknown }) {
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
             {error instanceof HttpError || error instanceof Error ? (
               <>
-                {t("can_you_try_again")}
-                <span className="underline" onClick={() => router.back()}>
+                {t("can_you_try_again")}{" "}
+                <span className="cursor-pointer underline" onClick={() => router.back()}>
                   {t("go_back")}
                 </span>
                 .
