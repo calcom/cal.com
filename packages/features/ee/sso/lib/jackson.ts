@@ -26,10 +26,6 @@ const opts: JacksonOption = {
   clientSecretVerifier,
 };
 
-let connectionControllerLocal: IConnectionAPIController;
-let oauthControllerLocal: IOAuthController;
-let samlSPConfigLocal: ISPSAMLConfig;
-
 const g = global;
 
 declare global {
@@ -43,21 +39,14 @@ declare global {
 export default async function init() {
   if (!g.connectionController || !g.oauthController || !g.samlSPConfig) {
     const ret = await jackson(opts);
-
-    connectionControllerLocal = ret.connectionAPIController;
-    oauthControllerLocal = ret.oauthController;
-    samlSPConfigLocal = ret.spConfig;
-    g.connectionController = connectionControllerLocal;
-    g.oauthController = oauthControllerLocal;
-    g.samlSPConfig = samlSPConfigLocal;
-  } else {
-    connectionControllerLocal = g.connectionController;
-    oauthControllerLocal = g.oauthController;
-    samlSPConfigLocal = g.samlSPConfig;
+    g.connectionController = ret.connectionAPIController;
+    g.oauthController = ret.oauthController;
+    g.samlSPConfig = ret.spConfig;
   }
+
   return {
-    connectionControllerLocal,
-    oauthControllerLocal,
-    samlSPConfigLocal,
+    connectionController: g.connectionController,
+    oauthController: g.oauthController,
+    samlSPConfig: g.samlSPConfig,
   };
 }
