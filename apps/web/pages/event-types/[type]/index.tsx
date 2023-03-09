@@ -87,7 +87,7 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
-  bookingLimits?: BookingLimit;
+  bookingLimits?: IntervalLimit;
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
