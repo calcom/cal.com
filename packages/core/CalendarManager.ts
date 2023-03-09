@@ -80,6 +80,7 @@ export const getConnectedCalendars = async (
         if (destinationCalendar) {
           destinationCalendar.primaryEmail = primary.email;
           destinationCalendar.integrationTitle = integration.title;
+          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
