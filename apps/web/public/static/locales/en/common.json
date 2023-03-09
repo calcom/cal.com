@@ -1642,8 +1642,8 @@
   "verification_code": "Verification code",
   "can_you_try_again": "Can you try again with a different time?",
   "verify": "Verify",
+  "invalid_event_name_variables":"There is an invalid variable in your event name",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
-  "default_conferencing_bulk_description": "Update the locations for the selected event types",
-  "invalid_event_name_variables": "There is an invalid variable in your event name"
+  "default_conferencing_bulk_description": "Update the locations for the selected event types"
 }

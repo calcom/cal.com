@@ -17,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -180,6 +181,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
+  const bookingFields: Prisma.JsonObject = {};
+
+  eventType.bookingFields.forEach(({ name }) => {
+    bookingFields[name] = name;
+  });
+
   const defaultValues = {
     title: eventType.title,
     locations: eventType.locations || [],
@@ -211,9 +218,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           // Make it optional because it's not submitted from all tabs of the page
           eventName: z
             .string()
-            .refine((val) => validateCustomEventName(val, t("invalid_event_name_variables")) === true, {
-              message: t("invalid_event_name_variables"),
-            })
+            .refine(
+              (val) =>
+                validateCustomEventName(val, t("invalid_event_name_variables"), bookingFields) === true,
+              {
+                message: t("invalid_event_name_variables"),
+              }
+            )
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
