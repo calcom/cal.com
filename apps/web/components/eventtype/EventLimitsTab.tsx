@@ -390,10 +390,7 @@ type IntervalLimitsKey = keyof IntervalLimit;
 
 const intervalOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"] as const;
 
-const INTERVAL_LIMIT_OPTIONS: {
-  value: keyof IntervalLimit;
-  label: string;
-}[] = intervalOrderKeys.map((key) => ({
+const INTERVAL_LIMIT_OPTIONS = intervalOrderKeys.map((key) => ({
   value: key as keyof IntervalLimit,
   label: `Per ${key.split("_")[1].toLocaleLowerCase()}`,
 }));
@@ -478,15 +475,15 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
           if (!currentIntervalLimits || !watchIntervalLimits) return;
           const currentKeys = Object.keys(watchIntervalLimits);
 
-          const rest = Object.values(INTERVAL_LIMIT_OPTIONS).filter(
+          const [rest] = Object.values(INTERVAL_LIMIT_OPTIONS).filter(
             (option) => !currentKeys.includes(option.value)
           );
-          if (!rest.length || !currentKeys.length) return;
+          if (!rest || !currentKeys.length) return;
           //currentDurationLimits is always defined so can be casted
-
+          // @ts-expect-error FIXME Fix these typings
           setValue(propertyName, {
             ...watchIntervalLimits,
-            [rest[0].value]: defaultLimit,
+            [rest.value]: defaultLimit,
           });
         };
 
@@ -515,6 +512,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                         (option) => !Object.keys(currentIntervalLimits).includes(option.value)
                       )}
                       onLimitChange={(intervalLimitKey, val) =>
+                        // @ts-expect-error FIXME Fix these typings
                         setValue(`${propertyName}.${intervalLimitKey}`, val)
                       }
                       onDelete={(intervalLimitKey) => {
