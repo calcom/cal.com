@@ -8,10 +8,19 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, Select, TextField } from "@calcom/ui";
 import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
-import type { IntervalLimitsKey } from "@lib/types/intervalLimitsKey";
-import { INTERVAL_LIMIT_OPTIONS, intervalOrderKeys } from "@lib/types/intervalLimitsKey";
-
 import type { FormValues } from "../../pages/event-types/[type]";
+
+type IntervalLimitsKey = keyof IntervalLimit;
+
+const intervalOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"] as const;
+
+const INTERVAL_LIMIT_OPTIONS: {
+  value: keyof IntervalLimit;
+  label: string;
+}[] = intervalOrderKeys.map((key) => ({
+  value: key as keyof IntervalLimit,
+  label: `Per ${key.split("_")[1].toLocaleLowerCase()}`,
+}));
 
 type IntervalLimitItemProps = {
   key: Key;
