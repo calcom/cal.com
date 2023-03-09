@@ -37,6 +37,9 @@ function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState<Country>("US");
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
     onSuccess: (data) => {
       if (isSupportedCountry(data?.countryCode)) {
         setDefaultCountry(data.countryCode as Country);
