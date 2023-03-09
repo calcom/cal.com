@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
-import { AppSetDefaultLinkDailog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -69,7 +69,10 @@ const ConferencingLayout = () => {
   }, []);
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
-    onSuccess: onSuccessCallback,
+    onSuccess: async () => {
+      await utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      onSuccessCallback();
+    },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
     },
@@ -171,7 +174,7 @@ const ConferencingLayout = () => {
       </Dialog>
 
       {locationType && (
-        <AppSetDefaultLinkDailog
+        <AppSetDefaultLinkDialog
           locationType={locationType}
           setLocationType={setLocationType}
           onSuccess={onSuccessCallback}

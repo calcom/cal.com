@@ -52,8 +52,9 @@ export const formatLocalizedDateTime = (
 export const formatToLocalizedDate = (
   date: Date | Dayjs,
   locale: string | undefined = undefined,
-  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long"
-) => formatLocalizedDateTime(date, { dateStyle }, locale);
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long",
+  timeZone?: string
+) => formatLocalizedDateTime(date, { dateStyle, timeZone }, locale);
 
 /**
  * Returns a localized and translated time of day based on the
@@ -64,8 +65,9 @@ export const formatToLocalizedTime = (
   date: Date | Dayjs,
   locale: string | undefined = undefined,
   timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
-  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined
-) => formatLocalizedDateTime(date, { timeStyle, hour12 }, locale);
+  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined,
+  timeZone?: string
+) => formatLocalizedDateTime(date, { timeStyle, hour12, timeZone }, locale);
 
 /**
  * Returns a translated timezone based on the given Date object and
@@ -75,12 +77,13 @@ export const formatToLocalizedTime = (
 export const formatToLocalizedTimezone = (
   date: Date | Dayjs,
   locale: string | undefined = undefined,
+  timeZone: Intl.DateTimeFormatOptions["timeZone"],
   timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
 ) => {
   // Intl.DateTimeFormat doesn't format into a timezone only, so we must
   //  formatToParts() and return the piece we want
   const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
-  return Intl.DateTimeFormat(locale, { timeZoneName })
+  return Intl.DateTimeFormat(locale, { timeZoneName, timeZone })
     .formatToParts(theDate)
     .find((d) => d.type == "timeZoneName")?.value;
 };

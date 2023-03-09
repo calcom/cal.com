@@ -88,6 +88,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
@@ -116,6 +117,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                 type={app.type}
                 isProOnly={app.isProOnly}
                 wrapperClassName="[@media(max-width:260px)]:w-full"
+                disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
@@ -123,6 +125,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                       onClick: () => {
                         mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
+                      disabled: !!props.disabled,
                     };
                   }
                   return (
