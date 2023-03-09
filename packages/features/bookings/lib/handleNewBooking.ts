@@ -29,6 +29,7 @@ import {
   sendRescheduledEmails,
   sendScheduledEmails,
   sendRescheduledSeatEmail,
+  sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
@@ -773,7 +774,7 @@ async function handler(
   const responses = "responses" in reqBody ? reqBody.responses : null;
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
-  const evt: CalendarEvent = {
+  let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -921,281 +922,304 @@ async function handler(
       throw new Error("You are trying to reschedule to the same time.");
     }
 
-    const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
-    // Required for Typescript, these should always be set.
-    if (!seatAttendee || !bookingSeat || !rescheduleUid) {
-      throw new Error("Internal Error.");
-    }
+    // There are two paths here, booking seats without reschedule and reschedule a booking with seats
+    if (rescheduleUid) {
+      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+      // Required for Typescript, these should always be set.
+      if (!seatAttendee || !bookingSeat || !rescheduleUid) {
+        throw new Error("Internal Error.");
+      }
 
-    seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
-    // See if the new date has a booking already
-    const newTimeSlotBooking = await prisma.booking.findFirst({
-      where: {
-        startTime: evt.startTime,
-        eventTypeId: eventType.id,
-      },
-      select: {
-        id: true,
-        uid: true,
-        attendees: {
-          include: {
-            bookingSeat: true,
+      // See if the new date has a booking already
+      const newTimeSlotBooking = await prisma.booking.findFirst({
+        where: {
+          startTime: evt.startTime,
+          eventTypeId: eventType.id,
+        },
+        select: {
+          id: true,
+          uid: true,
+          attendees: {
+            include: {
+              bookingSeat: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const credentials = await refreshCredentials(organizerUser.credentials);
-    const eventManager = new EventManager({ ...organizerUser, credentials });
+      const credentials = await refreshCredentials(organizerUser.credentials);
+      const eventManager = new EventManager({ ...organizerUser, credentials });
 
-    if (!originalRescheduledBooking) {
-      // typescript isn't smart enough;
-      throw new Error("Internal Error.");
-    }
+      if (!originalRescheduledBooking) {
+        // typescript isn't smart enough;
+        throw new Error("Internal Error.");
+      }
 
-    const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
-      (filteredAttendees, attendee) => {
-        if (attendee.email === bookerEmail) {
-          return filteredAttendees; // skip current booker, as we know the language already.
+      const updatedBookingAttendees = originalRescheduledBooking.attendees.reduce(
+        (filteredAttendees, attendee) => {
+          if (attendee.email === bookerEmail) {
+            return filteredAttendees; // skip current booker, as we know the language already.
+          }
+          filteredAttendees.push({
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+          });
+          return filteredAttendees;
+        },
+        [] as Person[]
+      );
+
+      // If original booking has video reference we need to add the videoCallData to the new evt
+      const videoReference = originalRescheduledBooking.references.find((reference) =>
+        reference.type.includes("_video")
+      );
+
+      const originalBookingEvt = {
+        ...evt,
+        title: originalRescheduledBooking.title,
+        startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
+        endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
+        attendees: updatedBookingAttendees,
+        // If the location is a video integration then include the videoCallData
+        ...(videoReference && {
+          videoCallData: {
+            type: videoReference.type,
+            id: videoReference.meetingId,
+            password: videoReference.meetingPassword,
+            url: videoReference.meetingUrl,
+          },
+        }),
+      };
+
+      // If owner reschedules the event we want to update the entire booking
+      if (booking.user?.id === req.userId) {
+        // If there is no booking during the new time slot then update the current booking to the new date
+        if (!newTimeSlotBooking) {
+          const newBooking = await prisma.booking.update({
+            where: {
+              id: booking.id,
+            },
+            data: {
+              startTime: evt.startTime,
+              cancellationReason: rescheduleReason,
+            },
+            include: {
+              references: true,
+            },
+          });
+
+          addVideoCallDataToEvt(newBooking.references);
+
+          const copyEvent = cloneDeep(evt);
+
+          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
+
+          await sendRescheduledEmails({
+            ...copyEvent,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          });
+
+          const resultBooking = await resultBookingQuery(newBooking.id);
+
+          return resultBooking;
         }
-        filteredAttendees.push({
-          name: attendee.name,
-          email: attendee.email,
-          timeZone: attendee.timeZone,
-          language: { translate: tAttendees, locale: attendee.locale ?? "en" },
-        });
-        return filteredAttendees;
-      },
-      [] as Person[]
-    );
 
-    // If original booking has video reference we need to add the videoCallData to the new evt
-    const videoReference = originalRescheduledBooking.references.find((reference) =>
-      reference.type.includes("_video")
-    );
+        // Merge two bookings together
+        const attendeesToMove = [],
+          attendeesToDelete = [];
 
-    const originalBookingEvt = {
-      ...evt,
-      title: originalRescheduledBooking.title,
-      startTime: dayjs(originalRescheduledBooking.startTime).utc().format(),
-      endTime: dayjs(originalRescheduledBooking.endTime).utc().format(),
-      attendees: updatedBookingAttendees,
-      // If the location is a video integration then include the videoCallData
-      ...(videoReference && {
-        videoCallData: {
-          type: videoReference.type,
-          id: videoReference.meetingId,
-          password: videoReference.meetingPassword,
-          url: videoReference.meetingUrl,
-        },
-      }),
-    };
+        for (const attendee of booking.attendees) {
+          // If the attendee already exists on the new booking then delete the attendee record of the old booking
+          if (
+            newTimeSlotBooking.attendees.some(
+              (newBookingAttendee) => newBookingAttendee.email === attendee.email
+            )
+          ) {
+            attendeesToDelete.push(attendee.id);
+            // If the attendee does not exist on the new booking then move that attendee record to the new booking
+          } else {
+            attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeat?.id });
+          }
+        }
 
-    // If owner reschedules the event we want to update the entire booking
-    if (booking.user?.id === req.userId) {
-      // If there is no booking during the new time slot then update the current booking to the new date
-      if (!newTimeSlotBooking) {
-        const newBooking = await prisma.booking.update({
+        // Confirm that the new event will have enough available seats
+        if (
+          !eventType.seatsPerTimeSlot ||
+          attendeesToMove.length +
+            newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
+            eventType.seatsPerTimeSlot
+        ) {
+          throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
+        }
+
+        const moveAttendeeCalls = [];
+        for (const attendeeToMove of attendeesToMove) {
+          moveAttendeeCalls.push(
+            prisma.attendee.update({
+              where: {
+                id: attendeeToMove.id,
+              },
+              data: {
+                bookingId: newTimeSlotBooking.id,
+                bookingSeat: {
+                  upsert: {
+                    create: {
+                      referenceUid: uuid(),
+                      bookingId: newTimeSlotBooking.id,
+                    },
+                    update: {
+                      bookingId: newTimeSlotBooking.id,
+                    },
+                  },
+                },
+              },
+            })
+          );
+        }
+
+        await Promise.all([
+          ...moveAttendeeCalls,
+          // Delete any attendees that are already a part of that new time slot booking
+          prisma.attendee.deleteMany({
+            where: {
+              id: {
+                in: attendeesToDelete,
+              },
+            },
+          }),
+        ]);
+
+        const updatedNewBooking = await prisma.booking.findUnique({
           where: {
-            id: booking.id,
-          },
-          data: {
-            startTime: evt.startTime,
-            cancellationReason: rescheduleReason,
+            id: newTimeSlotBooking.id,
           },
           include: {
+            attendees: true,
             references: true,
           },
         });
 
-        addVideoCallDataToEvt(newBooking.references);
+        if (!updatedNewBooking) {
+          throw new HttpError({ statusCode: 404, message: "Updated booking not found" });
+        }
+
+        // Update the evt object with the new attendees
+        const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
+          const evtAttendee = { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
+          return evtAttendee;
+        });
+
+        evt.attendees = updatedBookingAttendees;
+
+        addVideoCallDataToEvt(updatedNewBooking.references);
 
         const copyEvent = cloneDeep(evt);
 
-        await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
+        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
+        // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
           cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        return newBooking;
-      }
-
-      // Merge two bookings together
-      const attendeesToMove = [],
-        attendeesToDelete = [];
-
-      for (const attendee of booking.attendees) {
-        // If the attendee already exists on the new booking then delete the attendee record of the old booking
-        if (
-          newTimeSlotBooking.attendees.some(
-            (newBookingAttendee) => newBookingAttendee.email === attendee.email
-          )
-        ) {
-          attendeesToDelete.push(attendee.id);
-          // If the attendee does not exist on the new booking then move that attendee record to the new booking
-        } else {
-          attendeesToMove.push({ id: attendee.id, seatReferenceId: attendee.bookingSeat?.id });
-        }
-      }
-
-      // Confirm that the new event will have enough available seats
-      if (
-        !eventType.seatsPerTimeSlot ||
-        attendeesToMove.length +
-          newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
-          eventType.seatsPerTimeSlot
-      ) {
-        throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
-      }
-
-      const moveAttendeeCalls = [];
-      for (const attendeeToMove of attendeesToMove) {
-        moveAttendeeCalls.push(
-          prisma.attendee.update({
-            where: {
-              id: attendeeToMove.id,
-            },
-            data: {
-              bookingId: newTimeSlotBooking.id,
-              bookingSeat: {
-                upsert: {
-                  create: {
-                    referenceUid: uuid(),
-                    bookingId: newTimeSlotBooking.id,
-                  },
-                  update: {
-                    bookingId: newTimeSlotBooking.id,
-                  },
-                },
-              },
-            },
-          })
-        );
-      }
-
-      await Promise.all([
-        ...moveAttendeeCalls,
-        // Delete any attendees that are already a part of that new time slot booking
-        prisma.attendee.deleteMany({
+        // Delete the old booking
+        await prisma.booking.delete({
           where: {
-            id: {
-              in: attendeesToDelete,
-            },
+            id: booking.id,
+          },
+        });
+
+        const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
+
+        return resultBooking;
+      }
+
+      // If there is no booking then remove the attendee from the old booking and create a new one
+      if (!newTimeSlotBooking) {
+        await prisma.bookingSeat.delete({
+          where: {
+            id: bookingSeat.id,
+          },
+        });
+
+        await prisma.attendee.delete({
+          where: {
+            id: seatAttendee.id,
+          },
+        });
+
+        // Update the original calendar event by removing the attendee that is rescheduling
+        if (originalBookingEvt && originalRescheduledBooking) {
+          eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+        }
+
+        await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
+
+        // We don't want to trigger rescheduling logic of the original booking
+        originalRescheduledBooking = null;
+
+        return null;
+      }
+      // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
+      // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
+      await Promise.all([
+        await prisma.attendee.update({
+          where: {
+            id: seatAttendee.id,
+          },
+          data: {
+            bookingId: newTimeSlotBooking.id,
+          },
+        }),
+        await prisma.bookingSeat.update({
+          where: {
+            id: bookingSeat.id,
+          },
+          data: {
+            bookingId: newTimeSlotBooking.id,
           },
         }),
       ]);
-
-      const updatedNewBooking = await prisma.booking.findUnique({
-        where: {
-          id: newTimeSlotBooking.id,
-        },
-        include: {
-          attendees: true,
-          references: true,
-        },
-      });
-
-      if (!updatedNewBooking) {
-        throw new HttpError({ statusCode: 404, message: "Updated booking not found" });
-      }
-
-      // Update the evt object with the new attendees
-      const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
-        const evtAttendee = { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
-        return evtAttendee;
-      });
-
-      evt.attendees = updatedBookingAttendees;
-
-      addVideoCallDataToEvt(updatedNewBooking.references);
 
       const copyEvent = cloneDeep(evt);
 
       await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
-      // TODO send reschedule emails to attendees of the old booking
-      await sendRescheduledEmails({
-        ...copyEvent,
-        additionalNotes, // Resets back to the additionalNote input and not the override value
-        cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
-      });
-
-      // Delete the old booking
-      await prisma.booking.delete({
-        where: {
-          id: booking.id,
-        },
-      });
-
-      return updatedNewBooking;
-    }
-
-    // If there is no booking then remove the attendee from the old booking and create a new one
-    if (!newTimeSlotBooking) {
-      await prisma.bookingSeat.delete({
-        where: {
-          id: bookingSeat.id,
-        },
-      });
-
-      await prisma.attendee.delete({
-        where: {
-          id: seatAttendee.id,
-        },
-      });
-
-      // Update the original calendar event by removing the attendee that is rescheduling
-      if (originalBookingEvt && originalRescheduledBooking) {
-        eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
-      }
+      await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
 
       await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
 
-      // We don't want to trigger rescheduling logic of the original booking
-      originalRescheduledBooking = null;
+      const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
 
-      return;
-    }
-    // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
-    // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
-    await Promise.all([
-      await prisma.attendee.update({
+      return resultBooking;
+    } else {
+      // If reschedule but no seats in event type
+      const booking = await prisma.booking.findUnique({
         where: {
-          id: seatAttendee.id,
+          uid: rescheduleUid,
         },
-        data: {
-          bookingId: newTimeSlotBooking.id,
+        select: {
+          uid: true,
+          id: true,
+          attendees: true,
+          userId: true,
+          references: true,
+          startTime: true,
+          user: true,
+          status: true,
         },
-      }),
-      await prisma.bookingSeat.update({
-        where: {
-          id: bookingSeat.id,
-        },
-        data: {
-          bookingId: newTimeSlotBooking.id,
-        },
-      }),
-    ]);
+      });
 
-    const copyEvent = cloneDeep(evt);
-
-    await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
-
-    await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
-
-    await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
-
-    return newTimeSlotBooking;
-    // Else let's add the new attendee to the existing booking
-
-    /*
-    TODO: This is dead code, evaluate what it was intended to do.
-    
-    else {
+      if (!booking) {
+        throw new HttpError({ statusCode: 404, message: "Booking not found" });
+      }
       // See if attendee is already signed up for timeslot
       if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
         throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
@@ -1208,7 +1232,7 @@ async function handler(
 
       evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-      if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
+      if (eventType.seatsPerTimeSlot && eventType.seatsPerTimeSlot <= booking.attendees.length) {
         throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
       }
 
@@ -1271,13 +1295,15 @@ async function handler(
        * Remember objects are passed into functions as references
        * so if you modify it in a inner function it will be modified in the outer function
        * deep cloning evt to avoid this
-       *
+       */
       const copyEvent = cloneDeep(evt);
       await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
       const credentials = await refreshCredentials(organizerUser.credentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
       await eventManager.updateCalendarAttendees(evt, booking);
+
+      const resultBooking = await resultBookingQuery(booking.id);
 
       if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!booking) {
         const credentialPaymentAppCategories = await prisma.credential.findMany({
@@ -1320,23 +1346,22 @@ async function handler(
         );
 
         req.statusCode = 201;
-        return { ...booking, message: "Payment required", paymentUid: payment?.uid };
+        return { ...resultBooking, message: "Payment required", paymentUid: payment?.uid };
       }
 
       req.statusCode = 201;
-      return booking;
-    }*/
+      return resultBooking;
+    }
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (rescheduleUid && eventType.seatsPerTimeSlot && bookingSeat) {
+  if (reqBody.bookingUid && eventType.seatsPerTimeSlot && bookingSeat) {
     const newBooking = await handleSeats();
     if (newBooking) {
       req.statusCode = 201;
       return newBooking;
     }
   }
-
   if (isTeamEventType) {
     evt.team = {
       members: teamMembers,
@@ -1951,3 +1976,46 @@ function handleCustomInputs(
     }
   });
 }
+
+const resultBookingQuery = async (bookingId: number) => {
+  const foundBooking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      uid: true,
+      location: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      description: true,
+      status: true,
+      responses: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+        },
+      },
+      eventType: {
+        select: {
+          title: true,
+          description: true,
+          currency: true,
+          length: true,
+          requiresConfirmation: true,
+          price: true,
+        },
+      },
+    },
+  });
+
+  // This should never happen but it's just typescript safe
+  if (!foundBooking) {
+    throw new Error("Internal Error.");
+  }
+
+  // Don't leak any sensitive data
+  return foundBooking;
+};
