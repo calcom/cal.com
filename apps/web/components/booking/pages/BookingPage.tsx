@@ -289,6 +289,7 @@ const BookingPage = ({
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
+  const timeFormat = router.query.timeFormat;
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
