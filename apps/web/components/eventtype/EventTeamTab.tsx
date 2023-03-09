@@ -1,14 +1,12 @@
 import { SchedulingType } from "@prisma/client";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
-import type { Control } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
-import type { CheckedUserSelectOption } from "@calcom/features/eventtypes/components/CheckedUserSelect";
-import CheckedUserSelect from "@calcom/features/eventtypes/components/CheckedUserSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";
@@ -37,112 +35,270 @@ const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof 
   return 0;
 };
 
-const Users = ({
-  control,
+const UserField = ({
   labelText,
   placeholder,
   options = [],
+  value,
+  onChange,
   ...rest
 }: {
-  control: Control<FormValues>;
   labelText: string;
   placeholder: string;
-  schedulingType?: SchedulingType;
-  options?: Options<CheckedUserSelectOption>;
-} & Partial<ComponentProps<typeof CheckedTeamSelect>>) => {
+  value: number[];
+  onChange?: (options: number[]) => void;
+  options?: Options<CheckedSelectOption>;
+} & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col space-y-5">
       <div>
         <Label>{labelText}</Label>
-        <Controller
-          name="users"
-          control={control}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <CheckedUserSelect
-                isDisabled={false}
-                onChange={(options) => {
-                  onChange(options.map((option) => parseInt(option.value, 10)));
-                }}
-                value={value
-                  .map(
-                    (user) =>
-                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                      options.find((member) => member.value === user.toString())!
-                  )
-                  .filter(Boolean)}
-                controlShouldRenderValue={false}
-                options={options}
-                placeholder={placeholder}
-                {...rest}
-              />
-            );
+        <CheckedTeamSelect
+          isOptionDisabled={(option) => !!value.find((userId) => userId.toString() === option.value)}
+          onChange={(options) => {
+            onChange && onChange(options.map((option) => parseInt(option.value, 10)));
           }}
+          value={(value || [])
+            .map(
+              (userId) =>
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                options.find((member) => member.value === userId.toString())!
+            )
+            .filter(Boolean)}
+          controlShouldRenderValue={false}
+          options={options}
+          placeholder={placeholder}
+          {...rest}
         />
       </div>
     </div>
   );
 };
 
-const FixedHosts = ({
-  control,
+const CheckedHostField = ({
   labelText,
   placeholder,
   options = [],
+  isFixed,
+  value,
+  onChange,
   ...rest
 }: {
-  control: Control<FormValues>;
   labelText: string;
   placeholder: string;
+  isFixed: boolean;
+  value: { isFixed: boolean; userId: number }[];
+  onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
   options?: Options<CheckedSelectOption>;
-} & Partial<ComponentProps<typeof CheckedTeamSelect>>) => {
+} & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col space-y-5 bg-gray-50 p-4">
       <div>
         <Label>{labelText}</Label>
-        <Controller
-          name="hostsFixed"
-          control={control}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <CheckedTeamSelect
-                isDisabled={false}
-                onChange={(options) => {
-                  onChange(
-                    options.map((option) => ({
-                      isFixed: true,
-                      userId: parseInt(option.value, 10),
-                    }))
-                  );
-                }}
-                value={value
-                  .map(
-                    (host) =>
-                      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                      options.find((member) => member.value === host.userId.toString())!
-                  )
-                  .filter(Boolean)}
-                controlShouldRenderValue={false}
-                options={options}
-                placeholder={placeholder}
-                {...rest}
-              />
-            );
+        <CheckedTeamSelect
+          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          onChange={(options) => {
+            onChange &&
+              onChange(
+                options.map((option) => ({
+                  isFixed,
+                  userId: parseInt(option.value, 10),
+                }))
+              );
           }}
+          value={(value || [])
+            .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
+            .map(
+              (host) =>
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                options.find((member) => member.value === host.userId.toString())!
+            )
+            .filter(Boolean)}
+          controlShouldRenderValue={false}
+          options={options}
+          placeholder={placeholder}
+          {...rest}
         />
       </div>
     </div>
   );
 };
 
-export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "teamMembers" | "team">) => {
-  const formMethods = useFormContext<FormValues>();
+const RoundRobinHosts = ({
+  teamMembers,
+  value,
+  onChange,
+}: {
+  value: { isFixed: boolean; userId: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  teamMembers: {
+    value: string;
+    label: string;
+    avatar: string;
+    email: string;
+  }[];
+}) => {
   const { t } = useLocale();
+  return (
+    <>
+      <CheckedHostField
+        options={teamMembers.sort(sortByLabel)}
+        isFixed={true}
+        onChange={(changeValue) => {
+          onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
+        }}
+        value={value}
+        placeholder={t("add_fixed_hosts")}
+        labelText={t("fixed_hosts")}
+      />
+      <CheckedHostField
+        options={teamMembers.sort(sortByLabel)}
+        onChange={(changeValue) => onChange([...value.filter(({ isFixed }) => isFixed), ...changeValue])}
+        value={value}
+        isFixed={false}
+        placeholder={t("add_attendees")}
+        labelText={t("round_robin_hosts")}
+      />
+    </>
+  );
+};
 
+const Users = ({
+  teamMembers,
+}: {
+  teamMembers: {
+    value: string;
+    label: string;
+    avatar: string;
+    email: string;
+  }[];
+}) => {
+  const { t } = useLocale();
+  const {
+    control,
+    resetField,
+    getValues,
+    formState: { submitCount },
+  } = useFormContext<FormValues>();
   const schedulingType = useWatch({
-    control: formMethods.control,
+    control,
     name: "schedulingType",
   });
+  const initialValue = useRef<{
+    users: FormValues["users"];
+    schedulingType: SchedulingType | null;
+    submitCount: number;
+  } | null>(null);
+
+  useEffect(() => {
+    // Handles init & out of date initial value after submission.
+    if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
+      initialValue.current = { users: getValues("users"), schedulingType, submitCount };
+      return;
+    }
+    resetField("users", {
+      defaultValue: initialValue.current.schedulingType === schedulingType ? initialValue.current.users : [],
+    });
+  }, [schedulingType, resetField, getValues, submitCount]);
+
+  return (
+    <Controller<FormValues>
+      name="users"
+      render={({ field: { onChange, value } }) => {
+        return (
+          <UserField
+            value={value}
+            onChange={onChange}
+            options={teamMembers.sort(sortByLabel)}
+            placeholder={t("add_members")}
+            labelText={t("assign_to")}
+          />
+        );
+      }}
+    />
+  );
+};
+
+const Hosts = ({
+  teamMembers,
+}: {
+  teamMembers: {
+    value: string;
+    label: string;
+    avatar: string;
+    email: string;
+  }[];
+}) => {
+  const { t } = useLocale();
+  const {
+    control,
+    resetField,
+    getValues,
+    formState: { submitCount },
+  } = useFormContext<FormValues>();
+  const schedulingType = useWatch({
+    control,
+    name: "schedulingType",
+  });
+  const initialValue = useRef<{
+    hosts: FormValues["hosts"];
+    schedulingType: SchedulingType | null;
+    submitCount: number;
+  } | null>(null);
+
+  useEffect(() => {
+    // Handles init & out of date initial value after submission.
+    if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
+      initialValue.current = { hosts: getValues("hosts"), schedulingType, submitCount };
+      return;
+    }
+    resetField("hosts", {
+      defaultValue: initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
+    });
+  }, [schedulingType, resetField, getValues, submitCount]);
+
+  return (
+    <Controller<FormValues>
+      name="hosts"
+      render={({ field: { onChange, value } }) => {
+        const schedulingTypeRender = {
+          COLLECTIVE: (
+            <CheckedHostField
+              value={value}
+              onChange={onChange}
+              isFixed={true}
+              options={teamMembers.sort(sortByLabel)}
+              placeholder={t("add_attendees")}
+              labelText={t("team")}
+            />
+          ),
+          ROUND_ROBIN: (
+            <>
+              <RoundRobinHosts teamMembers={teamMembers} onChange={onChange} value={value} />
+              {/*<TextField
+        required
+        type="number"
+        label={t("minimum_round_robin_hosts_count")}
+        defaultValue={1}
+        {...formMethods.register("minimumHostCount")}
+        addOnSuffix={<>{t("hosts")}</>}
+                />*/}
+            </>
+          ),
+          MANAGED: <></>,
+        };
+        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+      }}
+    />
+  );
+};
+
+export const EventTeamTab = ({
+  team,
+  teamMembers,
+  eventType,
+}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
+  const { t } = useLocale();
 
   const schedulingTypeOptions: {
     value: SchedulingType;
@@ -150,121 +306,42 @@ export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "t
     // description: string;
   }[] = [
     {
-      value: SchedulingType.COLLECTIVE,
+      value: "COLLECTIVE",
       label: t("collective"),
       // description: t("collective_description"),
     },
     {
-      value: SchedulingType.ROUND_ROBIN,
+      value: "ROUND_ROBIN",
       label: t("round_robin"),
       // description: t("round_robin_description"),
     },
   ];
-
   const teamMembersOptions = teamMembers.map(mapUserToValue);
   return (
     <div>
-      {team && (
+      {team && eventType.schedulingType !== SchedulingType.MANAGED && (
         <div className="space-y-5">
-          {schedulingType !== SchedulingType.MANAGED && (
-            <div className="flex flex-col">
-              <Label>{t("scheduling_type")}</Label>
-              <Controller
-                name="schedulingType"
-                control={formMethods.control}
-                render={({ field: { value, onChange } }) => (
-                  <Select
-                    options={schedulingTypeOptions}
-                    value={schedulingTypeOptions.find((opt) => opt.value === value)}
-                    className="w-full"
-                    onChange={(val) => {
-                      onChange(val?.value);
-                    }}
-                  />
-                )}
-              />
-            </div>
-          )}
-
-          {schedulingType === SchedulingType.COLLECTIVE && (
-            <FixedHosts
-              options={teamMembersOptions.sort(sortByLabel)}
-              placeholder={t("add_attendees")}
-              labelText={t("team")}
-              control={formMethods.control}
+          <div className="flex flex-col">
+            <Label>{t("scheduling_type")}</Label>
+            <Controller<FormValues>
+              name="schedulingType"
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  options={schedulingTypeOptions}
+                  value={schedulingTypeOptions.find((opt) => opt.value === value)}
+                  className="w-full"
+                  onChange={(val) => {
+                    onChange(val?.value);
+                  }}
+                />
+              )}
             />
-          )}
-          {schedulingType === SchedulingType.MANAGED && (
-            <>
-              <Users
-                options={teamMembersOptions.sort(sortByLabel)}
-                placeholder={t("add_members")}
-                labelText={t("assign_to")}
-                control={formMethods.control}
-              />
-            </>
-          )}
-          {schedulingType === SchedulingType.ROUND_ROBIN && (
-            <>
-              <FixedHosts
-                options={teamMembersOptions.sort(sortByLabel)}
-                isOptionDisabled={(option) =>
-                  !!formMethods.getValues("hosts").find((host) => host.userId.toString() === option.value)
-                }
-                placeholder={t("add_fixed_hosts")}
-                labelText={t("fixed_hosts")}
-                control={formMethods.control}
-              />
-              <div className="flex flex-col space-y-5 bg-gray-50 p-4">
-                <div>
-                  <Label>{t("round_robin_hosts")}</Label>
-                  <Controller
-                    name="hosts"
-                    control={formMethods.control}
-                    render={({ field: { onChange, value } }) => (
-                      <CheckedTeamSelect
-                        isDisabled={false}
-                        onChange={(options) =>
-                          onChange(
-                            options.map((option) => ({
-                              isFixed: false,
-                              userId: parseInt(option.value, 10),
-                            }))
-                          )
-                        }
-                        value={value
-                          .map(
-                            (host) =>
-                              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                              teamMembers
-                                .map(mapUserToValue)
-                                .find((member) => member.value === host.userId.toString())!
-                          )
-                          .filter(Boolean)}
-                        controlShouldRenderValue={false}
-                        options={teamMembersOptions.sort(sortByLabel)}
-                        isOptionDisabled={(option) =>
-                          !!formMethods
-                            .getValues("hostsFixed")
-                            .find((host) => host.userId.toString() === option.value)
-                        }
-                        placeholder={t("add_attendees")}
-                      />
-                    )}
-                  />
-                </div>
-                {/*<TextField
-                  required
-                  type="number"
-                  label={t("minimum_round_robin_hosts_count")}
-                  defaultValue={1}
-                  {...formMethods.register("minimumHostCount")}
-                  addOnSuffix={<>{t("hosts")}</>}
-                          />*/}
-              </div>
-            </>
-          )}
+          </div>
+          <Hosts teamMembers={teamMembersOptions} />
         </div>
+      )}
+      {team && eventType.schedulingType === SchedulingType.MANAGED && (
+        <Users teamMembers={teamMembersOptions} />
       )}
     </div>
   );

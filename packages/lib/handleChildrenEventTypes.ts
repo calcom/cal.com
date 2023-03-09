@@ -78,7 +78,9 @@ export default async function handleChildrenEventTypes({
   }
 
   // Define what values are expected to be changed from a managed event type
-  const managedEventTypePropsZod = _EventTypeModel.omit(unlockedManagedEventTypeProps);
+  const managedEventTypePropsZod = _EventTypeModel
+    .pick(allManagedEventTypeProps)
+    .omit(unlockedManagedEventTypeProps);
   const managedEventTypeValues = managedEventTypePropsZod.parse(updatedEventType);
 
   // Calculate if there are new/deleted users for which the event type needs to be created/deleted
