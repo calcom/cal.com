@@ -8,6 +8,7 @@ import around_config_json from "./around/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
+import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import routing_forms_config_json from "./ee/routing-forms/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
@@ -64,6 +65,7 @@ export const appStoreMetadata = {
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   closecom: closecom_config_json,
+  cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   "routing-forms": routing_forms_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
