@@ -69,7 +69,10 @@ const ConferencingLayout = () => {
   }, []);
 
   const updateDefaultAppMutation = trpc.viewer.updateUserDefaultConferencingApp.useMutation({
-    onSuccess: onSuccessCallback,
+    onSuccess: async () => {
+      await utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      onSuccessCallback();
+    },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
     },
