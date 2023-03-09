@@ -37,7 +37,8 @@ export function BulkEditDefaultConferencingModal(props: { open: boolean; setOpen
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}
-        description={t("default_conferencing_bulk_description")}>
+        description={t("default_conferencing_bulk_description")}
+        enableOverflow>
         <Form
           form={form}
           handleSubmit={(values) => {

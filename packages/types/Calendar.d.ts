@@ -165,10 +165,22 @@ export interface CalendarEvent {
   seatsPerTimeSlot?: number | null;
 
   // It has responses to all the fields(system + user)
-  responses?: Prisma.JsonObject | null;
+  responses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
 
   // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
-  userFieldsResponses?: Prisma.JsonObject | null;
+  userFieldsResponses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
 }
 
 export interface EntryPoint {
