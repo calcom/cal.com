@@ -15,6 +15,7 @@ import {
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import defaultEvents, {
   getDynamicEventDescription,
   getGroupName,
@@ -76,7 +77,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 size="sm"
                 items={props.users.map((user) => ({
                   alt: user.name || "",
-                  image: user.avatar || "",
+                  image: user.avatar,
                 }))}
               />
             </div>
@@ -261,7 +262,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const usernameList = getUsernameList(context.query.user as string);
   const dataFetchStart = Date.now();
-  const users = await prisma.user.findMany({
+  const usersWithoutAvatar = await prisma.user.findMany({
     where: {
       username: {
         in: usernameList,
@@ -275,13 +276,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       bio: true,
       brandColor: true,
       darkBrandColor: true,
-      avatar: true,
       theme: true,
       away: true,
       verified: true,
       allowDynamicBooking: true,
     },
   });
+
+  const users = usersWithoutAvatar.map((user) => ({
+    ...user,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png`,
+  }));
 
   if (!users.length) {
     return {
