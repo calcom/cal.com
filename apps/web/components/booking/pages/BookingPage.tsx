@@ -615,17 +615,28 @@ export default BookingPage;
 function ErrorMessage({ error }: { error: unknown }) {
   const { t } = useLocale();
   const { query: { rescheduleUid } = {} } = useRouter();
+  const router = useRouter();
 
   return (
-    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
-          <p className="text-sm text-yellow-700">
+          <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? (
+              <>
+                {t("can_you_try_again")}{" "}
+                <span className="cursor-pointer underline" onClick={() => router.back()}>
+                  {t("go_back")}
+                </span>
+                .
+              </> /* t(error.message) */
+            ) : (
+              "Unknown error"
+            )}
           </p>
         </div>
       </div>

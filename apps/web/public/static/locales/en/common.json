@@ -1640,6 +1640,7 @@
   "app_is_connected": "{{dependencyName}} is connected",
   "requires_app": "Requires {{dependencyName}}",
   "verification_code": "Verification code",
+  "can_you_try_again": "Can you try again with a different time?",
   "verify": "Verify",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
