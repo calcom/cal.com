@@ -22,6 +22,7 @@ import * as sendgrid from "./sendgrid";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
+import * as webex from "./webex";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
 import * as zoomvideo from "./zoomvideo";
@@ -48,6 +49,7 @@ const appStore = {
   vital,
   zoomvideo,
   wipemycalother,
+  webex,
   giphy,
   zapier,
   exchange2013calendar,

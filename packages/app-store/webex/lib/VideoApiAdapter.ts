@@ -4,6 +4,7 @@ import prisma from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { getWebexAppKeys } from "./getWebexAppKeys";
@@ -11,7 +12,8 @@ import { getWebexAppKeys } from "./getWebexAppKeys";
 /** @link https://developer.webex.com/docs/meetings **/
 const webexEventResultSchema = z.object({
   id: z.string(),
-  web_link: z.string(),
+  webLink: z.string(),
+  siteUrl: z.string(),
   password: z.string().optional().default(""),
 });
 
@@ -229,11 +231,28 @@ const webexAuth = (credential: CredentialPayload) => {
     },
   };
 };
+
 const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   //TODO implement translateEvent for recurring events
   const translateEvent = async (event: CalendarEvent) => {
-    //TODO
-    return event;
+    //To convert the Cal's CalendarEvent type to a webex meeting type
+
+    /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
+    //Required params - title, start, end
+    //There are a ton of other options, what do we want to support?
+    return {
+      title: event.title,
+      start: event.startTime,
+      end: event.endTime,
+      recurrence: event.recurrence, //Follows RFC 2445 https://www.ietf.org/rfc/rfc2445.txt, TODO check if needs conversion
+      timezone: event.organizer.timeZone,
+      agenda: event.description,
+      enableJoinBeforeHost: true, //this is true in zoom's api, do we need it here?
+      invitees: event.attendees.map((attendee) => ({
+        email: attendee.email,
+      })),
+      sendEmail: true,
+    };
   };
 
   const fetchWebexApi = async (endpoint: string, options?: RequestInit) => {
@@ -268,15 +287,41 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      //TODO
-      return {
-        type: "webex_video",
-        id: "123", //TODO
-        url: "https://webex.com", //TODO
-        password: "123", //TODO
-      };
+      /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
+      try {
+        console.log("Creating meeting", event);
+        console.log("meting body", translateEvent(event));
+        const response = await fetchWebexApi("meetings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        });
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
+
+        const result = webexEventResultSchema.parse(response);
+        if (result.id && result.webLink) {
+          return {
+            type: "webex_video",
+            id: result.id.toString(),
+            password: result.password || "",
+            url: result.webLink,
+          };
+        }
+        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+      } catch (err) {
+        console.error(err);
+        throw new Error("Unexpected error");
+      }
     },
     deleteMeeting: async (uid: string): Promise<void> => {
+      /** @link https://developer.webex.com/docs/api/v1/meetings/delete-a-meeting */
       try {
         await fetchWebexApi(`meetings/${uid}`, {
           method: "DELETE",
@@ -286,14 +331,37 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
-    updateMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      //TODO
-      return {
-        type: "webex_video",
-        id: "123", //TODO
-        url: "https://webex.com", //TODO
-        password: "123", //TODO
-      };
+    updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      /** @link https://developer.webex.com/docs/api/v1/meetings/update-a-meeting */
+      try {
+        const response = await fetchWebexApi(`meetings/${bookingRef.uid}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        });
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
+
+        const result = webexEventResultSchema.parse(response);
+        if (result.id && result.webLink) {
+          return {
+            type: "webex_video",
+            id: bookingRef.meetingId as string,
+            password: result.password || "",
+            url: result.webLink,
+          };
+        }
+        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+      } catch (err) {
+        console.error(err);
+        throw new Error("Unexpected error");
+      }
     },
   };
 };
