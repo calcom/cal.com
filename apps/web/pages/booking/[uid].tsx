@@ -199,6 +199,10 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
+  const tz =
+    (isSuccessBookingPage
+      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
+      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
@@ -477,6 +481,7 @@ export default function Success(props: SuccessProps) {
                             date={dayjs(formerTime)}
                             is24h={is24h}
                             isCancelled={isCancelled}
+                            tz={tz}
                           />
                         </p>
                       )}
@@ -488,6 +493,7 @@ export default function Success(props: SuccessProps) {
                         date={date}
                         is24h={is24h}
                         isCancelled={isCancelled}
+                        tz={tz}
                       />
                     </div>
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
@@ -561,7 +567,12 @@ export default function Success(props: SuccessProps) {
                         <>
                           <div className="mt-9 font-medium">{label}</div>
                           <div className="col-span-2 mb-2 mt-9">
-                            <p className="break-words">{response.toString()}</p>
+                            <p
+                              className="break-words"
+                              data-testid="field-response"
+                              data-fob-field={field.name}>
+                              {response.toString()}
+                            </p>
                           </div>
                         </>
                       );
@@ -780,6 +791,7 @@ type RecurringBookingsProps = {
   is24h: boolean;
   allRemainingBookings: boolean;
   isCancelled: boolean;
+  tz: string;
 };
 
 export function RecurringBookings({
@@ -790,6 +802,7 @@ export function RecurringBookings({
   allRemainingBookings,
   is24h,
   isCancelled,
+  tz,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const {
@@ -817,12 +830,12 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, timeZone()), language, "full")}
+              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
-              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h)} -{" "}
-              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h)}{" "}
+              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language, timeZone())})
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -837,12 +850,12 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
+                    {formatToLocalizedDate(dayjs.tz(date, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
-                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+                    {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language, timeZone())})
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}
@@ -855,11 +868,11 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
+      {formatToLocalizedDate(date, language, "full", tz)}
       <br />
-      {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
-      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
-      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, timeZone())})</span>
+      {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );
 }
@@ -896,6 +909,7 @@ const getEventTypesFromDB = async (id: number) => {
       currency: true,
       bookingFields: true,
       disableGuests: true,
+      timeZone: true,
       owner: {
         select: userSelect,
       },
@@ -1014,12 +1028,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           name: true,
           email: true,
           username: true,
+          timeZone: true,
         },
       },
       attendees: {
         select: {
           name: true,
           email: true,
+          timeZone: true,
         },
       },
       eventTypeId: true,
@@ -1027,6 +1043,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         select: {
           eventName: true,
           slug: true,
+          timeZone: true,
         },
       },
     },
