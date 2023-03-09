@@ -163,6 +163,24 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsPerTimeSlot?: number | null;
+
+  // It has responses to all the fields(system + user)
+  responses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
+
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
+  userFieldsResponses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
 }
 
 export interface EntryPoint {

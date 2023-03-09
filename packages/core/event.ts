@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
 
@@ -43,3 +43,17 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
       .replace("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : eventNameObj.attendeeName)
   );
 }
+
+export const validateCustomEventName = (value: string, message: string) => {
+  const validVariables = ["{Event type title}", "{Organiser}", "{Scheduler}", "{Location}"];
+  const matches = value.match(/\{([^}]+)\}/g);
+  if (matches?.length) {
+    for (const item of matches) {
+      if (!validVariables.includes(item)) {
+        return message;
+      }
+    }
+  }
+
+  return true;
+};

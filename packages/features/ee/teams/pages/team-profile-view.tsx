@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
-import MarkdownIt from "markdown-it";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,6 +10,7 @@ import { z } from "zod";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
@@ -32,8 +32,6 @@ import {
 import { FiExternalLink, FiLink, FiTrash2, FiLogOut } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -225,6 +223,7 @@ const ProfileView = () => {
                   getText={() => md.render(form.getValues("bio") || "")}
                   setText={(value: string) => form.setValue("bio", turndown(value))}
                   excludedToolbarItems={["blockType"]}
+                  disableLists
                 />
               </div>
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>

@@ -1,4 +1,4 @@
-import { BookingStatus, WorkflowActions } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -23,6 +23,10 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import {
+  SystemField,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -42,10 +46,11 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
+import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -194,11 +199,12 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
+  const tz =
+    (isSuccessBookingPage
+      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
+      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
 
-  const location: ReturnType<typeof getEventLocationValue> = props.bookingInfo.location
-    ? props.bookingInfo.location
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+  const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -335,12 +341,12 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
+
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
-  const customInputs = bookingInfo?.customInputs;
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -348,10 +354,6 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
-  const hasSMSAttendeeAction =
-    eventType.workflows.find((workflowEventType) =>
-      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
-    ) !== undefined;
   const providerName = guessEventLocationType(location)?.label;
 
   return (
@@ -479,6 +481,7 @@ export default function Success(props: SuccessProps) {
                             date={dayjs(formerTime)}
                             is24h={is24h}
                             isCancelled={isCancelled}
+                            tz={tz}
                           />
                         </p>
                       )}
@@ -490,6 +493,7 @@ export default function Success(props: SuccessProps) {
                         date={date}
                         is24h={is24h}
                         isCancelled={isCancelled}
+                        tz={tz}
                       />
                     </div>
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
@@ -499,7 +503,12 @@ export default function Success(props: SuccessProps) {
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
+                                <p>
+                                  <span className="mr-2">{bookingInfo.user.name}</span>
+                                  <Badge variant="blue" bold>
+                                    {t("Host")}
+                                  </Badge>
+                                </p>
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
@@ -541,63 +550,33 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {customInputs &&
-                      Object.keys(customInputs).map((key) => {
-                        // This breaks if you have two label that are the same.
-                        // TODO: Fix this in another PR
-                        const customInput = customInputs[key as keyof typeof customInputs];
-                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
-                        return (
-                          <>
-                            {eventTypeCustomFound?.type === "RADIO" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {eventTypeCustomFound.label}
-                                </div>
-                                <div className="col-span-3 mt-1 mb-2">
-                                  {eventTypeCustomFound.options &&
-                                    eventTypeCustomFound.options.map((option) => {
-                                      const selected = option.label == customInput;
-                                      return (
-                                        <div
-                                          key={option.label}
-                                          className={classNames(
-                                            "flex space-x-1",
-                                            !selected && "text-gray-500"
-                                          )}>
-                                          <p>{option.label}</p>
-                                          <span>{option.label === customInput && "✅"}</span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </>
-                            )}
-                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {key}
-                                </div>
-                                <div className="col-span-3 mt-2 mb-2">
-                                  {typeof customInput === "boolean" ? (
-                                    <p>{customInput ? "true" : "false"}</p>
-                                  ) : (
-                                    <p>{customInput}</p>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })}
-                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
-                      <>
-                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
-                        <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.smsReminderNumber}</p>
-                        </div>
-                      </>
-                    )}
+
+                    {Object.entries(bookingInfo.responses).map(([name, response]) => {
+                      const field = eventType.bookingFields.find((field) => field.name === name);
+                      // We show location in the "where" section
+                      // We show Booker Name, Emails and guests in Who section
+                      // We show notes in additional notes section
+                      // We show rescheduleReason at the top
+                      if (!field) return null;
+                      const isSystemField = SystemField.safeParse(field.name);
+                      if (isSystemField.success) return null;
+
+                      const label = field.label || t(field.defaultLabel || "");
+
+                      return (
+                        <>
+                          <div className="mt-9 font-medium">{label}</div>
+                          <div className="col-span-2 mb-2 mt-9">
+                            <p
+                              className="break-words"
+                              data-testid="field-response"
+                              data-fob-field={field.name}>
+                              {response.toString()}
+                            </p>
+                          </div>
+                        </>
+                      );
+                    })}
                   </div>
                 </div>
                 {(!needsConfirmation || !userIsOwner) &&
@@ -812,6 +791,7 @@ type RecurringBookingsProps = {
   is24h: boolean;
   allRemainingBookings: boolean;
   isCancelled: boolean;
+  tz: string;
 };
 
 export function RecurringBookings({
@@ -822,13 +802,13 @@ export function RecurringBookings({
   allRemainingBookings,
   is24h,
   isCancelled,
+  tz,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const {
     t,
     i18n: { language },
   } = useLocale();
-
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
@@ -850,12 +830,12 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, timeZone()), language, "full")}
+              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
-              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h)} -{" "}
-              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h)}{" "}
+              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
               <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
               </span>
             </div>
           ))}
@@ -870,12 +850,12 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
+                    {formatToLocalizedDate(dayjs.tz(date, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
-                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
+                    {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
                     <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language)})
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
                   </div>
                 ))}
@@ -888,11 +868,11 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {formatToLocalizedDate(dayjs.tz(date, timeZone()), language, "full")}
+      {formatToLocalizedDate(date, language, "full", tz)}
       <br />
-      {formatToLocalizedTime(date, language, undefined, !is24h)} -{" "}
-      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h)}{" "}
-      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language)})</span>
+      {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );
 }
@@ -927,6 +907,9 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      bookingFields: true,
+      disableGuests: true,
+      timeZone: true,
       owner: {
         select: userSelect,
       },
@@ -951,6 +934,7 @@ const getEventTypesFromDB = async (id: number) => {
         select: {
           workflow: {
             select: {
+              id: true,
               steps: true,
             },
           },
@@ -973,6 +957,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
     metadata,
   };
 };
@@ -1017,7 +1002,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
-  const bookingInfo = await prisma.booking.findFirst({
+  const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
       uid,
     },
@@ -1035,6 +1020,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       status: true,
       metadata: true,
       cancellationReason: true,
+      responses: true,
       rejectionReason: true,
       user: {
         select: {
@@ -1042,12 +1028,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           name: true,
           email: true,
           username: true,
+          timeZone: true,
         },
       },
       attendees: {
         select: {
           name: true,
           email: true,
+          timeZone: true,
         },
       },
       eventTypeId: true,
@@ -1055,30 +1043,32 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         select: {
           eventName: true,
           slug: true,
+          timeZone: true,
         },
       },
     },
   });
-
-  if (!bookingInfo) {
+  if (!bookingInfoRaw) {
     return {
       notFound: true,
     };
   }
 
-  // @NOTE: had to do this because Server side cant return [Object objects]
-  // probably fixable with json.stringify -> json.parse
-  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
-  const eventTypeRaw = !bookingInfo.eventTypeId
+  const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfo.eventTypeId);
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
   if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
+
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
+
+  // @NOTE: had to do this because Server side cant return [Object objects]
+  // probably fixable with json.stringify -> json.parse
+  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)

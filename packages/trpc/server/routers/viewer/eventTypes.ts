@@ -5,15 +5,17 @@ import _ from "lodash";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps from "@calcom/app-store/utils";
+import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -416,6 +418,7 @@ export const eventTypesRouter = router({
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
+
     const userId = ctx.user.id;
     // Get Users default conferncing app
 
@@ -537,11 +540,15 @@ export const eventTypesRouter = router({
       userId,
       // eslint-disable-next-line
       teamId,
+      bookingFields,
       ...rest
     } = input;
 
+    ensureUniqueBookingFields(bookingFields);
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
+      bookingFields,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
     };
     data.locations = locations ?? undefined;
@@ -604,21 +611,20 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users) {
+    if (users.length) {
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -786,6 +792,7 @@ export const eventTypesRouter = router({
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
+        bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };
 
       const newEventType = await ctx.prisma.eventType.create({ data });
@@ -822,4 +829,91 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const eventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        userId: ctx.user.id,
+        team: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        locations: true,
+      },
+    });
+
+    const eventTypesWithLogo = eventTypes.map((eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    });
+
+    return {
+      eventTypes: eventTypesWithLogo,
+    };
+  }),
+
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeIds } = input;
+      const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
+
+      if (!defaultApp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Default conferencing app not set",
+        });
+      }
+
+      const foundApp = getAppFromSlug(defaultApp.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (!appType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
+        });
+      }
+
+      return await ctx.prisma.eventType.updateMany({
+        where: {
+          id: {
+            in: eventTypeIds,
+          },
+          userId: ctx.user.id,
+        },
+        data: {
+          locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+        },
+      });
+    }),
 });
+
+function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+  if (!fields) {
+    return;
+  }
+  fields.reduce((discoveredFields, field) => {
+    if (discoveredFields[field.name]) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Duplicate booking field name: ${field.name}`,
+      });
+    }
+    discoveredFields[field.name] = true;
+    return discoveredFields;
+  }, {} as Record<string, true>);
+}
