@@ -11,7 +11,6 @@ import {
   bookTimeSlot,
   createNewSeatedEventType,
   selectFirstAvailableTimeSlotNextMonth,
-  todo,
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -86,11 +85,11 @@ test.describe("Booking with Seats", () => {
     });
   });
   // TODO: Make E2E test: Attendee #1 should be able to cancel his booking
-  todo("Attendee #1 should be able to cancel his booking");
+  // todo("Attendee #1 should be able to cancel his booking");
   // TODO: Make E2E test: Attendee #1 should be able to reschedule his booking
-  todo("Attendee #1 should be able to reschedule his booking");
+  // todo("Attendee #1 should be able to reschedule his booking");
   // TODO: Make E2E test: All attendees canceling should delete the booking for the User
-  todo("All attendees canceling should delete the booking for the User");
+  // todo("All attendees canceling should delete the booking for the User");
 
   test.describe("Reschedule for booking with seats", () => {
     test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
