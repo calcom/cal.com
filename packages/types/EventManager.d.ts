@@ -1,7 +1,4 @@
-import { DestinationCalendar } from "@prisma/client";
-
 import type { CalendarEvent } from "./Calendar";
-import type { Event } from "./Event";
 
 export interface PartialReference {
   id?: number;
