@@ -186,7 +186,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
         id,
         csrfToken: await getCsrfToken({ req: context.req }),
-        ...(await serverSideTranslations(context.locale || "en", ["common", "home"])),
+        ...(await serverSideTranslations(context.locale || "en", ["common"])),
       },
     };
   } catch (reason) {

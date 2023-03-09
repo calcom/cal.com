@@ -145,6 +145,6 @@ ForgotPassword.getInitialProps = async (context: GetServerSidePropsContext) => {
 
   return {
     csrfToken: await getCsrfToken(context),
-    ...(await serverSideTranslations(context.locale || "en", ["common", "home"])),
+    ...(await serverSideTranslations(context.locale || "en", ["common"])),
   };
 };
