@@ -45,7 +45,7 @@ export const getReactSelectProps = <
   menuPlacement?: MenuPlacement;
 }) => ({
   menuPlacement,
-  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
+  className: classNames("block min-h-[36px] w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
     ...reactSelectComponents,
