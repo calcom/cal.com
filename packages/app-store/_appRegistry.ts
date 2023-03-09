@@ -1,4 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
@@ -82,6 +83,21 @@ export async function getAppRegistryWithCredentials(userId: number) {
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
+    let dependencyData: {
+      name?: string;
+      installed?: boolean;
+    }[] = [];
+    if (app.dependencies) {
+      dependencyData = app.dependencies.map((dependency) => {
+        const dependencyInstalled = dbApps.some(
+          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+        );
+        // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
+        const dependencyName = getAppFromSlug(dependency)?.name;
+        return { name: dependencyName, installed: dependencyInstalled };
+      });
+    }
+
     const { rating, reviews, trending, verified, ...remainingAppProps } = app;
     apps.push({
       rating: rating || 0,
@@ -93,7 +109,9 @@ export async function getAppRegistryWithCredentials(userId: number) {
       credentials: dbapp.credentials,
       installed: true,
       isDefault: usersDefaultApp === dbapp.slug,
+      ...(app.dependencies && { dependencyData }),
     });
   }
+
   return apps;
 }
