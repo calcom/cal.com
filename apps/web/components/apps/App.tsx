@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
+import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
@@ -23,6 +23,8 @@ import {
   FiPlus,
   FiShield,
 } from "@calcom/ui/components/icon";
+
+/* These app slugs all require Google Cal to be installed */
 
 const Component = ({
   name,
@@ -45,6 +47,7 @@ const Component = ({
   isProOnly,
   images,
   isTemplate,
+  dependencies,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -75,6 +78,15 @@ const Component = ({
       },
     }
   );
+
+  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+    enabled: !!dependencies,
+  });
+
+  const disableInstall =
+    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+
+  // const disableInstall = requiresGCal && !gCalInstalled.data;
 
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
@@ -137,6 +149,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   isProOnly={isProOnly}
+                  disableInstall={disableInstall}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -176,6 +189,7 @@ const Component = ({
             <InstallAppButton
               type={type}
               isProOnly={isProOnly}
+              disableInstall={disableInstall}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -203,6 +217,16 @@ const Component = ({
         ) : (
           <SkeletonButton className="h-10 w-24" />
         )}
+
+        {dependencies &&
+          (!dependencyData.isLoading ? (
+            <div className="mt-6">
+              <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
+            </div>
+          ) : (
+            <SkeletonButton className="mt-6 h-20 grow" />
+          ))}
+
         {price !== 0 && (
           <span className="block text-right">
             {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
@@ -332,6 +356,8 @@ export default function App(props: {
   isProOnly: AppType["isProOnly"];
   images?: string[];
   isTemplate?: boolean;
+  disableInstall?: boolean;
+  dependencies?: string[];
 }) {
   return (
     <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
