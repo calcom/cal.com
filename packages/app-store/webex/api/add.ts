@@ -20,20 +20,15 @@ async function handler(req: NextApiRequest) {
 
   const { client_id } = await getWebexAppKeys();
 
+  /** @link https://developer.webex.com/docs/integrations#requesting-permission */
   const params = {
     response_type: "code",
     client_id,
     redirect_uri: WEBAPP_URL + "/api/integrations/webex/callback",
-    scope: [
-      "meeting:schedules_read",
-      "meeting:schedules_write",
-      "meeting:participants_read",
-      "meeting:participants_write",
-    ],
+    scope: "spark:kms meeting:schedules_read meeting:schedules_write", //should be "A space-separated list of scopes being requested by your integration"
     state: "",
   };
-  const query = stringify(params);
-  console.log(query);
+  const query = stringify(params).replaceAll("+", "%20");
   const url = `https://webexapis.com/v1/authorize?${query}`;
   return { url };
 }
