@@ -345,7 +345,7 @@ function keepParentInformedAboutDimensionChanges() {
       parseFloat(mainElementStyles.height) +
       parseFloat(mainElementStyles.marginTop) +
       parseFloat(mainElementStyles.marginBottom));
-  const contentWidth = Math.ceil(
+    const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
       parseFloat(mainElementStyles.marginLeft) +
       parseFloat(mainElementStyles.marginRight));
