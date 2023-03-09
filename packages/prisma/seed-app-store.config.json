@@ -204,5 +204,12 @@
     "slug": "facetime",
     "type": "facetime_video",
     "isTemplate": false
+  },
+  {
+    "dirName": "cron",
+    "categories": ["calendar"],
+    "slug": "cron",
+    "type": "cron_other",
+    "isTemplate": false
   }
 ]
