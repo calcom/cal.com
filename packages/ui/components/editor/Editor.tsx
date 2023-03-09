@@ -2,7 +2,6 @@ import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
-import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
@@ -71,7 +70,6 @@ export const Editor = (props: TextEditorProps) => {
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
               placeholder={<div className="-mt-11 p-3 text-sm text-gray-300">{props.placeholder || ""}</div>}
             />
-            <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
