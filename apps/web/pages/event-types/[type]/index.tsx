@@ -2,12 +2,13 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { PeriodType } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
+import type { SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -85,8 +86,7 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
-  hosts: { userId: number }[];
-  hostsFixed: { userId: number }[];
+  hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
 
@@ -122,7 +122,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     extendsFeature: "EventType",
   });
 
-  const { eventType, locationOptions, team, teamMembers, currentUserMembership } = props;
+  const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -199,16 +199,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     schedulingType: eventType.schedulingType,
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
-    hosts: !!eventType.hosts?.length
-      ? eventType.hosts.filter((host) => !host.isFixed)
-      : eventType.users
-          .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
-          .map((user) => ({ userId: user.id })),
-    hostsFixed: !!eventType.hosts?.length
-      ? eventType.hosts.filter((host) => host.isFixed)
-      : eventType.users
-          .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
-          .map((user) => ({ userId: user.id })),
+    hosts: eventType.hosts,
   } as const;
 
   const formMethods = useForm<FormValues>({
@@ -218,6 +209,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .object({
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
+          eventName: z
+            .string()
+            .refine((val) => validateCustomEventName(val, t("invalid_event_name_variables")) === true, {
+              message: t("invalid_event_name_variables"),
+            })
+            .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
         })
@@ -254,6 +251,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         locationOptions={locationOptions}
         team={team}
         teamMembers={teamMembers}
+        destinationCalendar={destinationCalendar}
       />
     ),
     availability: <AvailabilityTab isTeamEvent={!!team} />,
@@ -298,8 +296,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             locations,
             metadata,
             customInputs,
-            hosts: hostsInput,
-            hostsFixed,
             // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -307,11 +303,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             minimumBookingNoticeInDurationType,
             ...input
           } = values;
-
-          const hosts: ((typeof hostsInput)[number] & { isFixed?: boolean })[] = [];
-          if (hostsInput || hostsFixed) {
-            hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
-          }
 
           if (bookingLimits) {
             const isValid = validateBookingLimitOrder(bookingLimits);
@@ -330,7 +321,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
           updateMutation.mutate({
             ...input,
-            hosts,
             locations,
             recurringEvent,
             periodStartDate: periodDates.startDate,

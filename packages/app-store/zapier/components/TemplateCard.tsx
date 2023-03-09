@@ -4,7 +4,7 @@ import type { Template } from "./AppSettingsInterface";
 
 export default function TemplateCard({ template }: { template: Template }) {
   return (
-    <div className="min-h-16 sticky rounded-md border border-gray-200 bg-white p-5">
+    <div className="min-h-16 sticky flex flex-col justify-between gap-4 rounded-md border border-gray-200 bg-white p-5">
       <div className="flex items-start justify-start">
         <div>
           <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-md p-1">
