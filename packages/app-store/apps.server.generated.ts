@@ -9,6 +9,7 @@ export const apiHandlers = {
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   closecom: import("./closecom/api"),
+  cron: import("./cron/api"),
   "routing-forms": import("./ee/routing-forms/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
