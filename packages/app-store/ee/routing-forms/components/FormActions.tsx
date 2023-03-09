@@ -219,7 +219,7 @@ function Dialogs({
           isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t("delete_form")}
-          confirmBtn={t("delete_form_action")}
+          confirmBtnText={t("delete_form_action")}
           loadingText={t("delete_form_action")}
           onConfirm={(e) => {
             if (!deleteDialogFormId) {
@@ -230,7 +230,10 @@ function Dialogs({
               id: deleteDialogFormId,
             });
           }}>
-          {t("delete_form_confirmation")}
+          <ul className="list-disc pl-3">
+            <li> {t("delete_form_confirmation")}</li>
+            <li> {t("delete_form_confirmation_2")}</li>
+          </ul>
         </ConfirmationDialogContent>
       </Dialog>
       <NewFormDialog appUrl={appUrl} />

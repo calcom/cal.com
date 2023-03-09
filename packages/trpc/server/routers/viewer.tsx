@@ -15,8 +15,8 @@ import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler"
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
 import {
-  getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
@@ -67,6 +67,12 @@ const publicViewerRouter = router({
       i18n,
       locale,
     };
+  }),
+  countryCode: publicProcedure.query(({ ctx }) => {
+    const { req } = ctx;
+
+    const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "";
+    return { countryCode: Array.isArray(countryCode) ? countryCode[0] : countryCode };
   }),
   samlTenantProduct: publicProcedure
     .input(
