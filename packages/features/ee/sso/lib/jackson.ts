@@ -6,7 +6,7 @@ import type {
   ISPSAMLConfig,
 } from "@boxyhq/saml-jackson";
 
-import {WEBAPP_URL} from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { samlDatabaseUrl, samlAudience, samlPath, oidcPath, clientSecretVerifier } from "./saml";
 
@@ -26,38 +26,38 @@ const opts: JacksonOption = {
   clientSecretVerifier,
 };
 
-let connectionController: IConnectionAPIController;
-let oauthController: IOAuthController;
-let samlSPConfig: ISPSAMLConfig;
+let connectionControllerLocal: IConnectionAPIController;
+let oauthControllerLocal: IOAuthController;
+let samlSPConfigLocal: ISPSAMLConfig;
 
 const g = global;
 
 declare global {
+  /* eslint-disable no-var */
   var connectionController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
   var samlSPConfig: ISPSAMLConfig | undefined;
+  /* eslint-enable no-var */
 }
 
 export default async function init() {
   if (!g.connectionController || !g.oauthController || !g.samlSPConfig) {
     const ret = await jackson(opts);
 
-    connectionController = ret.connectionAPIController;
-    oauthController = ret.oauthController;
-    samlSPConfig = ret.spConfig;
-
-    g.connectionController = connectionController;
-    g.oauthController = oauthController;
-    g.samlSPConfig = samlSPConfig;
+    connectionControllerLocal = ret.connectionAPIController;
+    oauthControllerLocal = ret.oauthController;
+    samlSPConfigLocal = ret.spConfig;
+    g.connectionController = connectionControllerLocal;
+    g.oauthController = oauthControllerLocal;
+    g.samlSPConfig = samlSPConfigLocal;
   } else {
-    connectionController = g.connectionController;
-    oauthController = g.oauthController;
-    samlSPConfig = g.samlSPConfig;
+    connectionControllerLocal = g.connectionController;
+    oauthControllerLocal = g.oauthController;
+    samlSPConfigLocal = g.samlSPConfig;
   }
-
   return {
-    connectionController,
-    oauthController,
-    samlSPConfig,
+    connectionControllerLocal,
+    oauthControllerLocal,
+    samlSPConfigLocal,
   };
 }
