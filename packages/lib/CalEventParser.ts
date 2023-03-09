@@ -161,6 +161,8 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
 };
 
+// TODO Topics
+// 🏷 <a href="{appUrl}/sessions" target="_blank">Set a topic</a> for this session.
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
   const appUrl = "https://app.mento.co";
   const cancelationPolicyURL =
@@ -168,41 +170,16 @@ export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person
 
   return `
 ${getCancellationReason(calEvent)}
-<b>${calEvent.organizer.language.translate("where")}:</b>
-${getLocation(calEvent)}
 
-<b>Prepare for your session</b>
-🏔 <a href="${appUrl}/growth" target="_blank">Review your Growth Plan</a> to help think about what you'd like to work on during the upcoming session. If this is one of your first 3 sessions, don't worry about it — we'll start with some exploration and goal-setting.
+🎥 <a href="${getLocation(calEvent)}" target="_blank">Join the session with Google Meet</a>
 
-✍️ <a href="${appUrl}/reflection" target="_blank">Take a Pre-Session Reflection</a> designed to inspire topics to discuss at your next 1:1.
-
-<b>Questions?</b>
-💬 <a href="${appUrl}" target="_blank">Message your coach</a> on Mento
-
-<b>Running late?</b>
-Coaching time is valuable. Please send your coach a message letting them know you're late. Your coach will wait for up to 10 minutes for you to arrive before considering it a <a href="${cancelationPolicyURL}" target="_blank">missed session</a>.
-
-<b>Can't make it?</b>
 📆 <a href="${getRescheduleLink(calEvent)}" target="_blank">Reschedule</a> or <a href="${getCancelLink(
     calEvent
-  )}" target="_blank">cancel</a> this session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
+  )}" target="_blank">cancel</a> on Mento within 48 hours form the session start time.
 
-<a href="${appUrl}/coaching" target="_blank">See and manage my Coaching Sessions</a> - <a href="${appUrl}" target="_blank">Go to my Mento dashboard</a>
+Your coach will wait for up to 10 minutes for you before it’s considered a missed session. <a href="${cancelationPolicyURL}" target="_blank">Mento Rescheduling & Cancelation Policy.</a>.
 
-${getAdditionalNotes(calEvent)}
-${getUserFieldsResponses(calEvent)}
-${getAppsStatus(calEvent)}
-${
-  // TODO: Only the original attendee can make changes to the event
-  // Guests cannot
-  getManageLink(calEvent)
-}
-${
-  calEvent.paymentInfo
-    ? `
-${calEvent.organizer.language.translate("pay_now")}:
-${calEvent.paymentInfo.link}
-`
+Manage coaching sessions on <a href="${appUrl}" target="_blank">Mento</a>
     : ""
 }
   `.trim();

@@ -361,7 +361,7 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
 </a>
 
  
-<!-- TRANSLATIONS -->
+<!-- TRANSLATIONS --> 
 
 ### Translations
 
