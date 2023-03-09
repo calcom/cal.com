@@ -220,6 +220,7 @@ function EventTypeSingleLayout({
             <Tooltip content={t("preview")}>
               <Button
                 color="secondary"
+                data-testid="preview-button"
                 target="_blank"
                 variant="icon"
                 href={permalink}

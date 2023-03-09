@@ -92,6 +92,25 @@ export const viewerTeamsRouter = router({
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
+      // Ensure that the user is not duplicating a requested team
+      const duplicatedRequest = await ctx.prisma.team.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: ctx.user.id,
+            },
+          },
+          metadata: {
+            path: ["requestedSlug"],
+            equals: slug,
+          },
+        },
+      });
+
+      if (duplicatedRequest) {
+        return duplicatedRequest;
+      }
+
       const createTeam = await ctx.prisma.team.create({
         data: {
           name,
