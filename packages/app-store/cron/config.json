@@ -13,5 +13,6 @@
   "description": "Cron is the next-generation calendar for professionals and teams.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "dependencies": ["google-calendar"]
 }
