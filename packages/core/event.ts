@@ -51,10 +51,12 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     if (eventNameObj.bookingFields) {
       Object.keys(eventNameObj.bookingFields).forEach((bookingField) => {
         if (variable === bookingField) {
-          dynamicEventName = dynamicEventName.replace(
-            `{${variable}}`,
-            eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields]
-          );
+          let fieldValue;
+          if (eventNameObj.bookingFields) {
+            fieldValue =
+              eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields]?.toString();
+          }
+          dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
         }
       });
     }
