@@ -5,8 +5,8 @@ import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
+import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
