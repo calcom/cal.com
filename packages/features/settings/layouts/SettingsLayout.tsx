@@ -123,18 +123,16 @@ const useTabs = () => {
 };
 
 const BackButtonInSidebar = ({ name }: { name: string }) => {
-  const router = useRouter();
-
   return (
-    <button
+    <Link
+      href="/"
       className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-      data-testid={`vertical-tab-${name}`}
-      onClick={() => router.back()}>
+      data-testid={`vertical-tab-${name}`}>
       <FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
         {name}
       </Skeleton>
-    </button>
+    </Link>
   );
 };
 
