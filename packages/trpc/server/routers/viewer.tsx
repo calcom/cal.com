@@ -15,8 +15,8 @@ import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler"
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
 import {
-  getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";

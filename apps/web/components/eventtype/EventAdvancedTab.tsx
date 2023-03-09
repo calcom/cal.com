@@ -12,6 +12,7 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
@@ -36,11 +37,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+
+  const bookingFields: Prisma.JsonObject = {};
+
+  eventType.bookingFields.forEach(({ name }) => {
+    bookingFields[name] = name + " input";
+  });
+
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
     eventType: eventType.title,
     eventName: eventType.eventName,
     host: eventType.users[0]?.name || "Nameless",
+    bookingFields: bookingFields,
     t,
   };
 
@@ -308,7 +317,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <CustomEventTypeModal
           close={closeEventNameTip}
           setValue={setEventName}
-          defaultValue={eventType.eventName || ""}
+          defaultValue={formMethods.getValues("eventName") || eventType.eventName || ""}
           placeHolder={eventNamePlaceholder}
           event={eventNameObject}
         />
