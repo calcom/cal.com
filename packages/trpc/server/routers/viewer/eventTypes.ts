@@ -1,5 +1,5 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
