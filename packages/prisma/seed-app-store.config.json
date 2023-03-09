@@ -210,5 +210,12 @@
     "slug": "zohocrm",
     "type": "zohocrm_other_calendar",
     "isTemplate": false
+  },
+  {
+    "dirName": "cron",
+    "categories": ["calendar"],
+    "slug": "cron",
+    "type": "cron_other",
+    "isTemplate": false
   }
 ]
