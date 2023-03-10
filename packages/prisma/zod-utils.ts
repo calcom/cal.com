@@ -42,7 +42,7 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     managedEventConfig: z
       .object({
-        unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: unknown }>().optional(),
+        unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
       })
       .optional(),
     requiresConfirmationThreshold: z
