@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -26,7 +27,6 @@ import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
@@ -371,8 +371,10 @@ const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) =
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, query } = context;
-  const session = await getSession({ req });
+  const { req, res, query } = context;
+
+  const session = await getServerSession({ req, res });
+
   const typeParam = parseInt(asStringOrThrow(query.type));
   const ssr = await ssrInit(context);
 
@@ -393,9 +395,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   try {
     const res = await getEventTypeById({ eventTypeId: typeParam, userId: session.user.id, prisma });
+
     return {
       props: {
-        session,
+        // session,
         type: typeParam,
         trpcState: ssr.dehydrate(),
         initialData: {

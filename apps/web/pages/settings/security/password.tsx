@@ -2,8 +2,8 @@ import { IdentityProvider } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
+import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";

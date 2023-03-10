@@ -1,3 +1,7 @@
+/**
+ * !: Stops the `jose` dependency from bundling the browser version and breaking tests
+ * @jest-environment node
+ */
 import type {
   EventType as PrismaEventType,
   User as PrismaUser,
