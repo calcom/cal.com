@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import {
   SMS_REMINDER_NUMBER_FIELD,
   getSmsReminderNumberField,
@@ -361,6 +362,8 @@ export const workflowsRouter = router({
             stepNumber: 1,
             action: WorkflowActions.EMAIL_HOST,
             template: WorkflowTemplates.REMINDER,
+            reminderBody: emailReminderTemplate(true).emailBody.html,
+            emailSubject: emailReminderTemplate(true).emailSubject,
             workflowId: workflow.id,
             sender: SENDER_NAME,
             numberVerificationPending: false,
