@@ -26,8 +26,6 @@ const opts: JacksonOption = {
   clientSecretVerifier,
 };
 
-const g = global;
-
 declare global {
   /* eslint-disable no-var */
   var connectionController: IConnectionAPIController | undefined;
@@ -37,16 +35,16 @@ declare global {
 }
 
 export default async function init() {
-  if (!g.connectionController || !g.oauthController || !g.samlSPConfig) {
+  if (!globalThis.connectionController || !globalThis.oauthController || !globalThis.samlSPConfig) {
     const ret = await jackson(opts);
-    g.connectionController = ret.connectionAPIController;
-    g.oauthController = ret.oauthController;
-    g.samlSPConfig = ret.spConfig;
+    globalThis.connectionController = ret.connectionAPIController;
+    globalThis.oauthController = ret.oauthController;
+    globalThis.samlSPConfig = ret.spConfig;
   }
 
   return {
-    connectionController: g.connectionController,
-    oauthController: g.oauthController,
-    samlSPConfig: g.samlSPConfig,
+    connectionController: globalThis.connectionController,
+    oauthController: globalThis.oauthController,
+    samlSPConfig: globalThis.samlSPConfig,
   };
 }
