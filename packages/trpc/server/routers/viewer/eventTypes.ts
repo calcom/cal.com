@@ -285,8 +285,7 @@ export const eventTypesRouter = router({
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
-      // @FIXME: cc @hariombalhara This is failing with production data
-      // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
     });
 
     const userEventTypes = user.eventTypes.map(mapEventType);
@@ -428,6 +427,7 @@ export const eventTypesRouter = router({
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, metadata, ...rest } = input;
     const userId = ctx.user.id;
+    const isManagedEventType = schedulingType === SchedulingType.MANAGED;
     // Get Users default conferncing app
 
     const defaultConferencingData = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
@@ -453,10 +453,10 @@ export const eventTypesRouter = router({
 
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
-      owner: !teamId || schedulingType === SchedulingType.MANAGED ? { connect: { id: userId } } : undefined,
+      owner: !teamId || isManagedEventType ? { connect: { id: userId } } : undefined,
       metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
       // Only connecting the current user for non-managed event type
-      users: schedulingType === SchedulingType.MANAGED ? undefined : { connect: { id: userId } },
+      users: isManagedEventType ? undefined : { connect: { id: userId } },
       locations,
     };
 
@@ -542,7 +542,6 @@ export const eventTypesRouter = router({
       hosts,
       id,
       hashedLink,
-      schedulingType,
       // Extract this from the input so it doesn't get saved in the db
       // eslint-disable-next-line
       userId,
@@ -557,7 +556,7 @@ export const eventTypesRouter = router({
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
       bookingFields,
-      metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     };
     data.locations = locations ?? undefined;
     if (periodType) {
@@ -710,20 +709,14 @@ export const eventTypesRouter = router({
       }),
     ]);
 
-    // Handling updates to managed events
-    if (schedulingType === SchedulingType.MANAGED) {
-      try {
-        await updateChildrenEventTypes({
-          eventTypeId: id,
-          currentUserId: ctx.user.id,
-          oldEventType,
-          updatedEventType: eventType,
-          prisma: ctx.prisma,
-        });
-      } catch (e) {
-        console.log(e);
-      }
-    }
+    // Handling updates to children event types (managed events types)
+    await updateChildrenEventTypes({
+      eventTypeId: id,
+      currentUserId: ctx.user.id,
+      oldEventType,
+      updatedEventType: eventType,
+      prisma: ctx.prisma,
+    });
 
     return { eventType };
   }),

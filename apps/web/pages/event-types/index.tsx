@@ -318,6 +318,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
+          const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           return (
             <li key={type.id}>
               <div className="flex w-full items-center justify-between hover:bg-gray-50">
@@ -356,7 +357,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         </>
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {type.schedulingType !== SchedulingType.MANAGED && (
+                        {!type.metadata?.managedEventConfig && (
                           <>
                             {type.hidden && (
                               <Badge variant="gray" size="lg">
@@ -377,7 +378,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </>
                         )}
                         <ButtonGroup combined>
-                          {type.schedulingType !== SchedulingType.MANAGED && (
+                          {!isManagedEventType && (
                             <>
                               <Tooltip content={t("preview")}>
                                 <Button
@@ -423,7 +424,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              {type.schedulingType !== SchedulingType.MANAGED && (
+                              {!isManagedEventType && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem

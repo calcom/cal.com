@@ -264,7 +264,7 @@ export const EventSetupTab = (
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && (
+            {validLocations.length > 0 && !isManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"

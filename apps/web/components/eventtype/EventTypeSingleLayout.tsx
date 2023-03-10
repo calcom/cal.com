@@ -152,6 +152,8 @@ function EventTypeSingleLayout({
     },
   });
 
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     const navigation = getNavigation({
@@ -165,12 +167,11 @@ function EventTypeSingleLayout({
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: FiCalendar,
-      info:
-        eventType.schedulingType === SchedulingType.MANAGED
-          ? eventType.schedule === null
-            ? "Member's default schedule"
-            : eventType.scheduleName ?? `default_schedule_name`
-          : `default_schedule_name`,
+      info: isManagedEventType
+        ? eventType.schedule === null
+          ? "Member's default schedule"
+          : eventType.scheduleName ?? `default_schedule_name`
+        : `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -179,9 +180,7 @@ function EventTypeSingleLayout({
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          eventType.schedulingType === SchedulingType.MANAGED
-            ? ` - ${t("count_members", { count: eventType.users.length || 0 })}`
-            : ""
+          isManagedEventType ? ` - ${t("count_members", { count: eventType.users.length || 0 })}` : ""
         }`,
       });
       navigation.push({
@@ -207,7 +206,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {eventType.schedulingType !== SchedulingType.MANAGED && (
+          {!eventType.metadata.managedEventConfig && (
             <>
               <div className="hidden items-center rounded-md px-2 sm:hover:bg-gray-100 lg:flex">
                 <Skeleton
@@ -230,7 +229,7 @@ function EventTypeSingleLayout({
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
           <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
-            {eventType.schedulingType !== SchedulingType.MANAGED && (
+            {!isManagedEventType && (
               <>
                 {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
                 <Tooltip content={t("preview")}>

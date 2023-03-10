@@ -268,7 +268,7 @@ export default async function getEventTypeById({
   const integrations = await getEnabledApps(credentials);
   const locationOptions = getLocationGroupedOptions(integrations, t);
   if (eventType.schedulingType === SchedulingType.MANAGED) {
-    locationOptions.push({
+    locationOptions.splice(0, 0, {
       label: t("default"),
       options: [
         {

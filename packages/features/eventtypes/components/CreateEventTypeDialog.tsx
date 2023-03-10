@@ -92,9 +92,10 @@ export default function CreateEventTypeDialog({
   });
 
   const schedulingTypeWatch = form.watch("schedulingType");
+  const isManagedEventType = schedulingTypeWatch === SchedulingType.MANAGED;
 
   useEffect(() => {
-    if (schedulingTypeWatch === SchedulingType.MANAGED) {
+    if (isManagedEventType) {
       form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
     } else {
       form.setValue("metadata", null);
@@ -181,15 +182,13 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
                   required
-                  addOnLeading={
-                    <>/{schedulingTypeWatch !== SchedulingType.MANAGED ? pageSlug : "{username}"}/</>
-                  }
+                  addOnLeading={<>/{!isManagedEventType ? pageSlug : "{username}"}/</>}
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                   }}
                 />
-                {schedulingTypeWatch === SchedulingType.MANAGED && (
+                {isManagedEventType && (
                   <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
                 )}
               </div>
@@ -200,13 +199,12 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <>
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {schedulingTypeWatch !== SchedulingType.MANAGED ? pageSlug : "{username}"}/
+                      {process.env.NEXT_PUBLIC_WEBSITE_URL}/{!isManagedEventType ? pageSlug : "{username}"}/
                     </>
                   }
                   {...register("slug")}
                 />
-                {schedulingTypeWatch === SchedulingType.MANAGED && (
+                {isManagedEventType && (
                   <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
                 )}
               </div>

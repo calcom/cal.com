@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient, EventType } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import { isEqual, pick } from "lodash";
 
 import { _EventTypeModel } from "@calcom/prisma/zod";
@@ -54,7 +55,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   bookingFields: true,
 };
 
-// All properties that are defined as locked based on all managed props
+// All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
@@ -66,6 +67,10 @@ export default async function handleChildrenEventTypes({
   oldEventType,
   prisma,
 }: handleChildrenEventTypesProps) {
+  debugger;
+  // Check we are dealing with a managed event type
+  if (oldEventType?.schedulingType !== SchedulingType.MANAGED) return;
+
   // Retrieving the updated event type
   const updatedEventType = await prisma.eventType.findFirst({
     where: { id: parentId },
@@ -73,15 +78,29 @@ export default async function handleChildrenEventTypes({
   });
 
   // Shortcircuit when no data for old and updated event types
-  if (!oldEventType || !updatedEventType) {
-    throw new Error("Old or updated event type not found");
-  }
+  if (!oldEventType || !updatedEventType) return;
 
   // Define what values are expected to be changed from a managed event type
-  const managedEventTypePropsZod = _EventTypeModel
-    .pick(allManagedEventTypeProps)
-    .omit(unlockedManagedEventTypeProps);
-  const managedEventTypeValues = managedEventTypePropsZod.parse(updatedEventType);
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  const managedEventTypeValues = allManagedEventTypePropsZod
+    .omit(unlockedManagedEventTypeProps)
+    .parse(updatedEventType);
+
+  // Check we are certainly dealing with a managed event type through its metadata
+  if (!managedEventTypeValues.metadata?.managedEventConfig) return;
+
+  // Define the values for unlocked properties
+  const managedEventConfig = managedEventTypeValues.metadata?.managedEventConfig?.unlockedFields;
+  const unlockedEventTypeValues = allManagedEventTypePropsZod
+    .pick(unlockedManagedEventTypeProps)
+    .parse(updatedEventType);
+
+  // Assign values for unlocked properties as default values to push down to children in order to not
+  // override customizations
+  managedEventTypeValues.metadata.managedEventConfig.unlockedFields = {
+    ...managedEventConfig,
+    ...unlockedEventTypeValues,
+  };
 
   // Calculate if there are new/deleted users for which the event type needs to be created/deleted
   const oldUserIds = oldEventType.users?.map((user) => user.id).filter((id) => id !== currentUserId);

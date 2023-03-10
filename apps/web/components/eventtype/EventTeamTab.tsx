@@ -317,9 +317,10 @@ export const EventTeamTab = ({
     },
   ];
   const teamMembersOptions = teamMembers.map(mapUserToValue);
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
     <div>
-      {team && eventType.schedulingType !== SchedulingType.MANAGED && (
+      {team && !isManagedEventType && (
         <div className="space-y-5">
           <div className="flex flex-col">
             <Label>{t("scheduling_type")}</Label>
@@ -340,9 +341,7 @@ export const EventTeamTab = ({
           <Hosts teamMembers={teamMembersOptions} />
         </div>
       )}
-      {team && eventType.schedulingType === SchedulingType.MANAGED && (
-        <Users teamMembers={teamMembersOptions} />
-      )}
+      {team && isManagedEventType && <Users teamMembers={teamMembersOptions} />}
     </div>
   );
 };
