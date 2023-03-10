@@ -1028,7 +1028,7 @@ async function handler(
 
           const resultBooking = await resultBookingQuery(newBooking.id);
 
-          return resultBooking;
+          return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
         }
 
         // Merge two bookings together
@@ -1140,7 +1140,7 @@ async function handler(
 
         const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
 
-        return resultBooking;
+        return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
       }
 
       // If there is no booking then remove the attendee from the old booking and create a new one
@@ -1169,6 +1169,7 @@ async function handler(
 
         return null;
       }
+
       // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
       // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
       await Promise.all([
@@ -1200,7 +1201,7 @@ async function handler(
 
       const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
 
-      return resultBooking;
+      return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
     } else {
       // If reschedule but no seats in event type
       const booking = await prisma.booking.findUnique({
@@ -1348,11 +1349,16 @@ async function handler(
         );
 
         req.statusCode = 201;
-        return { ...resultBooking, message: "Payment required", paymentUid: payment?.uid };
+        return {
+          ...resultBooking,
+          message: "Payment required",
+          paymentUid: payment?.uid,
+          seatReferenceUid: bookingSeat?.referenceUid,
+        };
       }
 
       req.statusCode = 201;
-      return resultBooking;
+      return { ...resultBooking, seatReferenceUid: bookingSeat?.referenceUid };
     }
   };
 
