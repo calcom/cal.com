@@ -10,16 +10,7 @@ import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import {
-  Badge,
-  ButtonGroup,
-  DropdownMenuSeparator,
-  EmptyScreen,
-  List,
-  ListLinkItem,
-  Tooltip,
-  Button,
-} from "@calcom/ui";
+import { Badge, ButtonGroup, EmptyScreen, List, ListLinkItem, Tooltip, Button } from "@calcom/ui";
 import {
   FiPlus,
   FiGitMerge,
@@ -160,6 +151,7 @@ export default function RoutingForms({
                           heading={form.name}
                           disabled={disabled}
                           subHeading={description}
+                          className="space-x-2 rtl:space-x-reverse"
                           actions={
                             <>
                               <FormAction className="self-center" action="toggle" routingForm={form} />
@@ -184,6 +176,15 @@ export default function RoutingForms({
                                   disabled={disabled}
                                   tooltip={t("copy_link_to_form")}
                                 />
+                                <FormAction
+                                  routingForm={form}
+                                  action="embed"
+                                  color="secondary"
+                                  variant="icon"
+                                  StartIcon={FiCode}
+                                  disabled={disabled}
+                                  tooltip={t("embed")}
+                                />
                                 <FormActionsDropdown form={form}>
                                   <FormAction
                                     action="edit"
@@ -199,14 +200,6 @@ export default function RoutingForms({
                                     color="minimal"
                                     StartIcon={FiDownload}>
                                     {t("download_responses")}
-                                  </FormAction>
-                                  <FormAction
-                                    action="embed"
-                                    routingForm={form}
-                                    color="minimal"
-                                    className="w-full"
-                                    StartIcon={FiCode}>
-                                    {t("embed")}
                                   </FormAction>
                                   <FormAction
                                     action="duplicate"
@@ -227,7 +220,6 @@ export default function RoutingForms({
                                       {t("Copy Typeform Redirect Url")}
                                     </FormAction>
                                   ) : null}
-                                  <DropdownMenuSeparator />
                                   <FormAction
                                     action="_delete"
                                     routingForm={form}
