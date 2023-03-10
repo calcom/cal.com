@@ -19,6 +19,12 @@ import { checkPermissions } from "./_auth-middleware";
  *          type: integer
  *        required: true
  *        description: ID of the team to delete
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *     tags:
  *     - teams
  *     responses:

@@ -11,6 +11,13 @@ import { schemaTeamsReadPublic } from "~/lib/validations/team";
  *   get:
  *     operationId: listTeams
  *     summary: Find all teams
+ *     parameters:
+ *        - in: query
+ *          name: apiKey
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: Your API key
  *     tags:
  *     - teams
  *     responses:

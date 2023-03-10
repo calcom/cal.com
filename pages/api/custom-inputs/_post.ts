@@ -8,12 +8,6 @@ import {
   schemaEventTypeCustomInputPublic,
 } from "~/lib/validations/event-type-custom-input";
 
-// id: z.number().int(),
-// eventTypeId: z.number().int(),
-// label: z.string(),
-// type: z.nativeEnum(EventTypeCustomInputType),
-// required: z.boolean(),
-// placeholder: z.string(),
 /**
  * @swagger
  * /custom-inputs:

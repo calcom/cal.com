@@ -24,6 +24,26 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *          type: integer
  *        required: true
  *        description: ID of the team to edit
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
+ *     requestBody:
+ *        description: Create a new custom input for an event type
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                  type: string
+ *                  description: Name of the team
+ *                slug:
+ *                  type: string
+ *                  description: A unique slug that works as path for the team public page
  *     tags:
  *     - teams
  *     responses:

@@ -14,6 +14,12 @@ import {
  *   get:
  *     summary: Find a payment
  *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *       - in: path
  *         name: id
  *         schema:

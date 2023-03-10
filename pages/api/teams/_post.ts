@@ -14,6 +14,30 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *   post:
  *     operationId: addTeam
  *     summary: Creates a new team
+ *     parameters:
+ *        - in: query
+ *          name: apiKey
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: Your API key
+ *     requestBody:
+ *        description: Create a new custom input for an event type
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - name
+ *                - slug
+ *              properties:
+ *                name:
+ *                  type: string
+ *                  description: Name of the team
+ *                slug:
+ *                  type: string
+ *                  description: A unique slug that works as path for the team public page
  *     tags:
  *     - teams
  *     responses:
