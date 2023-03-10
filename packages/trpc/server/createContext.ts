@@ -139,7 +139,7 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  */
 export const createContext = async (
   { req, res }: CreateContextOptions,
-  sessionGetter?: GetSessionFn = DEFAULT_SESSION_GETTER
+  sessionGetter: GetSessionFn = DEFAULT_SESSION_GETTER
 ) => {
   // for API-response caching see https://trpc.io/docs/caching
   const session = await sessionGetter({ req, res });
