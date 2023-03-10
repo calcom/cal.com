@@ -47,12 +47,6 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-
-
-eventType    EventType[]
-name         String
-timeZone     String?
-availability Availability[]
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaCreateScheduleBodyParams.parse(req.body);
