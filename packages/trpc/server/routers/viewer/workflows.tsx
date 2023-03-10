@@ -410,7 +410,7 @@ export const workflowsRouter = router({
       //cancel workflow reminders of deleted workflow
       scheduledReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
@@ -736,7 +736,7 @@ export const workflowsRouter = router({
           if (remindersFromStep.length > 0) {
             remindersFromStep.forEach((reminder) => {
               if (reminder.method === WorkflowMethods.EMAIL) {
-                deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+                deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
               } else if (reminder.method === WorkflowMethods.SMS) {
                 deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
               }
