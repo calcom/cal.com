@@ -18,12 +18,16 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *           type: integer
  *         required: true
  *         description: Numeric ID of the webhook to get
- *     security:
- *       - ApiKeyAuth: []
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     tags:
- *     - hooks
+ *     - webhooks
  *     externalDocs:
- *        url: https://docs.cal.com/hooks
+ *        url: https://docs.cal.com/core-features/webhooks
  *     responses:
  *       200:
  *         description: OK

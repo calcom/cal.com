@@ -17,12 +17,16 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *          type: integer
  *        required: true
  *        description: Numeric ID of the hooks to delete
- *     security:
- *       - ApiKeyAuth: []
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *     tags:
- *     - hooks
+ *     - webhooks
  *     externalDocs:
- *        url: https://docs.cal.com/hooks
+ *        url: https://docs.cal.com/core-features/webhooks
  *     responses:
  *       201:
  *         description: OK, hook removed successfully
