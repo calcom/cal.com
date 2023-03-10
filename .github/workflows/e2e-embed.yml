@@ -21,21 +21,23 @@ jobs:
       - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
-      - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/env-read-file
+      - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn turbo run embed-tests-update-snapshots:ci --scope=@calcom/embed-react --concurrency=1
+        env:
+          DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload embed-core results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-core
+          name: test-results-embed-core
           path: packages/embeds/embed-core/playwright/results
 
       - name: Upload embed-react results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-react
+          name: test-results-embed-react
           path: packages/embeds/embed-react/playwright/results

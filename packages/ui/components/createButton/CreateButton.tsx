@@ -18,6 +18,7 @@ export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile
   label: string | null;
   image?: string | null;
+  slug: string | null;
 }
 
 interface CreateBtnProps {
@@ -43,7 +44,7 @@ export function CreateButton(props: CreateBtnProps) {
     const query = {
       ...router.query,
       dialog: "new",
-      eventPage: option.label,
+      eventPage: option.slug,
       teamId: option.teamId,
     };
     if (!option.teamId) {
