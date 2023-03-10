@@ -205,7 +205,7 @@
     "type": "facetime_video",
     "isTemplate": false},
   {
-    "dirName": "zoho-crm",
+    "dirName": "zohocrm",
     "categories": ["other"],
     "slug": "zohocrm",
     "type": "zohocrm_other_calendar",
