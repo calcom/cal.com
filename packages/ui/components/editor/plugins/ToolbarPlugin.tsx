@@ -370,11 +370,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       $getRoot().select();
       $insertNodes(nodes);
 
-      editor.registerUpdateListener(({ editorState }) => {
+      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor);
           props.setText(textInHtml);
         });
+        if (!prevEditorState._selection) editor.blur();
       });
     });
   }, []);

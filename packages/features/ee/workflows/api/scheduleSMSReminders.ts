@@ -54,6 +54,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!unscheduledReminders.length) res.json({ ok: true });
 
   for (const reminder of unscheduledReminders) {
+    if (!reminder.workflowStep || !reminder.booking) {
+      continue;
+    }
     try {
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER

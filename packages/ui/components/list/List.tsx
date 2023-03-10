@@ -68,7 +68,7 @@ export type ListLinkItemProps = {
 } & JSX.IntrinsicElements["li"];
 
 export function ListLinkItem(props: ListLinkItemProps) {
-  const { href, heading = "", children, disabled = false, actions = <div /> } = props;
+  const { href, heading = "", children, disabled = false, actions = <div />, className = "" } = props;
   let subHeading = props.subHeading;
   if (!subHeading) {
     subHeading = "";
@@ -77,6 +77,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
     <li
       className={classNames(
         "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
+        className,
         disabled ? "hover:bg-white" : ""
       )}>
       <Link

@@ -104,15 +104,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   for (const reminder of unscheduledReminders) {
+    if (!reminder.workflowStep || !reminder.booking) {
+      continue;
+    }
     try {
       let sendTo;
 
       switch (reminder.workflowStep.action) {
         case WorkflowActions.EMAIL_HOST:
-          sendTo = reminder.booking?.user?.email;
+          sendTo = reminder.booking.user?.email;
           break;
         case WorkflowActions.EMAIL_ATTENDEE:
-          sendTo = reminder.booking?.attendees[0].email;
+          sendTo = reminder.booking.attendees[0].email;
           break;
         case WorkflowActions.EMAIL_ADDRESS:
           sendTo = reminder.workflowStep.sendTo;
@@ -120,24 +123,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const name =
         reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-          ? reminder.booking?.attendees[0].name
-          : reminder.booking?.user?.name;
+          ? reminder.booking.attendees[0].name
+          : reminder.booking.user?.name;
 
       const attendeeName =
         reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-          ? reminder.booking?.user?.name
-          : reminder.booking?.attendees[0].name;
+          ? reminder.booking.user?.name
+          : reminder.booking.attendees[0].name;
 
       const timeZone =
         reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-          ? reminder.booking?.attendees[0].timeZone
-          : reminder.booking?.user?.timeZone;
+          ? reminder.booking.attendees[0].timeZone
+          : reminder.booking.user?.timeZone;
 
       const locale =
         reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-          ? reminder.booking?.attendees[0].locale
-          : reminder.booking?.user?.locale;
+          ? reminder.booking.attendees[0].locale
+          : reminder.booking.user?.locale;
 
       let emailContent = {
         emailSubject: reminder.workflowStep.emailSubject || "",
@@ -151,9 +154,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         case WorkflowTemplates.REMINDER:
           emailContent = emailReminderTemplate(
             false,
-            reminder.booking?.startTime.toISOString() || "",
-            reminder.booking?.endTime.toISOString() || "",
-            reminder.booking?.eventType?.title || "",
+            reminder.booking.startTime.toISOString() || "",
+            reminder.booking.endTime.toISOString() || "",
+            reminder.booking.eventType?.title || "",
             timeZone || "",
             attendeeName || "",
             name || ""
@@ -161,18 +164,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           break;
         case WorkflowTemplates.CUSTOM:
           const variables: VariablesType = {
-            eventName: reminder.booking?.eventType?.title || "",
-            organizerName: reminder.booking?.user?.name || "",
-            attendeeName: reminder.booking?.attendees[0].name,
-            attendeeEmail: reminder.booking?.attendees[0].email,
-            eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
-            eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
+            eventName: reminder.booking.eventType?.title || "",
+            organizerName: reminder.booking.user?.name || "",
+            attendeeName: reminder.booking.attendees[0].name,
+            attendeeEmail: reminder.booking.attendees[0].email,
+            eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
+            eventTime: dayjs(reminder.booking.startTime).tz(timeZone),
             eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
             timeZone: timeZone,
-            location: reminder.booking?.location || "",
-            additionalNotes: reminder.booking?.description,
-            customInputs: reminder.booking?.customInputs,
-            meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
+            location: reminder.booking.location || "",
+            additionalNotes: reminder.booking.description,
+            customInputs: reminder.booking.customInputs,
+            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
           };
           const emailSubject = await customTemplate(
             reminder.workflowStep.emailSubject || "",
@@ -207,7 +210,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             html: emailContent.emailBody.html,
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
-            replyTo: reminder.booking?.user?.email || senderEmail,
+            replyTo: reminder.booking.user?.email || senderEmail,
           });
         }
 
