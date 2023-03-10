@@ -1,5 +1,5 @@
-import type { TimeUnit } from "@prisma/client";
-import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
+import type { TimeUnit, WorkflowTemplates } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
@@ -10,7 +10,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
-import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 
@@ -77,52 +76,36 @@ export const scheduleEmailReminder = async (
       break;
   }
 
-  let emailContent = {
+  const emailContent = {
     emailSubject,
     emailBody: {
       text: emailBody,
       html: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
     },
   };
+  const variables: VariablesType = {
+    eventName: evt.title || "",
+    organizerName: evt.organizer.name,
+    attendeeName: evt.attendees[0].name,
+    attendeeEmail: evt.attendees[0].email,
+    eventDate: dayjs(startTime).tz(timeZone),
+    eventTime: dayjs(startTime).tz(timeZone),
+    eventEndTime: dayjs(endTime).tz(timeZone),
+    timeZone: timeZone,
+    location: evt.location,
+    additionalNotes: evt.additionalNotes,
+    customInputs: evt.customInputs,
+    meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+  };
 
-  switch (template) {
-    case WorkflowTemplates.REMINDER:
-      emailContent = emailReminderTemplate(
-        false,
-        startTime,
-        endTime,
-        evt.title,
-        timeZone,
-        attendeeName,
-        name
-      );
-      break;
-    case WorkflowTemplates.CUSTOM:
-      const variables: VariablesType = {
-        eventName: evt.title || "",
-        organizerName: evt.organizer.name,
-        attendeeName: evt.attendees[0].name,
-        attendeeEmail: evt.attendees[0].email,
-        eventDate: dayjs(startTime).tz(timeZone),
-        eventTime: dayjs(startTime).tz(timeZone),
-        eventEndTime: dayjs(endTime).tz(timeZone),
-        timeZone: timeZone,
-        location: evt.location,
-        additionalNotes: evt.additionalNotes,
-        customInputs: evt.customInputs,
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      };
+  const locale =
+    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+      ? evt.attendees[0].language?.locale
+      : evt.organizer.language.locale;
 
-      const locale =
-        action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-          ? evt.attendees[0].language?.locale
-          : evt.organizer.language.locale;
-
-      const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
-      emailContent.emailSubject = emailSubjectTemplate.text;
-      emailContent.emailBody = await customTemplate(emailBody, variables, locale);
-      break;
-  }
+  const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
+  emailContent.emailSubject = emailSubjectTemplate.text;
+  emailContent.emailBody = await customTemplate(emailBody, variables, locale);
 
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||

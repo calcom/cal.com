@@ -204,10 +204,7 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM &&
-            !isSMSAction(step.action) &&
-            strippedHtml.length <= 1;
+          const isBodyEmpty = !isSMSAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {

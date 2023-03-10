@@ -774,8 +774,8 @@ export const workflowsRouter = router({
                   : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
-              reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
-              emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
+              reminderBody: newStep.reminderBody,
+              emailSubject: newStep.emailSubject,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
               sender: getSender({

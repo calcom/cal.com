@@ -10,6 +10,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import type { Dispatch, SetStateAction } from "react";
 
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
@@ -32,6 +33,8 @@ export type TextEditorProps = {
   placeholder?: string;
   disableLists?: boolean;
   updateTemplate?: boolean;
+  firstRender?: boolean;
+  setFirstRender?: Dispatch<SetStateAction<boolean>>;
 };
 
 const editorConfig = {
@@ -66,6 +69,8 @@ export const Editor = (props: TextEditorProps) => {
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
             updateTemplate={props.updateTemplate}
+            firstRender={props.firstRender}
+            setFirstRender={props.setFirstRender}
           />
           <div className="editor-inner" style={{ height: props.height }}>
             <RichTextPlugin

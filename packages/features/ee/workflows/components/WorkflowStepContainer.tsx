@@ -71,13 +71,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [updateTemplate, setUpdateTemplate] = useState(false);
+  const [firstRender, setFirstRender] = useState(true);
 
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
       ? true
       : false
   );
-
   useEffect(() => {
     setNumberVerified(
       !!step &&
@@ -623,6 +623,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       variables={DYNAMIC_TEXT_VARIABLES}
                       height="200px"
                       updateTemplate={updateTemplate}
+                      firstRender={firstRender}
+                      setFirstRender={setFirstRender}
                     />
                   </>
                 ) : (

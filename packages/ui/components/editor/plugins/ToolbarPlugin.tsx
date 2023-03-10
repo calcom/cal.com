@@ -340,27 +340,29 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   };
 
   useEffect(() => {
-    editor.update(() => {
-      const root = $getRoot();
-      if (root) {
-        editor.update(() => {
-          const parser = new DOMParser();
+    if (!props.firstRender) {
+      editor.update(() => {
+        const root = $getRoot();
+        if (root) {
+          editor.update(() => {
+            const parser = new DOMParser();
+            // Create a new TextNode
+            const dom = parser.parseFromString(props.getText(), "text/html");
 
-          // Create a new TextNode
-          const dom = parser.parseFromString(props.getText(), "text/html");
-
-          const nodes = $generateNodesFromDOM(editor, dom);
-          root.clear();
-          const paragraph = $createParagraphNode();
-          root.append(paragraph);
-          paragraph.select();
-          $insertNodes(nodes);
-        });
-      }
-    });
+            const nodes = $generateNodesFromDOM(editor, dom);
+            const paragraph = $createParagraphNode();
+            root.clear().append(paragraph);
+            paragraph.select();
+            $insertNodes(nodes);
+            console.log("p: " + JSON.stringify($generateHtmlFromNodes(editor)));
+          });
+        }
+      });
+    }
   }, [props.updateTemplate]);
 
   useEffect(() => {
+    props.setFirstRender(false);
     editor.update(() => {
       const parser = new DOMParser();
       const dom = parser.parseFromString(props.getText(), "text/html");
@@ -368,10 +370,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       const nodes = $generateNodesFromDOM(editor, dom);
 
       $getRoot().select();
+      console.log("insert again");
       $insertNodes(nodes);
 
       editor.registerUpdateListener(({ editorState, prevEditorState }) => {
         editorState.read(() => {
+          console.log("test: " + $generateHtmlFromNodes(editor));
           const textInHtml = $generateHtmlFromNodes(editor);
           props.setText(textInHtml);
         });
