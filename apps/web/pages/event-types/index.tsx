@@ -338,7 +338,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.users?.length > 1 && (
+                      {type.team && (
                         <AvatarGroup
                           className="relative top-1 right-3"
                           size="sm"
@@ -637,7 +637,12 @@ const CTA = () => {
   const profileOptions = query.data.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
-      return { teamId: profile.teamId, label: profile.name || profile.slug, image: profile.image };
+      return {
+        teamId: profile.teamId,
+        label: profile.name || profile.slug,
+        image: profile.image,
+        slug: profile.slug,
+      };
     });
 
   return (

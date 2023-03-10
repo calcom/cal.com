@@ -255,7 +255,7 @@ export const FormBuilder = function FormBuilder({
     remove(index);
   };
 
-  const fieldType = FieldTypesMap[fieldForm.watch("type")];
+  const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
   return (
     <div>
@@ -266,8 +266,7 @@ export const FormBuilder = function FormBuilder({
           {fields.map((field, index) => {
             const fieldType = FieldTypesMap[field.type];
 
-            // Hidden fields can't be required
-            const isRequired = field.required && !field.hidden;
+            const isRequired = field.required;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -286,6 +285,7 @@ export const FormBuilder = function FormBuilder({
             return (
               <li
                 key={index}
+                data-testid={`field-${field.name}`}
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
                 <button
                   type="button"
@@ -305,8 +305,12 @@ export const FormBuilder = function FormBuilder({
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
-                      {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
+                      {field.hidden ? (
+                        // Hidden field can't be required, so we don't need to show the Optional badge
+                        <Badge variant="gray">{t("hidden")}</Badge>
+                      ) : (
+                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
+                      )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
                         <Badge key={key} variant="blue">
@@ -322,6 +326,7 @@ export const FormBuilder = function FormBuilder({
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
                     <Switch
+                      data-testid="toggle-field"
                       disabled={field.editable === "system"}
                       tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
                       checked={!field.hidden}
@@ -356,7 +361,12 @@ export const FormBuilder = function FormBuilder({
             );
           })}
         </ul>
-        <Button color="minimal" onClick={addField} className="mt-4" StartIcon={FiPlus}>
+        <Button
+          color="minimal"
+          data-testid="add-field"
+          onClick={addField}
+          className="mt-4"
+          StartIcon={FiPlus}>
           {addFieldLabel}
         </Button>
       </div>
@@ -368,12 +378,13 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent>
+        <DialogContent enableOverflow>
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
               form={fieldForm}
               handleSubmit={(data) => {
+                const type = data.type || "text";
                 const isNewField = fieldDialog.fieldIndex == -1;
                 if (isNewField && fields.some((f) => f.name === data.name)) {
                   showToast(t("form_builder_field_already_exists"), "error");
@@ -384,6 +395,7 @@ export const FormBuilder = function FormBuilder({
                 } else {
                   const field: RhfFormField = {
                     ...data,
+                    type,
                     sources: [
                       {
                         label: "User",
@@ -402,7 +414,8 @@ export const FormBuilder = function FormBuilder({
                 });
               }}>
               <SelectField
-                required
+                defaultValue={FieldTypes[3]} // "text" as defaultValue
+                id="test-field-type"
                 isDisabled={
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
@@ -434,13 +447,13 @@ export const FormBuilder = function FormBuilder({
                 required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
-                label="Label"
+                label={t("label")}
               />
               {fieldType?.isTextType ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
-                  label="Placeholder"
+                  label={t("placeholder")}
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
@@ -464,14 +477,16 @@ export const FormBuilder = function FormBuilder({
                       onValueChange={(val) => {
                         onChange(val);
                       }}
-                      label="Required"
+                      label={t("required")}
                     />
                   );
                 }}
               />
               <DialogFooter>
                 <DialogClose color="secondary">Cancel</DialogClose>
-                <Button type="submit">{isFieldEditMode ? t("save") : t("add")}</Button>
+                <Button data-testid="field-add-save" type="submit">
+                  {isFieldEditMode ? t("save") : t("add")}
+                </Button>
               </DialogFooter>
             </Form>
           </div>
@@ -543,7 +558,7 @@ export const ComponentForField = ({
   };
   readOnly: boolean;
 } & ValueProps) => {
-  const fieldType = field.type;
+  const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
@@ -682,9 +697,7 @@ export const FormBuilderField = ({
   const { t } = useLocale();
   const { control, formState } = useFormContext();
   return (
-    <div
-      data-form-builder-field-name={field.name}
-      className={classNames(className, field.hidden ? "hidden" : "")}>
+    <div data-fob-field-name={field.name} className={classNames(className, field.hidden ? "hidden" : "")}>
       <Controller
         control={control}
         // Make it a variable
@@ -716,7 +729,7 @@ export const FormBuilderField = ({
                   }
                   return (
                     <div
-                      data-field-name={field.name}
+                      data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
                       <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message)}</p>

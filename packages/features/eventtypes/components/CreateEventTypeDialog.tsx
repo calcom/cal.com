@@ -48,7 +48,7 @@ const locationFormSchema = z.array(
 );
 
 const querySchema = z.object({
-  eventPage: z.string(),
+  eventPage: z.string().optional(),
   teamId: z.union([z.string().transform((val) => +val), z.number()]).optional(),
   title: z.string().optional(),
   slug: z.string().optional(),

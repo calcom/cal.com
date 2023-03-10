@@ -48,29 +48,31 @@ function TeamPage({ team }: TeamPageProps) {
             "dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50",
             !isEmbed && "bg-white"
           )}>
-          <Link
-            href={`/team/${team.slug}/${type.slug}`}
-            className="flex justify-between px-6 py-4"
-            data-testid="event-type-link">
-            <div className="flex-shrink">
-              <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+          <div className="px-6 py-4 ">
+            <Link
+              href={`/team/${team.slug}/${type.slug}`}
+              data-testid="event-type-link"
+              className="flex justify-between">
+              <div className="flex-shrink">
+                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                </div>
+                <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <EventTypeDescription className="text-sm" eventType={type} />
-            </div>
-            <div className="mt-1 self-center">
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                items={type.users.map((user) => ({
-                  alt: user.name || "",
-                  title: user.name || "",
-                  image: CAL_URL + "/" + user.username + "/avatar.png" || "",
-                }))}
-              />
-            </div>
-          </Link>
+              <div className="mt-1 self-center">
+                <AvatarGroup
+                  truncateAfter={4}
+                  className="flex flex-shrink-0"
+                  size="sm"
+                  items={type.users.map((user) => ({
+                    alt: user.name || "",
+                    title: user.name || "",
+                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
+                  }))}
+                />
+              </div>
+            </Link>
+          </div>
         </li>
       ))}
     </ul>

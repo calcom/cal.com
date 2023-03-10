@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.6.6",
+  "version": "2.6.11",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -13,6 +13,7 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
+    "start:bg": "next start &",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
@@ -92,7 +93,6 @@
     "next-i18next": "^11.3.0",
     "next-seo": "^4.26.0",
     "next-themes": "^0.2.0",
-    "next-transpile-modules": "^10.0.0",
     "nodemailer": "^6.7.8",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.1",

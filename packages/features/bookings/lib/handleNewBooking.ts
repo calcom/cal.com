@@ -123,7 +123,7 @@ const isWithinAvailableHours = (
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
   const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
-  const isInviteeInDST = isInDST(dayjs().tz(organizerTimeZone));
+  const isInviteeInDST = isInDST(dayjs().tz(inviteeTimeZone));
   const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
   const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
@@ -363,11 +363,23 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const userFieldsResponses = {} as typeof responses;
+    const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
+    const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
     eventType.bookingFields.forEach((field) => {
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        userFieldsResponses[field.name] = responses[field.name];
+      const label = field.label || field.defaultLabel;
+      if (!label) {
+        throw new Error('Missing label for booking field "' + field.name + '"');
       }
+      if (field.editable === "user" || field.editable === "user-readonly") {
+        calEventUserFieldsResponses[field.name] = {
+          label,
+          value: responses[field.name],
+        };
+      }
+      calEventResponses[field.name] = {
+        label,
+        value: responses[field.name],
+      };
     });
     return {
       ...reqBody,
@@ -377,8 +389,9 @@ function getBookingData({
       location: responses.location?.optionValue || responses.location?.value || "",
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes || "",
-      userFieldsResponses,
+      calEventUserFieldsResponses,
       rescheduleReason: responses.rescheduleReason,
+      calEventResponses,
     };
   } else {
     // Check if required custom inputs exist
@@ -701,6 +714,8 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
+  const responses = "responses" in reqBody ? reqBody.responses : null;
+
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
     attendeeName: bookerName || "Nameless",
@@ -709,6 +724,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    bookingFields: { ...responses },
     t: tOrganizer,
   };
 
@@ -720,8 +736,8 @@ async function handler(
     }
   }
 
-  const responses = "responses" in reqBody ? reqBody.responses : null;
-  const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
+  const calEventUserFieldsResponses =
+    "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -737,8 +753,8 @@ async function handler(
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
     },
-    responses,
-    userFieldsResponses,
+    responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
+    userFieldsResponses: calEventUserFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
@@ -1131,7 +1147,7 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       originalRescheduledBooking.workflowReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
@@ -1251,12 +1267,15 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject
+        );
       }
     }
   }

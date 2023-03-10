@@ -5,16 +5,17 @@ import _ from "lodash";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps from "@calcom/app-store/utils";
-import { updateEvent } from "@calcom/core/CalendarManager";
+import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -616,15 +617,14 @@ export const eventTypesRouter = router({
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -777,6 +777,9 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
+        descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
 
@@ -829,6 +832,77 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const eventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        userId: ctx.user.id,
+        team: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        locations: true,
+      },
+    });
+
+    const eventTypesWithLogo = eventTypes.map((eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    });
+
+    return {
+      eventTypes: eventTypesWithLogo,
+    };
+  }),
+
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeIds } = input;
+      const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
+
+      if (!defaultApp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Default conferencing app not set",
+        });
+      }
+
+      const foundApp = getAppFromSlug(defaultApp.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (!appType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
+        });
+      }
+
+      return await ctx.prisma.eventType.updateMany({
+        where: {
+          id: {
+            in: eventTypeIds,
+          },
+          userId: ctx.user.id,
+        },
+        data: {
+          locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+        },
+      });
+    }),
 });
 
 function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {

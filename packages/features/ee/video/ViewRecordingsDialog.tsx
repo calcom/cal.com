@@ -94,12 +94,13 @@ const useRecordingDownload = () => {
       // assume it is still fetching, do nothing.
     },
     isFetching,
+    recordingId,
   };
 };
 
 const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPaidPlan: boolean }) => {
   const { t } = useLocale();
-  const { setRecordingId, isFetching } = useRecordingDownload();
+  const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
 
   const { data: recordings } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName },
@@ -134,7 +135,7 @@ const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPa
                   <Button
                     StartIcon={FiDownload}
                     className="ml-4 lg:ml-0"
-                    loading={isFetching}
+                    loading={isFetching && recordingId === recording.id}
                     onClick={() => handleDownloadClick(recording.id)}>
                     {t("download")}
                   </Button>

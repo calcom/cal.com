@@ -1,5 +1,5 @@
 import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
-// Figure out why ee/routing-forms/env.d.ts doesn't work
+// Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
