@@ -39,7 +39,7 @@ export function ListItem(props: ListItemProps) {
     {
       ...passThroughProps,
       className: classNames(
-        "items-center bg-white min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
+        "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0",
         expanded ? "my-2 border" : "border -mb-px last:mb-0",
         // Pass rounded false to not round the corners -> Usefull when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
@@ -78,7 +78,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
       className={classNames(
         "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
         className,
-        disabled ? "hover:bg-white" : ""
+        disabled ? "hover:bg-default" : ""
       )}>
       <Link
         passHref
@@ -108,7 +108,7 @@ export function ListItemTitle<TComponent extends keyof JSX.IntrinsicElements = "
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm font-medium text-gray-900 truncate", props.className),
+      className: classNames("text-sm font-medium text-emphasis truncate", props.className),
     },
     props.children
   );
@@ -123,7 +123,7 @@ export function ListItemText<TComponent extends keyof JSX.IntrinsicElements = "s
     component,
     {
       ...passThroughProps,
-      className: classNames("text-sm text-gray-500 truncate", props.className),
+      className: classNames("text-sm text-subtle truncate", props.className),
     },
     props.children
   );

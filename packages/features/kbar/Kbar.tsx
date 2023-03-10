@@ -14,7 +14,8 @@ import { useMemo } from "react";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import { FiSearch, FiArrowUp, FiArrowDown, FiCornerDownLeft, FiCommand } from "@calcom/ui/components/icon";
 
@@ -254,16 +255,16 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner>
-        <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-md bg-white shadow-lg">
+        <KBarAnimator className="bg-default z-10 w-full max-w-screen-sm overflow-hidden rounded-md shadow-lg">
           <div className="flex items-center justify-center border-b">
-            <FiSearch className="mx-3 h-4 w-4 text-gray-500" />
+            <FiSearch className="text-subtle mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="w-full rounded-sm py-2.5 focus-visible:outline-none"
             />
           </div>
           <RenderResults />
-          <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">
+          <div className="text-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
             <FiArrowUp className="h-4 w-4" />
             <FiArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
             <FiCornerDownLeft className="h-4 w-4" />
@@ -287,7 +288,7 @@ export const KBarTrigger = () => {
         <button
           color="minimal"
           onClick={query.toggle}
-          className="group flex rounded-md py-2 px-3 text-sm font-medium hover:bg-gray-100 lg:p-1 lg:hover:bg-gray-200 lg:hover:text-gray-900">
+          className="hover:bg-subtle lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md py-2 px-3 text-sm font-medium lg:p-1">
           <FiSearch className="h-4 w-4 flex-shrink-0 text-inherit" />
         </button>
       </Tooltip>
@@ -302,7 +303,9 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
     <span className="space-x-1">
       {shortcuts?.map((shortcut) => {
         return (
-          <kbd key={shortcut} className="rounded-sm border bg-white px-2 py-1 text-black hover:bg-gray-100">
+          <kbd
+            key={shortcut}
+            className="bg-default hover:bg-subtle text-emphasis rounded-sm border px-2 py-1">
             {shortcut}
           </kbd>
         );
@@ -320,7 +323,7 @@ function RenderResults() {
       items={results}
       onRender={({ item, active }) =>
         typeof item === "string" ? (
-          <div className="bg-white p-4 text-xs uppercase text-gray-500">{t(item)}</div>
+          <div className="bg-default text-subtle p-4 text-xs uppercase">{t(item)}</div>
         ) : (
           <div
             // For seeing keyboard up & down navigation in action, we need visual feedback based on "active" prop

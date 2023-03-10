@@ -42,10 +42,10 @@ export default function WebhookTestDisclosure() {
             )}
           </div>
         </div>
-        <div className="rounded-b-md bg-black p-4 font-mono text-[13px] leading-4 text-white">
+        <div className="text-inverted rounded-b-md bg-black p-4 font-mono text-[13px] leading-4">
           {!mutation.data && <p>{t("no_data_yet")}</p>}
           {mutation.status === "success" && (
-            <div className="overflow-x-auto text-white">{JSON.stringify(mutation.data, null, 4)}</div>
+            <div className="text-inverted overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</div>
           )}
         </div>
       </div>

@@ -248,14 +248,14 @@ const ProfileView = () => {
             <div className="flex">
               <div className="flex-grow">
                 <div>
-                  <Label className="text-black">{t("team_name")}</Label>
+                  <Label className="text-emphasis">{t("team_name")}</Label>
                   <p className="text-sm text-gray-800">{team?.name}</p>
                 </div>
                 {team && !isBioEmpty && (
                   <>
-                    <Label className="mt-5 text-black">{t("about")}</Label>
+                    <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      className="dark:text-darkgray-600 text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                       dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>

@@ -7,7 +7,8 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { FiPlus, FiArrowRight, FiTrash2 } from "@calcom/ui/components/icon";
 
@@ -112,7 +113,7 @@ const AddNewTeamMemberSkeleton = () => {
     <SkeletonContainer className="rounded-md border">
       <div className="flex w-full justify-between p-4">
         <div>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-emphasis text-sm font-medium">
             <SkeletonText className="h-4 w-56" />
           </p>
           <div className="mt-2.5 w-max">

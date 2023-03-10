@@ -113,7 +113,7 @@ export default function RoutingForms({
               </Button>
               <Button
                 color="minimal"
-                className="!bg-transparent text-white opacity-50 hover:opacity-100"
+                className="text-inverted !bg-transparent opacity-50 hover:opacity-100"
                 href="https://go.cal.com/teams-video"
                 target="_blank">
                 {t("learn_more")}
@@ -133,7 +133,7 @@ export default function RoutingForms({
                 />
               ) : null}
               {forms?.length ? (
-                <div className="mb-16 overflow-hidden bg-white">
+                <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list">
                     {forms.map((form, index) => {
                       if (!form) {

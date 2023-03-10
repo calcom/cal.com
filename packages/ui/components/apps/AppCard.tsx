@@ -62,10 +62,10 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-gray-800">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
-          <span className="pl-1 text-gray-500">{props.reviews} reviews</span>
+          <span className="pl-1 text-subtle">{props.reviews} reviews</span>
         </div> */}
       <p
-        className="mt-2 flex-grow text-sm text-gray-500"
+        className="text-subtle mt-2 flex-grow text-sm"
         style={{
           overflow: "hidden",
           display: "-webkit-box",
@@ -144,16 +144,16 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
         {appAdded > 0 && (
-          <span className="rounded-md bg-green-100 px-2 py-1 text-sm font-normal text-green-800">
+          <span className="bg-success rounded-md px-2 py-1 text-sm font-normal text-green-800">
             {t("installed", { count: appAdded })}
           </span>
         )}
         {app.isTemplate && (
-          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
+          <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
 
         {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
-          <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
+          <span className="bg-subtle flex items-center rounded-md px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
           </span>
         )}

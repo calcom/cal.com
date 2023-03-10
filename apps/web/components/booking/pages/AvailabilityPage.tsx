@@ -159,7 +159,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
               className={classNames(
                 isBackgroundTransparent
                   ? ""
-                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
+                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-default pb-4 md:pb-0",
                 "border-bookinglightest md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
@@ -183,7 +183,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                              className="w-15 dark:bg-darkgray-200 border-default bg-default h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -219,8 +219,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
-                      <p className="text-gray-500 line-through dark:text-darkgray-600">
-                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                      <p className="text-subtle line-through dark:text-darkgray-600">
+                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>

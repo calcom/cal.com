@@ -53,7 +53,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   const { t } = useLocale();
   return (
     <div className="p-6">
-      <h3 className="font-medium leading-6 text-gray-900">
+      <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block">
@@ -61,7 +61,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           </span>
         </Tooltip>
       </h3>
-      <p className="mb-4 text-sm text-gray-500">{t("date_overrides_subtitle")}</p>
+      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
@@ -180,7 +180,7 @@ export default function Availability() {
       }
       CTA={
         <div className="flex items-center justify-end">
-          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
+          <div className="sm:hover:bg-subtle flex items-center rounded-md px-2">
             <Skeleton
               as={Label}
               htmlFor="hiddenSwitch"
@@ -217,7 +217,7 @@ export default function Availability() {
 
           <VerticalDivider />
 
-          <div className="border-l-2 border-gray-300" />
+          <div className="border-default border-l-2" />
           <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
             {t("save")}
           </Button>
@@ -259,7 +259,7 @@ export default function Availability() {
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
-                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="timeZone" className="text-default block text-sm font-medium">
                   {t("timezone")}
                 </label>
                 <Controller
@@ -268,7 +268,7 @@ export default function Availability() {
                     value ? (
                       <TimezoneSelect
                         value={value}
-                        className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
+                        className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                         onChange={(timezone) => onChange(timezone.value)}
                       />
                     ) : (
@@ -279,7 +279,7 @@ export default function Availability() {
               </div>
               <hr className="my-6 mr-8" />
               <div className="hidden rounded-md md:block">
-                <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
+                <h3 className="text-emphasis text-sm font-medium">{t("something_doesnt_look_right")}</h3>
                 <div className="mt-3 flex">
                   <Button href="/availability/troubleshoot" color="secondary">
                     {t("launch_troubleshooter")}

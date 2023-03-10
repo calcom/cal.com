@@ -39,11 +39,11 @@ export default function CancelBooking(props: Props) {
     <>
       {error && (
         <div className="mt-8">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <FiX className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+            <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
               {error}
             </h3>
           </div>
@@ -51,12 +51,14 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          <label className="text-bookingdark font-medium dark:text-white">{t("cancellation_reason")}</label>
+          <label className="text-bookingdark dark:text-inverted font-medium">
+            {t("cancellation_reason")}
+          </label>
           <TextArea
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="dark:bg-darkgray-100 dark:border-darkgray-400 mt-2 mb-4 w-full dark:text-white "
+            className="dark:bg-darkgray-100 dark:border-darkgray-400 dark:text-inverted mt-2 mb-4 w-full "
             rows={3}
           />
           <div className="flex flex-col-reverse rtl:space-x-reverse ">

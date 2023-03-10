@@ -162,15 +162,15 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
 
-              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">{t("current_username")}</p>
+                  <p className="text-subtle">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="flex-1">
-                  <p className="text-gray-500" data-testid="new-username">
+                  <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>

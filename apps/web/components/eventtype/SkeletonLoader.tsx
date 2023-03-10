@@ -11,7 +11,7 @@ function SkeletonLoader() {
           <SkeletonText className="h-4 w-24" />
         </div>
       </div>
-      <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+      <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-default sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />

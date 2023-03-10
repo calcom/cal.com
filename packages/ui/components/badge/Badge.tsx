@@ -4,15 +4,15 @@ import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 const badgeClassNameByVariant = {
-  default: "bg-orange-100 text-orange-800",
-  warning: "bg-orange-100 text-orange-800",
-  orange: "bg-orange-100 text-orange-800",
-  success: "bg-green-100 text-green-800",
-  green: "bg-green-100 text-green-800",
-  gray: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800 group-hover:bg-gray-200 dark:group-hover:bg-darkgray-300",
-  blue: "bg-blue-100 text-blue-800",
-  red: "bg-red-100 text-red-800",
-  error: "bg-red-100 text-red-800",
+  default: "bg-attention text-orange-800",
+  warning: "bg-attention text-orange-800",
+  orange: "bg-attention text-orange-800",
+  success: "bg-success text-green-800",
+  green: "bg-success text-green-800",
+  gray: "bg-subtle text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800 group-hover:bg-emphasis dark:group-hover:bg-darkgray-300",
+  blue: "bg-info text-blue-800",
+  red: "bg-error text-red-800",
+  error: "bg-error text-red-800",
 };
 
 const classNameBySize = {

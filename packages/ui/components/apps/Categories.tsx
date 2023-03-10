@@ -42,7 +42,7 @@ export function AppStoreCategories({
               ) : (
                 <SkeletonText invisible />
               )}
-              <p className="pt-2 text-sm font-medium text-gray-500">
+              <p className="text-subtle pt-2 text-sm font-medium">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                 <FiArrowRight className="inline-block h-4 w-4" />
               </p>

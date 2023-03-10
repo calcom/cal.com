@@ -143,7 +143,7 @@ const Route = ({
                 <span className="font-semibold">{route.name}</span>
               </Badge>
             </Link>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-subtle mt-2 text-sm">
               Fields available in <span className="font-bold">{route.name}</span> will be added to this form.
             </p>
           </div>
@@ -168,7 +168,7 @@ const Route = ({
       <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
           <div>
-            <div className="flex w-full items-center text-sm text-gray-900">
+            <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
                 <span>Send Booker to</span>
               </div>
@@ -202,7 +202,7 @@ const Route = ({
                     required
                     disabled={disabled}
                     name="customPageMessage"
-                    className="flex w-full flex-grow border-gray-300"
+                    className="border-default flex w-full flex-grow"
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
@@ -212,7 +212,7 @@ const Route = ({
                   <TextField
                     disabled={disabled}
                     name="externalRedirectUrl"
-                    className="flex w-full flex-grow border-gray-300 text-sm"
+                    className="border-default flex w-full flex-grow text-sm"
                     containerClassName="w-full mt-2"
                     type="text"
                     required

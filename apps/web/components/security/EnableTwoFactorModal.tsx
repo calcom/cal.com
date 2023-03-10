@@ -135,7 +135,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">
-              <label htmlFor="password" className="mt-4 block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-default mt-4 block text-sm font-medium">
                 {t("password")}
               </label>
               <div className="mt-1">
@@ -146,7 +146,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
                   required
                   value={password}
                   onInput={(e) => setPassword(e.currentTarget.value)}
-                  className="block w-full rounded-sm border-gray-300 text-sm"
+                  className="border-default block w-full rounded-sm text-sm"
                 />
               </div>
 

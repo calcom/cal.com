@@ -32,7 +32,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {/* Active toggle. It's a separate element so we can animate it nicely. */}
         <span
           aria-hidden
-          className="dark:bg-darkgray-200 absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] bg-gray-200 transition-all"
+          className="dark:bg-darkgray-200 bg-emphasis absolute top-[4px] bottom-[4px] left-0 z-[0] rounded-[4px] transition-all"
           style={{ left: activeToggleElement?.offsetLeft, width: activeToggleElement?.offsetWidth }}
         />
         {options.map((option) => (
@@ -43,7 +43,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
             className={classNames(
               "relative rounded-[4px] px-3 py-1 text-sm",
               option.disabled
-                ? "dark:text-darkgray-900 text-gray-400 hover:cursor-not-allowed"
+                ? "dark:text-darkgray-900 text-muted hover:cursor-not-allowed"
                 : "dark:text-darkgray-800 [&[aria-checked='false']]:hover:font-medium",
               isFullWidth && "w-full"
             )}

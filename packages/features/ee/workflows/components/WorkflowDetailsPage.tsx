@@ -146,7 +146,7 @@ export default function WorkflowDetailsPage(props: Props) {
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
+        <div className="bg-muted w-full rounded-md border border-gray-200 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer form={form} teamId={teamId} />
@@ -169,14 +169,14 @@ export default function WorkflowDetailsPage(props: Props) {
             </>
           )}
           <div className="my-3 flex justify-center">
-            <FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
+            <FiArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
           </div>
           <div className="flex justify-center">
             <Button
               type="button"
               onClick={() => setIsAddActionDialogOpen(true)}
               color="secondary"
-              className="bg-white">
+              className="bg-default">
               {t("add_action")}
             </Button>
           </div>

@@ -89,7 +89,7 @@ const ConferencingLayout = () => {
     return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
-    <div className="w-full bg-white sm:mx-0 xl:mt-0">
+    <div className="w-full bg-default sm:mx-0 xl:mt-0">
       <Meta title={t("conferencing")} description={t("conferencing_description")} />
       <List>
         {apps?.items &&

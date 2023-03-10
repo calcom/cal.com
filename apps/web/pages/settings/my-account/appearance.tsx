@@ -136,7 +136,7 @@ const AppearanceView = () => {
           defaultValue={user.brandColor}
           render={() => (
             <div>
-              <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+              <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
                 onChange={(value) => formMethods.setValue("brandColor", value, { shouldDirty: true })}
@@ -150,7 +150,7 @@ const AppearanceView = () => {
           defaultValue={user.darkBrandColor}
           render={() => (
             <div className="mt-6 sm:mt-0">
-              <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+              <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value, { shouldDirty: true })}

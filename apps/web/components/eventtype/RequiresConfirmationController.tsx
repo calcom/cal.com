@@ -82,7 +82,7 @@ export default function RequiresConfirmationController({
                     <RadioGroup.Item
                       id="always"
                       value="always"
-                      className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                      className="min-w-4 bg-default flex h-4 w-4 cursor-pointer items-center rounded-full border border-black focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                       <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                     </RadioGroup.Item>
                     <Label htmlFor="always" className="!m-0 flex items-center">
@@ -93,7 +93,7 @@ export default function RequiresConfirmationController({
                     <RadioGroup.Item
                       id="notice"
                       value="notice"
-                      className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                      className="min-w-4 bg-default flex h-4 w-4 cursor-pointer items-center rounded-full border border-black focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                       <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                     </RadioGroup.Item>
                     <Label htmlFor="notice" className="!m-0 flex items-center">
@@ -116,7 +116,7 @@ export default function RequiresConfirmationController({
                                   });
                                   formMethods.setValue("metadata.requiresConfirmationThreshold.time", val);
                                 }}
-                                className="!m-0 block w-16 rounded-md border-gray-300 text-sm [appearance:textfield]"
+                                className="border-default !m-0 block w-16 rounded-md text-sm [appearance:textfield]"
                                 defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                               />
                               <select
@@ -130,7 +130,7 @@ export default function RequiresConfirmationController({
                                   });
                                   formMethods.setValue("metadata.requiresConfirmationThreshold.unit", val);
                                 }}
-                                className="ml-2 block h-9 rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
+                                className="border-default ml-2 block h-9 rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
                                 defaultValue={
                                   metadata?.requiresConfirmationThreshold?.unit ||
                                   defaultRequiresConfirmationSetup.unit

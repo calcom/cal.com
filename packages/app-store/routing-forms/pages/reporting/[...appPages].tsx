@@ -64,12 +64,12 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       <table
         data-testid="reporting-table"
-        className="table-fixed border-separate border-spacing-0 rounded-md border border-gray-300 bg-gray-100">
-        <tr data-testid="reporting-header" className="border-b border-gray-300 bg-gray-200">
+        className="border-default bg-subtle table-fixed border-separate border-spacing-0 rounded-md border">
+        <tr data-testid="reporting-header" className="border-default bg-emphasis border-b">
           {headers.current?.map((header, index) => (
             <th
               className={classNames(
-                "border-b border-gray-300 py-3 px-2  text-left text-base font-medium",
+                "border-default border-b py-3 px-2  text-left text-base font-medium",
                 index !== (headers.current?.length || 0) - 1 ? "border-r" : ""
               )}
               key={index}>
@@ -87,7 +87,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                   data-testid="reporting-row"
                   className={classNames(
                     "text-center text-sm",
-                    rowIndex % 2 ? "" : "bg-white",
+                    rowIndex % 2 ? "" : "bg-default",
                     isLastRow ? "" : "border-b"
                   )}>
                   {responses.map((r, columnIndex) => {
@@ -95,7 +95,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                     return (
                       <td
                         className={classNames(
-                          "overflow-x-hidden border-gray-300 py-3 px-2 text-left",
+                          "border-default overflow-x-hidden py-3 px-2 text-left",
                           isLastRow ? "" : "border-b",
                           isLastColumn ? "" : "border-r"
                         )}

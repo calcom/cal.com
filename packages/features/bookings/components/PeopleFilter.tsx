@@ -20,11 +20,11 @@ export const PeopleFilter = () => {
 
   return (
     <AnimatedPopover text={userNames && userNames.length > 0 ? `${userNames.join(", ")}` : dropdownTitle}>
-      <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
+      <div className="item-center flex px-4 py-[6px] focus-within:bg-subtle hover:cursor-pointer hover:bg-muted">
         <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
           <FiUser className="h-5 w-5" />
         </div>
-        <label htmlFor="allUsers" className="mr-auto self-center truncate text-sm font-medium text-gray-700">
+        <label htmlFor="allUsers" className="mr-auto self-center truncate text-sm font-medium text-default">
           {t("all_users_filter_label")}
         </label>
 
@@ -37,13 +37,13 @@ export const PeopleFilter = () => {
             // Always clear userIds on toggle as this is the toggle box for all users. No params means we are currently selecting all users
             removeByKey("userIds");
           }}
-          className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+          className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-default "
         />
       </div>
       {data &&
         data.map((user) => (
           <div
-            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            className="item-center flex px-4 py-[6px] focus-within:bg-subtle focus-within:bg-subtle hover:cursor-pointer hover:bg-muted
             key={`${user.id}`}>
             <Avatar
               imageSrc={user.avatar}
@@ -55,7 +55,7 @@ export const PeopleFilter = () => {
             />
             <label
               htmlFor={user.name ?? "NamelessUser"}
-              className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
+              className="ml-2 mr-auto self-center truncate text-sm font-medium text-default hover:cursor-pointer">
               {user.name}
             </label>
 
@@ -72,7 +72,7 @@ export const PeopleFilter = () => {
                   removeItemByKeyAndValue("userIds", user.id);
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-default "
             />
           </div>
         ))}

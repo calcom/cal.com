@@ -482,7 +482,7 @@ const BookingPage = ({
         <div
           className={classNames(
             "main",
-            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
+            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-default dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
@@ -491,7 +491,7 @@ const BookingPage = ({
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                    <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
+                    <div className="dark:text-inverted items-start text-sm font-medium text-gray-600">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({

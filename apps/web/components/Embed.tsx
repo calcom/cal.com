@@ -506,7 +506,7 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-gray-500">
+            <small className="text-subtle flex py-4">
               {t("place_where_cal_widget_appear", { appName: APP_NAME })}
             </small>
           </div>
@@ -531,7 +531,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 <!-- Cal ${embedType} embed code ends -->`
             }
           />
-          <p className="hidden text-sm text-gray-500">
+          <p className="text-subtle hidden text-sm">
             {t(
               "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
             )}
@@ -558,7 +558,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
       }
       return (
         <>
-          <small className="flex py-4 text-gray-500">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -619,7 +619,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <FiSun className="ml-2 h-4 w-4 text-gray-500" />
+      <FiSun className="text-subtle ml-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -631,17 +631,17 @@ const ChooseEmbedTypesDialogContent = () => {
   return (
     <DialogContent type="creation" size="lg">
       <div className="mb-4">
-        <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+        <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+          <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-gray-100 ltr:mr-2 rtl:ml-2"
+            className="hover:bg-subtle w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -649,11 +649,11 @@ const ChooseEmbedTypesDialogContent = () => {
                 embedType: embed.type,
               });
             }}>
-            <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
+            <div className="bg-default order-none box-border flex-none rounded-sm border border-solid">
               {embed.illustration}
             </div>
-            <div className="mt-2 font-medium text-gray-900">{embed.title}</div>
-            <p className="text-sm text-gray-500">{embed.subtitle}</p>
+            <div className="text-emphasis mt-2 font-medium">{embed.title}</div>
+            <p className="text-subtle text-sm">{embed.subtitle}</p>
           </button>
         ))}
       </div>
@@ -814,8 +814,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   return (
     <DialogContent ref={dialogContentRef} size="xl" className="p-0.5" type="creation">
       <div className="flex">
-        <div className="flex w-1/3 flex-col bg-gray-50 p-8">
-          <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
+        <div className="bg-muted flex w-1/3 flex-col p-8">
+          <h3 className="text-emphasis mb-2 flex text-xl font-bold leading-6" id="modal-title">
             <button
               onClick={() => {
                 removeQueryParams(router, ["embedType", "embedTabName"]);
@@ -832,7 +832,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                 <CollapsibleTrigger
                   type="button"
-                  className="flex w-full items-center text-base font-medium text-gray-900">
+                  className="text-emphasis flex w-full items-center text-base font-medium">
                   <div>
                     {embedType === "inline"
                       ? "Inline Embed Customization"
@@ -843,7 +843,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <FiChevronRight
                     className={`${
                       isEmbedCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-gray-500`}
+                    } text-subtle ml-auto h-5 w-5`}
                   />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="text-sm">
@@ -1010,11 +1010,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 open={isBookingCustomizationOpen}
                 onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                 <CollapsibleTrigger className="flex w-full" type="button">
-                  <div className="text-base  font-medium text-gray-900">Cal Booking Customization</div>
+                  <div className="text-emphasis  text-base font-medium">Cal Booking Customization</div>
                   <FiChevronRight
                     className={`${
                       isBookingCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-gray-500`}
+                    } text-subtle ml-auto h-5 w-5`}
                   />
                 </CollapsibleTrigger>
                 <CollapsibleContent>

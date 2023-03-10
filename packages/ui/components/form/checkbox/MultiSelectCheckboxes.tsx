@@ -32,7 +32,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
       className={classNames(
         className,
         "dark:bg-darkgray-100 !flex !cursor-pointer !py-3 text-[inherit]",
-        isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
+        isFocused && "dark:!bg-darkgray-200 !bg-subtle",
         isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}
       {...rest}
@@ -42,7 +42,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
       innerProps={props}>
       <input
         type="checkbox"
-        className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
+        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
         checked={isSelected}
         readOnly
       />

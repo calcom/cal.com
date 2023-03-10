@@ -136,7 +136,7 @@ export const SelectField = function SelectField<
     <div className={classNames(containerClassName)}>
       <div className={classNames(className)}>
         {!!label && (
-          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-red-900")}>
+          <Label htmlFor={id} {...labelProps} className={classNames(props.error && "text-error")}>
             {label}
           </Label>
         )}

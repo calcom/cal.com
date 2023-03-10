@@ -195,7 +195,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <span
           className={classNames(
             isInputUsernamePremium ? "border border-orange-400 " : "",
-            "hidden h-9 items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
+            "border-default bg-muted text-subtle hidden h-9 items-center rounded-l-md border border-r-0 border-r-gray-300 px-3 text-sm md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
@@ -216,7 +216,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
                 : "border-l-gray-300",
-              disabled ? "bg-gray-100 text-gray-400 focus:border-0" : ""
+              disabled ? "bg-subtle text-muted focus:border-0" : ""
             )}
             value={inputUsernameValue}
             onChange={(event) => {
@@ -261,15 +261,15 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 <p className="mb-4 text-sm text-gray-800">{t("change_username_standard_to_premium")}</p>
               )}
 
-              <div className="flex w-full flex-wrap rounded-sm bg-gray-100 py-3 text-sm">
+              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
-                  <p className="text-gray-500">{t("current_username")}</p>
+                  <p className="text-subtle">{t("current_username")}</p>
                   <p className="mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
                 <div className="ml-6 flex-1">
-                  <p className="text-gray-500" data-testid="new-username">
+                  <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
                   <p>{inputUsernameValue}</p>

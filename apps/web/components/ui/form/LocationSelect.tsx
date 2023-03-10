@@ -29,7 +29,7 @@ const OptionWithIcon = ({
   return (
     <div className="flex items-center gap-3">
       {icon && <img src={icon} alt="cover" className="h-3.5 w-3.5" />}
-      <span className={classNames("text-sm font-medium", isSelected ? "text-white" : "text-gray-900")}>
+      <span className={classNames("text-sm font-medium", isSelected ? "text-inverted" : "text-emphasis")}>
         {label}
       </span>
     </div>

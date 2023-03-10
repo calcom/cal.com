@@ -43,18 +43,18 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   };
 
   return (
-    <div className="w-full rounded-md border-gray-300 bg-white">
+    <div className="bg-default border-default w-full rounded-md">
       <div className="w-full py-5">
-        <p className="mb-1 px-5 text-gray-500">{t("resources").toUpperCase()}</p>
+        <p className="text-subtle mb-1 px-5">{t("resources").toUpperCase()}</p>
         <a
           href="https://docs.cal.com/"
           target="_blank"
-          className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
           {t("support_documentation")}
           <FiExternalLink
             className={classNames(
-              "text-gray-400 group-hover:text-gray-500",
+              "group-hover:text-subtle text-muted",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
             )}
           />
@@ -62,12 +62,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <a
           href="https://developer.cal.com/"
           target="_blank"
-          className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
           {t("developer_documentation")}
           <FiExternalLink
             className={classNames(
-              "text-gray-400 group-hover:text-gray-500",
+              "group-hover:text-subtle text-muted",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
             )}
           />
@@ -77,16 +77,16 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         </div>
       </div>
 
-      <hr className=" bg-gray-200" />
+      <hr className=" bg-emphasis" />
       <div className="w-full p-5">
-        <p className="mb-1 text-gray-500">{t("feedback").toUpperCase()}</p>
-        <p className="flex w-full py-2 text-sm font-medium text-gray-700">{t("comments")}</p>
+        <p className="text-subtle mb-1">{t("feedback").toUpperCase()}</p>
+        <p className="text-default flex w-full py-2 text-sm font-medium">{t("comments")}</p>
         <textarea
           id="comment"
           name="comment"
           rows={3}
           onChange={(event) => setComment(event.target.value)}
-          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 text-sm"
+          className="border-default my-1  block w-full rounded-sm py-2 pb-2 text-sm"
         />
 
         <div className="my-3 flex justify-end">
@@ -187,7 +187,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </Button>
         </div>
         {mutation.isError && (
-          <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
+          <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
               <FiAlertTriangle className="h-5 w-5" />
             </div>
@@ -198,10 +198,10 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </div>
         )}
       </div>
-      <div className="w-full bg-neutral-50 p-5 text-gray-500">
+      <div className="text-subtle w-full bg-neutral-50 p-5">
         <p className="">{t("specific_issue")}</p>
         <button
-          className="font-medium  underline hover:text-gray-700"
+          className="hover:text-default  font-medium underline"
           onClick={() => {
             setActive(true);
             if (isFreshChatEnabled) {
@@ -216,7 +216,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
-          className="font-medium  underline hover:text-gray-700"
+          className="hover:text-default  font-medium underline"
           href="https://docs.cal.com/"
           target="_blank"
           rel="noreferrer">

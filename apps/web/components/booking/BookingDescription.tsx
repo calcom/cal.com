@@ -86,7 +86,7 @@ const BookingDescription: FC<Props> = (props) => {
       <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
         {profile.name}
       </h2>
-      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
+      <h1 className="font-cal dark:text-darkgray-900 text-emphasis mb-6 break-words text-2xl font-semibold">
         {eventType.title}
       </h1>
       <div className="dark:text-darkgray-600 flex flex-col space-y-4 text-sm font-medium text-gray-600">
@@ -139,7 +139,7 @@ const BookingDescription: FC<Props> = (props) => {
                       className={classNames(
                         duration === dur.toString()
                           ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
-                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-gray-200 text-gray-900 dark:text-white",
+                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-emphasis text-emphasis dark:text-inverted",
                         "cursor-pointer"
                       )}
                       onClick={() => {

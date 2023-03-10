@@ -16,21 +16,21 @@ export default function NoMeetingFound() {
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
+                className="bg-default inline-block transform overflow-hidden rounded-lg px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                  <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
+                    <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-headline">
                       {t("no_meeting_found")}
                     </h3>
                   </div>
                   <div className="mt-2">
-                    <p className="text-center text-sm text-gray-500">{t("no_meeting_found_description")}</p>
+                    <p className="text-subtle text-center text-sm">{t("no_meeting_found_description")}</p>
                   </div>
                 </div>
                 <div className="mt-5 text-center sm:mt-6">

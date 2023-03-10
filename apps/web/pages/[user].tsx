@@ -49,8 +49,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const groupEventTypes = props.users.some((user) => !user.allowDynamicBooking) ? (
     <div className="space-y-6" data-testid="event-types">
       <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-        <div className="p-8 text-center text-gray-400 dark:text-white">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+        <div className="p-8 text-center text-muted dark:text-inverted">
+          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-inverted">{" " + t("unavailable")}</h2>
           <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
         </div>
       </div>
@@ -60,14 +60,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
-          <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted">
+          <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-emphasis opacity-0 transition-opacity group-hover:opacity-100 dark:text-inverted" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
             className="flex justify-between px-6 py-4"
             data-testid="event-type-link">
             <div className="flex-shrink">
-              <p className="dark:text-darkgray-700 text-sm font-semibold text-gray-900">{type.title}</p>
+              <p className="dark:text-darkgray-700 text-sm font-semibold text-emphasis">{type.title}</p>
               <EventTypeDescription className="text-sm" eventType={type} />
             </div>
             <div className="mt-1 self-center">
@@ -130,23 +130,23 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-white sm:dark:border-gray-600"
+              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-default sm:dark:border-gray-600"
               : "",
             "max-w-3xl py-24 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <Avatar imageSrc={user.avatar} size="xl" alt={nameOrUsername} />
-              <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
+              <h1 className="font-cal mb-1 text-3xl text-emphasis dark:text-inverted">
                 {nameOrUsername}
                 {user.verified && (
-                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-inverted" />
                 )}
               </h1>
               {!isBioEmpty && (
                 <>
                   <div
-                    className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className=" dark:text-darkgray-600 text-sm text-subtle [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
@@ -161,8 +161,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-                <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
+                <div className="p-8 text-center text-muted dark:text-inverted">
+                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-inverted">
                     😴{" " + t("user_away")}
                   </h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
@@ -175,8 +175,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50">
-                  <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
+                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted
+                  <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-emphasis opacity-0 transition-opacity group-hover:opacity-100 dark:text-inverted" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">
                     <Link
@@ -193,7 +193,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                       }}
                       data-testid="event-type-link">
                       <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-default">
                           {type.title}
                         </h2>
                       </div>

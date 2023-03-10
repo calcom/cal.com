@@ -138,7 +138,7 @@ const DateOverrideForm = ({
             <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
               {datesUnavailable ? (
-                <p className="rounded border p-2 text-sm text-gray-500">{t("date_overrides_unavailable")}</p>
+                <p className="text-subtle rounded border p-2 text-sm">{t("date_overrides_unavailable")}</p>
               ) : (
                 <DayRanges name="range" />
               )}

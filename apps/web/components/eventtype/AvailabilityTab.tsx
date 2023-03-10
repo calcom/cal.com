@@ -123,10 +123,7 @@ const EventTypeScheduleDetails = () => {
           return (
             <li key={day} className="my-6 flex border-transparent last:mb-2">
               <span
-                className={classNames(
-                  "w-20 font-medium sm:w-32",
-                  !isAvailable && "text-gray-500 opacity-50"
-                )}>
+                className={classNames("w-20 font-medium sm:w-32", !isAvailable && "text-subtle opacity-50")}>
                 {day}
               </span>
               {isLoading ? (
@@ -144,7 +141,7 @@ const EventTypeScheduleDetails = () => {
                   ))}
                 </div>
               ) : (
-                <span className="ml-6 text-gray-500 opacity-50 sm:ml-0">{t("unavailable")}</span>
+                <span className="text-subtle ml-6 opacity-50 sm:ml-0">{t("unavailable")}</span>
               )}
             </li>
           );
@@ -177,7 +174,7 @@ const EventTypeSchedule = () => {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
+        <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
         </label>
         <Controller

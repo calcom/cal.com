@@ -104,16 +104,16 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-bookinglightest dark:bg-darkgray-100 sm:dark:border-darkgray-300 mx-0 rounded-md bg-white p-4 py-6 sm:-mx-4 sm:px-8 md:border">
+                <div className="main border-bookinglightest dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 md:border">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900 dark:text-white">
+                      <h1 className="font-cal text-emphasis dark:text-inverted mb-1 text-xl font-bold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
-                        <p className="min-h-10 text-sm text-gray-500 ltr:mr-4 rtl:ml-4 dark:text-white">
+                        <p className="min-h-10 text-subtle dark:text-inverted text-sm ltr:mr-4 rtl:ml-4">
                           {form.description}
                         </p>
                       ) : null}
@@ -136,8 +136,8 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main dark:bg-darkgray-100 sm:dark:border-darkgray-300 -mx-4 rounded-md border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
-                <div className="dark:text-white">{customPageMessage}</div>
+              <div className="main dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+                <div className="dark:text-inverted">{customPageMessage}</div>
               </div>
             </div>
           </div>

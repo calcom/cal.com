@@ -181,7 +181,7 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50">
+        <div className="item-center flex px-4 py-[6px] focus-within:bg-subtle hover:cursor-pointer hover:bg-muted">
           <Avatar
             imageSrc=""
             size="sm"
@@ -192,14 +192,14 @@ const Filter = (props: {
           />
           <label
             htmlFor="yourWorkflows"
-            className="ml-2 mr-auto self-center truncate text-sm font-medium text-gray-700">
+            className="ml-2 mr-auto self-center truncate text-sm font-medium text-default">
             {userName}
           </label>
 
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+            className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-default "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -217,7 +217,7 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center flex px-4 py-[6px] focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
+            className="item-center flex px-4 py-[6px] focus-within:bg-subtle hover:cursor-pointer hover:bg-muted
             key={`${profile.teamId || 0}`}>
             <Avatar
               imageSrc=""
@@ -229,7 +229,7 @@ const Filter = (props: {
             />
             <label
               htmlFor={profile.slug || ""}
-              className="ml-2 mr-auto select-none self-center truncate text-sm font-medium text-gray-700 hover:cursor-pointer">
+              className="ml-2 mr-auto select-none self-center truncate text-sm font-medium text-default hover:cursor-pointer">
               {profile.slug}
             </label>
 
@@ -264,7 +264,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
+              className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-default "
             />
           </div>
         ))}

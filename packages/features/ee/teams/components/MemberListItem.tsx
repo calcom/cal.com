@@ -123,7 +123,7 @@ export default function MemberListItem(props: Props) {
         </div>
         {props.team.membership.accepted && (
           <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
+            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
               {/* TODO: bring availability back. right now its ugly and broken
                <Tooltip
                 content={

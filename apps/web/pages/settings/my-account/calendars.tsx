@@ -84,14 +84,14 @@ const CalendarsView = () => {
         success={({ data }) => {
           return data.connectedCalendars.length ? (
             <div>
-              <div className="mt-4 flex space-x-4 rounded-md border-gray-200 bg-gray-50 p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
-                <div className=" flex h-9 w-9 items-center justify-center rounded-md border-2 border-gray-200 bg-white p-[6px]">
+              <div className="bg-muted mt-4 flex space-x-4 rounded-md border-gray-200 p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+                <div className=" bg-default flex h-9 w-9 items-center justify-center rounded-md border-2 border-gray-200 p-[6px]">
                   <FiCalendar className="h-6 w-6" />
                 </div>
 
                 <div className="flex w-full flex-col space-y-3">
                   <div>
-                    <h4 className=" pb-2 text-base font-semibold leading-5 text-black">
+                    <h4 className=" text-emphasis pb-2 text-base font-semibold leading-5">
                       {t("add_to_calendar")}
                     </h4>
                     <p className=" text-sm leading-5 text-gray-600">
@@ -109,7 +109,7 @@ const CalendarsView = () => {
                   />
                 </div>
               </div>
-              <h4 className="mt-12 text-base font-semibold leading-5 text-black">
+              <h4 className="text-emphasis mt-12 text-base font-semibold leading-5">
                 {t("check_for_conflicts")}
               </h4>
               <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
@@ -131,7 +131,7 @@ const CalendarsView = () => {
                               trashIcon
                               onSuccess={() => query.refetch()}
                               buttonProps={{
-                                className: "border border-gray-300 py-[2px]",
+                                className: "border border-default py-[2px]",
                                 color: "secondary",
                               }}
                             />
@@ -167,12 +167,12 @@ const CalendarsView = () => {
                             <DisconnectIntegration
                               trashIcon
                               credentialId={item.credentialId}
-                              buttonProps={{ className: "border border-gray-300" }}
+                              buttonProps={{ className: "border border-default" }}
                             />
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
-                          <p className="px-2 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
+                          <p className="text-subtle px-2 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch

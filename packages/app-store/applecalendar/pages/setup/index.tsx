@@ -20,8 +20,8 @@ export default function AppleCalendarSetup() {
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
-    <div className="flex h-screen bg-gray-200">
-      <div className="m-auto rounded bg-white p-5 md:w-[560px] md:p-10">
+    <div className="flex h-screen bg-emphasis">
+      <div className="m-auto rounded bg-default p-5 md:w-[560px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
           <div>
             {/* eslint-disable @next/next/no-img-element */}

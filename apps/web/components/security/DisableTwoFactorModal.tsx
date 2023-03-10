@@ -70,10 +70,10 @@ const DisableTwoFactorAuthModal = ({ onDisable, onCancel }: DisableTwoFactorAuth
           <div className="mb-4">
             <PasswordField
               labelProps={{
-                className: "block text-sm font-medium text-gray-700",
+                className: "block text-sm font-medium text-default",
               }}
               {...form.register("password")}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
+              className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
             />
             <Label className="mt-4"> {t("2fa_code")}</Label>
 

@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
 import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
 
@@ -41,7 +42,7 @@ export default function TeamList(props: Props) {
   }
 
   return (
-    <ul className="mb-2 divide-y divide-neutral-200 rounded border bg-white">
+    <ul className="bg-default mb-2 divide-y divide-neutral-200 rounded border">
       {props.teams.map((team) => (
         <TeamListItem
           key={team?.id as number}
@@ -59,8 +60,8 @@ export default function TeamList(props: Props) {
           {props.teams.map(
             (team, i) =>
               i === 0 && (
-                <div className="bg-gray-100 p-6">
-                  <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
+                <div className="bg-subtle p-6">
+                  <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
                       icon={<FiUserPlus className="h-5 w-5 text-green-700" />}
@@ -72,7 +73,7 @@ export default function TeamList(props: Props) {
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live 
+                    {/* @TODO: uncomment once managed event types is live
                     <Card
                       icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"

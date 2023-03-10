@@ -43,14 +43,14 @@ export function ScheduleListItem({
             className="flex-grow truncate text-sm"
             title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
-              <span className="truncate font-medium text-gray-900">{schedule.name}</span>
+              <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
                 <Badge variant="success" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-gray-500">
+            <p className="text-subtle mt-1">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (

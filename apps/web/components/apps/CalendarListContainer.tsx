@@ -99,7 +99,7 @@ function CalendarSwitch(props: {
         }}
       />
       {!!props.destination && (
-        <span className="ml-8 inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800 sm:ml-4">
+        <span className="bg-subtle ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal text-gray-800 sm:ml-4">
           <FiArrowLeft className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
@@ -177,14 +177,14 @@ function ConnectedCalendarsList(props: Props) {
                           credentialId={item.credentialId}
                           trashIcon
                           onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-gray-300" }}
+                          buttonProps={{ className: "border border-default" }}
                         />
                       </div>
                     }>
                     <div className="border-t border-gray-200">
                       {!fromOnboarding && (
                         <>
-                          <p className="px-5 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
+                          <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 px-5 py-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
@@ -218,7 +218,7 @@ function ConnectedCalendarsList(props: Props) {
                           credentialId={item.credentialId}
                           trashIcon
                           onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-gray-300" }}
+                          buttonProps={{ className: "border border-default" }}
                         />
                       </div>
                     }
@@ -279,12 +279,12 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                         </div>
                       }
                     />
-                    <div className="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-4">
+                    <div className="bg-muted flex justify-between rounded-md border border-gray-200 p-4">
                       <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
-                        <div className="relative rounded-md border border-gray-200 bg-white p-1.5">
+                        <div className="bg-default relative rounded-md border border-gray-200 p-1.5">
                           <FiCalendar className="h-8 w-8" strokeWidth="1" />
                           <FiPlus
-                            className="absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2 text-black"
+                            className="text-emphasis absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2"
                             strokeWidth="4"
                           />
                         </div>

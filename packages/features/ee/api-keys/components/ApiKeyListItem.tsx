@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
   Button,
@@ -48,7 +49,7 @@ const ApiKeyListItem = ({
           <p className="text-xs text-gray-600">
             {" "}
             {neverExpires ? (
-              <div className="flex flex-row space-x-3 text-gray-500">{t("api_key_never_expires")}</div>
+              <div className="text-subtle flex flex-row space-x-3">{t("api_key_never_expires")}</div>
             ) : (
               `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
             )}

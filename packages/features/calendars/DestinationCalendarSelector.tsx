@@ -28,7 +28,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-gray-500">{subtitle}</p>
+      <p>{label}</p> <p className=" text-subtle">{subtitle}</p>
     </components.SingleValue>
   );
 };
@@ -161,7 +161,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
+          "border-default mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);

@@ -102,8 +102,8 @@ const CopyButton = ({
       <DropdownMenuTrigger asChild>
         <Button
           className={classNames(
-            "text-gray-700",
-            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+            "text-default",
+            open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
           type="button"
           tooltip={t("copy_times_to_tooltip")}
@@ -184,7 +184,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className="mx-2 text-gray-700 "
+                className="text-default mx-2 "
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -196,7 +196,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="text-default mx-2" />}
           </div>
         </Fragment>
       ))}
@@ -374,7 +374,7 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-gray-400">{t("copy_times_to")}</p>
+        <p className="h6 text-muted pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
@@ -394,7 +394,7 @@ const CopyTimes = ({
                       }
                     }}
                     type="checkbox"
-                    className="inline-block rounded-[4px] border-gray-300 text-gray-900 focus:ring-neutral-500 disabled:text-gray-400"
+                    className="border-default text-emphasis disabled:text-muted inline-block rounded-[4px] focus:ring-neutral-500"
                   />
                 </label>
               </li>

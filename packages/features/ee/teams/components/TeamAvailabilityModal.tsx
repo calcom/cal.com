@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
 import { Avatar, DatePickerField as DatePicker, Select, TimezoneSelect } from "@calcom/ui";
 
@@ -38,8 +39,8 @@ export default function TeamAvailabilityModal(props: Props) {
               className="h-14 w-14 rounded-full"
             />
             <div className="inline-block pt-1 ltr:ml-3 rtl:mr-3">
-              <span className="text-lg font-bold text-gray-700">{props.member?.name}</span>
-              <span className="-mt-1 block text-sm text-gray-400">{props.member?.email}</span>
+              <span className="text-default text-lg font-bold">{props.member?.name}</span>
+              <span className="text-muted -mt-1 block text-sm">{props.member?.email}</span>
             </div>
           </div>
           <div className="flex flex-col">
@@ -58,7 +59,7 @@ export default function TeamAvailabilityModal(props: Props) {
               value={selectedTimeZone}
               onChange={(timezone) => setSelectedTimeZone(timezone.value)}
               classNamePrefix="react-select"
-              className="react-select-container mt-1 block w-full rounded-sm border border-gray-300 text-sm focus:border-neutral-800 focus:ring-neutral-800"
+              className="react-select-container border-default mt-1 block w-full rounded-sm border text-sm focus:border-neutral-800 focus:ring-neutral-800"
             />
           </div>
           <div>
@@ -71,7 +72,7 @@ export default function TeamAvailabilityModal(props: Props) {
               ]}
               isSearchable={false}
               classNamePrefix="react-select"
-              className="react-select-container focus:ring-primary-500 focus:border-primary-500 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
+              className="react-select-container focus:ring-primary-500 focus:border-primary-500 border-default block w-full min-w-0 flex-1 rounded-sm border text-sm"
               value={{ value: frequency, label: `${frequency} minutes` }}
               onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
             />

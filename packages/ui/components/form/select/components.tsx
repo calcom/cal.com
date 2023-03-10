@@ -28,7 +28,7 @@ export const InputComponent = <
     <reactSelectComponents.Input
       // disables our default form focus hightlight on the react-select input element
       inputClassName={classNames(
-        "focus:ring-0 focus:ring-offset-0 dark:!text-darkgray-900 !text-black",
+        "focus:ring-0 focus:ring-offset-0 dark:!text-darkgray-900 !text-emphasis",
         inputClassName
       )}
       {...props}
@@ -56,7 +56,7 @@ export const OptionComponent = <
       className={classNames(
         className,
         "dark:bg-darkgray-100 !flex !cursor-pointer justify-between !py-3",
-        props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
+        props.isFocused && "dark:!bg-darkgray-200 !bg-subtle",
         props.isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}>
       <>
@@ -80,7 +80,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9  bg-default border-default text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );
@@ -97,7 +97,7 @@ export const SingleValueComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400"
+      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis"
     )}
   />
 );
@@ -113,7 +113,7 @@ export const ValueContainerComponent = <
   <reactSelectComponents.ValueContainer
     {...props}
     className={classNames(
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis",
       className
     )}
   />
@@ -130,7 +130,7 @@ export const MultiValueComponent = <
   <reactSelectComponents.MultiValue
     {...props}
     className={classNames(
-      "dark:bg-darkgray-200 dark:text-darkgray-900 !rounded-md bg-gray-100 text-gray-700",
+      "dark:bg-darkgray-200 dark:text-darkgray-900 bg-subtle text-default !rounded-md",
       className
     )}
   />
@@ -147,7 +147,7 @@ export const MenuComponent = <
   <reactSelectComponents.Menu
     {...props}
     className={classNames(
-      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
+      "dark:bg-darkgray-100 bg-default dark:text-inverted !rounded-md text-sm leading-4",
       className
     )}
   />

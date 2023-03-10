@@ -390,13 +390,13 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>
             <Dropdown>
-              <DropdownMenuTrigger className="toolbar-item w-36 text-gray-500">
+              <DropdownMenuTrigger className="toolbar-item text-subtle w-36">
                 <>
                   <span className={"icon block-type " + blockType} />
-                  <span className="text hidden text-gray-700 sm:flex">
+                  <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
+                  <FiChevronDown className="text-default ml-2 h-4 w-4" />
                 </>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -409,7 +409,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         onClick={() => format(key)}
                         className={classNames(
                           "toolbar-item  w-full rounded-none focus:ring-0",
-                          blockType === key ? "w-full  bg-gray-100" : ""
+                          blockType === key ? "bg-subtle  w-full" : ""
                         )}>
                         <>
                           <span className={"icon block-type " + key} />

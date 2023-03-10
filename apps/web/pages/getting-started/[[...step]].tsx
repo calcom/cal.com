@@ -80,7 +80,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
@@ -100,7 +100,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                 </p>
 
                 {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
-                  <p className="font-sans text-sm font-normal text-gray-500" key={index}>
+                  <p className="text-subtle font-sans text-sm font-normal" key={index}>
                     {subtitle}
                   </p>
                 ))}

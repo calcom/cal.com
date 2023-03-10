@@ -117,7 +117,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm",
+          "border-default mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm",
           !hidePlaceholder && "font-medium"
         )}
         onChange={(option) => {

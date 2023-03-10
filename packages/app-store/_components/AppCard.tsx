@@ -36,7 +36,7 @@ export default function AppCard({
             <img className="w-full" src={app?.logo} alt={app?.name} />
           </Link>
           <div className="flex flex-col">
-            <span className="text-base font-semibold leading-4 text-black">{app?.name}</span>
+            <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
             <p className="mb-2 pt-2 text-sm font-normal text-gray-600 ltr:pr-2 rtl:pl-2">
               {description || app?.description}
             </p>

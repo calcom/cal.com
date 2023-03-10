@@ -174,7 +174,7 @@ export const FormBuilder = function FormBuilder({
     return (
       <div className={className}>
         <Label>{label}</Label>
-        <div className="rounded-md bg-gray-50 p-4">
+        <div className="bg-muted rounded-md p-4">
           <ul ref={animationRef}>
             {value?.map((option, index) => (
               <li key={index}>
@@ -260,8 +260,8 @@ export const FormBuilder = function FormBuilder({
   return (
     <div>
       <div>
-        <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">{title}</div>
-        <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
+        <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">{title}</div>
+        <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
             const fieldType = FieldTypesMap[field.type];
@@ -290,19 +290,19 @@ export const FormBuilder = function FormBuilder({
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
                 <button
                   type="button"
-                  className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                  className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                   onClick={() => swap(index, index - 1)}>
                   <FiArrowUp className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
-                  className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                  className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                   onClick={() => swap(index, index + 1)}>
                   <FiArrowDown className="h-5 w-5" />
                 </button>
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
-                    <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
+                    <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -316,7 +316,7 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+                  <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
@@ -512,7 +512,7 @@ const WithLabel = ({
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex items-center">{field.label}</Label>
-          <span className="ml-1 -mb-1 text-sm font-medium leading-none dark:text-white">
+          <span className="dark:text-inverted ml-1 -mb-1 text-sm font-medium leading-none">
             {!readOnly && field.required ? "*" : ""}
           </span>
         </div>

@@ -61,7 +61,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
   return (
     <>
       {workflows && workflows.length > 0 ? (
-        <div className="overflow-hidden rounded-md border border-gray-200 bg-white sm:mx-0">
+        <div className="bg-default overflow-hidden rounded-md border border-gray-200 sm:mx-0">
           <ul className="divide-y divide-gray-200">
             {workflows.map((workflow) => (
               <li key={workflow.id}>
@@ -71,8 +71,8 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
                       <div className="flex">
                         <div
                           className={classNames(
-                            "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
-                            workflow.name ? "text-gray-900" : "text-gray-500"
+                            "max-w-56 text-emphasis truncate text-sm font-medium leading-6 md:max-w-max",
+                            workflow.name ? "text-emphasis" : "text-subtle"
                           )}>
                           {workflow.name
                             ? workflow.name

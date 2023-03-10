@@ -130,7 +130,7 @@ function RedirectionToast({ url }: { url: string }) {
           <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex w-0 flex-1 items-center">
-                <p className="truncate font-medium text-white sm:mx-3">
+                <p className="text-inverted truncate font-medium sm:mx-3">
                   <span className="md:hidden">Redirecting to {url} ...</span>
                   <span className="hidden md:inline">
                     {t("you_are_being_redirected", { url, seconds: timeRemaining })}
@@ -144,7 +144,7 @@ function RedirectionToast({ url }: { url: string }) {
                       redirectToExternalUrl(urlWithSuccessParamsRef.current);
                     }
                   }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
+                  className="bg-default flex w-full items-center justify-center rounded-sm border border-transparent px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
                 </button>
               </div>
@@ -155,7 +155,7 @@ function RedirectionToast({ url }: { url: string }) {
                     setIsToastVisible(false);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <FiX className="h-6 w-6 text-white" />
+                  <FiX className="text-inverted h-6 w-6" />
                 </button>
               </div>
             </div>
@@ -376,7 +376,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
+            className="hover:bg-subtle text-subtle dark:hover:text-inverted mt-2 inline-flex px-1 py-2 text-sm hover:text-gray-800 dark:hover:bg-transparent">
             <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -400,7 +400,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-default",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -410,12 +410,12 @@ export default function Success(props: SuccessProps) {
                   className={classNames(
                     "mx-auto flex items-center justify-center",
                     !giphyImage && !isCancelled && !needsConfirmation
-                      ? "h-12 w-12 rounded-full bg-green-100"
+                      ? "bg-success h-12 w-12 rounded-full"
                       : "",
                     !giphyImage && !isCancelled && needsConfirmation
-                      ? "h-12 w-12 rounded-full bg-gray-100"
+                      ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
                   )}>
                   {giphyImage && !needsConfirmation && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -424,12 +424,12 @@ export default function Success(props: SuccessProps) {
                   {!giphyImage && !needsConfirmation && !isCancelled && (
                     <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="text-emphasis h-5 w-5" />}
                   {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
+                    className="text-emphasis dark:text-inverted text-2xl font-semibold leading-6"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -532,10 +532,10 @@ export default function Success(props: SuccessProps) {
                               href={locationToDisplay}
                               target="_blank"
                               title={locationToDisplay}
-                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
+                              className="text-default flex items-center gap-2 underline dark:text-gray-50"
                               rel="noreferrer">
                               {providerName || "Link"}
-                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
+                              <FiExternalLink className="text-default dark:text-inverted inline h-4 w-4" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -586,12 +586,12 @@ export default function Success(props: SuccessProps) {
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                       <div className="text-center last:pb-0">
-                        <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                        <span className="text-emphasis ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
 
                         {!props.recurringBookings && (
-                          <span className="text-bookinglight inline text-gray-700">
+                          <span className="text-bookinglight text-default inline">
                             <span className="underline">
                               <Link href={`/reschedule/${bookingInfo?.uid}`} legacyBehavior>
                                 {t("reschedule")}
@@ -604,7 +604,7 @@ export default function Success(props: SuccessProps) {
                         <button
                           data-testid="cancel"
                           className={classNames(
-                            "text-bookinglight text-gray-700 underline",
+                            "text-bookinglight text-default underline",
                             props.recurringBookings && "ltr:mr-2 rtl:ml-2"
                           )}
                           onClick={() => setIsCancellationMode(true)}>
@@ -634,7 +634,7 @@ export default function Success(props: SuccessProps) {
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                       <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
-                        <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                        <span className="text-default flex self-center font-medium ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
                         <div className="justify-left mt-1 flex text-left sm:mt-0">
@@ -656,7 +656,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
+                            className="dark:text-inverted h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -682,7 +682,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -709,7 +709,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -722,7 +722,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -741,7 +741,7 @@ export default function Success(props: SuccessProps) {
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
-                    <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
+                    <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 dark:text-inverted pt-8 text-center text-xs">
                       <a href="https://cal.com/signup">
                         {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                       </a>
@@ -759,7 +759,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
+                          className="mr- focus:border-brand-default border-bookinglightest dark:border-darkgray-300 border-default dark:text-inverted mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black dark:bg-black sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button

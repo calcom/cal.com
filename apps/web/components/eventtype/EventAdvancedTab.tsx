@@ -99,7 +99,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Link
               href="/apps/categories/calendar"
               target="_blank"
-              className="text-sm text-gray-600 hover:text-gray-900">
+              className="hover:text-emphasis text-sm text-gray-600">
               {t("add_another_calendar")}
             </Link>
           </div>
@@ -134,7 +134,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               StartIcon={FiEdit}
               variant="icon"
               color="minimal"
-              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}
               aria-label="edit custom name"
             />
@@ -248,7 +248,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       showToast(t("enabled_after_update_description"), "warning");
                     }
                   }}
-                  className="hover:stroke-3 hover:bg-transparent hover:text-black"
+                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
                   type="button">
                   <FiCopy />
                 </Button>

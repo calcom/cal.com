@@ -67,7 +67,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col px-4 text-center sm:mt-0 sm:p-5 md:-mb-5 md:min-w-[200px] lg:min-w-[300px]">
           <div className="mb-6 flex items-center text-left text-base">
             <div className="mr-4">
-              <span className="text-bookingdarker dark:text-darkgray-800 font-semibold text-gray-900">
+              <span className="text-bookingdarker dark:text-darkgray-800 text-emphasis font-semibold">
                 {nameOfDay(i18n.language, Number(date.format("d")), "short")}
               </span>
               <span className="text-bookinglight font-medium">
@@ -121,7 +121,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                       <div
                         className={classNames(
-                          "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2 font-medium opacity-25 dark:border-transparent ",
+                          "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 bg-default mb-2 block rounded-sm border py-2 font-medium opacity-25 dark:border-transparent ",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}>
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
@@ -132,8 +132,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                         href={bookingUrl}
                         prefetch={false}
                         className={classNames(
-                          "hover:bg-brand hover:border-brand hover:text-brandcontrast dark:hover:text-darkmodebrandcontrast",
-                          "dark:bg-darkgray-200 dark:hover:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
+                          "hover:bg-brand hover:border-brand-default hover:text-brandcontrast dark:hover:text-darkmodebrandcontrast",
+                          "dark:bg-darkgray-200 dark:hover:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkgray-800 bg-default mb-2 block rounded-md border py-2 text-sm font-medium dark:border-transparent",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}
                         data-testid="time">
@@ -159,7 +159,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
             {!isLoading && !slots.length && (
               <div className="-mt-4 flex h-full w-full flex-col content-center items-center justify-center">
-                <h1 className="my-6 text-xl text-black dark:text-white">{t("all_booked_today")}</h1>
+                <h1 className="dark:text-inverted text-emphasis my-6 text-xl">{t("all_booked_today")}</h1>
               </div>
             )}
 

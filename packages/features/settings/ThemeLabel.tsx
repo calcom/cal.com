@@ -29,7 +29,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
           alt={`theme ${variant}`}
         />
       </div>
-      <p className="mt-2 text-sm font-medium text-gray-600 peer-checked:text-gray-900">{label}</p>
+      <p className="peer-checked:text-emphasis mt-2 text-sm font-medium text-gray-600">{label}</p>
     </label>
   );
 }

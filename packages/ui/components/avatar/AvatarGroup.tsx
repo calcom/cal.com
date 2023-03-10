@@ -48,7 +48,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
           )}>
           <span
             className={classNames(
-              "m-auto px-1 text-center text-white",
+              "text-inverted m-auto px-1 text-center",
               props.size === "sm" ? "text-[12px]" : "text-2xl"
             )}>
             +{numTruncatedAvatars}

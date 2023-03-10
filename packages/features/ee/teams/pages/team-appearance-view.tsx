@@ -148,7 +148,7 @@ const ProfileView = () => {
               defaultValue={team.brandColor}
               render={() => (
                 <div>
-                  <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.brandColor}
                     onChange={(value) => form.setValue("brandColor", value, { shouldDirty: true })}
@@ -162,7 +162,7 @@ const ProfileView = () => {
               defaultValue={team.darkBrandColor}
               render={() => (
                 <div className="mt-6 sm:mt-0">
-                  <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                   <ColorPicker
                     defaultValue={team.darkBrandColor}
                     onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
@@ -176,10 +176,10 @@ const ProfileView = () => {
           <div className="flex flex-col gap-8">
             <div className="relative flex items-start">
               <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                <label htmlFor="hide-branding" className="text-default font-medium">
                   {t("disable_cal_branding", { appName: APP_NAME })}
                 </label>
-                <p className="text-gray-500">
+                <p className="text-subtle">
                   {t("team_disable_cal_branding_description", { appName: APP_NAME })}
                 </p>
               </div>
@@ -202,10 +202,10 @@ const ProfileView = () => {
             </div>
             <div className="relative flex items-start">
               <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                <label htmlFor="hide-branding" className="text-default font-medium">
                   {t("hide_book_a_team_member")}
                 </label>
-                <p className="text-gray-500">{t("hide_book_a_team_member_description")}</p>
+                <p className="text-subtle">{t("hide_book_a_team_member_description")}</p>
               </div>
               <div className="flex-none">
                 <Controller

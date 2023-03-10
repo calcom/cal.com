@@ -7,7 +7,8 @@ import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationM
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
@@ -97,8 +98,8 @@ export default function TeamListItem(props: Props) {
         className="inline-flex justify-center"
       />
       <div className="inline-block ltr:ml-3 rtl:mr-3">
-        <span className="text-sm font-bold text-gray-700">{team.name}</span>
-        <span className="block text-xs text-gray-400">
+        <span className="text-default text-sm font-bold">{team.name}</span>
+        <span className="text-muted block text-xs">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>
       </div>

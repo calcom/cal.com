@@ -73,7 +73,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
               },
             }}
             isSearchable={false}
-            className="mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
+            className="border-default text-default mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm font-medium"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />

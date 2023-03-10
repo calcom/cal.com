@@ -3,18 +3,57 @@
 @tailwind utilities;
 
 
+@layer {
+  :root {
+    /* background */
+
+    --cal-bg-emphasis: #E5E7EB;
+    --cal-bg: white;
+    --cal-bg-subtle: #F3F4F6;
+    --cal-bg-muted: #F9FAFB;
+    --cal-bg-inverted: #111827;
+
+    /* background -> components*/
+    --cal-bg-info: #DEE9FC;
+    --cal-bg-success: #E2FBE8;
+    --cal-bg-attention: #FCEED8;
+    --cal-bg-error: #F9E3E2;
+
+
+    /* Borders */
+    --cal-border-emphasis:#9CA3AF;
+    --cal-border: #D1D5DB;
+    --cal-border-subtle:#E5E7EB;
+    --cal-border-muted:#F3F4F6;
+
+    /* Content/Text */
+    --cal-text-emphasis: #111827;
+    --cal-text:#374151;
+    --cal-text-subtle:#6B7280;
+    --cal-text-muted:#9CA3AF;
+    --cal-text-inverted:white;
+
+    /* Content/Text -> components */
+    --cal-text-info:#253985;
+    --cal-text-success:#285231;
+    --cal-text-attention:#73321B;
+    --cal-text-error:#752522;
+
+    /* Brand shinanigans
+      -> These will be computed for the users theme at runtime.
+    */
+    --cal-brand:#111827;
+    --cal-brand-emphasis:#101010;
+  }
+}
+
+
 
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-:root {
-  --brand-color: #292929;
-  --brand-text-color: #ffffff;
-  --brand-color-dark-mode: #fafafa;
-  --brand-text-color-dark-mode: #292929;
-}
 
 /*
   Desktop App specific CSS
@@ -160,7 +199,7 @@ input[type='text']:focus { box-shadow: none; }
 
 
 button[role="switch"][data-state="checked"] {
-  @apply bg-gray-900;
+  @apply bg-inverted;
 }
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
@@ -173,7 +212,7 @@ button[role="switch"][data-state="checked"] {
  */
 .react-daterange-picker > .react-daterange-picker__wrapper {
   /* border consistent with other inputs */
-  @apply rounded-sm border-gray-300 px-2 py-1.5 text-sm lg:py-1;
+  @apply rounded-sm border-default px-2 py-1.5 text-sm lg:py-1;
 }
 
 .react-daterange-picker > .react-daterange-picker__wrapper input {
@@ -242,52 +281,7 @@ button[role="switch"][data-state="checked"] {
   }
 }
 
-.react-multi-email > [type="text"] {
-  @apply dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-white block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500;
-}
-
-.react-multi-email [data-tag] {
-  box-shadow: none !important;
-  @apply dark:bg-brand my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:text-white;
-}
-
-.react-multi-email > span[data-placeholder] {
-  display: none;
-  position: absolute;
-  left: 0.8rem;
-  top: 0.75rem;
-  line-height: 1.25rem;
-  font-size: 0.875rem;
-}
-
-.react-multi-email.empty > span[data-placeholder] {
-  display: inline;
-  color: #646b7a;
-}
-
-.react-multi-email.focused > span[data-placeholder] {
-  display: none;
-}
-
-.react-multi-email > input {
-  width: 100% !important;
-  display: inline-block !important;
-  @apply mt-1;
-}
-
-.react-multi-email [data-tag] {
-  @apply my-1 inline-flex items-center rounded-md border border-transparent bg-gray-200 px-2 py-1 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ltr:mr-2 rtl:ml-2 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-700;
-}
-
-.react-multi-email [data-tag] [data-tag-item] {
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.react-multi-email [data-tag] [data-tag-handle] {
-  margin-left: 0.833em;
-  cursor: pointer;
-}
+/* TODO: implement styling for react-multi-email */
 
 /* !important to override react-dates */
 .DateRangePickerInput__withBorder {
@@ -381,26 +375,26 @@ button[role="switch"][data-state="checked"] {
 }
 
 nav#nav--settings > a {
-  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900;
+  @apply flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium text-emphasis hover:bg-muted hover:text-emphasis;
 }
 
 nav#nav--settings > a svg {
-  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500;
+  @apply mr-3 -ml-1 h-6 w-6 flex-shrink-0 text-muted group-hover:text-subtle;
 }
 
 nav#nav--settings > a.active {
-  @apply border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-50 hover:text-gray-700;
+  @apply border-gray-500 bg-muted text-default hover:bg-muted hover:text-default;
 }
 
 nav#nav--settings > a.active svg {
-  @apply text-gray-500;
+  @apply text-subtle;
 }
 
 hr {
   @apply border-gray-200;
 }
 
-.text-white-important {
+.text-inverted-important {
   color: white !important;
 }
 
