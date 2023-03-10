@@ -52,7 +52,7 @@ const config: Config = {
     },
     {
       displayName: "@calcom/routing-forms",
-      roots: ["<rootDir>/packages/app-store/ee/routing-forms"],
+      roots: ["<rootDir>/packages/app-store/routing-forms"],
       testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
       transform: {
         "^.+\\.ts?$": "ts-jest",

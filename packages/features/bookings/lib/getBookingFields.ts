@@ -218,14 +218,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
   ];
 
-  // Backward Compatibility for SMS Reminder Number
-  if (smsNumberSources.length) {
-    systemBeforeFields.push({
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
-  }
-
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
     {
@@ -281,6 +273,18 @@ export const ensureBookingInputsHaveSystemFields = ({
   }
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
+
+  // Backward Compatibility for SMS Reminder Number
+  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
+  // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
+  if (smsNumberSources.length && !bookingFields.find((f) => f.name !== SMS_REMINDER_NUMBER_FIELD)) {
+    const indexForLocation = bookingFields.findIndex((f) => f.name === "location");
+    // Add the SMS Reminder Number field after `location` field always
+    bookingFields.splice(indexForLocation + 1, 0, {
+      ...getSmsReminderNumberField(),
+      sources: smsNumberSources,
+    });
+  }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {

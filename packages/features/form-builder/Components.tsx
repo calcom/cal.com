@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
-} from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
+} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
