@@ -80,8 +80,8 @@ declare global {
     interface Matchers<R> {
       toBeEmbedCalLink(
         calNamespace: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
+        // eslint-disable-next-line
+        getActionFiredDetails: Function,
         expectedUrlDetails?: ExpectedUrlDetails
       ): Promise<R>;
     }
@@ -93,8 +93,8 @@ expect.extend({
     iframe: Frame,
     calNamespace: string,
     //TODO: Move it to testUtil, so that it doesn't need to be passed
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
+    // eslint-disable-next-line
+    getActionFiredDetails: Function,
     expectedUrlDetails: ExpectedUrlDetails = {}
   ) {
     if (!iframe || !iframe.url) {
