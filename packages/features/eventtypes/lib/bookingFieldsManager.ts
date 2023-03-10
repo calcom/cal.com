@@ -1,9 +1,9 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { prisma } from "@calcom/prisma";
-import { EventType } from "@calcom/prisma/client";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { EventType } from "@calcom/prisma/client";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type Field = z.infer<typeof eventTypeBookingFields>[number];
 
@@ -51,6 +51,7 @@ export async function upsertBookingField(
 ) {
   const eventType = await getEventType(eventTypeId);
   let fieldFound = false;
+
   const newFields = eventType.bookingFields.map((f) => {
     if (f.name === fieldToAdd.name) {
       fieldFound = true;
