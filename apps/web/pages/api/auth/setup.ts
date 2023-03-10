@@ -1,5 +1,5 @@
 import { IdentityProvider } from "@prisma/client";
-import { NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 import z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";

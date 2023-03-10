@@ -1,7 +1,6 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import ReactSelect, {
-  components as reactSelectComponents,
+import type {
   GroupBase,
   Props,
   SingleValue,
@@ -9,6 +8,7 @@ import ReactSelect, {
   SelectComponentsConfig,
   MenuPlacement,
 } from "react-select";
+import ReactSelect, { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +45,7 @@ export const getReactSelectProps = <
   menuPlacement?: MenuPlacement;
 }) => ({
   menuPlacement,
-  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
+  className: classNames("block min-h-6 w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
     ...reactSelectComponents,
@@ -120,6 +120,7 @@ export const SelectField = function SelectField<
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
   props: {
+    required?: boolean;
     name?: string;
     containerClassName?: string;
     label?: string;

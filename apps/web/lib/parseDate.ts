@@ -1,7 +1,8 @@
-import { I18n } from "next-i18next";
+import type { I18n } from "next-i18next";
 import { RRule } from "rrule";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 

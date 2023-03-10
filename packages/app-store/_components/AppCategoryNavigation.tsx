@@ -31,7 +31,7 @@ const AppCategoryNavigation = ({
   const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
 
   return (
-    <div className={cs("flex flex-col gap-x-6 p-2 md:p-0 xl:flex-row", classNames?.root ?? className)}>
+    <div className={cs("flex flex-col gap-x-6 md:p-0 xl:flex-row", classNames?.root ?? className)}>
       <div className="hidden xl:block">
         <VerticalTabs
           tabs={appCategories}
@@ -40,7 +40,7 @@ const AppCategoryNavigation = ({
           itemClassname={classNames?.verticalTabsItem}
         />
       </div>
-      <div className="mb-4 block overflow-x-scroll xl:hidden">
+      <div className="block overflow-x-scroll xl:hidden">
         <HorizontalTabs tabs={appCategories} linkProps={{ shallow: true }} />
       </div>
       <main className={classNames?.container ?? containerClassname} ref={animationRef}>

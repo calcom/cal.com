@@ -32,16 +32,15 @@ test.describe("Availablity tests", () => {
       await page.locator('[form="availability-form"][type="submit"]').click();
     });
 
-    // The troubleshooter is unaware of the selected schedule, kept the override logic for now but needs rework.
-    // await test.step("Date override is displayed in troubleshooter", async () => {
-    //   const response = await page.waitForResponse("**/api/trpc/viewer.availability.schedule.update?batch=1");
-    //   const json = await response.json();
-    //   // @ts-expect-error trust me bro
-    //   const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
-    //   const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
-    //   await page.goto(troubleshooterURL);
-    //   await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
-    // });
+    await test.step("Date override is displayed in troubleshooter", async () => {
+      const response = await page.waitForResponse("**/api/trpc/viewer.availability.schedule.update?batch=1");
+      const json = await response.json();
+      // @ts-expect-error trust me bro
+      const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
+      const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
+      await page.goto(troubleshooterURL);
+      await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
+    });
   });
 
   test("Availablity pages", async ({ page }) => {

@@ -92,6 +92,25 @@ export const viewerTeamsRouter = router({
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
+      // Ensure that the user is not duplicating a requested team
+      const duplicatedRequest = await ctx.prisma.team.findFirst({
+        where: {
+          members: {
+            some: {
+              userId: ctx.user.id,
+            },
+          },
+          metadata: {
+            path: ["requestedSlug"],
+            equals: slug,
+          },
+        },
+      });
+
+      if (duplicatedRequest) {
+        return duplicatedRequest;
+      }
+
       const createTeam = await ctx.prisma.team.create({
         data: {
           name,
@@ -177,7 +196,7 @@ export const viewerTeamsRouter = router({
         // If we save slug, we don't need the requestedSlug anymore
         const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
         if (metadataParse.success) {
-          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
           data.metadata = {
             ...cleanMetadata,
           };
@@ -446,7 +465,11 @@ export const viewerTeamsRouter = router({
         });
       }
 
-      if (myMembership?.role === MembershipRole.ADMIN && input.memberId === ctx.user.id) {
+      if (
+        myMembership?.role === MembershipRole.ADMIN &&
+        input.memberId === ctx.user.id &&
+        input.role !== MembershipRole.MEMBER
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not change yourself to a higher role.",
@@ -687,7 +710,7 @@ export const viewerTeamsRouter = router({
           },
         },
       });
-      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
+      type UserMap = Record<number, (typeof teams)[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)

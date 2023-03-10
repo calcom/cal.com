@@ -1,5 +1,5 @@
-import { ResetPasswordRequest } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import type { ResetPasswordRequest } from "@prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";

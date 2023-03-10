@@ -2,7 +2,8 @@ import { IdentityProvider } from "@prisma/client";
 import { compare, hash } from "bcryptjs";
 import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
-import { getSession as getSessionInner, GetSessionParams } from "next-auth/react";
+import type { GetSessionParams } from "next-auth/react";
+import { getSession as getSessionInner } from "next-auth/react";
 
 import { HttpError } from "@calcom/lib/http-error";
 

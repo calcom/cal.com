@@ -5,11 +5,12 @@ import { z } from "zod";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { NewTeamFormValues } from "../lib/types";
+import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
   returnTo: z.string(),
@@ -18,7 +19,7 @@ const querySchema = z.object({
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-
+  const telemetry = useTelemetry();
   const returnToParsed = querySchema.safeParse(router.query);
 
   const returnToParam =
@@ -29,6 +30,7 @@ export const CreateANewTeamForm = () => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
+      telemetry.event(telemetryEventTypes.team_created);
       router.push(`/settings/teams/${data.id}/onboard-members`);
     },
   });
@@ -138,10 +140,14 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={
+              newTeamFormMethods.formState.isSubmitting ||
+              createTeamMutation.isError ||
+              createTeamMutation.isLoading
+            }
             color="primary"
-            type="submit"
             EndIcon={FiArrowRight}
+            type="submit"
             className="w-full justify-center">
             {t("continue")}
           </Button>

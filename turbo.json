@@ -48,6 +48,12 @@
     },
     "@calcom/web#start": {
       "cache": false,
+      "persistent": true,
+      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "outputs": []
+    },
+    "@calcom/web#start:bg": {
+      "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"],
       "outputs": []
     },
@@ -152,8 +158,8 @@
       "dependsOn": [
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
-        "@calcom/embed-core#build",
-        "@calcom/embed-react#build",
+        "^build",
+        "@calcom/web#start:bg",
         "^embed-tests-update-snapshots:ci"
       ]
     },
@@ -239,6 +245,7 @@
     "$NEXTAUTH_SECRET",
     "$NEXTAUTH_URL",
     "$NODE_ENV",
+    "$BUILD_ID",
     "$PLAYWRIGHT_HEADLESS",
     "$PLAYWRIGHT_TEST_BASE_URL",
     "$PRISMA_FIELD_ENCRYPTION_KEY",
@@ -248,6 +255,7 @@
     "$SALESFORCE_CONSUMER_SECRET",
     "$SAML_ADMINS",
     "$SAML_DATABASE_URL",
+    "$SAML_CLIENT_SECRET_VERIFIER",
     "$SEND_FEEDBACK_EMAIL",
     "$SENTRY_DSN",
     "$NEXT_PUBLIC_SENTRY_DSN",
