@@ -1267,12 +1267,15 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject
+        );
       }
     }
   }
