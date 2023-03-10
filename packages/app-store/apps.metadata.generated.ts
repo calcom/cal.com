@@ -10,7 +10,6 @@ import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
-import routing_forms_config_json from "./ee/routing-forms/config.json";
 import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
@@ -34,6 +33,7 @@ import qr_code_config_json from "./qr_code/config.json";
 import rainbow_config_json from "./rainbow/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
+import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
 import signal_config_json from "./signal/config.json";
@@ -67,7 +67,6 @@ export const appStoreMetadata = {
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
-  "routing-forms": routing_forms_config_json,
   exchange2013calendar: exchange2013calendar__metadata_ts,
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
@@ -91,6 +90,7 @@ export const appStoreMetadata = {
   rainbow: rainbow_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
+  "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,
   signal: signal_config_json,

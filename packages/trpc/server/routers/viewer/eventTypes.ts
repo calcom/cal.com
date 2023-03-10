@@ -777,6 +777,9 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
+        descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
 
