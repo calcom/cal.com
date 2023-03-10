@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import prisma from "@calcom/prisma";
-
-import { hashPassword } from "@lib/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

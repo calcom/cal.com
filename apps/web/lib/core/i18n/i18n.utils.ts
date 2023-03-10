@@ -1,9 +1,8 @@
 import parser from "accept-language-parser";
 import type { IncomingMessage } from "http";
 import type { GetServerSidePropsContext } from "next";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 
-import { getServerSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { Maybe } from "@calcom/trpc/server";
 
 import { i18n } from "../../../next-i18next.config";
@@ -22,7 +21,7 @@ export const getOrSetUserLocaleFromHeaders = async (
 ): Promise<string> => {
   const { default: prisma } = await import("@calcom/prisma");
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
   const preferredLocale = getLocaleFromHeaders(req);
 
   if (session?.user?.id) {

@@ -1,11 +1,10 @@
 import type { GetServerSidePropsContext } from "next";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { classNames } from "@calcom/lib";
-import { getServerSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -91,7 +90,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const ssg = await ssgInit(context);
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
 
   let appStore;
   if (session?.user?.id) {

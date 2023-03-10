@@ -1,10 +1,10 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   hostedCal,
@@ -13,7 +13,6 @@ import {
   samlTenantID,
   samlTenantProduct,
 } from "@calcom/features/ee/sso/lib/saml";
-import { getServerSession } from "@calcom/lib/auth";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
@@ -63,7 +62,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const { req, res } = context;
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
 
   if (session) {

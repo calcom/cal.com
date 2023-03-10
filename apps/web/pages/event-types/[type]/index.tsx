@@ -4,15 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { PeriodType } from "@prisma/client";
 import type { SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { validateIntervalLimitOrder } from "@calcom/lib";
-import { getServerSession } from "@calcom/lib/auth";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -374,7 +373,7 @@ const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) =
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res, query } = context;
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
 
   const typeParam = parseInt(asStringOrThrow(query.type));
   const ssr = await ssrInit(context);

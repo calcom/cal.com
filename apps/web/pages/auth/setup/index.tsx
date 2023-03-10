@@ -1,12 +1,11 @@
 import { UserPermissionRole } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
-import { getServerSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -142,7 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {

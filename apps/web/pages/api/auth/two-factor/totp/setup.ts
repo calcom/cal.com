@@ -1,10 +1,11 @@
 import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticator } from "otplib";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import qrcode from "qrcode";
 
-import { ErrorCode, getServerSession, verifyPassword } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 
@@ -13,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
   if (!session) {
     return res.status(401).json({ message: "Not authenticated" });
   }

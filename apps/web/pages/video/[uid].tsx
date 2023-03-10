@@ -1,10 +1,9 @@
 import DailyIframe from "@daily-co/daily-js";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { AUTH_OPTIONS } from "pages/api/auth/[...nextauth]";
 import { useEffect } from "react";
 
-import { getServerSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -143,7 +142,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     endTime: booking.endTime.toString(),
   });
 
-  const session = await getServerSession({ req, res, authOptions: AUTH_OPTIONS });
+  const session = await getServerSession({ req, res });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {

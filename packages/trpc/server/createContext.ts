@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
@@ -115,7 +115,7 @@ export type GetSessionFn =
     }) => Promise<Session | null>)
   | (() => Promise<Session | null>);
 
-const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req }) => getSession({ req });
+const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession({ req, res });
 
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
