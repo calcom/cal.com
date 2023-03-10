@@ -20,6 +20,26 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the schedule to edit
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
+ *     requestBody:
+ *       description: Create a new schedule
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the schedule
+ *               timezone:
+ *                 type: string
+ *                 description: The timezone for this schedule
  *     tags:
  *     - schedules
  *     responses:

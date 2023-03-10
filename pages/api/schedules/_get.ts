@@ -18,6 +18,13 @@ export const schemaUserIds = z
  *   get:
  *     operationId: listSchedules
  *     summary: Find all schedules
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *     tags:
  *     - schedules
  *     responses:

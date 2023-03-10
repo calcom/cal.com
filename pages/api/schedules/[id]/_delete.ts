@@ -17,6 +17,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: integer
  *        required: true
  *        description: ID of the schedule to delete
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *     tags:
  *     - schedules
  *     responses:

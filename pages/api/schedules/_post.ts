@@ -13,6 +13,30 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *   post:
  *     operationId: addSchedule
  *     summary: Creates a new schedule
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
+ *     requestBody:
+ *       description: Create a new schedule
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - timezone
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the schedule
+ *               timezone:
+ *                 type: string
+ *                 description: The timezone for this schedule
  *     tags:
  *     - schedules
  *     responses:
@@ -23,6 +47,12 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *       401:
  *        description: Authorization information is missing or invalid.
  */
+
+
+eventType    EventType[]
+name         String
+timeZone     String?
+availability Availability[]
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaCreateScheduleBodyParams.parse(req.body);
