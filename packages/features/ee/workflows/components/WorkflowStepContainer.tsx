@@ -554,8 +554,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 `steps.${step.stepNumber - 1}.reminderBody`,
                                 emailReminderTemplate(true).emailBody.html
                               );
+                              form.setValue(
+                                `steps.${step.stepNumber - 1}.emailSubject`,
+                                emailReminderTemplate(true).emailSubject
+                              );
                             } else {
                               form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
                             }
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
