@@ -4,6 +4,7 @@ import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 
+import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Ensure } from "./utils";
@@ -25,6 +26,13 @@ export type Person = {
   id?: number;
   bookingId?: number;
   locale?: string;
+};
+
+export type TeamMember = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
 };
 
 export type EventBusyDate = {
@@ -108,7 +116,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export interface BookingLimit {
+export interface IntervalLimit {
   PER_DAY?: number | undefined;
   PER_WEEK?: number | undefined;
   PER_MONTH?: number | undefined;
@@ -137,7 +145,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: TeamMember[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
@@ -156,6 +164,24 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsPerTimeSlot?: number | null;
+
+  // It has responses to all the fields(system + user)
+  responses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
+
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
+  userFieldsResponses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
 }
 
 export interface EntryPoint {
@@ -181,6 +207,9 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
+  primaryEmail?: string;
+  credentialId?: number;
+  integrationTitle?: string;
 }
 
 export interface Calendar {

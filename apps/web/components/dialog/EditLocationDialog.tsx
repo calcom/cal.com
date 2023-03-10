@@ -4,7 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
@@ -49,16 +49,19 @@ const LocationInput = (props: {
   defaultValue?: string;
 }): JSX.Element | null => {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
+  const { control } = useFormContext() as typeof locationFormMethods;
   if (eventLocationType?.organizerInputType === "text") {
     return (
       <input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     return (
-      <PhoneInput
+      <Controller
         name={eventLocationType.variable}
-        control={locationFormMethods.control}
-        {...remainingProps}
+        control={control}
+        render={({ field: { onChange, value } }) => {
+          return <PhoneInput onChange={onChange} value={value} {...remainingProps} />;
+        }}
       />
     );
   }
@@ -188,6 +191,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 control={locationFormMethods.control}
                 render={() => (
                   <CheckboxField
+                    data-testid="display-location"
                     defaultChecked={defaultLocation?.displayLocationPublicly}
                     description={t("display_location_label")}
                     onChange={(e) =>
@@ -284,16 +288,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               }}>
               <QueryCell
                 query={locationsQuery}
-                success={({ data: locationOptions }) => {
-                  if (!locationOptions.length) return null;
+                success={({ data }) => {
+                  if (!data.length) return null;
+                  const locationOptions = [...data];
                   if (booking) {
-                    locationOptions.forEach((location) => {
-                      if (location.label === "phone") {
-                        location.options.filter((l) => l.value !== "phone");
-                      } else if (location.label === "in person") {
-                        location.options.filter((l) => l.value !== "attendeeInPerson");
-                      }
-                    });
+                    locationOptions.map((location) =>
+                      location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
+                    );
                   }
                   return (
                     <Controller
@@ -345,7 +346,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                     {t("cancel")}
                   </Button>
 
-                  <Button type="submit">{t("update")}</Button>
+                  <Button data-testid="update-location" type="submit">
+                    {t("update")}
+                  </Button>
                 </div>
               </DialogFooter>
             </Form>

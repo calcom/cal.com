@@ -504,6 +504,7 @@ describe("getSchedule", () => {
       );
     });
 
+    // FIXME: Fix minimumBookingNotice is respected test
     test.skip("minimumBookingNotice is respected", async () => {
       jest.useFakeTimers().setSystemTime(
         (() => {

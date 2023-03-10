@@ -1,6 +1,6 @@
 name: TODO to Issue
 on:
-  pull_request_target: # So we can test on forks
+  push:
     branches:
       - main
   workflow_dispatch:
@@ -12,17 +12,13 @@ on:
         description: "By default, the commit entered above is compared to the one directly before it; to go back further, enter an earlier SHA here"
         required: false
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   todos:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+      - uses: actions/checkout@v3
       - name: "Add TODOs to issues"
         uses: "alstr/todo-to-issue-action@v4"
         env:
