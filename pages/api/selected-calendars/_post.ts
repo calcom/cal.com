@@ -12,20 +12,32 @@ import {
 /**
  * @swagger
  * /selected-calendars:
- *   get:
- *     operationId: addSelectedCalendars
- *     summary: Find all selected calendars
- *     tags:
- *     - selected-calendars
- *     responses:
- *       200:
- *         description: OK
- *       401:
- *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No selected calendars were found
  *   post:
  *     summary: Creates a new selected calendar
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
+ *     requestBody:
+ *       description: Create a new selected calendar
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - integration
+ *               - externalId
+ *             properties:
+ *               integration:
+ *                 type: string
+ *                 description: The integration name
+ *               externalId:
+ *                 type: string
+ *                 description: The external ID of the integration
  *     tags:
  *     - selected-calendars
  *     responses:

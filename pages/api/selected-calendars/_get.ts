@@ -13,6 +13,13 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *   get:
  *     operationId: listSelectedCalendars
  *     summary: Find all selected calendars
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *     tags:
  *     - selected-calendars
  *     responses:

@@ -17,6 +17,12 @@ import {
  *     operationId: editSelectedCalendarById
  *     summary: Edit a selected calendar
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *      - in: path
  *        name: userId
  *        schema:

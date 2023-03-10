@@ -11,6 +11,12 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *     operationId: removeSelectedCalendarById
  *     summary: Remove a selected calendar
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *      - in: path
  *        name: userId
  *        schema:

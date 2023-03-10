@@ -11,6 +11,12 @@ import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/va
  *     operationId: getSelectedCalendarById
  *     summary: Find a selected calendar by providing the compoundId(userId_integration_externalId) separated by `_`
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
  *      - in: path
  *        name: userId
  *        schema:
