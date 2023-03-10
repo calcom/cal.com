@@ -106,7 +106,7 @@ const ProfileView = () => {
           <div className="mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("theme")}</p>
-              <p className="text-gray-600">{t("theme_applies_note")}</p>
+              <p className="text-default">{t("theme_applies_note")}</p>
             </div>
           </div>
           <div className="flex flex-col justify-between sm:flex-row">
@@ -137,7 +137,7 @@ const ProfileView = () => {
           <div className="mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("custom_brand_colors")}</p>
-              <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
+              <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
             </div>
           </div>
 
@@ -230,7 +230,7 @@ const ProfileView = () => {
         </Form>
       ) : (
         <div className="rounded-md border border-gray-200 p-5">
-          <span className="text-sm text-gray-600">{t("only_owner_change")}</span>
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
     </>

@@ -158,7 +158,7 @@ export default function Login({
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-sm font-medium text-gray-600">
+                      className="text-default text-sm font-medium">
                       {t("forgot")}
                     </Link>
                   </div>

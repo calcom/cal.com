@@ -37,7 +37,7 @@ export default function AppCard({
           </Link>
           <div className="flex flex-col">
             <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>
-            <p className="mb-2 pt-2 text-sm font-normal text-gray-600 ltr:pr-2 rtl:pl-2">
+            <p className="text-default mb-2 pt-2 text-sm font-normal ltr:pr-2 rtl:pl-2">
               {description || app?.description}
             </p>
           </div>

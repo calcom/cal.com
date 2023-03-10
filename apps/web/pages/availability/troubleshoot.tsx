@@ -83,11 +83,11 @@ const AvailabilityView = ({ user }: { user: User }) => {
                     data-testid="troubleshooter-busy-time">
                     <div className="text-emphasis px-4 py-5 sm:p-6">
                       {t("calendar_shows_busy_between")}{" "}
-                      <span className="font-medium text-gray-800" title={dayjs(slot.start).format("HH:mm")}>
+                      <span className="text-default font-medium" title={dayjs(slot.start).format("HH:mm")}>
                         {dayjs(slot.start).format("HH:mm")}
                       </span>{" "}
                       {t("and")}{" "}
-                      <span className="font-medium text-gray-800" title={dayjs(slot.end).format("HH:mm")}>
+                      <span className="text-default font-medium" title={dayjs(slot.end).format("HH:mm")}>
                         {dayjs(slot.end).format("HH:mm")}
                       </span>{" "}
                       {t("on")} {dayjs(slot.start).format("D")}{" "}

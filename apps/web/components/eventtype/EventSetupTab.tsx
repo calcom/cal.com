@@ -236,7 +236,7 @@ export const EventSetupTab = (
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
-              <div className="flex text-sm text-gray-600">
+              <div className="text-default flex text-sm">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>

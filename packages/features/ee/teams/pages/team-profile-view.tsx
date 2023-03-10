@@ -226,7 +226,7 @@ const ProfileView = () => {
                   disableLists
                 />
               </div>
-              <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
+              <p className="text-default mt-2 text-sm">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
@@ -249,7 +249,7 @@ const ProfileView = () => {
               <div className="flex-grow">
                 <div>
                   <Label className="text-emphasis">{t("team_name")}</Label>
-                  <p className="text-sm text-gray-800">{team?.name}</p>
+                  <p className="text-default text-sm">{team?.name}</p>
                 </div>
                 {team && !isBioEmpty && (
                   <>

@@ -94,7 +94,7 @@ const AppearanceView = () => {
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("theme")}</p>
-          <p className="text-gray-600">{t("theme_applies_note")}</p>
+          <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
       <div className="flex flex-col justify-between sm:flex-row">
@@ -125,7 +125,7 @@ const AppearanceView = () => {
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("custom_brand_colors")}</p>
-          <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
+          <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ const AppearanceView = () => {
                   </p>
                   <UpgradeTeamsBadge />
                 </div>
-                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
+                <p className="text-default  mt-0.5">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch

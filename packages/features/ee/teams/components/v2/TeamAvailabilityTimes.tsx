@@ -55,7 +55,7 @@ export default function TeamAvailabilityTimes(props: Props) {
           <span className="text-subtle text-sm">{t("no_available_slots")}</span>
         </div>
       ) : (
-        <>{!isLoading && <p className="mb-3 text-sm text-gray-600">{t("time_available")}</p>}</>
+        <>{!isLoading && <p className="text-default mb-3 text-sm">{t("time_available")}</p>}</>
       )}
       <div className="max-h-[390px] overflow-scroll">
         {slots.map((slot) => (

@@ -80,7 +80,7 @@ export default function EmptyScreen(props: {
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
         <div className="bg-emphasis dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <FiZap className="dark:bg-inverted inline-block h-10 w-10 stroke-[1.3px] dark:text-gray-600" />
+          <FiZap className="dark:bg-inverted dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>

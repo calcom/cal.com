@@ -47,7 +47,7 @@ export function Alert(props: AlertProps) {
             />
           )}
           {severity === "neutral" && (
-            <FiInfo className={classNames("h-5 w-5 text-gray-800", iconClassName)} aria-hidden="true" />
+            <FiInfo className={classNames("text-default h-5 w-5", iconClassName)} aria-hidden="true" />
           )}
           {severity === "success" && (
             <CheckCircleIcon className={classNames("text-muted h-5 w-5", iconClassName)} aria-hidden="true" />

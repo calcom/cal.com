@@ -34,7 +34,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   const commonClass =
     "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4";
   const selectedClass = classNames(commonClass, "bg-emphasis  text-emphasis");
-  const unselectedClass = classNames(commonClass, "text-gray-600 hover:bg-subtle hover:text-emphasis");
+  const unselectedClass = classNames(commonClass, "text-default hover:bg-subtle hover:text-emphasis");
   return (
     <ToggleGroupPrimitive
       value={yesNoValue}

@@ -12,7 +12,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
   const { t } = useLocale();
 
   return locations.length ? (
-    <div className="dark:text-darkgray-600 mr-6 flex w-full flex-col space-y-4 break-words text-sm text-gray-600">
+    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm">
       {locations.map((location, index) => {
         const eventLocationType = getEventLocationType(location.type);
         if (!eventLocationType) {

@@ -376,7 +376,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="hover:bg-subtle text-subtle dark:hover:text-inverted mt-2 inline-flex px-1 py-2 text-sm hover:text-gray-800 dark:hover:bg-transparent">
+            className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -443,7 +443,7 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-default dark:text-gray-300">{getTitle()}</p>
                   </div>
                   {props.paymentStatus &&
                     (bookingInfo.status === BookingStatus.CANCELLED ||

@@ -121,10 +121,10 @@ const Component = ({
               <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
               <h1 className="font-cal text-emphasis ml-4 text-3xl">{name}</h1>
             </div>
-            <h2 className="text-sm font-medium text-gray-600">
+            <h2 className="text-default text-sm font-medium">
               <Link
                 href={`categories/${categories[0]}`}
-                className="bg-subtle rounded-md p-1 text-xs capitalize text-gray-800">
+                className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
               • {t("published_by", { author })}

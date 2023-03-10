@@ -121,7 +121,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <div
           className={classNames(
             " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
-            isActive ? "text-gray-600" : "text-muted"
+            isActive ? "text-default" : "text-muted"
           )}>
           <span className="mr-1">{t("to")}:</span>
           {Array.from(sendTo).map((sendToPerson, index) => {
@@ -133,7 +133,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
           <Button type="button" color="minimal" className="mr-4">
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-            <FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+            <FiExternalLink className="text-default -mt-[2px] h-4 w-4 stroke-2" />
           </Button>
         </Link>
       </div>

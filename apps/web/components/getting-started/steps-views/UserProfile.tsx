@@ -148,7 +148,7 @@ const UserProfile = (props: IUserProfileProps) => {
           setText={(value: string) => setValue("bio", turndown(value))}
           excludedToolbarItems={["blockType"]}
         />
-        <p className="dark:text-inverted mt-2 font-sans text-sm font-normal text-gray-600">
+        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
           {t("few_sentences_about_yourself")}
         </p>
       </fieldset>

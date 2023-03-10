@@ -44,7 +44,7 @@ export default function TeamAvailabilityModal(props: Props) {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-gray-600">Date</span>
+            <span className="text-default font-bold">Date</span>
             <DatePicker
               date={selectedDate.toDate()}
               onDatesChange={(newDate) => {
@@ -53,7 +53,7 @@ export default function TeamAvailabilityModal(props: Props) {
             />
           </div>
           <div>
-            <span className="font-bold text-gray-600">Timezone</span>
+            <span className="text-default font-bold">Timezone</span>
             <TimezoneSelect
               id="timeZone"
               value={selectedTimeZone}
@@ -63,7 +63,7 @@ export default function TeamAvailabilityModal(props: Props) {
             />
           </div>
           <div>
-            <span className="font-bold text-gray-600">Slot Length</span>
+            <span className="text-default font-bold">Slot Length</span>
             <Select
               options={[
                 { value: 15, label: "15 minutes" },

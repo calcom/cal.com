@@ -19,13 +19,13 @@ export default function Error500() {
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
         <h1 className="font-cal text-emphasis text-6xl">500</h1>
         <h2 className="text-emphasis mt-6 text-2xl font-medium">It&apos;s not you, it&apos;s us.</h2>
-        <p className="mt-4 mb-6 max-w-2xl text-sm text-gray-600">
+        <p className="text-default mt-4 mb-6 max-w-2xl text-sm">
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>
         {router.query.error && (
           <div className="mb-8 flex flex-col">
-            <p className="mb-4 max-w-2xl text-sm text-gray-600">
+            <p className="text-default mb-4 max-w-2xl text-sm">
               Please provide the following text when contacting support to better help you:
             </p>
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">

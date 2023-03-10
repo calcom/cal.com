@@ -50,7 +50,7 @@ const VerticalTabItem = function ({
             {...linkProps}
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
-              props.textClassNames || "text-sm font-medium leading-none text-gray-600",
+              props.textClassNames || "text-default text-sm font-medium leading-none",
               "min-h-8 hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default group flex w-64 flex-row items-center rounded-md px-3 py-[10px]",
               props.disabled && "pointer-events-none !opacity-30",
               (isChild || !props.icon) && "ml-7 w-auto ltr:mr-5 rtl:ml-5",

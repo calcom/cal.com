@@ -46,7 +46,7 @@ const ApiKeyListItem = ({
         <div className="flex items-center space-x-3.5">
           {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
           {!isExpired && <Badge variant="green">{t("active")}</Badge>}
-          <p className="text-xs text-gray-600">
+          <p className="text-default text-xs">
             {" "}
             {neverExpires ? (
               <div className="text-subtle flex flex-row space-x-3">{t("api_key_never_expires")}</div>

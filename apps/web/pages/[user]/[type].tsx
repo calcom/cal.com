@@ -25,7 +25,7 @@ export default function Type(props: AvailabilityPageProps) {
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
             <div className="text-muted dark:text-inverted p-8 text-center">
-              <h2 className="font-cal dark:text-inverted mb-2 text-3xl text-gray-600">
+              <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
                 😴{" " + t("user_away")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_away_description")}</p>
@@ -40,7 +40,7 @@ export default function Type(props: AvailabilityPageProps) {
         <div className="space-y-6" data-testid="event-types">
           <div className="overflow-hidden rounded-sm border dark:border-gray-900">
             <div className="text-muted dark:text-inverted p-8 text-center">
-              <h2 className="font-cal dark:text-inverted mb-2 text-3xl text-gray-600">
+              <h2 className="font-cal dark:text-inverted text-emphasis600 mb-2 text-3xl">
                 {" " + t("unavailable")}
               </h2>
               <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled")}</p>

@@ -48,7 +48,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                   <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                   </div>
-                  <div className="hidden text-left text-gray-600 sm:col-span-1 sm:flex">
+                  <div className="text-default hidden text-left sm:col-span-1 sm:flex">
                     {t(`${variable}_info`)}
                   </div>
                 </div>

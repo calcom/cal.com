@@ -94,7 +94,7 @@ const CalendarsView = () => {
                     <h4 className=" text-emphasis pb-2 text-base font-semibold leading-5">
                       {t("add_to_calendar")}
                     </h4>
-                    <p className=" text-sm leading-5 text-gray-600">
+                    <p className=" text-default text-sm leading-5">
                       <Trans i18nKey="add_to_calendar_description">
                         Where to add events when you re booked. You can override this on a per-event basis in
                         advanced settings in the event type.
@@ -112,7 +112,7 @@ const CalendarsView = () => {
               <h4 className="text-emphasis mt-12 text-base font-semibold leading-5">
                 {t("check_for_conflicts")}
               </h4>
-              <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
+              <p className="text-default pb-2 text-sm leading-5">{t("select_calendars")}</p>
               <List className="flex flex-col gap-6" noBorderTreatment>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>

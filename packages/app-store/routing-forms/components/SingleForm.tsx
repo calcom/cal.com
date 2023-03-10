@@ -312,7 +312,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
                         Routers
                       </div>
-                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                      <p className="text-default -mt-1 text-xs leading-normal">
                         {t("modifications_in_fields_warning")}
                       </p>
                       <div className="flex">
@@ -334,7 +334,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       <div className="text-emphasis mb-2 block text-sm font-semibold leading-none ">
                         {t("connected_forms")}
                       </div>
-                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                      <p className="text-default -mt-1 text-xs leading-normal">
                         {t("form_modifications_warning")}
                       </p>
                       <div className="flex">

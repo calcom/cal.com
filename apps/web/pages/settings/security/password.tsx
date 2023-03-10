@@ -152,7 +152,7 @@ const PasswordView = () => {
               />
             </div>
           </div>
-          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
+          <p className="text-default mt-4 max-w-[38rem] text-sm">
             {t("invalid_password_hint", { passwordLength: passwordMinLength })}
           </p>
           <div className="mt-8 border-t border-gray-200 py-8">

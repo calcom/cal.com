@@ -62,7 +62,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="bg-subtle mb-2 w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono text-gray-800">
+              <code className="bg-subtle text-default mb-2 w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                 {" "}
                 {apiKey}
               </code>

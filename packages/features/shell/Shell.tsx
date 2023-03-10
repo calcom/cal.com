@@ -298,7 +298,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <span className="text-emphasis mb-1 block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="block truncate font-normal leading-none text-gray-600">
+                  <span className="text-default block truncate font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -605,7 +605,7 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600",
+          "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
           isChild
             ? `[&[aria-current='page']]:text-brand-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                 props.index === 0 ? "mt-0" : "mt-px"

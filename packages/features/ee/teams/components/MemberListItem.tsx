@@ -113,7 +113,7 @@ export default function MemberListItem(props: Props) {
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <span
-                className="block text-sm text-gray-600"
+                className="text-default block text-sm"
                 data-testid="member-email"
                 data-email={props.member.email}>
                 {props.member.email}

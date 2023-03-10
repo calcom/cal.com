@@ -99,7 +99,7 @@ function CalendarSwitch(props: {
         }}
       />
       {!!props.destination && (
-        <span className="bg-subtle ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal text-gray-800 sm:ml-4">
+        <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
           <FiArrowLeft className="h-4 w-4" />
           {t("adding_events_to")}
         </span>

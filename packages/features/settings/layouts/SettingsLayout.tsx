@@ -185,7 +185,7 @@ const SettingsSidebarContainer = ({
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none text-gray-600">
+                <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                   {tab && tab.icon && (
                     <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                   )}
@@ -217,7 +217,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                 <Link href={tab.href}>
-                  <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px] text-sm  font-medium leading-none text-gray-600">
+                  <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
@@ -442,7 +442,7 @@ function ShellHeader() {
             <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
-            <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+            <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
             <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
           )}

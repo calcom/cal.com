@@ -215,7 +215,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
-                        className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
+                        className="mt-4 mb-3 text-default"
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>

@@ -99,7 +99,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Link
               href="/apps/categories/calendar"
               target="_blank"
-              className="hover:text-emphasis text-sm text-gray-600">
+              className="hover:text-emphasis text-default text-sm">
               {t("add_another_calendar")}
             </Link>
           </div>
@@ -118,7 +118,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               )}
             />
           </div>
-          <p className="text-sm text-gray-600">{t("select_which_cal")}</p>
+          <p className="text-default text-sm">{t("select_which_cal")}</p>
         </div>
       )}
       <div className="w-full">

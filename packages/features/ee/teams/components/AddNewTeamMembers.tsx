@@ -162,9 +162,9 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
           </div>
           {member.username ? (
-            <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
+            <p className="text-default">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
+            <p className="text-default">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>

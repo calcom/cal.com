@@ -258,7 +258,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
               {usernameChangeCondition && usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
-                <p className="mb-4 text-sm text-gray-800">{t("change_username_standard_to_premium")}</p>
+                <p className="text-default mb-4 text-sm">{t("change_username_standard_to_premium")}</p>
               )}
 
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">

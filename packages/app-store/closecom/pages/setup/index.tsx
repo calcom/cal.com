@@ -47,7 +47,7 @@ export default function CloseComSetup() {
             />
           </div>
           <div>
-            <h1 className="text-gray-600">{t("provide_api_key")}</h1>
+            <h1 className="text-default">{t("provide_api_key")}</h1>
 
             <div className="mt-1 text-sm">
               {t("generate_api_key_description")}{" "}

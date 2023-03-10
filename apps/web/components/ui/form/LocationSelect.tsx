@@ -59,7 +59,7 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
           <span>{e.label}</span>
         </div>
       )}
-      formatGroupLabel={(e) => <p className="text-xs font-medium text-gray-600">{e.label}</p>}
+      formatGroupLabel={(e) => <p className="text-default text-xs font-medium">{e.label}</p>}
       {...props}
     />
   );

@@ -48,7 +48,7 @@ const cardTypeByVariant = {
     image: "w-9 h-auto rounded-full mb-4s",
     card: "w-full p-3 border border-gray-200",
     title: "text-sm font-cal",
-    description: "text-xs text-gray-600 line-clamp-2",
+    description: "text-xs text-default line-clamp-2",
   },
 };
 
@@ -152,7 +152,7 @@ export function Card({
             </Link>
           )}
           <button
-            className="p-0 text-xs font-normal text-gray-600 hover:text-gray-800"
+            className="text-default hover:text-emphasis p-0 text-xs font-normal"
             color="minimal"
             onClick={actionButton?.onClick}>
             {actionButton?.child}

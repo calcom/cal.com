@@ -60,7 +60,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           )}
         </h3>
       </div>
-      {/* TODO: add reviews <div className="flex text-sm text-gray-800">
+      {/* TODO: add reviews <div className="flex text-sm text-default">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
           <span className="pl-1 text-subtle">{props.reviews} reviews</span>
         </div> */}
@@ -153,7 +153,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         )}
 
         {(app.isDefault || (!app.isDefault && app.isGlobal)) && (
-          <span className="bg-subtle flex items-center rounded-md px-2 py-1 text-sm font-normal text-gray-800">
+          <span className="bg-subtle text-emphasis flex items-center rounded-md px-2 py-1 text-sm font-normal">
             {t("default")}
           </span>
         )}

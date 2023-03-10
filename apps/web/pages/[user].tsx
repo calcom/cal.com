@@ -50,7 +50,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <div className="space-y-6" data-testid="event-types">
       <div className="overflow-hidden rounded-sm border dark:border-gray-900">
         <div className="p-8 text-center text-muted dark:text-inverted">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-inverted">{" " + t("unavailable")}</h2>
+          <h2 className="font-cal mb-2 text-3xl text-default dark:text-inverted">{" " + t("unavailable")}</h2>
           <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-muted dark:text-inverted">
-                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-inverted">
+                  <h2 className="font-cal mb-2 text-3xl text-default dark:text-inverted">
                     😴{" " + t("user_away")}
                   </h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>

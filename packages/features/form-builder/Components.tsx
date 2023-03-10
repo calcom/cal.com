@@ -161,7 +161,7 @@ export const Components: Record<BookingFieldType, Component> = {
                                 value.splice(index, 1);
                                 setValue(value);
                               }}>
-                              <FiX className="text-gray-600" />
+                              <FiX className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null

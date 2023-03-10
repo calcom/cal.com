@@ -149,7 +149,7 @@ const EventTypeScheduleDetails = () => {
       </ol>
       <hr />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
-        <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
+        <span className="text-default flex items-center justify-center text-sm sm:justify-start">
           <FiGlobe className="ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>

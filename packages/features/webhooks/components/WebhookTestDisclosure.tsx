@@ -20,7 +20,7 @@ export default function WebhookTestDisclosure() {
       <div className="flex justify-between">
         <div>
           <p className="text-sm font-semibold leading-5">{t("webhook_test")}</p>
-          <p className="mb-4 text-sm text-gray-600">{t("test_webhook")}</p>
+          <p className="text-default mb-4 text-sm">{t("test_webhook")}</p>
         </div>
         <Button
           type="button"

@@ -373,7 +373,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
             {booking.description && (
               <div
-                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -456,7 +456,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                   </p>
                 );
               })}>
-              <div className="dark:text-inverted text-gray-600">
+              <div className="text-default">
                 <FiRefreshCcw
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"

@@ -49,7 +49,7 @@ const TwoFactorAuthView = () => {
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
-          <p className="text-sm text-gray-600">{t("add_an_extra_layer_of_security")}</p>
+          <p className="text-default text-sm">{t("add_an_extra_layer_of_security")}</p>
         </div>
       </div>
 
