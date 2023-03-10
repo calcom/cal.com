@@ -105,7 +105,6 @@ html.todesktop nav a svg{
 */
 
 
-
 /*
   Adds Utility to hide scrollbar to tailwind
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
@@ -151,6 +150,13 @@ select:focus {
 }
 /*  https://stackoverflow.com/a/69308190 */
 input[type='text']:focus { box-shadow: none; }
+
+
+@layer components {
+  .scroll-bar{
+    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent
+  }
+}
 
 
 button[role="switch"][data-state="checked"] {

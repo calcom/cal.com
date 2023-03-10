@@ -140,6 +140,9 @@ module.exports = {
           900: "#f3f4f6",
         },
       },
+      screens: {
+        pwa: { raw: "(display-mode: standalone)" },
+      },
       keyframes: {
         "fade-in-up": {
           "0%": {

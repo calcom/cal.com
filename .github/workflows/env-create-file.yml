@@ -1,0 +1,49 @@
+name: Create .env file
+
+on:
+  workflow_call:
+
+env:
+  INPUT_ENV_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+  INPUT_ENV_NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+  INPUT_ENV_NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
+  INPUT_ENV_NEXTAUTH_SECRET: secret
+  INPUT_ENV_GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+  INPUT_ENV_GOOGLE_LOGIN_ENABLED: true
+  # INPUT_ENV_CRON_API_KEY: xxx
+  INPUT_ENV_CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  INPUT_ENV_NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+  INPUT_ENV_STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+  INPUT_ENV_STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+  INPUT_ENV_STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  INPUT_ENV_PAYMENT_FEE_PERCENTAGE: 0.005
+  INPUT_ENV_PAYMENT_FEE_FIXED: 10
+  INPUT_ENV_SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
+  INPUT_ENV_SAML_ADMINS: pro@example.com
+  INPUT_ENV_NEXTAUTH_URL: http://localhost:3000/api/auth
+  INPUT_ENV_NEXT_PUBLIC_IS_E2E: 1
+  # INPUT_ENV_EMAIL_FROM: e2e@cal.com
+  # INPUT_ENV_EMAIL_SERVER_HOST: ${{ secrets.CI_EMAIL_SERVER_HOST }}
+  # INPUT_ENV_EMAIL_SERVER_PORT: ${{ secrets.CI_EMAIL_SERVER_PORT }}
+  # INPUT_ENV_EMAIL_SERVER_USER: ${{ secrets.CI_EMAIL_SERVER_USER }}
+  # INPUT_ENV_EMAIL_SERVER_PASSWORD: ${{ secrets.CI_EMAIL_SERVER_PASSWORD }}
+  # INPUT_ENV_MS_GRAPH_CLIENT_ID: xxx
+  # INPUT_ENV_MS_GRAPH_CLIENT_SECRET: xxx
+  # INPUT_ENV_ZOOM_CLIENT_ID: xxx
+  # INPUT_ENV_ZOOM_CLIENT_SECRET: xxx
+  INPUT_ENV_TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  INPUT_ENV_TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  create_env_file:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ozaytsev86/create-env-file@v1
+        with:
+          file-name: ${{ github.workspace }}/gh.env
+      - uses: actions/cache@v3
+        id: env-cache
+        with:
+          path: gh.env
+          key: env-cache-${{ hashFiles('gh.env') }}

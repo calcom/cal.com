@@ -317,6 +317,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         dateOverrides,
         minimumBookingNotice: eventType.minimumBookingNotice,
         frequency: eventType.slotInterval || input.duration || eventType.length,
+        organizerTimeZone:
+          eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
       })
     );
   }
@@ -365,8 +367,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: time, ...passThroughProps }
+      { time: _time, ...passThroughProps }
     ) => {
+      // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
+      const time = _time.tz(input.timeZone);
       r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,

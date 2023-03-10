@@ -185,6 +185,7 @@ type InputEventType = {
   slotInterval?: number;
   minimumBookingNotice?: number;
   users?: { id: number }[];
+  hosts?: { id: number }[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
@@ -197,6 +198,7 @@ type InputBooking = {
   endTime: string;
   title?: string;
   status: BookingStatus;
+  attendees?: { email: string }[];
 };
 
 type InputHost = {
@@ -789,6 +791,14 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 45,
             schedulingType: "COLLECTIVE",
+            hosts: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
           },
           // A default Event Type which this user owns
           {
@@ -803,11 +813,21 @@ describe("getSchedule", () => {
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
           },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
         ],
         bookings: [
           // Create a booking on our Collective Event Type
           {
-            // userId: XX, <- No owner since this is a Collective Event Type
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
             eventTypeId: 1,
             status: "ACCEPTED",
             startTime: `${plus2DateString}T04:00:00.000Z`,
@@ -1215,15 +1235,8 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
               // @ts-ignore
               statusIn.includes(booking.status) && booking.userId === where.OR[0].userId;
 
-            // ~~ SECOND CONDITION checks whether this user is a host of this Event Type
-            //    and that booking.status is a match for the returned query
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            let secondConditionMatches = where.OR[1].eventTypeId.in.includes(booking.eventTypeId);
-            secondConditionMatches = secondConditionMatches && statusIn.includes(booking.status);
-
             // We return this booking if either condition is met
-            return firstConditionMatches || secondConditionMatches;
+            return firstConditionMatches;
           })
           .map((booking) => ({
             uid: uuidv4(),
@@ -1236,11 +1249,17 @@ async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[
   });
 }
 
-function addHosts(hosts: InputHost[]) {
-  prismaMock.host.findMany.mockResolvedValue(hosts);
-}
-
 function addUsers(users: InputUser[]) {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  prismaMock.user.findUniqueOrThrow.mockImplementation((findUniqueArgs) => {
+    return new Promise((resolve) => {
+      resolve({
+        email: `IntegrationTestUser${findUniqueArgs?.where.id}@example.com`,
+      } as unknown as PrismaUser);
+    });
+  });
+
   prismaMock.user.findMany.mockResolvedValue(
     users.map((user) => {
       return {
@@ -1270,8 +1289,6 @@ function createBookingScenario(data: ScenarioData) {
   logger.silly("TestData: Creating Scenario", data);
 
   addUsers(data.users);
-
-  addHosts(data.hosts);
 
   const eventType = addEventTypes(data.eventTypes, data.users);
   if (data.apps) {

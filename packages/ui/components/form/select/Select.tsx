@@ -45,7 +45,7 @@ export const getReactSelectProps = <
   menuPlacement?: MenuPlacement;
 }) => ({
   menuPlacement,
-  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
+  className: classNames("block min-h-6 w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
     ...reactSelectComponents,
@@ -120,6 +120,7 @@ export const SelectField = function SelectField<
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
   props: {
+    required?: boolean;
     name?: string;
     containerClassName?: string;
     label?: string;

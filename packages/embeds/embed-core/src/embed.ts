@@ -305,27 +305,32 @@ export class Cal {
     //     },
     //   },
     // });
-    let attributesString = "";
-    let existingEl = null;
+    let existingEl: HTMLElement | null = null;
+
     if (attributes?.id) {
-      attributesString += ` id="${attributes.id}"`;
       existingEl = document.getElementById(attributes.id);
     }
-    let el = existingEl;
+    let el: HTMLElement;
     if (!existingEl) {
-      const template = document.createElement("template");
-      template.innerHTML = `<cal-floating-button ${attributesString}  data-cal-namespace="${this.namespace}" data-cal-link="${calLink}"></cal-floating-button>`;
-      el = template.content.children[0] as HTMLElement;
-      document.body.appendChild(template.content);
+      el = document.createElement("cal-floating-button");
+      el.dataset.calLink = calLink;
+      el.dataset.calNamespace = this.namespace;
+      if (attributes?.id) {
+        el.id = attributes.id;
+      }
+
+      document.body.appendChild(el);
+    } else {
+      el = existingEl;
     }
 
     if (buttonText) {
-      el!.setAttribute("data-button-text", buttonText);
+      el.setAttribute("data-button-text", buttonText);
     }
-    el!.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
-    el!.setAttribute("data-button-position", "" + buttonPosition);
-    el!.setAttribute("data-button-color", "" + buttonColor);
-    el!.setAttribute("data-button-text-color", "" + buttonTextColor);
+    el.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
+    el.setAttribute("data-button-position", "" + buttonPosition);
+    el.setAttribute("data-button-color", "" + buttonColor);
+    el.setAttribute("data-button-text-color", "" + buttonTextColor);
   }
 
   modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {

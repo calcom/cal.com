@@ -1,11 +1,11 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
@@ -51,11 +51,11 @@ export const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter dark:hover:border-darkmodebrand absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
+        "disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
         active
-          ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
+          ? "dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
           : !disabled
-          ? "dark:bg-darkgray-200 bg-gray-100 hover:bg-gray-300 dark:text-white"
+          ? "dark:bg-darkgray-200 hover:border-brand dark:hover:border-darkmodebrand bg-gray-100 dark:text-white"
           : ""
       )}
       data-testid="day"
@@ -138,8 +138,6 @@ const Days = ({
     days.push(date);
   }
 
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
   return (
     <>
       {days.map((day, idx) => (
@@ -158,13 +156,6 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                isMobile &&
-                  setTimeout(() => {
-                    window.scrollTo({
-                      top: 360,
-                      behavior: "smooth",
-                    });
-                  }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
@@ -207,36 +198,41 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex justify-between text-xl font-light">
-        <span className="w-1/2 dark:text-white">
+      <div className="mb-4 flex items-center justify-between text-xl font-light">
+        <span className="w-1/2 text-base dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker text-base font-semibold dark:text-white">{month}</strong>{" "}
-              <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
+              <strong className="text-bookingdarker font-semibold dark:text-white">{month}</strong>{" "}
+              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
           )}
         </span>
         <div className="text-black dark:text-white">
-          <button
-            type="button"
-            onClick={() => changeMonth(-1)}
-            className={classNames(
-              "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
-              !browsingDate.isAfter(dayjs()) && "disabled:text-bookinglighter hover:opacity-50"
-            )}
-            disabled={!browsingDate.isAfter(dayjs())}
-            data-testid="decrementMonth">
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            className="group p-1 opacity-50 hover:opacity-100"
-            onClick={() => changeMonth(+1)}
-            data-testid="incrementMonth">
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
+          <div className="flex">
+            <Button
+              className={classNames(
+                "group p-1 opacity-50 hover:opacity-100",
+                !browsingDate.isAfter(dayjs()) &&
+                  "disabled:text-bookinglighter hover:bg-background hover:opacity-50"
+              )}
+              onClick={() => changeMonth(-1)}
+              disabled={!browsingDate.isAfter(dayjs())}
+              data-testid="decrementMonth"
+              color="minimal"
+              variant="icon"
+              StartIcon={ChevronLeftIcon}
+            />
+            <Button
+              className="group p-1 opacity-50 hover:opacity-100"
+              onClick={() => changeMonth(+1)}
+              data-testid="incrementMonth"
+              color="minimal"
+              variant="icon"
+              StartIcon={ChevronRightIcon}
+            />
+          </div>
         </div>
       </div>
       <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-neutral-900 md:mb-0 md:border-0">

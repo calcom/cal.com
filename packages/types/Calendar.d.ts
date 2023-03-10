@@ -27,6 +27,13 @@ export type Person = {
   locale?: string;
 };
 
+export type TeamMember = {
+  name: string;
+  email: string;
+  timeZone: string;
+  language: { translate: TFunction; locale: string };
+};
+
 export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
@@ -137,7 +144,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: TeamMember[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
@@ -156,6 +163,24 @@ export interface CalendarEvent {
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsPerTimeSlot?: number | null;
+
+  // It has responses to all the fields(system + user)
+  responses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
+
+  // It just has responses to only the user fields. It allows to easily iterate over to show only user fields
+  userFieldsResponses?: Record<
+    string,
+    {
+      value: string | string[];
+      label: string;
+    }
+  > | null;
 }
 
 export interface EntryPoint {
@@ -181,6 +206,9 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
+  primaryEmail?: string;
+  credentialId?: number;
+  integrationTitle?: string;
 }
 
 export interface Calendar {

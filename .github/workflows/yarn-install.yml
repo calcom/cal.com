@@ -1,0 +1,14 @@
+name: Yarn install
+
+on:
+  workflow_call:
+
+jobs:
+  setup:
+    name: Yarn install & cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
