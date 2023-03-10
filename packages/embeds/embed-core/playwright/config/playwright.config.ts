@@ -81,7 +81,7 @@ declare global {
       toBeEmbedCalLink(
         calNamespace: string,
         // eslint-disable-next-line
-        getActionFiredDetails: Function,
+        getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
         expectedUrlDetails?: ExpectedUrlDetails
       ): Promise<R>;
     }
@@ -94,7 +94,7 @@ expect.extend({
     calNamespace: string,
     //TODO: Move it to testUtil, so that it doesn't need to be passed
     // eslint-disable-next-line
-    getActionFiredDetails: Function,
+    getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
     expectedUrlDetails: ExpectedUrlDetails = {}
   ) {
     if (!iframe || !iframe.url) {
