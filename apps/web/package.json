@@ -13,7 +13,6 @@
     "type-check": "tsc --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "start:bg": "next start &",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
