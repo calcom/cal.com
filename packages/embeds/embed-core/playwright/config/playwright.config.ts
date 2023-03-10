@@ -2,7 +2,7 @@ import type { PlaywrightTestConfig, Frame } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import * as path from "path";
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config({ path: "../../../../../.env" });
 
 const outputDir = path.join("../results");
