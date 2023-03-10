@@ -447,13 +447,13 @@ export const FormBuilder = function FormBuilder({
                 required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
-                label="Label"
+                label={t("label")}
               />
               {fieldType?.isTextType ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
-                  label="Placeholder"
+                  label={t("placeholder")}
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
