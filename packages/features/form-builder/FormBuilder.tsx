@@ -307,9 +307,9 @@ export const FormBuilder = function FormBuilder({
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
                         // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="gray">Hidden</Badge>
+                        <Badge variant="gray">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
+                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
@@ -477,7 +477,7 @@ export const FormBuilder = function FormBuilder({
                       onValueChange={(val) => {
                         onChange(val);
                       }}
-                      label="Required"
+                      label={t("required")}
                     />
                   );
                 }}
