@@ -342,7 +342,7 @@ export default NextAuth({
         if (user) {
           const metadata = userMetadata.parse(user.metadata);
           if (metadata?.sessionTimeout) {
-            maxAge = metadata.sessionTimeout / 60;
+            maxAge = metadata.sessionTimeout * 60;
           }
         }
       }

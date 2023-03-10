@@ -11,5 +11,6 @@
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "The world's fastest calendar, beautifully designed for a remote world\r",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dependencies": ["google-calendar"]
 }

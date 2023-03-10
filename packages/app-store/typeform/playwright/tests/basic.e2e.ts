@@ -4,7 +4,7 @@ import { expect } from "@playwright/test";
 import {
   addForm as addRoutingForm,
   addOneFieldAndDescriptionAndSaveForm,
-} from "@calcom/app-store/ee/routing-forms/playwright/tests/basic.e2e";
+} from "@calcom/app-store/routing-forms/playwright/tests/basic.e2e";
 import { CAL_URL } from "@calcom/lib/constants";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";

@@ -5,8 +5,8 @@ import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
+import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -24,7 +24,7 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -1128,8 +1128,7 @@ const loggedInViewerRouter = router({
       });
       // Revalidate user calendar cache.
       if (credential.app?.slug.includes("calendar")) {
-        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+        await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
       }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
