@@ -20,6 +20,7 @@
     ·
     <a href="https://cal.com/roadmap">Roadmap</a>
   </p>
+</p>
 
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
