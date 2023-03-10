@@ -299,7 +299,6 @@ const BookingPage = ({
   }, []);
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
-  const seatsBookingOwner = !!(eventType.seatsPerTimeSlot && booking?.user?.id === session?.user?.id);
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
