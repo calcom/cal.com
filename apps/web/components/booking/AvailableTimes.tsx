@@ -64,13 +64,13 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   return (
     <div ref={slotPickerRef}>
       {!!date ? (
-        <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col px-4 text-center sm:mt-0 sm:p-5 md:-mb-5 md:min-w-[200px] lg:min-w-[300px]">
-          <div className="mb-6 flex items-center text-left text-base">
+        <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col rounded-md px-4 text-center sm:mt-0 sm:p-4 md:-mb-5 md:min-w-[200px] md:p-4 lg:min-w-[300px]">
+          <div className="mb-4 flex items-center text-left text-base">
             <div className="mr-4">
               <span className="text-bookingdarker dark:text-darkgray-800 font-semibold text-gray-900">
                 {nameOfDay(i18n.language, Number(date.format("d")), "short")}
               </span>
-              <span className="text-bookinglight font-medium">
+              <span className="text-bookinglight">
                 , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
               </span>
             </div>
@@ -85,7 +85,9 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               />
             </div>
           </div>
-          <div ref={ref} className="flex-grow overflow-y-auto sm:block md:h-[364px]">
+          <div
+            ref={ref}
+            className="scroll-bar scrollbar-track-w-20 relative -mb-4 flex-grow overflow-y-auto sm:block md:h-[364px]">
             {slots.length > 0 &&
               slots.map((slot) => {
                 type BookingURL = {

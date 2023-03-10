@@ -266,8 +266,7 @@ export const FormBuilder = function FormBuilder({
           {fields.map((field, index) => {
             const fieldType = FieldTypesMap[field.type];
 
-            // Hidden fields can't be required
-            const isRequired = field.required && !field.hidden;
+            const isRequired = field.required;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -306,8 +305,12 @@ export const FormBuilder = function FormBuilder({
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
-                      {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
+                      {field.hidden ? (
+                        // Hidden field can't be required, so we don't need to show the Optional badge
+                        <Badge variant="gray">{t("hidden")}</Badge>
+                      ) : (
+                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
+                      )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
                         <Badge key={key} variant="blue">
@@ -444,13 +447,13 @@ export const FormBuilder = function FormBuilder({
                 required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
-                label="Label"
+                label={t("label")}
               />
               {fieldType?.isTextType ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
-                  label="Placeholder"
+                  label={t("placeholder")}
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
@@ -474,7 +477,7 @@ export const FormBuilder = function FormBuilder({
                       onValueChange={(val) => {
                         onChange(val);
                       }}
-                      label="Required"
+                      label={t("required")}
                     />
                   );
                 }}
