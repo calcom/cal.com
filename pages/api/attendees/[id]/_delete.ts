@@ -11,6 +11,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     operationId: removeAttendeeById
  *     summary: Remove an existing attendee
  *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: string
+ *        description: Your API key
  *      - in: path
  *        name: id
  *        schema:
@@ -21,7 +27,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     - attendees
  *     responses:
  *       201:
- *         description: OK, attendee removed successfuly
+ *         description: OK, attendee removed successfully
  *       400:
  *        description: Bad request. Attendee id is invalid.
  *       401:

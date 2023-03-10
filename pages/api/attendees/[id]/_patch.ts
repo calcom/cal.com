@@ -11,8 +11,8 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  * @swagger
  * /attendees/{id}:
  *   patch:
- *     summary: Edit an existing attendee
  *     operationId: editAttendeeById
+ *     summary: Edit an existing attendee
  *     requestBody:
  *       description: Edit an existing attendee related to one of your bookings
  *       required: true
@@ -23,31 +23,35 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *             properties:
  *               email:
  *                 type: string
- *                 example: email@example.com
+ *                 format: email
  *               name:
  *                 type: string
- *                 example: John Doe
  *               timeZone:
  *                 type: string
- *                 example: Europe/London
  *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *          example: 3
- *        required: true
- *        description: ID of the attendee to edit
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the attendee to get
  *     tags:
  *     - attendees
  *     responses:
  *       201:
- *         description: OK, attendee edited successfuly
+ *         description: OK, attendee edited successfully
  *       400:
  *        description: Bad request. Attendee body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
+
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);

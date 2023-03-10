@@ -7,6 +7,62 @@ import { defaultResponder } from "@calcom/lib/server";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
+/**
+ * @swagger
+ * /availability:
+ *   get:
+ *     summary: Find user or team availability
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         description: ID of the user to fetch the availability for
+ *       - in: query
+ *         name: teamId
+ *         schema:
+ *           type: integer
+ *         description: ID of the team to fetch the availability for
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         description: username of the user to fetch the availability for
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start Date of the availability query
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End Date of the availability query
+ *       - in: query
+ *         name: eventTypeId
+ *         schema:
+ *           type: integer
+ *         description: Event Type ID of the event type to fetch the availability for
+ *     operationId: availability
+ *     tags:
+ *     - availability
+ *     responses:
+ *       200:
+ *         description: OK
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: User not found | Team not found | Team has no members
+ */
+
 const availabilitySchema = z
   .object({
     userId: stringOrNumber.optional(),

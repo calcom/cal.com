@@ -12,6 +12,13 @@ import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
  *   get:
  *     operationId: listAttendees
  *     summary: Find all attendees
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     tags:
  *     - attendees
  *     responses:

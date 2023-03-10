@@ -12,13 +12,18 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     operationId: getAttendeeById
  *     summary: Find an attendee
  *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *       - in: path
  *         name: id
  *         schema:
  *           type: integer
  *         required: true
  *         description: ID of the attendee to get
- *         example: 3
  *     tags:
  *     - attendees
  *     responses:

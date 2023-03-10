@@ -24,11 +24,11 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *               title:
  *                 type: string
  *                 description: 'Booking event title'
- *               startTime:
+ *               start:
  *                 type: string
  *                 format: date-time
  *                 description: 'Start time of the Event'
- *               endTime:
+ *               end:
  *                 type: string
  *                 format: date-time
  *                 description: 'End time of the Event'

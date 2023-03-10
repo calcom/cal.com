@@ -11,6 +11,13 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *   post:
  *     operationId: addAttendee
  *     summary: Creates a new attendee
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     requestBody:
  *       description: Create a new attendee related to one of your bookings
  *       required: true
@@ -26,16 +33,13 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *             properties:
  *               bookingId:
  *                 type: number
- *                 example: 1
  *               email:
  *                 type: string
- *                 example: email@example.com
+ *                 format: email
  *               name:
  *                 type: string
- *                 example: John Doe
  *               timeZone:
  *                 type: string
- *                 example: Europe/London
  *     tags:
  *     - attendees
  *     responses:
