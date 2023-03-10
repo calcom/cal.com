@@ -30,12 +30,13 @@ enum PeriodType {
 }
 
 model Host {
-  id          Int       @id @default(autoincrement())
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+
+  @@id([userId, eventTypeId])
 }
 
 model EventType {
@@ -641,14 +642,14 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id             Int             @id @default(autoincrement())
-  bookingUid     String
-  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingUid     String?
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid])
   method         WorkflowMethods
   scheduledDate  DateTime
   referenceId    String?         @unique
   scheduled      Boolean
-  workflowStepId Int
-  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int?
+  workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
 }
 

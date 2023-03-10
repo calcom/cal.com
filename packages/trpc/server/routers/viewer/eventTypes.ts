@@ -1,5 +1,5 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
@@ -617,15 +617,14 @@ export const eventTypesRouter = router({
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -778,6 +777,9 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
+        descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
 
@@ -844,8 +846,14 @@ export const eventTypesRouter = router({
     });
 
     const eventTypesWithLogo = eventTypes.map((eventType) => {
-      const locationParsed = eventTypeLocationsSchema.parse(eventType.locations);
-      const app = getAppFromLocationValue(locationParsed[0].type);
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
       return {
         ...eventType,
         logo: app?.logo,
@@ -856,6 +864,7 @@ export const eventTypesRouter = router({
       eventTypes: eventTypesWithLogo,
     };
   }),
+
   bulkUpdateToDefaultLocation: authedProcedure
     .input(
       z.object({
