@@ -1,6 +1,8 @@
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
+import type { EventNameObjectType } from "@calcom/core/event";
+import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -42,7 +44,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
+export const sendScheduledEmails = async (calEvent: CalendarEvent, eventNameObject?: EventNameObjectType) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent })));
@@ -55,7 +57,18 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeScheduledEmail(calEvent, attendee));
+      return sendEmail(
+        () =>
+          new AttendeeScheduledEmail(
+            {
+              ...calEvent,
+              ...(eventNameObject && {
+                title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+              }),
+            },
+            attendee
+          )
+      );
     })
   );
 
