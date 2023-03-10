@@ -7,6 +7,8 @@ import { fallBackHex, isValidHexCode } from "@calcom/lib/CustomBranding";
 export type ColorPickerProps = {
   defaultValue: string;
   onChange: (text: string) => void;
+  container?: HTMLElement;
+  popoverAlign?: React.ComponentProps<typeof Popover.Content>["align"];
 };
 
 const ColorPicker = (props: ColorPickerProps) => {
@@ -16,7 +18,7 @@ const ColorPicker = (props: ColorPickerProps) => {
   const [color, setColor] = useState(init);
 
   return (
-    <div className=" mt-1 flex items-center justify-center">
+    <div className="mt-1 flex items-center justify-center">
       <Popover.Root>
         <div className="flex items-center rounded-l-md border border-r-0 border-gray-300 p-1.5">
           <Popover.Trigger asChild>
@@ -27,8 +29,8 @@ const ColorPicker = (props: ColorPickerProps) => {
             />
           </Popover.Trigger>
         </div>
-        <Popover.Portal>
-          <Popover.Content align="center" sideOffset={10}>
+        <Popover.Portal container={props.container}>
+          <Popover.Content align={props.popoverAlign ?? "center"} sideOffset={10}>
             <HexColorPicker
               color={color}
               className="!h-32 !w-32"

@@ -250,6 +250,7 @@ export default function Success(props: SuccessProps) {
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     location: location,
+    bookingFields: bookingInfo.responses,
     t,
   };
 
