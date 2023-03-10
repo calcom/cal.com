@@ -9,7 +9,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
@@ -528,6 +528,7 @@ export const eventTypesRouter = router({
       periodType,
       locations,
       bookingLimits,
+      durationLimits,
       destinationCalendar,
       customInputs,
       recurringEvent,
@@ -582,10 +583,17 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
+      data.durationLimits = durationLimits;
     }
 
     if (schedule) {
@@ -769,6 +777,7 @@ export const eventTypesRouter = router({
         team,
         recurringEvent,
         bookingLimits,
+        durationLimits,
         metadata,
         workflows,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -794,6 +803,7 @@ export const eventTypesRouter = router({
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
+        durationLimits: durationLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
         bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };

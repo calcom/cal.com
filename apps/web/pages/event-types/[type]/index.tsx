@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,7 +22,7 @@ import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
@@ -86,7 +86,8 @@ export type FormValues = {
     externalId: string;
   };
   successRedirectUrl: string;
-  bookingLimits?: BookingLimit;
+  durationLimits?: IntervalLimit;
+  bookingLimits?: IntervalLimit;
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
@@ -194,6 +195,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     description: eventType.description ?? undefined,
     schedule: eventType.schedule || undefined,
     bookingLimits: eventType.bookingLimits || undefined,
+    durationLimits: eventType.durationLimits || undefined,
     length: eventType.length,
     hidden: eventType.hidden,
     periodDates: {
@@ -303,6 +305,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsPerTimeSlot,
             seatsShowAttendees,
             bookingLimits,
+            durationLimits,
             recurringEvent,
             locations,
             metadata,
@@ -316,8 +319,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           } = values;
 
           if (bookingLimits) {
-            const isValid = validateBookingLimitOrder(bookingLimits);
+            const isValid = validateIntervalLimitOrder(bookingLimits);
             if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
+
+          if (durationLimits) {
+            const isValid = validateIntervalLimitOrder(durationLimits);
+            if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
           }
 
           if (metadata?.multipleDuration !== undefined) {
@@ -341,6 +349,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
             bookingLimits,
+            durationLimits,
             seatsPerTimeSlot,
             seatsShowAttendees,
             metadata,

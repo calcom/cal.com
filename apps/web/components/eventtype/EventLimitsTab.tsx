@@ -1,9 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
+import type { SingleValue } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
@@ -11,8 +13,17 @@ import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PeriodType } from "@calcom/prisma/client";
-import type { BookingLimit } from "@calcom/types/Calendar";
-import { Button, DateRangePicker, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
+import type { IntervalLimit } from "@calcom/types/Calendar";
+import {
+  Button,
+  DateRangePicker,
+  Input,
+  InputField,
+  Label,
+  Select,
+  SettingsToggle,
+  TextField,
+} from "@calcom/ui";
 import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 const MinimumBookingNoticeInput = React.forwardRef<
@@ -260,7 +271,34 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 formMethods.setValue("bookingLimits", {});
               }
             }}>
-            <BookingLimits />
+            <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+          </SettingsToggle>
+        )}
+      />
+      <hr />
+      <Controller
+        name="durationLimits"
+        control={formMethods.control}
+        render={({ field: { value } }) => (
+          <SettingsToggle
+            title={t("limit_total_booking_duration")}
+            description={t("limit_total_booking_duration_description")}
+            checked={Object.keys(value ?? {}).length > 0}
+            onCheckedChange={(active) => {
+              if (active) {
+                formMethods.setValue("durationLimits", {
+                  PER_DAY: 60,
+                });
+              } else {
+                formMethods.setValue("durationLimits", {});
+              }
+            }}>
+            <IntervalLimitsManager
+              propertyName="durationLimits"
+              defaultLimit={60}
+              step={15}
+              textFieldSuffix={t("minutes")}
+            />
           </SettingsToggle>
         )}
       />
@@ -348,124 +386,158 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   );
 };
 
-const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
-type BookingLimitsKey = keyof BookingLimit;
-const BookingLimits = () => {
+type IntervalLimitsKey = keyof IntervalLimit;
+
+const intervalOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"] as const;
+
+const INTERVAL_LIMIT_OPTIONS = intervalOrderKeys.map((key) => ({
+  value: key as keyof IntervalLimit,
+  label: `Per ${key.split("_")[1].toLocaleLowerCase()}`,
+}));
+
+type IntervalLimitItemProps = {
+  key: Key;
+  limitKey: IntervalLimitsKey;
+  step: number;
+  value: number;
+  textFieldSuffix?: string;
+  selectOptions: { value: keyof IntervalLimit; label: string }[];
+  hasDeleteButton?: boolean;
+  onDelete: (intervalLimitsKey: IntervalLimitsKey) => void;
+  onLimitChange: (intervalLimitsKey: IntervalLimitsKey, limit: number) => void;
+  onIntervalSelect: (interval: SingleValue<{ value: keyof IntervalLimit; label: string }>) => void;
+};
+
+const IntervalLimitItem = ({
+  limitKey,
+  step,
+  value,
+  textFieldSuffix,
+  selectOptions,
+  hasDeleteButton,
+  onDelete,
+  onLimitChange,
+  onIntervalSelect,
+}: IntervalLimitItemProps) => {
+  return (
+    <div className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
+      <TextField
+        required
+        type="number"
+        containerClassName={`${textFieldSuffix ? "w-36" : "w-16"} -mb-1`}
+        placeholder={`${value}`}
+        min={step}
+        step={step}
+        defaultValue={value}
+        addOnSuffix={textFieldSuffix}
+        onChange={(e) => onLimitChange(limitKey, parseInt(e.target.value))}
+      />
+      <Select
+        options={selectOptions}
+        isSearchable={false}
+        defaultValue={INTERVAL_LIMIT_OPTIONS.find((option) => option.value === limitKey)}
+        onChange={onIntervalSelect}
+      />
+      {hasDeleteButton && (
+        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={() => onDelete(limitKey)} />
+      )}
+    </div>
+  );
+};
+
+type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = {
+  propertyName: K;
+  defaultLimit: number;
+  step: number;
+  textFieldSuffix?: string;
+};
+
+const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
+  propertyName,
+  defaultLimit,
+  step,
+  textFieldSuffix,
+}: IntervalLimitsManagerProps<K>) => {
   const { watch, setValue, control } = useFormContext<FormValues>();
-  const watchBookingLimits = watch("bookingLimits");
+  const watchIntervalLimits = watch(propertyName);
   const { t } = useLocale();
 
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
-  const BOOKING_LIMIT_OPTIONS: {
-    value: keyof BookingLimit;
-    label: string;
-  }[] = [
-    {
-      value: "PER_DAY",
-      label: "Per Day",
-    },
-    {
-      value: "PER_WEEK",
-      label: "Per Week",
-    },
-    {
-      value: "PER_MONTH",
-      label: "Per Month",
-    },
-    {
-      value: "PER_YEAR",
-      label: "Per Year",
-    },
-  ];
-
   return (
     <Controller
-      name="bookingLimits"
+      name={propertyName}
       control={control}
       render={({ field: { value, onChange } }) => {
-        const currentBookingLimits = value;
+        const currentIntervalLimits = value;
+
+        const addLimit = () => {
+          if (!currentIntervalLimits || !watchIntervalLimits) return;
+          const currentKeys = Object.keys(watchIntervalLimits);
+
+          const [rest] = Object.values(INTERVAL_LIMIT_OPTIONS).filter(
+            (option) => !currentKeys.includes(option.value)
+          );
+          if (!rest || !currentKeys.length) return;
+          //currentDurationLimits is always defined so can be casted
+          // @ts-expect-error FIXME Fix these typings
+          setValue(propertyName, {
+            ...watchIntervalLimits,
+            [rest.value]: defaultLimit,
+          });
+        };
+
         return (
           <ul ref={animateRef}>
-            {currentBookingLimits &&
-              watchBookingLimits &&
-              Object.entries(currentBookingLimits)
-                .sort(([limitkeyA], [limitKeyB]) => {
+            {currentIntervalLimits &&
+              watchIntervalLimits &&
+              Object.entries(currentIntervalLimits)
+                .sort(([limitKeyA], [limitKeyB]) => {
                   return (
-                    validationOrderKeys.indexOf(limitkeyA as BookingLimitsKey) -
-                    validationOrderKeys.indexOf(limitKeyB as BookingLimitsKey)
+                    intervalOrderKeys.indexOf(limitKeyA as IntervalLimitsKey) -
+                    intervalOrderKeys.indexOf(limitKeyB as IntervalLimitsKey)
                   );
                 })
-                .map(([key, bookingAmount]) => {
-                  const bookingLimitKey = key as BookingLimitsKey;
+                .map(([key, value]) => {
+                  const limitKey = key as IntervalLimitsKey;
                   return (
-                    <div
-                      className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse"
-                      key={bookingLimitKey}>
-                      <Input
-                        id={`${bookingLimitKey}-limit`}
-                        type="number"
-                        className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                        placeholder="1"
-                        min={1}
-                        defaultValue={bookingAmount}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
-                        }}
-                      />
-                      <Select
-                        options={BOOKING_LIMIT_OPTIONS.filter(
-                          (option) => !Object.keys(currentBookingLimits).includes(option.value)
-                        )}
-                        isSearchable={false}
-                        defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
-                        onChange={(val) => {
-                          const current = currentBookingLimits;
-                          const currentValue = watchBookingLimits[bookingLimitKey];
+                    <IntervalLimitItem
+                      key={key}
+                      limitKey={limitKey}
+                      step={step}
+                      value={value}
+                      textFieldSuffix={textFieldSuffix}
+                      hasDeleteButton={Object.keys(currentIntervalLimits).length > 1}
+                      selectOptions={INTERVAL_LIMIT_OPTIONS.filter(
+                        (option) => !Object.keys(currentIntervalLimits).includes(option.value)
+                      )}
+                      onLimitChange={(intervalLimitKey, val) =>
+                        // @ts-expect-error FIXME Fix these typings
+                        setValue(`${propertyName}.${intervalLimitKey}`, val)
+                      }
+                      onDelete={(intervalLimitKey) => {
+                        const current = currentIntervalLimits;
+                        delete current[intervalLimitKey];
+                        onChange(current);
+                      }}
+                      onIntervalSelect={(interval) => {
+                        const current = currentIntervalLimits;
+                        const currentValue = watchIntervalLimits[limitKey];
 
-                          // Removes limit from previous selected value (eg when changed from per_week to per_month, we unset per_week here)
-                          delete current[bookingLimitKey];
-                          const newData = {
-                            ...current,
-                            // Set limit to new selected value (in the example above this means we set the limit to per_week here).
-                            [val?.value as BookingLimitsKey]: currentValue,
-                          };
-                          onChange(newData);
-                        }}
-                      />
-                      <Button
-                        variant="icon"
-                        StartIcon={FiTrash}
-                        color="destructive"
-                        onClick={() => {
-                          const current = currentBookingLimits;
-                          delete current[key as BookingLimitsKey];
-                          onChange(current);
-                        }}
-                      />
-                    </div>
+                        // Removes limit from previous selected value (eg when changed from per_week to per_month, we unset per_week here)
+                        delete current[limitKey];
+                        const newData = {
+                          ...current,
+                          // Set limit to new selected value (in the example above this means we set the limit to per_week here).
+                          [interval?.value as IntervalLimitsKey]: currentValue,
+                        };
+                        onChange(newData);
+                      }}
+                    />
                   );
                 })}
-            {currentBookingLimits && Object.keys(currentBookingLimits).length <= 3 && (
-              <Button
-                color="minimal"
-                StartIcon={FiPlus}
-                onClick={() => {
-                  if (!currentBookingLimits || !watchBookingLimits) return;
-                  const currentKeys = Object.keys(watchBookingLimits);
-
-                  const rest = Object.values(BOOKING_LIMIT_OPTIONS).filter(
-                    (option) => !currentKeys.includes(option.value)
-                  );
-                  if (!rest || !currentKeys) return;
-                  //currentBookingLimits is always defined so can be casted
-
-                  setValue("bookingLimits", {
-                    ...watchBookingLimits,
-                    [rest[0].value]: 1,
-                  });
-                }}>
+            {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && (
+              <Button color="minimal" StartIcon={FiPlus} onClick={addLimit}>
                 {t("add_limit")}
               </Button>
             )}
