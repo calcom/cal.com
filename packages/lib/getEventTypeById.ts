@@ -6,7 +6,7 @@ import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationGroupedOptions } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -100,6 +100,7 @@ export default async function getEventTypeById({
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,
+      durationLimits: true,
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
@@ -237,6 +238,7 @@ export default async function getEventTypeById({
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
+    durationLimits: parseDurationLimit(restEventType.durationLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
