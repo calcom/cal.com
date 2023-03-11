@@ -341,6 +341,7 @@ function keepParentInformedAboutDimensionChanges() {
     }
 
     const mainElementStyles = getComputedStyle(mainElement);
+    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
       parseFloat(mainElementStyles.height) +
       parseFloat(mainElementStyles.marginTop) +
