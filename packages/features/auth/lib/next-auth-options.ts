@@ -104,6 +104,11 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
+      const limiter = rateLimit({
+        intervalInMs: 60 * 1000, // 1 minute
+      });
+      await limiter.check(10, user.email); // 10 requests per minute
+
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
       }
@@ -112,7 +117,10 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
 
-      if (user.password) {
+      if (user.password || !credentials.totpCode) {
+        if (!user.password) {
+          throw new Error(ErrorCode.IncorrectUsernamePassword);
+        }
         const isCorrectPassword = await verifyPassword(credentials.password, user.password);
         if (!isCorrectPassword) {
           throw new Error(ErrorCode.IncorrectUsernamePassword);
@@ -147,11 +155,6 @@ const providers: Provider[] = [
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
       }
-
-      const limiter = rateLimit({
-        intervalInMs: 60 * 1000, // 1 minute
-      });
-      await limiter.check(10, user.email); // 10 requests per minute
       // Check if the user you are logging into has any active teams
       const hasActiveTeams =
         user.teams.filter((m: { team: { metadata: unknown } }) => {
@@ -614,7 +617,12 @@ export const AUTH_OPTIONS: AuthOptions = {
           ) {
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
-              data: { password: null },
+              // also update email to the IdP email
+              data: {
+                password: null,
+                identityProvider: idP,
+                identityProviderId: String(user.id),
+              },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
               return loginWithTotp(existingUserWithEmail);
