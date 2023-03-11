@@ -1001,7 +1001,7 @@ async function handler(
       if (booking.user?.id === req.userId) {
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
-          const newBooking = await prisma.booking.update({
+          const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
             where: {
               id: booking.id,
             },
@@ -1010,7 +1010,10 @@ async function handler(
               cancellationReason: rescheduleReason,
             },
             include: {
+              user: true,
               references: true,
+              payment: true,
+              attendees: true,
             },
           });
 
@@ -1018,13 +1021,47 @@ async function handler(
 
           const copyEvent = cloneDeep(evt);
 
-          await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
+          const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
-          await sendRescheduledEmails({
-            ...copyEvent,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
-          });
+          // This code is duplicated and should be moved to a function
+          // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+          // to the default description when we are sending the emails.
+          evt.description = eventType.description;
+
+          results = updateManager.results;
+          referencesToCreate = updateManager.referencesToCreate;
+          if (results.length > 0 && results.some((res) => !res.success)) {
+            const error = {
+              errorCode: "BookingReschedulingMeetingFailed",
+              message: "Booking Rescheduling failed",
+            };
+
+            log.error(`Booking ${organizerUser.name} failed`, error, results);
+          } else {
+            const metadata: AdditionalInformation = {};
+
+            if (results.length) {
+              // TODO: Handle created event metadata more elegantly
+              const [updatedEvent] = Array.isArray(results[0].updatedEvent)
+                ? results[0].updatedEvent
+                : [results[0].updatedEvent];
+              if (updatedEvent) {
+                metadata.hangoutLink = updatedEvent.hangoutLink;
+                metadata.conferenceData = updatedEvent.conferenceData;
+                metadata.entryPoints = updatedEvent.entryPoints;
+                handleAppsStatus(results, newBooking);
+                // videoCallUrl = metadata.hangoutLink || videoCallUrl;
+              }
+            }
+          }
+          if (noEmail !== true) {
+            const copyEvent = cloneDeep(evt);
+            await sendRescheduledEmails({
+              ...copyEvent,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+            });
+          }
 
           const resultBooking = await resultBookingQuery(newBooking.id);
 
@@ -1486,6 +1523,7 @@ async function handler(
         },
         attendees: true,
         payment: true,
+        references: true,
       },
       data: newBookingData,
     };
@@ -1661,12 +1699,6 @@ async function handler(
       }
       if (noEmail !== true) {
         const copyEvent = cloneDeep(evt);
-        // Reschedule login for booking with seats
-        if (eventType?.seatsPerTimeSlot && originalRescheduledBooking.attendees.length > 1) {
-          // We should only notify affected attendees (owner and attendee rescheduling)
-          copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === bookerEmail);
-        }
-
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
