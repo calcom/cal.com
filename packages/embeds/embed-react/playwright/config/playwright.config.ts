@@ -1,4 +1,4 @@
-import type { PlaywrightTestConfig } from "@playwright/test";
+import { PlaywrightTestConfig, devices } from "@playwright/test";
 import path from "path";
 
 //TODO: Move the common config to embed-playwright-config and let core and react use the base. Along with config there would be base fixtures and expect custom matchers as well.
@@ -19,8 +19,8 @@ const projects = baseConfig.projects?.map((project) => {
 const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
-    command: "yarn run-p embed-dev",
-    port: 3101,
+    command: "yarn run-p 'embed-dev' 'embed-web-start'",
+    port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
   },
