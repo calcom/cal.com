@@ -72,7 +72,7 @@
     --cal-text: #d6d6d6;
     --cal-text-subtle: #767676;
     --cal-text-muted: #575757;
-    --cal-text-inverted: white;
+    --cal-text-inverted: #111111;
 
     /* Content/Text -> components */
     --cal-text-info: #253985;
