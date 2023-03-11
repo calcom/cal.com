@@ -76,7 +76,8 @@ function preprocess<T extends z.ZodType>({
           : z.string().refine((val) => isValidPhoneNumber(val));
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string) => `{${bookingField.name}}${message}`;
-        const isRequired = bookingField.required;
+        // If the field is hidden, then it can never be required
+        const isRequired = bookingField.hidden ? false : bookingField.required;
         if ((isPartialSchema || !isRequired) && value === undefined) {
           return;
         }

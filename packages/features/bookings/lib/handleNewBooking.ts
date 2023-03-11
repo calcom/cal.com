@@ -1455,13 +1455,12 @@ async function handler(
     const attendeesData = evt.attendees.map((attendee) => {
       //if attendee is team member, it should fetch their locale not booker's locale
       //perhaps make email fetch request to see if his locale is stored, else
-      const retObj = {
+      return {
         name: attendee.name,
         email: attendee.email,
         timeZone: attendee.timeZone,
         locale: attendee.language.locale,
       };
-      return retObj;
     });
 
     const newBookingData: Prisma.BookingCreateInput = {
@@ -1656,7 +1655,7 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       originalRescheduledBooking.workflowReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
@@ -1773,12 +1772,15 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject
+        );
       }
     }
   }

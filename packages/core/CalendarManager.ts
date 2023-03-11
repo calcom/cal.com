@@ -208,7 +208,12 @@ export const getBusyCalendarTimes = async (
   } else {
     // if dateFrom and dateTo is from different months get cache by each month
     const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (let i = 1; dayjs(dateFrom).add(i, "month").isBefore(dateTo); i++) {
+    for (
+      let i = 1;
+      dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+      dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+      i++
+    ) {
       months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
     }
     const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
