@@ -24,6 +24,7 @@ customElements.define("cal-inline", Inline);
 declare module "*.css";
 type Namespace = string;
 type Config = {
+  calOrigin?: string;
   origin?: string;
   debug?: boolean;
   uiDebug?: boolean;
@@ -192,9 +193,11 @@ export class Cal {
   createIframe({
     calLink,
     queryObject = {},
+    calOrigin,
   }: {
     calLink: string;
     queryObject?: Record<string, string | string[] | Record<string, string>>;
+    calOrigin?: string;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
@@ -219,7 +222,7 @@ export class Cal {
       }
     }
 
-    const urlInstance = new URL(`${config.origin}/${calLink}`);
+    const urlInstance = new URL(`${calOrigin || config.calOrigin}/${calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
@@ -246,10 +249,13 @@ export class Cal {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    const { origin, ...restConfig } = config;
+
+    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+
     if (origin) {
-      this.__config.origin = origin;
+      this.__config.calOrigin = calOrigin || origin;
     }
+
     this.__config = { ...this.__config, ...restConfig };
   }
 
@@ -455,6 +461,7 @@ class CalApi {
     let el: HTMLElement;
     if (!existingEl) {
       el = document.createElement("cal-floating-button");
+      // It makes it a target element that opens up embed modal on click
       el.dataset.calLink = calLink;
       el.dataset.calNamespace = this.cal.namespace;
       if (attributes?.id) {
@@ -477,21 +484,24 @@ class CalApi {
 
   modal({
     calLink,
+    calOrigin,
     config = {},
     uid,
   }: {
     calLink: string;
     config?: Record<string, string>;
     uid?: string | number;
+    calOrigin?: string;
   }) {
     uid = uid || 0;
+
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
     if (existingModalEl) {
       existingModalEl.setAttribute("state", "started");
       return;
     }
     config.embedType = "modal";
-    const iframe = this.cal.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
+    const iframe = this.cal.createIframe({ calLink, calOrigin, queryObject: Cal.getQueryObject(config) });
     iframe.style.borderRadius = "8px";
 
     iframe.style.height = "100%";
@@ -555,7 +565,7 @@ class CalApi {
     const iframe = document.body.appendChild(document.createElement("iframe"));
     const config = this.cal.getConfig();
 
-    const urlInstance = new URL(`${config.origin}/${calLink}`);
+    const urlInstance = new URL(`${config.calOrigin}/${calLink}`);
     urlInstance.searchParams.set("prerender", "true");
     iframe.src = urlInstance.toString();
     iframe.style.width = "0";
