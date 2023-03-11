@@ -8,7 +8,7 @@ import { sdkActionManager } from "./sdk-event";
 export type UiConfig = {
   hideEventTypeDetails?: boolean;
   theme?: "dark" | "light" | "auto";
-  styles?: EmbedStyles;
+  styles?: EmbedStyles & EmbedNonStylesConfig;
 };
 
 type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
@@ -16,7 +16,8 @@ type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConf
 
 const embedStore = {
   // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {} as UiConfig["styles"],
+  styles: {} as EmbedStyles | undefined,
+  nonStyles: {} as EmbedNonStylesConfig | undefined,
   namespace: null as string | null,
   embedType: undefined as undefined | null | string,
   // Store all React State setters here.
@@ -94,7 +95,7 @@ interface EmbedStyles {
 }
 interface EmbedNonStylesConfig {
   /** Default would be center */
-  align: "left";
+  align?: "left";
   branding?: {
     brandColor?: string;
     lightColor?: string;
@@ -107,8 +108,20 @@ interface EmbedNonStylesConfig {
   };
 }
 
-const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
+const setEmbedStyles = (stylesConfig: EmbedStyles) => {
   embedStore.styles = stylesConfig;
+  for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
+    setEmbedStyle((styles) => {
+      return {
+        ...styles,
+        ...stylesConfig,
+      };
+    });
+  }
+};
+
+const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
+  embedStore.nonStyles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
     setEmbedStyle((styles) => {
       return {
@@ -143,6 +156,8 @@ const registerNewSetter = (
   } else {
     embedStore.reactNonStylesStateSetters[registration.elementName as keyof EmbedNonStylesConfig] =
       registration.setState;
+    registration.setState(embedStore.nonStyles || {});
+
     return () => {
       delete embedStore.reactNonStylesStateSetters[registration.elementName];
     };
@@ -178,6 +193,7 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   useEffect(() => {
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return styles[elementName] || {};
@@ -189,6 +205,7 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setStyles, styles: false });
     // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return styles[elementName] || {};
@@ -287,6 +304,7 @@ const methods = {
     }
 
     setEmbedStyles(stylesConfig || {});
+    setEmbedNonStyles(stylesConfig || {});
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
@@ -411,25 +429,8 @@ if (isBrowser) {
 
     sdkActionManager?.on("*", (e) => {
       const detail = e.detail;
-      //console.log(detail.fullType, detail.type, detail.data);
       log(detail);
       messageParent(detail);
-    });
-
-    // This event should be fired whenever you want to let the content take automatic width which is available.
-    // Because on cal-iframe we set explicty width to make it look inline and part of page, there is never space available for content to automatically expand
-    // This is a HACK to quickly tell iframe to go full width and let iframe content adapt to that and set new width.
-    sdkActionManager?.on("__refreshWidth", () => {
-      // sdkActionManager?.fire("__dimensionChanged", {
-      //   iframeWidth: 100,
-      //   __unit: "%",
-      // });
-      // runAsap(() => {
-      //   sdkActionManager?.fire("__dimensionChanged", {
-      //     iframeWidth: 100,
-      //     __unit: "%",
-      //   });
-      // });
     });
 
     window.addEventListener("message", (e) => {

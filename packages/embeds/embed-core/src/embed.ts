@@ -1,11 +1,14 @@
+/// <reference types="../env" />
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
 import type { InterfaceWithParent, interfaceWithParent, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
+import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
-import allCss from "./tailwind.generated.css";
+import allCss from "./tailwind.generated.css?inline";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;
 export type Message = {
   originator: string;
@@ -24,10 +27,12 @@ customElements.define("cal-inline", Inline);
 declare module "*.css";
 type Namespace = string;
 type Config = {
-  calOrigin?: string;
-  origin?: string;
+  calOrigin: string;
   debug?: boolean;
   uiDebug?: boolean;
+};
+type InitArgConfig = Partial<Config> & {
+  origin?: string;
 };
 
 type DoInIframeArg = {
@@ -110,6 +115,8 @@ function validate(data: Record<string, unknown>, schema: ValidationSchema) {
 }
 
 type SingleInstructionMap = {
+  // TODO: This makes api("on", {}) loose it's generic type. Find a way to fix it.
+  // e.g. api("on", { action: "__dimensionChanged", callback: (e) => { /* `e.detail.data` has all possible values for all events/actions */} });
   [K in keyof CalApi]: CalApi[K] extends (...args: never[]) => void ? [K, ...Parameters<CalApi[K]>] : never;
 };
 
@@ -117,6 +124,12 @@ type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
 
 export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
+
+type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+};
 
 export class Cal {
   iframe?: HTMLIFrameElement;
@@ -139,13 +152,13 @@ export class Cal {
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
 
-  static getQueryObject(config: Record<string, string>) {
+  static getQueryObject(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
     return {
       ...config,
       // guests is better for API but Booking Page accepts guest. So do the mapping
       guest: config.guests ?? undefined,
-    };
+    } as PrefillAndIframeAttrsConfig & { guest?: string | string[] };
   }
 
   processInstruction(instructionAsArgs: IArguments | Instruction) {
@@ -196,7 +209,7 @@ export class Cal {
     calOrigin,
   }: {
     calLink: string;
-    queryObject?: Record<string, string | string[] | Record<string, string>>;
+    queryObject?: PrefillAndIframeAttrsConfig & { guest?: string | string[] };
     calOrigin?: string;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
@@ -205,7 +218,7 @@ export class Cal {
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
-    if (iframeAttrs && typeof iframeAttrs !== "string" && !(iframeAttrs instanceof Array)) {
+    if (iframeAttrs && iframeAttrs.id) {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
@@ -245,20 +258,6 @@ export class Cal {
     return iframe;
   }
 
-  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
-    if (typeof namespaceOrConfig !== "string") {
-      config = (namespaceOrConfig || {}) as Config;
-    }
-
-    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
-
-    if (origin) {
-      this.__config.calOrigin = calOrigin || origin;
-    }
-
-    this.__config = { ...this.__config, ...restConfig };
-  }
-
   getConfig() {
     return this.__config;
   }
@@ -284,7 +283,7 @@ export class Cal {
   constructor(namespace: string, q: IArguments[]) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
-      origin: WEBAPP_URL,
+      calOrigin: WEBAPP_URL,
     };
     this.api = new CalApi(this);
     this.namespace = namespace;
@@ -306,10 +305,7 @@ export class Cal {
         // Iframe might be pre-rendering
         return;
       }
-      let unit = "px";
-      if (data.__unit) {
-        unit = data.__unit;
-      }
+      const unit = "px";
       if (data.iframeHeight) {
         iframe.style.height = data.iframeHeight + unit;
       }
@@ -364,17 +360,17 @@ class CalApi {
     this.cal = cal;
   }
 
-  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
+  init(namespaceOrConfig?: string | InitArgConfig, config = {} as InitArgConfig) {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    const { origin, ...restConfig } = config;
-    if (origin) {
-      this.cal.__config.origin = origin;
-    }
+
+    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+
+    this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
+
     this.cal.__config = { ...this.cal.__config, ...restConfig };
   }
-
   /**
    * It is an instruction that adds embed iframe inline as last child of the element
    */
@@ -385,7 +381,7 @@ class CalApi {
   }: {
     calLink: string;
     elementOrSelector: string | HTMLElement;
-    config?: Record<string, string>;
+    config?: PrefillAndIframeAttrsConfig;
   }) {
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
@@ -406,8 +402,11 @@ class CalApi {
         },
       },
     });
-    config = config || {};
 
+    config = config || {};
+    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
+      throw new Error("iframeAttrs should be an object");
+    }
     config.embedType = "inline";
     const iframe = this.cal.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
     iframe.style.height = "100%";
@@ -435,14 +434,16 @@ class CalApi {
     buttonPosition = "bottom-right",
     buttonColor = "rgb(0, 0, 0)",
     buttonTextColor = "rgb(255, 255, 255)",
+    calOrigin,
   }: {
     calLink: string;
     buttonText?: string;
-    attributes?: Record<string, string>;
+    attributes?: Record<"id", string> & Record<string | "id", string>;
     hideButtonIcon?: boolean;
     buttonPosition?: "bottom-left" | "bottom-right";
     buttonColor?: string;
     buttonTextColor?: string;
+    calOrigin?: string;
   }) {
     // validate(arguments[0], {
     //   required: true,
@@ -458,28 +459,27 @@ class CalApi {
     if (attributes?.id) {
       existingEl = document.getElementById(attributes.id);
     }
-    let el: HTMLElement;
+    let el: FloatingButton;
     if (!existingEl) {
-      el = document.createElement("cal-floating-button");
+      el = document.createElement("cal-floating-button") as FloatingButton;
       // It makes it a target element that opens up embed modal on click
       el.dataset.calLink = calLink;
       el.dataset.calNamespace = this.cal.namespace;
+      el.dataset.calOrigin = calOrigin ?? "";
       if (attributes?.id) {
         el.id = attributes.id;
       }
 
       document.body.appendChild(el);
     } else {
-      el = existingEl;
+      el = existingEl as FloatingButton;
     }
-
-    if (buttonText) {
-      el.setAttribute("data-button-text", buttonText);
-    }
-    el.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
-    el.setAttribute("data-button-position", "" + buttonPosition);
-    el.setAttribute("data-button-color", "" + buttonColor);
-    el.setAttribute("data-button-text-color", "" + buttonTextColor);
+    const dataset = el.dataset;
+    dataset["buttonText"] = buttonText;
+    dataset["hideButtonIcon"] = "" + hideButtonIcon;
+    dataset["buttonPosition"] = "" + buttonPosition;
+    dataset["buttonColor"] = "" + buttonColor;
+    dataset["buttonTextColor"] = "" + buttonTextColor;
   }
 
   modal({
@@ -489,7 +489,7 @@ class CalApi {
     uid,
   }: {
     calLink: string;
-    config?: Record<string, string>;
+    config?: PrefillAndIframeAttrsConfig;
     uid?: string | number;
     calOrigin?: string;
   }) {
@@ -499,6 +499,9 @@ class CalApi {
     if (existingModalEl) {
       existingModalEl.setAttribute("state", "started");
       return;
+    }
+    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
+      throw new Error("iframeAttrs should be an object");
     }
     config.embedType = "modal";
     const iframe = this.cal.createIframe({ calLink, calOrigin, queryObject: Cal.getQueryObject(config) });
@@ -517,12 +520,12 @@ class CalApi {
     document.body.appendChild(template.content);
   }
 
-  on({
+  on<T extends keyof EventDataMap>({
     action,
     callback,
   }: {
-    action: Parameters<SdkActionManager["on"]>[0];
-    callback: Parameters<SdkActionManager["on"]>[1];
+    action: T;
+    callback: (arg0: CustomEvent<EventData<T>>) => void;
   }) {
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
@@ -541,13 +544,7 @@ class CalApi {
     this.cal.actionManager.on(action, callback);
   }
 
-  off({
-    action,
-    callback,
-  }: {
-    action: Parameters<SdkActionManager["on"]>[0];
-    callback: Parameters<SdkActionManager["on"]>[1];
-  }) {
+  off({ action, callback }: { action: never; callback: never }) {
     this.cal.actionManager.off(action, callback);
   }
 
@@ -646,6 +643,8 @@ window.addEventListener("message", (e) => {
   if (!actionManager) {
     throw new Error("Unhandled Action" + parsedAction);
   }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   actionManager.fire(parsedAction.type, detail.data);
 });
 
@@ -661,6 +660,7 @@ document.addEventListener("click", (e) => {
   const modalUniqueId = (targetEl.dataset.uniqueId = targetEl.dataset.uniqueId || String(Date.now()));
   const namespace = targetEl.dataset.calNamespace;
   const configString = targetEl.dataset.calConfig || "";
+  const calOrigin = targetEl.dataset.calOrigin || "";
   let config;
   try {
     config = JSON.parse(configString);
@@ -682,5 +682,6 @@ document.addEventListener("click", (e) => {
     calLink: path,
     config,
     uid: modalUniqueId,
+    calOrigin,
   });
 });

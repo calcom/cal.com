@@ -2,9 +2,9 @@ const WEBAPP_URL =
   import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
 const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
-//TODO: Load this snippet from a separate JS file so that it doesn't need to be typed again
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const p = function (a: any, ar: any) {
     a.q.push(ar);
   };
@@ -22,12 +22,13 @@ const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_UR
         cal.loaded = true;
       }
       if (ar[0] === L) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const api: { (): void; q?: any[] } = function () {
           // eslint-disable-next-line prefer-rest-params
           p(api, arguments);
         };
         const namespace = ar[1];
-        api!.q = api.q || [];
+        api.q = api.q || [];
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);

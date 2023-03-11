@@ -10,7 +10,7 @@ type CalProps = {
     debug?: boolean;
     uiDebug?: boolean;
   };
-  config?: any;
+  config?: Record<string, string>;
   embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
