@@ -2,7 +2,7 @@ import React from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-export const LinkIcon = ({
+export const CallToActionIcon = ({
   secondary,
   iconName,
   style,

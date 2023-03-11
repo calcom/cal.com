@@ -1,4 +1,4 @@
-import { LinkIcon } from "./LinkIcon";
+import { CallToActionIcon } from "./CallToActionIcon";
 
 export const CallToAction = (props: {
   label: string;
@@ -8,6 +8,22 @@ export const CallToAction = (props: {
   endIconName?: string;
 }) => {
   const { label, href, secondary, startIconName, endIconName } = props;
+
+  const calculatePadding = () => {
+    const paddingTop = "0.625rem";
+    const paddingBottom = "0.625rem";
+    let paddingLeft = "1rem";
+    let paddingRight = "1rem";
+
+    if (startIconName) {
+      paddingLeft = "0.875rem";
+    } else if (endIconName) {
+      paddingRight = "0.875rem";
+    }
+
+    return `${paddingTop} ${paddingRight} ${paddingBottom} ${paddingLeft}`;
+  };
+
   return (
     <p
       style={{
@@ -18,11 +34,11 @@ export const CallToAction = (props: {
         fontFamily: "Roboto, Helvetica, sans-serif",
         fontSize: "0.875rem",
         fontWeight: 500,
-        lineHeight: "1.25rem",
+        lineHeight: "1rem",
         margin: 0,
         textDecoration: "none",
         textTransform: "none",
-        padding: "0.625rem 1rem",
+        padding: calculatePadding(),
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         msoPaddingAlt: "0px",
@@ -43,7 +59,7 @@ export const CallToAction = (props: {
         target="_blank"
         rel="noreferrer">
         {startIconName && (
-          <LinkIcon
+          <CallToActionIcon
             style={{
               marginRight: "0.5rem",
               marginLeft: 0,
@@ -53,8 +69,7 @@ export const CallToAction = (props: {
           />
         )}
         {label}
-        {endIconName && <LinkIcon iconName={endIconName} secondary={secondary} />}
-        {!startIconName && !endIconName && <LinkIcon iconName="linkIcon" secondary={secondary} />}
+        {endIconName && <CallToActionIcon iconName={endIconName} secondary={secondary} />}
       </a>
     </p>
   );
