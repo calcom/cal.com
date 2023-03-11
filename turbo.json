@@ -48,12 +48,6 @@
     },
     "@calcom/web#start": {
       "cache": false,
-      "persistent": true,
-      "dependsOn": ["@calcom/prisma#db-deploy"],
-      "outputs": []
-    },
-    "@calcom/web#start:bg": {
-      "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"],
       "outputs": []
     },
@@ -159,7 +153,6 @@
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
         "^build",
-        "@calcom/web#start:bg",
         "^embed-tests-update-snapshots:ci"
       ]
     },
