@@ -62,6 +62,11 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
+  const isThemeSupported =
+    typeof props.Component.isThemeSupported === "function"
+      ? props.Component.isThemeSupported({ router: props.router })
+      : props.Component.isThemeSupported;
+  const forcedTheme = isThemeSupported ? undefined : "light";
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
@@ -74,7 +79,12 @@ const AppProviders = (props: AppPropsWithChildren) => {
         <CustomI18nextProvider {...props}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <ThemeProvider nonce={props.pageProps.nonce} enableColorScheme={false} storageKey={storageKey}>
+            <ThemeProvider
+              nonce={props.pageProps.nonce}
+              enableColorScheme={false}
+              storageKey={storageKey}
+              enableSystem={true}
+              attribute="class">
               <MetaProvider>{props.children}</MetaProvider>
             </ThemeProvider>
           </TooltipProvider>

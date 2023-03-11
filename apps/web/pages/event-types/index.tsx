@@ -128,7 +128,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         </span>
         {group.profile.slug ? (
           <small
-            className="text-muted hidden font-normal leading-4 sm:inline"
+            className="text-subtle hidden font-normal leading-4 sm:inline"
             data-testid={"event-type-slug-" + type.id}>
             {`/${group.profile.slug}/${type.slug}`}
           </small>
@@ -311,8 +311,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   return (
-    <div className="bg-default mb-16 flex overflow-hidden rounded-md border border-gray-200">
-      <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
+    <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
+      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
@@ -322,7 +322,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <FiArrowUp className="h-5 w-5" />
                     </button>
@@ -330,7 +330,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <FiArrowDown className="h-5 w-5" />
                     </button>
@@ -357,7 +357,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           </Badge>
                         )}
                         <Tooltip content={t("show_eventtype_on_profile")}>
-                          <div className="hover:bg-emphasis self-center rounded-md p-2">
+                          <div className="self-center rounded-md p-2">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}

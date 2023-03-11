@@ -26,8 +26,8 @@ export function EmptyScreen({
       <div
         data-testid="empty-screen"
         className="min-h-80 flex w-full flex-col items-center justify-center rounded-md border border-dashed p-7 lg:p-20">
-        <div className="bg-emphasis dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <Icon className="dark:bg-inverted dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
+        <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full">
+          <Icon className="text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="flex max-w-[420px] flex-col items-center">
           <h2 className="text-semibold font-cal mt-6 text-center text-xl dark:text-gray-300">{headline}</h2>
