@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted mb-2 block h-9 rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block h-9 rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -71,7 +71,11 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
       isFilled && "bg-subtle",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-error")}>
+    <div
+      className={classNames(
+        "flex h-full flex-col justify-center text-sm",
+        error ? "text-error" : "text-default"
+      )}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
@@ -186,7 +190,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
         />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
-      {hint && <div className="text-gray text-default mt-2 flex items-center text-sm">{hint}</div>}
+      {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );
 });
