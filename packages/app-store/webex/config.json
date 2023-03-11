@@ -17,8 +17,8 @@
       "linkType": "static",
       "type": "integrations:webex_video",
       "label": "Webex",
-      "organizerInputPlaceholder": "",
-      "urlRegExp": ""
+      "organizerInputPlaceholder": "https://meet317.webex.com/meet/pr<id>...Link to your Webex Personal Room",
+      "urlRegExp": "^https?:\\/\\/meet317\\.webex\\.com\\/meet.+$"
     }
   },
   "isTemplate": false,
