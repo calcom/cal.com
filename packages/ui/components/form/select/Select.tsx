@@ -84,16 +84,6 @@ export const Select = <
       {...reactSelectProps}
       {...props}
       styles={{
-        option: (defaultStyles, state) => ({
-          ...defaultStyles,
-          backgroundColor: state.isSelected
-            ? state.isFocused
-              ? "var(--brand-color)"
-              : "var(--brand-color)"
-            : state.isFocused
-            ? "var(--brand-color-dark-mode)"
-            : "var(--brand-text-color)",
-        }),
         ...styles,
       }}
     />
