@@ -2,8 +2,8 @@ import { IdentityProvider } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import z from "zod";
 
-import { isPasswordValid } from "@calcom/lib/auth";
-import { hashPassword } from "@calcom/lib/auth";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import slugify from "@calcom/lib/slugify";

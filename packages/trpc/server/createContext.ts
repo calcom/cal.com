@@ -1,18 +1,17 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
-import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
 
-import * as trpc from "@trpc/server";
-import { Maybe } from "@trpc/server";
-import * as trpcNext from "@trpc/server/adapters/next";
+import type { Maybe } from "@trpc/server";
+import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-type CreateContextOptions = trpcNext.CreateNextContextOptions | GetServerSidePropsContext;
+type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 async function getUserFromSession({
   session,
@@ -24,6 +23,7 @@ async function getUserFromSession({
   if (!session?.user?.id) {
     return null;
   }
+
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
@@ -108,6 +108,15 @@ type CreateInnerContextOptions = {
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
+export type GetSessionFn =
+  | ((_options: {
+      req: GetServerSidePropsContext["req"] | NextApiRequest;
+      res: GetServerSidePropsContext["res"] | NextApiResponse;
+    }) => Promise<Session | null>)
+  | (() => Promise<Session | null>);
+
+const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession({ req, res });
+
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
  *
@@ -128,9 +137,12 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter = getSession) => {
+export const createContext = async (
+  { req, res }: CreateContextOptions,
+  sessionGetter: GetSessionFn = DEFAULT_SESSION_GETTER
+) => {
   // for API-response caching see https://trpc.io/docs/caching
-  const session = await sessionGetter({ req });
+  const session = await sessionGetter({ req, res });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
@@ -143,5 +155,3 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
     res,
   };
 };
-
-export type Context = trpc.inferAsyncReturnType<typeof createContextInner>;
