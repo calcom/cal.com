@@ -20,11 +20,12 @@ import {
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -1129,8 +1130,7 @@ const loggedInViewerRouter = router({
       });
       // Revalidate user calendar cache.
       if (credential.app?.slug.includes("calendar")) {
-        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+        await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
       }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {

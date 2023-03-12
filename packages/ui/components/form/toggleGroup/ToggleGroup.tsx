@@ -25,7 +25,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {...props}
         onValueChange={setValue}
         className={classNames(
-          "dark:border-darkgray-200 relative inline-flex rounded-md border border-gray-200 p-1",
+          "dark:border-darkgray-200 min-h-9 dark:bg-darkgray-50 relative inline-flex gap-0.5 rounded-md border border-gray-200 p-1",
           props.className,
           isFullWidth && "w-full"
         )}>
@@ -41,10 +41,10 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
             key={option.value}
             value={option.value}
             className={classNames(
-              "relative rounded-[4px] px-3 py-1 text-sm",
+              "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
               option.disabled
                 ? "dark:text-darkgray-900 text-gray-400 hover:cursor-not-allowed"
-                : "dark:text-darkgray-800 [&[aria-checked='false']]:hover:font-medium",
+                : "dark:text-darkgray-800 dark:[&[aria-checked='false']]:hover:bg-darkgray-100 [&[aria-checked='false']]:hover:bg-gray-100",
               isFullWidth && "w-full"
             )}
             ref={(node) => {
