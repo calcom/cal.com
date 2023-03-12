@@ -1,3 +1,7 @@
+/**
+ * !: Stops the `jose` dependency from bundling the browser version and breaking tests
+ * @jest-environment node
+ */
 import type {
   EventType as PrismaEventType,
   User as PrismaUser,
@@ -504,6 +508,7 @@ describe("getSchedule", () => {
       );
     });
 
+    // FIXME: Fix minimumBookingNotice is respected test
     test.skip("minimumBookingNotice is respected", async () => {
       jest.useFakeTimers().setSystemTime(
         (() => {

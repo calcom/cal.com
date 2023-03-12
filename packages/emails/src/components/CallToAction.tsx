@@ -1,33 +1,76 @@
-import { LinkIcon } from "./LinkIcon";
+import { CallToActionIcon } from "./CallToActionIcon";
 
-export const CallToAction = (props: { label: string; href: string; secondary?: boolean }) => (
-  <p
-    style={{
-      display: "inline-block",
-      background: props.secondary ? "#FFFFFF" : "#292929",
-      border: props.secondary ? "1px solid #d1d5db" : "",
-      color: "#ffffff",
-      fontFamily: "Roboto, Helvetica, sans-serif",
-      fontSize: "14px",
-      fontWeight: 500,
-      lineHeight: "20px",
-      margin: 0,
-      textDecoration: "none",
-      textTransform: "none",
-      padding: "16px 24px",
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      msoPaddingAlt: "0px",
-      borderRadius: "6px",
-      boxSizing: "border-box",
-    }}>
-    <a
-      style={{ color: props.secondary ? "#292929" : "#FFFFFF", textDecoration: "none" }}
-      href={props.href}
-      target="_blank"
-      rel="noreferrer">
-      {props.label}
-      <LinkIcon secondary={props.secondary} />
-    </a>
-  </p>
-);
+export const CallToAction = (props: {
+  label: string;
+  href: string;
+  secondary?: boolean;
+  startIconName?: string;
+  endIconName?: string;
+}) => {
+  const { label, href, secondary, startIconName, endIconName } = props;
+
+  const calculatePadding = () => {
+    const paddingTop = "0.625rem";
+    const paddingBottom = "0.625rem";
+    let paddingLeft = "1rem";
+    let paddingRight = "1rem";
+
+    if (startIconName) {
+      paddingLeft = "0.875rem";
+    } else if (endIconName) {
+      paddingRight = "0.875rem";
+    }
+
+    return `${paddingTop} ${paddingRight} ${paddingBottom} ${paddingLeft}`;
+  };
+
+  return (
+    <p
+      style={{
+        display: "inline-block",
+        background: secondary ? "#FFFFFF" : "#292929",
+        border: secondary ? "1px solid #d1d5db" : "",
+        color: "#ffffff",
+        fontFamily: "Roboto, Helvetica, sans-serif",
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        lineHeight: "1rem",
+        margin: 0,
+        textDecoration: "none",
+        textTransform: "none",
+        padding: calculatePadding(),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        msoPaddingAlt: "0px",
+        borderRadius: "6px",
+        boxSizing: "border-box",
+        height: "2.25rem",
+      }}>
+      <a
+        style={{
+          color: secondary ? "#292929" : "#FFFFFF",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "auto",
+        }}
+        href={href}
+        target="_blank"
+        rel="noreferrer">
+        {startIconName && (
+          <CallToActionIcon
+            style={{
+              marginRight: "0.5rem",
+              marginLeft: 0,
+            }}
+            iconName={startIconName}
+            secondary={secondary}
+          />
+        )}
+        {label}
+        {endIconName && <CallToActionIcon iconName={endIconName} secondary={secondary} />}
+      </a>
+    </p>
+  );
+};
