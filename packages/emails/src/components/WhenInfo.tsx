@@ -1,8 +1,9 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
@@ -30,6 +31,7 @@ export function getRecurringWhen({
 
 export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {
   const { timeZone, t, calEvent: { recurringEvent } = {} } = props;
+  const timeFormat = props.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
 
   function getRecipientStart(format: string) {
     return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
@@ -54,8 +56,7 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
         description={
           <>
             {recurringEvent?.count ? `${t("starting")} ` : ""}
-            {t(getRecipientStart("dddd").toLowerCase())}, {t(getRecipientStart("MMMM").toLowerCase())}{" "}
-            {getRecipientStart("D, YYYY | h:mma")} - {getRecipientEnd("h:mma")}{" "}
+            {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}
             <span style={{ color: "#4B5563" }}>({timeZone})</span>
           </>
         }
