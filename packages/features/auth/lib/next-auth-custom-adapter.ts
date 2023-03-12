@@ -8,7 +8,7 @@ import type {
 } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import { identityProviderNameMap } from "@lib/auth";
+import { identityProviderNameMap } from "./identityProviderNameMap";
 
 /** @return { import("next-auth/adapters").Adapter } */
 export default function CalComAdapter(prismaClient: PrismaClient) {

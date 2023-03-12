@@ -83,20 +83,20 @@ const BookingDescription: FC<Props> = (props) => {
         size="sm"
         truncateAfter={3}
       />
-      <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
+      <h2 className="mt-1 mb-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
         {profile.name}
       </h2>
-      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
+      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold leading-none text-gray-900">
         {eventType.title}
       </h1>
       <div className="dark:text-darkgray-600 flex flex-col space-y-4 text-sm font-medium text-gray-600">
         {eventType?.description && (
           <div
             className={classNames(
-              "flex",
+              "scroll-bar scrollbar-track-w-20 -mx-5 flex max-h-[180px] overflow-y-scroll px-5 ",
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
-            <div className="scroll-bar scrollbar-track-w-20 max-h-[200px] max-w-full flex-shrink overflow-scroll break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
+            <div className="max-w-full flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
