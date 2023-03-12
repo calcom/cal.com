@@ -170,7 +170,10 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/reschedule/" + getUid(calEvent) + "?" + getSeatReferenceId(calEvent);
+  const Uid = getUid(calEvent);
+  const seatUid = getSeatReferenceId(calEvent);
+
+  return `${WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {

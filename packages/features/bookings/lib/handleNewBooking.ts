@@ -1,4 +1,4 @@
-import type { App, Credential, EventTypeCustomInput } from "@prisma/client";
+import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -853,13 +853,11 @@ async function handler(
   and any calendar or video integrations */
   const lastAttendeeDeleteBooking = async (
     originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>,
+    filteredAttendees: Partial<Attendee>[],
     originalBookingEvt?: CalendarEvent
   ) => {
-    if (
-      originalRescheduledBooking?.attendees.filter((attendee) => {
-        return attendee.email !== bookerEmail;
-      }).length === 0
-    ) {
+    let deletedReferences = false;
+    if (filteredAttendees && filteredAttendees.length === 0 && originalRescheduledBooking) {
       const integrationsToDelete = [];
 
       for (const reference of originalRescheduledBooking.references) {
@@ -893,7 +891,9 @@ async function handler(
           },
         });
       });
+      deletedReferences = true;
     }
+    return deletedReferences;
   };
 
   const handleSeats = async () => {
@@ -998,7 +998,8 @@ async function handler(
       };
 
       // If owner reschedules the event we want to update the entire booking
-      if (booking.user?.id === req.userId) {
+      // Also if owner is rescheduling there should be no bookingSeat
+      if (booking.user?.id === req.userId && !bookingSeat) {
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
           const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -1023,23 +1024,21 @@ async function handler(
 
           const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
-          // This code is duplicated and should be moved to a function
+          // @NOTE: This code is duplicated and should be moved to a function
           // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
           // to the default description when we are sending the emails.
           evt.description = eventType.description;
 
-          results = updateManager.results;
-          referencesToCreate = updateManager.referencesToCreate;
+          const results = updateManager.results;
+
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
               errorCode: "BookingReschedulingMeetingFailed",
               message: "Booking Rescheduling failed",
             };
-
             log.error(`Booking ${organizerUser.name} failed`, error, results);
           } else {
             const metadata: AdditionalInformation = {};
-
             if (results.length) {
               // TODO: Handle created event metadata more elegantly
               const [updatedEvent] = Array.isArray(results[0].updatedEvent)
@@ -1050,10 +1049,10 @@ async function handler(
                 metadata.conferenceData = updatedEvent.conferenceData;
                 metadata.entryPoints = updatedEvent.entryPoints;
                 handleAppsStatus(results, newBooking);
-                // videoCallUrl = metadata.hangoutLink || videoCallUrl;
               }
             }
           }
+
           if (noEmail !== true) {
             const copyEvent = cloneDeep(evt);
             await sendRescheduledEmails({
@@ -1062,10 +1061,9 @@ async function handler(
               cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
-
           const resultBooking = await resultBookingQuery(newBooking.id);
 
-          return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
+          return { ...resultBooking, appsStatus: newBooking.appsStatus };
         }
 
         // Merge two bookings together
@@ -1177,7 +1175,7 @@ async function handler(
 
         const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
 
-        return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
+        return { ...resultBooking };
       }
 
       // If there is no booking then remove the attendee from the old booking and create a new one
@@ -1196,10 +1194,20 @@ async function handler(
 
         // Update the original calendar event by removing the attendee that is rescheduling
         if (originalBookingEvt && originalRescheduledBooking) {
-          eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
-        }
+          // Event would probably be deleted so we first check than instead of updating references
+          const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+            return attendee.email !== bookerEmail;
+          });
+          const deletedReference = await lastAttendeeDeleteBooking(
+            originalRescheduledBooking,
+            filteredAttendees,
+            originalBookingEvt
+          );
 
-        await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
+          if (!deletedReference) {
+            await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+          }
+        }
 
         // We don't want to trigger rescheduling logic of the original booking
         originalRescheduledBooking = null;
@@ -1233,8 +1241,10 @@ async function handler(
       await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
-
-      await lastAttendeeDeleteBooking(originalRescheduledBooking, originalBookingEvt);
+      const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+        return attendee.email !== bookerEmail;
+      });
+      await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
 
       const resultBooking = await resultBookingQuery(newTimeSlotBooking.id);
 
@@ -1402,6 +1412,7 @@ async function handler(
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot && bookingSeat) {
     const newBooking = await handleSeats();
+
     if (newBooking) {
       req.statusCode = 201;
       return newBooking;
