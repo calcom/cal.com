@@ -95,8 +95,10 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
-  /// @zod.custom(imports.bookingLimitsType)
+  /// @zod.custom(imports.intervalLimitsType)
   bookingLimits           Json?
+  /// @zod.custom(imports.intervalLimitsType)
+  durationLimits          Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -642,14 +644,14 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id             Int             @id @default(autoincrement())
-  bookingUid     String
-  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingUid     String?
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid])
   method         WorkflowMethods
   scheduledDate  DateTime
   referenceId    String?         @unique
   scheduled      Boolean
-  workflowStepId Int
-  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int?
+  workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
 }
 

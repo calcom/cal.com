@@ -1491,7 +1491,7 @@
   "date_overrides_update_btn": "更新替代",
   "event_type_duplicate_copy_text": "{{slug}}-复制",
   "set_as_default": "设置为默认",
-  "hide_eventtype_details": "隐藏活动类型详细信息",
+  "hide_eventtype_details": "隐藏 EventType 详细信息",
   "show_navigation": "显示导航",
   "hide_navigation": "隐藏导航",
   "verification_code_sent": "验证码已发送",
@@ -1504,7 +1504,7 @@
   "number_verified": "号码已验证",
   "create_your_first_team_webhook_description": "为此团队活动类型创建第一个 Webhook",
   "create_webhook_team_event_type": "为此团队活动类型创建 Webhook",
-  "disable_success_page": "禁用成功页面 (仅当有重定向链接时才有效)",
+  "disable_success_page": "禁用“成功”页面 (仅当有重定向链接时才有效)",
   "invalid_admin_password": "您被设置为管理员，但您的密码长度不足 15 个字符",
   "change_password_admin": "更改密码以获取管理员访问权限",
   "username_already_taken": "用户名已被占用",
@@ -1617,5 +1617,6 @@
   "select_a_router": "选择导向器",
   "add_a_new_route": "添加新途径",
   "no_responses_yet": "尚无回复",
-  "this_will_be_the_placeholder": "这将是占位符"
+  "this_will_be_the_placeholder": "这将是占位符",
+  "can_you_try_again": "可否用不同的时间再次尝试？"
 }

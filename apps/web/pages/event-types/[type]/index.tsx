@@ -10,22 +10,23 @@ import { z } from "zod";
 
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { getSession } from "@lib/auth";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
@@ -85,7 +86,8 @@ export type FormValues = {
     externalId: string;
   };
   successRedirectUrl: string;
-  bookingLimits?: BookingLimit;
+  durationLimits?: IntervalLimit;
+  bookingLimits?: IntervalLimit;
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
@@ -180,6 +182,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
+  const bookingFields: Prisma.JsonObject = {};
+
+  eventType.bookingFields.forEach(({ name }) => {
+    bookingFields[name] = name;
+  });
+
   const defaultValues = {
     title: eventType.title,
     locations: eventType.locations || [],
@@ -187,6 +195,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     description: eventType.description ?? undefined,
     schedule: eventType.schedule || undefined,
     bookingLimits: eventType.bookingLimits || undefined,
+    durationLimits: eventType.durationLimits || undefined,
     length: eventType.length,
     hidden: eventType.hidden,
     periodDates: {
@@ -211,9 +220,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           // Make it optional because it's not submitted from all tabs of the page
           eventName: z
             .string()
-            .refine((val) => validateCustomEventName(val, t("invalid_event_name_variables")) === true, {
-              message: t("invalid_event_name_variables"),
-            })
+            .refine(
+              (val) =>
+                validateCustomEventName(val, t("invalid_event_name_variables"), bookingFields) === true,
+              {
+                message: t("invalid_event_name_variables"),
+              }
+            )
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
@@ -292,6 +305,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsPerTimeSlot,
             seatsShowAttendees,
             bookingLimits,
+            durationLimits,
             recurringEvent,
             locations,
             metadata,
@@ -305,8 +319,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           } = values;
 
           if (bookingLimits) {
-            const isValid = validateBookingLimitOrder(bookingLimits);
+            const isValid = validateIntervalLimitOrder(bookingLimits);
             if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
+
+          if (durationLimits) {
+            const isValid = validateIntervalLimitOrder(durationLimits);
+            if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
           }
 
           if (metadata?.multipleDuration !== undefined) {
@@ -330,6 +349,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
             bookingLimits,
+            durationLimits,
             seatsPerTimeSlot,
             seatsShowAttendees,
             metadata,
@@ -351,8 +371,10 @@ const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) =
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, query } = context;
-  const session = await getSession({ req });
+  const { req, res, query } = context;
+
+  const session = await getServerSession({ req, res });
+
   const typeParam = parseInt(asStringOrThrow(query.type));
   const ssr = await ssrInit(context);
 
@@ -373,9 +395,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   try {
     const res = await getEventTypeById({ eventTypeId: typeParam, userId: session.user.id, prisma });
+
     return {
       props: {
-        session,
+        // session,
         type: typeParam,
         trpcState: ssr.dehydrate(),
         initialData: {

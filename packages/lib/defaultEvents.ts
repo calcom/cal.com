@@ -83,6 +83,7 @@ const commons = {
   team: null,
   requiresConfirmation: false,
   bookingLimits: null,
+  durationLimits: null,
   hidden: false,
   userId: 0,
   owner: null,

@@ -1463,7 +1463,7 @@
   "disable_app": "השבתת האפליקציה",
   "disable_app_description": "השבתת האפליקציה הזו עלולה לגרום לבעיות באופן שבו המשתמשים שלך יקיימו אינטראקציה עם Cal",
   "edit_keys": "עריכת מפתחות",
-  "admin_apps_description": "אפשר/י לאפליקציות לפעול עם המופע של Cal",
+  "admin_apps_description": "אפשר/י לאפליקציות לפעול עם מופע Cal שלך",
   "no_available_apps": "אין אפליקציות זמינות",
   "no_available_apps_description": "ודא/י שיש אפליקציות בפריסה שלך בנתיב 'packages/app-store'",
   "no_apps": "אף אפליקציה לא מופעלת במופע הזה של Cal",
@@ -1635,10 +1635,14 @@
   "add_a_new_route": "הוסף נתיב חדש",
   "no_responses_yet": "אין עדיין תגובות",
   "this_will_be_the_placeholder": "זה יהיה הממלא מקום",
+  "this_app_requires_connected_account": "{{appName}} דורש חשבון {{dependencyName}} מחובר",
+  "connect_app": "חבר את {{dependencyName}}",
+  "app_is_connected": "{{dependencyName}} מחובר",
+  "requires_app": "{{dependencyName}} נדרש",
   "verification_code": "קוד אימות",
   "verify": "אמת",
+  "invalid_event_name_variables": "יש משתנה שגוי בשם הארוע שלך",
   "select_all": "בחר הכל",
   "default_conferencing_bulk_title": "בצע עדכון אצווה של סוגי הארועים הקיימים",
-  "default_conferencing_bulk_description": "עדכן את המיקומים עבור סוגי הארועים שנבחרו",
-  "invalid_event_name_variables": "יש משתנה שגוי בשם הארוע שלך"
+  "default_conferencing_bulk_description": "עדכן את המיקומים עבור סוגי הארועים שנבחרו"
 }

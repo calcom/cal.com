@@ -3,7 +3,6 @@
     Don't modify this file manually.
 **/
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
-import { appKeysSchema as routing_forms_zod_ts } from "./ee/routing-forms/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
 import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
@@ -15,6 +14,7 @@ import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
 import { appKeysSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appKeysSchema as rainbow_zod_ts } from "./rainbow/zod";
+import { appKeysSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appKeysSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appKeysSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appKeysSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
@@ -27,7 +27,6 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
 export const appKeysSchemas = {
   dailyvideo: dailyvideo_zod_ts,
-  "routing-forms": routing_forms_zod_ts,
   fathom: fathom_zod_ts,
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
@@ -39,6 +38,7 @@ export const appKeysSchemas = {
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
   rainbow: rainbow_zod_ts,
+  "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   stripe: stripepayment_zod_ts,
   tandemvideo: tandemvideo_zod_ts,
