@@ -8,7 +8,7 @@ import { checkPermissions } from "./_auth-middleware";
 
 /**
  * @swagger
- * /users/{teamId}:
+ * /teams/{teamId}:
  *   delete:
  *     operationId: removeTeamById
  *     summary: Remove an existing team
