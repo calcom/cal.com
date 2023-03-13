@@ -10,15 +10,30 @@ import type {
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
+  NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
+export type ZohoToken = {
+  scope: string;
+  api_domain: string;
+  expires_in: number;
+  expiryDate: number;
+  token_type: string;
+  access_token: string;
+  accountServer: string;
+  refresh_token: string;
+};
+
+export type ZohoContact = {
+  Email: string;
+};
 export default class ZohoCrmCalendarService implements Calendar {
   private integrationName = "";
-  private auth: Promise<{ getToken: () => Promise<any> }>;
+  private auth: Promise<{ getToken: () => Promise<void> }>;
   private log: typeof logger;
   private client_id = "";
   private client_secret = "";
@@ -95,7 +110,7 @@ export default class ZohoCrmCalendarService implements Calendar {
       .catch((e) => this.log.error(e, e.response?.data));
   };
 
-  private updateMeeting = async (uid: string, event: CalendarEvent, externalCalendarId: string) => {
+  private updateMeeting = async (uid: string, event: CalendarEvent) => {
     const zohoEvent = {
       id: uid,
       Event_Title: event.title,
@@ -137,8 +152,8 @@ export default class ZohoCrmCalendarService implements Calendar {
     if (!this.client_id) throw new HttpError({ statusCode: 400, message: "Zoho CRM client_id missing." });
     if (!this.client_secret)
       throw new HttpError({ statusCode: 400, message: "Zoho CRM client_secret missing." });
-    const credentialKey: any = credential.key;
-    const isTokenValid = (token: any) => {
+    const credentialKey = credential.key as unknown as ZohoToken;
+    const isTokenValid = (token: ZohoToken) => {
       const isValid = token && token.access_token && token.expiryDate && token.expiryDate < Date.now();
       if (isValid) {
         this.accessToken = token.access_token;
@@ -146,7 +161,7 @@ export default class ZohoCrmCalendarService implements Calendar {
       return isValid;
     };
 
-    const refreshAccessToken = async (credentialKey: any) => {
+    const refreshAccessToken = async (credentialKey: ZohoToken) => {
       try {
         const url = `${credentialKey.accountServer}/oauth/v2/token`;
         const formData = {
@@ -173,7 +188,7 @@ export default class ZohoCrmCalendarService implements Calendar {
             },
             data: {
               key: {
-                ...(zohoCrmTokenInfo.data as any),
+                ...(zohoCrmTokenInfo.data as ZohoToken),
                 refresh_token: credentialKey.refresh_token,
                 accountServer: credentialKey.accountServer,
               },
@@ -190,7 +205,7 @@ export default class ZohoCrmCalendarService implements Calendar {
     };
 
     return {
-      getToken: () => (isTokenValid(credentialKey) ? Promise.resolve([]) : refreshAccessToken(credentialKey)),
+      getToken: () => (isTokenValid(credentialKey) ? Promise.resolve() : refreshAccessToken(credentialKey)),
     };
   };
 
@@ -211,7 +226,7 @@ export default class ZohoCrmCalendarService implements Calendar {
     return Promise.reject("Something went wrong when creating a meeting in ZohoCRM");
   }
 
-  async createEvent(event: CalendarEvent): Promise<any> {
+  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
     const contacts = await this.contactSearch(event);
@@ -224,7 +239,7 @@ export default class ZohoCrmCalendarService implements Calendar {
         // Some attendees don't exist in ZohoCRM
         // Get the existing contacts' email to filter out
         this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.data.map((contact: any) => contact.Email);
+        const existingContacts = contacts.data.map((contact: ZohoContact) => contact.Email);
         this.log.debug("contact:filter:existing", { existingContacts });
         // Get non existing contacts filtering out existing from attendees
         const nonExistingContacts: Person[] = event.attendees.filter(
@@ -258,10 +273,10 @@ export default class ZohoCrmCalendarService implements Calendar {
     });
   }
 
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     const auth = await this.auth;
     await auth.getToken();
-    return await this.updateMeeting(uid, event, externalCalendarId);
+    return await this.updateMeeting(uid, event);
   }
 
   async deleteEvent(uid: string): Promise<void> {
