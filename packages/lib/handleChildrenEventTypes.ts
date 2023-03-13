@@ -126,6 +126,7 @@ export default async function handleChildrenEventTypes({
               (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (diffEventType.bookingFields as Prisma.InputJsonValue) ?? undefined,
+            durationLimits: (diffEventType.durationLimits as Prisma.InputJsonValue) ?? undefined,
             userId,
             parentId,
             workflows: eventType.workflows && {
@@ -158,6 +159,7 @@ export default async function handleChildrenEventTypes({
         metadata: (diffEventType.metadata as Prisma.InputJsonValue) ?? undefined,
         locations: (diffEventType.locations as Prisma.InputJsonValue) ?? undefined,
         bookingFields: (diffEventType.bookingFields as Prisma.InputJsonValue) ?? undefined,
+        durationLimits: (diffEventType.durationLimits as Prisma.InputJsonValue) ?? undefined,
       },
     });
     console.log(

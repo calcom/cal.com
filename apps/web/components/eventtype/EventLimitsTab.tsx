@@ -8,11 +8,11 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import { classNames } from "@calcom/lib";
+import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import type { PeriodType } from "@calcom/prisma/client";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import {

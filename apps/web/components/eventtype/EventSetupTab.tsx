@@ -11,9 +11,9 @@ import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
+import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import lockedFieldsManager from "@calcom/lib/lockedFieldsManager";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -144,13 +144,7 @@ export const EventSetupTab = (
     resolver: zodResolver(locationFormSchema),
   });
 
-  const Locations = ({
-    isDisabled,
-    isManagedEventType,
-  }: {
-    isDisabled: boolean;
-    isManagedEventType: boolean;
-  }) => {
+  const Locations = () => {
     const { t } = useLocale();
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -164,9 +158,20 @@ export const EventSetupTab = (
       return true;
     });
 
+    const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps } = lockedFieldsManager(
+      eventType,
+      t("locked_fields_description")
+    );
+
     const defaultValue = isManagedEventType
       ? locationOptions.find((op) => op.label === t("default"))?.options[0]
       : undefined;
+
+    const locationAvailable = locationOptions.some((op) =>
+      op.options.find((opt) => opt.value === eventType.locations[0].type)
+    );
+
+    console.log({ isChildrenManagedEventType, locationOptions, locationAvailable });
 
     return (
       <div className="w-full">
@@ -175,7 +180,7 @@ export const EventSetupTab = (
             <LocationSelect
               placeholder={t("select")}
               options={locationOptions}
-              isDisabled={isDisabled}
+              isDisabled={shouldLockDisableProps("locations").disabled}
               defaultValue={defaultValue}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -264,7 +269,19 @@ export const EventSetupTab = (
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && !isManagedEventType && (
+            {isChildrenManagedEventType && !locationAvailable && (
+              <p className="pl-1 text-sm leading-none text-red-600">
+                You have not connected a Zoom account.{" "}
+                <a
+                  className="underline"
+                  href={`${CAL_URL}/apps/${eventType.locations[0].type
+                    .replace("integrations:", "")
+                    .replace(":", "-")}`}>
+                  Connect now
+                </a>
+              </p>
+            )}
+            {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
               <li>
                 <Button
                   data-testid="add-location"
@@ -281,10 +298,8 @@ export const EventSetupTab = (
     );
   };
 
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
-    eventType,
-    t("locked_fields_description")
-  );
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
+    lockedFieldsManager(eventType, t("locked_fields_description"));
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
@@ -430,12 +445,7 @@ export const EventSetupTab = (
             name="locations"
             control={formMethods.control}
             defaultValue={eventType.locations || []}
-            render={() => (
-              <Locations
-                isManagedEventType={isManagedEventType}
-                isDisabled={shouldLockDisableProps("locations").disabled}
-              />
-            )}
+            render={() => <Locations />}
           />
         </div>
       </div>

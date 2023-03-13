@@ -26,6 +26,7 @@ const lockedFieldsManager = (
     {};
 
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  const isChildrenManagedEventType = eventType.metadata?.managedEventConfig !== undefined;
 
   const shouldLockIndicator = (fieldName: string) => {
     let locked = isManagedEventType;
@@ -49,7 +50,7 @@ const lockedFieldsManager = (
     };
   };
 
-  return { shouldLockIndicator, shouldLockDisableProps, isManagedEventType };
+  return { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType };
 };
 
 export default lockedFieldsManager;

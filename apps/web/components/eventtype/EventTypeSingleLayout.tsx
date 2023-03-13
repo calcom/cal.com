@@ -1,4 +1,3 @@
-import { SchedulingType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
@@ -8,6 +7,7 @@ import { TbWebhook } from "react-icons/tb";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -152,7 +152,10 @@ function EventTypeSingleLayout({
     },
   });
 
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  const { isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_description")
+  );
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
@@ -263,14 +266,16 @@ function EventTypeSingleLayout({
                 />
               </>
             )}
-            <Button
-              color="secondary"
-              variant="icon"
-              StartIcon={FiTrash}
-              tooltip={t("delete")}
-              disabled={!hasPermsToDelete}
-              onClick={() => setDeleteDialogOpen(true)}
-            />
+            {!isChildrenManagedEventType && (
+              <Button
+                color="secondary"
+                variant="icon"
+                StartIcon={FiTrash}
+                tooltip={t("delete")}
+                disabled={!hasPermsToDelete}
+                onClick={() => setDeleteDialogOpen(true)}
+              />
+            )}
           </ButtonGroup>
 
           <VerticalDivider className="hidden lg:block" />
