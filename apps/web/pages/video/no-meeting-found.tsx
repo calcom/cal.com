@@ -1,5 +1,3 @@
-import { VideoMeetingInfo } from "pages/video/[uid]";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiX, FiArrowRight } from "@calcom/ui/components/icon";
@@ -22,7 +20,6 @@ export default function NoMeetingFound() {
           }
         />
       </main>
-      
     </>
   );
 }
