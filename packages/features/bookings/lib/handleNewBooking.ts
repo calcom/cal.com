@@ -620,48 +620,54 @@ async function handler(
     await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
   }
 
-  const availableUsers = await ensureAvailableUsers(
-    {
-      ...eventType,
-      users: users as IsFixedAwareUser[],
-      ...(eventType.recurringEvent && {
-        recurringEvent: {
-          ...eventType.recurringEvent,
-          count: recurringCount || eventType.recurringEvent.count,
-        },
-      }),
-    },
-    {
-      dateFrom: reqBody.start,
-      dateTo: reqBody.end,
-      timeZone: reqBody.timeZone,
-    },
-    {
-      allRecurringDates,
-      currentRecurringIndex,
-    }
-  );
+  if (!eventType.seatsPerTimeSlot) {
+    const availableUsers = await ensureAvailableUsers(
+      {
+        ...eventType,
+        users: users as IsFixedAwareUser[],
+        ...(eventType.recurringEvent && {
+          recurringEvent: {
+            ...eventType.recurringEvent,
+            count: recurringCount || eventType.recurringEvent.count,
+          },
+        }),
+      },
+      {
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+        timeZone: reqBody.timeZone,
+      },
+      {
+        allRecurringDates,
+        currentRecurringIndex,
+      }
+    );
 
-  const luckyUsers: typeof users = [];
-  const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
-  // loop through all non-fixed hosts and get the lucky users
-  while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-    const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-      // find a lucky user that is not already in the luckyUsers array
-      availableUsers: luckyUserPool.filter((user) => !luckyUsers.find((existing) => existing.id === user.id)),
-      eventTypeId: eventType.id,
-    });
-    if (!newLuckyUser) {
-      break; // prevent infinite loop
+    const luckyUsers: typeof users = [];
+    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+    // loop through all non-fixed hosts and get the lucky users
+    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        // find a lucky user that is not already in the luckyUsers array
+        availableUsers: luckyUserPool.filter(
+          (user) => !luckyUsers.find((existing) => existing.id === user.id)
+        ),
+        eventTypeId: eventType.id,
+      });
+      if (!newLuckyUser) {
+        break; // prevent infinite loop
+      }
+      luckyUsers.push(newLuckyUser);
     }
-    luckyUsers.push(newLuckyUser);
+    // ALL fixed users must be available
+    if (
+      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
+    ) {
+      throw new Error("Some users are unavailable for booking.");
+    }
+    // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+    users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
-  // ALL fixed users must be available
-  if (availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length) {
-    throw new Error("Some users are unavailable for booking.");
-  }
-  // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-  users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
 
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
@@ -1355,7 +1361,6 @@ async function handler(
           booking
         );
 
-        req.statusCode = 201;
         return {
           ...resultBooking,
           message: "Payment required",
@@ -1364,7 +1369,6 @@ async function handler(
         };
       }
 
-      req.statusCode = 201;
       return { ...resultBooking, seatReferenceUid: bookingSeat?.referenceUid };
     }
   };
