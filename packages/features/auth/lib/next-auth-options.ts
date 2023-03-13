@@ -167,8 +167,9 @@ const providers: Provider[] = [
       // authentication success- but does it meet the minimum password requirements?
       if (
         user.role === "ADMIN" &&
-        user.identityProvider === IdentityProvider.CAL &&
-        !isPasswordValid(credentials.password, false, true)
+        ((user.identityProvider === IdentityProvider.CAL &&
+          !isPasswordValid(credentials.password, false, true)) ||
+          !user.twoFactorEnabled)
       ) {
         return {
           id: user.id,
