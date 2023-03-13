@@ -432,6 +432,7 @@
   "password_hint_min": "Minimum 7 characters long",
   "password_hint_admin_min": "Minimum 15 characters long",
   "password_hint_num": "Contain at least 1 number",
+  "max_limit_allowed_hint":"Must be {{limit}} or fewer characters long",
   "invalid_password_hint": "The password must be a minimum of {{passwordLength}} characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   "incorrect_password": "Password is incorrect.",
   "incorrect_username_password": "Username or password is incorrect.",
