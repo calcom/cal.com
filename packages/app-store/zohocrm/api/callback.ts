@@ -15,7 +15,6 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-  console.log("query", req.query);
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;

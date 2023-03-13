@@ -31,6 +31,36 @@ export type ZohoToken = {
 export type ZohoContact = {
   Email: string;
 };
+
+/**
+ * Converts to the date Format as required by zoho: 2020-08-02T15:30:00+05:30
+ * https://www.zoho.com/crm/developer/docs/api/v2/events-response.html
+ */
+const toISO8601String = (date: Date) => {
+  const tzo = -date.getTimezoneOffset(),
+    dif = tzo >= 0 ? "+" : "-",
+    pad = function (num: number) {
+      return (num < 10 ? "0" : "") + num;
+    };
+
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes()) +
+    ":" +
+    pad(date.getSeconds()) +
+    dif +
+    pad(Math.floor(Math.abs(tzo) / 60)) +
+    ":" +
+    pad(Math.abs(tzo) % 60)
+  );
+};
 export default class ZohoCrmCalendarService implements Calendar {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
@@ -91,8 +121,8 @@ export default class ZohoCrmCalendarService implements Calendar {
   private createZohoEvent = async (event: CalendarEvent) => {
     const zohoEvent = {
       Event_Title: event.title,
-      Start_DateTime: new Date(event.startTime).toISOString().split(".")[0],
-      End_DateTime: new Date(event.endTime).toISOString().split(".")[0],
+      Start_DateTime: toISO8601String(new Date(event.startTime)),
+      End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
       Venue: getLocation(event),
     };
@@ -114,8 +144,8 @@ export default class ZohoCrmCalendarService implements Calendar {
     const zohoEvent = {
       id: uid,
       Event_Title: event.title,
-      Start_DateTime: new Date(event.startTime).toISOString().split(".")[0],
-      End_DateTime: new Date(event.endTime).toISOString().split(".")[0],
+      Start_DateTime: toISO8601String(new Date(event.startTime)),
+      End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
       Venue: getLocation(event),
     };
