@@ -70,7 +70,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "bg-default flex flex-col justify-between rounded-md border border-subtle"
+        "bg-default border-subtle flex flex-col justify-between rounded-md border"
       )}
       {...containerProps}>
       <div>
@@ -147,7 +147,7 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-medium">
+              className="text-default text-xs font-medium">
               {learnMore.text}
             </Link>
           )}
