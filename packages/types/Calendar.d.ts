@@ -5,6 +5,7 @@ import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Ensure } from "./utils";
@@ -24,8 +25,9 @@ export type Person = {
   language: { translate: TFunction; locale: string };
   username?: string;
   id?: number;
-  bookingId?: number | null;
-  locale?: string | null;
+  bookingId?: number;
+  locale?: string;
+  timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
 };
 
