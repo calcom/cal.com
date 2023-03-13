@@ -27,7 +27,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
-import { FiChevronDown } from "../../icon";
+import { FiBold, FiChevronDown, FiItalic, FiLink } from "../../icon";
 import type { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -436,7 +436,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               }}
               className={"toolbar-item spaced rounded-md " + (isBold ? "active" : "")}
               aria-label="Format Bold">
-              <i className="format bold" />
+              <FiBold />
             </button>
           )}
           {!props.excludedToolbarItems?.includes("italic") && (
@@ -450,7 +450,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               }}
               className={"toolbar-item spaced rounded-md " + (isItalic ? "active" : "")}
               aria-label="Format Italics">
-              <i className="format italic" />
+              <FiItalic />
             </button>
           )}
           {!props.excludedToolbarItems?.includes("link") && (
@@ -460,7 +460,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 onClick={insertLink}
                 className={"toolbar-item spaced rounded-md " + (isLink ? "active" : "")}
                 aria-label="Insert Link">
-                <i className="format link" />
+                <FiLink />
               </button>
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
