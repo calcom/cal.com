@@ -65,7 +65,7 @@ export default function AppListCard(props: AppListCardProps) {
 
   const dirName = slug === "stripe" ? "stripepayment" : slug;
 
-  const appHasSettings = dirName && dirName in AppSettingsComponentsMap;
+  const appHasSettings = dirName && (dirName in AppSettingsComponentsMap || dirName.endsWith("-calendar"));
 
   return (
     <ListItem

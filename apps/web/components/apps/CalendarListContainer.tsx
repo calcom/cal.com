@@ -181,7 +181,7 @@ function ConnectedCalendarsList(props: Props) {
                         />
                       </div>
                     }>
-                    <div className="border-t border-gray-200">
+                    <div>
                       {!fromOnboarding && (
                         <>
                           <p className="px-4 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>

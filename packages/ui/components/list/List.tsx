@@ -104,8 +104,10 @@ export function ListItem(props: ListItemProps) {
         </Wrapper>
         {expanded ? (
           <>
-            <div className="my-4 h-px bg-gray-200" />
-            <div ref={animatedRef}>{expanded}</div>
+            <div className="my-4 -mx-4 h-px bg-gray-200" />
+            <div className="-m-4" ref={animatedRef}>
+              {expanded}
+            </div>
           </>
         ) : null}
       </>
