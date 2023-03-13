@@ -226,8 +226,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       },
       ...appStoreActions,
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router]);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
