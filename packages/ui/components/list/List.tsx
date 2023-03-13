@@ -99,7 +99,7 @@ export function ListItem(props: ListItemProps) {
               />
               {props.belowHeading ? props.belowHeading : null}
             </div>
-            {actions ? <div className="ml-auto">{actions}</div> : null}
+            {actions ? <div className="my-auto ml-auto ">{actions}</div> : null}
           </div>
         </Wrapper>
         {expanded ? (
