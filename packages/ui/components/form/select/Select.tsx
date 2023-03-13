@@ -45,7 +45,7 @@ export const getReactSelectProps = <
   menuPlacement?: MenuPlacement;
 }) => ({
   menuPlacement,
-  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
+  className: classNames("block min-h-6 w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
     ...reactSelectComponents,
@@ -84,16 +84,6 @@ export const Select = <
       {...reactSelectProps}
       {...props}
       styles={{
-        option: (defaultStyles, state) => ({
-          ...defaultStyles,
-          backgroundColor: state.isSelected
-            ? state.isFocused
-              ? "var(--brand-color)"
-              : "var(--brand-color)"
-            : state.isFocused
-            ? "var(--brand-color-dark-mode)"
-            : "var(--brand-text-color)",
-        }),
         ...styles,
       }}
     />

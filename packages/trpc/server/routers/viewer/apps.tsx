@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -320,4 +320,26 @@ export const appsRouter = router({
 
       return !!updated;
     }),
+  queryForDependencies: authedProcedure.input(z.string().array().optional()).query(async ({ ctx, input }) => {
+    if (!input) return;
+
+    const dependencyData: { name: string; slug: string; installed: boolean }[] = [];
+
+    await Promise.all(
+      input.map(async (dependency) => {
+        const appInstalled = await ctx.prisma.credential.findFirst({
+          where: {
+            appId: dependency,
+            userId: ctx.user.id,
+          },
+        });
+
+        const app = await getAppFromSlug(dependency);
+
+        dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
+      })
+    );
+
+    return dependencyData;
+  }),
 });

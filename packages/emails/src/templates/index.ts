@@ -20,4 +20,4 @@ export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { SignupEmailVerification } from "./SignupEmailVerification";
 export { TeamInviteEmail } from "./TeamInviteEmail";
-export * from "@calcom/app-store/ee/routing-forms/emails/components";
+export * from "@calcom/app-store/routing-forms/emails/components";
