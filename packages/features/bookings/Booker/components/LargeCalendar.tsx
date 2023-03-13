@@ -1,11 +1,15 @@
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import { shallow } from "zustand/shallow";
 
-type LargeCalendarProps = {
-  onDaySelect: (day: Dayjs) => void;
-  onTimeSelect: (time: string) => void;
-};
+import dayjs from "@calcom/dayjs";
 
-export const LargeCalendar = ({ onDaySelect, onTimeSelect }: LargeCalendarProps) => {
+import { useBookerStore } from "../store";
+
+export const LargeCalendar = () => {
+  const [setSelectedDate, setSelectedTimeslot] = useBookerStore(
+    (state) => [state.setSelectedDate, state.setSelectedTimeslot],
+    shallow
+  );
+
   return (
     <div className="flex h-full w-full flex-col items-center justify-center dark:text-white">
       Something big is coming...
@@ -15,8 +19,8 @@ export const LargeCalendar = ({ onDaySelect, onTimeSelect }: LargeCalendarProps)
         type="button"
         onClick={(ev) => {
           ev.preventDefault();
-          onDaySelect(dayjs());
-          onTimeSelect(dayjs().format());
+          setSelectedDate(dayjs().format("YYYY-MM-DD"));
+          setSelectedTimeslot(dayjs().format());
         }}>
         Click this button to set date + time in one go just like the big thing that is coming here would do.
         :)

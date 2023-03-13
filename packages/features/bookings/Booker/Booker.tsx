@@ -4,7 +4,6 @@ import { Fragment, useEffect } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
-import type { Dayjs } from "@calcom/dayjs";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -21,16 +20,15 @@ import { BookerSection } from "./components/Section";
 import { fadeInUp, fadeInLeft, resizeAnimationConfig } from "./config";
 import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
-import { useGetBrowsingMonthStart } from "./utils/dates";
 import { useEvent } from "./utils/event";
 
 // @TODO: Test embed view
 /* @TODO: eth signature / gates */
 
 const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
-  const [browsingMonthStart, setBrowsingMonthStart] = useGetBrowsingMonthStart(month);
   // Custom breakpoint to make calendar fit.
-  const isMobile = useMediaQuery("(max-width: 800px)");
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isTablet = useMediaQuery("(max-width: 1024px)");
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
@@ -38,10 +36,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const duration = useBookerStore((state) => state.selectedDuration);
-  const [selectedDate, setSelectedDate] = useBookerStore(
-    (state) => [state.selectedDate, state.setSelectedDate],
-    shallow
-  );
+  const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
@@ -50,24 +45,11 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   useInitializeBookerStore({
     username,
     eventSlug,
-    month: browsingMonthStart.toDate(),
+    month,
     eventId: event?.data?.id,
     rescheduleUid,
     rescheduleBooking,
   });
-
-  const onMonthChange = (date: Dayjs) => {
-    setBrowsingMonthStart(date);
-    setSelectedDate(null);
-  };
-
-  const onDaySelect = (date: Dayjs) => {
-    setSelectedDate(date.format("YYYY-MM-DD"));
-  };
-
-  const onTimeSelect = (time: string) => {
-    setSelectedTimeslot(time);
-  };
 
   useEffect(() => {
     setLayout(isMobile ? "mobile" : "small_calendar");
@@ -112,8 +94,8 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
         transition={{ ease: "easeInOut", duration: 0.4 }}
         className={classNames(
-          "[--booker-meta-width:280px] [--booker-main-width:425px] [--booker-timeslots-width:280px]",
-          "dark:bg-darkgray-100 grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
+          "[--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+          "dark:bg-darkgray-100 max-w-screen grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
           layout === "small_calendar" &&
             "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
           layout !== "small_calendar" && "h-auto min-h-screen w-screen"
@@ -129,7 +111,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               />
               {layout !== "small_calendar" && (
                 <div className=" mt-auto p-6">
-                  <DatePicker onDaySelect={onDaySelect} onMonthChange={onMonthChange} />
+                  <DatePicker />
                 </div>
               )}
             </BookerSection>
@@ -150,8 +132,8 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             visible={bookerState !== "booking" && layout === "small_calendar"}
             {...fadeInUp}
             initial="visible"
-            className="md:dark:border-darkgray-300 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l md:border-gray-200">
-            <DatePicker onDaySelect={onDaySelect} onMonthChange={onMonthChange} />
+            className="md:dark:border-darkgray-300 ml-[-1px] h-full flex-shrink p-6 md:border-l md:border-gray-200 lg:w-[var(--booker-main-width)]">
+            <DatePicker />
           </BookerSection>
 
           <BookerSection
@@ -163,14 +145,14 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             }
             className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 md:border-l"
             {...fadeInUp}>
-            <LargeCalendar onDaySelect={onDaySelect} onTimeSelect={onTimeSelect} />
+            <LargeCalendar />
           </BookerSection>
 
           <BookerSection
             key="timeslots"
             area={{ default: "main", small_calendar: "timeslots" }}
             visible={
-              (bookerState === "selecting_time" && layout === "small_calendar") ||
+              (layout !== "large_calendar" && bookerState === "selecting_time") ||
               (layout === "large_timeslots" && bookerState !== "booking")
             }
             className={classNames(
@@ -180,8 +162,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             )}
             {...fadeInLeft}>
             <AvailableTimeSlots
-              extraDays={layout === "large_timeslots" ? 4 : 0}
-              onTimeSelect={onTimeSelect}
+              extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
               limitHeight={layout === "small_calendar"}
               seatsPerTimeslot={event.data?.seatsPerTimeSlot}
             />

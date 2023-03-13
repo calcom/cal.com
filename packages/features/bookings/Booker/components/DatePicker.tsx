@@ -10,14 +10,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useBookerStore } from "../store";
 import { useEvent, useScheduleForEvent } from "../utils/event";
 
-type DatePickerProps = {
-  onDaySelect: (date: Dayjs) => void;
-  onMonthChange?: (date: Dayjs) => void;
-};
-
-export const DatePicker = ({ onDaySelect, onMonthChange }: DatePickerProps) => {
+export const DatePicker = () => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
+  const [setSelectedDate, setMonth] = useBookerStore(
+    (state) => [state.setSelectedDate, state.setMonth],
+    shallow
+  );
   const event = useEvent();
   const schedule = useScheduleForEvent();
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
@@ -26,8 +25,12 @@ export const DatePicker = ({ onDaySelect, onMonthChange }: DatePickerProps) => {
     <div className="mt-1">
       <DatePickerComponent
         isLoading={schedule.isLoading}
-        onChange={onDaySelect}
-        onMonthChange={onMonthChange}
+        onChange={(date: Dayjs) => {
+          setSelectedDate(date.format("YYYY-MM-DD"));
+        }}
+        onMonthChange={(date: Dayjs) => {
+          setMonth(date.format("YYYY-MM"));
+        }}
         includedDates={nonEmptyScheduleDays}
         locale={i18n.language}
         browsingDate={month ? dayjs(month) : undefined}

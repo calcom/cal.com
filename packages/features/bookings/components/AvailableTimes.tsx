@@ -34,21 +34,23 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("dark:text-white", className)}>
-      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-12 flex w-full items-center bg-white before:absolute before:-top-12 before:h-12 before:w-full before:bg-white">
-        <span className="font-semibold text-gray-900 dark:text-white">
-          {nameOfDay(i18n.language, Number(date.format("d")), "short")}
-        </span>
+      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-8 flex flex w-full w-full flex-col items-start bg-white before:absolute before:-top-12 before:h-12 before:w-full before:bg-white lg:flex-row lg:items-center">
         <span>
-          , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {nameOfDay(i18n.language, Number(date.format("d")), "short")}
+          </span>
+          <span>
+            , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
+          </span>
         </span>
 
         {showTimeformatToggle && (
-          <div className="ml-auto">
+          <div className="lg:ml-auto">
             <TimeFormatToggle />
           </div>
         )}
       </header>
-      <div>
+      <div className="pb-4">
         {slots.map((slot) => {
           const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeslot);
           return (
@@ -60,7 +62,7 @@ export const AvailableTimes = ({
               onClick={() => onTimeSelect(slot.time)}
               className="mb-3 block flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
               color="secondary">
-              {dayjs(slot.time).tz(timezone).format(timeFormat)}
+              {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
               {hasTimeSlots && !bookingFull && (
                 <p

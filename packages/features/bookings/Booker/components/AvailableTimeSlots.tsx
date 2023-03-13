@@ -11,7 +11,6 @@ import { useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
-  onTimeSelect: (time: string) => void;
   limitHeight?: boolean;
   seatsPerTimeslot?: number | null;
 };
@@ -23,13 +22,9 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
-export const AvailableTimeSlots = ({
-  extraDays,
-  onTimeSelect,
-  limitHeight,
-  seatsPerTimeslot,
-}: AvailableTimeSlotsProps) => {
+export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
+  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const { timezone } = useTimePreferences();
 
@@ -73,7 +68,7 @@ export const AvailableTimeSlots = ({
               className="w-full"
               key={slots.date}
               showTimeformatToggle={!isMultipleDates}
-              onTimeSelect={onTimeSelect}
+              onTimeSelect={setSelectedTimeslot}
               date={dayjs(slots.date)}
               slots={slots.slots}
               timezone={timezone}

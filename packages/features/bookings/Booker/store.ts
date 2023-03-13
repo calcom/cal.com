@@ -3,32 +3,7 @@ import { create } from "zustand";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { updateQueryParam } from "./utils/update-query-param";
-
-// Before booker store is initialized, it's unsure if all data is set,
-// therefore these null values are allowed.
-type BookerStoreUninitialized = {
-  username: string | null;
-  eventSlug: string | null;
-  eventId: number | null;
-  month: Date | null;
-  initialized: false;
-};
-
-type BookerStoreInitialized = {
-  /**
-   * Event details. These are stored in store for easier
-   * access in child components.
-   */
-  username: string;
-  eventSlug: string;
-  eventId: number;
-  /**
-   * Current month being viewed.
-   */
-  month: Date;
-  initialized: true;
-};
+import { updateQueryParam, getQueryParam } from "./utils/query-param";
 
 /**
  * Arguments passed into store initializer, containing
@@ -37,13 +12,26 @@ type BookerStoreInitialized = {
 type StoreInitializeType = {
   username: string;
   eventSlug: string;
-  month: Date;
+  // Month can be undefined if it's not passed in as a prop.
+  month?: string;
   eventId: number | undefined;
   rescheduleUid: string | null;
   rescheduleBooking: GetBookingType | null | undefined;
 };
 
 type BookerStore = {
+  /**
+   * Event details. These are stored in store for easier
+   * access in child components.
+   */
+  username: string | null;
+  eventSlug: string | null;
+  eventId: number | null;
+  /**
+   * Current month being viewed.
+   */
+  month: string | null;
+  setMonth: (month: string | null) => void;
   /**
    * Current state of the booking process
    * the user is currently in. See enum for possible values.
@@ -97,62 +85,59 @@ type BookerStore = {
  *
  * See comments in interface above for more information on it's specific values.
  */
-export const useBookerStore = create<BookerStore & (BookerStoreUninitialized | BookerStoreInitialized)>(
-  (set, get) => ({
-    state: "loading",
-    setState: (state: BookerState) => set({ state }),
-    layout: "small_calendar",
-    setLayout: (layout: BookerLayout) => set({ layout }),
-    selectedDate:
-      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("month") ?? null : null,
-    setSelectedDate: (selectedDate: string | null) => {
-      set({ selectedDate });
-      updateQueryParam("month", selectedDate ?? "");
-    },
-    username: null,
-    eventSlug: null,
-    eventId: null,
-    month: null,
-    initialized: false,
-    initialize: ({
-      username,
-      eventSlug,
-      month,
-      eventId,
-      rescheduleUid = null,
-      rescheduleBooking = null,
-    }: StoreInitializeType) => {
-      if (
-        get().username === username &&
-        get().eventSlug === eventSlug &&
-        get().month === month &&
-        get().eventId === eventId &&
-        get().rescheduleUid === rescheduleUid &&
-        get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
-      )
-        return;
-      set({ username, eventSlug, month, eventId, rescheduleUid, rescheduleBooking, initialized: true });
-    },
-    selectedDuration:
-      typeof window !== "undefined"
-        ? Number(new URLSearchParams(window.location.search).get("duration")) ?? null
-        : null,
-    setSelectedDuration: (selectedDuration: number | null) => {
-      set({ selectedDuration });
-      updateQueryParam("duration", selectedDuration ?? "");
-    },
-    recurringEventCount: null,
-    setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-    rescheduleBooking: null,
-    rescheduleUid: null,
-    selectedTimeslot:
-      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("date") ?? null : null,
-    setSelectedTimeslot: (selectedTimeslot: string | null) => {
-      set({ selectedTimeslot });
-      updateQueryParam("date", selectedTimeslot ?? "");
-    },
-  })
-);
+export const useBookerStore = create<BookerStore>((set, get) => ({
+  state: "loading",
+  setState: (state: BookerState) => set({ state }),
+  layout: "small_calendar",
+  setLayout: (layout: BookerLayout) => set({ layout }),
+  selectedDate: getQueryParam("date") || null,
+  setSelectedDate: (selectedDate: string | null) => {
+    set({ selectedDate });
+    updateQueryParam("date", selectedDate ?? "");
+  },
+  username: null,
+  eventSlug: null,
+  eventId: null,
+  month: getQueryParam("month") || getQueryParam("date") || null,
+  setMonth: (month: string | null) => {
+    set({ month, selectedDate: null, selectedTimeslot: null });
+    updateQueryParam("month", month ?? "");
+  },
+  initialize: ({
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid = null,
+    rescheduleBooking = null,
+  }: StoreInitializeType) => {
+    if (
+      get().username === username &&
+      get().eventSlug === eventSlug &&
+      get().month === month &&
+      get().eventId === eventId &&
+      get().rescheduleUid === rescheduleUid &&
+      get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
+    )
+      return;
+    set({ username, eventSlug, eventId, rescheduleUid, rescheduleBooking });
+    if (month) set({ month });
+  },
+  selectedDuration: Number(getQueryParam("duration")) || null,
+  setSelectedDuration: (selectedDuration: number | null) => {
+    set({ selectedDuration });
+    updateQueryParam("duration", selectedDuration ?? "");
+  },
+  recurringEventCount: null,
+  setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
+  rescheduleBooking: null,
+  rescheduleUid: null,
+  selectedTimeslot: getQueryParam("slot") || null,
+  setSelectedTimeslot: (selectedTimeslot: string | null) => {
+    set({ selectedTimeslot });
+    updateQueryParam("slot", selectedTimeslot ?? "");
+  },
+}));
 
 export const useInitializeBookerStore = ({
   username,
