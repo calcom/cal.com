@@ -898,7 +898,7 @@ async function handler(
   > => {
     const booking = await prisma.booking.findUnique({
       where: {
-        uid: rescheduleUid,
+        uid: rescheduleUid || reqBody.bookingUid,
       },
       select: {
         uid: true,
@@ -917,13 +917,13 @@ async function handler(
     }
 
     if (
-      booking.attendees.filter((attendee) => attendee.email === req.body.responses.email) &&
+      booking.attendees.filter((attendee) => attendee.email === req.body.responses.email).length > 0 &&
       dayjs.utc(booking.startTime).format() === evt.startTime
     ) {
       throw new Error("You are trying to reschedule to the same time.");
     }
 
-    // There are two paths here, booking seats without reschedule and reschedule a booking with seats
+    // There are two paths here, reschedule a booking with seats and booking seats without reschedule
     if (rescheduleUid) {
       const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
       // Required for Typescript, these should always be set.
@@ -1249,31 +1249,6 @@ async function handler(
 
       return { ...resultBooking, seatReferenceUid: bookingSeat.referenceUid };
     } else {
-      // If reschedule but no seats in event type
-      const booking = await prisma.booking.findUnique({
-        where: {
-          uid: rescheduleUid,
-        },
-        select: {
-          uid: true,
-          id: true,
-          attendees: true,
-          userId: true,
-          references: true,
-          startTime: true,
-          user: true,
-          status: true,
-        },
-      });
-
-      if (!booking) {
-        throw new HttpError({ statusCode: 404, message: "Booking not found" });
-      }
-      // See if attendee is already signed up for timeslot
-      if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
-        throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-      }
-
       // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
       const bookingAttendees = booking.attendees.map((attendee) => {
         return { ...attendee, language: { translate: tAttendees, locale: language ?? "en" } };
@@ -1409,7 +1384,7 @@ async function handler(
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (eventType.seatsPerTimeSlot && bookingSeat) {
+  if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats();
     if (newBooking) {
       req.statusCode = 201;
