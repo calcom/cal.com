@@ -2,37 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next.js: Server",
-      "type": "node-terminal",
+      "type": "node",
       "request": "launch",
-      "command": "npm run dev",
-      "skipFiles": ["<node_internals>/**"],
-      "outFiles": [
-        "${workspaceFolder}/**/*.js",
-        "!**/node_modules/**"
-      ],
-      "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ]
-    },
-    {
-      "name": "Next.js: Client",
-      "type": "pwa-chrome",
-      "request": "launch",
-      "url": "http://localhost:3000"
-    },
-    {
-      "name": "Next.js: Full Stack",
-      "type": "node-terminal",
-      "request": "launch",
-      "command": "npm run dev",
+      "name": "Next.js Node Debug",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "env": {
+        "NODE_OPTIONS": "--inspect"
+      },
+      "cwd": "${workspaceFolder}/apps/web",
       "console": "integratedTerminal",
-      "serverReadyAction": {
-        "pattern": "started server on .+, url: (https?://.+)",
-        "uriFormat": "%s",
-        "action": "debugWithChrome"
+      "sourceMapPathOverrides": {
+        "meteor://💻app/*": "${workspaceFolder}/*",
+        "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
+        "webpack://?:*/*": "${workspaceFolder}/*"
       }
     }
   ]

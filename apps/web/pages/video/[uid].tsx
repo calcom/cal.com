@@ -1,11 +1,11 @@
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
-import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
@@ -193,6 +193,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { req, res } = context;
+
   const ssr = await ssrInit(context);
 
   const booking = await prisma.booking.findUnique({
@@ -254,7 +256,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     startTime: booking.startTime.toString(),
     endTime: booking.endTime.toString(),
   });
-  const session = await getSession();
+
+  const session = await getServerSession({ req, res });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {

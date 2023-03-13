@@ -9,10 +9,12 @@ on:
 jobs:
   build:
     name: Production build
+    if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
   analyze:
     needs: build
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

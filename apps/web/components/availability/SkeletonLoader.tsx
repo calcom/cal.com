@@ -1,6 +1,7 @@
 import React from "react";
 
-import { SkeletonText } from "@calcom/ui";
+import { Button, SkeletonText } from "@calcom/ui";
+import { FiMoreHorizontal } from "@calcom/ui/components/icon";
 
 import classNames from "@lib/classNames";
 
@@ -18,17 +19,21 @@ export default SkeletonLoader;
 
 function SkeletonItem() {
   return (
-    <li className="group flex w-full items-center justify-between px-2 py-[23px] sm:px-6">
-      <div className="flex-grow truncate text-sm">
-        <div className="flex flex-col space-y-2">
-          <SkeletonText className="h-4 w-32" />
-          <SkeletonText className="h-2 w-32" />
+    <li>
+      <div className="flex items-center justify-between py-5 hover:bg-neutral-50 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+        <div className="items-between flex w-full flex-col justify-center hover:bg-neutral-50 sm:px-6">
+          <SkeletonText className="my-1 h-4 w-32" />
+          <SkeletonText className="my-1 h-2 w-24" />
+          <SkeletonText className="my-1 h-2 w-40" />
         </div>
-      </div>
-      <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
-        <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <SkeletonText className="h-6 w-12" />
-        </div>
+        <Button
+          className="mx-5"
+          type="button"
+          variant="icon"
+          color="secondary"
+          StartIcon={FiMoreHorizontal}
+          disabled
+        />
       </div>
     </li>
   );
