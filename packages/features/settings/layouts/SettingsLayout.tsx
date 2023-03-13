@@ -243,7 +243,7 @@ const SettingsSidebarContainer = ({
                           }>
                           <CollapsibleTrigger>
                             <div
-                              className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
+                              className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
                               onClick={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
@@ -427,7 +427,7 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="mb-8 flex w-full items-center border-b border-subtle pb-6">
+      <div className="border-subtle mb-8 flex w-full items-center border-b pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <FiArrowLeft className="mr-7" />
