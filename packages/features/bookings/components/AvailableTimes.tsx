@@ -34,7 +34,7 @@ export const AvailableTimes = ({
 
   return (
     <div className={classNames("dark:text-white", className)}>
-      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-8 flex flex w-full w-full flex-col items-start bg-white before:absolute before:-top-12 before:h-12 before:w-full before:bg-white lg:flex-row lg:items-center">
+      <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-8 flex flex w-full w-full flex-row items-center bg-white before:absolute before:-top-12 before:h-12 before:w-full before:bg-white md:flex-col md:items-start lg:flex-row lg:items-center">
         <span>
           <span className="font-semibold text-gray-900 dark:text-white">
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
@@ -45,7 +45,7 @@ export const AvailableTimes = ({
         </span>
 
         {showTimeformatToggle && (
-          <div className="lg:ml-auto">
+          <div className="ml-auto md:ml-0 lg:ml-auto">
             <TimeFormatToggle />
           </div>
         )}

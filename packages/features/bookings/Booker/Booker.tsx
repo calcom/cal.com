@@ -1,6 +1,6 @@
 import type { MotionStyle } from "framer-motion";
 import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -29,6 +29,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   // Custom breakpoint to make calendar fit.
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
+  const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? Fragment : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
@@ -61,6 +62,12 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
+
+  useEffect(() => {
+    if (layout === "mobile") {
+      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [layout, selectedDate]);
 
   return (
     <>
@@ -160,6 +167,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
               layout !== "small_calendar" && "sticky top-0"
             )}
+            ref={timeslotsRef}
             {...fadeInLeft}>
             <AvailableTimeSlots
               extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
