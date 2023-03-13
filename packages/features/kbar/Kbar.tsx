@@ -50,7 +50,9 @@ const useEventTypesAction = () => {
     return acc;
   }, []);
 
-  return useRegisterActions(eventTypeActions?.length ? eventTypeActions : []);
+  const actions = eventTypeActions?.length ? eventTypeActions : [];
+
+  return useRegisterActions(actions, actions);
 };
 
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
