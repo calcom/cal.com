@@ -234,7 +234,7 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose-sm prose mt-8">{body}</div>
+        <div className="prose-sm prose text-default mt-8">{body}</div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (

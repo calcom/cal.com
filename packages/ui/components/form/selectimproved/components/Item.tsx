@@ -42,7 +42,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
               {isSelected && <FiCheck className="h-3 w-3 text-current" />}
             </div>
           ) : (
-            isSelected && <FiCheck className="h-3 w-3 text-emphasis" strokeWidth={2} />
+            isSelected && <FiCheck className="text-emphasis h-3 w-3" strokeWidth={2} />
           )}
         </>
       </li>
@@ -60,7 +60,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
         isSelected
           ? "dark:bg-darkgray-200 dark:text-darkgray-900 bg-subtle text-emphasis"
           : "dark:text-darkgray-700 dark:hover:bg-darkgray-200 text-default hover:bg-subtle",
-        focused && "dark:bg-darkgray-200 bg-muted
+        focused && "dark:bg-darkgray-200 bg-muted",
         classNames?.listItem
       )}>
       <div className="flex items-center space-x-2">
@@ -79,7 +79,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
           {isSelected && <FiCheck className="h-3 w-3 text-current" />}
         </div>
       ) : (
-        isSelected && <FiCheck className="h-3 w-3 text-emphasis" strokeWidth={2} />
+        isSelected && <FiCheck className="text-emphasis h-3 w-3" strokeWidth={2} />
       )}
     </li>
   );

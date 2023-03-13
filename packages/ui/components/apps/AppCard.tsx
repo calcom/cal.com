@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
@@ -39,14 +40,21 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
-
+  console.log({ app });
   return (
-    <div className="relative flex h-64 flex-col rounded-md border border-subtle p-5">
+    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
-        <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
+        <img
+          src={app.logo}
+          alt={app.name + " Logo"}
+          className={classNames(
+            "mb-4 h-12 w-12 rounded-sm",
+            app.dirName == "caldavcalendar" && "dark:invert" // TODO: Maybe find a better way to handle this @Hariom?
+          )}
+        />
       </div>
       <div className="flex items-center">
-        <h3 className="font-medium">
+        <h3 className="text-emphasis font-medium">
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}

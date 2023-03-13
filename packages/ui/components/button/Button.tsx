@@ -123,7 +123,7 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "destructive",
-        className: "text-red-700/30 dark:text-red-700/30 bg-error/40 dark:bg-error/80 border border-red-200",
+        className: "text-red-700/30 dark:text-red/30 bg-error/40 dark:bg-error/80 border border-red-200",
       },
       {
         loading: true,
@@ -135,7 +135,7 @@ const buttonClasses = cva(
         disabled: [false, undefined],
         color: "destructive",
         className:
-          "border dark:text-inverted text-emphasis hover:text-red-700 focus-visible:text-red-700 dark:hover:text-red-700 dark:focus-visible:text-red-700 hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
+          "border text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
       }),
       // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
