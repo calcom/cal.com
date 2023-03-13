@@ -235,7 +235,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
           {title}
         </div>
         <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
-          {description}
+          <div dangerouslySetInnerHTML={{ __html: description }} />
         </div>
       </div>
     </div>
