@@ -48,11 +48,11 @@
   .dark {
     /* background */
 
-    --cal-bg-emphasis: #2b2b2b;
-    --cal-bg: #111111;
-    --cal-bg-subtle: #1c1c1c;
-    --cal-bg-muted: #101010;
-    --cal-bg-inverted: #f3f4f6;
+    --cal-bg-emphasis: #2B2B2B;
+    --cal-bg: #101010;
+    --cal-bg-subtle: #2B2B2B;
+    --cal-bg-muted: #1C1C1C;
+    --cal-bg-inverted: #F3F4F6;
 
     /* background -> components*/
     --cal-bg-info: #DEE9FC;
@@ -64,15 +64,15 @@
     /* Borders */
     --cal-border-emphasis: #575757;
     --cal-border: #444444;
-    --cal-border-subtle: #2b2b2b;
-    --cal-border-muted: #1c1c1c;
+    --cal-border-subtle: #2B2B2B;
+    --cal-border-muted: #1C1C1C;
 
     /* Content/Text */
-    --cal-text-emphasis: #f3f4f6;
-    --cal-text: #d6d6d6;
-    --cal-text-subtle: #767676;
+    --cal-text-emphasis: #F3F4F6;
+    --cal-text: #D6D6D6;
+    --cal-text-subtle: #757575;
     --cal-text-muted: #575757;
-    --cal-text-inverted: #111111;
+    --cal-text-inverted: #101010;
 
     /* Content/Text -> components */
     --cal-text-info: #253985;
