@@ -1,4 +1,8 @@
-// TODO: In case of an embed if localStorage is not available(third party), use localStorage of parent(first party) that contains the iframe.
+/**
+ * Provides a wrapper around localStorage to avoid errors in case of restricted storage access.
+ *
+ * TODO: In case of an embed if localStorage is not available(third party), use localStorage of parent(first party) that contains the iframe.
+ */
 export const localStorage = {
   getItem(key: string) {
     try {

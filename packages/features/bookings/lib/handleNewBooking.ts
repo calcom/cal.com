@@ -43,10 +43,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
-import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
+import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
@@ -113,36 +114,20 @@ const isWithinAvailableHours = (
   {
     workingHours,
     organizerTimeZone,
-    inviteeTimeZone,
   }: {
     workingHours: WorkingHours[];
     organizerTimeZone: string;
-    inviteeTimeZone: string;
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
-  const isInviteeInDST = isInDST(dayjs().tz(organizerTimeZone));
   const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
-  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-  const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
-  const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
-  const inviteeDST = isInviteeInDST === isInviteeInDSTWhenSlotStart;
-  const getTime = (slotTime: Dayjs, minutes: number) =>
-    slotTime
-      .startOf("day")
-      .add(
-        sameDSTUsers && organizerDST && inviteeDST
-          ? minutes
-          : minutes -
-              (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
-                ? organizerDSTDifference
-                : inviteeDSTDifference),
-        "minutes"
-      );
+
+  const getTime = (slotTime: Dayjs, minutes: number) => {
+    const minutesDTS = isOrganizerInDSTWhenSlotStart ? minutes - organizerDSTDifference : minutes;
+    return slotTime.startOf("day").add(minutesDTS, "minutes");
+  };
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
@@ -223,6 +208,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: true,
       seatsShowAttendees: true,
       bookingLimits: true,
+      durationLimits: true,
       workflows: {
         include: {
           workflow: {
@@ -300,7 +286,6 @@ async function ensureAvailableUsers(
         {
           workingHours,
           organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
-          inviteeTimeZone: input.timeZone,
         }
       )
     ) {
@@ -412,11 +397,23 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const userFieldsResponses = {} as typeof responses;
+    const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
+    const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
     eventType.bookingFields.forEach((field) => {
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        userFieldsResponses[field.name] = responses[field.name];
+      const label = field.label || field.defaultLabel;
+      if (!label) {
+        throw new Error('Missing label for booking field "' + field.name + '"');
       }
+      if (field.editable === "user" || field.editable === "user-readonly") {
+        calEventUserFieldsResponses[field.name] = {
+          label,
+          value: responses[field.name],
+        };
+      }
+      calEventResponses[field.name] = {
+        label,
+        value: responses[field.name],
+      };
     });
     return {
       ...reqBody,
@@ -426,8 +423,9 @@ function getBookingData({
       location: responses.location?.optionValue || responses.location?.value || "",
       smsReminderNumber: responses.smsReminderNumber,
       notes: responses.notes || "",
-      userFieldsResponses,
+      calEventUserFieldsResponses,
       rescheduleReason: responses.rescheduleReason,
+      calEventResponses,
     };
   } else {
     // Check if required custom inputs exist
@@ -628,6 +626,11 @@ async function handler(
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
   }
 
+  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
+    const startAsDate = dayjs(reqBody.start).toDate();
+    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
+  }
+
   if (!eventType.seatsPerTimeSlot) {
     const availableUsers = await ensureAvailableUsers(
       {
@@ -754,6 +757,8 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
+  const responses = "responses" in reqBody ? reqBody.responses : null;
+
   const eventNameObject = {
     //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
     attendeeName: bookerName || "Nameless",
@@ -762,6 +767,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    bookingFields: { ...responses },
     t: tOrganizer,
   };
 
@@ -773,8 +779,8 @@ async function handler(
     }
   }
 
-  const responses = "responses" in reqBody ? reqBody.responses : null;
-  const userFieldsResponses = "userFieldsResponses" in reqBody ? reqBody.userFieldsResponses : null;
+  const calEventUserFieldsResponses =
+    "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -789,9 +795,10 @@ async function handler(
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
+      timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
     },
-    responses,
-    userFieldsResponses,
+    responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
+    userFieldsResponses: calEventUserFieldsResponses,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
@@ -1184,7 +1191,7 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       originalRescheduledBooking.workflowReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
@@ -1304,12 +1311,15 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject
+        );
       }
     }
   }

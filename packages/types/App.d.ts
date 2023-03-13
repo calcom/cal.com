@@ -138,12 +138,18 @@ export interface App {
   dirName?: string;
   isTemplate?: boolean;
   __template?: string;
+  /** Slug of an app needed to be installed before the current app can be added */
+  dependencies?: string[];
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   isDefault?: boolean;
   key?: never;
+  dependencyData?: {
+    name?: string;
+    installed?: boolean;
+  }[];
 };
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;

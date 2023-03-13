@@ -2,6 +2,7 @@ import type { ResetPasswordRequest } from "@prisma/client";
 import debounce from "lodash/debounce";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import React, { useMemo } from "react";
 
@@ -185,6 +186,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
         id,
         csrfToken: await getCsrfToken({ req: context.req }),
+        ...(await serverSideTranslations(context.locale || "en", ["common"])),
       },
     };
   } catch (reason) {

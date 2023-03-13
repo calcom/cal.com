@@ -5,7 +5,6 @@ import type { GetStaticPaths, GetStaticPropsContext } from "next";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import ExisitingGoogleCal from "@calcom/app-store/googlevideo/components/ExistingGoogleCal";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -36,11 +35,11 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       isProOnly={data.isProOnly}
       images={source.data?.items as string[] | undefined}
       isTemplate={data.isTemplate}
+      dependencies={data.dependencies}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          {data.slug === "google-meet" && <ExisitingGoogleCal />}
           <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
         </>
       }

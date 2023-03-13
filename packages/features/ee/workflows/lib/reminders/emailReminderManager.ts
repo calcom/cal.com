@@ -1,11 +1,5 @@
-import type {
-  TimeUnit} from "@prisma/client";
-import {
-  WorkflowTriggerEvents,
-  WorkflowTemplates,
-  WorkflowActions,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 
@@ -196,11 +190,7 @@ export const scheduleEmailReminder = async (
   }
 };
 
-export const deleteScheduledEmailReminder = async (
-  reminderId: number,
-  referenceId: string | null,
-  immediateDelete?: boolean
-) => {
+export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({
@@ -209,18 +199,6 @@ export const deleteScheduledEmailReminder = async (
         },
       });
 
-      return;
-    }
-
-    if (immediateDelete) {
-      await client.request({
-        url: "/v3/user/scheduled_sends",
-        method: "POST",
-        body: {
-          batch_id: referenceId,
-          status: "cancel",
-        },
-      });
       return;
     }
 

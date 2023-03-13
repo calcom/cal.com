@@ -4,6 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
+import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 
 const translator = short();
 
@@ -72,17 +73,18 @@ ${calEvent.additionalNotes}
 };
 
 export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
-  const responses = calEvent.userFieldsResponses || calEvent.customInputs;
-  if (!responses) {
+  const labelValueMap = getLabelValueMapFromResponses(calEvent);
+
+  if (!labelValueMap) {
     return "";
   }
-  const responsesString = Object.keys(responses)
+  const responsesString = Object.keys(labelValueMap)
     .map((key) => {
-      if (!responses) return "";
-      if (responses[key] !== "") {
+      if (!labelValueMap) return "";
+      if (labelValueMap[key] !== "") {
         return `
 ${key}:
-${responses[key]}
+${labelValueMap[key]}
   `;
       }
     })

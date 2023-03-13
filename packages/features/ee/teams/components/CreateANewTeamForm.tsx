@@ -140,10 +140,14 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={
+              newTeamFormMethods.formState.isSubmitting ||
+              createTeamMutation.isError ||
+              createTeamMutation.isLoading
+            }
             color="primary"
-            type="submit"
             EndIcon={FiArrowRight}
+            type="submit"
             className="w-full justify-center">
             {t("continue")}
           </Button>

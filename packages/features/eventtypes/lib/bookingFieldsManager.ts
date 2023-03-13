@@ -51,6 +51,7 @@ export async function upsertBookingField(
 ) {
   const eventType = await getEventType(eventTypeId);
   let fieldFound = false;
+
   const newFields = eventType.bookingFields.map((f) => {
     if (f.name === fieldToAdd.name) {
       fieldFound = true;
