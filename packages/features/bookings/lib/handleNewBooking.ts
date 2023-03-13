@@ -113,36 +113,20 @@ const isWithinAvailableHours = (
   {
     workingHours,
     organizerTimeZone,
-    inviteeTimeZone,
   }: {
     workingHours: WorkingHours[];
     organizerTimeZone: string;
-    inviteeTimeZone: string;
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
-  const isInviteeInDST = isInDST(dayjs().tz(inviteeTimeZone));
   const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
-  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-  const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
-  const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
-  const inviteeDST = isInviteeInDST === isInviteeInDSTWhenSlotStart;
-  const getTime = (slotTime: Dayjs, minutes: number) =>
-    slotTime
-      .startOf("day")
-      .add(
-        sameDSTUsers && organizerDST && inviteeDST
-          ? minutes
-          : minutes -
-              (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
-                ? organizerDSTDifference
-                : inviteeDSTDifference),
-        "minutes"
-      );
+
+  const getTime = (slotTime: Dayjs, minutes: number) => {
+    const minutesDTS = isOrganizerInDSTWhenSlotStart ? minutes - organizerDSTDifference : minutes;
+    return slotTime.startOf("day").add(minutesDTS, "minutes");
+  };
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
@@ -298,7 +282,6 @@ async function ensureAvailableUsers(
         {
           workingHours,
           organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
-          inviteeTimeZone: input.timeZone,
         }
       )
     ) {
