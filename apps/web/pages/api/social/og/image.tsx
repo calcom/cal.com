@@ -1,11 +1,10 @@
 import { ImageResponse } from "@vercel/og";
 import type { NextApiRequest } from "next";
-import { remark } from "remark";
 import type { SatoriOptions } from "satori";
-import strip from "strip-markdown";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { md } from "@calcom/lib/markdownIt";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
@@ -108,7 +107,7 @@ export default async function handler(req: NextApiRequest) {
         description: searchParams.get("description"),
         imageType,
       });
-      const description_ = await (await remark().use(strip).process(description)).toString();
+      const description_ = md.render(description);
       const img = new ImageResponse(<Generic title={title} description={description_} />, ogConfig) as {
         body: Buffer;
       };
