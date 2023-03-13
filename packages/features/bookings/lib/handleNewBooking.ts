@@ -47,6 +47,7 @@ import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/l
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import {
@@ -741,6 +742,7 @@ async function handler(
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
+      timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
     },
     responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
     userFieldsResponses: calEventUserFieldsResponses,
