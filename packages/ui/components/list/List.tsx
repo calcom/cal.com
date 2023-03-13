@@ -89,7 +89,7 @@ export function ListItem(props: ListItemProps) {
                   componentPosition="subheading"
                   badges={props.badges}
                   badgePosition={props.badgePosition}>
-                  <div className="line-clamp-1">{subHeading}</div>
+                  <div className="line-clamp-1 mt-1">{subHeading}</div>
                 </BadgeHandler>
               )}
               <BadgeHandler
@@ -133,7 +133,10 @@ function BadgeHandler(props: PropsWithChildren<BadgeHandlerProps>) {
           {props.children}
         </Component>
         <div
-          className={classNames("flex", props.badgePosition === "below" ? "[&>*]:mr-2" : "ml-1 space-x-2")}>
+          className={classNames(
+            "flex",
+            props.badgePosition === "below" ? "mt-2 [&>*]:mr-2" : "ml-1 space-x-2"
+          )}>
           {props.badges}
         </div>
       </div>
