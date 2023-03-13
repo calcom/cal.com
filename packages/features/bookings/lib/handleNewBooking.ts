@@ -1382,9 +1382,8 @@ async function handler(
       return { ...resultBooking, seatReferenceUid: bookingSeat?.referenceUid };
     }
   };
-
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  if (eventType.seatsPerTimeSlot) {
+  if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
     const newBooking = await handleSeats();
     if (newBooking) {
       req.statusCode = 201;
