@@ -157,6 +157,11 @@ pre::-webkit-scrollbar-thumb {
   color: var(--cal-text);
 }
 
+.toolbar button.toolbar-item:not(.active):hover {
+  color: var(--cal-text-default);
+  background-color: var(--cal-bg-inverted);
+}
+
 .toolbar select.toolbar-item {
   border: 0;
   display: flex;
