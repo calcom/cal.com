@@ -74,10 +74,13 @@ export default async function handler(req: NextApiRequest) {
         meetingImage: searchParams.get("meetingImage"),
         imageType,
       });
+
+      const title_ = md.render(title).replace(/(<([^>]+)>)/gi, "");
+
       const img = new ImageResponse(
         (
           <Meeting
-            title={title}
+            title={title_}
             profile={{ name: meetingProfileName, image: meetingImage }}
             users={names.map((name, index) => ({ name, username: usernames[index] }))}
           />
@@ -107,8 +110,8 @@ export default async function handler(req: NextApiRequest) {
         description: searchParams.get("description"),
         imageType,
       });
-      const description_ = md.render(description).replace(/(<([^>]+)>)/gi, "");
-      const img = new ImageResponse(<Generic title={title} description={description_} />, ogConfig) as {
+
+      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
         body: Buffer;
       };
 
