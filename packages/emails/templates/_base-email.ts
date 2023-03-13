@@ -41,7 +41,7 @@ export default class BaseEmail {
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       ...payload,
-      ...(parseSubject.success && { subject: decodeHTML(decodeURIComponent(parseSubject.data)) }),
+      ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
 
     new Promise((resolve, reject) =>
