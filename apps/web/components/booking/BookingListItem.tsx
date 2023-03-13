@@ -46,7 +46,10 @@ function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -186,7 +189,9 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+  const startTime = dayjs(booking.startTime)
+    .locale(language)
+    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
