@@ -46,6 +46,7 @@ interface Props {
     image?: string | null;
     label: string | null;
     teamId: number | null | undefined;
+    slug: string | null;
   }[];
   hasNoWorkflows?: boolean;
 }

@@ -94,23 +94,17 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
 
   // Translating labels and pushing into array
   for (const category in apps) {
-    const tmp = { label: category, options: apps[category] };
-    if (tmp.label === "in person") {
-      tmp.options = tmp.options.map((l) => ({
+    const tmp = {
+      label: t(category),
+      options: apps[category].map((l) => ({
         ...l,
         label: t(l.label),
-      }));
-    } else {
-      tmp.options.map((l) => ({
-        ...l,
-        label: t(l.label.toLowerCase().split(" ").join("_")),
-      }));
-    }
-
-    tmp.label = t(tmp.label);
+      })),
+    };
 
     locations.push(tmp);
   }
+
   return locations;
 }
 
@@ -187,6 +181,10 @@ export function getAppType(name: string): string {
 
 export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
   return ALL_APPS.find((app) => app.slug === slug);
+}
+
+export function getAppFromLocationValue(type: string): AppMeta | undefined {
+  return ALL_APPS.find((app) => app?.appData?.location?.type === type);
 }
 
 export default getApps;

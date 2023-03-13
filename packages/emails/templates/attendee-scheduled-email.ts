@@ -1,4 +1,4 @@
-import type { DateArray } from "ics";
+import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
 import { createEvent } from "ics";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
@@ -36,6 +36,8 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       // ics appends "RRULE:" already, so removing it from RRule generated string
       recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
+    const partstat: ParticipationStatus = "NEEDS-ACTION";
+    const role: ParticipationRole = "REQ-PARTICIPANT";
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
         .utc()
@@ -52,14 +54,21 @@ export default class AttendeeScheduledEmail extends BaseEmail {
         ...this.calEvent.attendees.map((attendee: Person) => ({
           name: attendee.name,
           email: attendee.email,
+          partstat,
+          role,
+          rsvp: true,
         })),
         ...(this.calEvent.team?.members
           ? this.calEvent.team?.members.map((member: Person) => ({
               name: member.name,
               email: member.email,
+              partstat,
+              role,
+              rsvp: true,
             }))
           : []),
       ],
+      method: "REQUEST",
       ...{ recurrenceRule },
       status: "CONFIRMED",
     });
@@ -74,6 +83,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       icalEvent: {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
+        method: "REQUEST",
       },
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,

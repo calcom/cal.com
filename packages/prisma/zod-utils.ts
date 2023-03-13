@@ -114,7 +114,7 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
-export const bookingLimitsType = z
+export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
     PER_WEEK: z.number().optional(),
@@ -433,3 +433,9 @@ export const fromEntries = <
 ): FromEntries<DeepWriteable<E>> => {
   return Object.fromEntries(entries) as FromEntries<DeepWriteable<E>>;
 };
+
+export const getAccessLinkResponseSchema = z.object({
+  download_link: z.string().url(),
+});
+
+export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
