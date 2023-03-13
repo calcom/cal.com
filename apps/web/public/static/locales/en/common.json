@@ -1666,5 +1666,6 @@
   "members_default_schedule": "Member's default schedule",
   "members_default_location": "Member's default location",
   "members_default_schedule_description": "We will use each members default availability schedule. They will be able to edit or change it.",
-  "default_conferencing_bulk_description": "Update the locations for the selected event types"
+  "default_conferencing_bulk_description": "Update the locations for the selected event types",
+  "locked_apps_description": "Members will be able to see the active apps but will not be able to edit any app settings"
 }

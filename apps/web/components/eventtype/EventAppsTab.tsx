@@ -80,11 +80,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             />
           ) : null}
           {!!installedApps?.length && isManagedEventType && (
-            <Alert
-              severity="neutral"
-              title="Locked for members"
-              message="Members will be able to see the active apps but will not be able to edit any app settings"
-            />
+            <Alert severity="neutral" title="Locked for members" message={t("locked_apps_description")} />
           )}
           {installedApps?.map((app) => (
             <EventTypeAppCard
