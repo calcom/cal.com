@@ -162,7 +162,10 @@ const BookingFields = ({
         }
 
         const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
-        const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
+        const placeholder =
+          ["email", "name"].indexOf(field.name) > -1
+            ? ""
+            : field.placeholder || t(field.defaultPlaceholder || "");
 
         return (
           <FormBuilderField
