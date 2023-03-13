@@ -1479,7 +1479,7 @@
   "meeting_url_variable": "URL ședință",
   "meeting_url_info": "Adresa URL a evenimentului ședință tip conferință",
   "date_overrides": "Suprascrieri dată",
-  "date_overrides_subtitle": "Adaugă date atunci când disponibilitatea ta se schimbă în programul zilnic.",
+  "date_overrides_subtitle": "Adaugă date la care disponibilitatea ta se schimbă în programul zilnic.",
   "date_overrides_info": "Datele suprascrise sunt arhivate automat după ce au trecut",
   "date_overrides_dialog_which_hours": "Între ce ore ești disponibil/ă?",
   "date_overrides_dialog_which_hours_unavailable": "Între ce ore ești ocupat/ă?",
