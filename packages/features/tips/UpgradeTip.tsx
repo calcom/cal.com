@@ -40,16 +40,6 @@ export function UpgradeTip({
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
-  if (IS_SELF_HOSTED)
-    return (
-      <EmptyScreen
-        Icon={FiUsers}
-        headline={emptyTitle ? t(emptyTitle) : t(title)}
-        description={emptyDescription ? t(emptyDescription) : t(description)}
-        buttonRaw={buttons}
-      />
-    );
-
   return (
     <>
       <div className="relative flex justify-between w-full pb-10 min-h-[295px] items-center rounded-lg overflow-hidden">
