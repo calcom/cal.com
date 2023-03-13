@@ -693,7 +693,6 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
-  console.log("in input", formState);
   return (
     <div data-fob-field-name={field.name} className={classNames(className, field.hidden ? "hidden" : "")}>
       <Controller
