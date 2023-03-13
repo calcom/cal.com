@@ -111,7 +111,6 @@ function buildSlots({
 
     return startOfInviteeDay.tz(inviteeTimeZone).add(minutes, "minutes");
   };
-
   for (const item of Object.values(slotsTimeFrameAvailable)) {
     /*
      * @calcom/web:dev: 2022-11-06T00:00:00-04:00
@@ -121,15 +120,10 @@ function buildSlots({
      * @calcom/web:dev: 2022-11-06T03:00:00-04:00
      * ...
      */
-    const slot = {
+    slots.push({
       userIds: item.userIds,
       time: getTime(item.startTime),
-    };
-    // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
-    // As the time has now fallen backwards, or forwards; this difference -
-    // needs to be manually added as this is not done for us. Usually 0.
-    slot.time = slot.time.add(startOfInviteeDay.utcOffset() - slot.time.utcOffset(), "minutes");
-    slots.push(slot);
+    });
   }
   return slots;
 }
