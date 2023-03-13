@@ -95,7 +95,7 @@ const MembersView = () => {
                 })}
               </ul>
             </div>
-            <hr className="my-8 border-gray-200" />
+            <hr className="my-8 border-subtle" />
 
             {team && session.data && (
               <DisableTeamImpersonation
@@ -104,7 +104,7 @@ const MembersView = () => {
                 disabled={isInviteOpen}
               />
             )}
-            <hr className="my-8 border-gray-200" />
+            <hr className="my-8 border-subtle" />
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal

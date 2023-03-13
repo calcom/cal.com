@@ -83,7 +83,7 @@ export function ScheduleListItem({
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
+              <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
@@ -98,7 +98,7 @@ export function ScheduleListItem({
                   </DropdownItem>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
+              <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
                   type="button"
                   color="destructive"

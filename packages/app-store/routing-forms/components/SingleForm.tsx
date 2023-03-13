@@ -370,7 +370,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </>
                   )}
                 </div>
-                <div className="w-full rounded-md border border-gray-200 p-8">
+                <div className="w-full rounded-md border border-subtle p-8">
                   <RoutingNavBar appUrl={appUrl} form={form} />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>

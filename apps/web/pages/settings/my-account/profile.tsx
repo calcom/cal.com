@@ -224,7 +224,7 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6 border-gray-200" />
+      <hr className="my-6 border-subtle" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}

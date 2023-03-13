@@ -80,7 +80,7 @@ const NoAvailabilityOverlay = ({
   const { t } = useLocale();
 
   return (
-    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 bg-muted absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-gray-200 p-8 shadow-sm">
+    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 bg-muted absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-subtle p-8 shadow-sm">
       <h4 className="text-emphasis dark:text-inverted mb-4 font-medium">
         {t("no_availability_in_month", { month: month })}
       </h4>

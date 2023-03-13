@@ -61,7 +61,7 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
   return (
     <>
       {workflows && workflows.length > 0 ? (
-        <div className="bg-default overflow-hidden rounded-md border border-gray-200 sm:mx-0">
+        <div className="bg-default overflow-hidden rounded-md border border-subtle sm:mx-0">
           <ul className="divide-y divide-gray-200">
             {workflows.map((workflow) => (
               <li key={workflow.id}>

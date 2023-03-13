@@ -46,7 +46,7 @@ const cardTypeByVariant = {
   },
   SidebarCard: {
     image: "w-9 h-auto rounded-full mb-4s",
-    card: "w-full p-3 border border-gray-200",
+    card: "w-full p-3 border border-subtle",
     title: "text-sm font-cal",
     description: "text-xs text-default line-clamp-2",
   },
@@ -70,7 +70,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "bg-default flex flex-col justify-between rounded-md border border-gray-200"
+        "bg-default flex flex-col justify-between rounded-md border border-subtle"
       )}
       {...containerProps}>
       <div>

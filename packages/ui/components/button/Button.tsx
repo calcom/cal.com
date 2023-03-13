@@ -86,7 +86,7 @@ const buttonClasses = cva(
         disabled: true,
         color: "secondary",
         className:
-          "border border-gray-200 bg-opacity-30 text-emphasis/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-subtle bg-opacity-30 text-emphasis/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,
@@ -98,7 +98,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-default dark:border-darkgray-300 bg-default dark:bg-darkgray-100 hover:bg-muted hover:border-emphasis focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
+          "border border-default dark:border-darkgray-300 bg-default dark:bg-darkgray-100 hover:bg-muted hover:border-emphasis focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis dark:focus-visible:ring-white",
       }),
       // Minimal variants
       {
@@ -117,7 +117,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "minimal",
         className:
-          "hover:bg-subtle focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
+          "hover:bg-subtle focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis dark:focus-visible:ring-white",
       }),
       // Destructive variants
       {

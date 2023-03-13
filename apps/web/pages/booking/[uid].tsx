@@ -656,7 +656,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="dark:text-inverted h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700">
+                            className="dark:text-inverted h-10 w-10 rounded-sm border border-subtle px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-empthasis">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -682,7 +682,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-subtle px-3 py-2 dark:border-empthasis"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -709,7 +709,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-subtle px-3 py-2 dark:border-empthasis"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -722,7 +722,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700"
+                            className="dark:text-inverted mx-2 h-10 w-10 rounded-sm border border-subtle px-3 py-2 dark:border-empthasis"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"

@@ -44,11 +44,11 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
         {/* <Button
           color="minimal"
           type="button"
-          className="ml-auto flex rounded-md border border-gray-200 py-[10x] px-4 font-sans text-sm">
+          className="ml-auto flex rounded-md border border-subtle py-[10x] px-4 font-sans text-sm">
           {t("edit")}
         </Button> */}
       </div>
-      <div className="h-[1px] w-full border-b border-gray-200" />
+      <div className="h-[1px] w-full border-b border-subtle" />
       <div>
         <ul className="p-4">
           {calendars?.map((calendar, i) => (

@@ -167,7 +167,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
-                      "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
+                      "sm:dark:border-darkgray-200 flex flex-col border-subtle p-5 sm:border-r",
                       "min-w-full md:w-[230px] md:min-w-[230px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
@@ -183,7 +183,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 dark:bg-darkgray-200 border-default bg-default h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                              className="w-15 dark:bg-darkgray-200 border-default bg-default h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-empthasis"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));

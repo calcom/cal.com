@@ -206,7 +206,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="min-w-80 bg-default w-full rounded-md border border-gray-200 p-7">
+          <div className="min-w-80 bg-default w-full rounded-md border border-subtle p-7">
             <div className="flex">
               <div className="bg-subtle mt-[3px] flex h-5 w-5 items-center justify-center rounded-full p-1 text-xs font-medium ltr:mr-5 rtl:ml-5">
                 1
@@ -216,7 +216,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="text-default text-sm">{t("when_something_happens")}</div>
               </div>
             </div>
-            <div className="my-7 border-t border-gray-200" />
+            <div className="my-7 border-t border-subtle" />
             <Label>{t("when")}</Label>
             <Controller
               name="trigger"
@@ -284,7 +284,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <FiArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
         </div>
         <div className="flex justify-center">
-          <div className="min-w-80 bg-default flex w-full rounded-md border border-gray-200 p-7">
+          <div className="min-w-80 bg-default flex w-full rounded-md border border-subtle p-7">
             <div className="w-full">
               <div className="flex">
                 <div className="w-full">
@@ -332,7 +332,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </Dropdown>
                 </div>
               </div>
-              <div className="my-7 border-t border-gray-200" />
+              <div className="my-7 border-t border-subtle" />
               <div>
                 <Label>{t("do_this")}</Label>
                 <Controller

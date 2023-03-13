@@ -181,7 +181,7 @@ function ConnectedCalendarsList(props: Props) {
                         />
                       </div>
                     }>
-                    <div className="border-t border-gray-200">
+                    <div className="border-t border-subtle">
                       {!fromOnboarding && (
                         <>
                           <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
@@ -279,9 +279,9 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                         </div>
                       }
                     />
-                    <div className="bg-muted flex justify-between rounded-md border border-gray-200 p-4">
+                    <div className="bg-muted flex justify-between rounded-md border border-subtle p-4">
                       <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
-                        <div className="bg-default relative rounded-md border border-gray-200 p-1.5">
+                        <div className="bg-default relative rounded-md border border-subtle p-1.5">
                           <FiCalendar className="h-8 w-8" strokeWidth="1" />
                           <FiPlus
                             className="text-emphasis absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2"

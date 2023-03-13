@@ -32,7 +32,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         </div>
       )}
       <div className="mb-auto mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-default mx-2 rounded-md border border-gray-200 px-4 py-10 sm:px-10">
+        <div className="bg-default mx-2 rounded-md border border-subtle px-4 py-10 sm:px-10">
           {props.children}
         </div>
         <div className="text-default mt-8 text-center text-sm">{props.footerText}</div>

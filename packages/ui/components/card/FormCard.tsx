@@ -28,7 +28,7 @@ export default function FormCard({
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
     className,
-    "flex items-center group relative w-full rounded-md p-4 border border-gray-200"
+    "flex items-center group relative w-full rounded-md p-4 border border-subtle"
   );
 
   return (

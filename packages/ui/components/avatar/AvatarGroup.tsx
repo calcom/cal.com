@@ -30,7 +30,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {displayedAvatars.map((item, idx) => (
         <li key={idx} className="-mr-[4px] inline-block">
           <Avatar
-            className="border-gray-200"
+            className="border-subtle"
             imageSrc={item.image}
             title={item.title}
             alt={item.alt || ""}

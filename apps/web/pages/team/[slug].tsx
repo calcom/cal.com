@@ -40,12 +40,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
+    <ul className="dark:border-darkgray-300 rounded-md border border-subtle">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-300 bg-default hover:bg-muted group relative border-b border-gray-200 first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "dark:bg-darkgray-100 dark:border-darkgray-300 bg-default hover:bg-muted group relative border-b border-subtle first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -116,7 +116,7 @@ function TeamPage({ team }: TeamPageProps) {
               <div>
                 <div className="relative mt-12">
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
+                    <div className="dark:border-darkgray-300 w-full border-t border-subtle" />
                   </div>
                   <div className="relative flex justify-center">
                     <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">

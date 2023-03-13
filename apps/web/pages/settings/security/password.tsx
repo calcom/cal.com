@@ -155,7 +155,7 @@ const PasswordView = () => {
           <p className="text-default mt-4 max-w-[38rem] text-sm">
             {t("invalid_password_hint", { passwordLength: passwordMinLength })}
           </p>
-          <div className="mt-8 border-t border-gray-200 py-8">
+          <div className="mt-8 border-t border-subtle py-8">
             <SettingsToggle
               title={t("session_timeout")}
               description={t("session_timeout_description")}

@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown w-50 bg-default relative z-10 ml-1.5 origin-top-right rounded-md border border-gray-200 text-sm",
+          "shadow-dropdown w-50 bg-default relative z-10 ml-1.5 origin-top-right rounded-md border border-subtle text-sm",
           "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
         )}
         ref={forwardedRef}>

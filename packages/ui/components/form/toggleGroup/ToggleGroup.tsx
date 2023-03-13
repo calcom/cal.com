@@ -25,7 +25,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
         {...props}
         onValueChange={setValue}
         className={classNames(
-          "dark:border-darkgray-200 relative inline-flex rounded-md border border-gray-200 p-1",
+          "dark:border-darkgray-200 relative inline-flex rounded-md border border-subtle p-1",
           props.className,
           isFullWidth && "w-full"
         )}>

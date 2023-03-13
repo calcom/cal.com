@@ -89,7 +89,7 @@ export default function TeamInviteListItem(props: Props) {
             <div className="hidden sm:flex">
               <Button
                 type="button"
-                className="mr-3 border-gray-700"
+                className="mr-3 border-empthasis"
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
@@ -97,7 +97,7 @@ export default function TeamInviteListItem(props: Props) {
               />
               <Button
                 type="button"
-                className="border-gray-700"
+                className="border-empthasis"
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}

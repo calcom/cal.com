@@ -263,7 +263,7 @@ function EventTypeSingleLayout({
               <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
@@ -273,7 +273,7 @@ function EventTypeSingleLayout({
                   {t("preview")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
                   StartIcon={FiLink}
@@ -284,7 +284,7 @@ function EventTypeSingleLayout({
                   {t("copy_link")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
                   color="destructive"
@@ -339,7 +339,7 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "bg-default mt-4  rounded-md border-gray-200 sm:mx-0 xl:mt-0",
+                "bg-default mt-4  rounded-md border-subtle sm:mx-0 xl:mt-0",
                 disableBorder ? "border-0 " : "p-2 md:border md:p-6"
               )}>
               {children}

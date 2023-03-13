@@ -33,7 +33,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         firstCalendar.integration.title &&
         firstCalendar.integration.imageSrc && (
           <>
-            <List className="bg-default rounded-md border border-gray-200 p-0 dark:bg-black">
+            <List className="bg-default rounded-md border border-subtle p-0 dark:bg-black">
               <ConnectedCalendarItem
                 key={firstCalendar.integration.title}
                 name={firstCalendar.integration.title}
@@ -55,7 +55,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="bg-default mx-1 divide-y divide-gray-200 rounded-md border border-gray-200 p-0 dark:bg-black sm:mx-0">
+        <List className="bg-default mx-1 divide-y divide-gray-200 rounded-md border border-subtle p-0 dark:bg-black sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
@@ -73,7 +73,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       )}
 
       {queryIntegrations.isLoading && (
-        <ul className="bg-default divide-y divide-gray-200 rounded-md border border-gray-200 p-0 dark:bg-black">
+        <ul className="bg-default divide-y divide-gray-200 rounded-md border border-subtle p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (
               <li className="flex w-full flex-row justify-center border-b-0 py-6" key={index}>

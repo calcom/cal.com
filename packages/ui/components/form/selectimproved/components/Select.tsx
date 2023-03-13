@@ -130,8 +130,8 @@ function Select<T extends Option>({
               className={cn(
                 "min-w-64 border-default text-muted flex max-h-[36px] items-center justify-between rounded-md border text-sm transition-all duration-300 focus:outline-none",
                 isDisabled
-                  ? " dark:bg-darkgray-200 dark:border-darkgray-300 bg-subtle dark:text-subtle text-muted border-gray-200"
-                  : "dark:border-darkgray-300 dark:bg-darkgray-50 dark:text-darkgray-500 dark:focus:border-darkgray-700 dark:focus:bg-darkgray-100 dark:focus:text-darkgray-900 dark:hover:text-darkgray-900 bg-default hover:border-gray-600 focus:border-gray-900"
+                  ? " dark:bg-darkgray-200 dark:border-darkgray-300 bg-subtle dark:text-subtle text-muted border-subtle"
+                  : "dark:border-darkgray-300 dark:bg-darkgray-50 dark:text-darkgray-500 dark:focus:border-darkgray-700 dark:focus:bg-darkgray-100 dark:focus:text-darkgray-900 dark:hover:text-darkgray-900 bg-default hover:border-empthasis focus:border-gray-900"
               )}>
               <div className="flex w-full grow-0 items-center gap-1 overflow-x-hidden">
                 <>

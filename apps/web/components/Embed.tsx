@@ -641,7 +641,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="hover:bg-subtle w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 ltr:mr-2 rtl:ml-2"
+            className="hover:bg-subtle w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-subtle ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {

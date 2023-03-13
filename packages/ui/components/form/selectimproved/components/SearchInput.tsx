@@ -36,7 +36,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className={
           classNames && classNames.searchBox
             ? classNames.searchBox
-            : "dark:border-darkgray-300 dark:bg-darkgray-100  dark:text-darkgray-900 focus:border-darkgray-900 text-subtle w-full rounded-[6px] border border-gray-200 py-2 pl-8 text-sm focus:border-gray-900 focus:outline-none focus:ring-0"
+            : "dark:border-darkgray-300 dark:bg-darkgray-100  dark:text-darkgray-900 focus:border-darkgray-900 text-subtle w-full rounded-[6px] border border-subtle py-2 pl-8 text-sm focus:border-gray-900 focus:outline-none focus:ring-0"
         }
         autoFocus
         type="text"

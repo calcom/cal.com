@@ -60,7 +60,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted">
+          className="dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-subtle bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted">
           <FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-emphasis opacity-0 transition-opacity group-hover:opacity-100 dark:text-inverted" />
           <Link
             href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
@@ -130,7 +130,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
             isEmbed
-              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-default sm:dark:border-gray-600"
+              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-default sm:dark:border-empthasis"
               : "",
             "max-w-3xl py-24 px-4"
           )}>
@@ -156,7 +156,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           <div
             className={classNames(
               "rounded-md ",
-              !isEventListEmpty && "dark:border-darkgray-300 border border-gray-200"
+              !isEventListEmpty && "dark:border-darkgray-300 border border-subtle"
             )}
             data-testid="event-types">
             {user.away ? (
@@ -175,7 +175,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <div
                   key={type.id}
                   style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-gray-200 bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted
+                  className="dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:border-darkgray-300 group relative border-b border-subtle bg-default first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-muted
                   <FiArrowRight className="absolute right-4 top-4 h-4 w-4 text-emphasis opacity-0 transition-opacity group-hover:opacity-100 dark:text-inverted" />
                   {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
                   <div className="block w-full p-5">

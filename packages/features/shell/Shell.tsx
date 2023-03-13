@@ -649,7 +649,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-subtle bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -754,7 +754,7 @@ function SideBar() {
             </div>
           </header>
 
-          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-subtle" />
 
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
@@ -879,7 +879,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-mutedg-opacity-50 sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-mutedg-opacity-50 sticky top-0 z-40 flex w-full items-center justify-between border-b border-subtle py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>

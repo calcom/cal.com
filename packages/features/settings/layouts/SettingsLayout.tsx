@@ -427,7 +427,7 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-6">
+      <div className="mb-8 flex w-full items-center border-b border-subtle pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <FiArrowLeft className="mr-7" />

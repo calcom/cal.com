@@ -10,7 +10,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2 focus:ring-gray-900",
+      "hover:bg-subtle border-default mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2 focus:ring-empthasis",
       props.disabled && "opacity-60"
     )}>
     {props.children}

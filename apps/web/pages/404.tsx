@@ -80,7 +80,7 @@ export default function Custom404() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-emphasis text-base font-medium">
-                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                             <span className="focus:outline-none">
                               <span className="absolute inset-0" aria-hidden="true" />
                               {t("acquire_commercial_license")}
@@ -96,7 +96,7 @@ export default function Custom404() {
                   </li>
                 </ul>
 
-                <ul role="list" className="divide-y divide-gray-200 border-gray-200">
+                <ul role="list" className="divide-y divide-gray-200 border-subtle">
                   <li className="px-4 py-2">
                     <Link
                       href={`${DEVELOPER_DOCS}/self-hosting/installation`}
@@ -108,7 +108,7 @@ export default function Custom404() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-emphasis text-base font-medium">
-                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
                             {t("prisma_studio_tip")}
                           </span>
@@ -153,7 +153,7 @@ export default function Custom404() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-emphasis text-base font-medium">
-                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
                             Slack
                           </span>
@@ -226,7 +226,7 @@ export default function Custom404() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-emphasis text-base font-medium">
-                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                                 <span className="focus:outline-none">
                                   <span className="absolute inset-0" aria-hidden="true" />
                                   {t("register")} <strong className="text-green-500">{username}</strong>
@@ -243,7 +243,7 @@ export default function Custom404() {
                     </ul>
                   )}
 
-                  <ul role="list" className="mt-4 divide-y divide-gray-200 border-gray-200">
+                  <ul role="list" className="mt-4 divide-y divide-gray-200 border-subtle">
                     {links.map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
                         <Link
@@ -256,7 +256,7 @@ export default function Custom404() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-emphasis text-base font-medium">
-                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                                 <span className="absolute inset-0" aria-hidden="true" />
                                 {link.title}
                               </span>
@@ -302,7 +302,7 @@ export default function Custom404() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-emphasis text-base font-medium">
-                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-empthasis focus-within:ring-offset-2">
                               <span className="absolute inset-0" aria-hidden="true" />
                               Slack
                             </span>
