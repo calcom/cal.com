@@ -32,13 +32,14 @@ export function getRecurringWhen({
 export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: TFunction }) {
   const { timeZone, t, calEvent: { recurringEvent } = {} } = props;
   const timeFormat = props.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+  const locale = props.calEvent.organizer.language.locale;
 
   function getRecipientStart(format: string) {
-    return dayjs(props.calEvent.startTime).tz(timeZone).format(format);
+    return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
   }
 
   function getRecipientEnd(format: string) {
-    return dayjs(props.calEvent.endTime).tz(timeZone).format(format);
+    return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
   }
 
   const recurringInfo = getRecurringWhen({

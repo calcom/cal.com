@@ -635,9 +635,6 @@ const loggedInViewerRouter = router({
       if (input.avatar) {
         data.avatar = await resizeBase64Image(input.avatar);
       }
-      if (input.locale) {
-        dayjs.locale(input.locale);
-      }
       const userToUpdate = await prisma.user.findUnique({
         where: {
           id: user.id,
