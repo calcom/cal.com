@@ -902,7 +902,15 @@ async function handler(
     return deletedReferences;
   };
 
-  const handleSeats = async () => {
+  const handleSeats = async (): Promise<
+    | (Partial<Booking> & {
+        appsStatus?: AppsStatus[];
+        seatReferenceUid?: string;
+        paymentUid?: string;
+        message?: string;
+      })
+    | null
+  > => {
     const booking = await prisma.booking.findUnique({
       where: {
         uid: rescheduleUid,
@@ -1418,7 +1426,6 @@ async function handler(
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot && bookingSeat) {
     const newBooking = await handleSeats();
-
     if (newBooking) {
       req.statusCode = 201;
       return newBooking;
