@@ -107,7 +107,7 @@ export default async function handler(req: NextApiRequest) {
         description: searchParams.get("description"),
         imageType,
       });
-      const description_ = md.render(description);
+      const description_ = md.render(description).replace(/(<([^>]+)>)/gi, "");
       const img = new ImageResponse(<Generic title={title} description={description_} />, ogConfig) as {
         body: Buffer;
       };
