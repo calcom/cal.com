@@ -1617,6 +1617,8 @@
   "form_builder_system_field_cant_delete": "Это системное поле нельзя удалить.",
   "form_builder_system_field_cant_toggle": "Это системное поле нельзя переключить.",
   "get_started_zapier_templates": "Начать работу с шаблонами Zapier",
+  "team_is_unpublished": "{{team}} не опубликовано",
+  "team_is_unpublished_description": "Эта ссылка команды в настоящее время недоступна. Пожалуйста, свяжитесь с владельцем команды или попросите его опубликовать ссылку.",
   "team_member": "Участник команды",
   "a_routing_form": "Форма маршрутизации",
   "form_description_placeholder": "Описание формы",
@@ -1647,5 +1649,7 @@
   "can_you_try_again": "Попробуйте пожалуйста позже",
   "verify": "Подтвердить",
   "invalid_event_name_variables": "В названии события недопустимая переменная",
-  "select_all": "Выбрать все"
+  "select_all": "Выбрать все",
+  "default_conferencing_bulk_title": "Массовое обновление существующих типов событий",
+  "default_conferencing_bulk_description": "Обновить местоположение для выбранных типов событий"
 }

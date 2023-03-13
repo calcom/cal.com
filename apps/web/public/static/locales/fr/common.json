@@ -1617,6 +1617,8 @@
   "form_builder_system_field_cant_delete": "Ce champ système ne peut pas être supprimé.",
   "form_builder_system_field_cant_toggle": "Ce champ système ne peut pas être activé.",
   "get_started_zapier_templates": "Démarrer avec les modèles Zapier",
+  "team_is_unpublished": "{{team}} n'est pas publiée",
+  "team_is_unpublished_description": "Ce lien d'équipe n'est actuellement pas disponible. Veuillez contacter le propriétaire de l'équipe ou lui demander de le publier.",
   "team_member": "Membre d'équipe",
   "a_routing_form": "Un formulaire de routage",
   "form_description_placeholder": "Description du formulaire",
