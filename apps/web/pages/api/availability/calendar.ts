@@ -1,14 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import notEmpty from "@calcom/lib/notEmpty";
 import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
 
-import { getSession } from "@lib/auth";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
     res.status(401).json({ message: "Not authenticated" });

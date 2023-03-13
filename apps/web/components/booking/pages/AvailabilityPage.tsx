@@ -168,7 +168,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   <div
                     className={classNames(
                       "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                      "min-w-full md:w-[230px] md:min-w-[230px]",
+                      "min-w-full md:w-[280px] md:min-w-[280px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>

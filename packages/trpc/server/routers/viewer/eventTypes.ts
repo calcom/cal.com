@@ -1,19 +1,21 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps from "@calcom/app-store/utils";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -117,61 +119,68 @@ const EventTypeDuplicateInput = z.object({
   length: z.number(),
 });
 
-const eventOwnerProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) => {
-  // Prevent non-owners to update/delete a team event
-  const event = await ctx.prisma.eventType.findUnique({
-    where: { id: (rawInput as Record<"id", number>)?.id },
-    include: {
-      users: true,
-      team: {
-        select: {
-          members: {
-            select: {
-              userId: true,
-              role: true,
+const eventOwnerProcedure = authedProcedure
+  .input(
+    z.object({
+      id: z.number(),
+      users: z.array(z.string()).optional().default([]),
+    })
+  )
+  .use(async ({ ctx, input, next }) => {
+    // Prevent non-owners to update/delete a team event
+    const event = await ctx.prisma.eventType.findUnique({
+      where: { id: input.id },
+      include: {
+        users: true,
+        team: {
+          select: {
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
             },
           },
         },
       },
-    },
+    });
+
+    if (!event) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    const isAuthorized = (function () {
+      if (event.team) {
+        return event.team.members
+          .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+          .map((member) => member.userId)
+          .includes(ctx.user.id);
+      }
+      return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
+    })();
+
+    if (!isAuthorized) {
+      console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const isAllowed = (function () {
+      if (event.team) {
+        const allTeamMembers = event.team.members.map((member) => member.userId);
+        return input.users.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
+      }
+      return input.users.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
+    })();
+
+    if (!isAllowed) {
+      console.warn(
+        `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
+      );
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
+    return next();
   });
-
-  if (!event) {
-    throw new TRPCError({ code: "NOT_FOUND" });
-  }
-
-  const isAuthorized = (function () {
-    if (event.team) {
-      return event.team.members
-        .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
-        .map((member) => member.userId)
-        .includes(ctx.user.id);
-    }
-    return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
-  })();
-
-  if (!isAuthorized) {
-    console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const inputUsers = (rawInput as any).users || [];
-
-  const isAllowed = (function () {
-    if (event.team) {
-      const allTeamMembers = event.team.members.map((member) => member.userId);
-      return inputUsers.every((userId: string) => allTeamMembers.includes(Number.parseInt(userId)));
-    }
-    return inputUsers.every((userId: string) => Number.parseInt(userId) === ctx.user.id);
-  })();
-
-  if (!isAllowed) {
-    console.warn(`User ${ctx.user.id} attempted to an create an event for users ${inputUsers.join(", ")}.`);
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
-
-  return next();
-});
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -409,6 +418,7 @@ export const eventTypesRouter = router({
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
+
     const userId = ctx.user.id;
     // Get Users default conferncing app
 
@@ -518,6 +528,7 @@ export const eventTypesRouter = router({
       periodType,
       locations,
       bookingLimits,
+      durationLimits,
       destinationCalendar,
       customInputs,
       recurringEvent,
@@ -530,11 +541,15 @@ export const eventTypesRouter = router({
       userId,
       // eslint-disable-next-line
       teamId,
+      bookingFields,
       ...rest
     } = input;
 
+    ensureUniqueBookingFields(bookingFields);
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
+      bookingFields,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
     };
     data.locations = locations ?? undefined;
@@ -568,10 +583,17 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
+      data.durationLimits = durationLimits;
     }
 
     if (schedule) {
@@ -597,21 +619,20 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users) {
+    if (users.length) {
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -756,6 +777,7 @@ export const eventTypesRouter = router({
         team,
         recurringEvent,
         bookingLimits,
+        durationLimits,
         metadata,
         workflows,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -764,8 +786,8 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore - not typed correctly as its set on SSR
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
         descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
@@ -781,7 +803,9 @@ export const eventTypesRouter = router({
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
+        durationLimits: durationLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
+        bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };
 
       const newEventType = await ctx.prisma.eventType.create({ data });
@@ -818,4 +842,91 @@ export const eventTypesRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const eventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        userId: ctx.user.id,
+        team: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        locations: true,
+      },
+    });
+
+    const eventTypesWithLogo = eventTypes.map((eventType) => {
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
+      return {
+        ...eventType,
+        logo: app?.logo,
+      };
+    });
+
+    return {
+      eventTypes: eventTypesWithLogo,
+    };
+  }),
+
+  bulkUpdateToDefaultLocation: authedProcedure
+    .input(
+      z.object({
+        eventTypeIds: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeIds } = input;
+      const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
+
+      if (!defaultApp) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Default conferencing app not set",
+        });
+      }
+
+      const foundApp = getAppFromSlug(defaultApp.appSlug);
+      const appType = foundApp?.appData?.location?.type;
+      if (!appType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Default conferencing app '${defaultApp.appSlug}' doesnt exist.`,
+        });
+      }
+
+      return await ctx.prisma.eventType.updateMany({
+        where: {
+          id: {
+            in: eventTypeIds,
+          },
+          userId: ctx.user.id,
+        },
+        data: {
+          locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+        },
+      });
+    }),
 });
+
+function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]) {
+  if (!fields) {
+    return;
+  }
+  fields.reduce((discoveredFields, field) => {
+    if (discoveredFields[field.name]) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Duplicate booking field name: ${field.name}`,
+      });
+    }
+    discoveredFields[field.name] = true;
+    return discoveredFields;
+  }, {} as Record<string, true>);
+}

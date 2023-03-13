@@ -4,6 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
+import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 
 const translator = short();
 
@@ -71,23 +72,25 @@ ${calEvent.additionalNotes}
   `;
 };
 
-export const getCustomInputs = (calEvent: CalendarEvent) => {
-  if (!calEvent.customInputs) {
+export const getUserFieldsResponses = (calEvent: CalendarEvent) => {
+  const labelValueMap = getLabelValueMapFromResponses(calEvent);
+
+  if (!labelValueMap) {
     return "";
   }
-  const customInputsString = Object.keys(calEvent.customInputs)
+  const responsesString = Object.keys(labelValueMap)
     .map((key) => {
-      if (!calEvent.customInputs) return "";
-      if (calEvent.customInputs[key] !== "") {
+      if (!labelValueMap) return "";
+      if (labelValueMap[key] !== "") {
         return `
 ${key}:
-${calEvent.customInputs[key]}
+${labelValueMap[key]}
   `;
       }
     })
     .join("");
 
-  return customInputsString;
+  return responsesString;
 };
 
 export const getAppsStatus = (calEvent: CalendarEvent) => {
@@ -171,7 +174,7 @@ ${calEvent.organizer.language.translate("where")}:
 ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
-${getCustomInputs(calEvent)}
+${getUserFieldsResponses(calEvent)}
 ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event

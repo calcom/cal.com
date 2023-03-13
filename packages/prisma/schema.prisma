@@ -30,12 +30,13 @@ enum PeriodType {
 }
 
 model Host {
-  id          Int       @id @default(autoincrement())
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
+
+  @@id([userId, eventTypeId])
 }
 
 model EventType {
@@ -63,6 +64,8 @@ model EventType {
   destinationCalendar     DestinationCalendar?
   eventName               String?
   customInputs            EventTypeCustomInput[]
+  /// @zod.custom(imports.eventTypeBookingFields)
+  bookingFields           Json?
   timeZone                String?
   periodType              PeriodType              @default(UNLIMITED)
   periodStartDate         DateTime?
@@ -92,8 +95,10 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
-  /// @zod.custom(imports.bookingLimitsType)
+  /// @zod.custom(imports.intervalLimitsType)
   bookingLimits           Json?
+  /// @zod.custom(imports.intervalLimitsType)
+  durationLimits          Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -297,6 +302,8 @@ model Booking {
   title                 String
   description           String?
   customInputs          Json?
+  /// @zod.custom(imports.bookingResponses)
+  responses             Json?
   startTime             DateTime
   endTime               DateTime
   attendees             Attendee[]
@@ -637,14 +644,14 @@ enum TimeUnit {
 
 model WorkflowReminder {
   id             Int             @id @default(autoincrement())
-  bookingUid     String
-  booking        Booking?        @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookingUid     String?
+  booking        Booking?        @relation(fields: [bookingUid], references: [uid])
   method         WorkflowMethods
   scheduledDate  DateTime
   referenceId    String?         @unique
   scheduled      Boolean
-  workflowStepId Int
-  workflowStep   WorkflowStep    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int?
+  workflowStep   WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
   cancelled      Boolean?
 }
 
