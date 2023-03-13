@@ -217,8 +217,13 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      const responseBody = await handleErrorsJson<{ access_token: string; expires_in: number }>(response);
+      const responseBody = await handleErrorsJson<{
+        access_token: string;
+        expires_in: number;
+        refresh_token: string;
+      }>(response);
       o365AuthCredentials.access_token = responseBody.access_token;
+      o365AuthCredentials.refresh_token = responseBody.refresh_token;
       o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
       await prisma.credential.update({
         where: {

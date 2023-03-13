@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
-import type { AppsStatus as AppsStatusType, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
   BaseEmailHtml,

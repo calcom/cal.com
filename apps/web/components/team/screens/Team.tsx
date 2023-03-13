@@ -1,12 +1,12 @@
 import Link from "next/link";
-import type { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
+import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
-type TeamType = TeamPageProps["team"];
+type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number];
 
@@ -57,7 +57,7 @@ const Members = ({ members, teamName }: { members: MembersType; teamName: string
   );
 };
 
-const Team = ({ team }: Omit<TeamPageProps, "trpcState">) => {
+const Team = ({ team }: { team: TeamType }) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />
