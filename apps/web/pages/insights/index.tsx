@@ -48,35 +48,20 @@ export default function InsightsPage() {
   const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+      icon: <FiUsers className="w-5 h-5 text-red-500" />,
+      title: t("view_bookings_across"),
+      description: t("view_bookings_across_description"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,"),
+      icon: <FiRefreshCcw className="w-5 h-5 text-blue-500" />,
+      title: t("identify_booking_trends"),
+      description: t("identify_booking_trends_description"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,"),
-    },
-    {
-      icon: <FiMail className="h-5 w-5 text-orange-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,"),
-    },
-    {
-      icon: <FiVideo className="h-5 w-5 text-purple-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,"),
-    },
-    {
-      icon: <FiEyeOff className="h-5 w-5 text-indigo-500" />,
-      title: t("Lorem Ipsum"),
-      description: t("dolor sit amet, consetetur sadipscing elitr,", { appName: APP_NAME }),
-    },
+      icon: <FiUserPlus className="w-5 h-5 text-green-500" />,
+      title: t("spot_popular_event_types"),
+      description: t("spot_popular_event_types_description"),
+    },   
   ];
   const [startDate, setStartDate] = useState(dayjs().subtract(1, "month"));
   const [endDate, setEndDate] = useState(dayjs());
@@ -92,69 +77,64 @@ export default function InsightsPage() {
     <div>
       <Shell>
         <UpgradeTip
-          dark
-          title={t("teams_plan_required")}
+          title={t("make_informed_decisions")}
           description={t(
-            "Insights help you learn more about the booking statistics of you and your team members and make better decisions."
+            "make_informed_decisions_description"
           )}
           features={features}
-          background="/routing-form-banner-background.jpg"
+          background="/banners/insights.jpg"
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
-                <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
+                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("create_team")}
                 </Button>
-                <Button
-                  color="minimal"
-                  className="!bg-transparent text-white opacity-50 hover:opacity-100"
-                  href="https://go.cal.com/insights"
-                  target="_blank">
+                <Button color="secondary" href="https://go.cal.com/insights" target="_blank">
                   {t("learn_more")}
                 </Button>
               </ButtonGroup>
             </div>
           }>
-          <div className="mb-4 ml-auto flex w-[40%]">
-            <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
-              <Tooltip content={t("filter") /* Filter */}>
-                <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiFilter}
-                  className="h-[38px]"
-                />
-              </Tooltip>
-              <Tooltip content={t("settings")}>
-                <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiSettings}
-                  className="h-[38px]"
-                />
-              </Tooltip>
-              <Tooltip content={t("download_csv") /*"Download *.csv*/}>
-                <Button
-                  variant="icon"
-                  color="secondary"
-                  target="_blank"
-                  rel="noreferrer"
-                  StartIcon={FiDownload}
-                  className="h-[38px]"
-                />
-              </Tooltip>
-            </ButtonGroup>
-            <DateSelect
-              dates={[startDate.toDate(), endDate.toDate()]}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
-            />
-          </div>
           <>
+            <div className="mb-4 ml-auto flex w-[40%]">
+              <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
+                <Tooltip content={t("filter") /* Filter */}>
+                  <Button
+                    variant="icon"
+                    color="secondary"
+                    target="_blank"
+                    rel="noreferrer"
+                    StartIcon={FiFilter}
+                    className="h-[38px]"
+                  />
+                </Tooltip>
+                <Tooltip content={t("settings")}>
+                  <Button
+                    variant="icon"
+                    color="secondary"
+                    target="_blank"
+                    rel="noreferrer"
+                    StartIcon={FiSettings}
+                    className="h-[38px]"
+                  />
+                </Tooltip>
+                <Tooltip content={t("download_csv") /*"Download *.csv*/}>
+                  <Button
+                    variant="icon"
+                    color="secondary"
+                    target="_blank"
+                    rel="noreferrer"
+                    StartIcon={FiDownload}
+                    className="h-[38px]"
+                  />
+                </Tooltip>
+              </ButtonGroup>
+              <DateSelect
+                dates={[startDate.toDate(), endDate.toDate()]}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+              />
+            </div>
             <div className="space-y-6">
               <KPICards startDate={startDate.toISOString()} endDate={endDate.toISOString()} teamId={21} />
               <Line title={t("event_trends" /* "Events trends" */)} data={eventsTimeLine || []} />
@@ -484,7 +464,7 @@ const KPICards = ({ startDate, endDate, teamId }: { startDate: string; endDate: 
                 </Text>
 
                 <Tooltip content={`From: ${data.previousRange.startDate} To: ${data.previousRange.endDate}`}>
-                  <small className="relative top-px text-xs text-gray-600">from last period</small>
+                  <small className="relative text-xs text-gray-600 top-px">from last period</small>
                 </Tooltip>
               </Flex>
             </Flex>

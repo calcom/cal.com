@@ -59,32 +59,32 @@ export default function RoutingForms({
 
   const features = [
     {
-      icon: <FiFileText className="h-5 w-5 text-orange-500" />,
+      icon: <FiFileText className="w-5 h-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <FiShuffle className="h-5 w-5 text-lime-500" />,
+      icon: <FiShuffle className="w-5 h-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <FiBarChart className="h-5 w-5 text-blue-500" />,
+      icon: <FiBarChart className="w-5 h-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <FiCheckCircle className="h-5 w-5 text-teal-500" />,
+      icon: <FiCheckCircle className="w-5 h-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <FiMail className="h-5 w-5 text-yellow-500" />,
+      icon: <FiMail className="w-5 h-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <FiDownload className="h-5 w-5 text-violet-500" />,
+      icon: <FiDownload className="w-5 h-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },
@@ -108,21 +108,19 @@ export default function RoutingForms({
       CTA={hasPaidPlan && <NewFormButton />}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
-        dark
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
         features={features}
-        background="/routing-form-banner-background.jpg"
+        background="/banners/routing-forms.jpg"
         isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
-              <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
+              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                 {t("upgrade")}
               </Button>
               <Button
                 color="minimal"
-                className="!bg-transparent text-white opacity-50 hover:opacity-100"
                 href="https://go.cal.com/teams-video"
                 target="_blank">
                 {t("learn_more")}
@@ -132,7 +130,7 @@ export default function RoutingForms({
         }>
         <FormActionsProvider appUrl={appUrl}>
           <div className="-mx-4 md:-mx-8">
-            <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
+            <div className="w-full px-4 pb-2 mb-10 sm:px-6 md:px-8">
               {!forms?.length ? (
                 <EmptyScreen
                   Icon={FiGitMerge}

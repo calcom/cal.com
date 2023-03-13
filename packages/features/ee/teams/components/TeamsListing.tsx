@@ -26,32 +26,32 @@ export function TeamsListing() {
 
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      icon: <FiUsers className="w-5 h-5 text-red-500" />,
       title: t("collective_scheduling"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      icon: <FiRefreshCcw className="w-5 h-5 text-blue-500" />,
       title: t("round_robin"),
       description: t("find_the_best_person"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      icon: <FiUserPlus className="w-5 h-5 text-green-500" />,
       title: t("fixed_round_robin"),
       description: t("add_one_fixed_attendee"),
     },
     {
-      icon: <FiMail className="h-5 w-5 text-orange-500" />,
+      icon: <FiMail className="w-5 h-5 text-orange-500" />,
       title: t("sms_attendee_action"),
       description: t("make_it_easy_to_book"),
     },
     {
-      icon: <FiVideo className="h-5 w-5 text-purple-500" />,
+      icon: <FiVideo className="w-5 h-5 text-purple-500" />,
       title: "Cal Video" + " " + t("recordings_title"),
       description: t("upgrade_to_access_recordings_description"),
     },
     {
-      icon: <FiEyeOff className="h-5 w-5 text-indigo-500" />,
+      icon: <FiEyeOff className="w-5 h-5 text-indigo-500" />,
       title: t("disable_cal_branding", { appName: APP_NAME }),
       description: t("disable_cal_branding_description", { appName: APP_NAME }),
     },
@@ -71,14 +71,14 @@ export function TeamsListing() {
         emptyTitle="no_teams"
         emptyDescription="no_teams_description"
         features={features}
-        background="/team-banner-background.jpg"
+        background="/banners/teams.jpg"
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
               <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                 {t("create_team")}
               </Button>
-              <Button color="secondary" href="https://go.cal.com/teams-video" target="_blank">
+              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
                 {t("learn_more")}
               </Button>
             </ButtonGroup>
@@ -86,8 +86,8 @@ export function TeamsListing() {
         }>
         <>
           {invites.length > 0 && (
-            <div className="mb-6 rounded-md bg-gray-100 p-5">
-              <Label className="dark:text-darkgray-900 pb-2 font-semibold text-gray-900">
+            <div className="p-5 mb-6 bg-gray-100 rounded-md">
+              <Label className="pb-2 font-semibold text-gray-900 dark:text-darkgray-900">
                 {t("pending_invites")}
               </Label>
               <TeamList teams={invites} />
