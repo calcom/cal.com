@@ -700,10 +700,8 @@ async function handler(
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  console.log("🚀 ~ file: handleNewBooking.ts:706 ~ teamMembers:", teamMembers);
 
   const attendeesList = [...invitee, ...guests];
-  console.log("🚀 ~ file: handleNewBooking.ts:709 ~ attendeesList:", attendeesList);
 
   const responses = "responses" in reqBody ? reqBody.responses : null;
 
