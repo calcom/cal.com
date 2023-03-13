@@ -19,8 +19,8 @@ const projects = baseConfig.projects?.map((project) => {
 const config: PlaywrightTestConfig = {
   ...baseConfig,
   webServer: {
-    command: "yarn run-p embed-dev",
-    port: 3101,
+    command: "yarn run-p 'embed-dev' 'embed-web-start'",
+    port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
   },

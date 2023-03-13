@@ -3,21 +3,23 @@ import { RRule } from "rrule";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
+import { detectBrowserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
 
-const processDate = (date: string | null | Dayjs, i18n: I18n) => {
+const processDate = (date: string | null | Dayjs, i18n: I18n, withDefaultTimeFormat: boolean) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
-  const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
+  const formattedTime = parsedZone?.format(
+    withDefaultTimeFormat ? TimeFormat.TWELVE_HOUR : detectBrowserTimeFormat
+  );
   return formattedTime + ", " + dayjs(date).toDate().toLocaleString(i18n.language, { dateStyle: "full" });
 };
 
-export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
+export const parseDate = (date: string | null | Dayjs, i18n: I18n, withDefaultTimeFormat: boolean) => {
   if (!date) return ["No date"];
-  return processDate(date, i18n);
+  return processDate(date, i18n, withDefaultTimeFormat);
 };
 
 export const parseRecurringDates = (
@@ -26,11 +28,13 @@ export const parseRecurringDates = (
     timeZone,
     recurringEvent,
     recurringCount,
+    withDefaultTimeFormat,
   }: {
     startDate: string | null | Dayjs;
     timeZone?: string;
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
+    withDefaultTimeFormat: boolean;
   },
   i18n: I18n
 ): [string[], Date[]] => {
@@ -50,7 +54,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), i18n);
+    return processDate(t.tz(timeZone), i18n, withDefaultTimeFormat);
   });
 
   return [dateStrings, times.map((t) => t.toDate())];

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
-import { getSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { revalidateCalendarCache } from "@calcom/lib/server/revalidateCalendarCache";
 import prisma from "@calcom/prisma";
@@ -42,7 +42,7 @@ const defaultIntegrationAddHandler = async ({
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // Check that user is authenticated
-  req.session = await getSession({ req });
+  req.session = await getServerSession({ req, res });
 
   const { args } = req.query;
 

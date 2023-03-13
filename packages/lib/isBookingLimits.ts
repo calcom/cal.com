@@ -8,5 +8,6 @@ export function isBookingLimit(obj: unknown): obj is IntervalLimit {
 export function parseBookingLimit(obj: unknown): IntervalLimit | null {
   let bookingLimit: IntervalLimit | null = null;
   if (isBookingLimit(obj)) bookingLimit = obj;
+
   return bookingLimit;
 }
