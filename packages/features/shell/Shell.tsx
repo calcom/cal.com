@@ -607,10 +607,10 @@ const NavigationItem: React.FC<{
         className={classNames(
           "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
           isChild
-            ? `[&[aria-current='page']]:text-brand-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+            ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                 props.index === 0 ? "mt-0" : "mt-px"
               }`
-            : "[&[aria-current='page']]:text-brand-emphasis mt-0.5 text-sm"
+            : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
         )}
         aria-current={current ? "page" : undefined}>
         {item.icon && (
@@ -649,7 +649,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-subtle bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -754,7 +754,7 @@ function SideBar() {
             </div>
           </header>
 
-          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-subtle" />
+          <hr className="desktop-only border-subtle absolute -left-3 -right-3 mt-4 block w-full" />
 
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
@@ -879,7 +879,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-mutedg-opacity-50 sticky top-0 z-40 flex w-full items-center justify-between border-b border-subtle py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-mutedg-opacity-50 border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>
