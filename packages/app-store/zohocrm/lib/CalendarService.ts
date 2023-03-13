@@ -50,7 +50,7 @@ export default class ZohoCrmCalendarService implements Calendar {
       const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
       return {
         First_Name: firstname,
-        Last_Name: lastname,
+        Last_Name: lastname || "-",
         Email: attendee.email,
       };
     });
