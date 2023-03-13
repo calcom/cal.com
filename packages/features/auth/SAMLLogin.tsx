@@ -1,5 +1,5 @@
 import { signIn } from "next-auth/react";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import z from "zod";
 

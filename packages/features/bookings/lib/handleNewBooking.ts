@@ -43,7 +43,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
-import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
+import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -113,36 +113,20 @@ const isWithinAvailableHours = (
   {
     workingHours,
     organizerTimeZone,
-    inviteeTimeZone,
   }: {
     workingHours: WorkingHours[];
     organizerTimeZone: string;
-    inviteeTimeZone: string;
   }
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const isOrganizerInDST = isInDST(dayjs().tz(organizerTimeZone));
-  const isInviteeInDST = isInDST(dayjs().tz(inviteeTimeZone));
   const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const isInviteeInDSTWhenSlotStart = isInDST(timeSlotStart.tz(inviteeTimeZone));
   const organizerDSTDifference = getDSTDifference(organizerTimeZone);
-  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-  const sameDSTUsers = isOrganizerInDSTWhenSlotStart === isInviteeInDSTWhenSlotStart;
-  const organizerDST = isOrganizerInDST === isOrganizerInDSTWhenSlotStart;
-  const inviteeDST = isInviteeInDST === isInviteeInDSTWhenSlotStart;
-  const getTime = (slotTime: Dayjs, minutes: number) =>
-    slotTime
-      .startOf("day")
-      .add(
-        sameDSTUsers && organizerDST && inviteeDST
-          ? minutes
-          : minutes -
-              (isOrganizerInDSTWhenSlotStart || isOrganizerInDST
-                ? organizerDSTDifference
-                : inviteeDSTDifference),
-        "minutes"
-      );
+
+  const getTime = (slotTime: Dayjs, minutes: number) => {
+    const minutesDTS = isOrganizerInDSTWhenSlotStart ? minutes - organizerDSTDifference : minutes;
+    return slotTime.startOf("day").add(minutesDTS, "minutes");
+  };
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
@@ -222,6 +206,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: true,
       seatsShowAttendees: true,
       bookingLimits: true,
+      durationLimits: true,
       workflows: {
         include: {
           workflow: {
@@ -297,7 +282,6 @@ async function ensureAvailableUsers(
         {
           workingHours,
           organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || user.timeZone,
-          inviteeTimeZone: input.timeZone,
         }
       )
     ) {
@@ -590,6 +574,11 @@ async function handler(
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+  }
+
+  if (eventType && eventType.hasOwnProperty("durationLimits") && eventType?.durationLimits) {
+    const startAsDate = dayjs(reqBody.start).toDate();
+    await checkDurationLimits(eventType.durationLimits, startAsDate, eventType.id);
   }
 
   if (!eventType.seatsPerTimeSlot) {
@@ -1147,7 +1136,7 @@ async function handler(
       // cancel workflow reminders from previous rescheduled booking
       originalRescheduledBooking.workflowReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
-          deleteScheduledEmailReminder(reminder.id, reminder.referenceId, true);
+          deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
         } else if (reminder.method === WorkflowMethods.SMS) {
           deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
         }
@@ -1267,12 +1256,15 @@ async function handler(
         videoCallUrl = metadata.hangoutLink || defaultLocationUrl || videoCallUrl;
       }
       if (noEmail !== true) {
-        await sendScheduledEmails({
-          ...evt,
-          additionalInformation: metadata,
-          additionalNotes,
-          customInputs,
-        });
+        await sendScheduledEmails(
+          {
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject
+        );
       }
     }
   }
