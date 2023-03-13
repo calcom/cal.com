@@ -896,7 +896,7 @@ async function handler(
       })
     | null
   > => {
-    const booking = await prisma.booking.findUnique({
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
         uid: rescheduleUid || reqBody.bookingUid,
       },
@@ -911,16 +911,9 @@ async function handler(
         status: true,
       },
     });
-
-    if (!booking) {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
-
-    if (
-      booking.attendees.filter((attendee) => attendee.email === req.body.responses.email).length > 0 &&
-      dayjs.utc(booking.startTime).format() === evt.startTime
-    ) {
-      throw new Error("You are trying to reschedule to the same time.");
+    // See if attendee is already signed up for timeslot
+    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+      throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
     }
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
