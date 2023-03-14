@@ -152,9 +152,10 @@ function EventTypeSingleLayout({
     },
   });
 
-  const { isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager(
+  const { isManagedEventType } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
 
   // Define tab navigation here
@@ -266,7 +267,7 @@ function EventTypeSingleLayout({
                 />
               </>
             )}
-            {!isChildrenManagedEventType && (
+            {isManagedEventType && (
               <Button
                 color="secondary"
                 variant="icon"

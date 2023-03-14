@@ -150,7 +150,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
 
   return (
@@ -310,6 +311,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <SettingsToggle
             title={t("limit_total_booking_duration")}
             description={t("limit_total_booking_duration_description")}
+            {...shouldLockDisableProps("durationLimits")}
             checked={Object.keys(value ?? {}).length > 0}
             onCheckedChange={(active) => {
               if (active) {

@@ -144,6 +144,13 @@ export const EventSetupTab = (
     resolver: zodResolver(locationFormSchema),
   });
 
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
+    lockedFieldsManager(
+      eventType,
+      t("locked_fields_admin_description"),
+      t("locked_fields_member_description")
+    );
+
   const Locations = () => {
     const { t } = useLocale();
 
@@ -158,20 +165,24 @@ export const EventSetupTab = (
       return true;
     });
 
-    const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps } = lockedFieldsManager(
-      eventType,
-      t("locked_fields_description")
-    );
-
     const defaultValue = isManagedEventType
       ? locationOptions.find((op) => op.label === t("default"))?.options[0]
       : undefined;
 
-    const locationAvailable = locationOptions.some((op) =>
-      op.options.find((opt) => opt.value === eventType.locations[0].type)
-    );
+    const locationAvailable =
+      eventType.locations.length > 0 &&
+      locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
 
-    console.log({ isChildrenManagedEventType, locationOptions, locationAvailable });
+    const locationDetails = eventType.locations.length > 0 &&
+      !locationAvailable && {
+        slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-"),
+        name: eventType.locations[0].type
+          .replace("integrations:", "")
+          .replace(":", " ")
+          .split(" ")
+          .map((word) => word[0].toUpperCase() + word.slice(1))
+          .join(" "),
+      };
 
     return (
       <div className="w-full">
@@ -269,14 +280,10 @@ export const EventSetupTab = (
                 </Trans>
               </div>
             )}
-            {isChildrenManagedEventType && !locationAvailable && (
+            {isChildrenManagedEventType && !locationAvailable && locationDetails && (
               <p className="pl-1 text-sm leading-none text-red-600">
-                You have not connected a Zoom account.{" "}
-                <a
-                  className="underline"
-                  href={`${CAL_URL}/apps/${eventType.locations[0].type
-                    .replace("integrations:", "")
-                    .replace(":", "-")}`}>
+                {t("app_not_connected", { appName: locationDetails.name })}{" "}
+                <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
                   Connect now
                 </a>
               </p>
@@ -297,9 +304,6 @@ export const EventSetupTab = (
       </div>
     );
   };
-
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    lockedFieldsManager(eventType, t("locked_fields_description"));
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");

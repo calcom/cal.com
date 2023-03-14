@@ -9,7 +9,7 @@ import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { FiGrid } from "@calcom/ui/components/icon";
+import { FiGrid, FiLock } from "@calcom/ui/components/icon";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -56,32 +56,42 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
-  const appsLockedStatus = shouldLockDisableProps("apps");
 
   return (
     <>
       <div>
         <div className="before:border-0">
+          {!installedApps?.length && isManagedEventType && (
+            <Alert
+              severity="neutral"
+              className="mb-2"
+              title={t("locked_for_members")}
+              message={t("locked_apps_description")}
+            />
+          )}
           {!isLoading && !installedApps?.length ? (
             <EmptyScreen
               Icon={FiGrid}
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
-              isLocked={appsLockedStatus.isLocked}
               buttonRaw={
-                <Button target="_blank" color="secondary" href="/apps">
-                  {t("empty_installed_apps_button")}{" "}
-                </Button>
+                isChildrenManagedEventType && !isManagedEventType ? (
+                  <Button StartIcon={FiLock} color="secondary" disabled>
+                    {t("locked_by_admin")}
+                  </Button>
+                ) : (
+                  <Button target="_blank" color="secondary" href="/apps">
+                    {t("empty_installed_apps_button")}{" "}
+                  </Button>
+                )
               }
             />
           ) : null}
-          {!!installedApps?.length && isManagedEventType && (
-            <Alert severity="neutral" title="Locked for members" message={t("locked_apps_description")} />
-          )}
           {installedApps?.map((app) => (
             <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
@@ -93,7 +103,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ))}
         </div>
       </div>
-      {!appsLockedStatus.disabled && (
+      {!shouldLockDisableProps("apps").disabled && (
         <div>
           {!isLoading && notInstalledApps?.length ? (
             <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{t("available_apps")}</h2>

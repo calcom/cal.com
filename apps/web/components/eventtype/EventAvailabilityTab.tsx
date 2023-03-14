@@ -172,7 +172,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");

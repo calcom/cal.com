@@ -31,7 +31,11 @@ export default function RecurringEventController({
       value: value.toString(),
     }));
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const { shouldLockDisableProps } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
 
   return (
     <div className="block items-start sm:flex">

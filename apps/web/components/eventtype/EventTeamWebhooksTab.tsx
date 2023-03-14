@@ -11,7 +11,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { FiPlus, FiLock } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
   eventType,
@@ -94,9 +94,10 @@ export const EventTeamWebhooksTab = ({
     );
   };
 
-  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
@@ -107,16 +108,16 @@ export const EventTeamWebhooksTab = ({
           <div>
             <div>
               <>
+                {isManagedEventType && (
+                  <Alert
+                    severity="neutral"
+                    className="mb-2"
+                    title={t("locked_for_members")}
+                    message={t("locked_webhooks_description")}
+                  />
+                )}
                 {webhooks.length ? (
                   <>
-                    {isManagedEventType && (
-                      <Alert
-                        severity="neutral"
-                        className="mb-2"
-                        title="Locked for members"
-                        message="Members will be able to see the active apps but will not be able to edit any app settings"
-                      />
-                    )}
                     <div className="mb-2 rounded-md border">
                       {webhooks.map((webhook, index) => {
                         return (
@@ -138,10 +139,17 @@ export const EventTeamWebhooksTab = ({
                 ) : (
                   <EmptyScreen
                     Icon={TbWebhook}
-                    isLocked={webhookLockedStatus.isLocked}
                     headline={t("create_your_first_webhook")}
                     description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
-                    buttonRaw={<NewWebhookButton />}
+                    buttonRaw={
+                      isChildrenManagedEventType && !isManagedEventType ? (
+                        <Button StartIcon={FiLock} color="secondary" disabled>
+                          {t("locked_by_admin")}
+                        </Button>
+                      ) : (
+                        <NewWebhookButton />
+                      )
+                    }
                   />
                 )}
               </>

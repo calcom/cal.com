@@ -40,7 +40,11 @@ export default function RequiresConfirmationController({
     }
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = lockedFieldsManager(eventType, t("locked_fields_description"));
+  const { shouldLockDisableProps } = lockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
 
   return (
@@ -56,7 +60,7 @@ export default function RequiresConfirmationController({
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
-              {...{ isLocked: requiresConfirmationLockedProps.isLocked }}
+              isLocked={requiresConfirmationLockedProps.isLocked}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val);
                 onRequiresConfirmation(val);

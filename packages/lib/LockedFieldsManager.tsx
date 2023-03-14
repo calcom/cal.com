@@ -18,7 +18,8 @@ const Indicator = (label: string) => (
 
 const lockedFieldsManager = (
   eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata">,
-  label: string
+  adminLabel: string,
+  memberLabel: string
 ) => {
   const unlockedFields =
     (eventType.metadata?.managedEventConfig?.unlockedFields !== undefined &&
@@ -29,15 +30,14 @@ const lockedFieldsManager = (
   const isChildrenManagedEventType = eventType.metadata?.managedEventConfig !== undefined;
 
   const shouldLockIndicator = (fieldName: string) => {
-    let locked = isManagedEventType;
-    if (!locked) return false;
+    let locked = false;
     // Supports "metadata.fieldName"
     if (fieldName.includes(".")) {
       locked = get(unlockedFields, fieldName) === undefined;
     } else {
       locked = unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
     }
-    return locked && Indicator(label);
+    return locked && Indicator(isManagedEventType ? adminLabel : memberLabel);
   };
 
   const shouldLockDisableProps = (fieldName: string) => {

@@ -361,9 +361,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             users,
           });
         }}>
-        <div ref={animationParentRef} className="space-y-6">
-          {tabMap[tabName]}
-        </div>
+        <div ref={animationParentRef}>{tabMap[tabName]}</div>
       </Form>
     </EventTypeSingleLayout>
   );

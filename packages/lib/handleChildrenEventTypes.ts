@@ -53,6 +53,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   scheduleId: true,
   workflows: true,
   bookingFields: true,
+  durationLimits: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

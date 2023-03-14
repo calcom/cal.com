@@ -594,7 +594,8 @@
   "no_assigned_members": "No assigned members",
   "assigned_to": "Assigned to",
   "start_assigning_members_above": "Start assigning members above",
-  "locked_fields_description": "Members will not be able to edit this",
+  "locked_fields_admin_description": "Members will not be able to edit this",
+  "locked_fields_member_description": "This option was locked by the team admin",
   "url": "URL",
   "hidden": "Hidden",
   "readonly": "Readonly",
@@ -1667,5 +1668,10 @@
   "members_default_location": "Member's default location",
   "members_default_schedule_description": "We will use each members default availability schedule. They will be able to edit or change it.",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
-  "locked_apps_description": "Members will be able to see the active apps but will not be able to edit any app settings"
+  "locked_for_members": "Locked for members",
+  "locked_apps_description": "Members will be able to see the active apps but will not be able to edit any app settings",
+  "locked_webhooks_description": "Members will be able to see the active webhooks but will not be able to edit any webhook settings",
+  "locked_workflows_description": "Members will be able to see the active workflows but will not be able to edit any workflow settings",
+  "locked_by_admin": "Locked by admin",
+  "app_not_connected": "You have not connected a {{appName}} account."
 }

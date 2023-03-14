@@ -9,8 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui";
-import { FiExternalLink, FiZap } from "@calcom/ui/components/icon";
+import { Button, EmptyScreen, showToast, Switch, Tooltip, Alert } from "@calcom/ui";
+import { FiExternalLink, FiZap, FiLock } from "@calcom/ui/components/icon";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../lib/getActionIcon";
@@ -204,50 +204,58 @@ function EventWorkflowsTab(props: Props) {
     },
   });
 
-  const { shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
+  const { isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager(
     eventType,
-    t("locked_fields_description")
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
   );
-  const workflowLockedStatus = shouldLockDisableProps("workflow");
 
   return (
     <LicenseRequired>
       {!isLoading ? (
-        data?.workflows && data?.workflows.length > 0 ? (
-          <div>
-            {isManagedEventType && (
-              <Alert
-                severity="neutral"
-                className="mb-2"
-                title="Locked for members"
-                message="Members will be able to see the active apps but will not be able to edit any app settings"
-              />
-            )}
-            <div className="space-y-4">
-              {sortedWorkflows.map((workflow) => {
-                return <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />;
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="pt-4 before:border-0">
-            <EmptyScreen
-              Icon={FiZap}
-              headline={t("workflows")}
-              isLocked={workflowLockedStatus.isLocked}
-              description={t("no_workflows_description")}
-              buttonRaw={
-                <Button
-                  target="_blank"
-                  color="secondary"
-                  onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                  loading={createMutation.isLoading}>
-                  {t("create_workflow")}
-                </Button>
-              }
+        <>
+          {isManagedEventType && (
+            <Alert
+              severity="neutral"
+              title={t("locked_for_members")}
+              message={t("locked_workflows_description")}
             />
-          </div>
-        )
+          )}
+          {data?.workflows && data?.workflows.length > 0 ? (
+            <div>
+              <div className="space-y-4">
+                {sortedWorkflows.map((workflow) => {
+                  return (
+                    <WorkflowListItem key={workflow.id} workflow={workflow} eventType={props.eventType} />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="pt-2 before:border-0">
+              <EmptyScreen
+                Icon={FiZap}
+                headline={t("workflows")}
+                description={t("no_workflows_description")}
+                buttonRaw={
+                  isChildrenManagedEventType && !isManagedEventType ? (
+                    <Button StartIcon={FiLock} color="secondary" disabled>
+                      {t("locked_by_admin")}
+                    </Button>
+                  ) : (
+                    <Button
+                      target="_blank"
+                      color="secondary"
+                      onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                      loading={createMutation.isLoading}>
+                      {t("create_workflow")}
+                    </Button>
+                  )
+                }
+              />
+            </div>
+          )}
+        </>
       ) : (
         <SkeletonLoader />
       )}
