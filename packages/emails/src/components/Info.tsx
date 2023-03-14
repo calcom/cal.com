@@ -33,7 +33,8 @@ export const Info = (props: {
               dangerouslySetInnerHTML={{
                 __html: md
                   .render(props.description.toString() || "")
-                  .replaceAll("<p>", `<p style="${descriptionCSS}">`),
+                  .replaceAll("<p>", `<p style="${descriptionCSS}">`)
+                  .replaceAll("<li>", `<li style="${descriptionCSS}">`),
               }}
             />
           ) : (
