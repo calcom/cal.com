@@ -164,6 +164,7 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   ethSignature: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -226,6 +227,7 @@ export const schemaBookingCancelParams = z.object({
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({

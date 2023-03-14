@@ -1,5 +1,6 @@
 import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
 import { createEvent } from "ics";
+import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
@@ -15,6 +16,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   attendee: Person;
   showAttendees: boolean | undefined;
   t: TFunction;
+  attendees: Person[];
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
@@ -23,8 +25,9 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.attendee = attendee;
     this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
-
-    if (!this.showAttendees) {
+    this.attendees = [...this.calEvent.attendees];
+    if (!this.showAttendees && this.calEvent.seatsPerTimeSlot) {
+      this.attendees = [this.attendee];
       this.calEvent.attendees = [this.attendee];
     }
   }
@@ -50,6 +53,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
+
       attendees: [
         ...this.calEvent.attendees.map((attendee: Person) => ({
           name: attendee.name,
@@ -79,6 +83,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
+    const clonedCalEvent = cloneDeep(this.calEvent);
+
+    this.getiCalEventAsString();
+
     return {
       icalEvent: {
         filename: "event.ics",
@@ -90,7 +98,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: `${this.calEvent.title}`,
       html: renderEmail("AttendeeScheduledEmail", {
-        calEvent: this.calEvent,
+        calEvent: clonedCalEvent,
         attendee: this.attendee,
       }),
       text: this.getTextBody(),

@@ -1,9 +1,10 @@
 import type { GetServerSidePropsContext } from "next";
+import { URLSearchParams } from "url";
+import { z } from "zod";
 
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.
@@ -11,9 +12,17 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { uid: bookingId } = z
+    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
+    .parse(context.query);
+  let seatReferenceUid;
+  const uid = await maybeGetBookingUidFromSeat(prisma, bookingId);
+  if (uid) {
+    seatReferenceUid = bookingId;
+  }
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: asStringOrUndefined(context.query.uid),
+      uid,
     },
     select: {
       ...bookingMinimalSelect,
@@ -42,9 +51,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!booking) {
     return {
       notFound: true,
-    } as {
-      notFound: true;
-    };
+    } as const;
   }
 
   if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
@@ -66,9 +73,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       : booking.user?.username || "rick") /* This shouldn't happen */ +
     "/" +
     eventType?.slug;
+  const destinationUrl = new URLSearchParams();
+  if (seatReferenceUid) {
+    destinationUrl.set("rescheduleUid", seatReferenceUid);
+  } else {
+    destinationUrl.set("rescheduleUid", bookingId);
+  }
+
   return {
     redirect: {
-      destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
+      destination: `/${eventPage}?${destinationUrl.toString()}`,
       permanent: false,
     },
   };
