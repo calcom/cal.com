@@ -135,10 +135,10 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
     <>
       <aside
         className={classNames(
-          "scroll-bar scrollbar-track-w-20 fixed top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll border-r border-gray-300/20 bg-black/80 backdrop-blur-lg transition-all duration-300 ease-in-out",
-          open ? "left-0" : "-left-64"
+          "no-scrollbar fixed top-0 left-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
+          open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
-        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal w-full overflow-scroll p-4 text-white shadow-sm">
+        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>What:</h3>
           <p>{booking.title}</p>
           <h3>Invitee Time Zone:</h3>
@@ -176,7 +176,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
           />
         </main>
-        <div className="-mr-6 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <button
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
