@@ -37,10 +37,11 @@ export const AvailableTimes = ({
       <header className="dark:bg-darkgray-100 dark:before:bg-darkgray-100 sticky top-0 left-0 z-10 mb-8 flex flex w-full w-full flex-row items-center bg-white before:absolute before:-top-12 before:h-24 before:w-full before:bg-white md:flex-col md:items-start lg:flex-row lg:items-center">
         <span className="relative z-10">
           <span className="font-semibold text-gray-900 dark:text-white">
-            {nameOfDay(i18n.language, Number(date.format("d")), "short")}
+            {nameOfDay(i18n.language, Number(date.format("d")), "short")},
           </span>
-          <span>
-            , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
+          <span className="dark:text-darkgray-500 text-gray-500">
+            {" "}
+            {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
           </span>
         </span>
 

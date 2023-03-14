@@ -198,7 +198,7 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex items-center justify-between text-xl font-light">
+      <div className="mb-4 flex items-center justify-between text-xl">
         <span className="w-1/2 text-base dark:text-white">
           {browsingDate ? (
             <>
