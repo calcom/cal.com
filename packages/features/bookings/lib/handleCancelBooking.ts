@@ -7,9 +7,9 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
-import { deleteMeeting } from "@calcom/core/videoClient";
+import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmails } from "@calcom/emails";
+import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -24,12 +24,8 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
-  const { userId } = req;
-
-  const { id, uid, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
-
-  const bookingToDelete = await prisma.booking.findUnique({
+async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
+  return await prisma.booking.findUnique({
     where: {
       id,
       uid,
@@ -70,6 +66,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           price: true,
           currency: true,
           length: true,
+          seatsPerTimeSlot: true,
           hosts: {
             select: {
               user: true,
@@ -92,8 +89,21 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       smsReminderNumber: true,
       workflowReminders: true,
       scheduledJobs: true,
+      seatsReferences: true,
     },
   });
+}
+
+type CustomRequest = NextApiRequest & {
+  userId?: number;
+  bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+};
+
+async function handler(req: CustomRequest) {
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
+    schemaBookingCancelParams.parse(req.body);
+  req.bookingToDelete = await getBookingToDelete(id, uid);
+  const { bookingToDelete, userId } = req;
 
   if (!bookingToDelete || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
@@ -106,6 +116,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  const result = await handleSeatedEventCancellation(req);
+  if (result) return { success: true };
 
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
@@ -177,6 +191,99 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     cancellationReason: cancellationReason,
     ...(teamMembers && { team: { name: "", members: teamMembers } }),
   };
+
+  // If it's just an attendee of a booking then just remove them from that booking
+  if (seatReferenceUid && bookingToDelete.attendees.length > 1) {
+    const seatReference = bookingToDelete.seatsReferences.find(
+      (reference) => reference.referenceUid === seatReferenceUid
+    );
+
+    const attendee = bookingToDelete.attendees.find((attendee) => attendee.id === seatReference?.attendeeId);
+
+    if (!seatReference || !attendee)
+      throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+    await prisma.attendee.delete({
+      where: {
+        id: seatReference.attendeeId,
+      },
+    });
+
+    /* If there are references then we should update them as well */
+    const lastAttendee =
+      bookingToDelete.attendees.filter((bookingAttendee) => attendee.email !== bookingAttendee.email).length <
+      0;
+
+    const integrationsToDelete = [];
+
+    for (const reference of bookingToDelete.references) {
+      if (reference.credentialId) {
+        const credential = await prisma.credential.findUnique({
+          where: {
+            id: reference.credentialId,
+          },
+        });
+
+        if (credential) {
+          if (lastAttendee) {
+            if (reference.type.includes("_video")) {
+              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
+            }
+            if (reference.type.includes("_calendar")) {
+              const calendar = getCalendar(credential);
+              if (calendar) {
+                integrationsToDelete.push(
+                  calendar?.deleteEvent(reference.uid, evt, reference.externalCalendarId)
+                );
+              }
+            }
+          } else {
+            const updatedEvt = {
+              ...evt,
+              attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+            };
+            if (reference.type.includes("_video")) {
+              integrationsToDelete.push(
+                updateMeeting(
+                  { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
+                  updatedEvt,
+                  reference
+                )
+              );
+            }
+            if (reference.type.includes("_calendar")) {
+              const calendar = getCalendar(credential);
+              if (calendar) {
+                integrationsToDelete.push(
+                  calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    await Promise.all(integrationsToDelete).then(async () => {
+      if (lastAttendee) {
+        await prisma.booking.delete({
+          where: {
+            id: bookingToDelete.id,
+          },
+        });
+      }
+    });
+
+    const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
+
+    await sendCancelledSeatEmails(evt, {
+      ...attendee,
+      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+    });
+
+    req.statusCode = 200;
+    return { message: "No longer attending event" };
+  }
 
   // Hook up the webhook logic here
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
@@ -274,6 +381,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
+    if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
+      await prisma.attendee.deleteMany({
+        where: {
+          bookingId: bookingToDelete.id,
+        },
+      });
+    }
     const updatedBooking = await prisma.booking.update({
       where: {
         id,
@@ -522,6 +636,33 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   req.statusCode = 200;
   return { message: "Booking successfully cancelled." };
+}
+
+async function handleSeatedEventCancellation(req: CustomRequest) {
+  const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
+  if (!seatReferenceUid) return;
+  if (!req.bookingToDelete?.attendees.length || req.bookingToDelete.attendees.length < 2) return;
+
+  const seatReference = req.bookingToDelete.seatsReferences.find(
+    (reference) => reference.referenceUid === seatReferenceUid
+  );
+
+  if (!seatReference) throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
+
+  await Promise.all([
+    prisma.bookingSeat.delete({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+    }),
+    prisma.attendee.delete({
+      where: {
+        id: seatReference.attendeeId,
+      },
+    }),
+  ]);
+  req.statusCode = 200;
+  return { success: true };
 }
 
 export default handler;
