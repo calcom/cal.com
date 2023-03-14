@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import {
@@ -79,6 +80,8 @@ const querySchema = z.object({
   type: z.coerce.number().optional(),
   user: z.string(),
   seatReferenceUid: z.string().optional(),
+  date: z.string().optional(),
+  duration: z.coerce.number().optional(),
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -193,6 +196,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   let rescheduleUid = query.rescheduleUid;
   const rescheduleEventTypeHasSeats = query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
   let attendeeEmail: string;
+  let bookingUidWithSeats: string | null = null;
+
   if (rescheduleEventTypeHasSeats) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
@@ -212,13 +217,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rescheduleUid = bookingSeat.booking.uid;
       attendeeEmail = bookingSeat.attendee.email;
     }
+  } else if (eventTypeRaw.seatsPerTimeSlot && query.duration && query.date) {
+    // If it's not reschedule but event Type has seats we should obtain
+    // the bookingUid regardless and use it to get the booking
+    const currentSeats = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: eventTypeRaw.id,
+        startTime: dayjs(query.date).toISOString(),
+        endTime: dayjs(query.date).add(query.duration, "minutes").toISOString(),
+      },
+      select: {
+        uid: true,
+      },
+    });
+    if (currentSeats && currentSeats) {
+      bookingUidWithSeats = currentSeats.uid;
+    }
   }
 
   let booking: GetBookingType | null = null;
-  if (rescheduleUid || query.bookingUid) {
+  if (rescheduleUid || query.bookingUid || bookingUidWithSeats) {
     booking = await getBooking(
       prisma,
-      rescheduleUid || query.bookingUid || "",
+      rescheduleUid || query.bookingUid || bookingUidWithSeats || "",
       eventTypeObject.bookingFields
     );
   }
