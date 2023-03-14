@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { getSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 
@@ -40,7 +40,8 @@ const OnboardedPage = () => {
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
+  const { req, res } = context;
+  const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
