@@ -413,7 +413,7 @@ const BookingPage = ({
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -436,7 +436,7 @@ const BookingPage = ({
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
-        ...booking,
+        ...bookingValues,
         start: dayjs(recurringDate).format(),
         end: dayjs(recurringDate).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -456,7 +456,7 @@ const BookingPage = ({
       recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
-        ...booking,
+        ...bookingValues,
         start: dayjs(date).tz(timeZone()).format(),
         end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -464,7 +464,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: router.query.bookingUid as string,
+        bookingUid: (router.query.bookingUid as string) || booking?.uid,
         user: router.query.user,
         metadata,
         hasHashedBookingLink,

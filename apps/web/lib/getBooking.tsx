@@ -55,6 +55,8 @@ async function getBooking(
       uid,
     },
     select: {
+      id: true,
+      uid: true,
       startTime: true,
       description: true,
       customInputs: true,
