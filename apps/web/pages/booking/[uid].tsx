@@ -267,9 +267,10 @@ export default function Success(props: SuccessProps) {
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
-    (isCancellationMode && !!seatReferenceUid
-      ? !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid)
-      : !userIsOwner);
+    (isCancellationMode &&
+      (!!seatReferenceUid
+        ? !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid)
+        : !userIsOwner));
 
   const telemetry = useTelemetry();
   useEffect(() => {

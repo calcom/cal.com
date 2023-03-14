@@ -58,7 +58,9 @@ test.describe("Booking with Seats", () => {
     const slug = "my-2-seated-event";
     const user = await users.create({
       name: "Seated event user",
-      eventTypes: [{ title: "My 2-seated event", slug, length: 60, seatsPerTimeSlot: 2 }],
+      eventTypes: [
+        { title: "My 2-seated event", slug, length: 60, seatsPerTimeSlot: 2, seatsShowAttendees: true },
+      ],
     });
     await page.goto(`/${user.username}/${slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -75,12 +77,12 @@ test.describe("Booking with Seats", () => {
     });
     await test.step("Attendee #2 can book the same seated event time slot", async () => {
       await page.goto(bookingUrl);
-      await bookTimeSlot(page);
+      await bookTimeSlot(page, { email: "jane.doe@example.com", name: "Jane Doe" });
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
     });
     await test.step("Attendee #3 cannot book the same seated event time slot", async () => {
       await page.goto(bookingUrl);
-      await bookTimeSlot(page);
+      await bookTimeSlot(page, { email: "rick@example.com", name: "Rick" });
       await expect(page.locator("[data-testid=success-page]")).toBeHidden();
     });
   });
