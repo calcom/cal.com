@@ -1,4 +1,4 @@
-import { Webhook } from "@prisma/client";
+import type { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
@@ -45,6 +45,7 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
     title: data.title,
     description: data.description,
     customInputs: data.customInputs,
+    responses: data.responses,
     startTime: data.startTime,
     endTime: data.endTime,
     location: location,
