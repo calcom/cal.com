@@ -1669,7 +1669,10 @@ async function handler(
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
-          videoCallUrl = metadata.hangoutLink || videoCallUrl;
+          // @ts-expect-error - safe to ignore the below error as we are parsing the data with zod
+          const parseUpdatedEventUrl = z.string().safeParse(updatedEvent?.url);
+          const updatedEventUrl = parseUpdatedEventUrl.success ? parseUpdatedEventUrl.data : undefined;
+          videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEventUrl;
         }
       }
       if (noEmail !== true) {
