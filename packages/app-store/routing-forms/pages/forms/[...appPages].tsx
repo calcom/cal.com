@@ -233,13 +233,13 @@ export default function RoutingForms({
                             </>
                           }>
                           <div className="flex flex-wrap gap-1">
-                            <Badge variant="gray" StartIcon={FiMenu}>
+                            <Badge variant="gray" startIcon={FiMenu}>
                               {fields.length} {fields.length === 1 ? "field" : "fields"}
                             </Badge>
-                            <Badge variant="gray" StartIcon={FiGitMerge}>
+                            <Badge variant="gray" startIcon={FiGitMerge}>
                               {form.routes.length} {form.routes.length === 1 ? "route" : "routes"}
                             </Badge>
-                            <Badge variant="gray" StartIcon={FiMessageCircle}>
+                            <Badge variant="gray" startIcon={FiMessageCircle}>
                               {form._count.responses} {form._count.responses === 1 ? "response" : "responses"}
                             </Badge>
                           </div>

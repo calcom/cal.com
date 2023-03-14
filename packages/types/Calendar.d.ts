@@ -1,9 +1,11 @@
-import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar, SelectedCalendar, BookingSeat } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 
+import type { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 
 import type { Ensure } from "./utils";
@@ -23,8 +25,10 @@ export type Person = {
   language: { translate: TFunction; locale: string };
   username?: string;
   id?: number;
-  bookingId?: number;
-  locale?: string;
+  bookingId?: number | null;
+  locale?: string | null;
+  timeFormat?: TimeFormat;
+  bookingSeat?: BookingSeat | null;
 };
 
 export type TeamMember = {
@@ -115,7 +119,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export interface BookingLimit {
+export interface IntervalLimit {
   PER_DAY?: number | undefined;
   PER_WEEK?: number | undefined;
   PER_MONTH?: number | undefined;
@@ -162,6 +166,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
 
   // It has responses to all the fields(system + user)

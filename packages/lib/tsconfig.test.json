@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "target": "es5",
+    "jsx": "react-jsx",
+    "resolveJsonModule": true
+  },
+  "include": [".", "../types/next-auth.d.ts"],
+  "exclude": ["dist", "build", "node_modules"]
+}

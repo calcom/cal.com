@@ -47,6 +47,7 @@ const user: User = {
   brandColor: "#797979",
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
+  timeFormat: 12,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -83,6 +84,7 @@ const commons = {
   team: null,
   requiresConfirmation: false,
   bookingLimits: null,
+  durationLimits: null,
   hidden: false,
   userId: 0,
   owner: null,
