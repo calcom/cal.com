@@ -1369,7 +1369,7 @@ async function handler(
         };
       }
 
-      return { ...resultBooking, seatReferenceUid: bookingSeat?.referenceUid };
+      return { ...resultBooking, seatReferenceUid: evt.attendeeSeatId };
     }
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
