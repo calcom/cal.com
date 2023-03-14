@@ -90,27 +90,25 @@ const buttonClasses = cva(
       {
         loading: true,
         color: "secondary",
-        className:
-          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "bg-gray-100 text-gray-900/30",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white hover:bg-gray-50 hover:border-gray-400 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
       }),
       // Minimal variants
       {
         disabled: true,
         color: "minimal",
         className:
-          "border:gray-200 bg-opacity-30 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border:gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,
         color: "minimal",
-        className:
-          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "bg-gray-100 text-gray-900/30",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],

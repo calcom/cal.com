@@ -24,7 +24,7 @@ export default function WizardLayout({
   }, [router.asPath]);
 
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black" data-testid="onboarding">
+    <div className="min-h-screen text-black" data-testid="onboarding">
       <div>
         <Toaster position="bottom-right" />
       </div>

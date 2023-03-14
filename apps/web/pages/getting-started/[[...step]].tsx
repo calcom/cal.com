@@ -74,10 +74,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const currentStepIndex = steps.indexOf(currentStep);
 
   return (
-    <div
-      className="bg-sunny-100 dark:text-brand-contrast min-h-screen text-black"
-      data-testid="onboarding"
-      key={router.asPath}>
+    <div className="bg-sunny-100 min-h-screen text-black" data-testid="onboarding" key={router.asPath}>
       <Head>
         <title>
           {APP_NAME} - {t("getting_started")}

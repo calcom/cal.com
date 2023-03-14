@@ -50,7 +50,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
   return (
     <Form
-      className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"
+      className="w-full bg-white text-black"
       form={availabilityForm}
       handleSubmit={async (values) => {
         try {

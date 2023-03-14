@@ -18,10 +18,7 @@ const OnboardedPage = () => {
   }, []);
 
   return (
-    <div
-      className="bg-sunny-100 dark:text-brand-contrast min-h-screen text-black"
-      data-testid="onboarding"
-      key={router.asPath}>
+    <div className="bg-sunny-100  min-h-screen text-black" data-testid="onboarding" key={router.asPath}>
       <Head>
         <title>Cal.com - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />

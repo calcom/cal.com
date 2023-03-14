@@ -96,7 +96,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md text-sm"
           />
 
-          <p className="mt-3 flex flex-row font-sans text-xs leading-tight text-gray-500 dark:text-white">
+          <p className="mt-3 flex flex-row font-sans text-xs leading-tight text-gray-500">
             {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
           </p>
         </div>

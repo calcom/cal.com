@@ -18,7 +18,7 @@ export default function AddToHomescreen() {
         <div className="rounded-lg p-2 shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex w-0 flex-1 items-center">
-              <span className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast flex rounded-lg bg-opacity-30 p-2">
+              <span className="bg-brand text-brandcontrast flex rounded-lg bg-opacity-30 p-2">
                 <svg
                   className="h-7 w-7 fill-current text-indigo-500"
                   xmlns="http://www.w3.org/2000/svg"

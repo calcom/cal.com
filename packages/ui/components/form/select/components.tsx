@@ -55,7 +55,7 @@ export const OptionComponent = <
       {...props}
       className={classNames(
         className,
-        "dark:bg-darkgray-100 !flex !cursor-pointer justify-between !py-3",
+        "!flex !cursor-pointer justify-between !py-3",
         props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
         props.isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}>
@@ -80,7 +80,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "!min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );
@@ -146,10 +146,7 @@ export const MenuComponent = <
 }: MenuProps<Option, IsMulti, Group>) => (
   <reactSelectComponents.Menu
     {...props}
-    className={classNames(
-      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
-      className
-    )}
+    className={classNames("!rounded-md bg-white text-sm leading-4 dark:text-white", className)}
   />
 );
 

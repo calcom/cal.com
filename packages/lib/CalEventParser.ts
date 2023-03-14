@@ -181,10 +181,7 @@ ${getCancellationReason(calEvent)}
 
 Your coach will wait for up to 10 minutes for you before it’s considered a missed session. <a href="${cancelationPolicyURL}" target="_blank">Mento Rescheduling & Cancelation Policy.</a>.
 
-Manage coaching sessions on <a href="${appUrl}" target="_blank">Mento</a>
-    : ""
-}
-  `.trim();
+Manage coaching sessions on <a href="${appUrl}" target="_blank">Mento</a>`.trim();
 };
 
 export const getCancellationReason = (calEvent: CalendarEvent) => {

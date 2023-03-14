@@ -59,8 +59,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
         />
         <small className="block text-gray-400">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
-          <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-md">
-            <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
+          <div className="bg-brand overflow-hidden rounded-md">
+            <div className="text-brandcontrast px-4 py-2 sm:px-6">
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
@@ -104,8 +104,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
             );
           })()}
 
-          <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-md">
-            <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
+          <div className="bg-brand overflow-hidden rounded-md">
+            <div className="text-brandcontrast px-4 py-2 sm:px-6">
               {t("your_day_ends_at")} {convertMinsToHrsMins(user.endTime)}
             </div>
           </div>

@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const SkeletonEventType = () => {
   return (
-    <div className="dark:bg-darkgray-100 h-24 w-full bg-white">
+    <div className="h-24 w-full bg-white">
       <div className="p-5">
         <div className="flex space-x-2 rtl:space-x-reverse">
           <div className="dark:bg-darkgray-400 h-2 w-1/6 rounded-md bg-neutral-200" />
