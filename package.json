@@ -115,7 +115,7 @@
     "schema": "packages/prisma/schema.prisma",
     "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
   },
-  "packageManager": "yarn@1.22.17",
+  "packageManager": "yarn@3.4.1",
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
