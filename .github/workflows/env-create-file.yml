@@ -5,7 +5,6 @@ on:
 
 env:
   INPUT_ENV_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
-  INPUT_ENV_DIRECT_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
   INPUT_ENV_NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
   INPUT_ENV_NEXT_PUBLIC_WEBSITE_URL: http://localhost:3000
   INPUT_ENV_NEXTAUTH_SECRET: secret

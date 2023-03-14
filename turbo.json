@@ -3,7 +3,7 @@
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
-      "dependsOn": ["post-install", "db-deploy"],
+      "dependsOn": ["post-install"],
       "outputs": []
     },
     "@calcom/prisma#db-migrate": {
@@ -48,7 +48,7 @@
     },
     "@calcom/web#start": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "dependsOn": [],
       "outputs": []
     },
     "@calcom/website#build": {
@@ -179,7 +179,6 @@
     "$CALCOM_LICENSE_KEY",
     "$CALCOM_TELEMETRY_DISABLED",
     "$CALENDSO_ENCRYPTION_KEY",
-    "$DIRECT_DATABASE_URL",
     "$SEND_FEEDBACK_EMAIL",
     "$CI",
     "$CLOSECOM_API_KEY",
