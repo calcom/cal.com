@@ -35,7 +35,14 @@ const fieldSchema = z.object({
    */
   defaultLabel: z.string().optional(),
   defaultPlaceholder: z.string().optional(),
-
+  views: z
+    .object({
+      label: z.string(),
+      id: z.string(),
+      description: z.string().optional(),
+    })
+    .array()
+    .optional(),
   type: fieldTypeEnum,
   options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
   optionsInputs: z

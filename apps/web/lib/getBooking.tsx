@@ -112,7 +112,10 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: getBookingResponsesPartialSchema({
-      bookingFields: eventType.bookingFields,
+      eventType: {
+        bookingFields: eventType.bookingFields,
+      },
+      view: "N/A",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
 };

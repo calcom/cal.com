@@ -61,7 +61,7 @@ export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields
   location: "system",
   notes: "system-but-optional",
   guests: "system-but-optional",
-  rescheduleReason: "system",
+  rescheduleReason: "system-but-optional",
   smsReminderNumber: "system",
 };
 
@@ -254,6 +254,12 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "rescheduleReason",
       defaultPlaceholder: "reschedule_placeholder",
       required: false,
+      views: [
+        {
+          id: "reschedule",
+          label: "Reschedule View",
+        },
+      ],
       sources: [
         {
           label: "Default",
@@ -266,9 +272,15 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
+    } else {
+      bookingFields[existingBookingFieldIndex] = {
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 
@@ -312,9 +324,15 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemAfterFields = [];
   for (const field of systemAfterFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);
+    } else {
+      bookingFields[existingBookingFieldIndex] = {
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 
