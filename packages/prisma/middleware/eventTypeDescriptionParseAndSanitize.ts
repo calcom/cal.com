@@ -1,9 +1,13 @@
 import type { PrismaClient, EventType } from "@prisma/client";
+import DOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 
 import { md } from "@calcom/lib/markdownIt";
 
 function parseAndSanitize(description: string) {
-  const parsedMarkdown = md.render(description);
+  const window = new JSDOM("").window;
+  const purify = DOMPurify(window);
+  const parsedMarkdown = purify.sanitize(md.render(description));
   return parsedMarkdown;
 }
 
