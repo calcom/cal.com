@@ -1,5 +1,6 @@
 import type { DateArray } from "ics";
 import { createEvent } from "ics";
+import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
@@ -67,7 +68,17 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    const clonedCalEvent = cloneDeep(this.calEvent);
+
+    const toAddresses = [this.calEvent.organizer.email];
+    if (this.calEvent.team) {
+      this.calEvent.team.members.forEach((member) => {
+        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.email === member.email);
+        if (memberAttendee) {
+          toAddresses.push(memberAttendee.email);
+        }
+      });
+    }
 
     return {
       icalEvent: {
@@ -78,7 +89,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       to: toAddresses.join(","),
       subject: `${this.newSeat ? this.t("new_attendee") + ":" : ""} ${this.calEvent.title}`,
       html: renderEmail("OrganizerScheduledEmail", {
-        calEvent: this.calEvent,
+        calEvent: clonedCalEvent,
         attendee: this.calEvent.organizer,
         teamMember: this.teamMember,
         newSeat: this.newSeat,

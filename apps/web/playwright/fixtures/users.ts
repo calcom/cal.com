@@ -69,61 +69,24 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       } = {}
     ) => {
       const _user = await prisma.user.create({
-        data: await createUser(workerInfo, opts),
+        data: createUser(workerInfo, opts),
       });
-      await prisma.eventType.create({
-        data: {
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "30 min",
-          slug: "30-min",
-          length: 30,
-        },
-      });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Paid",
-          slug: "paid",
-          length: 30,
-          price: 1000,
-        },
-      });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Opt in",
-          slug: "opt-in",
-          requiresConfirmation: true,
-          length: 30,
-        },
-      });
+
+      let defaultEventTypes: SupportedTestEventTypes[] = [
+        { title: "30 min", slug: "30-min", length: 30 },
+        { title: "Paid", slug: "paid", length: 30, price: 1000 },
+        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+      ];
+
+      if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
+      for (const eventTypeData of defaultEventTypes) {
+        eventTypeData.owner = { connect: { id: _user.id } };
+        eventTypeData.users = { connect: { id: _user.id } };
+        await prisma.eventType.create({
+          data: eventTypeData,
+        });
+      }
+
       if (scenario.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
@@ -314,8 +277,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
+type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
+  _bookings?: PrismaType.BookingCreateInput[];
+};
 type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
+type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+  timeZone?: TimeZoneEnum;
+  eventTypes?: SupportedTestEventTypes[];
+};
 
 // creates the actual user in the db.
 const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {

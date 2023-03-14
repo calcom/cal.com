@@ -264,6 +264,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         defaultValue={!!eventType.seatsPerTimeSlot}
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
+            data-testid="offer-seats-toggle"
             title={t("offer_seats")}
             description={t("offer_seats_description")}
             checked={value}

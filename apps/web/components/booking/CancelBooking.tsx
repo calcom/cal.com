@@ -23,13 +23,14 @@ type Props = {
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
   allRemainingBookings: boolean;
+  seatReferenceUid?: string;
 };
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, allRemainingBookings } = props;
+  const { booking, allRemainingBookings, seatReferenceUid } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -73,16 +74,16 @@ export default function CancelBooking(props: Props) {
                 onClick={async () => {
                   setLoading(true);
 
-                  const payload = {
-                    id: booking?.id,
-                    cancellationReason: cancellationReason,
-                    allRemainingBookings,
-                  };
-
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                   const res = await fetch("/api/cancel", {
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                      id: booking?.id,
+                      cancellationReason: cancellationReason,
+                      allRemainingBookings,
+                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
+                      seatReferenceUid,
+                    }),
                     headers: {
                       "Content-Type": "application/json",
                     },
