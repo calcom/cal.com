@@ -911,7 +911,10 @@ async function handler(
       },
     });
     // See if attendee is already signed up for timeslot
-    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+    if (
+      booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
+      dayjs.utc(booking.startTime).format() === evt.startTime
+    ) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
     }
 
