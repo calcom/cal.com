@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import { getEventLocationType, locationKeyToString } from "@calcom/app-store/loc
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -40,6 +41,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Form, Tooltip } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
@@ -112,7 +114,10 @@ const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        if (
+          (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
+          !!rescheduleUid
+        ) {
           return null;
         }
 
@@ -212,6 +217,20 @@ const BookingPage = ({
     duration = Number(queryDuration);
   }
 
+  // This is a workaround for forcing the same time format for both server side rendering and client side rendering
+  // At initial render, we use the default time format which is 12H
+  const [withDefaultTimeFormat, setWithDefaultTimeFormat] = useState(true);
+  const parseDateFunc = useCallback(
+    (date: string | null | Dayjs) => {
+      return parseDate(date, i18n.language, withDefaultTimeFormat);
+    },
+    [withDefaultTimeFormat]
+  );
+  // After intial render on client side, we let parseDateFunc to use the time format from the localStorage
+  useEffect(() => {
+    setWithDefaultTimeFormat(false);
+  }, []);
+
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
@@ -225,12 +244,12 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { uid, paymentUid } = responseData;
+      const { uid } = responseData;
 
-      if (paymentUid) {
+      if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
-            paymentUid,
+            paymentUid: responseData.paymentUid,
             date,
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
@@ -245,6 +264,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
@@ -369,19 +389,30 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
+  const parseRecurringDatesFunc = useCallback(
+    (date: string | null | Dayjs, recurringEvent: RecurringEvent, recurringCount: number) => {
+      return parseRecurringDates(
+        {
+          startDate: date,
+          timeZone: timeZone(),
+          recurringEvent: recurringEvent,
+          recurringCount: recurringCount,
+          withDefaultTimeFormat: withDefaultTimeFormat,
+        },
+        i18n.language
+      );
+    },
+    [withDefaultTimeFormat, date, eventType.recurringEvent, recurringEventCount]
+  );
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: date,
-        timeZone: timeZone(),
-        recurringEvent: eventType.recurringEvent,
-        recurringCount: parseInt(recurringEventCount.toString()),
-      },
-      i18n.language
+    [recurringStrings, recurringDates] = parseRecurringDatesFunc(
+      date,
+      eventType.recurringEvent,
+      parseInt(recurringEventCount.toString())
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -404,7 +435,7 @@ const BookingPage = ({
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
-        ...booking,
+        ...bookingValues,
         start: dayjs(recurringDate).format(),
         end: dayjs(recurringDate).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -424,7 +455,7 @@ const BookingPage = ({
       recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
-        ...booking,
+        ...bookingValues,
         start: dayjs(date).tz(timeZone()).format(),
         end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -432,12 +463,13 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: router.query.bookingUid as string,
+        bookingUid: (router.query.bookingUid as string) || booking?.uid,
         user: router.query.user,
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
+        seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };
@@ -506,7 +538,7 @@ const BookingPage = ({
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
-                        `${parseDate(date, i18n.language)}`}
+                        `${parseDateFunc(date)}`}
                       {isClientTimezoneAvailable &&
                         !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
@@ -536,7 +568,7 @@ const BookingPage = ({
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n.language)}
+                          parseDateFunc(dayjs(booking.startTime))}
                       </p>
                     </div>
                   )}
@@ -614,17 +646,28 @@ export default BookingPage;
 function ErrorMessage({ error }: { error: unknown }) {
   const { t } = useLocale();
   const { query: { rescheduleUid } = {} } = useRouter();
+  const router = useRouter();
 
   return (
-    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
-          <p className="text-sm text-yellow-700">
+          <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? (
+              <>
+                {t("can_you_try_again")}{" "}
+                <span className="cursor-pointer underline" onClick={() => router.back()}>
+                  {t("go_back")}
+                </span>
+                .
+              </> /* t(error.message) */
+            ) : (
+              "Unknown error"
+            )}
           </p>
         </div>
       </div>

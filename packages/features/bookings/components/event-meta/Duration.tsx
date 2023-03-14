@@ -29,7 +29,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
           className={classNames(
             selectedDuration === duration && "bg-darkgray-200 dark:bg-darkgray-900 text-white dark:text-black"
           )}
-          size="lg"
+          size="md"
           key={duration}
           onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
       ))}

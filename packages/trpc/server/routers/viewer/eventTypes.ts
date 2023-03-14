@@ -1,5 +1,5 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
 import { z } from "zod";
@@ -9,7 +9,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
@@ -528,6 +528,7 @@ export const eventTypesRouter = router({
       periodType,
       locations,
       bookingLimits,
+      durationLimits,
       destinationCalendar,
       customInputs,
       recurringEvent,
@@ -582,10 +583,17 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
+      data.durationLimits = durationLimits;
     }
 
     if (schedule) {
@@ -617,15 +625,14 @@ export const eventTypesRouter = router({
         connect: users.map((userId: number) => ({ id: userId })),
       };
     }
+
     if (hosts) {
       data.hosts = {
-        deleteMany: {
-          eventTypeId: id,
-        },
-        createMany: {
-          // when schedulingType is COLLECTIVE, remove unFixed hosts.
-          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
-        },
+        deleteMany: {},
+        create: hosts.map((host) => ({
+          ...host,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        })),
       };
     }
 
@@ -770,6 +777,7 @@ export const eventTypesRouter = router({
         team,
         recurringEvent,
         bookingLimits,
+        durationLimits,
         metadata,
         workflows,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -778,6 +786,9 @@ export const eventTypesRouter = router({
         webhooks: _webhooks,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         schedule: _schedule,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+        // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
+        descriptionAsSafeHTML: _descriptionAsSafeHTML,
         ...rest
       } = eventType;
 
@@ -792,6 +803,7 @@ export const eventTypesRouter = router({
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
+        durationLimits: durationLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
         bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };
@@ -844,8 +856,14 @@ export const eventTypesRouter = router({
     });
 
     const eventTypesWithLogo = eventTypes.map((eventType) => {
-      const locationParsed = eventTypeLocationsSchema.parse(eventType.locations);
-      const app = getAppFromLocationValue(locationParsed[0].type);
+      const locationParsed = eventTypeLocationsSchema.safeParse(eventType.locations);
+
+      // some events has null as location for legacy reasons, so this fallbacks to daily video
+      const app = getAppFromLocationValue(
+        locationParsed.success && locationParsed.data?.[0]?.type
+          ? locationParsed.data[0].type
+          : "integrations:daily"
+      );
       return {
         ...eventType,
         logo: app?.logo,
@@ -856,6 +874,7 @@ export const eventTypesRouter = router({
       eventTypes: eventTypesWithLogo,
     };
   }),
+
   bulkUpdateToDefaultLocation: authedProcedure
     .input(
       z.object({

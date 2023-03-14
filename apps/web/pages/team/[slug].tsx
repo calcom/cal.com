@@ -7,13 +7,14 @@ import { useEffect } from "react";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { md } from "@calcom/lib/markdownIt";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, HeadSeo, AvatarGroup } from "@calcom/ui";
+import prisma from "@calcom/prisma";
+import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -24,13 +25,15 @@ import Team from "@components/team/screens/Team";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team }: TeamPageProps) {
+function TeamPage({ team, isUnpublished }: TeamPageProps) {
   useTheme(team.theme);
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
   const router = useRouter();
+  const teamName = team.name || "Nameless Team";
+  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
   useEffect(() => {
     telemetry.event(
@@ -38,6 +41,18 @@ function TeamPage({ team }: TeamPageProps) {
       collectPageParameters("/team/[slug]", { isTeamBooking: true })
     );
   }, [telemetry, router.asPath]);
+
+  if (isUnpublished) {
+    return (
+      <div className="m-8 flex items-center justify-center">
+        <EmptyScreen
+          avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
+          headline={t("team_is_unpublished", { team: teamName })}
+          description={t("team_is_unpublished_description")}
+        />
+      </div>
+    );
+  }
 
   const EventTypes = () => (
     <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
@@ -48,40 +63,38 @@ function TeamPage({ team }: TeamPageProps) {
             "dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50",
             !isEmbed && "bg-white"
           )}>
-          <Link
-            href={`/team/${team.slug}/${type.slug}`}
-            className="flex justify-between px-6 py-4"
-            data-testid="event-type-link">
-            <div className="flex-shrink">
-              <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+          <div className="px-6 py-4 ">
+            <Link
+              href={`/team/${team.slug}/${type.slug}`}
+              data-testid="event-type-link"
+              className="flex justify-between">
+              <div className="flex-shrink">
+                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                </div>
+                <EventTypeDescription className="text-sm" eventType={type} />
               </div>
-              <EventTypeDescription className="text-sm" eventType={type} />
-            </div>
-            <div className="mt-1 self-center">
-              <AvatarGroup
-                truncateAfter={4}
-                className="flex flex-shrink-0"
-                size="sm"
-                items={type.users.map((user) => ({
-                  alt: user.name || "",
-                  title: user.name || "",
-                  image: CAL_URL + "/" + user.username + "/avatar.png" || "",
-                }))}
-              />
-            </div>
-          </Link>
+              <div className="mt-1 self-center">
+                <AvatarGroup
+                  truncateAfter={4}
+                  className="flex flex-shrink-0"
+                  size="sm"
+                  items={type.users.map((user) => ({
+                    alt: user.name || "",
+                    title: user.name || "",
+                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
+                  }))}
+                />
+              </div>
+            </Link>
+          </div>
         </li>
       ))}
     </ul>
   );
 
-  const teamName = team.name || "Nameless Team";
-
-  const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
   return (
-    <div>
+    <>
       <HeadSeo
         title={teamName}
         description={teamName}
@@ -122,7 +135,6 @@ function TeamPage({ team }: TeamPageProps) {
                     </span>
                   </div>
                 </div>
-
                 <aside className="mt-8 flex justify-center text-center dark:text-white">
                   <Button
                     color="minimal"
@@ -138,13 +150,32 @@ function TeamPage({ team }: TeamPageProps) {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
+
+  const unpublishedTeam = await prisma.team.findFirst({
+    where: {
+      metadata: {
+        path: ["requestedSlug"],
+        equals: slug,
+      },
+    },
+  });
+
+  if (unpublishedTeam) {
+    return {
+      props: {
+        isUnpublished: true,
+        team: unpublishedTeam,
+        trpcState: ssr.dehydrate(),
+      },
+    } as const;
+  }
 
   const team = await getTeamWithMembers(undefined, slug);
 
@@ -163,7 +194,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team,
       trpcState: ssr.dehydrate(),
     },
-  };
+  } as const;
 };
 
 export default TeamPage;

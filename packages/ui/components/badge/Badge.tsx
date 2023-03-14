@@ -1,34 +1,48 @@
-import React from "react";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
-const badgeClassNameByVariant = {
-  default: "bg-orange-100 text-orange-800",
-  warning: "bg-orange-100 text-orange-800",
-  orange: "bg-orange-100 text-orange-800",
-  success: "bg-green-100 text-green-800",
-  green: "bg-green-100 text-green-800",
-  gray: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800 group-hover:bg-gray-200 dark:group-hover:bg-darkgray-300",
-  blue: "bg-blue-100 text-blue-800",
-  red: "bg-red-100 text-red-800",
-  error: "bg-red-100 text-red-800",
-};
+const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
+  variants: {
+    variant: {
+      default: "bg-orange-100 text-orange-800",
+      warning: "bg-orange-100 text-orange-800",
+      orange: "bg-orange-100 text-orange-800",
+      success: "bg-green-100 text-green-800",
+      green: "bg-green-100 text-green-800",
+      gray: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800 group-hover:bg-gray-200 dark:group-hover:bg-darkgray-300",
+      blue: "bg-blue-100 text-blue-800",
+      red: "bg-red-100 text-red-800",
+      error: "bg-red-100 text-red-800",
+    },
+    size: {
+      sm: "px-1 py-0.5 text-xs",
+      md: "py-1 px-1.5 text-xs",
+      lg: "py-1 px-2 text-sm",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+    size: "sm",
+  },
+});
 
-const classNameBySize = {
-  default: "h-5",
-  lg: "h-6",
-};
+type InferredBadgeStyles = VariantProps<typeof badgeStyles>;
 
-export type BadgeBaseProps = {
-  variant: keyof typeof badgeClassNameByVariant;
-  size?: keyof typeof classNameBySize;
-  StartIcon?: SVGComponent;
-  bold?: boolean;
-  withDot?: boolean;
+type IconOrDot =
+  | {
+      startIcon?: SVGComponent;
+      withDot?: unknown;
+    }
+  | { startIcon?: unknown; withDot?: boolean };
+
+export type BadgeBaseProps = InferredBadgeStyles & {
+  children: React.ReactNode;
   rounded?: boolean;
-};
+} & IconOrDot;
 
 export type BadgeProps =
   /**
@@ -41,35 +55,20 @@ export type BadgeProps =
   | (BadgeBaseProps & Omit<React.HTMLAttributes<HTMLButtonElement>, "onClick"> & { onClick: () => void });
 
 export const Badge = function Badge(props: BadgeProps) {
-  const {
-    variant = "default",
-    className,
-    size = "default",
-    rounded,
-    StartIcon,
-    withDot,
-    bold,
-    ...passThroughProps
-  } = props;
+  const { variant, className, size, startIcon, withDot, children, rounded, ...passThroughProps } = props;
   const isButton = "onClick" in passThroughProps && passThroughProps.onClick !== undefined;
-  const hasIconOrDot = StartIcon || withDot;
-
+  const StartIcon = startIcon ? (startIcon as SVGComponent) : undefined;
   const classes = classNames(
-    "inline-flex items-center justify-center py-0.5 px-[6px] text-xs transition-colors",
-    bold ? "font-semibold" : "font-normal",
-    rounded ? "min-w-5 min-h-5 rounded-full pt-1" : "rounded-md",
-    // @TODO: Hover states
-    isButton && "hover:bg-gray-100",
-    !hasIconOrDot ? classNameBySize[size] : "",
-    badgeClassNameByVariant[variant],
+    badgeStyles({ variant, size }),
+    rounded && "h-5 w-5 rounded-full p-0",
     className
   );
 
   const Children = () => (
     <>
-      {StartIcon && <StartIcon className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
-      {withDot && <GoPrimitiveDot className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
-      {props.children}
+      {withDot ? <GoPrimitiveDot className="h-3 w-3 stroke-[3px]" /> : null}
+      {StartIcon ? <StartIcon className="h-3 w-3 stroke-[3px]" /> : null}
+      {children}
     </>
   );
 

@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.6.7",
+  "version": "2.6.12",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -69,6 +69,7 @@
     "bcryptjs": "^2.4.3",
     "classnames": "^2.3.1",
     "dotenv-cli": "^6.0.0",
+    "entities": "^4.4.0",
     "eslint-config-next": "^13.2.1",
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
@@ -86,7 +87,7 @@
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
     "next": "^13.2.1",
-    "next-auth": "^4.18.8",
+    "next-auth": "^4.20.1",
     "next-axiom": "^0.16.0",
     "next-collect": "^0.2.1",
     "next-i18next": "^11.3.0",

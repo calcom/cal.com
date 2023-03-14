@@ -2,21 +2,23 @@ import { RRule } from "rrule";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
+import { detectBrowserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parse-zone";
 
-const processDate = (date: string | null | Dayjs, language: string) => {
+const processDate = (date: string | null | Dayjs, language: string, withDefaultTimeFormat: boolean) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
-  const formattedTime = parsedZone?.format(detectBrowserTimeFormat);
+  const formattedTime = parsedZone?.format(
+    withDefaultTimeFormat ? TimeFormat.TWELVE_HOUR : detectBrowserTimeFormat
+  );
   return formattedTime + ", " + dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" });
 };
 
-export const parseDate = (date: string | null | Dayjs, language: string) => {
+export const parseDate = (date: string | null | Dayjs, language: string, withDefaultTimeFormat: boolean) => {
   if (!date) return ["No date"];
-  return processDate(date, language);
+  return processDate(date, language, withDefaultTimeFormat);
 };
 
 export const parseRecurringDates = (
@@ -25,11 +27,13 @@ export const parseRecurringDates = (
     timeZone,
     recurringEvent,
     recurringCount,
+    withDefaultTimeFormat,
   }: {
     startDate: string | null | Dayjs;
     timeZone?: string;
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
+    withDefaultTimeFormat: boolean;
   },
   language: string
 ): [string[], Date[]] => {
@@ -49,7 +53,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), language);
+    return processDate(t.tz(timeZone), language, withDefaultTimeFormat);
   });
 
   return [dateStrings, times.map((t) => t.toDate())];
