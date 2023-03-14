@@ -823,7 +823,6 @@ async function handler(
     if (!originalRescheduledBooking) {
       throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
     }
-    rescheduleUid = originalRescheduledBooking.uid;
   }
 
   /* Used for seats bookings to update evt object with video data */
@@ -896,7 +895,7 @@ async function handler(
       })
     | null
   > => {
-    const booking = await prisma.booking.findUnique({
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
         uid: rescheduleUid || reqBody.bookingUid,
       },
@@ -911,16 +910,12 @@ async function handler(
         status: true,
       },
     });
-
-    if (!booking) {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
-
+    // See if attendee is already signed up for timeslot
     if (
-      booking.attendees.filter((attendee) => attendee.email === req.body.responses.email).length > 0 &&
+      booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
       dayjs.utc(booking.startTime).format() === evt.startTime
     ) {
-      throw new Error("You are trying to reschedule to the same time.");
+      throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
     }
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
@@ -1369,7 +1364,6 @@ async function handler(
           booking
         );
 
-        req.statusCode = 201;
         return {
           ...resultBooking,
           message: "Payment required",
@@ -1378,8 +1372,7 @@ async function handler(
         };
       }
 
-      req.statusCode = 201;
-      return { ...resultBooking, seatReferenceUid: bookingSeat?.referenceUid };
+      return { ...resultBooking, seatReferenceUid: evt.attendeeSeatId };
     }
   };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
