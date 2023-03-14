@@ -189,10 +189,9 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <FiSend className="-mt-[1px] w-4 rotate-45" />
-        <p className="ml-2 ">{t("reschedule_request_sent")}</p>
-      </div>
+      <Badge startIcon={FiSend} size="md" variant="gray" data-testid="request_reschedule_sent">
+        {t("reschedule_request_sent")}
+      </Badge>
     );
   };
 
@@ -396,13 +395,13 @@ function BookingListItem(booking: BookingItemProps) {
               />
             )}
             {isCancelled && booking.rescheduled && (
-              <div className="mt-2 inline-block text-left text-sm md:hidden">
+              <div className="mt-2 inline-block md:hidden">
                 <RequestSentMessage />
               </div>
             )}
           </div>
         </td>
-        <td className="py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
