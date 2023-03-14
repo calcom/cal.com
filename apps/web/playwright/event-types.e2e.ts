@@ -29,7 +29,6 @@ test.describe("Event Types tests", () => {
     });
 
     test("can add new event type", async ({ page }) => {
-      await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
       await createNewEventType(page, { eventTitle });
@@ -38,7 +37,6 @@ test.describe("Event Types tests", () => {
     });
 
     test("enabling recurring event comes with default options", async ({ page }) => {
-      await page.click("[data-testid=new-event-type]");
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
