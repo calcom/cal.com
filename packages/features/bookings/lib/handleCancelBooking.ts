@@ -203,18 +203,11 @@ async function handler(req: CustomRequest) {
     if (!seatReference || !attendee)
       throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
 
-    await Promise.all([
-      prisma.bookingSeat.delete({
-        where: {
-          referenceUid: seatReferenceUid,
-        },
-      }),
-      prisma.attendee.delete({
-        where: {
-          id: seatReference.attendeeId,
-        },
-      }),
-    ]);
+    await prisma.attendee.delete({
+      where: {
+        id: seatReference.attendeeId,
+      },
+    });
 
     /* If there are references then we should update them as well */
     const lastAttendee =
