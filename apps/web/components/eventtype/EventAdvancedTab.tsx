@@ -84,7 +84,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   });
 
   const closeEventNameTip = () => setShowEventNameTip(false);
-  const eventTypeLocationsLength = eventType.locations.length;
 
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
@@ -149,7 +148,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
-        eventTypeLocationsLength={eventTypeLocationsLength}
+        shouldDisplayLocation={eventType.locations.length > 1}
       />
       <hr />
       <RequiresConfirmationController

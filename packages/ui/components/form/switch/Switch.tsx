@@ -3,7 +3,7 @@ import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
 import React from "react";
 
-import classNames from "@calcom/lib/classNames";
+import cx from "@calcom/lib/classNames";
 
 import { Tooltip } from "../../tooltip";
 
@@ -16,27 +16,27 @@ const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.Reac
 const Switch = (
   props: React.ComponentProps<typeof PrimitiveSwitch.Root> & {
     label?: string;
-    thumbProps?: {
-      className?: string;
-    };
     fitToHeight?: boolean;
     tooltip?: string;
-    switchContainerClassName?: string;
+    classNames?: {
+      container?: string;
+      thumb?: string;
+    };
   }
 ) => {
-  const { label, fitToHeight, switchContainerClassName, ...primitiveProps } = props;
+  const { label, fitToHeight, classNames, ...primitiveProps } = props;
   const id = useId();
 
   return (
     <Wrapper tooltip={props.tooltip}>
       <div
-        className={classNames(
+        className={cx(
           "flex h-auto w-auto flex-row items-center",
           fitToHeight && "h-fit",
-          switchContainerClassName
+          classNames?.container
         )}>
         <PrimitiveSwitch.Root
-          className={classNames(
+          className={cx(
             props.checked ? "bg-gray-900" : "bg-gray-200",
             primitiveProps.disabled ? "cursor-not-allowed" : "hover:bg-gray-300",
             "focus:ring-brand-800 h-5 w-[34px] rounded-full shadow-none",
@@ -47,17 +47,17 @@ const Switch = (
             id={id}
             // Since we dont support global dark mode - we have to style dark mode components specifically on the instance for now
             // TODO: Remove once we support global dark mode
-            className={classNames(
+            className={cx(
               "block h-[14px] w-[14px] rounded-full bg-white transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
               props.checked && "shadow-inner",
-              props.thumbProps?.className
+              classNames?.thumb
             )}
           />
         </PrimitiveSwitch.Root>
         {label && (
           <Label.Root
             htmlFor={id}
-            className={classNames(
+            className={cx(
               "align-text-top text-sm font-medium text-gray-900 ltr:ml-2 rtl:mr-2 dark:text-white",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
             )}>

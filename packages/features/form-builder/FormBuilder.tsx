@@ -44,13 +44,13 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
-  eventTypeLocationsLength,
+  shouldDisplayLocation,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
-  eventTypeLocationsLength: number;
+  shouldDisplayLocation: boolean;
 }) {
   const FieldTypesMap: Record<
     string,
@@ -272,6 +272,7 @@ export const FormBuilder = function FormBuilder({
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystem = field.editable === "system";
+            const shouldDisplayDeleteButton = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -288,7 +289,7 @@ export const FormBuilder = function FormBuilder({
             }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
             // Only show location field when it requires selection of input from the booker
-            if (field.name === "location" && eventTypeLocationsLength < 2) {
+            if (field.name === "location" && !shouldDisplayLocation) {
               return null;
             }
 
@@ -347,11 +348,11 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        switchContainerClassName="p-2 hover:bg-gray-100 rounded"
+                        classNames={{ container: "p-2 hover:bg-gray-100 rounded" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
-                    {!isFieldEditableSystem && !isFieldEditableSystemButOptional && (
+                    {shouldDisplayDeleteButton && (
                       <Button
                         color="destructive"
                         disabled={isFieldEditableSystem || isFieldEditableSystemButOptional}
