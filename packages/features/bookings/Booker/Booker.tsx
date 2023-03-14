@@ -36,7 +36,6 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const event = useEvent();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const duration = useBookerStore((state) => state.selectedDuration);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
@@ -110,12 +109,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
         <AnimatePresence>
           <StickyOnDesktop key="meta" className="relative z-10">
             <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
-              <EventMeta
-                event={event.data}
-                isLoading={event.isLoading}
-                selectedTime={selectedTimeslot}
-                duration={duration}
-              />
+              <EventMeta />
               {layout !== "small_calendar" && (
                 <div className=" mt-auto p-6">
                   <DatePicker />

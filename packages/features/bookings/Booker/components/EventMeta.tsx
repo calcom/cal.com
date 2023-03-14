@@ -3,23 +3,21 @@ import { m } from "framer-motion";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calcom/features/bookings";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import type { PublicEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimezoneSelect } from "@calcom/ui";
 import { FiCalendar, FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
+import { useBookerStore } from "../store";
 import { formatEventFromToTime } from "../utils/dates";
+import { useEvent } from "../utils/event";
 
-type EventMetaProps = {
-  event?: PublicEvent | null;
-  isLoading?: boolean;
-  selectedTime?: string | null;
-  duration: number | null;
-};
-export const EventMeta = ({ isLoading, event, selectedTime, duration }: EventMetaProps) => {
+export const EventMeta = () => {
   const { timezone, setTimezone, timeFormat } = useTimePreferences();
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const { i18n } = useLocale();
+  const { data: event, isLoading } = useEvent();
 
   return (
     <div className="relative z-10 p-6">
@@ -33,9 +31,9 @@ export const EventMeta = ({ isLoading, event, selectedTime, duration }: EventMet
           <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
           <div className="space-y-5">
-            {selectedTime && (
+            {selectedTimeslot && (
               <EventMetaBlock icon={FiCalendar}>
-                {formatEventFromToTime(selectedTime, duration, timeFormat, i18n.language)}
+                {formatEventFromToTime(selectedTimeslot, selectedDuration, timeFormat, i18n.language)}
               </EventMetaBlock>
             )}
             <EventDetails event={event} />

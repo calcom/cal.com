@@ -91,6 +91,12 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
       locations: privacyFilteredLocations(locations),
+      profile: {
+        username: users[0].username,
+        name: users[0].name,
+        weekStart: users[0].weekStart,
+        image: `${WEBAPP_URL}/${users[0].username}/avatar.png`,
+      },
     };
   }
 

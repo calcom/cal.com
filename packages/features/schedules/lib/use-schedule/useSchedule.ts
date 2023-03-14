@@ -5,7 +5,7 @@ type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
   eventId?: number | null;
-  month?: Date | null;
+  month?: string | null;
   timezone?: string | null;
   prefetchNextMonth?: boolean;
 };

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 
+import dayjs from "@calcom/dayjs";
+
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
 import { updateQueryParam, getQueryParam } from "./utils/query-param";
@@ -28,7 +30,7 @@ type BookerStore = {
   eventSlug: string | null;
   eventId: number | null;
   /**
-   * Current month being viewed.
+   * Current month being viewed. Format is YYYY-MM.
    */
   month: string | null;
   setMonth: (month: string | null) => void;
@@ -56,7 +58,7 @@ type BookerStore = {
   setSelectedDuration: (duration: number | null) => void;
   /**
    * Selected timeslot user has chosen. This is a date string
-   * containing both the data + time.
+   * containing both the date + time.
    */
   selectedTimeslot: string | null;
   setSelectedTimeslot: (timeslot: string | null) => void;
@@ -98,7 +100,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   username: null,
   eventSlug: null,
   eventId: null,
-  month: getQueryParam("month") || getQueryParam("date") || null,
+  month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     set({ month, selectedDate: null, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");

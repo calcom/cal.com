@@ -15,14 +15,11 @@ import { useBookerStore } from "../store";
  * of combining multiple conditional hooks.
  */
 export const useEvent = () => {
-  const [username, eventSlug, initialized] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.initialized],
-    shallow
-  );
+  const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
 
   return trpc.viewer.public.event.useQuery(
     { username: username ?? "", eventSlug: eventSlug ?? "" },
-    { refetchOnWindowFocus: false, enabled: initialized }
+    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
 };
 
