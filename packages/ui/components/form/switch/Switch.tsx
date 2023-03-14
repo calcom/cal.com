@@ -21,14 +21,20 @@ const Switch = (
     };
     fitToHeight?: boolean;
     tooltip?: string;
+    switchContainerClassName?: string;
   }
 ) => {
-  const { label, fitToHeight, ...primitiveProps } = props;
+  const { label, fitToHeight, switchContainerClassName, ...primitiveProps } = props;
   const id = useId();
 
   return (
     <Wrapper tooltip={props.tooltip}>
-      <div className={classNames("flex h-auto w-auto flex-row items-center", fitToHeight && "h-fit")}>
+      <div
+        className={classNames(
+          "flex h-auto w-auto flex-row items-center",
+          fitToHeight && "h-fit",
+          switchContainerClassName
+        )}>
         <PrimitiveSwitch.Root
           className={classNames(
             props.checked ? "bg-gray-900" : "bg-gray-200",

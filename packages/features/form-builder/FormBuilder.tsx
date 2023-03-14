@@ -44,11 +44,13 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  eventTypeLocationsLength,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  eventTypeLocationsLength: number;
 }) {
   const FieldTypesMap: Record<
     string,
@@ -257,6 +259,7 @@ export const FormBuilder = function FormBuilder({
 
   const fieldType = FieldTypesMap[fieldForm.watch("type") || "text"];
   const isFieldEditMode = fieldDialog.fieldIndex !== -1;
+
   return (
     <div>
       <div>
@@ -267,6 +270,8 @@ export const FormBuilder = function FormBuilder({
             const fieldType = FieldTypesMap[field.type];
 
             const isRequired = field.required;
+            const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
+            const isFieldEditableSystem = field.editable === "system";
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -282,15 +287,20 @@ export const FormBuilder = function FormBuilder({
               return groupBy;
             }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
 
+            // Only show location field when it requires selection of input from the booker
+            if (field.name === "location" && eventTypeLocationsLength < 2) {
+              return null;
+            }
+
             return (
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
+                className="group relative flex items-center justify-between border-b p-4 last:border-b-0 hover:bg-gray-50">
                 {index >= 1 && (
                   <button
                     type="button"
-                    className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    className="invisible absolute -left-[12px] -mt-4 mb-2 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                     onClick={() => swap(index, index - 1)}>
                     <FiArrowUp className="h-5 w-5" />
                   </button>
@@ -305,15 +315,15 @@ export const FormBuilder = function FormBuilder({
                 )}
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
-                    <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
+                    <div className="text-sm font-semibold text-gray-700 ltr:mr-2 rtl:ml-2">
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
                         // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="gray">{t("hidden")}</Badge>
+                        <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
+                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
@@ -323,43 +333,43 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
+                  <p className="max-w-[280px] break-words pt-1 text-sm text-gray-500 sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
                 {field.editable !== "user-readonly" && (
                   <div className="flex items-center space-x-2">
-                    <Switch
-                      data-testid="toggle-field"
-                      disabled={field.editable === "system"}
-                      tooltip={field.editable === "system" ? t("form_builder_system_field_cant_toggle") : ""}
-                      checked={!field.hidden}
-                      onCheckedChange={(checked) => {
-                        update(index, { ...field, hidden: !checked });
-                      }}
-                    />
+                    {!isFieldEditableSystem && (
+                      <Switch
+                        data-testid="toggle-field"
+                        disabled={isFieldEditableSystem}
+                        checked={!field.hidden}
+                        onCheckedChange={(checked) => {
+                          update(index, { ...field, hidden: !checked });
+                        }}
+                        switchContainerClassName="p-2 hover:bg-gray-100 rounded"
+                        tooltip={t("show_on_booking_page")}
+                      />
+                    )}
+                    {!isFieldEditableSystem && !isFieldEditableSystemButOptional && (
+                      <Button
+                        color="destructive"
+                        disabled={isFieldEditableSystem || isFieldEditableSystemButOptional}
+                        variant="icon"
+                        onClick={() => {
+                          removeField(index);
+                        }}
+                        StartIcon={FiTrash2}
+                      />
+                    )}
                     <Button
                       data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
                         editField(index, field);
                       }}>
-                      Edit
+                      {t("edit")}
                     </Button>
-                    <Button
-                      color="minimal"
-                      tooltip={
-                        field.editable === "system" || field.editable === "system-but-optional"
-                          ? t("form_builder_system_field_cant_delete")
-                          : ""
-                      }
-                      disabled={field.editable === "system" || field.editable === "system-but-optional"}
-                      variant="icon"
-                      onClick={() => {
-                        removeField(index);
-                      }}
-                      StartIcon={FiTrash2}
-                    />
                   </div>
                 )}
               </li>
@@ -434,7 +444,7 @@ export const FormBuilder = function FormBuilder({
                 }}
                 value={FieldTypesMap[fieldForm.getValues("type")]}
                 options={FieldTypes.filter((f) => !f.systemOnly)}
-                label="Input Type"
+                label={t("input_type")}
               />
               <InputField
                 required
@@ -444,7 +454,7 @@ export const FormBuilder = function FormBuilder({
                   fieldForm.getValues("editable") === "system" ||
                   fieldForm.getValues("editable") === "system-but-optional"
                 }
-                label="Name"
+                label={t("name")}
               />
               <InputField
                 {...fieldForm.register("label")}
@@ -489,7 +499,7 @@ export const FormBuilder = function FormBuilder({
                 }}
               />
               <DialogFooter>
-                <DialogClose color="secondary">Cancel</DialogClose>
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button data-testid="field-add-save" type="submit">
                   {isFieldEditMode ? t("save") : t("add")}
                 </Button>

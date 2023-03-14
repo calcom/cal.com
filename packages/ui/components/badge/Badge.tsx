@@ -18,6 +18,7 @@ const badgeStyles = cva("font-medium inline-flex items-center justify-center rou
       blue: "bg-blue-100 text-blue-800",
       red: "bg-red-100 text-red-800",
       error: "bg-red-100 text-red-800",
+      grayWithoutHover: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800",
     },
     size: {
       sm: "px-1 py-0.5 text-xs leading-3",

@@ -32,8 +32,10 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     onValueChange(defaultValue);
     return null;
   }
-  const commonClass =
-    "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4";
+  const commonClass = classNames(
+    "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4",
+    disabled && "cursor-not-allowed"
+  );
   const selectedClass = classNames(commonClass, "bg-gray-200  text-gray-900");
   const unselectedClass = classNames(commonClass, "text-gray-600 hover:bg-gray-100 hover:text-gray-900");
   return (
@@ -53,6 +55,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
         value="yes">
         Yes
       </ToggleGroupItemPrimitive>
+
       <ToggleGroupItemPrimitive
         disabled={disabled}
         className={classNames(!boolean(yesNoValue) ? selectedClass : unselectedClass)}
