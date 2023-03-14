@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "target": "es5",
+    "jsx": "preserve",
     "resolveJsonModule": true
   },
   "include": [".", "../types/next-auth.d.ts"],

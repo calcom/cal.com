@@ -6,9 +6,9 @@ import prisma from "@calcom/prisma";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import type { createContext } from "./createContext";
+import type { createContextInner } from "./createContext";
 
-const t = initTRPC.context<typeof createContext>().create({
+const t = initTRPC.context<typeof createContextInner>().create({
   transformer: superjson,
 });
 
