@@ -75,7 +75,7 @@ export const EventMetaBlock = ({
   return (
     <div
       className={classNames(
-        "flex items-start justify-start text-gray-600",
+        "flex items-start justify-start text-sm text-gray-700",
         highlight ? "dark:text-white" : "dark:text-darkgray-600",
         className
       )}>
@@ -83,7 +83,8 @@ export const EventMetaBlock = ({
         <img
           src={Icon}
           alt=""
-          className="mr-2 mt-1 h-4 w-4 flex-shrink-0 dark:[filter:invert(1)_brightness(0.6)]"
+          // @TODO: Use SVG's instead of images, so we can get rid of the filter.
+          className="mr-2 mt-1 h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.6)]"
         />
       ) : (
         <Icon className="relative z-20 mr-2 mt-1 h-4 w-4 flex-shrink-0" />
@@ -144,7 +145,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                   const eventLocationType = getEventLocationType(location.type);
                   return (
                     <EventMetaBlock key={location.type} icon={eventLocationType?.iconUrl || FiMapPin}>
-                      <div key={location.type} className="flex flex-row items-center text-sm font-medium">
+                      <div key={location.type} className="flex flex-row items-center">
                         {t(eventLocationType?.label ?? "")}
                       </div>
                     </EventMetaBlock>

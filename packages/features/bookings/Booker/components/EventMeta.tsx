@@ -30,7 +30,7 @@ export const EventMeta = () => {
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers schedulingType={event.schedulingType} users={event.users} profile={event.profile} />
           <EventTitle className="mt-2 mb-8">{event?.title}</EventTitle>
-          <div className="space-y-5">
+          <div className="space-y-4">
             {selectedTimeslot && (
               <EventMetaBlock icon={FiCalendar}>
                 {formatEventFromToTime(selectedTimeslot, selectedDuration, timeFormat, i18n.language)}

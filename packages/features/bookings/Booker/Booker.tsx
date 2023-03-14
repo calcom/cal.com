@@ -26,7 +26,6 @@ import { useEvent } from "./utils/event";
 /* @TODO: eth signature / gates */
 
 const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
-  // Custom breakpoint to make calendar fit.
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -157,7 +156,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
               (layout === "large_timeslots" && bookerState !== "booking")
             }
             className={classNames(
-              "dark:border-darkgray-300 flex w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
+              "dark:border-darkgray-300 flex h-full w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
               layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
               layout !== "small_calendar" && "sticky top-0"
             )}
