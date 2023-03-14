@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   synchronize-with-crowdin:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout

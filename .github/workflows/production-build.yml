@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       postgres:

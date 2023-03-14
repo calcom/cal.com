@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   changes:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: read
     outputs:
@@ -97,7 +97,7 @@ jobs:
   required:
     needs: [lint, type-check, test, build, e2e]
     if: always()
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
     steps:
       - name: fail if conditional jobs failed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
