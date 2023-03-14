@@ -1,4 +1,6 @@
+import DOMPurify from "dompurify";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +17,15 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
 
+  const [safeBio, setSafeBio] = useState(""); //needed as error otherwise
+
+  useEffect(() => {
+    if (member.bio) {
+      const bioHTML = md.render(member.bio);
+      setSafeBio(DOMPurify.sanitize(bioHTML));
+    }
+  }, []);
+
   return (
     <Link key={member.id} href={`/${member.username}`}>
       <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full flex-col space-y-2 rounded-md bg-white p-4 hover:cursor-pointer hover:bg-gray-50 ">
@@ -30,7 +41,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
               <>
                 <div
                   className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
+                  dangerouslySetInnerHTML={{ __html: safeBio }}
                 />
               </>
             ) : (

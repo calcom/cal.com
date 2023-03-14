@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
+import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -256,7 +257,7 @@ const ProfileView = () => {
                     <Label className="mt-5 text-black">{t("about")}</Label>
                     <div
                       className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(md.render(team.bio || "")) }}
                     />
                   </>
                 )}

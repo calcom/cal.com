@@ -1,8 +1,9 @@
 import classNames from "classnames";
+import DOMPurify from "dompurify";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
@@ -34,6 +35,15 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+
+  const [safeTeamBio, setSafeTeamBio] = useState(""); //needed as error otherwise
+
+  useEffect(() => {
+    if (team.bio) {
+      const bioHTML = md.render(team.bio);
+      setSafeTeamBio(DOMPurify.sanitize(bioHTML));
+    }
+  }, []);
 
   useEffect(() => {
     telemetry.event(
@@ -113,7 +123,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             <>
               <div
                 className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                dangerouslySetInnerHTML={{ __html: safeTeamBio }}
               />
             </>
           )}
