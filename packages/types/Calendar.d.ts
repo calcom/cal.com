@@ -1,4 +1,4 @@
-import type { Prisma, DestinationCalendar, SelectedCalendar } from "@prisma/client";
+import type { Prisma, DestinationCalendar, SelectedCalendar, BookingSeat } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
@@ -25,9 +25,10 @@ export type Person = {
   language: { translate: TFunction; locale: string };
   username?: string;
   id?: number;
-  bookingId?: number;
-  locale?: string;
+  bookingId?: number | null;
+  locale?: string | null;
   timeFormat?: TimeFormat;
+  bookingSeat?: BookingSeat | null;
 };
 
 export type TeamMember = {
@@ -165,6 +166,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
 
   // It has responses to all the fields(system + user)
