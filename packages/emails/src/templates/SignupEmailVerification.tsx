@@ -4,17 +4,27 @@ import { V2BaseEmailHtml, CallToAction } from "../components";
 
 export const SignupEmailVerification = (props: { verificationToken: string; email: string }) => {
   return (
-    <V2BaseEmailHtml>
-      <img className="mt-10 mb-auto h-4" src={LOGO} alt={`${APP_NAME} Logo`} />
+    <V2BaseEmailHtml subject="Signup email verification">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+        <img src={LOGO} alt={`${APP_NAME} Logo`} />
+      </div>
 
-      <p>Thank you for signing up to {APP_NAME}</p>
-      <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+      <p style={{ textAlign: "center", fontSize: "24px" }}>Thank you for signing up to {APP_NAME}</p>
+      <p style={{ fontWeight: 400, lineHeight: "24px", textAlign: "center" }}>
         Please verify your email address by clicking the button below.
       </p>
-      <CallToAction
-        label="Verify email"
-        href={`${WEBAPP_URL}/auth/verify-email?verificationToken=${props.verificationToken}&email=${props.email}`}
-      />
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <CallToAction
+          label="Verify email"
+          href={`${WEBAPP_URL}/auth/verify-email?verificationToken=${props.verificationToken}&email=${props.email}`}
+        />
+      </div>
     </V2BaseEmailHtml>
   );
 };
