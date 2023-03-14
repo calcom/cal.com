@@ -519,9 +519,7 @@ export default function Success(props: SuccessProps) {
                               <div className="mb-3">
                                 <p>
                                   <span className="mr-2">{bookingInfo.user.name}</span>
-                                  <Badge variant="blue" bold>
-                                    {t("Host")}
-                                  </Badge>
+                                  <Badge variant="blue">{t("Host")}</Badge>
                                 </p>
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
