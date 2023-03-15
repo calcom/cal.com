@@ -578,6 +578,7 @@ async function handler(
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
   })[] = await loadUsers();
+  console.log("🚀 ~ file: handleNewBooking.ts:581 ~ loadUsers:", users);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -665,6 +666,7 @@ async function handler(
     ) {
       throw new Error("Some users are unavailable for booking.");
     }
+
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
@@ -739,6 +741,7 @@ async function handler(
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
+  console.log("🚀 ~ file: handleNewBooking.ts:744 ~ teamMembers:", teamMembers);
 
   const attendeesList = [...invitee, ...guests];
 
@@ -1454,7 +1457,30 @@ async function handler(
       metadata: reqBody.metadata,
       attendees: {
         createMany: {
-          data: attendeesData,
+          data: [
+            ...evt.attendees.map((attendee) => {
+              //if attendee is team member, it should fetch their locale not booker's locale
+              //perhaps make email fetch request to see if his locale is stored, else
+              const retObj = {
+                name: attendee.name,
+                email: attendee.email,
+                timeZone: attendee.timeZone,
+                locale: attendee.language.locale,
+              };
+              return retObj;
+            }),
+            // Have this for now until we change the relationship between bookings & team members
+            ...(evt.team?.members
+              ? evt.team.members.map((member) => {
+                  return {
+                    email: member.email,
+                    name: member.name,
+                    timeZone: member.timeZone,
+                    locale: member.language.locale,
+                  };
+                })
+              : []),
+          ],
         },
       },
       dynamicEventSlugRef,
