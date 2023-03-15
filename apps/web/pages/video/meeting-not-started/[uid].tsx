@@ -5,63 +5,35 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo } from "@calcom/ui";
-import { FiArrowRight, FiCalendar, FiX } from "@calcom/ui/components/icon";
+import { Button, HeadSeo, EmptyScreen } from "@calcom/ui";
+import { FiArrowRight, FiCalendar, FiClock } from "@calcom/ui/components/icon";
 
 export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   return (
-    <div>
-      <HeadSeo title="Meeting Unavailable" description="Meeting Unavailable" />
+    <>
+      <HeadSeo title={t("this_meeting_has_not_started_yet")} description={props.booking.title} />
       <main className="mx-auto my-24 max-w-3xl">
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
-              <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-                &#8203;
-              </span>
-              <div
-                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="modal-headline">
-                <div>
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                    <FiX className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
-                      This meeting has not started yet
-                    </h3>
-                  </div>
-                  <div className="mt-4 border-t border-b py-4">
-                    <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
-                      {props.booking.title}
-                    </h2>
-                    <p className="text-center text-gray-500">
-                      <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
-                      {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
-                    </p>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-5">
-                    <p className="text-sm text-gray-500">
-                      This meeting will be accessible 60 minutes in advance.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-5 text-center sm:mt-6">
-                  <div className="mt-5">
-                    <Button data-testid="return-home" href="/event-types" EndIcon={FiArrowRight}>
-                      {t("go_back")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmptyScreen
+          Icon={FiClock}
+          headline={t("this_meeting_has_not_started_yet")}
+          description={
+            <>
+              <h2 className="mb-2 text-center font-medium">{props.booking.title}</h2>
+              <p className="text-center text-gray-500">
+                <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
+                {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
+              </p>
+            </>
+          }
+          buttonRaw={
+            <Button data-testid="return-home" href="/event-types" EndIcon={FiArrowRight}>
+              {t("go_back")}
+            </Button>
+          }
+        />
       </main>
-    </div>
+    </>
   );
 }
 
