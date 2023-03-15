@@ -1891,6 +1891,7 @@ async function handler(
       console.log("evt:", {
         ...evt,
         metadata: reqBody.metadata,
+        recurringEventId: reqBody.recurringEventId,
       });
       const bookingId = booking?.id;
 
@@ -1909,6 +1910,7 @@ async function handler(
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
+          recurringEventId: reqBody.recurringEventId,
           rescheduleStartTime: originalRescheduledBooking?.startTime
             ? dayjs(originalRescheduledBooking?.startTime).utc().format()
             : undefined,
