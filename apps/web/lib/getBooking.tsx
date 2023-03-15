@@ -115,7 +115,7 @@ export const getBookingWithResponses = <
       eventType: {
         bookingFields: eventType.bookingFields,
       },
-      // When fetching an existing booking, we don't care about views as the booking might have data from all types of views
+      // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
       view: "ALL_VIEWS",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
