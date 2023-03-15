@@ -49,7 +49,7 @@ test.describe("Routing Forms", () => {
 
       await page.reload();
 
-      expect(await page.inputValue(`[data-testid="description"]`)).toMatch(description);
+      expect(await page.inputValue(`[data-testid="description"]`)).toBe(description);
       expect(await page.locator('[data-testid="field"]').count()).toBe(1);
 
       await expectCurrentFormToHaveFields(page, { 0: field }, types);
