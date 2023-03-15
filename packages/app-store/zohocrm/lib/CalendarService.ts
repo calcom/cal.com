@@ -316,14 +316,14 @@ export default class ZohoCrmCalendarService implements Calendar {
   }
 
   async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    _dateFrom: string,
+    _dateTo: string,
+    _selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 
-  async listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]> {
+  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
 }
