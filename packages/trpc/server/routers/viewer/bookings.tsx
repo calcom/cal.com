@@ -234,6 +234,15 @@ export const bookingsRouter = router({
                 },
               },
             },
+            {
+              seatsReferences: {
+                some: {
+                  attendee: {
+                    email: user.email,
+                  },
+                },
+              },
+            },
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
@@ -267,6 +276,21 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
         orderBy,
         take: take + 1,
@@ -956,4 +980,29 @@ export const bookingsRouter = router({
 
     return { message, status };
   }),
+  getBookingAttendees: authedProcedure
+    .input(z.object({ seatReferenceUid: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const bookingSeat = await ctx.prisma.bookingSeat.findUniqueOrThrow({
+        where: {
+          referenceUid: input.seatReferenceUid,
+        },
+        select: {
+          booking: {
+            select: {
+              _count: {
+                select: {
+                  seatsReferences: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!bookingSeat) {
+        throw new Error("Booking not found");
+      }
+      return bookingSeat.booking._count.seatsReferences;
+    }),
 });
