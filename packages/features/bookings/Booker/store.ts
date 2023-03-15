@@ -75,6 +75,11 @@ type BookerStore = {
   rescheduleUid: string | null;
   rescheduleBooking: GetBookingType | null;
   /**
+   * Rainbow eth signature
+   */
+  ethSignature: string | null;
+  setEthSignature: (signature: string | null) => void;
+  /**
    * Method called by booker component to set initial data.
    */
   initialize: (data: StoreInitializeType) => void;
@@ -139,6 +144,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ selectedTimeslot });
     updateQueryParam("slot", selectedTimeslot ?? "");
   },
+  ethSignature: null,
+  setEthSignature: (ethSignature: string | null) => set({ ethSignature }),
 }));
 
 export const useInitializeBookerStore = ({
