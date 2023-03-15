@@ -16532,6 +16532,7 @@ __metadata:
   resolution: "calcom-monorepo@workspace:."
   dependencies:
     "@deploysentinel/playwright": ^0.3.3
+    "@playwright/test": ^1.25.0
     "@snaplet/copycat": ^0.3.0
     "@types/dompurify": ^2.4.0
     "@types/jest": ^28.1.7
