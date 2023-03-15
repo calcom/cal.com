@@ -330,6 +330,16 @@ function isNumber(n: string) {
 
 const calcomAdapter = CalComAdapter(prisma);
 
+const mapIdentityProvider = (providerName: string) => {
+  switch (providerName) {
+    case "saml-idp":
+    case "saml":
+      return IdentityProvider.SAML;
+    default:
+      return IdentityProvider.GOOGLE;
+  }
+};
+
 export const AUTH_OPTIONS: AuthOptions = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -499,10 +509,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       }
 
       if (account?.provider) {
-        let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml" || account.provider === "saml-idp") {
-          idP = IdentityProvider.SAML;
-        }
+        const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
@@ -511,7 +518,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=unverified-email";
         }
 
-        // Only google oauth on this path
         const existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
@@ -521,7 +527,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             },
           },
           where: {
-            identityProvider: idP as IdentityProvider,
+            identityProvider: idP,
             identityProviderId: account.providerAccountId,
           },
         });
@@ -571,7 +577,12 @@ export const AUTH_OPTIONS: AuthOptions = {
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
         const existingUserWithEmail = await prisma.user.findFirst({
-          where: { email: user.email },
+          where: {
+            email: {
+              equals: user.email,
+              mode: "insensitive",
+            },
+          },
         });
 
         if (existingUserWithEmail) {
@@ -591,8 +602,10 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: user.email },
+              where: { email: existingUserWithEmail.email },
               data: {
+                // update the email to the IdP email
+                email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
                 username: usernameSlug(user.name),
@@ -620,6 +633,7 @@ export const AUTH_OPTIONS: AuthOptions = {
               // also update email to the IdP email
               data: {
                 password: null,
+                email: user.email,
                 identityProvider: idP,
                 identityProviderId: String(user.id),
               },
