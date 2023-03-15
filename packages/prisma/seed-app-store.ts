@@ -251,6 +251,12 @@ export default async function main() {
       consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
     });
   }
+  if (process.env.ZOHOCRM_CLIENT_ID && process.env.ZOHOCRM_CLIENT_SECRET) {
+    await createApp("zohocrm", "zohocrm", ["other"], "zohocrm_other_calendar", {
+      client_id: process.env.ZOHOCRM_CLIENT_ID,
+      client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
+    });
+  }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {

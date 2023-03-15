@@ -25,6 +25,7 @@ import * as vital from "./vital";
 import * as webex from "./webex";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
+import * as zohocrm from "./zohocrm";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
@@ -43,6 +44,7 @@ const appStore = {
   office365video,
   plausible,
   salesforce,
+  zohocrm,
   sendgrid,
   stripepayment,
   tandemvideo,

@@ -1598,6 +1598,8 @@
   "booking_with_payment_cancelled_refunded": "此预约付款已退款。",
   "booking_confirmation_failed": "预约确认失败",
   "get_started_zapier_templates": "开始使用 Zapier 模板",
+  "team_is_unpublished": "{{team}} 已被取消发布",
+  "team_is_unpublished_description": "该团队链接当前不可用。请联系团队所有者或请他们发布。",
   "a_routing_form": "途径表格",
   "form_description_placeholder": "表单描述",
   "keep_me_connected_with_form": "让我与表格保持联系",

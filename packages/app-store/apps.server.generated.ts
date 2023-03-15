@@ -57,5 +57,6 @@ export const apiHandlers = {
   wipemycalother: import("./wipemycalother/api"),
   wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
+  zohocrm: import("./zohocrm/api"),
   zoomvideo: import("./zoomvideo/api"),
 };

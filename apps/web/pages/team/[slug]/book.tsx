@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -23,6 +24,11 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
 }
 
 TeamBookingPage.isThemeSupported = true;
+
+const querySchema = z.object({
+  rescheduleUid: z.string().optional(),
+  bookingUid: z.string().optional(),
+});
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
@@ -119,8 +125,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   })[0];
 
   let booking: GetBookingType | null = null;
-  if (context.query.rescheduleUid) {
-    booking = await getBooking(prisma, context.query.rescheduleUid as string, eventTypeObject.bookingFields);
+  const { rescheduleUid, bookingUid } = querySchema.parse(context.query);
+  if (rescheduleUid || bookingUid) {
+    booking = await getBooking(prisma, rescheduleUid || bookingUid || "", eventTypeObject.bookingFields);
   }
 
   // Checking if number of recurring event ocurrances is valid against event type configuration

@@ -7,6 +7,7 @@ export const OrganizerScheduledEmail = (
     calEvent: CalendarEvent;
     attendee: Person;
     newSeat?: boolean;
+    attendeeCancelled?: boolean;
     teamMember?: Person;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
@@ -35,6 +36,13 @@ export const OrganizerScheduledEmail = (
       subject={t(subject)}
       title={t(title)}
       includeAppsStatus
+      subtitle={
+        <>
+          {props.attendeeCancelled
+            ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name })
+            : ""}
+        </>
+      }
       {...props}
     />
   );

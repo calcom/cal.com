@@ -87,3 +87,12 @@ apps/api
 apps/website
 apps/console
 apps/auth
+
+# Yarn Modern
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
