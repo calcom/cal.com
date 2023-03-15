@@ -104,12 +104,6 @@ export interface ConferenceData {
   createRequest?: calendar_v3.Schema$CreateConferenceRequest;
 }
 
-export interface AdditionalInformation {
-  conferenceData?: ConferenceData;
-  entryPoints?: EntryPoint[];
-  hangoutLink?: string;
-}
-
 export interface RecurringEvent {
   dtstart?: Date | undefined;
   interval: number;
@@ -203,7 +197,6 @@ export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
-  url?: string;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
