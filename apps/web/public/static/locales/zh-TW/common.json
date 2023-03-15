@@ -191,7 +191,6 @@
   "getting_started": "新手上路",
   "15min_meeting": "15 分鐘會議",
   "30min_meeting": "30 分鐘會議",
-  "45min_meeting": "45 分鐘會議",
   "secret": "密碼",
   "leave_blank_to_remove_secret": "欄位留空即可移除密碼",
   "webhook_secret_key_description": "確保您的伺服器只接收用於安全理由的預期 {{appName}} 要求",

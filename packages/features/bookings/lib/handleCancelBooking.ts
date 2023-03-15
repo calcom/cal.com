@@ -380,31 +380,6 @@ async function handler(req: CustomRequest) {
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
-
-    // // CUSTOM_CODE to webhook all recurring events
-    const webhooks = await getWebhooks(subscriberOptions);
-    for (const booking of allUpdatedBookings) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const deleteEvt: CalendarEvent = {
-        ...evt,
-        uid: booking?.uid,
-      };
-
-      const promises = webhooks.map((webhook) =>
-        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-          ...deleteEvt,
-          ...eventTypeInfo,
-          status: "CANCELLED",
-        }).catch((e) => {
-          console.error(
-            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
-            e
-          );
-        })
-      );
-      await Promise.all(promises);
-    }
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
@@ -467,37 +442,31 @@ async function handler(req: CustomRequest) {
           bookingToDelete.recurringEventId &&
           allRemainingBookings
         ) {
-          const credentials = bookingToDelete.user.credentials.filter((credential) =>
-            credential.type.endsWith("_calendar")
-          );
-
-          for (const credential of credentials) {
-            const calendar = getCalendar(credential);
-
-            for (const updated of updatedBookings) {
-              const bookingRef = updated.references.find((ref) => ref.type.includes("_calendar"));
-              if (bookingRef) {
-                const { uid, externalCalendarId } = bookingRef;
-                // CUSTOM_CODE
-                await calendar?.deleteEvent(uid, evt, externalCalendarId);
+          bookingToDelete.user.credentials
+            .filter((credential) => credential.type.endsWith("_calendar"))
+            .forEach(async (credential) => {
+              const calendar = getCalendar(credential);
+              for (const updBooking of updatedBookings) {
+                const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+                if (bookingRef) {
+                  const { uid, externalCalendarId } = bookingRef;
+                  const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+                  apiDeletes.push(deletedEvent);
+                }
               }
-            }
-          }
+            });
         } else {
-          // CUSTOM_CODE
-          await calendar?.deleteEvent(uid, evt, externalCalendarId);
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
         }
       }
     } else {
       // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      const credentials = bookingToDelete.user.credentials.filter((credential) =>
-        credential.type.endsWith("_calendar")
-      );
-      // CUSTOM_CODE
-      for (const credential of credentials) {
-        const calendar = getCalendar(credential);
-        await calendar?.deleteEvent(uid, evt, externalCalendarId);
-      }
+      bookingToDelete.user.credentials
+        .filter((credential) => credential.type.endsWith("_calendar"))
+        .forEach((credential) => {
+          const calendar = getCalendar(credential);
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+        });
     }
   }
 

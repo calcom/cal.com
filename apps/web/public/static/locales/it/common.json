@@ -191,7 +191,6 @@
   "getting_started": "Stiamo iniziando",
   "15min_meeting": "Meeting di 15 minuti",
   "30min_meeting": "Meeting di 30 minuti",
-  "45min_meeting": "Meeting di 45 minuti",
   "secret": "Parola segreta",
   "leave_blank_to_remove_secret": "Lasciare vuoto per rimuovere la parola segreta",
   "webhook_secret_key_description": "Per motivi di sicurezza, assicurati che il tuo server riceva soltanto le richieste previste di {{appName}}",

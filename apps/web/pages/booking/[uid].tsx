@@ -370,15 +370,6 @@ export default function Success(props: SuccessProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
-      <div className="flex items-center justify-center p-4">
-        <img
-          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
-          alt="logo"
-          width="100"
-          height="40"
-        />
-      </div>
-
       {!isEmbed && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -396,7 +387,7 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+            className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
             <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
@@ -420,6 +411,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -448,7 +440,7 @@ export default function Success(props: SuccessProps) {
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-gray-900"
+                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -464,7 +456,7 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-gray-600">{getTitle()}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   {props.paymentStatus &&
                     (bookingInfo.status === BookingStatus.CANCELLED ||
@@ -480,7 +472,7 @@ export default function Success(props: SuccessProps) {
                       </h4>
                     )}
 
-                  <div className="border-bookinglightest text-bookingdark mt-8 grid grid-cols-3 border-t pt-8 text-left">
+                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
@@ -551,10 +543,10 @@ export default function Success(props: SuccessProps) {
                               href={locationToDisplay}
                               target="_blank"
                               title={locationToDisplay}
-                              className="flex items-center gap-2 text-gray-700 underline"
+                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
                               rel="noreferrer">
                               {providerName || "Link"}
-                              <FiExternalLink className="inline h-4 w-4 text-gray-700" />
+                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -603,9 +595,11 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
-                      <hr className="border-bookinglightest mb-8" />
+                      <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                       <div className="text-center last:pb-0">
-                        <span className="text-gray-900 ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
+                        <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                          {t("need_to_make_a_change")}
+                        </span>
 
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
@@ -633,7 +627,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <>
-                      <hr className="border-bookinglightest" />
+                      <hr className="border-bookinglightest dark:border-darkgray-200" />
                       <CancelBooking
                         booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
@@ -652,9 +646,9 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   !!calculatedDuration && (
                     <>
-                      <hr className="border-bookinglightest mt-8" />
+                      <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                       <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
-                        <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2">
+                        <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("add_to_calendar")}
                         </span>
                         <div className="justify-left mt-1 flex text-left sm:mt-0">
@@ -676,7 +670,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2">
+                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -702,7 +696,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -729,7 +723,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -742,7 +736,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2"
+                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -761,8 +755,8 @@ export default function Success(props: SuccessProps) {
 
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest mt-8" />
-                    <div className="border-bookinglightest text-booking-lighter pt-8 text-center text-xs">
+                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
+                    <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">
                         {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                       </a>
@@ -780,7 +774,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand border-bookinglightest mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black sm:text-sm"
+                          className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button

@@ -104,7 +104,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-bookinglightest mx-0 rounded-md bg-white p-4 py-6 sm:-mx-4 sm:px-8 md:border">
+                <div className="main border-bookinglightest dark:bg-darkgray-100 sm:dark:border-darkgray-300 mx-0 rounded-md bg-white p-4 py-6 sm:-mx-4 sm:px-8 md:border">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
@@ -136,7 +136,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main -mx-4 rounded-md border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main dark:bg-darkgray-100 sm:dark:border-darkgray-300 -mx-4 rounded-md border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
                 <div className="dark:text-white">{customPageMessage}</div>
               </div>
             </div>

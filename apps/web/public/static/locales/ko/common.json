@@ -191,7 +191,6 @@
   "getting_started": "시작하기",
   "15min_meeting": "15분 회의",
   "30min_meeting": "30분 회의",
-  "45min_meeting": "45분 회의",
   "secret": "비밀번호",
   "leave_blank_to_remove_secret": "비밀번호를 제거하려면 비워 둡니다",
   "webhook_secret_key_description": "보안상의 이유로 서버가 예상되는 {{appName}} 요청만 수신하는지 확인하십시오",

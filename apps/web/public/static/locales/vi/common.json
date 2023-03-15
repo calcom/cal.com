@@ -191,7 +191,6 @@
   "getting_started": "Bắt Đầu",
   "15min_meeting": "Cuộc họp 15 phút",
   "30min_meeting": "Cuộc họp 30 phút",
-  "45min_meeting": "Cuộc họp 45 phút",
   "secret": "Bí mật (Secret)",
   "leave_blank_to_remove_secret": "Để trống để xoá bỏ Bí Mật (Secret)",
   "webhook_secret_key_description": "Hãy chắc chắn là máy chủ của bạn chỉ nhận những yêu cầu {{appName}} theo dự kiến, vì những nguyên do bảo mật",

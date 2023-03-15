@@ -191,7 +191,6 @@
   "getting_started": "Pierwsze kroki",
   "15min_meeting": "15 minutowe spotkanie",
   "30min_meeting": "30 minutowe spotkanie",
-  "45min_meeting": "45 minutowe spotkanie",
   "secret": "Wpis tajny",
   "leave_blank_to_remove_secret": "Pozostaw puste, aby usunąć wpis tajny.",
   "webhook_secret_key_description": "Ze względów bezpieczeństwa upewnij się, że Twój serwer odbiera tylko oczekiwane żądania {{appName}}.",

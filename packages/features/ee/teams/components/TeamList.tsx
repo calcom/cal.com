@@ -61,7 +61,7 @@ export default function TeamList(props: Props) {
           {props.teams.map(
             (team, i) =>
               i === 0 && (
-                <div key={i} className="bg-gray-100 p-6">
+                <div className="bg-gray-100 p-6">
                   <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
@@ -74,7 +74,7 @@ export default function TeamList(props: Props) {
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live
+                    {/* @TODO: uncomment once managed event types is live 
                     <Card
                       icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"

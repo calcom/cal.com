@@ -83,14 +83,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     //   perform: () => alert("Hello World"),
     // },
 
-    // {
-    //   id: "workflows",
-    //   name: "workflows",
-    //   section: "workflows",
-    //   shortcut: ["w", "f"],
-    //   keywords: "workflows automation",
-    //   perform: () => router.push("/workflows"),
-    // },
+    {
+      id: "workflows",
+      name: "workflows",
+      section: "workflows",
+      shortcut: ["w", "f"],
+      keywords: "workflows automation",
+      perform: () => router.push("/workflows"),
+    },
     {
       id: "event-types",
       name: "event_types_page_title",
@@ -179,13 +179,13 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       keywords: "change modify brand color",
       perform: () => router.push("/settings/my-account/appearance"),
     },
-    // {
-    //   id: "teams",
-    //   name: "teams",
-    //   shortcut: ["t", "s"],
-    //   keywords: "add manage modify team",
-    //   perform: () => router.push("/settings/teams"),
-    // },
+    {
+      id: "teams",
+      name: "teams",
+      shortcut: ["t", "s"],
+      keywords: "add manage modify team",
+      perform: () => router.push("/settings/teams"),
+    },
     {
       id: "password",
       name: "change_password",
@@ -234,14 +234,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       keywords: "api keys",
       perform: () => router.push("/settings/developer/api-keys"),
     },
-    // {
-    //   id: "billing",
-    //   name: "manage_billing",
-    //   section: "billing",
-    //   shortcut: ["m", "b"],
-    //   keywords: "billing view manage",
-    //   perform: () => router.push("/settings/billing"),
-    // },
+    {
+      id: "billing",
+      name: "manage_billing",
+      section: "billing",
+      shortcut: ["m", "b"],
+      keywords: "billing view manage",
+      perform: () => router.push("/settings/billing"),
+    },
     ...appStoreActions,
     ...eventTypeActions,
   ];

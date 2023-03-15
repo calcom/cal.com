@@ -191,7 +191,6 @@
   "getting_started": "Noțiuni de bază",
   "15min_meeting": "Ședință de 15min",
   "30min_meeting": "Ședință de 30min",
-  "45min_meeting": "Ședință de 45min",
   "secret": "Secret",
   "leave_blank_to_remove_secret": "Lăsați necompletat pentru a elimina secretul",
   "webhook_secret_key_description": "Din motive de securitate, asigurați-vă că serverul dvs. primește numai solicitările așteptate de la {{appName}}",

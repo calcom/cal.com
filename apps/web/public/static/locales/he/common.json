@@ -192,7 +192,6 @@
   "getting_started": "תחילת העבודה",
   "15min_meeting": "פגישה של 15 דקות",
   "30min_meeting": "פגישה של 30 דקות",
-  "45min_meeting": "פגישה של 45 דקות",
   "secret": "סוד",
   "leave_blank_to_remove_secret": "יש להשאיר ריק כדי להסיר את הסוד",
   "webhook_secret_key_description": "מסיבות אבטחה, יש לוודא שהשרת מקבל רק את בקשות {{appName}} הצפויות",

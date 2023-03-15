@@ -7,7 +7,7 @@ const log = logger.getChildLogger({ prefix: [`[[LarkTenantCredential]`] });
 
 const msg = {
   en_us: {
-    title: "Welcome!",
+    title: "Welcome to Cal.com!",
     content: [
       [
         {

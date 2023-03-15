@@ -191,7 +191,6 @@
   "getting_started": "Začínáme",
   "15min_meeting": "15 min schůzka",
   "30min_meeting": "30 min schůzka",
-  "45min_meeting": "45 min schůzka",
   "secret": "Tajný klíč",
   "leave_blank_to_remove_secret": "Nechte prázdné, pokud chcete tajný klíč odstranit",
   "webhook_secret_key_description": "Z bezpečnostních důvodů zajistěte, aby váš server přijímal pouze očekávané požadavky {{appName}}",

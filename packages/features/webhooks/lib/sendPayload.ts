@@ -22,7 +22,6 @@ type WebhookDataType = CalendarEvent &
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
-    recurringEventId?: string;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;

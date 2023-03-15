@@ -191,7 +191,6 @@
   "getting_started": "Započnite",
   "15min_meeting": "Sastanak od 15 Min",
   "30min_meeting": "Sastanak od 30 Min",
-  "45min_meeting": "Sastanak od 45 Min",
   "secret": "Tajna",
   "leave_blank_to_remove_secret": "Ostavite prazno da biste uklonili tajnu",
   "webhook_secret_key_description": "Uverite se da vaš server prihvata samo očekivane {{appName}} zahteve iz bezbednosnih razloga",

@@ -39,6 +39,7 @@ import {
 import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
+import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -208,19 +209,18 @@ const ProfileView = () => {
           }
         }}
         extraField={
-          <div />
-          // <div className="mt-8">
-          //   <UsernameAvailabilityField
-          //     user={user}
-          //     onSuccessMutation={async () => {
-          //       showToast(t("settings_updated_successfully"), "success");
-          //       await utils.viewer.me.invalidate();
-          //     }}
-          //     onErrorMutation={() => {
-          //       showToast(t("error_updating_settings"), "error");
-          //     }}
-          //   />
-          // </div>
+          <div className="mt-8">
+            <UsernameAvailabilityField
+              user={user}
+              onSuccessMutation={async () => {
+                showToast(t("settings_updated_successfully"), "success");
+                await utils.viewer.me.invalidate();
+              }}
+              onErrorMutation={() => {
+                showToast(t("error_updating_settings"), "error");
+              }}
+            />
+          </div>
         }
       />
 
@@ -358,13 +358,9 @@ const ProfileForm = ({
       <div className="mt-8">
         <TextField label={t("full_name")} {...formMethods.register("name")} />
       </div>
-      {/*<div className="mt-8">*/}
-      {/*  <TextField*/}
-      {/*    label={t("email")}*/}
-      {/*    hint={t("change_email_hint")}*/}
-      {/*    {...formMethods.register("email")}*/}
-      {/*  />*/}
-      {/*</div>*/}
+      <div className="mt-8">
+        <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+      </div>
       <div className="mt-8">
         <Label>{t("about")}</Label>
         <Editor

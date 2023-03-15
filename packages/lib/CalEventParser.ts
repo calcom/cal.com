@@ -51,7 +51,7 @@ ${calEvent.organizer.email}
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${calEvent.organizer.language.translate("team_member")}
+${member.name} - ${calEvent.organizer.language.translate("team_member")} 
 ${member.email}
     `;
       })
@@ -161,8 +161,12 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  // CUSTOM_CODE removed cancel all bookings logic
-  return WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&${getSeatReferenceId}`;
+  return (
+    WEBAPP_URL +
+    `/booking/${getUid(
+      calEvent
+    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
+  );
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
@@ -172,25 +176,32 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return `${WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
-// TODO Topics
-// 🏷 <a href="{appUrl}/sessions" target="_blank">Set a topic</a> for this session.
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
-  const appUrl = "https://app.mento.co";
-  const cancelationPolicyURL =
-    "https://mentoteam.notion.site/Mento-Rescheduling-Cancelation-Policy-ea6ed8fa23fc41a8a4598070ef42fb53";
-
   return `
 ${getCancellationReason(calEvent)}
-
-🎥 <a href="${getLocation(calEvent)}" target="_blank">Join the session with Google Meet</a>
-
-📆 <a href="${getRescheduleLink(calEvent)}" target="_blank">Reschedule</a> or <a href="${getCancelLink(
-    calEvent
-  )}" target="_blank">cancel</a> on Mento within 48 hours form the session start time.
-
-Your coach will wait for up to 10 minutes for you before it’s considered a missed session. <a href="${cancelationPolicyURL}" target="_blank">Mento Rescheduling & Cancelation Policy.</a>.
-
-Manage coaching sessions on <a href="${appUrl}" target="_blank">Mento</a>`.trim();
+${getWhat(calEvent)}
+${getWhen(calEvent)}
+${getWho(calEvent)}
+${calEvent.organizer.language.translate("where")}:
+${getLocation(calEvent)}
+${getDescription(calEvent)}
+${getAdditionalNotes(calEvent)}
+${getUserFieldsResponses(calEvent)}
+${getAppsStatus(calEvent)}
+${
+  // TODO: Only the original attendee can make changes to the event
+  // Guests cannot
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
+}
+${
+  calEvent.paymentInfo
+    ? `
+${calEvent.organizer.language.translate("pay_now")}:
+${calEvent.paymentInfo.link}
+`
+    : ""
+}
+  `.trim();
 };
 
 export const getCancellationReason = (calEvent: CalendarEvent) => {

@@ -19,7 +19,7 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, MENTO_COACH_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -43,14 +43,21 @@ import {
 } from "@calcom/ui";
 import {
   FiMoreVertical,
+  FiMoon,
   FiExternalLink,
   FiLink,
+  FiSlack,
+  FiMap,
+  FiHelpCircle,
+  FiDownload,
   FiLogOut,
   FiCalendar,
   FiClock,
+  FiUsers,
   FiGrid,
   FiMoreHorizontal,
   FiFileText,
+  FiZap,
   FiSettings,
   FiArrowRight,
   FiArrowLeft,
@@ -321,28 +328,28 @@ function UserDropdown({ small }: { small?: boolean }) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                {/*<DropdownMenuItem>*/}
-                {/*  <DropdownItem*/}
-                {/*    type="button"*/}
-                {/*    StartIcon={(props) => (*/}
-                {/*      <FiMoon*/}
-                {/*        className={classNames(*/}
-                {/*          user.away*/}
-                {/*            ? "text-purple-500 group-hover:text-purple-700"*/}
-                {/*            : "text-gray-500 group-hover:text-gray-700",*/}
-                {/*          props.className*/}
-                {/*        )}*/}
-                {/*        aria-hidden="true"*/}
-                {/*      />*/}
-                {/*    )}*/}
-                {/*    onClick={() => {*/}
-                {/*      mutation.mutate({ away: !user?.away });*/}
-                {/*      utils.viewer.me.invalidate();*/}
-                {/*    }}>*/}
-                {/*    {user.away ? t("set_as_free") : t("set_as_away")}*/}
-                {/*  </DropdownItem>*/}
-                {/*</DropdownMenuItem>*/}
-                {/*<DropdownMenuSeparator />*/}
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => (
+                      <FiMoon
+                        className={classNames(
+                          user.away
+                            ? "text-purple-500 group-hover:text-purple-700"
+                            : "text-gray-500 group-hover:text-gray-700",
+                          props.className
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
+                    onClick={() => {
+                      mutation.mutate({ away: !user?.away });
+                      utils.viewer.me.invalidate();
+                    }}>
+                    {user.away ? t("set_as_free") : t("set_as_away")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 {user.username && (
                   <>
                     <DropdownMenuItem>
@@ -370,38 +377,38 @@ function UserDropdown({ small }: { small?: boolean }) {
                     </DropdownMenuItem>
                   </>
                 )}
-                {/*<DropdownMenuSeparator />*/}
-                {/*<DropdownMenuItem>*/}
-                {/*  <DropdownItem*/}
-                {/*    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}*/}
-                {/*    target="_blank"*/}
-                {/*    rel="noreferrer"*/}
-                {/*    href={JOIN_SLACK}>*/}
-                {/*    {t("join_our_slack")}*/}
-                {/*  </DropdownItem>*/}
-                {/*</DropdownMenuItem>*/}
-                {/*<DropdownMenuItem>*/}
-                {/*  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>*/}
-                {/*    {t("visit_roadmap")}*/}
-                {/*  </DropdownItem>*/}
-                {/*</DropdownMenuItem>*/}
-                {/*<DropdownMenuItem>*/}
-                {/*  <DropdownItem*/}
-                {/*    type="button"*/}
-                {/*    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}*/}
-                {/*    onClick={() => setHelpOpen(true)}>*/}
-                {/*    {t("help")}*/}
-                {/*  </DropdownItem>*/}
-                {/*</DropdownMenuItem>*/}
-                {/*<DropdownMenuItem className="desktop-hidden hidden lg:flex">*/}
-                {/*  <DropdownItem*/}
-                {/*    StartIcon={FiDownload}*/}
-                {/*    target="_blank"*/}
-                {/*    rel="noreferrer"*/}
-                {/*    href={DESKTOP_APP_LINK}>*/}
-                {/*    {t("download_desktop_app")}*/}
-                {/*  </DropdownItem>*/}
-                {/*</DropdownMenuItem>*/}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <DropdownItem
+                    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={JOIN_SLACK}>
+                    {t("join_our_slack")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>
+                    {t("visit_roadmap")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}
+                    onClick={() => setHelpOpen(true)}>
+                    {t("help")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                  <DropdownItem
+                    StartIcon={FiDownload}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={DESKTOP_APP_LINK}>
+                    {t("download_desktop_app")}
+                  </DropdownItem>
+                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
@@ -446,11 +453,6 @@ const MORE_SEPARATOR_NAME = "more";
 
 const navigation: NavigationItemType[] = [
   {
-    name: "Back to Mento",
-    href: "MENTO_URL",
-    icon: FiArrowLeft,
-  },
-  {
     name: "event_types_page_title",
     href: "/event-types",
     icon: FiLink,
@@ -470,13 +472,13 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: FiClock,
   },
-  // {
-  //   name: "teams",
-  //   href: "/teams",
-  //   icon: FiUsers,
-  //   onlyDesktop: true,
-  //   badge: <TeamInviteBadge />,
-  // },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: FiUsers,
+    onlyDesktop: true,
+    badge: <TeamInviteBadge />,
+  },
   {
     name: "apps",
     href: "/apps",
@@ -525,11 +527,11 @@ const navigation: NavigationItemType[] = [
       return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
-  // {
-  //   name: "workflows",
-  //   href: "/workflows",
-  //   icon: FiZap,
-  // },
+  {
+    name: "workflows",
+    href: "/workflows",
+    icon: FiZap,
+  },
   {
     name: "settings",
     href: "/settings/my-account/profile",
@@ -587,9 +589,8 @@ const NavigationItem: React.FC<{
   index?: number;
   item: NavigationItemType;
   isChild?: boolean;
-  isApp?: boolean;
 }> = (props) => {
-  const { item, isChild, isApp } = props;
+  const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -601,10 +602,7 @@ const NavigationItem: React.FC<{
   return (
     <Fragment>
       <Link
-        href={
-          // CUSTOM_CODE
-          item.href === "MENTO_URL" ? MENTO_COACH_URL : item.href
-        }
+        href={item.href}
         aria-label={t(item.name)}
         className={classNames(
           "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-gray-900",
@@ -633,9 +631,7 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item, index) => (
-          <NavigationItem key={item.name} item={item} isChild isApp={index === 0} />
-        ))}
+        item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
 };
@@ -653,7 +649,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "bottom-nav bg-sunny-100 border-sunny-200 fixed bottom-0 z-30 -mx-4 flex w-full border border-t px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -739,12 +735,7 @@ function SideBar() {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
-              <img
-                src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
-                alt="logo"
-                width="100"
-                height="40"
-              />
+              <Logo small />
             </Link>
             <div className="flex space-x-2 rtl:space-x-reverse">
               <button
@@ -888,14 +879,9 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="border-sunny-200 bg-sunny-100 sticky top-0 z-40 flex w-full items-center justify-between border-b py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
-          <img
-            src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
-            alt="logo"
-            width="100"
-            height="40"
-          />
+          <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
           <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 lg:hidden">

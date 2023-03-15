@@ -1,5 +1,6 @@
 import classNames from "classnames";
 
+import { APP_NAME, LOGO } from "@calcom/lib/constants";
 import { HeadSeo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
@@ -15,17 +16,11 @@ interface Props {
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
   return (
-    <div className="bg-sunny-200 flex min-h-screen flex-col justify-center  py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col justify-center bg-[#f3f4f6] py-12 sm:px-6 lg:px-8">
       <HeadSeo title={props.title} description={props.description} />
       {props.showLogo && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
-          alt="logo"
-          width="200"
-          height="80"
-          className="mx-auto mb-10"
-        />
+        <img className="mb-auto h-4" src={LOGO} alt={`${APP_NAME} Logo`} />
       )}
 
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>

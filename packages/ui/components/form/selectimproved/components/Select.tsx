@@ -130,13 +130,13 @@ function Select<T extends Option>({
               className={cn(
                 "min-w-64 flex max-h-[36px] items-center justify-between rounded-md border border-gray-300 text-sm text-gray-400 transition-all duration-300 focus:outline-none",
                 isDisabled
-                  ? "border-gray-200 bg-gray-100 text-gray-400"
-                  : "bg-white hover:border-gray-600 focus:border-gray-900"
+                  ? " dark:bg-darkgray-200 dark:border-darkgray-300 border-gray-200 bg-gray-100 text-gray-400 dark:text-gray-500"
+                  : "dark:border-darkgray-300 dark:bg-darkgray-50 dark:text-darkgray-500 dark:focus:border-darkgray-700 dark:focus:bg-darkgray-100 dark:focus:text-darkgray-900 dark:hover:text-darkgray-900 bg-white hover:border-gray-600 focus:border-gray-900"
               )}>
               <div className="flex w-full grow-0 items-center gap-1 overflow-x-hidden">
                 <>
                   {((isMultipleValue && selectedItems.length === 0) || selectedItems === null) && (
-                    <div className="py-2.5 px-3 text-gray-400">
+                    <div className="py-2.5 px-3 text-gray-400 dark:text-current">
                       <p>{placeholder}</p>
                     </div>
                   )}
@@ -145,12 +145,14 @@ function Select<T extends Option>({
                     <div className="flex gap-1 overflow-x-scroll p-1 ">
                       {selectedItems.map((item, index) => (
                         <div
-                          className={cn("flex items-center space-x-2 rounded bg-gray-200 px-2 py-[6px]")}
+                          className={cn(
+                            "dark:bg-darkgray-200 flex items-center space-x-2 rounded bg-gray-200 px-2 py-[6px]"
+                          )}
                           key={index}>
                           <p
                             className={cn(
                               classNames?.tagItemText ??
-                                "cursor-default select-none truncate text-sm leading-none text-gray-700"
+                                "dark:text-darkgray-900 cursor-default select-none truncate text-sm leading-none text-gray-700"
                             )}>
                             {item.label}
                           </p>
@@ -162,7 +164,8 @@ function Select<T extends Option>({
                               }}>
                               <FiX
                                 className={
-                                  classNames?.tagItemIcon ?? "h-4 w-4 text-gray-500 hover:text-gray-900"
+                                  classNames?.tagItemIcon ??
+                                  "dark:text-darkgray-700 dark:hover:text-darkgray-900 h-4 w-4 text-gray-500 hover:text-gray-900"
                                 }
                               />
                             </button>
@@ -171,14 +174,14 @@ function Select<T extends Option>({
                       ))}
                     </div>
                   ) : (
-                    <div className="py-2.5 px-3 text-sm leading-none text-gray-900">
+                    <div className="dark:text-darkgray-900 py-2.5 px-3 text-sm leading-none text-gray-900">
                       <p>{selectedItems?.label}</p>
                     </div>
                   )}
                 </>
               </div>
 
-              <div className="flex flex-none items-center rounded-[6px] p-1.5 text-gray-900 opacity-75 ">
+              <div className="dark:text-darkgray-900 flex flex-none items-center rounded-[6px] p-1.5 text-gray-900 opacity-75 ">
                 <>
                   {isClearable && !isDisabled && selectedItems !== null && (
                     <div className="cursor-pointer" onClick={clearValue}>
@@ -200,7 +203,7 @@ function Select<T extends Option>({
               <div
                 className={
                   classNames?.menu ??
-                  "min-w-64 z-10 mt-1.5 overflow-x-hidden rounded border bg-white py-1 text-sm text-gray-700 shadow-sm"
+                  "dark:bg-darkgray-100 dark:border-darkgray-300 min-w-64 z-10 mt-1.5 overflow-x-hidden rounded border bg-white py-1 text-sm text-gray-700 shadow-sm"
                 }>
                 {isSearchable && (
                   <SearchInput

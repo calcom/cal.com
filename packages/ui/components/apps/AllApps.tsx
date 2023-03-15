@@ -168,7 +168,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
       {filteredApps.length ? (
         <div
-          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-2"
+          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
           ref={appsContainerRef}>
           {filteredApps.map((app) => (
             <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />

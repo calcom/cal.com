@@ -289,8 +289,6 @@ const BookingPage = ({
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
-  const shouldDisableInput = router.query.shouldDisableInput as string;
-
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
@@ -507,15 +505,6 @@ const BookingPage = ({
       </Head>
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-
-      <div className="flex items-center justify-center p-4">
-        <img
-          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
-          alt="logo"
-          width="100"
-          height="40"
-        />
-      </div>
       <main
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
@@ -523,14 +512,18 @@ const BookingPage = ({
           "my-0 max-w-3xl"
         )}>
         <div
-          className={classNames("main", isBackgroundTransparent ? "" : "bg-white", "rounded-md sm:border")}>
+          className={classNames(
+            "main",
+            isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
+            "dark:border-darkgray-300 rounded-md sm:border"
+          )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
-                    <div className="items-start text-sm font-medium text-gray-600">
+                    <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                       <p className="-ml-2 inline-block items-center px-2">
                         {getEveryFreqFor({
@@ -559,7 +552,7 @@ const BookingPage = ({
                             content={recurringStrings.slice(5).map((timeFormatted, key) => (
                               <p key={key}>{timeFormatted}</p>
                             ))}>
-                            <p className="text-sm">
+                            <p className="dark:text-darkgray-600 text-sm">
                               + {t("plus_more", { count: recurringStrings.length - 5 })}
                             </p>
                           </Tooltip>

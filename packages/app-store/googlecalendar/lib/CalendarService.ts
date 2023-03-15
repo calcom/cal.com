@@ -103,7 +103,7 @@ export default class GoogleCalendarService implements Calendar {
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: true,
+        guestsCanSeeOtherGuests: calEventRaw.seatsShowAttendees,
       };
 
       if (calEventRaw.location) {
@@ -193,7 +193,7 @@ export default class GoogleCalendarService implements Calendar {
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: true,
+        guestsCanSeeOtherGuests: event.seatsShowAttendees,
       };
 
       if (event.location) {
@@ -218,8 +218,8 @@ export default class GoogleCalendarService implements Calendar {
           auth: myGoogleAuth,
           calendarId: selectedCalendar,
           eventId: uid,
-          sendNotifications: false,
-          sendUpdates: "none",
+          sendNotifications: true,
+          sendUpdates: "all",
           requestBody: payload,
           conferenceDataVersion: 1,
         },
@@ -278,7 +278,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: false,
-          sendUpdates: "none",
+          sendUpdates: "all",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {

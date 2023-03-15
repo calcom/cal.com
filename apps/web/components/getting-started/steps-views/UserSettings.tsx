@@ -51,8 +51,6 @@ const UserSettings = (props: IUserSettingsProps) => {
   const onSubmit = handleSubmit((data) => {
     mutation.mutate({
       name: data.name,
-      bio: user?.bio || undefined,
-      avatar: user?.avatar || undefined,
       timeZone: selectedTimeZone,
     });
   });
@@ -64,25 +62,25 @@ const UserSettings = (props: IUserSettingsProps) => {
         <UsernameAvailabilityField user={user} />
 
         {/* Full name textfield */}
-        {/*<div className="w-full">*/}
-        {/*  <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">*/}
-        {/*    {t("full_name")}*/}
-        {/*  </label>*/}
-        {/*  <input*/}
-        {/*    {...register("name", defaultOptions)}*/}
-        {/*    id="name"*/}
-        {/*    name="name"*/}
-        {/*    type="text"*/}
-        {/*    autoComplete="off"*/}
-        {/*    autoCorrect="off"*/}
-        {/*    className="w-full rounded-md border border-gray-300 text-sm"*/}
-        {/*  />*/}
-        {/*  {errors.name && (*/}
-        {/*    <p data-testid="required" className="py-2 text-xs text-red-500">*/}
-        {/*      {t("required")}*/}
-        {/*    </p>*/}
-        {/*  )}*/}
-        {/*</div>*/}
+        <div className="w-full">
+          <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+            {t("full_name")}
+          </label>
+          <input
+            {...register("name", defaultOptions)}
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="off"
+            autoCorrect="off"
+            className="w-full rounded-md border border-gray-300 text-sm"
+          />
+          {errors.name && (
+            <p data-testid="required" className="py-2 text-xs text-red-500">
+              {t("required")}
+            </p>
+          )}
+        </div>
         {/* Timezone select field */}
         <div className="w-full">
           <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
@@ -96,7 +94,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md text-sm"
           />
 
-          <p className="mt-3 flex flex-row font-sans text-xs leading-tight text-gray-500">
+          <p className="mt-3 flex flex-row font-sans text-xs leading-tight text-gray-500 dark:text-white">
             {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
           </p>
         </div>

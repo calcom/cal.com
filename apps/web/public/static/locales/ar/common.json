@@ -191,7 +191,6 @@
   "getting_started": "البدء",
   "15min_meeting": "اجتماع لمدة 15 دقيقة",
   "30min_meeting": "اجتماع لمدة 30 دقيقة",
-  "45min_meeting": "اجتماع لمدة 45 دقيقة",
   "secret": "السر",
   "leave_blank_to_remove_secret": "اتركه فارغاً لإزالة السر",
   "webhook_secret_key_description": "تأكد من أن الخادم الخاص بك يتلقى طلبات {{appName}} المتوقعة فقط لأسباب أمنية",

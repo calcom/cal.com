@@ -16,7 +16,7 @@ const Steps = (props: ISteps) => {
   } = props;
   return (
     <div className="mt-6 space-y-2">
-      <p className="text-xs font-medium text-gray-500">{stepLabel(currentStep, maxSteps)}</p>
+      <p className="text-xs font-medium text-gray-500 dark:text-white">{stepLabel(currentStep, maxSteps)}</p>
       <div className="flex w-full space-x-2 rtl:space-x-reverse">
         {new Array(maxSteps).fill(0).map((_s, index) => {
           return index <= currentStep - 1 ? (
@@ -24,12 +24,12 @@ const Steps = (props: ISteps) => {
               key={`step-${index}`}
               onClick={() => navigateToStep(index)}
               className={classNames(
-                "bg-sage-500 h-1 w-full rounded-[1px]",
+                "h-1 w-full rounded-[1px] bg-black dark:bg-white",
                 index < currentStep - 1 ? "cursor-pointer" : ""
               )}
             />
           ) : (
-            <div key={`step-${index}`} className="bg-sage-500 h-1 w-full rounded-[1px] bg-opacity-25" />
+            <div key={`step-${index}`} className="h-1 w-full rounded-[1px] bg-black bg-opacity-25" />
           );
         })}
       </div>

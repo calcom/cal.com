@@ -191,7 +191,6 @@
   "getting_started": "Aan de slag",
   "15min_meeting": "15 Minuten afspraak",
   "30min_meeting": "30 Minuten afspraak",
-  "45min_meeting": "45 Minuten afspraak",
   "secret": "Geheim",
   "leave_blank_to_remove_secret": "Leeglaten om geheim te verwijderen",
   "webhook_secret_key_description": "Zorg om beveiligingsredenen ervoor dat uw server alleen de verwachte {{appName}}-verzoeken ontvangt",

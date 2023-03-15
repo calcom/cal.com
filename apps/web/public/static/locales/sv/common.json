@@ -191,7 +191,6 @@
   "getting_started": "Komma igång",
   "15min_meeting": "15 minuters möte",
   "30min_meeting": "30 minuters möte",
-  "45min_meeting": "45 minuters möte",
   "secret": "Hemlighet",
   "leave_blank_to_remove_secret": "Lämna tomt eller ta bort hemlighet",
   "webhook_secret_key_description": "Av säkerhetsskäl ska du se till att din server bara får förväntade {{appName}}-förfrågningar",

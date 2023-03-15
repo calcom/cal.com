@@ -191,7 +191,6 @@
   "getting_started": "はじめに",
   "15min_meeting": "15 分間のミーティング",
   "30min_meeting": "30 分間のミーティング",
-  "45min_meeting": "45 分間のミーティング",
   "secret": "シークレット",
   "leave_blank_to_remove_secret": "シークレットを削除するには空白のままにしてください",
   "webhook_secret_key_description": "セキュリティ上の理由から、サーバーが{{appName}}の予想されるリクエストのみを受信していることを確認してください",

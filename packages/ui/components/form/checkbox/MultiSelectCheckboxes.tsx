@@ -31,7 +31,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
     <components.Option
       className={classNames(
         className,
-        "!flex !cursor-pointer !py-3 text-[inherit]",
+        "dark:bg-darkgray-100 !flex !cursor-pointer !py-3 text-[inherit]",
         isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
         isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}

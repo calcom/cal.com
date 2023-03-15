@@ -465,7 +465,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                   </p>
                 );
               })}>
-              <div className="text-gray-600">
+              <div className="text-gray-600 dark:text-white">
                 <FiRefreshCcw
                   strokeWidth="3"
                   className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"

@@ -191,7 +191,6 @@
   "getting_started": "Başlarken",
   "15min_meeting": "15 Dakikalık Toplantı",
   "30min_meeting": "30 Dakikalık Toplantı",
-  "45min_meeting": "45 Dakikalık Toplantı",
   "secret": "Gizli",
   "leave_blank_to_remove_secret": "Gizli seçeneğini kaldırmak için boş bırakın",
   "webhook_secret_key_description": "Güvenlik nedenleriyle sunucunuzun yalnızca {{appName}}'dan beklenen istekleri aldığından emin olun",

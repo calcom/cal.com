@@ -707,24 +707,6 @@ const loggedInViewerRouter = router({
           },
         });
       }
-
-      if (process.env?.NEXT_PUBLIC_MENTO_COACH_URL && process.env?.NEXT_PUBLIC_CALENDAR_KEY) {
-        try {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_MENTO_COACH_URL}/api/calendar/coach?email=${updatedUser?.email}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
-              },
-              body: JSON.stringify({ onboarded: true, username: updatedUser?.username }),
-            }
-          );
-        } catch (e) {
-          console.error(e);
-        }
-      }
     }),
   eventTypeOrder: authedProcedure
     .input(

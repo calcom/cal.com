@@ -191,8 +191,6 @@
   "getting_started": "З чого почати",
   "15min_meeting": "Нарада на 15 хв",
   "30min_meeting": "Нарада на 30 хв",
-  "45min_meeting": "Нарада на 45 хв",
-
   "secret": "Таємний код",
   "leave_blank_to_remove_secret": "Залиште поле пустим, щоб прибрати таємний код",
   "webhook_secret_key_description": "З міркувань безпеки перевірте, чи ваш сервер приймає лише очікувані запити від {{appName}}",

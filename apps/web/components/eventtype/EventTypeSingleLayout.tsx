@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { TbWebhook } from "react-icons/tb";
 
@@ -16,11 +16,11 @@ import {
   ButtonGroup,
   ConfirmationDialogContent,
   Dialog,
+  DropdownMenuSeparator,
   Dropdown,
-  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  DropdownItem,
   DropdownMenuTrigger,
   HorizontalTabs,
   Label,
@@ -32,18 +32,19 @@ import {
   VerticalTabs,
 } from "@calcom/ui";
 import {
+  FiLink,
   FiCalendar,
   FiClock,
-  FiCode,
-  FiExternalLink,
-  FiGrid,
-  FiLink,
-  FiLoader,
-  FiMoreHorizontal,
-  FiRepeat,
   FiSliders,
-  FiTrash,
+  FiRepeat,
+  FiGrid,
+  FiZap,
   FiUsers,
+  FiExternalLink,
+  FiCode,
+  FiTrash,
+  FiMoreHorizontal,
+  FiLoader,
 } from "@calcom/ui/components/icon";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -109,6 +110,12 @@ function getNavigation(props: {
       icon: FiGrid,
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
+    },
+    {
+      name: "workflows",
+      href: `/event-types/${eventType.id}?tabName=workflows`,
+      icon: FiZap,
+      info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
 }
