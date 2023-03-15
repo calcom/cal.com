@@ -1,17 +1,6 @@
 node_modules
-.next
-public
 **/**/node_modules
 **/**/.next
 **/**/public
-
-*.lock
-*.log
-
-.gitignore
-.npmignore
-.prettierignore
-.DS_Store
-.eslintignore
 packages/prisma/zod
 apps/web/public/embed

@@ -1,9 +1,21 @@
-name: Yarn install
-description: "Install all NPM dependencies, caches them and restores if necessary"
+########################################################################################
+# "yarn install" composite action for yarn 2/3/4+ and "nodeLinker: node-modules"       #
+#--------------------------------------------------------------------------------------#
+# Cache:                                                                               #
+#   - Downloaded zip archive (multi-arch, preserved across yarn.lock changes)          #
+#   - Yarn install state (discarded on yarn.lock changes)                              #
+# References:                                                                          #
+#   - bench: https://gist.github.com/belgattitude/0ecd26155b47e7be1be6163ecfbb0f0b     #
+#   - vs @setup/node: https://github.com/actions/setup-node/issues/325                 #
+########################################################################################
+
+name: "Yarn install"
+description: "Run yarn install with node_modules linker and cache enabled"
 inputs:
   node_version:
     required: false
     default: v18.x
+
 runs:
   using: "composite"
   steps:
@@ -11,9 +23,40 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.node_version }}
-        cache: "yarn"
-    - name: Yarn install
+    - name: Expose yarn config as "$GITHUB_OUTPUT"
+      id: yarn-config
       shell: bash
       run: |
-        yarn install --prefer-offline --frozen-lockfile
+        echo "CACHE_FOLDER=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+    # Yarn rotates the downloaded cache archives, @see https://github.com/actions/setup-node/issues/325
+    # Yarn cache is also reusable between arch and os.
+    - name: Restore yarn cache
+      uses: actions/cache@v3
+      id: yarn-download-cache
+      with:
+        path: ${{ steps.yarn-config.outputs.CACHE_FOLDER }}
+        key: yarn-download-cache-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          yarn-download-cache-
+
+    # Invalidated on yarn.lock changes
+    - name: Restore yarn install state
+      id: yarn-install-state-cache
+      uses: actions/cache@v3
+      with:
+        path: .yarn/ci-cache/
+        key: ${{ runner.os }}-yarn-install-state-cache-${{ hashFiles('yarn.lock', '.yarnrc.yml') }}
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        yarn install --inline-builds
         yarn prisma generate
+      env:
+        # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
+        YARN_ENABLE_IMMUTABLE_INSTALLS: "false" # So it doesn't try to remove our private submodule deps
+        YARN_ENABLE_GLOBAL_CACHE: "false" # Use local cache folder to keep downloaded archives
+        YARN_INSTALL_STATE_PATH: .yarn/ci-cache/install-state.gz # Very small speedup when lock does not change
+        # Other environment variables
+        HUSKY: "0" # By default do not run HUSKY install
