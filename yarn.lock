@@ -16555,6 +16555,7 @@ __metadata:
     prettier: ^2.8.4
     ts-jest: ^28.0.8
     turbo: ^1.4.3
+    typescript: ^4.9.4
   languageName: unknown
   linkType: soft
 
