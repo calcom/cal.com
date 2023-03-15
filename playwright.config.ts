@@ -100,7 +100,13 @@ const config: PlaywrightTestConfig = {
     },
     {
       name: "@calcom/embed-core",
-      testDir: "./packages/embeds/",
+      testDir: "./packages/embeds/embed-core/",
+      testMatch: /.*\.e2e\.tsx?/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "@calcom/embed-react",
+      testDir: "./packages/embeds/embed-react/",
       testMatch: /.*\.e2e\.tsx?/,
       use: { ...devices["Desktop Chrome"] },
     },
