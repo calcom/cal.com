@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
       - uses: ozaytsev86/create-env-file@v1
         with:
           file-name: ${{ github.workspace }}/gh.env
