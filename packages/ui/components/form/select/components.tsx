@@ -1,5 +1,4 @@
-import {
-  components as reactSelectComponents,
+import type {
   ControlProps,
   GroupBase,
   InputProps,
@@ -10,6 +9,7 @@ import {
   SingleValueProps,
   ValueContainerProps,
 } from "react-select";
+import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
@@ -80,7 +80,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );
@@ -163,9 +163,6 @@ export const MenuListComponent = <
 }: MenuListProps<Option, IsMulti, Group>) => (
   <reactSelectComponents.MenuList
     {...props}
-    className={classNames(
-      "scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent scrollbar-track-w-[80px] rounded-md",
-      className
-    )}
+    className={classNames("scroll-bar scrollbar-track-w-20 rounded-md", className)}
   />
 );

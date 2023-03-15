@@ -1,6 +1,6 @@
 // @TODO: turn this into a more generic component that has the same Props API as MUI https://mui.com/material-ui/react-card/
 import Link from "next/link";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/lib/classNames";

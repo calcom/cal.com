@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -8,7 +8,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
@@ -22,19 +22,20 @@ import {
   Switch,
   TimezoneSelect,
   Tooltip,
+  Dialog,
+  DialogTrigger,
+  ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiInfo, FiPlus } from "@calcom/ui/components/icon";
+import { FiInfo, FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const querySchema = z.object({
-  schedule: stringOrNumber,
+  schedule: z.coerce.number().positive().optional(),
 });
 
 type AvailabilityFormValues = {
@@ -84,15 +85,29 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   );
 };
 
-export default function Availability({ schedule }: { schedule: number }) {
+export default function Availability() {
   const { t, i18n } = useLocale();
+  const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
+  const {
+    data: { schedule: scheduleId },
+  } = useTypedQuery(querySchema);
+
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
-  const { data: defaultValues } = trpc.viewer.availability.defaultValues.useQuery({ scheduleId: schedule });
-  const form = useForm<AvailabilityFormValues>({ defaultValues });
-  const { control } = form;
+  const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
+    { scheduleId },
+    {
+      enabled: !!scheduleId,
+    }
+  );
+
+  const form = useForm<AvailabilityFormValues>({
+    values: schedule && {
+      ...schedule,
+      schedule: schedule?.availability || [],
+    },
+  });
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -120,10 +135,26 @@ export default function Availability({ schedule }: { schedule: number }) {
     },
   });
 
+  const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+    onSettled: () => {
+      utils.viewer.availability.list.invalidate();
+    },
+    onSuccess: () => {
+      showToast(t("schedule_deleted_successfully"), "success");
+      router.push("/availability");
+    },
+  });
+
   return (
     <Shell
       backPath="/availability"
-      title={data?.schedule.name ? data.schedule.name + " | " + t("availability") : t("availability")}
+      title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -134,8 +165,8 @@ export default function Availability({ schedule }: { schedule: number }) {
         />
       }
       subtitle={
-        data ? (
-          data.schedule.availability
+        schedule ? (
+          schedule.schedule
             .filter((availability) => !!availability.days.length)
             .map((availability) => (
               <span key={availability.id}>
@@ -158,13 +189,31 @@ export default function Availability({ schedule }: { schedule: number }) {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading || data?.isDefault}
+              disabled={isLoading || schedule?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);
               }}
             />
           </div>
+
+          <VerticalDivider />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button StartIcon={FiTrash} variant="icon" color="destructive" aria-label={t("delete")} />
+            </DialogTrigger>
+            <ConfirmationDialogContent
+              isLoading={deleteMutation.isLoading}
+              variety="danger"
+              title={t("delete_schedule")}
+              confirmBtnText={t("delete")}
+              loadingText={t("delete")}
+              onConfirm={() => {
+                scheduleId && deleteMutation.mutate({ scheduleId });
+              }}>
+              {t("delete_schedule_description")}
+            </ConfirmationDialogContent>
+          </Dialog>
 
           <VerticalDivider />
 
@@ -179,11 +228,12 @@ export default function Availability({ schedule }: { schedule: number }) {
           form={form}
           id="availability-form"
           handleSubmit={async ({ dateOverrides, ...values }) => {
-            updateMutation.mutate({
-              scheduleId: schedule,
-              dateOverrides: dateOverrides.flatMap((override) => override.ranges),
-              ...values,
-            });
+            scheduleId &&
+              updateMutation.mutate({
+                scheduleId,
+                dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+                ...values,
+              });
           }}
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
           <div className="flex-1 flex-row xl:mr-0">
@@ -191,7 +241,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               <div>
                 {typeof me.data?.weekStart === "string" && (
                   <Schedule
-                    control={control}
+                    control={form.control}
                     name="schedule"
                     weekStart={
                       ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
@@ -203,7 +253,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               </div>
             </div>
             <div className="my-6 rounded-md border">
-              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
             </div>
           </div>
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
@@ -243,20 +293,3 @@ export default function Availability({ schedule }: { schedule: number }) {
     </Shell>
   );
 }
-
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const params = querySchema.safeParse(ctx.params);
-  const ssr = await ssrInit(ctx);
-
-  if (!params.success) return { notFound: true };
-
-  const scheduleId = params.data.schedule;
-  await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
-  await ssr.viewer.availability.defaultValues.fetch({ scheduleId });
-  return {
-    props: {
-      schedule: scheduleId,
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};

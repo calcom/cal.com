@@ -1,14 +1,12 @@
-import MarkdownIt from "markdown-it";
 import Link from "next/link";
-import { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
+import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
-
-type TeamType = TeamPageProps["team"];
+type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number];
 
@@ -19,7 +17,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
-      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full flex-col space-y-2 rounded-md bg-white p-4  hover:cursor-pointer hover:bg-gray-50 ">
+      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full flex-col space-y-2 rounded-md bg-white p-4 hover:cursor-pointer hover:bg-gray-50 ">
         <Avatar
           size="md"
           alt={member.name || ""}
@@ -59,7 +57,7 @@ const Members = ({ members, teamName }: { members: MembersType; teamName: string
   );
 };
 
-const Team = ({ team }: Omit<TeamPageProps, "trpcState">) => {
+const Team = ({ team }: { team: TeamType }) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />

@@ -2,20 +2,6 @@ require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
 const os = require("os");
-const withTM = require("next-transpile-modules")([
-  "@calcom/app-store",
-  "@calcom/core",
-  "@calcom/dayjs",
-  "@calcom/emails",
-  "@calcom/embed-core",
-  "@calcom/embed-react",
-  "@calcom/embed-snippet",
-  "@calcom/features",
-  "@calcom/lib",
-  "@calcom/prisma",
-  "@calcom/trpc",
-  "@calcom/ui",
-]);
 
 const { withAxiom } = require("next-axiom");
 const { i18n } = require("./next-i18next.config");
@@ -80,9 +66,7 @@ if (process.env.ANALYZE === "true") {
   plugins.push(withBundleAnalyzer);
 }
 
-plugins.push(withTM);
 plugins.push(withAxiom);
-
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -95,16 +79,35 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-  // modularizeImports: {
-  //   "@calcom/ui": {
-  //     transform: "@calcom/ui/components/{{member}}",
-  //   },
-  // },
+  transpilePackages: [
+    "@calcom/app-store",
+    "@calcom/core",
+    "@calcom/dayjs",
+    "@calcom/emails",
+    "@calcom/embed-core",
+    "@calcom/embed-react",
+    "@calcom/embed-snippet",
+    "@calcom/features",
+    "@calcom/lib",
+    "@calcom/prisma",
+    "@calcom/trpc",
+    "@calcom/ui",
+  ],
+  modularizeImports: {
+    "@calcom/ui/components/icon": {
+      transform: "@react-icons/all-files/fi/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
+    },
+    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+    // "@calcom/ui": {
+    //   transform: "@calcom/ui/components/{{member}}",
+    // },
+  },
   images: {
     unoptimized: true,
   },
-  webpack: (config) => {
+  webpack: (config, { webpack, buildId }) => {
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -125,6 +128,8 @@ const nextConfig = {
         ],
       })
     );
+
+    config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified

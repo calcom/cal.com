@@ -1,0 +1,22 @@
+name: Cron - mark stale for inactive issues
+
+permissions:
+  issues: write
+
+on:
+  # "Scheduled workflows run on the latest commit on the default or base branch."
+  # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
+  schedule:
+    # Runs every day (see https://crontab.guru)
+    - cron: "0 0 * * *"
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v7
+        with:
+          days-before-stale: 60
+          include-only-assigned: true
+          days-before-close: -1
+
+

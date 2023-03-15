@@ -1,16 +1,16 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { z } from "zod";
 
-import { getSession } from "@calcom/lib/auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Button, StepCard, Steps } from "@calcom/ui";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
@@ -22,7 +22,7 @@ export type IOnboardingPageProps = inferSSRProps<typeof getServerSideProps>;
 const INITIAL_STEP = "user-settings";
 const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
 
-const stepTransform = (step: typeof steps[number]) => {
+const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
   if (stepIndex > -1) {
     return steps[stepIndex];
@@ -140,8 +140,10 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { req, res } = context;
+
   const crypto = await import("crypto");
-  const session = await getSession(context);
+  const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
