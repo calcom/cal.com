@@ -335,6 +335,7 @@ export const FormBuilder = function FormBuilder({
                       }}
                     />
                     <Button
+                      data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
                         editField(index, field);
@@ -378,7 +379,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow>
+        <DialogContent enableOverflow data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -472,6 +473,7 @@ export const FormBuilder = function FormBuilder({
                 render={({ field: { value, onChange } }) => {
                   return (
                     <BooleanToggleGroupField
+                      data-testid="field-required"
                       disabled={fieldForm.getValues("editable") === "system"}
                       value={value}
                       onValueChange={(val) => {
