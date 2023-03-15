@@ -780,6 +780,7 @@
   "set_as_away": "Set yourself as away",
   "set_as_free": "Disable away status",
   "user_away": "This user is currently away.",
+  "user_away_error": "Error while updating your away status",
   "user_away_description": "The person you are trying to book has set themselves to away, and therefore is not accepting new bookings.",
   "meet_people_with_the_same_tokens": "Meet people with the same tokens",
   "only_book_people_and_allow": "Only book and allow bookings from people who share the same tokens, DAOs, or NFTs.",

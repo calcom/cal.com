@@ -235,6 +235,13 @@ function UserDropdown({ small }: { small?: boolean }) {
   const { t } = useLocale();
   const query = useMeQuery();
   const user = query.data;
+  const [awayStatus, setAwayStatus] = useState<boolean>(user?.away);
+
+  useEffect(() => {
+    if (user?.away === awayStatus) return;
+    setAwayStatus(user?.away);
+  }, [user?.away]);
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
@@ -249,6 +256,9 @@ function UserDropdown({ small }: { small?: boolean }) {
   const mutation = trpc.viewer.away.useMutation({
     onSettled() {
       utils.viewer.me.invalidate();
+    },
+    onError: () => {
+      showToast(t("user_away_error"), "error");
     },
   });
   const utils = trpc.useContext();
@@ -285,10 +295,10 @@ function UserDropdown({ small }: { small?: boolean }) {
                   alt={user.username || "Nameless User"}
                 />
               }
-              {!user.away && (
+              {!awayStatus && (
                 <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
               )}
-              {user.away && (
+              {awayStatus && (
                 <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
               )}
             </span>
@@ -334,7 +344,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     StartIcon={(props) => (
                       <FiMoon
                         className={classNames(
-                          user.away
+                          awayStatus
                             ? "text-purple-500 group-hover:text-purple-700"
                             : "text-gray-500 group-hover:text-gray-700",
                           props.className
@@ -343,10 +353,11 @@ function UserDropdown({ small }: { small?: boolean }) {
                       />
                     )}
                     onClick={() => {
+                      setAwayStatus(!user?.away);
                       mutation.mutate({ away: !user?.away });
                       utils.viewer.me.invalidate();
                     }}>
-                    {user.away ? t("set_as_free") : t("set_as_away")}
+                    {awayStatus ? t("set_as_free") : t("set_as_away")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
