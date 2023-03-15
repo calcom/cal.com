@@ -15,6 +15,7 @@ type BookingOptions = {
   language: string;
   rescheduleUid: string | undefined;
   username: string;
+  ethSignature?: string | null;
 };
 
 export const mapBookingToMutationInput = ({
@@ -26,6 +27,7 @@ export const mapBookingToMutationInput = ({
   language,
   rescheduleUid,
   username,
+  ethSignature,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
@@ -46,7 +48,7 @@ export const mapBookingToMutationInput = ({
     hasHashedBookingLink: false,
     // hasHashedBookingLink,
     // hashedLink,
-    // ethSignature: gateState.rainbowToken,
+    ethSignature: ethSignature || undefined,
   };
 };
 
@@ -65,6 +67,7 @@ export const mapRecurringBookingToMutationInput = (
       timeZone: booking.timeZone,
       recurringEvent: booking.event.recurringEvent,
       recurringCount,
+      withDefaultTimeFormat: true,
     },
     booking.language
   );

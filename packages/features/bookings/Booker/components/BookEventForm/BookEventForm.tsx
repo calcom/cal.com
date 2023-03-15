@@ -17,6 +17,7 @@ import {
   createRecurringBooking,
   mapRecurringBookingToMutationInput,
 } from "@calcom/features/bookings/lib";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { HttpError } from "@calcom/lib/http-error";
@@ -70,22 +71,46 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const event = useEvent();
 
   const defaultValues = () => {
-    if (isRescheduling) {
-      return {
-        responses: {
-          email: rescheduleBooking?.attendees?.[0].email,
-          name: rescheduleBooking?.attendees?.[0].name,
-        },
+    const defaultUserValues = {
+      email: isRescheduling ? rescheduleBooking?.attendees[0].email : "",
+      name: isRescheduling ? rescheduleBooking?.attendees[0].name : "",
+    };
+    const defaults = {
+      responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
+    };
+
+    if (!isRescheduling) {
+      defaults.responses = {
+        ...(event.data?.bookingFields || {}),
       };
+      return defaults;
     }
-    return {};
+
+    if (!rescheduleBooking || !rescheduleBooking.attendees.length) return {};
+
+    const primaryAttendee = rescheduleBooking.attendees[0];
+    if (!primaryAttendee) return {};
+
+    const responses = eventType.bookingFields.reduce((responses, field) => {
+      return {
+        ...responses,
+        [field.name]: rescheduleBooking.responses[field.name],
+      };
+    }, {});
+
+    defaults.responses = {
+      ...responses,
+      name: defaultUserValues.name || "",
+      email: defaultUserValues.email || "",
+    };
+    return defaults;
   };
 
   const bookingFormSchema = z
     .object({
-      responses: event?.data?.bookingFields
+      responses: event?.data
         ? getBookingResponsesSchema({
-            bookingFields: event.data.bookingFields,
+            bookingFields: getBookingFieldsWithSystemFields(event.data),
           })
         : // Fallback until event is loaded.
           z.object({}),
@@ -104,6 +129,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+  console.log(bookingForm.formState);
 
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
@@ -207,8 +233,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     <div>
       <Form className="space-y-4" form={bookingForm} handleSubmit={bookEvent} noValidate>
         <BookingFields
-          // @TODO: Make dynamic
-          isDynamicGroupBooking={false}
+          isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}

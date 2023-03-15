@@ -88,6 +88,7 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
 
     return {
       ...defaultEvent,
+      bookingFields: getBookingFieldsWithSystemFields(defaultEvent),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({ ...user, metadata: undefined })),
       locations: privacyFilteredLocations(locations),
@@ -137,8 +138,6 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     locations: privacyFilteredLocations((event.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(event.recurringEvent) ? parseRecurringEvent(event.recurringEvent) : null,
-    // Unset workflows since we don't want to send this in the public api.
-    workflows: undefined,
     // Sets user data on profile object for easier access
     profile: {
       username: event.users[0].username,
