@@ -219,7 +219,7 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  useTheme("light");
+  useTheme();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
