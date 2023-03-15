@@ -1052,7 +1052,7 @@ async function handler(
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+              cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
           const resultBooking = await resultBookingQuery(newBooking.id);
@@ -1157,7 +1157,7 @@ async function handler(
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
         // Delete the old booking
@@ -1678,7 +1678,7 @@ async function handler(
           ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }
