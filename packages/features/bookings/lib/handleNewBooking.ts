@@ -1530,7 +1530,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
