@@ -3,7 +3,7 @@ description: "Install all NPM dependencies, caches them and restores if necessar
 inputs:
   node_version:
     required: false
-    default: v16.x
+    default: v18.x
 runs:
   using: "composite"
   steps:
