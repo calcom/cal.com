@@ -131,21 +131,6 @@ export type ExpectedUrlDetails = {
   origin?: string;
 };
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace PlaywrightTest {
-    //FIXME: how to restrict it to Frame only
-    interface Matchers<R> {
-      toBeEmbedCalLink(
-        calNamespace: string,
-        // eslint-disable-next-line
-        getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
-        expectedUrlDetails?: ExpectedUrlDetails
-      ): Promise<R>;
-    }
-  }
-}
-
 expect.extend({
   async toBeEmbedCalLink(
     iframe: Frame,
