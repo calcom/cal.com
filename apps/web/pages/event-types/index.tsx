@@ -5,10 +5,9 @@ import type { FC } from "react";
 import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
-import {
-  CreateEventTypeButton,
-  EventTypeDescriptionLazy as EventTypeDescription,
-} from "@calcom/features/eventtypes/components";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
+import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -35,6 +34,7 @@ import {
   showToast,
   Switch,
   Tooltip,
+  CreateButton,
   HorizontalTabs,
 } from "@calcom/ui";
 import {
@@ -119,7 +119,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
-      title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
+      title={type.title}>
       <div>
         <span
           className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
@@ -134,14 +134,15 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
           </small>
         ) : null}
         {readOnly && (
-          <span className="items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <Badge variant="gray" className="ml-2">
             {t("readonly")}
-          </span>
+          </Badge>
         )}
       </div>
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={type}
+        shortenDescription
       />
     </Link>
   );
@@ -240,7 +241,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
       ...router.query,
-      dialog: "duplicate-event-type",
+      dialog: "duplicate",
       title: eventType.title,
       description: eventType.description,
       slug: eventType.slug,
@@ -337,7 +338,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.users?.length > 1 && (
+                      {type.team && (
                         <AvatarGroup
                           className="relative top-1 right-3"
                           size="sm"
@@ -627,17 +628,37 @@ const CreateFirstEventTypeView = () => {
 };
 
 const CTA = () => {
+  const { t } = useLocale();
+
   const query = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   if (!query.data) return null;
 
-  return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
+  const profileOptions = query.data.profiles
+    .filter((profile) => !profile.readOnly)
+    .map((profile) => {
+      return {
+        teamId: profile.teamId,
+        label: profile.name || profile.slug,
+        image: profile.image,
+        slug: profile.slug,
+      };
+    });
+
+  return (
+    <CreateButton
+      subtitle={t("create_event_on").toUpperCase()}
+      options={profileOptions}
+      createDialog={CreateEventTypeDialog}
+    />
+  );
 };
 
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -683,6 +704,7 @@ const EventTypesPage = () => {
               )}
 
               <EmbedDialog />
+              {router.query.dialog === "duplicate" && <DuplicateDialog />}
             </>
           )}
         />

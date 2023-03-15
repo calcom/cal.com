@@ -17,11 +17,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: crowdin action
-        uses: crowdin/github-action@1.4.9
+        uses: crowdin/github-action@1.5.1
         with:
-          upload_translations: true
+          upload_sources: true
           download_translations: true
-          pull_request_labels: "♻️ autoupdate, automerge"
+          push_translations: true
+          commit_message: "New Crowdin translations by Github Action"
+          localization_branch_name: main
+          create_pull_request: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}

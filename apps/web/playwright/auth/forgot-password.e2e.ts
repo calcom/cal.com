@@ -2,6 +2,8 @@ import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
 
+test.afterEach(({ users }) => users.deleteAll());
+
 test("Can reset forgotten password", async ({ page, users }) => {
   test.skip(process.env.NEXT_PUBLIC_IS_E2E !== "1", "It shouldn't if we can't skip email");
   const user = await users.create();
@@ -47,6 +49,4 @@ test("Can reset forgotten password", async ({ page, users }) => {
   await page.waitForSelector("[data-testid=dashboard-shell]");
 
   await expect(page.locator("[data-testid=dashboard-shell]")).toBeVisible();
-
-  await users.deleteAll();
 });
