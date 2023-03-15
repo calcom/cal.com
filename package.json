@@ -86,6 +86,7 @@
   },
   "dependencies": {
     "city-timezones": "^1.2.1",
+    "eslint": "^8.34.0",
     "turbo": "^1.4.3"
   },
   "resolutions": {
