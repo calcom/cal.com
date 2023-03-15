@@ -578,7 +578,6 @@ async function handler(
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
   })[] = await loadUsers();
-  console.log("🚀 ~ file: handleNewBooking.ts:581 ~ loadUsers:", users);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -741,7 +740,6 @@ async function handler(
       : [];
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  console.log("🚀 ~ file: handleNewBooking.ts:744 ~ teamMembers:", teamMembers);
 
   const attendeesList = [...invitee, ...guests];
 
