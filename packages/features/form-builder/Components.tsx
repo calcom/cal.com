@@ -48,6 +48,7 @@ type Component =
           value: { value: string; optionValue: string };
         } & {
           name?: string;
+          required?: boolean;
         }
       >(
         props: TProps
@@ -285,7 +286,15 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   radioInput: {
     propsType: "objectiveWithInput",
-    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
+    factory: function RadioInputWithLabel({
+      name,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+      readOnly,
+      required,
+    }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -325,8 +334,12 @@ export const Components: Record<BookingFieldType, Component> = {
                 })
               ) : (
                 // Show option itself as label because there is just one option
-                // TODO: Support asterisk for required fields
-                <Label>{options[0].label}</Label>
+                <>
+                  <Label>{options[0].label}</Label>
+                  <span className="ml-1 mb-1 text-sm font-medium leading-none dark:text-white">
+                    {!readOnly && required ? "*" : ""}
+                  </span>
+                </>
               )}
             </div>
           </div>

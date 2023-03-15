@@ -173,6 +173,11 @@ const BookingFields = ({
         const label = noLabel ? "" : field.label || t(field.defaultLabel || "");
         const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
+        // Mark location as required if it is not hidden field
+        if (field.name === "location" && !hidden) {
+          field.required = true;
+        }
+
         return (
           <FormBuilderField
             className="mb-4"
