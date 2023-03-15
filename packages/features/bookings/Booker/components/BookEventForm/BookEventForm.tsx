@@ -71,10 +71,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const event = useEvent();
 
   const defaultValues = () => {
-    const defaultUserValues = {
-      email: isRescheduling ? rescheduleBooking?.attendees[0].email : "",
-      name: isRescheduling ? rescheduleBooking?.attendees[0].name : "",
-    };
     const defaults = {
       responses: {} as Partial<z.infer<typeof bookingFormSchema>["responses"]>,
     };
@@ -82,6 +78,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     if (!isRescheduling) {
       defaults.responses = {
         ...(event.data?.bookingFields || {}),
+        name: "",
+        email: "",
       };
       return defaults;
     }
@@ -97,6 +95,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         [field.name]: rescheduleBooking.responses[field.name],
       };
     }, {});
+
+    const defaultUserValues = {
+      email: isRescheduling ? rescheduleBooking?.attendees[0].email : "",
+      name: isRescheduling ? rescheduleBooking?.attendees[0].name : "",
+    };
 
     defaults.responses = {
       ...responses,
@@ -129,7 +132,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  console.log(bookingForm.formState);
 
   const createBookingMutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
