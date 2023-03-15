@@ -272,7 +272,7 @@ export const FormBuilder = function FormBuilder({
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystem = field.editable === "system";
-            const shouldDisplayDeleteButton = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
+            const isUserField = !isFieldEditableSystem && !isFieldEditableSystemButOptional;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -352,10 +352,10 @@ export const FormBuilder = function FormBuilder({
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
-                    {shouldDisplayDeleteButton && (
+                    {isUserField && (
                       <Button
                         color="destructive"
-                        disabled={!shouldDisplayDeleteButton}
+                        disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
                           removeField(index);
