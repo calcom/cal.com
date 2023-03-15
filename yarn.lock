@@ -5080,7 +5080,6 @@ __metadata:
     next: 13.2.4-canary.5
     next-auth: ^4.20.1
     next-i18next: ^11.3.0
-    playwright: ^1.29.2
     postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
@@ -30973,26 +30972,6 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: 78a9c8857428c8e9fe3a2061672a2e9ce0106afec473281d3a6389ec29918fd1d29c9d2792edde90bfd92c4477151fbd2d8f9f5061fbddaf8c6995a91c9cf2de
-  languageName: node
-  linkType: hard
-
-"playwright-core@npm:1.31.2":
-  version: 1.31.2
-  resolution: "playwright-core@npm:1.31.2"
-  bin:
-    playwright: cli.js
-  checksum: bf1257b7d80b9d027c99cbfa7ab9d47a2110ec804422b3e3d623bbb3c43e06df7bec4764ca1d852a6d62c76e35c8776efb19941f42ce738db9bc92e7f1b6281c
-  languageName: node
-  linkType: hard
-
-"playwright@npm:^1.29.2":
-  version: 1.31.2
-  resolution: "playwright@npm:1.31.2"
-  dependencies:
-    playwright-core: 1.31.2
-  bin:
-    playwright: cli.js
-  checksum: da7a190275ca6ce14aee0ecf40307b46f014ecca4a5c1b103a308c4be6a03b0825b17721728a69c140654d124487ca35d2fc2d5558bade4969c9363e5b4bd290
   languageName: node
   linkType: hard
 
