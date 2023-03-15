@@ -115,7 +115,8 @@ export const getBookingWithResponses = <
       eventType: {
         bookingFields: eventType.bookingFields,
       },
-      view: "N/A",
+      // When fetching an existing booking, we don't care about views as the booking might have data from all types of views
+      view: "ALL_VIEWS",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
 };

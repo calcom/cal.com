@@ -23,7 +23,7 @@ export const EditableSchema = z.enum([
   "user", // Fully editable
   "user-readonly", // All fields are readOnly.
 ]);
-
+export type ALL_VIEWS = "ALL_VIEWS";
 const fieldSchema = z.object({
   name: z.string(),
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.

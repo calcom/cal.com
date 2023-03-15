@@ -277,6 +277,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
     } else {
+      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
       bookingFields[existingBookingFieldIndex] = {
         ...field,
         ...bookingFields[existingBookingFieldIndex],
@@ -330,6 +331,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       missingSystemAfterFields.push(field);
     } else {
       bookingFields[existingBookingFieldIndex] = {
+        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
         ...field,
         ...bookingFields[existingBookingFieldIndex],
       };

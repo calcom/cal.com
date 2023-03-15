@@ -1,16 +1,20 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
+import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
+// eslint-disable-next-line @typescript-eslint/ban-types
+type View = ALL_VIEWS | (string & {});
+
 export const getBookingResponsesPartialSchema = ({
   eventType,
   view,
 }: {
   eventType: EventType;
-  view: string;
+  view: View;
 }) => {
   const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
 
@@ -20,13 +24,7 @@ export const getBookingResponsesPartialSchema = ({
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({
-  eventType,
-  view,
-}: {
-  eventType: EventType;
-  view: string;
-}) {
+export default function getBookingResponsesSchema({ eventType, view }: { eventType: EventType; view: View }) {
   const schema = bookingResponses.and(z.record(z.any()));
   return preprocess({ schema, eventType, isPartialSchema: false, view });
 }
@@ -44,7 +42,7 @@ function preprocess<T extends z.ZodType>({
   eventType: {
     bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
   };
-  view: string;
+  view: View;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
@@ -58,7 +56,7 @@ function preprocess<T extends z.ZodType>({
         }
         const views = field.views;
         const isFieldApplicableToCurrentView =
-          currentView === "N/A" ? true : views ? views.find((view) => view.id === currentView) : true;
+          currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
         if (!isFieldApplicableToCurrentView) {
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
@@ -99,7 +97,7 @@ function preprocess<T extends z.ZodType>({
         const m = (message: string) => `{${bookingField.name}}${message}`;
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
-          currentView === "N/A" ? true : views ? views.find((view) => view.id === currentView) : true;
+          currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
         // If the field is hidden, then it can never be required
         const isRequired = bookingField.hidden
           ? false
