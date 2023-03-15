@@ -20,7 +20,7 @@
   },
   "engines": {
     "node": "18",
-    "yarn": ">=1.19.0 < 2.0.0"
+    "yarn": "3.4.1"
   },
   "dependencies": {
     "@boxyhq/saml-jackson": "1.8.2",
