@@ -44,13 +44,11 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
-  shouldDisplayLocation,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
-  shouldDisplayLocation: boolean;
 }) {
   const FieldTypesMap: Record<
     string,
@@ -267,8 +265,11 @@ export const FormBuilder = function FormBuilder({
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
+            console.log("field", field);
+            if (field.hideWhenJustOneOption) {
+              return null;
+            }
             const fieldType = FieldTypesMap[field.type];
-
             const isRequired = field.required;
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystem = field.editable === "system";
@@ -287,11 +288,6 @@ export const FormBuilder = function FormBuilder({
               groupBy[source.label] = item;
               return groupBy;
             }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
-
-            // Only show location field when it requires selection of input from the booker
-            if (field.name === "location" && !shouldDisplayLocation) {
-              return null;
-            }
 
             return (
               <li

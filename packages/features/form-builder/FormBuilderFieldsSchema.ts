@@ -59,6 +59,8 @@ const fieldSchema = z.object({
 
   required: z.boolean().default(false).optional(),
   hidden: z.boolean().optional(),
+  // used to hide fields such as location when there are less than two options
+  hideWhenJustOneOption: z.boolean().default(false).optional(),
   editable: z
     .enum([
       "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
