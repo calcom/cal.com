@@ -94,7 +94,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               slots.map((slot) => {
                 type BookingURL = {
                   pathname: string;
-                  query: Record<string, string | number | string[] | undefined>;
+                  query: Record<string, string | number | string[] | undefined | TimeFormat>;
                 };
                 const bookingUrl: BookingURL = {
                   pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
