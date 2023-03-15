@@ -51,7 +51,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        yarn install --inline-builds
+        YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install --inline-builds
         yarn prisma generate
       env:
         # CI optimizations. Overrides yarnrc.yml options (or their defaults) in the CI action.
