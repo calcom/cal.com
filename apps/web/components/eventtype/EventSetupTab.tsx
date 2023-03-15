@@ -13,8 +13,10 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
-import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import turndown from "@calcom/lib/turndownService";
+import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -44,11 +46,14 @@ const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"]
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<
+    EventTypeSetupProps,
+    "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  >
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team } = props;
+  const { eventType, locationOptions, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
@@ -187,24 +192,22 @@ export const EventSetupTab = (
               if (!eventLocationType) {
                 return null;
               }
-              // We dont want to translate the string link - it doesnt exist in common.json and it gets prefixed/suffixed with __ or //
+
               const eventLabel =
-                eventLocationType.defaultValueVariable === "link"
-                  ? eventLocationType.label
-                  : t(location[eventLocationType.defaultValueVariable] || eventLocationType.label);
+                location[eventLocationType.defaultValueVariable] || t(eventLocationType.label);
 
               return (
                 <li
                   key={`${location.type}${index}`}
                   className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
-                  <div className="flex max-w-full justify-between">
-                    <div key={index} className="flex flex-grow items-center">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
                       <img
                         src={eventLocationType.iconUrl}
                         className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
+                      <span className="line-clamp-1 text-sm ltr:ml-1 rtl:mr-1">{eventLabel}</span>
                     </div>
                     <div className="flex">
                       <button
@@ -229,7 +232,10 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === MeetLocationType) && (
+            {validLocations.some(
+              (location) =>
+                location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
+            ) && (
               <div className="flex text-sm text-gray-600">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
@@ -241,14 +247,17 @@ export const EventSetupTab = (
                       className="underline">
                       here.
                     </Link>{" "}
-                    We will fall back to Cal video if you do not change it.
                   </p>
                 </Trans>
               </div>
             )}
-            {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
+            {validLocations.length > 0 && (
               <li>
-                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button
+                  data-testid="add-location"
+                  StartIcon={FiPlus}
+                  color="minimal"
+                  onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>
@@ -268,12 +277,15 @@ export const EventSetupTab = (
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
-        <TextField
-          label={t("description")}
-          placeholder={t("quick_video_meeting")}
-          defaultValue={eventType.description ?? ""}
-          {...formMethods.register("description")}
-        />
+        <div>
+          <Label>{t("description")}</Label>
+          <Editor
+            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+            setText={(value: string) => formMethods.setValue("description", turndown(value))}
+            excludedToolbarItems={["blockType"]}
+            placeholder={t("quick_video_meeting")}
+          />
+        </div>
         <TextField
           required
           label={t("URL")}

@@ -25,7 +25,7 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
-   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
+   <a href="https://status.cal.com"><img height="20px" src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=34507672"><img src="https://img.shields.io/badge/Hacker%20News-%231-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
@@ -352,6 +352,14 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
 </a>  
 
 
+<!-- CONTRIBUTORS -->
+
+### Contributors
+
+<a href="https://github.com/calcom/cal.com/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=calcom/cal.com" />
+</a>
+
 <!-- TRANSLATIONS -->
 
 ### Translations
@@ -442,6 +450,19 @@ following
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
+
+### Obtaining ZohoCRM Client ID and Secret
+
+1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+2. From within the API console page, go to "Applications".
+3. Click "ADD CLIENT" button top right and select "Server-based Applications". 
+4. Fill in any information you want in the "Client Details" tab
+5. Go to tab "Client Secret" tab. 
+6. Now copy the Client ID and Client Secret to your .env file into the `ZOHOCRM_CLIENT_ID` and `ZOHOCRM_CLIENT_SECRET` fields.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zohocrm/callback` replacing Cal.com URL with the URI at which your application runs.
+8. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers. 
+9. Click the "Save"/ "UPDATE" button at the bottom footer.
+10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
 ## Workflows
 

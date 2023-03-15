@@ -5,15 +5,7 @@ import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.calEvent.organizer.email];
-    if (this.calEvent.team) {
-      this.calEvent.team.members.forEach((member) => {
-        const memberAttendee = this.calEvent.attendees.find((attendee) => attendee.name === member);
-        if (memberAttendee) {
-          toAddresses.push(memberAttendee.email);
-        }
-      });
-    }
+    const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
       icalEvent: {
@@ -33,7 +25,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         )} ${this.getOrganizerStart("D")}, ${this.getOrganizerStart("YYYY")}`,
       })}`,
       html: renderEmail("OrganizerRescheduledEmail", {
-        calEvent: this.calEvent,
+        calEvent: { ...this.calEvent, attendeeSeatId: undefined },
         attendee: this.calEvent.organizer,
       }),
       text: this.getTextBody("event_has_been_rescheduled"),

@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -27,6 +27,9 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             role={t("organizer")}
             email={props.calEvent.organizer.email}
           />
+          {props.calEvent.team?.members.map((member) => (
+            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member.email} />
+          ))}
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
               key={attendee.id || attendee.name}

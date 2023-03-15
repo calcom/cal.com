@@ -1,0 +1,21 @@
+{
+  "name": "@calcom/feature-auth",
+  "sideEffects": false,
+  "description": "Cal.com's main auth code",
+  "authors": "Cal.com, Inc.",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "handlebars": "^4.7.7",
+    "jose": "^4.13.1",
+    "next-auth": "^4.20.1",
+    "nodemailer": "^6.7.8",
+    "otplib": "^12.0.1",
+    "@calcom/dayjs": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/trpc": "*",
+    "@calcom/ui": "*"
+  }
+}

@@ -1,4 +1,5 @@
-import { BookingStatus, Credential } from "@prisma/client";
+import type { Credential } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -34,16 +35,23 @@ export async function getBusyTimes(params: {
       status: BookingStatus.ACCEPTED,
     })}`
   );
+  // get user email for attendee checking.
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: userId,
+    },
+    select: {
+      email: true,
+    },
+  });
 
   /**
    * A user is considered busy within a given time period if there
-   * is a booking they own OR host.
+   * is a booking they own OR attend.
    *
-   * Therefore this query does the following:
-   * - Performs a query for all EventType id's where this user is a host
-   * - Performs a query for all bookings where:
+   * Performs a query for all bookings where:
    *   - The given booking is owned by this user, or..
-   *   - The given booking's EventType is hosted by this user
+   *   - The current user has a different booking at this time he/she attends
    *
    * See further discussion within this GH issue:
    * https://github.com/calcom/cal.com/issues/6374
@@ -52,79 +60,61 @@ export async function getBusyTimes(params: {
    *  logic within getSchedule.test.ts:addBookings
    */
   performance.mark("prismaBookingGetStart");
-  const busyTimes: EventBusyDetails[] =
-    // Getting all EventTypes ID's hosted by this user
-    await prisma.host
-      .findMany({
-        where: {
-          userId: {
-            equals: userId,
+
+  const sharedQuery = {
+    startTime: { gte: new Date(startTime) },
+    endTime: { lte: new Date(endTime) },
+    status: {
+      in: [BookingStatus.ACCEPTED],
+    },
+  };
+  // Find bookings that block this user from hosting further bookings.
+  const busyTimes: EventBusyDetails[] = await prisma.booking
+    .findMany({
+      where: {
+        OR: [
+          // User is primary host (individual events, or primary organizer)
+          {
+            ...sharedQuery,
+            userId,
           },
-        },
-        select: {
-          eventTypeId: true,
-        },
-      })
-
-      // Converting the response object into an array
-      .then((thisUserHostedEvents) => thisUserHostedEvents.map((e) => e.eventTypeId))
-
-      // Finding all bookings owned OR hosted by this user
-      .then((thisUserHostedEventIds) => {
-        // This gets applied to both conditions
-        const sharedQuery = {
-          startTime: { gte: new Date(startTime) },
-          endTime: { lte: new Date(endTime) },
-          status: {
-            in: [BookingStatus.ACCEPTED],
-          },
-        };
-
-        return prisma.booking.findMany({
-          where: {
-            OR: [
-              // Bookings owned by this user
-              {
-                ...sharedQuery,
-                userId,
-              },
-
-              // Bookings with an EventType ID that's hosted by this user
-              {
-                ...sharedQuery,
-                eventTypeId: {
-                  in: thisUserHostedEventIds,
-                },
-              },
-            ],
-          },
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-            title: true,
-            eventType: {
-              select: {
-                id: true,
-                afterEventBuffer: true,
-                beforeEventBuffer: true,
+          // The current user has a different booking at this time he/she attends
+          {
+            ...sharedQuery,
+            attendees: {
+              some: {
+                email: user.email,
               },
             },
           },
-        });
-      })
-      .then((bookings) =>
-        bookings.map(({ startTime, endTime, title, id, eventType }) => ({
-          start: dayjs(startTime)
-            .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
-            .toDate(),
-          end: dayjs(endTime)
-            .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
-            .toDate(),
-          title,
-          source: `eventType-${eventType?.id}-booking-${id}`,
-        }))
-      );
+        ],
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        eventType: {
+          select: {
+            id: true,
+            afterEventBuffer: true,
+            beforeEventBuffer: true,
+          },
+        },
+      },
+    })
+    .then((bookings) =>
+      bookings.map(({ startTime, endTime, title, id, eventType }) => ({
+        start: dayjs(startTime)
+          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+          .toDate(),
+        end: dayjs(endTime)
+          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+          .toDate(),
+        title,
+        source: `eventType-${eventType?.id}-booking-${id}`,
+      }))
+    );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");

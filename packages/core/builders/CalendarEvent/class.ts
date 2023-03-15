@@ -1,4 +1,4 @@
-import { DestinationCalendar } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 
 import type {
   AdditionalInformation,
@@ -16,7 +16,7 @@ class CalendarEventClass implements CalendarEvent {
   organizer!: Person;
   attendees!: Person[];
   description?: string | null;
-  team?: { name: string; members: string[] };
+  team?: { name: string; members: Person[] };
   location?: string | null;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
