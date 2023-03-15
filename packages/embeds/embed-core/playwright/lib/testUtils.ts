@@ -56,7 +56,8 @@ export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname:
       setTimeout(() => {
         clearInterval(interval);
         resolve(false);
-      }, 5000);
+        // This is the time embed-iframe.ts loads in the iframe and fires atleast one event. Also, it is a load of entire React Application so it can sometime take more time even on CI.
+      }, 15000);
     });
   });
   if (!iframeReady) {

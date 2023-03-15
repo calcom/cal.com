@@ -669,8 +669,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedUrl: string;
 }) => {
   const { t } = useLocale();
+
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
     const [a, b] = href.split("=");
@@ -809,7 +812,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl" className="p-0.5" type="creation">
+    <DialogContent ref={dialogContentRef} size="xl" className="p-0.5" type="creation">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -960,6 +963,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div>Button Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -979,6 +984,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div>Text Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -1060,6 +1067,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         <div className="mb-2 pt-2">{palette.title}</div>
                         <div className="w-full">
                           <ColorPicker
+                            popoverAlign="start"
+                            container={dialogContentRef?.current ?? undefined}
                             defaultValue="#000000"
                             onChange={(color) => {
                               addToPalette({

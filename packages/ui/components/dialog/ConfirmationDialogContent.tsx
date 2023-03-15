@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { PropsWithChildren, ReactElement } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,16 +7,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { FiAlertCircle, FiCheck } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
+type ConfirmBtnType =
+  | { confirmBtn?: never; confirmBtnText?: string }
+  | { confirmBtnText?: never; confirmBtn?: ReactElement };
+
 export type ConfirmationDialogContentProps = {
-  confirmBtn?: ReactNode;
-  confirmBtnText?: string;
   cancelBtnText?: string;
   isLoading?: boolean;
   loadingText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
-};
+} & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
   const { t } = useLocale();

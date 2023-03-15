@@ -2,6 +2,7 @@ import type { PlaywrightTestConfig, Frame } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import * as path from "path";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("dotenv").config({ path: "../../../../../.env" });
 
 const outputDir = path.join("../results");
@@ -15,6 +16,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60_000,
   reporter: [
     [CI ? "github" : "list"],
+    ["@deploysentinel/playwright"],
     [
       "html",
       { outputFolder: path.join(__dirname, "..", "reports", "playwright-html-report"), open: "never" },
@@ -78,7 +80,8 @@ declare global {
     interface Matchers<R> {
       toBeEmbedCalLink(
         calNamespace: string,
-        getActionFiredDetails: Function,
+        // eslint-disable-next-line
+        getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
         expectedUrlDetails?: ExpectedUrlDetails
       ): Promise<R>;
     }
@@ -90,7 +93,8 @@ expect.extend({
     iframe: Frame,
     calNamespace: string,
     //TODO: Move it to testUtil, so that it doesn't need to be passed
-    getActionFiredDetails: Function,
+    // eslint-disable-next-line
+    getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
     expectedUrlDetails: ExpectedUrlDetails = {}
   ) {
     if (!iframe || !iframe.url) {

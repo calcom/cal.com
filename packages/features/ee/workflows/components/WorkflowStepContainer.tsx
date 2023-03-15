@@ -1,12 +1,9 @@
-import {
-  TimeUnit,
-  WorkflowActions,
-  WorkflowStep,
-  WorkflowTemplates,
-  WorkflowTriggerEvents,
-} from "@prisma/client";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
-import { Controller, UseFormReturn } from "react-hook-form";
+import type { WorkflowStep } from "@prisma/client";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@prisma/client";
+import type { Dispatch, SetStateAction } from "react";
+import { useRef, useState, useEffect } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
@@ -51,17 +48,20 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
+  teamId?: number;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { step, form, reload, setReload } = props;
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
-  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
+  const { step, form, reload, setReload, teamId } = props;
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+    { teamId },
+    { enabled: !!teamId }
+  );
+  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
-  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
 
@@ -74,6 +74,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       ? true
       : false
   );
+
+  useEffect(() => {
+    setNumberVerified(
+      !!step &&
+        !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
+    );
+  }, [verifiedNumbers.length]);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -116,9 +123,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
   const [numberVerified, setNumberVerified] = useState(
-    verifiedNumbers && step
-      ? !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
-      : false
+    step &&
+      !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
   );
 
   const addVariableBody = (variable: string) => {
@@ -391,19 +397,26 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
                   <Label className="pt-4">{t("custom_phone_number")}</Label>
                   <div className="block sm:flex">
-                    <PhoneInput<FormValues>
-                      control={form.control}
+                    <Controller
                       name={`steps.${step.stepNumber - 1}.sendTo`}
-                      placeholder={t("phone_number")}
-                      id={`steps.${step.stepNumber - 1}.sendTo`}
-                      className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
-                      required
-                      onChange={() => {
-                        const isAlreadyVerified = !!verifiedNumbers
-                          ?.concat([])
-                          .find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
-                        setNumberVerified(isAlreadyVerified);
-                      }}
+                      render={({ field: { value, onChange } }) => (
+                        <PhoneInput
+                          placeholder={t("phone_number")}
+                          id={`steps.${step.stepNumber - 1}.sendTo`}
+                          className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
+                          required
+                          value={value}
+                          onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedNumbers
+                              ?.concat([])
+                              .find(
+                                (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                              );
+                            setNumberVerified(isAlreadyVerified);
+                            onChange(val);
+                          }}
+                        />
+                      )}
                     />
                     <Button
                       color="secondary"
@@ -451,11 +464,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             verifyPhoneNumberMutation.mutate({
                               phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
                               code: verificationCode,
+                              teamId,
                             });
                           }}>
-                          Verify
+                          {t("verify")}
                         </Button>
                       </div>
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                          </p>
+                        )}
                     </>
                   )}
                 </div>

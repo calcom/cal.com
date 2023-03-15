@@ -1,5 +1,6 @@
 import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 
+import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -216,8 +217,13 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      const responseBody = await handleErrorsJson<{ access_token: string; expires_in: number }>(response);
+      const responseBody = await handleErrorsJson<{
+        access_token: string;
+        expires_in: number;
+        refresh_token: string;
+      }>(response);
       o365AuthCredentials.access_token = responseBody.access_token;
+      o365AuthCredentials.refresh_token = responseBody.refresh_token;
       o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
       await prisma.credential.update({
         where: {
@@ -239,6 +245,7 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private translateEvent = (event: CalendarEvent) => {
+    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
@@ -246,11 +253,11 @@ export default class Office365CalendarService implements Calendar {
         content: getRichDescription(event),
       },
       start: {
-        dateTime: event.startTime,
+        dateTime: dayjs(event.startTime).utcOffset(utcOffset).format(),
         timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: event.endTime,
+        dateTime: dayjs(event.endTime).utcOffset(utcOffset).format(),
         timeZone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({

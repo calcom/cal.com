@@ -121,6 +121,7 @@ declare module "ical.js" {
     public static fromString(str: string): Time;
     public static fromJSDate(aDate: Date | null, useUTC: boolean): Time;
     public static fromData(aData: TimeJsonData): Time;
+    public static fromDateTimeString(aDate: string): Time;
 
     public now(): Time;
 
