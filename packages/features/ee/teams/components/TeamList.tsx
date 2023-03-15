@@ -10,6 +10,7 @@ import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  pending?: boolean;
 }
 
 export default function TeamList(props: Props) {
@@ -55,7 +56,7 @@ export default function TeamList(props: Props) {
       ))}
 
       {/* only show recommended steps when there is only one team */}
-      {props.teams.length === 1 && (
+      {!props.pending && props.teams.length === 1 && (
         <>
           {props.teams.map(
             (team, i) =>
