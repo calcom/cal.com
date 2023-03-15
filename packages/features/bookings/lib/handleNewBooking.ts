@@ -665,7 +665,6 @@ async function handler(
     ) {
       throw new Error("Some users are unavailable for booking.");
     }
-
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
@@ -1440,6 +1439,17 @@ async function handler(
       };
     });
 
+    if (evt.team?.members) {
+      attendeesData.push(
+        ...evt.team.members.map((member) => ({
+          email: member.email,
+          name: member.name,
+          timeZone: member.timeZone,
+          locale: member.language.locale,
+        }))
+      );
+    }
+
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       responses: responses === null ? Prisma.JsonNull : responses,
@@ -1455,30 +1465,7 @@ async function handler(
       metadata: reqBody.metadata,
       attendees: {
         createMany: {
-          data: [
-            ...evt.attendees.map((attendee) => {
-              //if attendee is team member, it should fetch their locale not booker's locale
-              //perhaps make email fetch request to see if his locale is stored, else
-              const retObj = {
-                name: attendee.name,
-                email: attendee.email,
-                timeZone: attendee.timeZone,
-                locale: attendee.language.locale,
-              };
-              return retObj;
-            }),
-            // Have this for now until we change the relationship between bookings & team members
-            ...(evt.team?.members
-              ? evt.team.members.map((member) => {
-                  return {
-                    email: member.email,
-                    name: member.name,
-                    timeZone: member.timeZone,
-                    locale: member.language.locale,
-                  };
-                })
-              : []),
-          ],
+          data: attendeesData,
         },
       },
       dynamicEventSlugRef,
