@@ -50,7 +50,7 @@
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "*",
-    "@calcom/embed-snippet": "*"
+    "@calcom/embed-core": "workspace:*",
+    "@calcom/embed-snippet": "workspace:*"
   }
 }
