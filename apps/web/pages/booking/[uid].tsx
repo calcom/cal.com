@@ -47,7 +47,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -199,9 +199,6 @@ export default function Success(props: SuccessProps) {
     seatReferenceUid,
   } = querySchema.parse(router.query);
 
-  if ((isCancellationMode || changes) && typeof window !== "undefined") {
-    window.scrollTo(0, document.body.scrollHeight);
-  }
   const tz =
     (isSuccessBookingPage
       ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
@@ -213,10 +210,6 @@ export default function Success(props: SuccessProps) {
     props?.bookingInfo?.metadata || {}
   )?.videoCallUrl;
 
-  if (!location) {
-    // Can't use logger.error because it throws error on client. stdout isn't available to it.
-    console.error(`No location found `);
-  }
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
@@ -239,12 +232,24 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   function setIsCancellationMode(value: boolean) {
-    if (value) router.query.cancel = "true";
-    else delete router.query.cancel;
-    router.replace({
-      pathname: router.pathname,
-      query: { ...router.query },
-    });
+    const query_ = { ...router.query };
+
+    if (value) {
+      query_.cancel = "true";
+    } else {
+      if (query_.cancel) {
+        delete query_.cancel;
+      }
+    }
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...query_ },
+      },
+      undefined,
+      { scroll: false }
+    );
   }
 
   const eventNameObject = {
@@ -514,23 +519,21 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 last:mb-0">
-                          <>
-                            {bookingInfo?.user && (
-                              <div className="mb-3">
-                                <p>
-                                  <span className="mr-2">{bookingInfo.user.name}</span>
-                                  <Badge variant="blue">{t("Host")}</Badge>
-                                </p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                          {bookingInfo?.user && (
+                            <div className="mb-3">
+                              <div>
+                                <span className="mr-2">{bookingInfo.user.name}</span>
+                                <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                            )}
-                            {bookingInfo?.attendees.map((attendee) => (
-                              <div key={attendee.name} className="mb-3 last:mb-0">
-                                {attendee.name && <p>{attendee.name}</p>}
-                                <p className="text-bookinglight">{attendee.email}</p>
-                              </div>
-                            ))}
-                          </>
+                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                            </div>
+                          )}
+                          {bookingInfo?.attendees.map((attendee) => (
+                            <div key={attendee.name} className="mb-3 last:mb-0">
+                              {attendee.name && <p>{attendee.name}</p>}
+                              <p className="text-bookinglight">{attendee.email}</p>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}

@@ -163,7 +163,6 @@ export const ensureBookingInputsHaveSystemFields = ({
   const systemBeforeFields: typeof bookingFields = [
     {
       defaultLabel: "your_name",
-      defaultPlaceholder: "example_name",
       type: "name",
       name: "name",
       required: true,
@@ -177,7 +176,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
     {
       defaultLabel: "email_address",
-      defaultPlaceholder: "you@example.com",
       type: "email",
       name: "email",
       required: true,

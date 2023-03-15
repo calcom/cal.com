@@ -19,11 +19,11 @@
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
-    "node": "16.x || 18.x",
+    "node": "18",
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
-    "@boxyhq/saml-jackson": "1.7.1",
+    "@boxyhq/saml-jackson": "1.8.2",
     "@calcom/app-store": "*",
     "@calcom/app-store-cli": "*",
     "@calcom/core": "*",
