@@ -29,7 +29,7 @@
     "@calcom/core": "*",
     "@calcom/dayjs": "*",
     "@calcom/emails": "*",
-    "@calcom/embed-core": "*",
+    "@calcom/embed-core": "workspace:*",
     "@calcom/embed-snippet": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
