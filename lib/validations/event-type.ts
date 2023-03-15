@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
+import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 
 import { Frequency } from "~/lib/types";
@@ -18,6 +18,11 @@ const recurringEventInputSchema = z.object({
   tzid: timeZone.optional(),
 });
 
+const hostSchema = _HostModel.pick({
+  isFixed: true,
+  userId: true,
+});
+
 export const schemaEventTypeBaseBodyParams = EventType.pick({
   title: true,
   description: true,
@@ -25,11 +30,11 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   length: true,
   hidden: true,
   position: true,
-  teamId: true,
   eventName: true,
   timeZone: true,
   periodType: true,
   periodStartDate: true,
+  schedulingType: true,
   periodEndDate: true,
   periodDays: true,
   periodCountCalendarDays: true,
@@ -39,13 +44,14 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   minimumBookingNotice: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,
-  schedulingType: true,
+  teamId: true,
   price: true,
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
   locations: true,
 })
+  .merge(z.object({ hosts: z.array(hostSchema).optional().default([]) }))
   .partial()
   .strict();
 

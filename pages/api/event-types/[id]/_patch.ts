@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+import { SchedulingType } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
@@ -7,6 +9,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
+import ensureOnlyMembersAsHosts from "~/pages/api/event-types/_utils/ensureOnlyMembersAsHosts";
 
 import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission";
 
@@ -49,6 +52,16 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
+ *               hosts:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: number
+ *                     isFixed:
+ *                       type: boolean
+ *                       description: Host MUST be available for any slot to be bookable.
  *               hidden:
  *                 type: boolean
  *                 description: If the event type should be hidden from your public booking page
@@ -156,10 +169,25 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const data = schemaEventTypeEditBodyParams.parse(body);
-  await checkPermissions(req, body);
-  const event_type = await prisma.eventType.update({ where: { id }, data });
-  return { event_type: schemaEventTypeReadPublic.parse(event_type) };
+  const { hosts = [], ...parsedBody } = schemaEventTypeEditBodyParams.parse(body);
+
+  const data: Prisma.EventTypeUpdateArgs["data"] = {
+    ...parsedBody,
+  };
+
+  if (hosts) {
+    await ensureOnlyMembersAsHosts(req, parsedBody);
+    data.hosts = {
+      deleteMany: {},
+      create: hosts.map((host) => ({
+        ...host,
+        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+      })),
+    };
+  }
+  await checkPermissions(req, parsedBody);
+  const eventType = await prisma.eventType.update({ where: { id }, data });
+  return { event_type: schemaEventTypeReadPublic.parse(eventType) };
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaEventTypeBaseBodyParams>) {

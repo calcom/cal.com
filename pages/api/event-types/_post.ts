@@ -7,6 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
+import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
 
 /**
  * @swagger
@@ -46,6 +47,17 @@ import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission"
  *               slug:
  *                 type: string
  *                 description: Unique slug for the event type
+ *                 example: my-event
+ *               hosts:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: number
+ *                     isFixed:
+ *                       type: boolean
+ *                       description: Host MUST be available for any slot to be bookable.
  *               hidden:
  *                 type: boolean
  *                 description: If the event type should be hidden from your public booking page
@@ -176,22 +188,33 @@ import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission"
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, prisma } = req;
-  const body = schemaEventTypeCreateBodyParams.parse(req.body);
-  let args: Prisma.EventTypeCreateArgs = {
-    data: { ...body, userId, users: { connect: { id: userId } } },
+  const { userId, isAdmin, prisma, body } = req;
+
+  const { hosts = [], ...parsedBody } = schemaEventTypeCreateBodyParams.parse(body || {});
+
+  let data: Prisma.EventTypeCreateArgs["data"] = {
+    ...parsedBody,
+    userId,
+    users: { connect: { id: userId } },
   };
 
   await checkPermissions(req);
 
-  if (isAdmin && body.userId) args = { data: { ...body, users: { connect: { id: body.userId } } } };
+  if (isAdmin && parsedBody.userId) {
+    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
+  }
 
-  await checkTeamEventEditPermission(req, body);
+  await checkTeamEventEditPermission(req, parsedBody);
+  await ensureOnlyMembersAsHosts(req, parsedBody);
 
-  const data = await prisma.eventType.create(args);
+  if (hosts) {
+    data.hosts = { createMany: { data: hosts } };
+  }
+
+  const eventType = await prisma.eventType.create({ data });
 
   return {
-    event_type: schemaEventTypeReadPublic.parse(data),
+    event_type: schemaEventTypeReadPublic.parse(eventType),
     message: "Event type created successfully",
   };
 }
