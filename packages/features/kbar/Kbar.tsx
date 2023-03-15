@@ -256,15 +256,15 @@ export const KBarContent = () => {
     <KBarPortal>
       <KBarPositioner>
         <KBarAnimator className="bg-default z-10 w-full max-w-screen-sm overflow-hidden rounded-md shadow-lg">
-          <div className="flex items-center justify-center border-b">
-            <FiSearch className="text-subtle mx-3 h-4 w-4" />
+          <div className="border-subtle flex items-center justify-center border-b">
+            <FiSearch className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
-              className="w-full rounded-sm py-2.5 focus-visible:outline-none"
+              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none"
             />
           </div>
           <RenderResults />
-          <div className="text-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
+          <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
             <FiArrowUp className="h-4 w-4" />
             <FiArrowDown className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
             <FiCornerDownLeft className="h-4 w-4" />
@@ -323,13 +323,14 @@ function RenderResults() {
       items={results}
       onRender={({ item, active }) =>
         typeof item === "string" ? (
-          <div className="bg-default text-subtle p-4 text-xs uppercase">{t(item)}</div>
+          <div className="bg-default text-emphasis p-4 text-xs font-bold uppercase">{t(item)}</div>
         ) : (
           <div
             // For seeing keyboard up & down navigation in action, we need visual feedback based on "active" prop
             style={{
-              background: active ? "rgb(245,245,245)" : "#fff",
-              borderLeft: active ? "2px solid black" : "2px solid transparent",
+              background: active ? "var(--cal-bg-subtle)" : `var(--cal-bg-default)`,
+              borderLeft: active ? "2px solid var(--cal-border-default)" : "2px solid transparent",
+              color: "var(--cal-text)",
             }}
             className="flex items-center justify-between px-4 py-2.5 text-sm hover:cursor-pointer">
             <span>{t(item.name)}</span>

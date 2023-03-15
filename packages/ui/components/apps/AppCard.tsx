@@ -73,7 +73,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           <span className="pl-1 text-subtle">{props.reviews} reviews</span>
         </div> */}
       <p
-        className="text-subtle mt-2 flex-grow text-sm"
+        className="text-default mt-2 flex-grow text-sm"
         style={{
           overflow: "hidden",
           display: "-webkit-box",

@@ -819,7 +819,7 @@ export function ShellMain(props: LayoutProps) {
                 </h3>
               )}
               {props.subtitle && (
-                <p className="text-subtle hidden text-sm md:block">
+                <p className="text-default hidden text-sm md:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -879,15 +879,15 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="bg-mutedg-opacity-50 border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="hover:bg-mutedover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
+          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="hover:bg-mutedover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
               <FiSettings className="text-default h-4 w-4" aria-hidden="true" />
