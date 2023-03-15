@@ -61,7 +61,7 @@ jobs:
 
   build:
     name: Production build
-    needs: [env]
+    needs: env
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
