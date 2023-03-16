@@ -606,7 +606,7 @@ export default function Success(props: SuccessProps) {
 
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
-                            <span className="underline">
+                            <span className="underline" data-testid="reschedule-link">
                               <Link
                                 href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
                                 legacyBehavior>
