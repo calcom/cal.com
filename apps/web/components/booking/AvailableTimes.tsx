@@ -24,6 +24,7 @@ type AvailableTimesProps = {
   eventTypeSlug: string;
   date?: Dayjs;
   seatsPerTimeSlot?: number | null;
+  bookingAttendees?: number | null;
   slots?: Slot[];
   isLoading: boolean;
   ethSignature?: string;
@@ -39,6 +40,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   timeFormat,
   onTimeFormatChange,
   seatsPerTimeSlot,
+  bookingAttendees,
   ethSignature,
 }) => {
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
@@ -116,18 +118,28 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                   bookingUrl.query.bookingUid = slot.bookingUid;
                 }
 
+                let slotFull, notEnoughSeats;
+
+                if (slot.attendees && seatsPerTimeSlot) slotFull = slot.attendees >= seatsPerTimeSlot;
+                if (slot.attendees && bookingAttendees && seatsPerTimeSlot)
+                  notEnoughSeats = slot.attendees + bookingAttendees > seatsPerTimeSlot;
+
                 return (
                   <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
                     {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
                     {/* Current there is no way to disable Next.js Links */}
-                    {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
+                    {seatsPerTimeSlot && slot.attendees && (slotFull || notEnoughSeats) ? (
                       <div
                         className={classNames(
                           "text-primary-500 dark:bg-darkgray-200 dark:text-darkgray-900 mb-2 block rounded-sm border bg-white py-2 font-medium opacity-25 dark:border-transparent ",
                           brand === "#fff" || brand === "#ffffff" ? "" : ""
                         )}>
                         {dayjs(slot.time).tz(timeZone()).format(timeFormat)}
-                        {!!seatsPerTimeSlot && <p className="text-sm">{t("booking_full")}</p>}
+                        {notEnoughSeats ? (
+                          <p className="text-sm">{t("not_enough_seats")}</p>
+                        ) : slots ? (
+                          <p className="text-sm">{t("booking_full")}</p>
+                        ) : null}
                       </div>
                     ) : (
                       <Link
