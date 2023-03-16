@@ -769,10 +769,6 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
-    // remove the organizer from the team members
-    const organizerIndex = teamMembers.findIndex((member) => member.email === organizerUser.email);
-    teamMembers.splice(organizerIndex, 1);
-
     attendeesList.push(...teamMembers);
   }
 
