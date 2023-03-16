@@ -275,13 +275,14 @@ model BookingReference {
 }
 
 model Attendee {
-  id        Int      @id @default(autoincrement())
-  email     String
-  name      String
-  timeZone  String
-  locale    String?  @default("en")
-  booking   Booking? @relation(fields: [bookingId], references: [id])
-  bookingId Int?
+  id          Int          @id @default(autoincrement())
+  email       String
+  name        String
+  timeZone    String
+  locale      String?      @default("en")
+  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   Int?
+  bookingSeat BookingSeat?
 }
 
 enum BookingStatus {
@@ -294,7 +295,7 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
-  user                  User?                @relation(fields: [userId], references: [id])
+  user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
@@ -325,6 +326,7 @@ model Booking {
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
+  seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
 }
@@ -663,6 +665,16 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
+}
+
+model BookingSeat {
+  id           Int      @id @default(autoincrement())
+  referenceUid String   @unique
+  bookingId    Int
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  attendeeId   Int      @unique
+  attendee     Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  data         Json?
 }
 
 model VerifiedNumber {

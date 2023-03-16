@@ -451,6 +451,19 @@ following
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
+### Obtaining ZohoCRM Client ID and Secret
+
+1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+2. From within the API console page, go to "Applications".
+3. Click "ADD CLIENT" button top right and select "Server-based Applications". 
+4. Fill in any information you want in the "Client Details" tab
+5. Go to tab "Client Secret" tab. 
+6. Now copy the Client ID and Client Secret to your .env file into the `ZOHOCRM_CLIENT_ID` and `ZOHOCRM_CLIENT_SECRET` fields.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zohocrm/callback` replacing Cal.com URL with the URI at which your application runs.
+8. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers. 
+9. Click the "Save"/ "UPDATE" button at the bottom footer.
+10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders

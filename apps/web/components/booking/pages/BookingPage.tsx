@@ -78,6 +78,7 @@ const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
+  const currentView = rescheduleUid ? "reschedule" : "";
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -87,12 +88,16 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+
         let noLabel = false;
         let hidden = !!field.hidden;
+        const fieldViews = field.views;
+
+        if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
-          if (!rescheduleUid) {
-            return null;
-          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -115,7 +120,10 @@ const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        if (
+          (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
+          !!rescheduleUid
+        ) {
           return null;
         }
 
@@ -242,12 +250,12 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { uid, paymentUid } = responseData;
+      const { uid } = responseData;
 
-      if (paymentUid) {
+      if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
-            paymentUid,
+            paymentUid: responseData.paymentUid,
             date,
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
@@ -262,6 +270,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
@@ -288,7 +297,10 @@ const BookingPage = ({
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    eventType: {
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
+    },
+    view: rescheduleUid ? "reschedule" : "booking",
   });
 
   const parsedQuery = querySchema.parse({
@@ -368,7 +380,8 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       responses: getBookingResponsesSchema({
-        bookingFields: getBookingFieldsWithSystemFields(eventType),
+        eventType: { bookingFields: getBookingFieldsWithSystemFields(eventType) },
+        view: rescheduleUid ? "reschedule" : "booking",
       }),
     })
     .passthrough();
@@ -409,7 +422,7 @@ const BookingPage = ({
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -432,7 +445,7 @@ const BookingPage = ({
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
-        ...booking,
+        ...bookingValues,
         start: dayjs(recurringDate).format(),
         end: dayjs(recurringDate).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -452,7 +465,7 @@ const BookingPage = ({
       recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
-        ...booking,
+        ...bookingValues,
         start: dayjs(date).tz(timeZone()).format(),
         end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
         eventTypeId: eventType.id,
@@ -460,12 +473,13 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: router.query.bookingUid as string,
+        bookingUid: (router.query.bookingUid as string) || booking?.uid,
         user: router.query.user,
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
+        seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };

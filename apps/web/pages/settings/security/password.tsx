@@ -21,7 +21,8 @@ const PasswordView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
-  const metadata = userMetadata.parse(user?.metadata);
+  const metadata = userMetadata.safeParse(user?.metadata);
+  const sessionTimeout = metadata.success ? metadata.data?.sessionTimeout : undefined;
 
   const sessionMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
@@ -36,10 +37,10 @@ const PasswordView = () => {
       const previousValue = utils.viewer.me.getData();
       const previousMetadata = userMetadata.parse(previousValue?.metadata);
 
-      if (previousValue && metadata?.sessionTimeout) {
+      if (previousValue && sessionTimeout) {
         utils.viewer.me.setData(undefined, {
           ...previousValue,
-          metadata: { ...previousMetadata, sessionTimeout: metadata?.sessionTimeout },
+          metadata: { ...previousMetadata, sessionTimeout: sessionTimeout },
         });
       }
       return { previousValue };
@@ -81,19 +82,19 @@ const PasswordView = () => {
     defaultValues: {
       oldPassword: "",
       newPassword: "",
-      sessionTimeout: metadata?.sessionTimeout,
+      sessionTimeout,
     },
   });
 
   const sessionTimeoutWatch = formMethods.watch("sessionTimeout");
 
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
-    const { oldPassword, newPassword, sessionTimeout } = values;
+    const { oldPassword, newPassword, sessionTimeout: newSessionTimeout } = values;
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
     }
-    if (metadata?.sessionTimeout !== sessionTimeout) {
-      sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout } });
+    if (sessionTimeout !== newSessionTimeout) {
+      sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout: newSessionTimeout } });
     }
   };
 
@@ -106,6 +107,7 @@ const PasswordView = () => {
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";
+
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
@@ -176,8 +178,8 @@ const PasswordView = () => {
                   <Select
                     options={timeoutOptions}
                     defaultValue={
-                      metadata?.sessionTimeout
-                        ? timeoutOptions.find((tmo) => tmo.value === metadata.sessionTimeout)
+                      sessionTimeout
+                        ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
                         : timeoutOptions[1]
                     }
                     isSearchable={false}
