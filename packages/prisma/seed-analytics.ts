@@ -3,72 +3,94 @@ import { BookingStatus, PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/lib/auth";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 
 const prisma = new PrismaClient();
 async function main() {
-  const insightsAdmin = await prisma.user.create({
-    data: {
+  // First find if not then create everything
+  let insightsAdmin = await prisma.user.findFirst({
+    where: {
       email: "insights@example.com",
-      password: await hashPassword("insights"),
-      name: "Insights Admin",
-      role: "ADMIN",
-      username: "insights",
-      completedOnboarding: true,
     },
   });
 
-  const insightsUser = await prisma.user.create({
-    data: {
+  if (!insightsAdmin) {
+    insightsAdmin = await prisma.user.create({
+      data: {
+        email: "insights@example.com",
+        password: await hashPassword("insights"),
+        name: "Insights Admin",
+        role: "ADMIN",
+        username: "insights",
+        completedOnboarding: true,
+      },
+    });
+  }
+
+  let insightsUser = await prisma.user.findFirst({
+    where: {
       email: "insightuser@example.com",
-      password: await hashPassword("insightsuser"),
-      name: "Insights User",
-      role: "USER",
-      username: "insights-user",
-      completedOnboarding: true,
     },
   });
 
-  const insightsTeam = await prisma.team.create({
-    data: {
-      name: "Insights",
+  if (!insightsUser) {
+    insightsUser = await prisma.user.create({
+      data: {
+        email: "insightuser@example.com",
+        password: await hashPassword("insightsuser"),
+        name: "Insights User",
+        role: "USER",
+        username: "insights-user",
+        completedOnboarding: true,
+      },
+    });
+  }
+
+  let insightsTeam = await prisma.team.findFirst({
+    where: {
       slug: "insights-team",
     },
   });
 
-  await prisma.membership.createMany({
-    data: [
-      {
-        teamId: insightsTeam.id,
-        userId: insightsAdmin.id,
-        role: "OWNER",
-        accepted: true,
+  if (!insightsTeam) {
+    insightsTeam = await prisma.team.create({
+      data: {
+        name: "Insights",
+        slug: "insights-team",
       },
-      {
-        teamId: insightsTeam.id,
-        userId: insightsUser.id,
-        role: "MEMBER",
-        accepted: true,
+    });
+    await prisma.membership.createMany({
+      data: [
+        {
+          teamId: insightsTeam.id,
+          userId: insightsAdmin.id,
+          role: "OWNER",
+          accepted: true,
+        },
+        {
+          teamId: insightsTeam.id,
+          userId: insightsUser.id,
+          role: "MEMBER",
+          accepted: true,
+        },
+      ],
+    });
+    await prisma.team.update({
+      where: {
+        id: insightsTeam.id,
       },
-    ],
-  });
-
-  await prisma.team.update({
-    where: {
-      id: insightsTeam.id,
-    },
-    data: {
-      members: {
-        connect: {
-          userId_teamId: {
-            userId: insightsAdmin.id,
-            teamId: insightsTeam.id,
+      data: {
+        members: {
+          connect: {
+            userId_teamId: {
+              userId: insightsAdmin.id,
+              teamId: insightsTeam.id,
+            },
           },
         },
       },
-    },
-  });
-
+    });
+  }
   await prisma.team.update({
     where: {
       id: insightsTeam.id,
@@ -85,41 +107,48 @@ async function main() {
     },
   });
 
-  // Create team events types
-  await prisma.eventType.createMany({
-    data: [
-      {
-        title: "Team Meeting",
-        slug: "team-meeting",
-        description: "Team Meeting",
-        length: 60,
-        teamId: insightsTeam.id,
-        schedulingType: "ROUND_ROBIN",
-      },
-      {
-        title: "Team Lunch",
-        slug: "team-lunch",
-        description: "Team Lunch",
-        length: 30,
-        teamId: insightsTeam.id,
-        schedulingType: "COLLECTIVE",
-      },
-      {
-        title: "Team Coffee",
-        slug: "team-coffee",
-        description: "Team Coffee",
-        length: 15,
-        teamId: insightsTeam.id,
-        schedulingType: "COLLECTIVE",
-      },
-    ],
-  });
-
-  const teamEvents = await prisma.eventType.findMany({
+  let teamEvents = await prisma.eventType.findMany({
     where: {
       teamId: insightsTeam.id,
     },
   });
+
+  if (teamEvents.length === 0) {
+    await prisma.eventType.createMany({
+      data: [
+        {
+          title: "Team Meeting",
+          slug: "team-meeting",
+          description: "Team Meeting",
+          length: 60,
+          teamId: insightsTeam.id,
+          schedulingType: "ROUND_ROBIN",
+        },
+        {
+          title: "Team Lunch",
+          slug: "team-lunch",
+          description: "Team Lunch",
+          length: 30,
+          teamId: insightsTeam.id,
+          schedulingType: "COLLECTIVE",
+        },
+        {
+          title: "Team Coffee",
+          slug: "team-coffee",
+          description: "Team Coffee",
+          length: 15,
+          teamId: insightsTeam.id,
+          schedulingType: "COLLECTIVE",
+        },
+      ],
+    });
+  } else {
+    teamEvents = await prisma.eventType.findMany({
+      where: {
+        teamId: insightsTeam.id,
+      },
+    });
+  }
 
   const baseBooking: Prisma.BookingCreateManyInput = {
     uid: "demoUID",
@@ -159,6 +188,10 @@ async function main() {
 
     booking.eventTypeId = randomEventTypeId;
     booking.uid = uuidv4();
+
+    if (insightsUser && insightsAdmin) {
+      booking.userId = Math.random() > 0.5 ? insightsUser.id : insightsAdmin.id;
+    }
 
     return booking;
   };

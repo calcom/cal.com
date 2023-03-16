@@ -7,8 +7,14 @@ import { EventsAnalytics } from "@calcom/features/analytics/events";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, userBelongsToTeamProcedure } from "../../trpc";
+import { authedProcedure, router, userBelongsToTeamProcedure } from "../../trpc";
 
+const UserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  avatar: true,
+};
 export const analyticsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure
     .input(
@@ -388,7 +394,7 @@ export const analyticsRouter = router({
   membersWithMostBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional(),
+        teamId: z.coerce.number(),
         startDate: z.string(),
         endDate: z.string(),
       })
@@ -454,7 +460,7 @@ export const analyticsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional(),
+        teamId: z.coerce.number(),
         startDate: z.string(),
         endDate: z.string(),
       })
@@ -491,20 +497,44 @@ export const analyticsRouter = router({
         },
         take: 10,
       });
+
+      // Users are obtained from bookings so if a user has 0 they won't be in the list
       const userIds = bookingsFromTeam
         .filter((booking) => typeof booking.userId === "number")
         .map((booking) => booking.userId);
-      const usersFromTeam = await ctx.prisma.user.findMany({
+
+      const usersWithNoBookings = await ctx.prisma.user.findMany({
+        select: UserSelect,
         where: {
           id: {
-            in: userIds as number[],
+            notIn: userIds as number[],
+          },
+          teams: {
+            some: {
+              teamId: teamId,
+            },
           },
         },
       });
 
+      let usersFromTeam: Prisma.UserGetPayload<{
+        select: typeof UserSelect;
+      }>[] = [];
+      if (usersWithNoBookings.length < 10) {
+        usersFromTeam = await ctx.prisma.user.findMany({
+          where: {
+            id: {
+              in: userIds as number[],
+            },
+          },
+          select: UserSelect,
+          take: 10 - usersWithNoBookings.length,
+        });
+      }
+
       const userHashMap = new Map();
-      usersFromTeam.forEach((user) => {
-        userHashMap.set(user.id, user.name);
+      [...usersWithNoBookings, ...usersFromTeam].forEach((user) => {
+        userHashMap.set(user.id, user);
       });
 
       const result = bookingsFromTeam.map((booking) => {
@@ -514,10 +544,156 @@ export const analyticsRouter = router({
           user,
           emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
           count: booking._count.id,
-          Username: user.name,
+          Username: user.name || "No Username found",
         };
       });
-      console.log(result);
+
       return result;
+    }),
+  teamListForUser: authedProcedure.query(async ({ ctx }) => {
+    const user = ctx.user;
+
+    // Just for type safety but authedProcedure should have already checked this
+    if (!user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    // Look if user it's admin in multiple teams
+    const belongsToTeams = await ctx.prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        OR: [
+          {
+            role: "ADMIN",
+          },
+          {
+            role: "OWNER",
+          },
+        ],
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            slug: true,
+          },
+        },
+      },
+    });
+    const result = belongsToTeams.map(
+      (
+        membership: Prisma.MembershipGetPayload<{
+          include: {
+            team: {
+              select: { id: true; name: true; logo: true; slug: true };
+            };
+          };
+        }>
+      ) => membership.team
+    );
+    console.log({ result });
+    return result;
+  }),
+  userList: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.coerce.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const user = ctx.user;
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const membership = await ctx.prisma.membership.findFirst({
+        where: {
+          userId: user.id,
+          teamId: input.teamId,
+        },
+        include: {
+          user: {
+            select: UserSelect,
+          },
+        },
+      });
+
+      // If user is not admin, return himself only
+      if (membership && membership.role === "MEMBER") {
+        return [membership.user];
+      }
+      const usersInTeam = await ctx.prisma.membership.findMany({
+        where: {
+          teamId: input.teamId,
+        },
+        include: {
+          user: {
+            select: UserSelect,
+          },
+        },
+      });
+      return usersInTeam.map((membership) => membership.user);
+    }),
+  eventTypeList: userBelongsToTeamProcedure
+    .input(
+      z.object({
+        teamId: z.coerce.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const user = ctx.user;
+
+      // Just for type safety but authedProcedure should have already checked this
+      if (!user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const membership = await ctx.prisma.membership.findFirst({
+        where: {
+          userId: user.id,
+          teamId: input.teamId,
+        },
+      });
+
+      if (membership && membership.role === "MEMBER") {
+        const eventTypes = await ctx.prisma.eventType.findMany({
+          where: {
+            teamId: input.teamId,
+            // user its listed as direct user or as part of a group
+            OR: [
+              {
+                userId: user.id,
+              },
+              {
+                users: {
+                  some: {
+                    id: user.id,
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        return eventTypes;
+      }
+
+      const eventTypes = await ctx.prisma.eventType.findMany({
+        where: {
+          teamId: input.teamId,
+        },
+      });
+
+      return eventTypes;
     }),
 });
