@@ -98,17 +98,17 @@ const Component = ({
       {hasDescriptionItems && (
         <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
           {descriptionItems ? (
-            descriptionItems.map((img, index) =>
-              typeof img === "object" ? (
+            descriptionItems.map((descriptionItem, index) =>
+              typeof descriptionItem === "object" ? (
                 <div
                   key={`iframe-${index}`}
                   className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
-                  <iframe allowFullScreen {...img.iframe} />
+                  <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
                 <img
-                  key={img}
-                  src={img}
+                  key={descriptionItem}
+                  src={descriptionItem}
                   alt={`Screenshot of app ${name}`}
                   className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />

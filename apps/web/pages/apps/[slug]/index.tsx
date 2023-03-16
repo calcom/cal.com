@@ -17,7 +17,7 @@ const md = new MarkdownIt("default", { html: true, breaks: true });
 const sourceSchema = z.object({
   content: z.string(),
   data: z.object({
-    description: z.string(),
+    description: z.string().optional(),
     items: z
       .array(
         z.union([
