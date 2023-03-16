@@ -121,12 +121,12 @@ function preprocess<T extends z.ZodType>({
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
+        let hidden = bookingField.hidden;
+        if (bookingField.hideWhenJustOneOption) {
+          hidden = hidden || bookingField.options?.length === 1;
+        }
         // If the field is hidden, then it can never be required
-        const isRequired = bookingField.hidden
-          ? false
-          : isFieldApplicableToCurrentView
-          ? bookingField.required
-          : false;
+        const isRequired = hidden ? false : isFieldApplicableToCurrentView ? bookingField.required : false;
 
         if ((isPartialSchema || !isRequired) && value === undefined) {
           return;
