@@ -94,6 +94,7 @@ export default function Availability() {
     data: { schedule: scheduleId },
   } = useTypedQuery(querySchema);
 
+  const { fromEventType } = router.query;
   const { timeFormat } = me.data || { timeFormat: null };
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
@@ -153,7 +154,7 @@ export default function Availability() {
 
   return (
     <Shell
-      backPath
+      backPath={fromEventType ? true : "/availability"}
       title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller

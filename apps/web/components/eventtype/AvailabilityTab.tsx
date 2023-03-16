@@ -186,7 +186,7 @@ const EventTypeSchedule = () => {
         Icon={FiClock}
         headline={t("new_schedule_heading")}
         description={t("new_schedule_description")}
-        buttonRaw={<NewScheduleButton />}
+        buttonRaw={<NewScheduleButton fromEventType />}
       />
     );
 
