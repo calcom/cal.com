@@ -1,4 +1,5 @@
-import jackson, {
+import jackson from "@boxyhq/saml-jackson";
+import type {
   IConnectionAPIController,
   IOAuthController,
   JacksonOption,
@@ -7,7 +8,7 @@ import jackson, {
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { samlDatabaseUrl, samlAudience, samlPath, oidcPath } from "./saml";
+import { samlDatabaseUrl, samlAudience, samlPath, oidcPath, clientSecretVerifier } from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
@@ -21,34 +22,29 @@ const opts: JacksonOption = {
     url: samlDatabaseUrl,
     encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
+  idpEnabled: true,
+  clientSecretVerifier,
 };
 
-let connectionController: IConnectionAPIController;
-let oauthController: IOAuthController;
-let samlSPConfig: ISPSAMLConfig;
-
-const g = global as any;
+declare global {
+  /* eslint-disable no-var */
+  var connectionController: IConnectionAPIController | undefined;
+  var oauthController: IOAuthController | undefined;
+  var samlSPConfig: ISPSAMLConfig | undefined;
+  /* eslint-enable no-var */
+}
 
 export default async function init() {
-  if (!g.connectionController || !g.oauthController) {
+  if (!globalThis.connectionController || !globalThis.oauthController || !globalThis.samlSPConfig) {
     const ret = await jackson(opts);
-
-    connectionController = ret.connectionAPIController;
-    oauthController = ret.oauthController;
-    samlSPConfig = ret.spConfig;
-
-    g.connectionController = connectionController;
-    g.oauthController = oauthController;
-    g.samlSPConfig = samlSPConfig;
-  } else {
-    connectionController = g.connectionController;
-    oauthController = g.oauthController;
-    samlSPConfig = g.samlSPConfig;
+    globalThis.connectionController = ret.connectionAPIController;
+    globalThis.oauthController = ret.oauthController;
+    globalThis.samlSPConfig = ret.spConfig;
   }
 
   return {
-    connectionController,
-    oauthController,
-    samlSPConfig,
+    connectionController: globalThis.connectionController,
+    oauthController: globalThis.oauthController,
+    samlSPConfig: globalThis.samlSPConfig,
   };
 }

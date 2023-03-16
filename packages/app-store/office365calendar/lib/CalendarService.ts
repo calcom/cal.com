@@ -1,5 +1,7 @@
-import { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -12,9 +14,9 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { O365AuthCredentials } from "../types/Office365Calendar";
+import type { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
@@ -37,6 +39,14 @@ interface IBatchResponse {
   responses: ISettledResponse[];
 }
 
+const refreshTokenResponseSchema = z.object({
+  access_token: z.string(),
+  expires_in: z
+    .number()
+    .transform((currentTimeOffsetInSeconds) => Math.round(+new Date() / 1000 + currentTimeOffsetInSeconds)),
+  refresh_token: z.string().optional(),
+});
+
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -54,11 +64,11 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const calendarId = event.destinationCalendar?.externalId
-        ? `${event.destinationCalendar.externalId}/`
-        : "";
+      const eventsUrl = event.destinationCalendar?.externalId
+        ? `/me/calendars/${event.destinationCalendar?.externalId}/events`
+        : "/me/calendar/events";
 
-      const response = await this.fetcher(`/me/calendars/${calendarId}events`, {
+      const response = await this.fetcher(eventsUrl, {
         method: "POST",
         body: JSON.stringify(this.translateEvent(event)),
       });
@@ -216,9 +226,7 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      const responseBody = await handleErrorsJson<{ access_token: string; expires_in: number }>(response);
-      o365AuthCredentials.access_token = responseBody.access_token;
-      o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
+      const o365AuthCredentials = refreshTokenResponseSchema.parse(await handleErrorsJson(response));
       await prisma.credential.update({
         where: {
           id: credential.id,
@@ -239,6 +247,7 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private translateEvent = (event: CalendarEvent) => {
+    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
@@ -246,11 +255,11 @@ export default class Office365CalendarService implements Calendar {
         content: getRichDescription(event),
       },
       start: {
-        dateTime: event.startTime,
+        dateTime: dayjs(event.startTime).utcOffset(utcOffset).format(),
         timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: event.endTime,
+        dateTime: dayjs(event.endTime).utcOffset(utcOffset).format(),
         timeZone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({

@@ -1,9 +1,9 @@
-import appStore from "@calcom/app-store";
-import { EventTypeAppsList } from "@calcom/app-store/utils";
-import { EventTypeModel } from "@calcom/prisma/zod";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { AppCategories, Prisma } from "@prisma/client";
 
-import { AppCategories, Prisma } from ".prisma/client";
+import appStore from "@calcom/app-store";
+import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import type { EventTypeModel } from "@calcom/prisma/zod";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const handlePayment = async (
   evt: CalendarEvent,

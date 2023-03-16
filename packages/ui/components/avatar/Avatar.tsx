@@ -5,7 +5,7 @@ import Link from "next/link";
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 
-import { Maybe } from "@trpc/server";
+import type { Maybe } from "@trpc/server";
 
 import { FiCheck } from "../icon";
 

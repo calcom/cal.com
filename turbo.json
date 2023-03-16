@@ -3,7 +3,7 @@
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
-      "dependsOn": ["post-install", "db-deploy"],
+      "dependsOn": ["post-install"],
       "outputs": []
     },
     "@calcom/prisma#db-migrate": {
@@ -48,7 +48,7 @@
     },
     "@calcom/web#start": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "dependsOn": [],
       "outputs": []
     },
     "@calcom/website#build": {
@@ -152,8 +152,7 @@
       "dependsOn": [
         "@calcom/prisma#db-seed",
         "@calcom/web#build",
-        "@calcom/embed-core#build",
-        "@calcom/embed-react#build",
+        "^build",
         "^embed-tests-update-snapshots:ci"
       ]
     },
@@ -239,15 +238,20 @@
     "$NEXTAUTH_SECRET",
     "$NEXTAUTH_URL",
     "$NODE_ENV",
+    "$BUILD_ID",
     "$PLAYWRIGHT_HEADLESS",
     "$PLAYWRIGHT_TEST_BASE_URL",
     "$PRISMA_FIELD_ENCRYPTION_KEY",
+    "$PRISMA_GENERATE_DATAPROXY",
     "$QUICK",
     "$RAILWAY_STATIC_URL",
     "$SALESFORCE_CONSUMER_KEY",
     "$SALESFORCE_CONSUMER_SECRET",
+    "$ZOHOCRM_CLIENT_ID",
+    "$ZOHOCRM_CLIENT_SECRET",
     "$SAML_ADMINS",
     "$SAML_DATABASE_URL",
+    "$SAML_CLIENT_SECRET_VERIFIER",
     "$SEND_FEEDBACK_EMAIL",
     "$SENTRY_DSN",
     "$NEXT_PUBLIC_SENTRY_DSN",

@@ -1,8 +1,11 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { NextRouter, useRouter } from "next/router";
-import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
+import type { MutableRefObject, RefObject } from "react";
+import { createRef, forwardRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
 
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,16 +15,15 @@ import {
   DialogClose,
   DialogContent,
   HorizontalTabs,
-  InputLeading,
   Label,
   showToast,
   Switch,
   TextArea,
   TextField,
+  ColorPicker,
 } from "@calcom/ui";
 import { FiCode, FiTrello, FiSun, FiArrowLeft, FiChevronRight } from "@calcom/ui/components/icon";
 
-import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
@@ -667,8 +669,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedUrl: string;
 }) => {
   const { t } = useLocale();
+
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
     const [a, b] = href.split("=");
@@ -676,7 +681,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
-  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -720,7 +725,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const calLink = decodeURIComponent(embedUrl);
 
-  const addToPalette = (update: typeof previewState["palette"]) => {
+  const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -807,7 +812,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl" className="p-0.5" type="creation">
+    <DialogContent ref={dialogContentRef} size="xl" className="p-0.5" type="creation">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -958,6 +963,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div>Button Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -977,6 +984,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div>Text Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -1058,10 +1067,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         <div className="mb-2 pt-2">{palette.title}</div>
                         <div className="w-full">
                           <ColorPicker
+                            popoverAlign="start"
+                            container={dialogContentRef?.current ?? undefined}
                             defaultValue="#000000"
                             onChange={(color) => {
                               addToPalette({
-                                [palette.name as keyof typeof previewState["palette"]]: color,
+                                [palette.name as keyof (typeof previewState)["palette"]]: color,
                               });
                             }}
                           />

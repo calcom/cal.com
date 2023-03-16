@@ -1,11 +1,13 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -19,6 +21,18 @@ export const config = {
     bodyParser: false,
   },
 };
+
+async function getEventType(id: number) {
+  return prisma.eventType.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      recurringEvent: true,
+      requiresConfirmation: true,
+    },
+  });
+}
 
 async function handlePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -42,6 +56,8 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     },
     select: {
       ...bookingMinimalSelect,
+      eventType: true,
+      smsReminderNumber: true,
       location: true,
       eventTypeId: true,
       userId: true,
@@ -52,6 +68,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       user: {
         select: {
           id: true,
+          username: true,
           credentials: true,
           timeZone: true,
           email: true,
@@ -65,20 +82,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    recurringEvent: true,
-    requiresConfirmation: true,
-  });
-  const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
-  type EventTypeRaw = Prisma.EventTypeGetPayload<typeof eventTypeData>;
+  type EventTypeRaw = Awaited<ReturnType<typeof getEventType>>;
   let eventTypeRaw: EventTypeRaw | null = null;
   if (booking.eventTypeId) {
-    eventTypeRaw = await prisma.eventType.findUnique({
-      where: {
-        id: booking.eventTypeId,
-      },
-      select: eventTypeSelect,
-    });
+    eventTypeRaw = await getEventType(booking.eventTypeId);
   }
 
   const { user } = booking;
@@ -155,7 +162,11 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
 
-  await sendScheduledEmails({ ...evt });
+  if (!isConfirmed && !eventTypeRaw?.requiresConfirmation) {
+    await handleConfirmation({ user, evt, prisma, bookingId: booking.id, booking, paid: true });
+  } else {
+    await sendScheduledEmails({ ...evt });
+  }
 
   throw new HttpCode({
     statusCode: 200,
