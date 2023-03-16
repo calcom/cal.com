@@ -731,23 +731,13 @@ export const FormBuilderField = ({
               <ErrorMessage
                 name="responses"
                 errors={formState.errors}
-                render={({ message }) => {
-                  const name = message?.replace(/\{([^}]+)\}.*/, "$1");
-
-                  // For edge case when location is not hidden and required but it is not passed. (For example having only one location Attendee Phone Number in the event type)
-                  if (name !== field.name && field.name === "location" && error) {
-                    return (
-                      <div
-                        data-testid="error-message-location"
-                        className="mt-2 flex items-center text-sm text-red-700 ">
-                        <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t("error_required_field")}</p>
-                      </div>
-                    );
-                  }
-
-                  // Use the message targeted for it.
-                  if (name !== field.name) {
+                render={({ message }: { message: string | undefined }) => {
+                  message = message || "";
+                  // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
+                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const isResponsesErrorForThisField = name === field.name;
+                  // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
+                  if (!isResponsesErrorForThisField && !error) {
                     return null;
                   }
 
@@ -760,7 +750,7 @@ export const FormBuilderField = ({
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
                       <FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p>{t(message)}</p>
+                      <p>{t(message || "invalid_input")}</p>
                     </div>
                   );
                 }}
