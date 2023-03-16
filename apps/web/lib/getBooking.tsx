@@ -112,7 +112,11 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: getBookingResponsesPartialSchema({
-      bookingFields: eventType.bookingFields,
+      eventType: {
+        bookingFields: eventType.bookingFields,
+      },
+      // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
+      view: "ALL_VIEWS",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
 };

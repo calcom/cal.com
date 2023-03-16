@@ -377,7 +377,10 @@ function getBookingData({
     ? extendedBookingCreateBody.merge(
         z.object({
           responses: getBookingResponsesSchema({
-            bookingFields: eventType.bookingFields,
+            eventType: {
+              bookingFields: eventType.bookingFields,
+            },
+            view: req.body.rescheduleUid ? "reschedule" : "booking",
           }),
         })
       )
@@ -689,18 +692,15 @@ async function handler(
 
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType) {
-      if (users.some((user) => user.email === guest)) {
-        return guestArray;
-      } else {
-        guestArray.push({
-          email: guest,
-          name: "",
-          timeZone: reqBody.timeZone,
-          language: { translate: tGuests, locale: "en" },
-        });
-      }
+    if (isTeamEventType && users.some((user) => user.email === guest)) {
+      return guestArray;
     }
+    guestArray.push({
+      email: guest,
+      name: "",
+      timeZone: reqBody.timeZone,
+      language: { translate: tGuests, locale: "en" },
+    });
     return guestArray;
   }, [] as typeof invitee);
 
@@ -1052,7 +1052,7 @@ async function handler(
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+              cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
           const resultBooking = await resultBookingQuery(newBooking.id);
@@ -1157,7 +1157,7 @@ async function handler(
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
         // Delete the old booking
@@ -1439,6 +1439,17 @@ async function handler(
       };
     });
 
+    if (evt.team?.members) {
+      attendeesData.push(
+        ...evt.team.members.map((member) => ({
+          email: member.email,
+          name: member.name,
+          timeZone: member.timeZone,
+          locale: member.language.locale,
+        }))
+      );
+    }
+
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       responses: responses === null ? Prisma.JsonNull : responses,
@@ -1678,7 +1689,7 @@ async function handler(
           ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }

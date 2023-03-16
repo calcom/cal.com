@@ -165,7 +165,12 @@ const providers: Provider[] = [
         }).length > 0;
 
       // authentication success- but does it meet the minimum password requirements?
-      if (user.role === "ADMIN" && !isPasswordValid(credentials.password, false, true)) {
+      if (
+        user.role === "ADMIN" &&
+        ((user.identityProvider === IdentityProvider.CAL &&
+          !isPasswordValid(credentials.password, false, true)) ||
+          !user.twoFactorEnabled)
+      ) {
         return {
           id: user.id,
           username: user.username,
@@ -330,6 +335,16 @@ function isNumber(n: string) {
 
 const calcomAdapter = CalComAdapter(prisma);
 
+const mapIdentityProvider = (providerName: string) => {
+  switch (providerName) {
+    case "saml-idp":
+    case "saml":
+      return IdentityProvider.SAML;
+    default:
+      return IdentityProvider.GOOGLE;
+  }
+};
+
 export const AUTH_OPTIONS: AuthOptions = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -429,7 +444,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 identityProvider: idP,
               },
               {
-                identityProviderId: account.providerAccountId as string,
+                identityProviderId: account.providerAccountId,
               },
             ],
           },
@@ -499,10 +514,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       }
 
       if (account?.provider) {
-        let idP: IdentityProvider = IdentityProvider.GOOGLE;
-        if (account.provider === "saml" || account.provider === "saml-idp") {
-          idP = IdentityProvider.SAML;
-        }
+        const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
@@ -511,21 +523,47 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=unverified-email";
         }
 
-        // Only google oauth on this path
-        const existingUser = await prisma.user.findFirst({
+        let existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
               where: {
-                provider: idP,
+                provider: account.provider,
               },
             },
           },
           where: {
-            identityProvider: idP as IdentityProvider,
+            identityProvider: idP,
             identityProviderId: account.providerAccountId,
           },
         });
 
+        /* --- START FIX LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
+        if (!existingUser) {
+          existingUser = await prisma.user.findFirst({
+            include: {
+              accounts: {
+                where: {
+                  provider: account.provider,
+                },
+              },
+            },
+            where: {
+              identityProvider: idP,
+              identityProviderId: String(user.id),
+            },
+          });
+          if (existingUser) {
+            await prisma.user.update({
+              where: {
+                id: existingUser?.id,
+              },
+              data: {
+                identityProviderId: account.providerAccountId,
+              },
+            });
+          }
+        }
+        /* --- END FIXES LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
         if (existingUser) {
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
@@ -571,7 +609,12 @@ export const AUTH_OPTIONS: AuthOptions = {
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
         const existingUserWithEmail = await prisma.user.findFirst({
-          where: { email: user.email },
+          where: {
+            email: {
+              equals: user.email,
+              mode: "insensitive",
+            },
+          },
         });
 
         if (existingUserWithEmail) {
@@ -591,15 +634,17 @@ export const AUTH_OPTIONS: AuthOptions = {
             !existingUserWithEmail.username
           ) {
             await prisma.user.update({
-              where: { email: user.email },
+              where: { email: existingUserWithEmail.email },
               data: {
+                // update the email to the IdP email
+                email: user.email,
                 // Slugify the incoming name and append a few random characters to
                 // prevent conflicts for users with the same name.
                 username: usernameSlug(user.name),
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
 
@@ -620,8 +665,9 @@ export const AUTH_OPTIONS: AuthOptions = {
               // also update email to the IdP email
               data: {
                 password: null,
+                email: user.email,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -645,7 +691,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: String(user.id),
+            identityProviderId: account.providerAccountId,
           },
         });
 

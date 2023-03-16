@@ -90,7 +90,7 @@ export function TeamsListing() {
               <Label className="dark:text-darkgray-900 pb-2 font-semibold text-gray-900">
                 {t("pending_invites")}
               </Label>
-              <TeamList teams={invites} />
+              <TeamList teams={invites} pending />
             </div>
           )}
           {teams.length > 0 && <TeamList teams={teams} />}
