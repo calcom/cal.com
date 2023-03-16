@@ -21,7 +21,7 @@ const PasswordView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user } = trpc.viewer.me.useQuery();
-  const metadata = userMetadata.parse(user?.metadata);
+  const metadata = userMetadata.safeParse(user?.metadata);
 
   const sessionMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
@@ -81,7 +81,7 @@ const PasswordView = () => {
     defaultValues: {
       oldPassword: "",
       newPassword: "",
-      sessionTimeout: metadata?.sessionTimeout,
+      sessionTimeout: metadata.success ? metadata.data?.sessionTimeout : undefined,
     },
   });
 
@@ -92,7 +92,7 @@ const PasswordView = () => {
     if (oldPassword && newPassword) {
       passwordMutation.mutate({ oldPassword, newPassword });
     }
-    if (metadata?.sessionTimeout !== sessionTimeout) {
+    if (metadata.success && metadata.data?.sessionTimeout !== sessionTimeout) {
       sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout } });
     }
   };
@@ -176,8 +176,10 @@ const PasswordView = () => {
                   <Select
                     options={timeoutOptions}
                     defaultValue={
-                      metadata?.sessionTimeout
-                        ? timeoutOptions.find((tmo) => tmo.value === metadata.sessionTimeout)
+                      metadata.success &&
+                      metadata.data?.sessionTimeout &&
+                      metadata.data.sessionTimeout !== "undefined"
+                        ? timeoutOptions.find((tmo) => tmo.value === metadata.data.sessionTimeout)
                         : timeoutOptions[1]
                     }
                     isSearchable={false}
