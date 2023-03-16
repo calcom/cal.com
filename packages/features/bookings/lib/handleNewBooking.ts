@@ -692,18 +692,15 @@ async function handler(
 
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType) {
-      if (users.some((user) => user.email === guest)) {
-        return guestArray;
-      } else {
-        guestArray.push({
-          email: guest,
-          name: "",
-          timeZone: reqBody.timeZone,
-          language: { translate: tGuests, locale: "en" },
-        });
-      }
+    if (isTeamEventType && users.some((user) => user.email === guest)) {
+      return guestArray;
     }
+    guestArray.push({
+      email: guest,
+      name: "",
+      timeZone: reqBody.timeZone,
+      language: { translate: tGuests, locale: "en" },
+    });
     return guestArray;
   }, [] as typeof invitee);
 
