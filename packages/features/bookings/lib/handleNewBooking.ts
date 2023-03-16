@@ -1,4 +1,4 @@
-import type { App, Attendee, Credential, EventTypeCustomInput } from "@prisma/client";
+import type { App, Attendee, Credential, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents, WorkflowMethods, Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -523,8 +523,8 @@ async function handler(
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
   const isTeamEventType =
-    eventType.schedulingType === SchedulingType.COLLECTIVE ||
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+    !!eventType.schedulingType &&
+    [SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN].includes(eventType.schedulingType);
 
   const paymentAppData = getPaymentAppData(eventType);
 
@@ -557,25 +557,46 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  const loadUsers = async () =>
-    !eventTypeId
-      ? await prisma.user.findMany({
+  const loadUsers = async () => {
+    try {
+      if (!eventTypeId) {
+        if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
+          throw new Error("dynamicUserList is not properly defined or empty.");
+        }
+
+        const users = await prisma.user.findMany({
           where: {
-            username: {
-              in: dynamicUserList,
-            },
+            username: { in: dynamicUserList },
           },
           select: {
             ...userSelect.select,
             metadata: true,
           },
-        })
-      : !!eventType.hosts?.length
-      ? eventType.hosts.map(({ user, isFixed }) => ({
+        });
+
+        return users;
+      } else {
+        const hosts = eventType.hosts || [];
+
+        if (!Array.isArray(hosts)) {
+          throw new Error("eventType.hosts is not properly defined.");
+        }
+
+        const users = hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
-        }))
-      : eventType.users;
+        }));
+
+        return users.length ? users : eventType.users;
+      }
+    } catch (error) {
+      if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpError({ statusCode: 400, message: error.message });
+      }
+      throw new HttpError({ statusCode: 500, message: "Unable to load users" });
+    }
+  };
+
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
@@ -723,24 +744,34 @@ async function handler(
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
-  const teamMemberPromises =
-    users.length > 1
-      ? users.slice(1).map(async function (user) {
-          return {
-            email: user.email || "",
-            name: user.name || "",
-            timeZone: user.timeZone,
-            language: {
-              translate: await getTranslation(user.locale ?? "en", "common"),
-              locale: user.locale ?? "en",
-            },
-          };
-        })
-      : [];
 
+  const teamDestinationCalendar: DestinationCalendar[] = [];
+  const teamMemberPromises = users.map(async function (user) {
+    // push to teamDestinationCalendar if it's a team event but collective only
+    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+      teamDestinationCalendar.push(user.destinationCalendar);
+    }
+    return {
+      email: user.email || "",
+      name: user.name || "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+    };
+  });
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
+
+  if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
+    // remove the organizer from the team members
+    const organizerIndex = teamMembers.findIndex((member) => member.email === organizerUser.email);
+    teamMembers.splice(organizerIndex, 1);
+
+    attendeesList.push(...teamMembers);
+  }
 
   const responses = "responses" in reqBody ? reqBody.responses : null;
 
@@ -794,6 +825,7 @@ async function handler(
     // if seats are not enabled we should default true
     seatsShowAttendees: !!eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+    schedulingType: eventType.schedulingType,
   };
 
   let rescheduleUid = reqBody.rescheduleUid;
@@ -1385,8 +1417,10 @@ async function handler(
   }
   if (isTeamEventType) {
     evt.team = {
+      // Team members should be filtered round robin is enabled
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
+      destinationCalendar: teamDestinationCalendar,
     };
   }
 
