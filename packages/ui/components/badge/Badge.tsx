@@ -22,7 +22,7 @@ const badgeStyles = cva("font-medium inline-flex items-center justify-center rou
     size: {
       sm: "px-1 py-0.5 text-xs leading-3",
       md: "py-1 px-1.5 text-xs leading-3",
-      lg: "py-0.5 px-2 text-sm leading-4",
+      lg: "py-1 px-2 text-sm leading-4",
     },
   },
   defaultVariants: {
