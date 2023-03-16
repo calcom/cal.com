@@ -4228,7 +4228,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/embed-react@^1.0.9, @calcom/embed-react@workspace:*, @calcom/embed-react@workspace:packages/embeds/embed-react":
+"@calcom/embed-react@workspace:*, @calcom/embed-react@workspace:^, @calcom/embed-react@workspace:packages/embeds/embed-react":
   version: 0.0.0-use.local
   resolution: "@calcom/embed-react@workspace:packages/embeds/embed-react"
   dependencies:
@@ -4986,7 +4986,7 @@ __metadata:
     "@calcom/app-store": "*"
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
-    "@calcom/embed-react": ^1.0.9
+    "@calcom/embed-react": "workspace:^"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
