@@ -2,7 +2,6 @@ import { IdentityProvider } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
-import { identityProviderNameMap } from "@calcom/features/auth/lib/identityProviderNameMap";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -88,11 +87,28 @@ const PasswordView = () => {
 
   const sessionTimeoutWatch = formMethods.watch("sessionTimeout");
 
+  // TODO: Check if the user's current password is empty or not
+  const allowEmptyOldPassword = user && user.identityProvider != "CAL";
+
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword, sessionTimeout: newSessionTimeout } = values;
-    if (oldPassword && newPassword) {
-      passwordMutation.mutate({ oldPassword, newPassword });
+    
+    if (!oldPassword && !allowEmptyOldPassword) {
+      return formMethods.setError("oldPassword", {
+        message: t("old_password_required"),
+        type: "custom",
+      });
     }
+
+    if (!newPassword) {
+      return formMethods.setError("newPassword", {
+        message: t("new_password_required"),
+        type: "custom",
+      });
+    }
+
+    passwordMutation.mutate({ oldPassword, newPassword });
+
     if (sessionTimeout !== newSessionTimeout) {
       sessionMutation.mutate({ metadata: { ...metadata, sessionTimeout: newSessionTimeout } });
     }
@@ -111,33 +127,18 @@ const PasswordView = () => {
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
-      {user && user.identityProvider !== IdentityProvider.CAL ? (
-        <div>
-          <div className="mt-6">
-            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
-              {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
-              })}
-            </h2>
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
-            {t("account_managed_by_identity_provider_description", {
-              provider: identityProviderNameMap[user.identityProvider],
-            })}
-          </p>
-        </div>
-      ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
           {formMethods.formState.errors.apiError && (
             <div className="pb-6">
               <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
             </div>
           )}
-
           <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+            {!allowEmptyOldPassword && (
             <div>
               <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
             </div>
+          )}
             <div>
               <PasswordField
                 {...formMethods.register("newPassword", {
@@ -201,7 +202,6 @@ const PasswordView = () => {
             {t("update")}
           </Button>
         </Form>
-      )}
     </>
   );
 };

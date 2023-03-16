@@ -1658,5 +1658,7 @@
   "invalid_event_name_variables":"There is an invalid variable in your event name",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
-  "default_conferencing_bulk_description": "Update the locations for the selected event types"
+  "default_conferencing_bulk_description": "Update the locations for the selected event types",
+  "old_password_required": "Old password is required",
+  "new_password_required": "New password is required"
 }

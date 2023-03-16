@@ -38,17 +38,22 @@ export const authRouter = router({
 
       const currentPassword = currentPasswordQuery?.password;
 
-      if (!currentPassword) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
-      }
+      const allowEmptyOldPassword = (user.identityProvider != "CAL") && !currentPassword;
 
-      const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
-      if (!passwordsMatch) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "incorrect_password" });
-      }
-
-      if (oldPassword === newPassword) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "new_password_matches_old_password" });
+      if (!allowEmptyOldPassword) {
+        if (!currentPassword) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "MISSING_PASSWORD" });
+        }
+        
+        const passwordsMatch = await verifyPassword(oldPassword, currentPassword);
+        
+        if (!passwordsMatch) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "incorrect_password" });
+        }
+        
+        if (oldPassword === newPassword) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "new_password_matches_old_password" });
+        }
       }
 
       if (!validPassword(newPassword)) {
