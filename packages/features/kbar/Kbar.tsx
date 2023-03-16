@@ -52,7 +52,7 @@ const useEventTypesAction = () => {
 
   const actions = eventTypeActions?.length ? eventTypeActions : [];
 
-  return useRegisterActions(actions, actions);
+  return useRegisterActions(actions);
 };
 
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
@@ -228,7 +228,8 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       },
       ...appStoreActions,
     ];
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
