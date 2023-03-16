@@ -450,6 +450,7 @@ const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
     return user.defaultScheduleId;
   }
 
+  // If we're returning the default schedule for the first time then we should set it in the user record
   const defaultSchedule = await prisma.schedule.findFirst({
     where: {
       userId,
@@ -457,6 +458,11 @@ const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
     select: {
       id: true,
     },
+  });
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { defaultScheduleId: defaultSchedule?.id },
   });
 
   return defaultSchedule?.id; // TODO: Handle no schedules AT ALL
