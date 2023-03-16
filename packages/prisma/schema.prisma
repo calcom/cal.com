@@ -77,6 +77,7 @@ model EventType {
   recurringEvent          Json?
   disableGuests           Boolean                 @default(false)
   hideCalendarNotes       Boolean                 @default(false)
+  /// @zod.min(0)
   minimumBookingNotice    Int                     @default(120)
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
