@@ -36,7 +36,7 @@ export const tips = [
     mediaLink: "https://go.cal.com/confirmation-video",
     title: "Requires Confirmation",
     description: "Learn how to be in charge of your bookings",
-    href: "https://cal.com/docs/deep-dives/event-types#opt-in-booking",
+    href: "https://cal.com/resources/feature/opt-in",
   },
   {
     id: 5,
