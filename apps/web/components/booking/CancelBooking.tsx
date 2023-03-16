@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -36,6 +36,13 @@ export default function CancelBooking(props: Props) {
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   useTheme(props.theme);
 
+  const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
+    if (node !== null) {
+      node.scrollIntoView({ behavior: "smooth" });
+      node.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       {error && (
@@ -54,6 +61,7 @@ export default function CancelBooking(props: Props) {
         <div className="mt-5 sm:mt-6">
           <label className="text-bookingdark font-medium dark:text-white">{t("cancellation_reason")}</label>
           <TextArea
+            ref={cancelBookingRef}
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
