@@ -5099,6 +5099,7 @@ __metadata:
     next-auth: ^4.20.1
     next-i18next: ^11.3.0
     playwright: ^1.31.2
+    postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
     react-confetti: ^6.0.1
