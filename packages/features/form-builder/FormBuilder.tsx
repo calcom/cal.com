@@ -284,7 +284,7 @@ export const FormBuilder = function FormBuilder({
 
             return (
               <li
-                key={index}
+                key={field.name}
                 data-testid={`field-${field.name}`}
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
                 {index >= 1 && (
