@@ -377,7 +377,10 @@ function getBookingData({
     ? extendedBookingCreateBody.merge(
         z.object({
           responses: getBookingResponsesSchema({
-            bookingFields: eventType.bookingFields,
+            eventType: {
+              bookingFields: eventType.bookingFields,
+            },
+            view: req.body.rescheduleUid ? "reschedule" : "booking",
           }),
         })
       )
