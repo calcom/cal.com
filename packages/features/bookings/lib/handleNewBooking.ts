@@ -1439,6 +1439,17 @@ async function handler(
       };
     });
 
+    if (evt.team?.members) {
+      attendeesData.push(
+        ...evt.team.members.map((member) => ({
+          email: member.email,
+          name: member.name,
+          timeZone: member.timeZone,
+          locale: member.language.locale,
+        }))
+      );
+    }
+
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       responses: responses === null ? Prisma.JsonNull : responses,

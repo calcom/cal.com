@@ -3,7 +3,7 @@
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
-      "dependsOn": ["post-install", "db-deploy"],
+      "dependsOn": ["post-install"],
       "outputs": []
     },
     "@calcom/prisma#db-migrate": {
@@ -48,7 +48,7 @@
     },
     "@calcom/web#start": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-deploy"],
+      "dependsOn": [],
       "outputs": []
     },
     "@calcom/website#build": {
@@ -242,6 +242,7 @@
     "$PLAYWRIGHT_HEADLESS",
     "$PLAYWRIGHT_TEST_BASE_URL",
     "$PRISMA_FIELD_ENCRYPTION_KEY",
+    "$PRISMA_GENERATE_DATAPROXY",
     "$QUICK",
     "$RAILWAY_STATIC_URL",
     "$SALESFORCE_CONSUMER_KEY",
