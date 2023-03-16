@@ -24,11 +24,10 @@
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "eslint": "^8.34.0",
     "typescript": "^4.9.4",
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "*"
+    "@calcom/embed-core": "workspace:*"
   }
 }
