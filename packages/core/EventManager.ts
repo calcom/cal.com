@@ -314,6 +314,7 @@ export default class EventManager {
       if (
         event.schedulingType === "COLLECTIVE" &&
         event.team &&
+        event.team.destinationCalendar &&
         event.team.destinationCalendar.length > 0 &&
         event.team.members.length > 0
       ) {

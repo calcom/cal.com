@@ -155,7 +155,7 @@ export interface CalendarEvent {
   team?: {
     name: string;
     members: TeamMember[];
-    destinationCalendar: DestinationCalendar[];
+    destinationCalendar?: DestinationCalendar[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
