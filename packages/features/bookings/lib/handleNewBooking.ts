@@ -703,6 +703,13 @@ async function handler(
           language: { translate: tGuests, locale: "en" },
         });
       }
+    } else {
+      guestArray.push({
+        email: guest,
+        name: "",
+        timeZone: reqBody.timeZone,
+        language: { translate: tGuests, locale: "en" },
+      });
     }
     return guestArray;
   }, [] as typeof invitee);
