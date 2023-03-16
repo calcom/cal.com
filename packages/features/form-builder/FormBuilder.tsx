@@ -266,7 +266,7 @@ export const FormBuilder = function FormBuilder({
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
             console.log("field", field);
-            if (field.hideWhenJustOneOption) {
+            if (field.hideWhenJustOneOption && field.options?.length === 1) {
               return null;
             }
             const fieldType = FieldTypesMap[field.type];
