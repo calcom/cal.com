@@ -27,7 +27,7 @@ const badgeStyles = cva("font-medium inline-flex items-center justify-center rou
   },
   defaultVariants: {
     variant: "default",
-    size: "sm",
+    size: "md",
   },
 });
 
