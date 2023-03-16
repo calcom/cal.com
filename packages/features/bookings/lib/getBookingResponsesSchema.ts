@@ -1,22 +1,32 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
+import type { ALL_VIEWS } from "@calcom/features/form-builder/FormBuilderFieldsSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses } from "@calcom/prisma/zod-utils";
 
 type EventType = Parameters<typeof preprocess>[0]["eventType"];
-export const getBookingResponsesPartialSchema = (eventType: EventType) => {
+// eslint-disable-next-line @typescript-eslint/ban-types
+type View = ALL_VIEWS | (string & {});
+
+export const getBookingResponsesPartialSchema = ({
+  eventType,
+  view,
+}: {
+  eventType: EventType;
+  view: View;
+}) => {
   const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
 
-  return preprocess({ schema, eventType, isPartialSchema: true });
+  return preprocess({ schema, eventType, isPartialSchema: true, view });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema(eventType: EventType) {
+export default function getBookingResponsesSchema({ eventType, view }: { eventType: EventType; view: View }) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, eventType, isPartialSchema: false });
+  return preprocess({ schema, eventType, isPartialSchema: false, view });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -25,12 +35,14 @@ function preprocess<T extends z.ZodType>({
   schema,
   eventType,
   isPartialSchema,
+  view: currentView,
 }: {
   schema: T;
   isPartialSchema: boolean;
   eventType: {
     bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
   };
+  view: View;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
@@ -42,8 +54,15 @@ function preprocess<T extends z.ZodType>({
           // If there is no response for the field, then we don't need to do any processing
           return;
         }
-        // Turn a boolean in string to a real boolean
+        const views = field.views;
+        const isFieldApplicableToCurrentView =
+          currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
+        if (!isFieldApplicableToCurrentView) {
+          // If the field is not applicable in the current view, then we don't need to do any processing
+          return;
+        }
         if (field.type === "boolean") {
+          // Turn a boolean in string to a real boolean
           newResponses[field.name] = value === "true" || value === true;
         }
         // Make sure that the value is an array
@@ -76,8 +95,16 @@ function preprocess<T extends z.ZodType>({
           : z.string().refine((val) => isValidPhoneNumber(val));
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string) => `{${bookingField.name}}${message}`;
+        const views = bookingField.views;
+        const isFieldApplicableToCurrentView =
+          currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
         // If the field is hidden, then it can never be required
-        const isRequired = bookingField.hidden ? false : bookingField.required;
+        const isRequired = bookingField.hidden
+          ? false
+          : isFieldApplicableToCurrentView
+          ? bookingField.required
+          : false;
+
         if ((isPartialSchema || !isRequired) && value === undefined) {
           return;
         }

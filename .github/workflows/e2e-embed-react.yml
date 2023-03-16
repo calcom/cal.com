@@ -25,7 +25,7 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn test-e2e:embed
+        run: yarn test-e2e:embed-react
         env:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
       - name: Upload Test Results
