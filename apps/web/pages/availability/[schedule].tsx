@@ -153,7 +153,7 @@ export default function Availability() {
 
   return (
     <Shell
-      backPath="/availability"
+      backPath
       title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
