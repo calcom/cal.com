@@ -201,9 +201,16 @@ export const availabilityRouter = router({
         const schedule = await prisma.schedule.create({
           data,
         });
-        const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
-        if (!hasDefaultScheduleId) {
-          await setupDefaultSchedule(user.id, schedule.id, prisma);
+
+        if (!user.defaultScheduleId) {
+          await prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              defaultScheduleId: schedule.id,
+            },
+          });
         }
 
         return { schedule };
