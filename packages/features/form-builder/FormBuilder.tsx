@@ -278,7 +278,8 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
-            if (field.hideWhenJustOneOption && options?.length <= 1) {
+            const numOptions = options?.length ?? 0;
+            if (field.hideWhenJustOneOption && numOptions <= 1) {
               return null;
             }
             const fieldType = FieldTypesMap[field.type];

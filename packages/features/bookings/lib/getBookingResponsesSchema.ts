@@ -122,8 +122,9 @@ function preprocess<T extends z.ZodType>({
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
         let hidden = bookingField.hidden;
+        const numOptions = bookingField.options?.length ?? 0;
         if (bookingField.hideWhenJustOneOption) {
-          hidden = hidden || bookingField.options?.length <= 1;
+          hidden = hidden || numOptions <= 1;
         }
         // If the field is hidden, then it can never be required
         const isRequired = hidden ? false : isFieldApplicableToCurrentView ? bookingField.required : false;
