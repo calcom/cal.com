@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -153,22 +154,26 @@ export const webexMeetingsSchema = z.object({
 
 /** @link https://developer.webex.com/docs/integrations#getting-an-access-token */
 const webexTokenSchema = z.object({
+  scope: z.literal("spark:kms meeting:schedules_read meeting:schedules_write"),
+  token_type: z.literal("Bearer"),
   access_token: z.string(),
-  expires_in: z.number(),
+  expires_in: z.number().optional(),
   refresh_token: z.string(),
   refresh_token_expires_in: z.number(),
   expiry_date: z.number(),
 });
 type WebexToken = z.infer<typeof webexTokenSchema>;
-const isTokenValid = (token: WebexToken) => (token.expires_in || token.expiry_date) < Date.now();
+const isTokenValid = (token: WebexToken) => token.expiry_date < Date.now();
 
 /** @link https://developer.webex.com/docs/integrations#using-the-refresh-token */
 const webexRefreshedTokenSchema = z.object({
+  scope: z.literal("spark:kms meeting:schedules_read meeting:schedules_write"),
+  token_type: z.literal("Bearer"),
   access_token: z.string(),
+  expires_in: z.number().optional(),
   refresh_token: z.string(),
-  expiry_date: z.number(),
-  expires_in: z.number(),
   refresh_token_expires_in: z.number(),
+  expiry_date: z.number(),
 });
 
 const webexAuth = (credential: CredentialPayload) => {
@@ -211,7 +216,9 @@ const webexAuth = (credential: CredentialPayload) => {
     key.access_token = newTokens.access_token;
     key.refresh_token = newTokens.refresh_token;
     // set expiry date as offset from current time.
-    key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
+    if (newTokens.expires_in) {
+      key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
+    }
     // Store new tokens in database.
     await prisma.credential.update({ where: { id: credential.id }, data: { key } });
     return newTokens.access_token;
@@ -220,7 +227,9 @@ const webexAuth = (credential: CredentialPayload) => {
     getToken: async () => {
       let credentialKey: WebexToken | null = null;
       try {
+        console.log("received credential", credential.key);
         credentialKey = webexTokenSchema.parse(credential.key);
+        console.log("parsed credential", credentialKey);
       } catch (error) {
         return Promise.reject("Webex credential keys parsing error");
       }
@@ -234,15 +243,18 @@ const webexAuth = (credential: CredentialPayload) => {
 
 const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   //TODO implement translateEvent for recurring events
-  const translateEvent = async (event: CalendarEvent) => {
+  const translateEvent = (event: CalendarEvent) => {
     //To convert the Cal's CalendarEvent type to a webex meeting type
-
+    console.log("event received in translateEvent", event);
     /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
     //Required params - title, start, end
     //There are a ton of other options, what do we want to support?
+    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
+    console.log("calculated utcOffset", utcOffset);
+    console.log("calculated start", dayjs(event.startTime).utcOffset(utcOffset).format());
     return {
       title: event.title,
-      start: event.startTime,
+      start: dayjs(event.startTime).utcOffset(utcOffset).format(),
       end: event.endTime,
       recurrence: event.recurrence, //Follows RFC 2445 https://www.ietf.org/rfc/rfc2445.txt, TODO check if needs conversion
       timezone: event.organizer.timeZone,
@@ -258,6 +270,8 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   const fetchWebexApi = async (endpoint: string, options?: RequestInit) => {
     const auth = webexAuth(credential);
     const accessToken = await auth.getToken();
+    console.log("result of accessToken in fetchWebexApi", accessToken);
+    console.log("createMeeting options in fetchWebexApi", options);
     const response = await fetch(`https://webexapis.com/v1/${endpoint}`, {
       method: "GET",
       ...options,
@@ -291,6 +305,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       try {
         console.log("Creating meeting", event);
         console.log("meting body", translateEvent(event));
+        console.log("request body in createMeeting", JSON.stringify(translateEvent(event)));
         const response = await fetchWebexApi("meetings", {
           method: "POST",
           headers: {
@@ -298,6 +313,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           },
           body: JSON.stringify(translateEvent(event)),
         });
+        console.log("Webex create meeting response", response);
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
@@ -367,8 +383,10 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
 };
 
 const handleWebexResponse = async (response: Response, credentialId: Credential["id"]) => {
+  console.log("response headers inside handleWebexResponse", response.headers);
   let _response = response.clone();
   const responseClone = response.clone();
+  console.log("responseClone inside handleWebexResponse", responseClone);
   if (_response.headers.get("content-encoding") === "gzip") {
     const responseString = await response.text();
     _response = JSON.parse(responseString);
