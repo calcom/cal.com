@@ -746,14 +746,16 @@ async function handler(
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
 
   const teamDestinationCalendar: DestinationCalendar[] = [];
-  const teamMemberPromises = users.map(async function (user) {
+
+  // Organizer or user owner of this event type it's not listed as a team member.
+  const teamMemberPromises = users.slice(1).map(async (user) => {
     // push to teamDestinationCalendar if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
       teamDestinationCalendar.push(user.destinationCalendar);
     }
     return {
-      email: user.email || "",
-      name: user.name || "",
+      email: user.email ?? "",
+      name: user.name ?? "",
       timeZone: user.timeZone,
       language: {
         translate: await getTranslation(user.locale ?? "en", "common"),
@@ -761,6 +763,7 @@ async function handler(
       },
     };
   });
+
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];

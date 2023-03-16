@@ -311,15 +311,9 @@ export default class EventManager {
 
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
-      if (
-        event.schedulingType === "COLLECTIVE" &&
-        event.team &&
-        event.team.destinationCalendar &&
-        event.team.destinationCalendar.length > 0 &&
-        event.team.members.length > 0
-      ) {
-        // Loop through each member of the event's team and create events for their destination calendars
-        for (const destinationCalendar of event.team.destinationCalendar) {
+      if (event.schedulingType === "COLLECTIVE" && event.team?.destinationCalendar) {
+        const destinationCalendars = event.team.destinationCalendar;
+        for (const destinationCalendar of destinationCalendars) {
           if (destinationCalendar.credentialId) {
             const dbCredential = await prisma.credential.findFirst({
               where: {
@@ -327,19 +321,17 @@ export default class EventManager {
               },
             });
             if (!dbCredential) {
-              console.error("Credential not found");
+              console.error("Credential not found for ID:", destinationCalendar.credentialId);
               continue;
             }
             const credential: CredentialWithAppName = {
               ...dbCredential,
               appName: "", // Can appName be more easy to get?
             };
-            if (credential) {
-              const memberEvent = { ...event, destinationCalendar };
-              const createdEvent = await createEvent(credential, memberEvent);
-              if (createdEvent) {
-                createdEvents.push(createdEvent);
-              }
+            const memberEvent = { ...event, destinationCalendar };
+            const createdEvent = await createEvent(credential, memberEvent);
+            if (createdEvent) {
+              createdEvents.push(createdEvent);
             }
           }
         }
