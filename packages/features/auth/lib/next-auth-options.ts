@@ -444,7 +444,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 identityProvider: idP,
               },
               {
-                identityProviderId: account.providerAccountId as string,
+                identityProviderId: account.providerAccountId,
               },
             ],
           },
@@ -523,11 +523,11 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=unverified-email";
         }
 
-        const existingUser = await prisma.user.findFirst({
+        let existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
               where: {
-                provider: idP,
+                provider: account.provider,
               },
             },
           },
@@ -537,6 +537,33 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
+        /* --- START FIX LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
+        if (!existingUser) {
+          existingUser = await prisma.user.findFirst({
+            include: {
+              accounts: {
+                where: {
+                  provider: account.provider,
+                },
+              },
+            },
+            where: {
+              identityProvider: idP,
+              identityProviderId: String(user.id),
+            },
+          });
+          if (existingUser) {
+            await prisma.user.update({
+              where: {
+                id: existingUser?.id,
+              },
+              data: {
+                identityProviderId: account.providerAccountId,
+              },
+            });
+          }
+        }
+        /* --- END FIXES LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
         if (existingUser) {
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
@@ -617,7 +644,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
 
@@ -640,7 +667,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 password: null,
                 email: user.email,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -664,7 +691,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: String(user.id),
+            identityProviderId: account.providerAccountId,
           },
         });
 
