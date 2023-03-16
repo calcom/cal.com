@@ -272,10 +272,8 @@ export default function Success(props: SuccessProps) {
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
-    (isCancellationMode &&
-      (!!seatReferenceUid
-        ? !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid)
-        : !userIsOwner));
+    (!!seatReferenceUid &&
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
   const telemetry = useTelemetry();
   useEffect(() => {
@@ -606,7 +604,7 @@ export default function Success(props: SuccessProps) {
 
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
-                            <span className="underline">
+                            <span className="underline" data-testid="reschedule-link">
                               <Link
                                 href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
                                 legacyBehavior>

@@ -33,56 +33,108 @@ test.describe("Manage Booking Questions", () => {
         await firstEventTypeElement.click();
       });
 
-      await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
-        await addQuestionAndSave({
-          page,
-          question: {
-            name: "how_are_you",
-            type: "Name",
-            label: "How are you?",
-            placeholder: "I'm fine, thanks",
-            required: true,
-          },
-        });
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+    });
+  });
 
-        await doOnFreshPreview(page, context, async (page) => {
-          const allFieldsLocator = await expectSystemFieldsToBeThere(page);
-          const userFieldLocator = allFieldsLocator.nth(5);
+  test.describe("For Team EventType", () => {
+    test("Do a booking with a user added question and verify a few thing in b/w", async ({
+      page,
+      users,
+      context,
+    }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
+      test.setTimeout(testInfo.timeout * 3);
+      const user = await createAndLoginUserWithEventTypes({ users });
 
-          await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
-          // There are 2 labels right now. Will be one in future. The second one is hidden
-          expect(await userFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
-          await expect(userFieldLocator.locator("input[type=text]")).toBeVisible();
-        });
+      const webhookReceiver = await addWebhook(user);
+
+      await test.step("Go to First Team Event", async () => {
+        const $eventTypes = page.locator("[data-testid=event-types]").nth(1).locator("li a");
+        const firstEventTypeElement = $eventTypes.first();
+
+        await firstEventTypeElement.click();
       });
 
-      await test.step("Hide Question and see that it's not shown on Booking Page", async () => {
-        await toggleQuestionAndSave({
-          name: "how_are_you",
-          page,
-        });
-        await doOnFreshPreview(page, context, async (page) => {
-          const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
-          await expect(formBuilderFieldLocator).toBeHidden();
-        });
-      });
+      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
+    });
+  });
+});
 
-      await test.step("Show Question Again", async () => {
-        await toggleQuestionAndSave({
-          name: "how_are_you",
-          page,
-        });
-      });
+async function runTestStepsCommonForTeamAndUserEventType(
+  page: Page,
+  context: PlaywrightTestArgs["context"],
+  webhookReceiver: {
+    port: number;
+    close: () => import("http").Server;
+    requestList: (import("http").IncomingMessage & { body?: unknown })[];
+    url: string;
+  }
+) {
+  await page.click('[href$="tabName=advanced"]');
 
-      await test.step('Try to book without providing "How are you?" response', async () => {
-        await doOnFreshPreview(page, context, async (page) => {
-          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-          await expectErrorToBeThereFor({ page, name: "how_are_you" });
-        });
-      });
+  await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
+    await addQuestionAndSave({
+      page,
+      question: {
+        name: "how_are_you",
+        type: "Name",
+        label: "How are you?",
+        placeholder: "I'm fine, thanks",
+        required: true,
+      },
+    });
 
-      await test.step("Do a booking", async () => {
-        await doOnFreshPreview(page, context, async (page) => {
+    await doOnFreshPreview(page, context, async (page) => {
+      const allFieldsLocator = await expectSystemFieldsToBeThere(page);
+      const userFieldLocator = allFieldsLocator.nth(5);
+
+      await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
+      // There are 2 labels right now. Will be one in future. The second one is hidden
+      expect(await userFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
+      await expect(userFieldLocator.locator("input[type=text]")).toBeVisible();
+    });
+  });
+
+  await test.step("Hide Question and see that it's not shown on Booking Page", async () => {
+    await toggleQuestionAndSave({
+      name: "how_are_you",
+      page,
+    });
+    await doOnFreshPreview(page, context, async (page) => {
+      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
+      await expect(formBuilderFieldLocator).toBeHidden();
+    });
+  });
+
+  await test.step("Show Question Again", async () => {
+    await toggleQuestionAndSave({
+      name: "how_are_you",
+      page,
+    });
+  });
+
+  await test.step('Try to book without providing "How are you?" response', async () => {
+    await doOnFreshPreview(page, context, async (page) => {
+      await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+      await expectErrorToBeThereFor({ page, name: "how_are_you" });
+    });
+  });
+
+  await test.step("Make rescheduleReason required - It won't be required for a fresh booking", async () => {
+    await toggleQuestionRequireStatusAndSave({
+      required: true,
+      name: "rescheduleReason",
+      page,
+    });
+  });
+
+  const previewTabPage =
+    await test.step("Do a booking and notice that we can book without giving a value for rescheduleReason", async () => {
+      return await doOnFreshPreview(
+        page,
+        context,
+        async (page) => {
           const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
           await expect(formBuilderFieldLocator).toBeVisible();
           expect(
@@ -133,146 +185,16 @@ test.describe("Manage Booking Questions", () => {
               value: "I am great!",
             },
           });
-        });
-      });
-    });
-  });
-
-  test.describe("For Team EventType", () => {
-    test("Do a booking with a user added question and verify a few thing in b/w", async ({
-      page,
-      users,
-      context,
-    }, testInfo) => {
-      // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 3);
-      const user = await createAndLoginUserWithEventTypes({ users });
-
-      const webhookReceiver = await addWebhook(user);
-
-      await test.step("Go to First Team Event", async () => {
-        const $eventTypes = page.locator("[data-testid=event-types]").nth(1).locator("li a");
-        const firstEventTypeElement = $eventTypes.first();
-
-        await firstEventTypeElement.click();
-      });
-
-      await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
-    });
-  });
-});
-
-async function runTestStepsCommonForTeamAndUserEventType(
-  page: Page,
-  context: PlaywrightTestArgs["context"],
-  webhookReceiver: {
-    port: number;
-    close: () => import("http").Server;
-    requestList: (import("http").IncomingMessage & { body?: unknown })[];
-    url: string;
-  }
-) {
-  await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
-    await addQuestionAndSave({
-      page,
-      question: {
-        name: "how_are_you",
-        type: "Name",
-        label: "How are you?",
-        placeholder: "I'm fine, thanks",
-        required: true,
-      },
-    });
-
-    await doOnFreshPreview(page, context, async (page) => {
-      const allFieldsLocator = await expectSystemFieldsToBeThere(page);
-      const userFieldLocator = allFieldsLocator.nth(5);
-
-      await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
-      // There are 2 labels right now. Will be one in future. The second one is hidden
-      expect(await userFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
-      await expect(userFieldLocator.locator("input[type=text]")).toBeVisible();
-    });
-  });
-
-  await test.step("Hide Question and see that it's not shown on Booking Page", async () => {
-    await toggleQuestionAndSave({
-      name: "how_are_you",
-      page,
-    });
-    await doOnFreshPreview(page, context, async (page) => {
-      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
-      await expect(formBuilderFieldLocator).toBeHidden();
-    });
-  });
-
-  await test.step("Show Question Again", async () => {
-    await toggleQuestionAndSave({
-      name: "how_are_you",
-      page,
-    });
-  });
-
-  await test.step('Try to book without providing "How are you?" response', async () => {
-    await doOnFreshPreview(page, context, async (page) => {
-      await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-      await expectErrorToBeThereFor({ page, name: "how_are_you" });
-    });
-  });
-
-  await test.step("Do a booking", async () => {
-    await doOnFreshPreview(page, context, async (page) => {
-      const formBuilderFieldLocator = page.locator('[data-fob-field-name="how_are_you"]');
-      await expect(formBuilderFieldLocator).toBeVisible();
-      expect(await formBuilderFieldLocator.locator('[name="how_are_you"]').getAttribute("placeholder")).toBe(
-        "I'm fine, thanks"
+        },
+        true
       );
-      expect(await formBuilderFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
-      await formBuilderFieldLocator.locator('[name="how_are_you"]').fill("I am great!");
-      await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-      expect(
-        await page.locator('[data-testid="field-response"][data-fob-field="how_are_you"]').innerText()
-      ).toBe("I am great!");
-
-      await waitFor(() => {
-        expect(webhookReceiver.requestList.length).toBe(1);
-      });
-
-      const [request] = webhookReceiver.requestList;
-
-      const payload = (request.body as any).payload as any;
-
-      expect(payload.responses).toMatchObject({
-        email: {
-          label: "email_address",
-          value: "booker@example.com",
-        },
-        how_are_you: {
-          label: "How are you?",
-          value: "I am great!",
-        },
-        name: {
-          label: "your_name",
-          value: "Booker",
-        },
-      });
-
-      expect(payload.location).toBe("integrations:daily");
-
-      expect(payload.attendees[0]).toMatchObject({
-        name: "Booker",
-        email: "booker@example.com",
-      });
-
-      expect(payload.userFieldsResponses).toMatchObject({
-        how_are_you: {
-          label: "How are you?",
-          value: "I am great!",
-        },
-      });
     });
+
+  await test.step("Do a reschedule and notice that we can't book without giving a value for rescheduleReason", async () => {
+    const page = previewTabPage;
+    await rescheduleFromTheLinkOnPage({ page });
+    await page.pause();
+    await expectErrorToBeThereFor({ page, name: "rescheduleReason" });
   });
 }
 
@@ -333,7 +255,6 @@ async function addQuestionAndSave({
     required?: boolean;
   };
 }) {
-  await page.click('[href$="tabName=advanced"]');
   await page.click('[data-testid="add-field"]');
 
   if (question.type !== undefined) {
@@ -379,15 +300,38 @@ async function expectErrorToBeThereFor({ page, name }: { page: Page; name: strin
 async function doOnFreshPreview(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  callback: (page: Page) => Promise<void>
+  callback: (page: Page) => Promise<void>,
+  persistTab = false
 ) {
   const previewTabPage = await openBookingFormInPreviewTab(context, page);
   await callback(previewTabPage);
-  await previewTabPage.close();
+  if (!persistTab) {
+    await previewTabPage.close();
+  }
+  return previewTabPage;
 }
 
 async function toggleQuestionAndSave({ name, page }: { name: string; page: Page }) {
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="toggle-field"]').click();
+  await saveEventType(page);
+}
+
+async function toggleQuestionRequireStatusAndSave({
+  required,
+  name,
+  page,
+}: {
+  required: boolean;
+  name: string;
+  page: Page;
+}) {
+  await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
+  await page
+    .locator('[data-testid="edit-field-dialog"]')
+    .locator('[data-testid="field-required"] button')
+    .locator(`text=${required ? "Yes" : "No"}`)
+    .click();
+  await page.locator('[data-testid="field-add-save"]').click();
   await saveEventType(page);
 }
 
@@ -397,6 +341,16 @@ async function createAndLoginUserWithEventTypes({ users }: { users: ReturnType<t
   });
   await user.login();
   return user;
+}
+
+async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
+  await page.locator('[data-testid="reschedule-link"]').click();
+  await page.waitForLoadState();
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await page.waitForNavigation({
+    url: (url) => url.pathname.endsWith("/book"),
+  });
+  await page.click('[data-testid="confirm-reschedule-button"]');
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
