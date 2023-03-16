@@ -357,10 +357,10 @@ export const Components: Record<BookingFieldType, Component> = {
                     name: "optionField",
                   }}
                   value={value?.optionValue}
-                  setValue={(val: string) => {
+                  setValue={(val: string | undefined) => {
                     setValue({
                       value: value?.value,
-                      optionValue: val,
+                      optionValue: val || "",
                     });
                   }}
                 />
