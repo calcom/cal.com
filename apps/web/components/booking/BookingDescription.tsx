@@ -135,7 +135,6 @@ const BookingDescription: FC<Props> = (props) => {
                   <li key={idx}>
                     <Badge
                       variant="gray"
-                      size="lg"
                       className={classNames(
                         duration === dur.toString()
                           ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
