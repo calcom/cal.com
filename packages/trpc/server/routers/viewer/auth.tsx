@@ -23,10 +23,6 @@ export const authRouter = router({
 
       const { user } = ctx;
 
-      if (user.identityProvider !== IdentityProvider.CAL) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
-      }
-
       const currentPasswordQuery = await prisma.user.findFirst({
         where: {
           id: user.id,
