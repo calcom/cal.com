@@ -595,7 +595,7 @@ export const analyticsRouter = router({
         }>
       ) => membership.team
     );
-    console.log({ result });
+
     return result;
   }),
   userList: userBelongsToTeamProcedure
