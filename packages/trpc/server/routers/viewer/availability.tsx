@@ -247,7 +247,7 @@ export const availabilityRouter = router({
               id: user.id,
             },
             data: {
-              defaultScheduleId: scheduleToSetAsDefault?.id,
+              defaultScheduleId: scheduleToSetAsDefault?.id || null,
             },
           });
         }
