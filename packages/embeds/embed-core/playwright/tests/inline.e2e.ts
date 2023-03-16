@@ -4,7 +4,7 @@ import { test } from "@calcom/web/playwright/lib/fixtures";
 
 import { bookFirstEvent, deleteAllBookingsByEmail, getEmbedIframe, todo } from "../lib/testUtils";
 
-test.only("Inline Iframe - Configured with Dark Theme", async ({
+test("Inline Iframe - Configured with Dark Theme", async ({
   page,
   getActionFiredDetails,
   addEmbedListeners,
