@@ -71,7 +71,6 @@ export const getBookingFieldsWithSystemFields = ({
   customInputs,
   metadata,
   workflows,
-  locations,
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
@@ -91,7 +90,6 @@ export const getBookingFieldsWithSystemFields = ({
       };
     };
   }>["workflows"];
-  locations: EventType["locations"];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
   const parsedBookingFields = eventTypeBookingFields.parse(bookingFields || []);
@@ -103,7 +101,6 @@ export const getBookingFieldsWithSystemFields = ({
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
     workflows,
-    shouldhideLocation: Array.isArray(locations) ? locations.length <= 1 : false,
   });
 };
 
@@ -113,7 +110,6 @@ export const ensureBookingInputsHaveSystemFields = ({
   additionalNotesRequired,
   customInputs,
   workflows,
-  shouldhideLocation,
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
@@ -133,7 +129,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       };
     };
   }>["workflows"];
-  shouldhideLocation: boolean;
 }) => {
   // If bookingFields is set already, the migration is done.
   const handleMigration = !bookingFields.length;
@@ -196,9 +191,10 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "radioInput",
       name: "location",
       editable: "system",
+      hideWhenJustOneOption: true,
+      getOptionsAt: "locations",
       required: false,
       // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
-      // options: `eventType.locations`
       optionsInputs: {
         attendeeInPerson: {
           type: "address",
@@ -350,19 +346,14 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = bookingFields.map((field) => {
     const foundEditableMap = SystemFieldsEditability[field.name as keyof typeof SystemFieldsEditability];
-    const isFieldNameLocation = field.name === "location";
 
     if (!foundEditableMap) {
-      return {
-        ...field,
-        hideWhenJustOneOption: isFieldNameLocation && shouldhideLocation,
-      };
+      return field;
     }
     // Ensure that system fields editability, even if modified to something else in DB(accidentally), get's reset to what's in the code.
     return {
       ...field,
       editable: foundEditableMap,
-      hideWhenJustOneOption: isFieldNameLocation && shouldhideLocation,
     };
   });
 

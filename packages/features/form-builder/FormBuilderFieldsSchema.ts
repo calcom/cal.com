@@ -44,7 +44,12 @@ const fieldSchema = z.object({
     .array()
     .optional(),
   type: fieldTypeEnum,
+
   options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  // This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
+  // This allows keeping a single source of truth in DB.
+  getOptionsAt: z.string().optional(),
+
   optionsInputs: z
     .record(
       z.object({
@@ -56,11 +61,11 @@ const fieldSchema = z.object({
       })
     )
     .optional(),
+  // used to hide fields such as location when there are less than two options
+  hideWhenJustOneOption: z.boolean().default(false).optional(),
 
   required: z.boolean().default(false).optional(),
   hidden: z.boolean().optional(),
-  // used to hide fields such as location when there are less than two options
-  hideWhenJustOneOption: z.boolean().default(false).optional(),
   editable: z
     .enum([
       "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional

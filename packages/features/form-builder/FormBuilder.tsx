@@ -44,11 +44,16 @@ export const FormBuilder = function FormBuilder({
   description,
   addFieldLabel,
   formProp,
+  dataStore,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
+  // A readonly dataStore that is used to lookup the options for the fields.
+  dataStore: {
+    options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
+  };
 }) {
   const FieldTypesMap: Record<
     string,
@@ -112,6 +117,8 @@ export const FormBuilder = function FormBuilder({
       value: "radioInput",
       isTextType: false,
       systemOnly: true,
+      // This is false currently because we don't want to show the options for Location field right now. It is the only field with type radioInput.
+      // needsOptions: true,
     },
     checkbox: {
       label: "Checkbox Group",
@@ -148,13 +155,14 @@ export const FormBuilder = function FormBuilder({
   function OptionsField({
     label = "Options",
     value,
-    onChange,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onChange = () => {},
     className = "",
     readOnly = false,
   }: {
     label?: string;
     value: { label: string; value: string }[];
-    onChange: (value: { label: string; value: string }[]) => void;
+    onChange?: (value: { label: string; value: string }[]) => void;
     className?: string;
     readOnly?: boolean;
   }) {
@@ -265,8 +273,12 @@ export const FormBuilder = function FormBuilder({
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
           {fields.map((field, index) => {
-            console.log("field", field);
-            if (field.hideWhenJustOneOption && field.options?.length === 1) {
+            const options = field.options
+              ? field.options
+              : field.getOptionsAt
+              ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
+              : [];
+            if (field.hideWhenJustOneOption && options?.length === 1) {
               return null;
             }
             const fieldType = FieldTypesMap[field.type];
@@ -469,8 +481,7 @@ export const FormBuilder = function FormBuilder({
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
-
-              {fieldType?.needsOptions ? (
+              {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
                 <Controller
                   name="options"
                   render={({ field: { value, onChange } }) => {
@@ -478,6 +489,14 @@ export const FormBuilder = function FormBuilder({
                   }}
                 />
               ) : null}
+              {/* TODO: Maybe we should show location options in readOnly mode in Booking Questions. Right now options are not shown in Manage Booking Questions UI for location Booking Question */}
+              {/* {fieldForm.getValues("getOptionsAt") ? (
+                <OptionsField
+                  readOnly={true}
+                  value={dataStore.options[fieldForm.getValues("getOptionsAt") as keyof typeof dataStore]}
+                  className="mt-6"
+                />
+              ) : null} */}
               <Controller
                 name="required"
                 control={fieldForm.control}
