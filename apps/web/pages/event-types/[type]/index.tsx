@@ -212,6 +212,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
     hosts: eventType.hosts,
+    children: eventType.children,
   } as const;
 
   const formMethods = useForm<FormValues>({

@@ -263,6 +263,11 @@ export default async function getEventTypeById({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
+    children: restEventType.children.flatMap((ch) =>
+      ch.owner !== null
+        ? { ...ch, owner: { ...ch.owner, name: ch.owner.name ?? "", username: ch.owner.username ?? "" } }
+        : []
+    ),
   };
 
   // backwards compat

@@ -211,6 +211,7 @@ const ChildrenEventTypes = ({
     <Controller<FormValues>
       name="children"
       render={({ field: { onChange, value } }) => {
+        console.log({ value });
         return (
           <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
         );
