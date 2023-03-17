@@ -1,5 +1,6 @@
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import type { ReactNode } from "react";
+import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -10,7 +11,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2 focus:ring-empthasis",
+      "hover:bg-subtle border-default focus:ring-empthasis mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
       props.disabled && "opacity-60"
     )}>
     {props.children}
@@ -40,13 +41,15 @@ export const RadioField = ({
   disabled,
   id,
   value,
+  className,
 }: {
   label: string;
   disabled?: boolean;
   id: string;
   value: string;
+  className?: string;
 }) => (
-  <div className="flex items-start">
+  <div className={classNames("flex items-start", className)}>
     <Radio value={value} disabled={disabled} id={id}>
       <Indicator disabled={disabled} />
     </Radio>
