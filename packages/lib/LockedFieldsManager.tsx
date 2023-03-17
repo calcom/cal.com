@@ -27,7 +27,9 @@ const lockedFieldsManager = (
     {};
 
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const isChildrenManagedEventType = eventType.metadata?.managedEventConfig !== undefined;
+  const isChildrenManagedEventType =
+    eventType.metadata?.managedEventConfig !== undefined &&
+    eventType.schedulingType !== SchedulingType.MANAGED;
 
   const shouldLockIndicator = (fieldName: string) => {
     let locked = false;

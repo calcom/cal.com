@@ -1,5 +1,5 @@
 import { SchedulingType } from "@prisma/client";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -7,23 +7,47 @@ import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label, Select } from "@calcom/ui";
 
-interface IMemberToValue {
+interface IUserToValue {
   id: number | null;
   name: string | null;
   username: string | null;
   email: string;
 }
 
-const mapUserToValue = ({ id, name, username, email }: IMemberToValue) => ({
+const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
   value: `${id || ""}`,
   label: `${name || ""}`,
   avatar: `${WEBAPP_URL}/${username}/avatar.png`,
   email,
 });
+
+const mapMemberToChildrenOption = (
+  member: EventTypeSetupProps["teamMembers"][number],
+  slug: string,
+  children: EventTypeSetup["children"]
+) => {
+  const existentChildren = children.find((ch) => ch.owner?.id === member.id);
+  return {
+    slug,
+    hidden: existentChildren?.hidden ?? false,
+    created: !!existentChildren,
+    owner: {
+      id: member.id,
+      name: member.name ?? "",
+      username: member.username ?? "",
+      membership: member.membership,
+      eventTypeSlugs: member.eventTypes ?? [],
+    },
+    value: `${member.id ?? ""}`,
+    label: member.name ?? "",
+  };
+};
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
   if (a.label < b.label) {
@@ -35,39 +59,36 @@ const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof 
   return 0;
 };
 
-const UserField = ({
-  labelText,
-  placeholder,
+const ChildrenEventTypesList = ({
   options = [],
   value,
   onChange,
   ...rest
 }: {
-  labelText: string;
-  placeholder: string;
-  value: number[];
-  onChange?: (options: number[]) => void;
-  options?: Options<CheckedSelectOption>;
-} & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+  value: ReturnType<typeof mapMemberToChildrenOption>[];
+  onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
+  options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
+} & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
   return (
     <div className="flex flex-col space-y-5">
       <div>
-        <Label>{labelText}</Label>
-        <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((userId) => userId.toString() === option.value)}
+        <Label>{t("assign_to")}</Label>
+        <ChildrenEventTypeSelect
+          isOptionDisabled={(option) =>
+            value && !!value.find((children) => children.owner.id.toString() === option.value)
+          }
           onChange={(options) => {
-            onChange && onChange(options.map((option) => parseInt(option.value, 10)));
+            onChange &&
+              onChange(
+                options.map((option) => ({
+                  ...option,
+                }))
+              );
           }}
-          value={(value || [])
-            .map(
-              (userId) =>
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                options.find((member) => member.value === userId.toString())!
-            )
-            .filter(Boolean)}
-          controlShouldRenderValue={false}
+          value={value}
           options={options}
-          placeholder={placeholder}
+          controlShouldRenderValue={false}
           {...rest}
         />
       </div>
@@ -163,56 +184,35 @@ const RoundRobinHosts = ({
   );
 };
 
-const Users = ({
-  teamMembers,
+const ChildrenEventTypes = ({
+  childrenEventTypeOptions,
 }: {
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
+  childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
 }) => {
-  const { t } = useLocale();
   const {
-    control,
     resetField,
     getValues,
     formState: { submitCount },
   } = useFormContext<FormValues>();
-  const schedulingType = useWatch({
-    control,
-    name: "schedulingType",
-  });
   const initialValue = useRef<{
-    users: FormValues["users"];
-    schedulingType: SchedulingType | null;
     submitCount: number;
+    children: ChildrenEventType[];
   } | null>(null);
 
   useEffect(() => {
     // Handles init & out of date initial value after submission.
     if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
-      initialValue.current = { users: getValues("users"), schedulingType, submitCount };
+      initialValue.current = { children: getValues("children"), submitCount };
       return;
     }
-    resetField("users", {
-      defaultValue: initialValue.current.schedulingType === schedulingType ? initialValue.current.users : [],
-    });
-  }, [schedulingType, resetField, getValues, submitCount]);
+  }, [resetField, getValues, submitCount]);
 
   return (
     <Controller<FormValues>
-      name="users"
+      name="children"
       render={({ field: { onChange, value } }) => {
         return (
-          <UserField
-            value={value}
-            onChange={onChange}
-            options={teamMembers.sort(sortByLabel)}
-            placeholder={t("add_members")}
-            labelText={t("assign_to")}
-          />
+          <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
         );
       }}
     />
@@ -317,6 +317,9 @@ export const EventTeamTab = ({
     },
   ];
   const teamMembersOptions = teamMembers.map(mapUserToValue);
+  const childrenEventTypeOptions = teamMembers.map((member) => {
+    return mapMemberToChildrenOption(member, eventType.slug, eventType.children);
+  });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
     <div>
@@ -341,7 +344,9 @@ export const EventTeamTab = ({
           <Hosts teamMembers={teamMembersOptions} />
         </div>
       )}
-      {team && isManagedEventType && <Users teamMembers={teamMembersOptions} />}
+      {team && isManagedEventType && (
+        <ChildrenEventTypes childrenEventTypeOptions={childrenEventTypeOptions} />
+      )}
     </div>
   );
 };

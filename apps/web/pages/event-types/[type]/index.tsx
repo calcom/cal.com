@@ -11,6 +11,7 @@ import { z } from "zod";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
@@ -88,7 +89,7 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
-  users: number[];
+  children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
 };
@@ -210,7 +211,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     schedulingType: eventType.schedulingType,
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
-    users: eventType.users.map((user) => user.id),
     hosts: eventType.hosts,
   } as const;
 
@@ -313,7 +313,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             locations,
             metadata,
             customInputs,
-            users,
+            children,
             // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -358,7 +358,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsShowAttendees,
             metadata,
             customInputs,
-            users,
+            children,
           });
         }}>
         <div ref={animationParentRef}>{tabMap[tabName]}</div>

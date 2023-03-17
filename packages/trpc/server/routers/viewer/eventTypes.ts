@@ -87,7 +87,16 @@ const EventTypeUpdateInput = _EventTypeModel
       integration: true,
       externalId: true,
     }),
-    users: z.array(z.number()).optional(),
+    children: z
+      .array(
+        z.object({
+          owner: z.object({
+            id: z.number(),
+          }),
+          hidden: z.boolean(),
+        })
+      )
+      .optional(),
     hosts: z
       .array(
         z.object({
@@ -540,6 +549,7 @@ export const eventTypesRouter = router({
       customInputs,
       recurringEvent,
       users,
+      children,
       hosts,
       id,
       hashedLink,
@@ -626,10 +636,14 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users.length) {
+    if (users.length || children?.length) {
+      let updatedUsers = users.map((userId: number) => ({ id: userId }));
+      if (children?.length) {
+        updatedUsers = updatedUsers.concat(children.map((ch) => ({ id: ch.owner.id })));
+      }
       data.users = {
         set: [],
-        connect: users.map((userId: number) => ({ id: userId })),
+        connect: updatedUsers,
       };
     } else {
       data.users = {
@@ -723,6 +737,7 @@ export const eventTypesRouter = router({
       currentUserId: ctx.user.id,
       oldEventType,
       updatedEventType: eventType,
+      children,
       prisma: ctx.prisma,
     });
 

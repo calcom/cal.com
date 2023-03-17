@@ -1680,5 +1680,6 @@
   "locked_webhooks_description": "Members will be able to see the active webhooks but will not be able to edit any webhook settings",
   "locked_workflows_description": "Members will be able to see the active workflows but will not be able to edit any workflow settings",
   "locked_by_admin": "Locked by admin",
-  "app_not_connected": "You have not connected a {{appName}} account."
+  "app_not_connected": "You have not connected a {{appName}} account.",
+  "connect_now": "Connect now"
 }

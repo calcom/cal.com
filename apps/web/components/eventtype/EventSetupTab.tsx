@@ -284,7 +284,7 @@ export const EventSetupTab = (
               <p className="pl-1 text-sm leading-none text-red-600">
                 {t("app_not_connected", { appName: locationDetails.name })}{" "}
                 <a className="underline" href={`${CAL_URL}/apps/${locationDetails.slug}`}>
-                  Connect now
+                  {t("connect_now")}
                 </a>
               </p>
             )}

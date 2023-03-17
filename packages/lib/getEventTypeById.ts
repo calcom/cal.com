@@ -115,7 +115,14 @@ export default async function getEventTypeById({
             select: {
               role: true,
               user: {
-                select: userSelect,
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
               },
             },
           },
@@ -139,6 +146,19 @@ export default async function getEventTypeById({
       },
       userId: true,
       price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              name: true,
+              username: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -292,7 +312,7 @@ export default async function getEventTypeById({
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
         user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-        return user;
+        return { ...user, membership: member.role };
       })
     : [];
 
