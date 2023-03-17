@@ -5,14 +5,8 @@
 import dynamic from "next/dynamic";
 
 export const InstallAppButtonMap = {
-  applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
-  around: dynamic(() => import("./around/components/InstallAppButton")),
-  caldavcalendar: dynamic(() => import("./caldavcalendar/components/InstallAppButton")),
-  closecom: dynamic(() => import("./closecom/components/InstallAppButton")),
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
-  exchangecalendar: dynamic(() => import("./exchangecalendar/components/InstallAppButton")),
-  googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
   hubspot: dynamic(() => import("./hubspot/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
   jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
