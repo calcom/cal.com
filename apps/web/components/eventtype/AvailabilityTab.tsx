@@ -180,7 +180,7 @@ const EventTypeSchedule = () => {
   const { t } = useLocale();
   const { data: schedules, isLoading } = trpc.viewer.availability.list.useQuery();
 
-  if (!schedules?.schedules.length)
+  if (!schedules?.schedules.length && !isLoading)
     return (
       <EmptyScreen
         Icon={FiClock}
