@@ -125,6 +125,9 @@
     "type-check": {
       "cache": false
     },
+    "type-check:ci": {
+      "cache": false
+    },
     "@calcom/prisma#db-reset": {
       "cache": false,
       "outputs": ["dist/**", "build/**"]
