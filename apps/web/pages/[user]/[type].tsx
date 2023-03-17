@@ -58,6 +58,8 @@ Type.isThemeSupported = true;
 
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
+
+  console.log("getUserPageProps")
   // load server side dependencies
   const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);

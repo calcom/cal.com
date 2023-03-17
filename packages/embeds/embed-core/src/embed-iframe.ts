@@ -188,27 +188,28 @@ export const useEmbedUiConfig = () => {
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
-  const [styles, setStyles] = useState<EmbedStyles>({});
+  const [, setStyles] = useState<EmbedStyles>({});
 
   useEffect(() => {
-    // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  const styles = embedStore.styles || {};
+  // Always read the data from global embedStore so that even across components, the same data is used.
   return styles[elementName] || {};
 };
 
 export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
-  const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
+  const [, setNonStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
-    return registerNewSetter({ elementName, setState: setStyles, styles: false });
-    // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
+    return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return styles[elementName] || {};
+  // Always read the data from global embedStore so that even across components, the same data is used.
+  const nonStyles = embedStore.nonStyles || {};
+  return nonStyles[elementName] || {};
 };
 
 export const useIsBackgroundTransparent = () => {
@@ -377,14 +378,17 @@ function keepParentInformedAboutDimensionChanges() {
     }
 
     const mainElementStyles = getComputedStyle(mainElement);
-    const contentHeight =
-      mainElement.offsetHeight +
-      parseInt(mainElementStyles.marginTop) +
-      parseInt(mainElementStyles.marginBottom);
-    const contentWidth =
-      mainElement.offsetWidth +
-      parseInt(mainElementStyles.marginLeft) +
-      parseInt(mainElementStyles.marginRight);
+    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
+    const contentHeight = Math.ceil(
+      parseFloat(mainElementStyles.height) +
+        parseFloat(mainElementStyles.marginTop) +
+        parseFloat(mainElementStyles.marginBottom)
+    );
+    const contentWidth = Math.ceil(
+      parseFloat(mainElementStyles.width) +
+        parseFloat(mainElementStyles.marginLeft) +
+        parseFloat(mainElementStyles.marginRight)
+    );
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.

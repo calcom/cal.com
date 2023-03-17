@@ -4,6 +4,16 @@
     <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
     <!-- <script src="./src/embed.ts" type="module"></script> -->
     <script>
+      function generateRandomHexColor() {
+        // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
+        const randomInt = Math.floor(Math.random() * 16777216);
+
+        // Convert the integer to a hex string with 6 digits and add leading zeros if necessary
+        const hexString = randomInt.toString(16).padStart(6, '0');
+
+        // Return the hex string with a '#' prefix
+        return `#${hexString}`;
+      }
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
@@ -141,12 +151,12 @@
             Align Center
           </button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
-            backgroundColor: '#D3D3D3',
+            backgroundColor: generateRandomHexColor(),
           },
           disabledDateButton: {
-            backgroundColor: 'lightslategray',
+            backgroundColor: generateRandomHexColor(),
           },}})})()">
-            Change Date Button Color
+            Change 'enabledDateButton` and `disabledDateButton` background Color
           </button>
           
         </div>
