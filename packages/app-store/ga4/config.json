@@ -25,5 +25,6 @@
       ]
     }
   },
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "ga4"
 }

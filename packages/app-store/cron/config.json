@@ -14,5 +14,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "link-as-an-app",
-  "dependencies": ["google-calendar"]
+  "dependencies": ["google-calendar"],
+  "dirName": "cron"
 }

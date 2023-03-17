@@ -20,5 +20,6 @@
       "organizerInputPlaceholder": "https://party.campfire.to/your-team",
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?party.campfire.to\\/[a-zA-Z0-9]*"
     }
-  }
+  },
+  "dirname": "campfire"
 }

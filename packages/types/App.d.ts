@@ -135,7 +135,7 @@ export interface App {
   licenseRequired?: boolean;
   isProOnly?: boolean;
   appData?: AppData;
-  dirName?: string;
+  dirName: string;
   isTemplate?: boolean;
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */

@@ -12,5 +12,6 @@
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "description": "Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "exchange"
 }
