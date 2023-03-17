@@ -201,7 +201,14 @@ export default function Availability() {
           <VerticalDivider />
           <Dialog>
             <DialogTrigger asChild>
-              <Button StartIcon={FiTrash} variant="icon" color="destructive" aria-label={t("delete")} />
+              <Button
+                StartIcon={FiTrash}
+                variant="icon"
+                color="destructive"
+                aria-label={t("delete")}
+                disabled={schedule?.isLastSchedule}
+                tooltip={t("requires_at_least_one_schedule")}
+              />
             </DialogTrigger>
             <ConfirmationDialogContent
               isLoading={deleteMutation.isLoading}

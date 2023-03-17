@@ -103,6 +103,12 @@ export const availabilityRouter = router({
           });
         }
         const timeZone = schedule.timeZone || user.timeZone;
+
+        const schedulesCount = await ctx.prisma.schedule.count({
+          where: {
+            userId: ctx.user.id,
+          },
+        });
         return {
           id: schedule.id,
           name: schedule.name,
@@ -149,6 +155,7 @@ export const availabilityRouter = router({
             return acc;
           }, [] as { ranges: TimeRange[] }[]),
           isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
+          isLastSchedule: schedulesCount <= 1,
         };
       }),
     create: authedProcedure
