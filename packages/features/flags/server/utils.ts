@@ -6,8 +6,8 @@ export async function getFeatureFlagMap(prisma: PrismaClient) {
   const flags = await prisma.feature.findMany({
     orderBy: { slug: "asc" },
   });
-  return flags.reduce<AppFlags>((fs, f) => {
-    fs[f.slug as keyof AppFlags] = f.enabled;
-    return fs;
-  }, {} as unknown as AppFlags);
+  return flags.reduce<AppFlags>((acc, flag) => {
+    acc[flag.slug as keyof AppFlags] = flag.enabled;
+    return acc;
+  }, {} as AppFlags);
 }
