@@ -123,7 +123,7 @@
         </div>
       </div>
       <div class="inline-embed-container" id="cal-booking-place-second">
-        <h3><a href="?only=ns:second">[Custom Styling]</a></h3>
+        <h3><a href="?only=ns:second">[Custom Styling](Booking Profile Page)</a></h3>
         <div class="place">
           <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
           <button
@@ -151,7 +151,7 @@
         </div>
       </div>
       <div class="inline-embed-container" id="cal-booking-place-third">
-        <h3><a href="?only=ns:third">[Custom Styling - Transparent Background]</a></h3>
+        <h3><a href="?only=ns:third">[Custom Styling - Transparent Background](/book page)</a></h3>
         <div style="width: 30%" class="place">
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
         </div>
@@ -165,7 +165,7 @@
     </div>
 
     <div class="inline-embed-container" id="cal-booking-place-fifth">
-      <h3><a href="?only=ns:fifth">[Team Event Test][inline along with some content]</a></h3>
+      <h3><a href="?only=ns:fifth">[Team Event Test][inline along with some content][/book page]</a></h3>
       <div style="display:flex;align-items: center;">
         <h4 style="width: 30%">
           On the right side you can book a team meeting =>
@@ -272,7 +272,7 @@
             "inline",
             {
               elementOrSelector: "#cal-booking-place-third .place",
-              calLink: "pro/30min",
+              calLink: "pro/book/embed?type=3&duration=30&date=2023-03-21T14%3A30%3A00%2B05%3A30&slug=30min&count=&embed=",
               config: {
                 iframeAttrs: {
                   id: "cal-booking-place-third-iframe"
@@ -362,7 +362,7 @@
             "inline",
             {
               elementOrSelector: "#cal-booking-place-fifth .place",
-              calLink: "team/seeded-team/collective-seeded-team-event",
+              calLink: "team/collective-seeded-team-event/book?type=18&duration=15&date=2023-03-22T14%3A30%3A00%2B05%3A30",
               config: {
                 iframeAttrs: {
                   id: "cal-booking-place-fifth-iframe"

@@ -112,13 +112,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!users.length) return { notFound: true };
+  if (!users.length) return { notFound: true } as const;
   const [user] = users;
   const isDynamicGroupBooking = users.length > 1 && !!eventTypeSlug;
 
   // Dynamic Group link doesn't need a type but it must have a slug
   if ((!isDynamicGroupBooking && !query.type) || (users.length > 1 && !eventTypeSlug)) {
-    return { notFound: true };
+    return { notFound: true } as const;
   }
 
   const eventTypeRaw = isDynamicGroupBooking
@@ -132,7 +132,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       });
 
-  if (!eventTypeRaw) return { notFound: true };
+  if (!eventTypeRaw) return { notFound: true } as const;
   const eventType = {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),

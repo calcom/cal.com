@@ -136,6 +136,9 @@ async function createTeamAndAddUsers(
         data: {
           ...team,
         },
+        include: {
+          eventTypes: true,
+        },
       });
     } catch (_err) {
       if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
@@ -167,6 +170,7 @@ async function createTeamAndAddUsers(
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
+  return team;
 }
 
 async function main() {
@@ -556,7 +560,7 @@ async function main() {
     eventTypes: [],
   });
 
-  await createTeamAndAddUsers(
+  const team = await createTeamAndAddUsers(
     {
       name: "Seeded Team",
       slug: "seeded-team",
@@ -604,6 +608,24 @@ async function main() {
       },
     ]
   );
+  if (team) {
+    for (const eventType of team.eventTypes) {
+      await prisma.eventType.update({
+        where: {
+          id: eventType.id,
+        },
+        data: {
+          users: {
+            connect: [
+              {
+                id: proUserTeam.id,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }
 }
 
 main()

@@ -96,7 +96,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!eventTypeRaw) return { notFound: true };
+  if (!eventTypeRaw) return { notFound: true } as const;
 
   const eventType = {
     ...eventTypeRaw,
