@@ -20,7 +20,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
           description={
             <>
               <h2 className="mb-2 text-center font-medium">{props.booking.title}</h2>
-              <p className="text-center text-gray-500">
+              <p className="text-subtle text-center">
                 <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
                 {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
               </p>
