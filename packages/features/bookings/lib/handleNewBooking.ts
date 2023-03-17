@@ -377,7 +377,10 @@ function getBookingData({
     ? extendedBookingCreateBody.merge(
         z.object({
           responses: getBookingResponsesSchema({
-            bookingFields: eventType.bookingFields,
+            eventType: {
+              bookingFields: eventType.bookingFields,
+            },
+            view: req.body.rescheduleUid ? "reschedule" : "booking",
           }),
         })
       )
@@ -610,6 +613,20 @@ async function handler(
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
+  let locationBodyString = location;
+  let defaultLocationUrl = undefined;
+  if (dynamicUserList.length > 1) {
+    users = users.sort((a, b) => {
+      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
+    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
+    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
+  }
+
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -689,37 +706,20 @@ async function handler(
 
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType) {
-      if (users.some((user) => user.email === guest)) {
-        return guestArray;
-      } else {
-        guestArray.push({
-          email: guest,
-          name: "",
-          timeZone: reqBody.timeZone,
-          language: { translate: tGuests, locale: "en" },
-        });
-      }
+    if (isTeamEventType && users.some((user) => user.email === guest)) {
+      return guestArray;
     }
+    guestArray.push({
+      email: guest,
+      name: "",
+      timeZone: reqBody.timeZone,
+      language: { translate: tGuests, locale: "en" },
+    });
     return guestArray;
   }, [] as typeof invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  let locationBodyString = location;
-  let defaultLocationUrl = undefined;
-  if (dynamicUserList.length > 1) {
-    users = users.sort((a, b) => {
-      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
-    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
-  }
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
