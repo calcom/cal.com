@@ -1606,6 +1606,7 @@
   "default_app_link_title": "Set a default app link",
   "default_app_link_description": "Setting a default app link allows all newly created event types to use the app link you set.",
   "change_default_conferencing_app": "Set as default",
+  "use_organizer_default_conferencing_app": "Use organizer default conferencing app",
   "under_maintenance": "Down for maintenance",
   "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
   "event_type_seats": "{{numberOfSeats}} seats",
