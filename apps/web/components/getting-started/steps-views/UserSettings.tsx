@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { USERNAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -29,8 +29,8 @@ const UserSettings = (props: IUserSettingsProps) => {
     name: z
       .string()
       .min(1)
-      .max(USERNAME_LENGTH_MAX_LIMIT, {
-        message: t("max_limit_allowed_hint", { limit: USERNAME_LENGTH_MAX_LIMIT }),
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
   });
   const {
