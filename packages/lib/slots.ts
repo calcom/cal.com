@@ -3,7 +3,7 @@ import dayjs from "@calcom/dayjs";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import { getWorkingHours } from "./availability";
-import { getTimeZone, isInDST, getDSTDifference } from "./date-fns";
+import { getTimeZone } from "./date-fns";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -99,15 +99,13 @@ function buildSlots({
     }
   }
 
-  const isOrganizerInDST = isInDST(startOfInviteeDay.tz(organizerTimeZone));
-  const isInviteeInDST = isInDST(startOfInviteeDay.tz(inviteeTimeZone));
-  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
-  const inviteeDSTDifference = getDSTDifference(inviteeTimeZone);
-
+  const organizerDSTDiff =
+    dayjs().tz(organizerTimeZone).utcOffset() - startOfInviteeDay.tz(organizerTimeZone).utcOffset();
+  const inviteeDSTDiff =
+    dayjs().tz(inviteeTimeZone).utcOffset() - startOfInviteeDay.tz(inviteeTimeZone).utcOffset();
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
-  const resultDSTDifference = isOrganizerInDST ? organizerDSTDifference : -inviteeDSTDifference;
   const getTime = (time: number) => {
-    const minutes = isOrganizerInDST !== isInviteeInDST ? time - resultDSTDifference : time;
+    const minutes = time + organizerDSTDiff - inviteeDSTDiff;
 
     return startOfInviteeDay.tz(inviteeTimeZone).add(minutes, "minutes");
   };
@@ -152,7 +150,7 @@ const getSlots = ({
   // checks if the start date is in the past
 
   /**
-   *  TODO: change "day" for "hour" to stop displaying 1 day before today
+   * TODO: change "day" for "hour" to stop displaying 1 day before today
    * This is displaying a day as available as sometimes difference between two dates is < 24 hrs.
    * But when doing timezones an available day for an owner can be 2 days available in other users tz.
    *
