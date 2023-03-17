@@ -111,6 +111,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("🚀 ~ file: apps.tsx:114 ~ .mutation ~ input:", input);
       const { prisma } = ctx;
 
       // Get app name from metadata
@@ -135,10 +136,11 @@ export const appsRouter = router({
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: undefined,
+          enabled: !input.enabled,
         },
       });
 
-      // If disabling an app then we need to alert users basesd on the app type
+      // If disabling an app then we need to alert users based on the app type
       if (input.enabled) {
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
@@ -243,7 +245,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
+      const appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
