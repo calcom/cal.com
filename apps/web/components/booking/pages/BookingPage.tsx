@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import { getEventLocationType, locationKeyToString } from "@calcom/app-store/loc
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -39,6 +40,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Form, Tooltip } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
@@ -56,6 +58,8 @@ import BookingDescription from "@components/booking/BookingDescription";
 import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
+
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
 
 /** These are like 40kb that not every user needs */
 const BookingDescriptionPayment = dynamic(
@@ -77,6 +81,7 @@ const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
+  const currentView = rescheduleUid ? "reschedule" : "";
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -86,12 +91,16 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+
         let noLabel = false;
         let hidden = !!field.hidden;
+        const fieldViews = field.views;
+
+        if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
-          if (!rescheduleUid) {
-            return null;
-          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -114,7 +123,10 @@ const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        if (
+          (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
+          !!rescheduleUid
+        ) {
           return null;
         }
 
@@ -219,6 +231,21 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
+
+  // This is a workaround for forcing the same time format for both server side rendering and client side rendering
+  // At initial render, we use the default time format which is 12H
+  const [withDefaultTimeFormat, setWithDefaultTimeFormat] = useState(true);
+  const parseDateFunc = useCallback(
+    (date: string | null | Dayjs) => {
+      return parseDate(date, i18n, withDefaultTimeFormat);
+    },
+    [withDefaultTimeFormat]
+  );
+  // After intial render on client side, we let parseDateFunc to use the time format from the localStorage
+  useEffect(() => {
+    setWithDefaultTimeFormat(false);
+  }, []);
+
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
@@ -241,12 +268,12 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { uid, paymentUid } = responseData;
+      const { uid } = responseData;
 
-      if (paymentUid) {
+      if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
-            paymentUid,
+            paymentUid: responseData.paymentUid,
             date,
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
@@ -261,6 +288,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
@@ -287,7 +315,10 @@ const BookingPage = ({
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    eventType: {
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
+    },
+    view: rescheduleUid ? "reschedule" : "booking",
   });
 
   const parsedQuery = querySchema.parse({
@@ -367,7 +398,8 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       responses: getBookingResponsesSchema({
-        bookingFields: getBookingFieldsWithSystemFields(eventType),
+        eventType: { bookingFields: getBookingFieldsWithSystemFields(eventType) },
+        view: rescheduleUid ? "reschedule" : "booking",
       }),
     })
     .passthrough();
@@ -385,19 +417,30 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
+  const parseRecurringDatesFunc = useCallback(
+    (date: string | null | Dayjs, recurringEvent: RecurringEvent, recurringCount: number) => {
+      return parseRecurringDates(
+        {
+          startDate: date,
+          timeZone: timeZone(),
+          recurringEvent: recurringEvent,
+          recurringCount: recurringCount,
+          withDefaultTimeFormat: withDefaultTimeFormat,
+        },
+        i18n
+      );
+    },
+    [withDefaultTimeFormat, date, eventType.recurringEvent, recurringEventCount]
+  );
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: date,
-        timeZone: timeZone(),
-        recurringEvent: eventType.recurringEvent,
-        recurringCount: parseInt(recurringEventCount.toString()),
-      },
-      i18n
+    [recurringStrings, recurringDates] = parseRecurringDatesFunc(
+      date,
+      eventType.recurringEvent,
+      parseInt(recurringEventCount.toString())
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -420,9 +463,9 @@ const BookingPage = ({
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
-        ...booking,
-        start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(duration, "minute").format(),
+        ...bookingValues,
+        start: dayjs(recurringDate).utc().format(),
+        end: dayjs(recurringDate).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -440,20 +483,21 @@ const BookingPage = ({
       recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
-        ...booking,
-        start: dayjs(date).tz(timeZone()).format(),
-        end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
+        ...bookingValues,
+        start: dayjs(date).utc().format(),
+        end: dayjs(date).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: router.query.bookingUid as string,
+        bookingUid: (router.query.bookingUid as string) || booking?.uid,
         user: router.query.user,
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
+        seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };
@@ -522,7 +566,7 @@ const BookingPage = ({
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
-                        `${parseDate(date, i18n)}`}
+                        `${parseDateFunc(date)}`}
                       {isClientTimezoneAvailable &&
                         !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
@@ -552,7 +596,7 @@ const BookingPage = ({
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n)}
+                          parseDateFunc(dayjs(booking.startTime))}
                       </p>
                     </div>
                   )}
@@ -621,6 +665,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </Gates>
   );
 };

@@ -20,10 +20,11 @@ import {
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";

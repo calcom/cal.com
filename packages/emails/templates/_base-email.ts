@@ -1,3 +1,4 @@
+import { decodeHTML } from "entities";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
@@ -40,7 +41,7 @@ export default class BaseEmail {
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       ...payload,
-      ...(parseSubject.success && { subject: decodeURIComponent(parseSubject.data) }),
+      ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
 
     new Promise((resolve, reject) =>

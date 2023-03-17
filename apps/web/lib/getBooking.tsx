@@ -55,6 +55,8 @@ async function getBooking(
       uid,
     },
     select: {
+      id: true,
+      uid: true,
       startTime: true,
       description: true,
       customInputs: true,
@@ -65,6 +67,12 @@ async function getBooking(
         select: {
           email: true,
           name: true,
+          bookingSeat: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
         },
       },
     },
@@ -104,7 +112,11 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: getBookingResponsesPartialSchema({
-      bookingFields: eventType.bookingFields,
+      eventType: {
+        bookingFields: eventType.bookingFields,
+      },
+      // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
+      view: "ALL_VIEWS",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
 };
