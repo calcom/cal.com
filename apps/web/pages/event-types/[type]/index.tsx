@@ -65,7 +65,7 @@ export type FormValues = {
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
     phone?: string;
-    hostDefault?: boolean;
+    hostDefault?: string;
   }[];
   customInputs: CustomInputParsed[];
   schedule: number | null;
