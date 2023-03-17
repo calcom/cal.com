@@ -7,6 +7,8 @@ import { defaultResponder } from "@calcom/lib/server";
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
+import getCalLink from "./_utils/getCalLink";
+
 /**
  * @swagger
  * /event-types:
@@ -34,9 +36,10 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
-  const args: Prisma.EventTypeFindManyArgs = isAdmin
-    ? {}
-    : { where: { userId }, include: { customInputs: true } };
+
+  const args: Prisma.EventTypeFindManyArgs = {
+    where: { userId },
+  };
   /** Only admins can query other users */
   if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 401, message: "ADMIN required" });
   if (isAdmin && req.query.userId) {
@@ -44,8 +47,21 @@ async function getHandler(req: NextApiRequest) {
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { userId: { in: userIds } };
   }
-  const data = await prisma.eventType.findMany(args);
-  return { event_types: data.map((attendee) => schemaEventTypeReadPublic.parse(attendee)) };
+  const data = await prisma.eventType.findMany({
+    ...args,
+    include: {
+      customInputs: true,
+      team: { select: { slug: true } },
+      users: true,
+      owner: { select: { username: true, id: true } },
+    },
+  });
+  return {
+    event_types: data.map((eventType) => {
+      const link = getCalLink(eventType);
+      return schemaEventTypeReadPublic.parse({ ...eventType, link });
+    }),
+  };
 }
 
 export default defaultResponder(getHandler);
