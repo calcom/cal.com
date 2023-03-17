@@ -196,7 +196,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
 
     const recurrence = getRecurrence(event);
-    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
+    const utcOffset = dayjs(event.startTime).tz(event.organizer.timeZone).utcOffset() / 60;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,

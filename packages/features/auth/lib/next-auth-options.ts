@@ -21,6 +21,7 @@ import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/fea
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
@@ -161,28 +162,25 @@ const providers: Provider[] = [
         }).length > 0;
 
       // authentication success- but does it meet the minimum password requirements?
-      if (
-        user.role === "ADMIN" &&
-        ((user.identityProvider === IdentityProvider.CAL &&
-          !isPasswordValid(credentials.password, false, true)) ||
-          !user.twoFactorEnabled)
-      ) {
-        return {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          name: user.name,
-          role: "INACTIVE_ADMIN",
-          belongsToActiveTeam: hasActiveTeams,
-        };
-      }
+      const validateRole = (role: UserPermissionRole) => {
+        // User's role is not "ADMIN"
+        if (role !== "ADMIN") return role;
+        // User's identity provider is not "CAL"
+        if (user.identityProvider !== IdentityProvider.CAL) return role;
+        // User's password is valid and two-factor authentication is enabled
+        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
+        // Code is running in a development environment
+        if (isENVDev) return role;
+        // By this point it is an ADMIN without valid security conditions
+        return "INACTIVE_ADMIN";
+      };
 
       return {
         id: user.id,
         username: user.username,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
       };
     },
@@ -440,7 +438,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 identityProvider: idP,
               },
               {
-                identityProviderId: account.providerAccountId as string,
+                identityProviderId: account.providerAccountId,
               },
             ],
           },
@@ -519,11 +517,11 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=unverified-email";
         }
 
-        const existingUser = await prisma.user.findFirst({
+        let existingUser = await prisma.user.findFirst({
           include: {
             accounts: {
               where: {
-                provider: idP,
+                provider: account.provider,
               },
             },
           },
@@ -533,6 +531,33 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
+        /* --- START FIX LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
+        if (!existingUser) {
+          existingUser = await prisma.user.findFirst({
+            include: {
+              accounts: {
+                where: {
+                  provider: account.provider,
+                },
+              },
+            },
+            where: {
+              identityProvider: idP,
+              identityProviderId: String(user.id),
+            },
+          });
+          if (existingUser) {
+            await prisma.user.update({
+              where: {
+                id: existingUser?.id,
+              },
+              data: {
+                identityProviderId: account.providerAccountId,
+              },
+            });
+          }
+        }
+        /* --- END FIXES LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
         if (existingUser) {
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
@@ -613,7 +638,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
 
@@ -636,7 +661,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 password: null,
                 email: user.email,
                 identityProvider: idP,
-                identityProviderId: String(user.id),
+                identityProviderId: account.providerAccountId,
               },
             });
             if (existingUserWithEmail.twoFactorEnabled) {
@@ -660,7 +685,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: String(user.id),
+            identityProviderId: account.providerAccountId,
           },
         });
 
