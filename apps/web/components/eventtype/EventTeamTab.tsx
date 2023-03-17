@@ -1,5 +1,5 @@
 import { SchedulingType } from "@prisma/client";
-import type { EventTypeSetupProps, EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef } from "react";
 import type { ComponentProps } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -27,16 +27,11 @@ const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
   email,
 });
 
-const mapMemberToChildrenOption = (
-  member: EventTypeSetupProps["teamMembers"][number],
-  slug: string,
-  children: EventTypeSetup["children"]
-) => {
-  const existentChildren = children.find((ch) => ch.owner?.id === member.id);
+const mapMemberToChildrenOption = (member: EventTypeSetupProps["teamMembers"][number], slug: string) => {
   return {
     slug,
-    hidden: existentChildren?.hidden ?? false,
-    created: !!existentChildren,
+    hidden: false,
+    created: false,
     owner: {
       id: member.id,
       name: member.name ?? "",
@@ -319,7 +314,7 @@ export const EventTeamTab = ({
   ];
   const teamMembersOptions = teamMembers.map(mapUserToValue);
   const childrenEventTypeOptions = teamMembers.map((member) => {
-    return mapMemberToChildrenOption(member, eventType.slug, eventType.children);
+    return mapMemberToChildrenOption(member, eventType.slug);
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   return (
