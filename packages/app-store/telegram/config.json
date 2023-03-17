@@ -20,5 +20,6 @@
       "organizerInputPlaceholder": "https://t.me/MyUsername",
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?t.me\\/[a-zA-Z0-9]*"
     }
-  }
+  },
+  "dirName": "telegram"
 }

@@ -12,5 +12,6 @@
   "publisher": "hexcowboy",
   "email": "",
   "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "rainbow"
 }

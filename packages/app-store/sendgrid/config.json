@@ -11,5 +11,6 @@
   "publisher": "Cal.com",
   "email": "help@cal.com",
   "description": "SendGrid delivers your transactional and marketing emails through the world's largest cloud-based email delivery platform.",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "sendgrid"
 }

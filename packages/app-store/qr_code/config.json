@@ -12,5 +12,6 @@
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Easily generate a QR code for your links to print, share, or embed.",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "qr_code"
 }

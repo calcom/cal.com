@@ -11,5 +11,6 @@
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Embedded booking pages right into your wordpress page",
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "dirName": "wordpress"
 }

@@ -7,18 +7,8 @@ import dynamic from "next/dynamic";
 export const InstallAppButtonMap = {
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
-  huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
-  jitsivideo: dynamic(() => import("./jitsivideo/components/InstallAppButton")),
-  larkcalendar: dynamic(() => import("./larkcalendar/components/InstallAppButton")),
-  office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
-  riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
-  tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
-  whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
-  wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
-  zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
-  zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
   "general-app-settings": dynamic(() =>

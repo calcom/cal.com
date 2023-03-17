@@ -245,7 +245,8 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
+      let appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
+      if (!appKey) appKey = deriveAppDictKeyFromType(input.slug, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
