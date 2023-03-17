@@ -187,6 +187,7 @@ const EventTypeSchedule = () => {
         headline={t("new_schedule_heading")}
         description={t("new_schedule_description")}
         buttonRaw={<NewScheduleButton fromEventType />}
+        border={false}
       />
     );
 
