@@ -323,7 +323,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               setMenuOpen(false);
               setHelpOpen(false);
             }}
-            className="overflow-hidden rounded-md">
+            className="group overflow-hidden rounded-md">
             {helpOpen ? (
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
@@ -332,15 +332,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => (
-                      <FiMoon
-                        className={classNames(
-                          user.away
-                            ? "text-purple-500 group-hover:text-purple-700"
-                            : "group-hover:text-default text-subtle",
-                          props.className
-                        )}
-                        aria-hidden="true"
-                      />
+                      <FiMoon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
                       mutation.mutate({ away: !user?.away });
