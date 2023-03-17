@@ -25,7 +25,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         )} ${this.getOrganizerStart("D")}, ${this.getOrganizerStart("YYYY")}`,
       })}`,
       html: renderEmail("OrganizerRescheduledEmail", {
-        calEvent: this.calEvent,
+        calEvent: { ...this.calEvent, attendeeSeatId: undefined },
         attendee: this.calEvent.organizer,
       }),
       text: this.getTextBody("event_has_been_rescheduled"),

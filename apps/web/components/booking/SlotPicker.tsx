@@ -78,6 +78,7 @@ export const SlotPicker = ({
   recurringEventCount,
   users,
   seatsPerTimeSlot,
+  bookingAttendees,
   weekStart = 0,
   ethSignature,
 }: {
@@ -89,6 +90,7 @@ export const SlotPicker = ({
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
   seatsPerTimeSlot?: number;
+  bookingAttendees?: number;
   recurringEventCount?: number;
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -192,6 +194,7 @@ export const SlotPicker = ({
         eventTypeId={eventType.id}
         eventTypeSlug={eventType.slug}
         seatsPerTimeSlot={seatsPerTimeSlot}
+        bookingAttendees={bookingAttendees}
         recurringCount={recurringEventCount}
         ethSignature={ethSignature}
       />
