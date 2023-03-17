@@ -38,6 +38,16 @@ export const availabilityRouter = router({
     });
 
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    if (!user.defaultScheduleId) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
 
     return {
       schedules: schedules.map((schedule) => ({
@@ -465,11 +475,6 @@ const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
     select: {
       id: true,
     },
-  });
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: { defaultScheduleId: defaultSchedule?.id },
   });
 
   return defaultSchedule?.id; // TODO: Handle no schedules AT ALL
