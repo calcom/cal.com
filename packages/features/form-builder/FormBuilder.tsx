@@ -284,21 +284,25 @@ export const FormBuilder = function FormBuilder({
 
             return (
               <li
-                key={index}
+                key={field.name}
                 data-testid={`field-${field.name}`}
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
-                <button
-                  type="button"
-                  className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                  onClick={() => swap(index, index - 1)}>
-                  <FiArrowUp className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                  onClick={() => swap(index, index + 1)}>
-                  <FiArrowDown className="h-5 w-5" />
-                </button>
+                {index >= 1 && (
+                  <button
+                    type="button"
+                    className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    onClick={() => swap(index, index - 1)}>
+                    <FiArrowUp className="h-5 w-5" />
+                  </button>
+                )}
+                {index < fields.length - 1 && (
+                  <button
+                    type="button"
+                    className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    onClick={() => swap(index, index + 1)}>
+                    <FiArrowDown className="h-5 w-5" />
+                  </button>
+                )}
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
