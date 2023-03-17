@@ -168,7 +168,7 @@ model User {
   teams                Membership[]
   bookings             Booking[]
   schedules            Schedule[]
-  defaultScheduleId    Int
+  defaultScheduleId    Int?
   selectedCalendars    SelectedCalendar[]
   completedOnboarding  Boolean                 @default(false)
   locale               String?
