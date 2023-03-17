@@ -58,6 +58,8 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
+
 /** These are like 40kb that not every user needs */
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
@@ -647,6 +649,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </Gates>
   );
 };
