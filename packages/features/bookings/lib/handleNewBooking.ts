@@ -1541,7 +1541,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -1680,7 +1680,7 @@ async function handler(
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
-          videoCallUrl = metadata.hangoutLink || videoCallUrl;
+          videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
       if (noEmail !== true) {
