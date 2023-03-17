@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,10 +14,6 @@ const SAMLSSO = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  if (!HOSTED_CAL_FEATURES) {
-    router.push("/404");
-  }
-
   const teamId = Number(router.query.id);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
@@ -27,6 +24,12 @@ const SAMLSSO = () => {
       },
     }
   );
+
+  useEffect(() => {
+    if (!HOSTED_CAL_FEATURES) {
+      router.push("/404");
+    }
+  }, []);
 
   if (isLoading) {
     return <SkeletonLoader />;

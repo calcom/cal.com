@@ -351,11 +351,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {type.hidden && (
-                          <Badge variant="gray" size="lg">
-                            {t("hidden")}
-                          </Badge>
-                        )}
+                        {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                         <Tooltip content={t("show_eventtype_on_profile")}>
                           <div className="self-center rounded-md p-2 hover:bg-gray-200">
                             <Switch
