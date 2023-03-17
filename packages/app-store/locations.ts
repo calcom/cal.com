@@ -150,7 +150,7 @@ export type LocationObject = {
   type: string;
   displayLocationPublicly?: boolean;
 } & Partial<
-  Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone" | "hostDefault", string>
+  Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
 >;
 
 // integrations:jitsi | 919999999999 | Delhi | https://manual.meeting.link | Around Video
