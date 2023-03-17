@@ -61,7 +61,7 @@ export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields
   location: "system",
   notes: "system-but-optional",
   guests: "system-but-optional",
-  rescheduleReason: "system",
+  rescheduleReason: "system-but-optional",
   smsReminderNumber: "system",
 };
 
@@ -163,7 +163,6 @@ export const ensureBookingInputsHaveSystemFields = ({
   const systemBeforeFields: typeof bookingFields = [
     {
       defaultLabel: "your_name",
-      defaultPlaceholder: "example_name",
       type: "name",
       name: "name",
       required: true,
@@ -177,7 +176,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
     {
       defaultLabel: "email_address",
-      defaultPlaceholder: "you@example.com",
       type: "email",
       name: "email",
       required: true,
@@ -218,14 +216,6 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
   ];
 
-  // Backward Compatibility for SMS Reminder Number
-  if (smsNumberSources.length) {
-    systemBeforeFields.push({
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
-  }
-
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
     {
@@ -262,6 +252,12 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "rescheduleReason",
       defaultPlaceholder: "reschedule_placeholder",
       required: false,
+      views: [
+        {
+          id: "reschedule",
+          label: "Reschedule View",
+        },
+      ],
       sources: [
         {
           label: "Default",
@@ -274,13 +270,32 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
+    } else {
+      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
+      bookingFields[existingBookingFieldIndex] = {
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
+
+  // Backward Compatibility for SMS Reminder Number
+  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
+  // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
+  if (smsNumberSources.length && !bookingFields.find((f) => f.name !== SMS_REMINDER_NUMBER_FIELD)) {
+    const indexForLocation = bookingFields.findIndex((f) => f.name === "location");
+    // Add the SMS Reminder Number field after `location` field always
+    bookingFields.splice(indexForLocation + 1, 0, {
+      ...getSmsReminderNumberField(),
+      sources: smsNumberSources,
+    });
+  }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
@@ -308,9 +323,16 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemAfterFields = [];
   for (const field of systemAfterFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);
+    } else {
+      bookingFields[existingBookingFieldIndex] = {
+        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 

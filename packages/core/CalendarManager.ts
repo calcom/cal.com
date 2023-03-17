@@ -44,7 +44,6 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { calendar, integration, credential } = item;
-        let primary!: IntegrationCalendar;
 
         // Don't leak credentials to the client
         const credentialId = credential.id;
@@ -57,12 +56,7 @@ export const getConnectedCalendars = async (
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
           .map((cal) => {
-            if (cal.primary) {
-              primary = { ...cal, credentialId };
-            }
-            if (cal.externalId === destinationCalendarExternalId) {
-              destinationCalendar = cal;
-            }
+            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
               readOnly: cal.readOnly || false,
@@ -73,11 +67,7 @@ export const getConnectedCalendars = async (
           })
           .sortBy(["primary"])
           .value();
-
-        if (primary && destinationCalendar) {
-          destinationCalendar.primaryEmail = primary.email;
-          destinationCalendar.integrationTitle = integration.title;
-        }
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
             integration,
@@ -86,6 +76,10 @@ export const getConnectedCalendars = async (
               message: "No primary calendar found",
             },
           };
+        }
+        if (destinationCalendar) {
+          destinationCalendar.primaryEmail = primary.email;
+          destinationCalendar.integrationTitle = integration.title;
         }
 
         return {
@@ -214,7 +208,12 @@ export const getBusyCalendarTimes = async (
   } else {
     // if dateFrom and dateTo is from different months get cache by each month
     const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (let i = 1; dayjs(dateFrom).add(i, "month").isBefore(dateTo); i++) {
+    for (
+      let i = 1;
+      dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+      dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+      i++
+    ) {
       months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
     }
     const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
@@ -237,7 +236,7 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
   }
 
-  // TODO: Surfice success/error messages coming from apps to improve end user visibility
+  // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;

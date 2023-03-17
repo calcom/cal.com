@@ -125,6 +125,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       beforeEventBuffer: true,
       afterEventBuffer: true,
       bookingLimits: true,
+      durationLimits: true,
       schedulingType: true,
       periodType: true,
       periodStartDate: true,
@@ -263,6 +264,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           eventTypeId: input.eventTypeId,
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
+          duration: input.duration || 0,
         },
         { user: currentUser, eventType, currentSeats }
       );
@@ -367,8 +369,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: time, ...passThroughProps }
+      { time: _time, ...passThroughProps }
     ) => {
+      // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
+      const time = _time.tz(input.timeZone);
       r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,

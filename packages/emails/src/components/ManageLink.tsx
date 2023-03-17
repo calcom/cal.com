@@ -6,7 +6,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   // Guests cannot
   const t = props.attendee.language.translate;
   if (
-    props.attendee.email === props.calEvent.attendees[0].email ||
+    props.attendee.email === props.calEvent.attendees[0]?.email ||
     props.calEvent.organizer.email === props.attendee.email
   ) {
     return (

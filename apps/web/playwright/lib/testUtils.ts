@@ -133,10 +133,10 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page) => {
+export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
   // --- fill form
-  await page.fill('[name="name"]', "Test Testson");
-  await page.fill('[name="email"]', "test@example.com");
+  await page.fill('[name="name"]', opts?.name ?? "Test Testson");
+  await page.fill('[name="email"]', opts?.email ?? "test@example.com");
   await page.press('[name="email"]', "Enter");
 };
 // Provide an standalone localize utility not managed by next-i18n
@@ -148,3 +148,25 @@ export async function localize(locale: string) {
     throw "No locale found for the given entry message";
   };
 }
+
+export const createNewEventType = async (page: Page, args: { eventTitle: string }) => {
+  await page.click("[data-testid=new-event-type]");
+  const eventTitle = args.eventTitle;
+  await page.fill("[name=title]", eventTitle);
+  await page.fill("[name=length]", "10");
+  await page.click("[type=submit]");
+
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname !== "/event-types";
+    },
+  });
+};
+
+export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
+  const eventTitle = args.eventTitle;
+  await createNewEventType(page, { eventTitle });
+  await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
+  await page.locator('[data-testid="offer-seats-toggle"]').click();
+  await page.locator('[data-testid="update-eventtype"]').click();
+};

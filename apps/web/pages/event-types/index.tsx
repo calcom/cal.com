@@ -338,7 +338,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.users?.length > 1 && (
+                      {type.team && (
                         <AvatarGroup
                           className="relative top-1 right-3"
                           size="sm"
@@ -351,11 +351,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {type.hidden && (
-                          <Badge variant="gray" size="lg">
-                            {t("hidden")}
-                          </Badge>
-                        )}
+                        {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                         <Tooltip content={t("show_eventtype_on_profile")}>
                           <div className="self-center rounded-md p-2 hover:bg-gray-200">
                             <Switch

@@ -44,9 +44,6 @@ const createTeamAndAddUser = async (
       slug: `team-${workerInfo.workerIndex}-${Date.now()}`,
     },
   });
-  if (!team) {
-    return;
-  }
 
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
@@ -54,8 +51,10 @@ const createTeamAndAddUser = async (
       teamId: team.id,
       userId,
       role: role,
+      accepted: true,
     },
   });
+  return team;
 };
 
 // creates a user fixture instance and stores the collection
@@ -70,61 +69,24 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
       } = {}
     ) => {
       const _user = await prisma.user.create({
-        data: await createUser(workerInfo, opts),
+        data: createUser(workerInfo, opts),
       });
-      await prisma.eventType.create({
-        data: {
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "30 min",
-          slug: "30-min",
-          length: 30,
-        },
-      });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Paid",
-          slug: "paid",
-          length: 30,
-          price: 1000,
-        },
-      });
-      await prisma.eventType.create({
-        data: {
-          users: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          owner: {
-            connect: {
-              id: _user.id,
-            },
-          },
-          title: "Opt in",
-          slug: "opt-in",
-          requiresConfirmation: true,
-          length: 30,
-        },
-      });
+
+      let defaultEventTypes: SupportedTestEventTypes[] = [
+        { title: "30 min", slug: "30-min", length: 30 },
+        { title: "Paid", slug: "paid", length: 30, price: 1000 },
+        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+      ];
+
+      if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
+      for (const eventTypeData of defaultEventTypes) {
+        eventTypeData.owner = { connect: { id: _user.id } };
+        eventTypeData.users = { connect: { id: _user.id } };
+        await prisma.eventType.create({
+          data: eventTypeData,
+        });
+      }
+
       if (scenario.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
@@ -246,7 +208,29 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
         include: userIncludes,
       });
       if (scenario.hasTeam) {
-        await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        const team = await createTeamAndAddUser({ user: { id: user.id, role: "OWNER" } }, workerInfo);
+        await prisma.eventType.create({
+          data: {
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            users: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            owner: {
+              connect: {
+                id: _user.id,
+              },
+            },
+            title: "Team Event - 30min",
+            slug: "team-event-30min",
+            length: 30,
+          },
+        });
       }
       const userFixture = createUserFixture(user, store.page!);
       store.users.push(userFixture);
@@ -293,8 +277,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
+type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
+  _bookings?: PrismaType.BookingCreateInput[];
+};
 type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
-type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
+type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
+  timeZone?: TimeZoneEnum;
+  eventTypes?: SupportedTestEventTypes[];
+};
 
 // creates the actual user in the db.
 const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
