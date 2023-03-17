@@ -38,7 +38,6 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
-import { getDSTDifference, isInDST } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -125,13 +124,11 @@ const isWithinAvailableHours = (
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
+  const organizerDSTDiff =
+    dayjs().tz(organizerTimeZone).utcOffset() - timeSlotStart.tz(organizerTimeZone).utcOffset();
+  const getTime = (slotTime: Dayjs, minutes: number) =>
+    slotTime.startOf("day").add(minutes + organizerDSTDiff, "minutes");
 
-  const getTime = (slotTime: Dayjs, minutes: number) => {
-    const minutesDTS = isOrganizerInDSTWhenSlotStart ? minutes - organizerDSTDifference : minutes;
-    return slotTime.startOf("day").add(minutesDTS, "minutes");
-  };
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
@@ -377,7 +374,10 @@ function getBookingData({
     ? extendedBookingCreateBody.merge(
         z.object({
           responses: getBookingResponsesSchema({
-            bookingFields: eventType.bookingFields,
+            eventType: {
+              bookingFields: eventType.bookingFields,
+            },
+            view: req.body.rescheduleUid ? "reschedule" : "booking",
           }),
         })
       )
@@ -610,6 +610,20 @@ async function handler(
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
+  let locationBodyString = location;
+  let defaultLocationUrl = undefined;
+  if (dynamicUserList.length > 1) {
+    users = users.sort((a, b) => {
+      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
+      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
+      return aIndex - bIndex;
+    });
+    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
+    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
+    locationBodyString = app?.appData?.location?.type || locationBodyString;
+    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
+  }
+
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -689,37 +703,20 @@ async function handler(
 
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType) {
-      if (users.some((user) => user.email === guest)) {
-        return guestArray;
-      } else {
-        guestArray.push({
-          email: guest,
-          name: "",
-          timeZone: reqBody.timeZone,
-          language: { translate: tGuests, locale: "en" },
-        });
-      }
+    if (isTeamEventType && users.some((user) => user.email === guest)) {
+      return guestArray;
     }
+    guestArray.push({
+      email: guest,
+      name: "",
+      timeZone: reqBody.timeZone,
+      language: { translate: tGuests, locale: "en" },
+    });
     return guestArray;
   }, [] as typeof invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
-  let locationBodyString = location;
-  let defaultLocationUrl = undefined;
-  if (dynamicUserList.length > 1) {
-    users = users.sort((a, b) => {
-      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    const app = getAppFromSlug(firstUsersMetadata?.defaultConferencingApp?.appSlug);
-    locationBodyString = app?.appData?.location?.type || locationBodyString;
-    defaultLocationUrl = firstUsersMetadata?.defaultConferencingApp?.appLink;
-  }
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
@@ -1439,6 +1436,17 @@ async function handler(
       };
     });
 
+    if (evt.team?.members) {
+      attendeesData.push(
+        ...evt.team.members.map((member) => ({
+          email: member.email,
+          name: member.name,
+          timeZone: member.timeZone,
+          locale: member.language.locale,
+        }))
+      );
+    }
+
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       responses: responses === null ? Prisma.JsonNull : responses,
@@ -1530,7 +1538,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -1669,7 +1677,7 @@ async function handler(
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
-          videoCallUrl = metadata.hangoutLink || videoCallUrl;
+          videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
       if (noEmail !== true) {
