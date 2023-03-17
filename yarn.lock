@@ -3972,7 +3972,7 @@ __metadata:
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
     "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-snippet": "*"
+    "@calcom/embed-snippet": "workspace:*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
@@ -4067,8 +4067,8 @@ __metadata:
     "@calcom/core": "*"
     "@calcom/dayjs": "*"
     "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-react": "*"
-    "@calcom/embed-snippet": "*"
+    "@calcom/embed-react": "workspace:*"
+    "@calcom/embed-snippet": "workspace:*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
@@ -4287,7 +4287,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/embed-react@*, @calcom/embed-react@^1.0.9, @calcom/embed-react@workspace:*, @calcom/embed-react@workspace:packages/embeds/embed-react":
+"@calcom/embed-react@^1.0.9, @calcom/embed-react@workspace:*, @calcom/embed-react@workspace:packages/embeds/embed-react":
   version: 0.0.0-use.local
   resolution: "@calcom/embed-react@workspace:packages/embeds/embed-react"
   dependencies:
@@ -4307,7 +4307,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/embed-snippet@*, @calcom/embed-snippet@workspace:*, @calcom/embed-snippet@workspace:packages/embeds/embed-snippet":
+"@calcom/embed-snippet@workspace:*, @calcom/embed-snippet@workspace:packages/embeds/embed-snippet":
   version: 0.0.0-use.local
   resolution: "@calcom/embed-snippet@workspace:packages/embeds/embed-snippet"
   dependencies:
