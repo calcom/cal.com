@@ -80,7 +80,7 @@ const NoAvailabilityOverlay = ({
   const { t } = useLocale();
 
   return (
-    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 bg-muted absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-subtle p-8 shadow-sm">
+    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 bg-muted border-subtle absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis dark:text-inverted mb-4 font-medium">
         {t("no_availability_in_month", { month: month })}
       </h4>
@@ -198,38 +198,41 @@ const DatePicker = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex justify-between text-xl font-light">
-        <span className="dark:text-inverted w-1/2">
+      <div className="mb-4 flex items-center justify-between text-xl font-light">
+        <span className="text-default w-1/2 text-base">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker dark:text-inverted text-base font-semibold">
-                {month}
-              </strong>{" "}
-              <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
+              <strong className="text-bookingdarker font-semibold dark:text-white">{month}</strong>{" "}
+              <span className="text-bookinglight">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
             <SkeletonText className="h-8 w-24" />
           )}
         </span>
-        <div className="dark:text-inverted text-emphasis">
-          <button
-            type="button"
-            onClick={() => changeMonth(-1)}
-            className={classNames(
-              "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
-              !browsingDate.isAfter(dayjs()) && "disabled:text-bookinglighter hover:opacity-50"
-            )}
-            disabled={!browsingDate.isAfter(dayjs())}
-            data-testid="decrementMonth">
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            className="group p-1 opacity-50 hover:opacity-100"
-            onClick={() => changeMonth(+1)}
-            data-testid="incrementMonth">
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
+        <div className="text-emphasis">
+          <div className="flex">
+            <Button
+              className={classNames(
+                "group p-1 opacity-50 hover:opacity-100",
+                !browsingDate.isAfter(dayjs()) &&
+                  "disabled:text-bookinglighter hover:bg-background hover:opacity-50"
+              )}
+              onClick={() => changeMonth(-1)}
+              disabled={!browsingDate.isAfter(dayjs())}
+              data-testid="decrementMonth"
+              color="minimal"
+              variant="icon"
+              StartIcon={ChevronLeftIcon}
+            />
+            <Button
+              className="group p-1 opacity-50 hover:opacity-100"
+              onClick={() => changeMonth(+1)}
+              data-testid="incrementMonth"
+              color="minimal"
+              variant="icon"
+              StartIcon={ChevronRightIcon}
+            />
+          </div>
         </div>
       </div>
       <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-neutral-900 md:mb-0 md:border-0">

@@ -83,12 +83,19 @@ const BookingDescription: FC<Props> = (props) => {
         size="sm"
         truncateAfter={3}
       />
-      <h2 className="text-default mt-2 break-words text-sm font-medium">{profile.name}</h2>
-      <h1 className="font-cal text-emphasis mb-6 break-words text-2xl font-semibold">{eventType.title}</h1>
+      <h2 className="text-default mt-1 mb-2 break-words text-sm font-medium ">{profile.name}</h2>
+      <h1 className="font-cal  text-emphasis mb-6 break-words text-2xl font-semibold leading-none">
+        {eventType.title}
+      </h1>
       <div className=" text-default flex flex-col space-y-4 text-sm font-medium">
         {eventType?.description && (
-          <div className={classNames("flex", isBookingPage && "text-default text-sm font-medium")}>
-            <div className="scroll-bar scrollbar-track-w-20 max-h-[200px] max-w-full flex-shrink overflow-scroll break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
+          <div
+            className={classNames(
+              "scroll-bar scrollbar-track-w-20 -mx-5 flex max-h-[180px] overflow-y-scroll px-5 ",
+              isBookingPage && "text-default text-sm font-medium"
+            )}>
+            {/* TODO: Fix colors when token is introdcued to DS */}
+            <div className="max-w-full flex-shrink break-words [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
               <EventTypeDescriptionSafeHTML eventType={eventType} />
             </div>
           </div>
@@ -123,7 +130,6 @@ const BookingDescription: FC<Props> = (props) => {
                   <li key={idx}>
                     <Badge
                       variant="gray"
-                      size="lg"
                       className={classNames(
                         duration === dur.toString()
                           ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"

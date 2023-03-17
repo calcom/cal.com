@@ -43,7 +43,7 @@ export default function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Button href="/auth/login" passHref className="flex w-full justify-center">
+      <Button href="/auth/login" className="flex w-full justify-center">
         {t("go_back_login")}
       </Button>
     </AuthContainer>

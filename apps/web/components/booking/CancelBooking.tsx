@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -23,18 +23,26 @@ type Props = {
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
   allRemainingBookings: boolean;
+  seatReferenceUid?: string;
 };
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, allRemainingBookings } = props;
+  const { booking, allRemainingBookings, seatReferenceUid } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   useTheme(props.theme);
 
+  const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
+    if (node !== null) {
+      node.scrollIntoView({ behavior: "smooth" });
+      node.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <>
       {error && (
@@ -55,6 +63,7 @@ export default function CancelBooking(props: Props) {
             {t("cancellation_reason")}
           </label>
           <TextArea
+            ref={cancelBookingRef}
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
@@ -75,16 +84,16 @@ export default function CancelBooking(props: Props) {
                 onClick={async () => {
                   setLoading(true);
 
-                  const payload = {
-                    id: booking?.id,
-                    cancellationReason: cancellationReason,
-                    allRemainingBookings,
-                  };
-
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
 
                   const res = await fetch("/api/cancel", {
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                      id: booking?.id,
+                      cancellationReason: cancellationReason,
+                      allRemainingBookings,
+                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
+                      seatReferenceUid,
+                    }),
                     headers: {
                       "Content-Type": "application/json",
                     },

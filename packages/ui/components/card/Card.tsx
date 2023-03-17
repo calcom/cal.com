@@ -147,6 +147,7 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
+              prefetch={!learnMore.href.startsWith("https://cal.com/blog")}
               className="text-default text-xs font-medium">
               {learnMore.text}
             </Link>

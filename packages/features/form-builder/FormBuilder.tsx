@@ -266,8 +266,7 @@ export const FormBuilder = function FormBuilder({
           {fields.map((field, index) => {
             const fieldType = FieldTypesMap[field.type];
 
-            // Hidden fields can't be required
-            const isRequired = field.required && !field.hidden;
+            const isRequired = field.required;
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
@@ -285,29 +284,37 @@ export const FormBuilder = function FormBuilder({
 
             return (
               <li
-                key={index}
+                key={field.name}
                 data-testid={`field-${field.name}`}
                 className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
-                <button
-                  type="button"
-                  className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                  onClick={() => swap(index, index - 1)}>
-                  <FiArrowUp className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  className="bg-default text-muted disabled:hover:text-muted hover:text-emphasis invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
-                  onClick={() => swap(index, index + 1)}>
-                  <FiArrowDown className="h-5 w-5" />
-                </button>
+                {index >= 1 && (
+                  <button
+                    type="button"
+                    className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    onClick={() => swap(index, index - 1)}>
+                    <FiArrowUp className="h-5 w-5" />
+                  </button>
+                )}
+                {index < fields.length - 1 && (
+                  <button
+                    type="button"
+                    className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    onClick={() => swap(index, index + 1)}>
+                    <FiArrowDown className="h-5 w-5" />
+                  </button>
+                )}
                 <div>
                   <div className="flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">
                       {field.label || t(field.defaultLabel || "")}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="gray">{isRequired ? "Required" : "Optional"}</Badge>
-                      {field.hidden ? <Badge variant="gray">Hidden</Badge> : null}
+                      {field.hidden ? (
+                        // Hidden field can't be required, so we don't need to show the Optional badge
+                        <Badge variant="gray">{t("hidden")}</Badge>
+                      ) : (
+                        <Badge variant="gray">{isRequired ? t("required") : t("optional")}</Badge>
+                      )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
                         <Badge key={key} variant="blue">
@@ -332,6 +339,7 @@ export const FormBuilder = function FormBuilder({
                       }}
                     />
                     <Button
+                      data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
                         editField(index, field);
@@ -375,7 +383,7 @@ export const FormBuilder = function FormBuilder({
             fieldIndex: -1,
           })
         }>
-        <DialogContent enableOverflow>
+        <DialogContent enableOverflow data-testid="edit-field-dialog">
           <DialogHeader title={t("add_a_booking_question")} subtitle={t("form_builder_field_add_subtitle")} />
           <div>
             <Form
@@ -444,13 +452,13 @@ export const FormBuilder = function FormBuilder({
                 required={!["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")}
                 placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                 containerClassName="mt-6"
-                label="Label"
+                label={t("label")}
               />
               {fieldType?.isTextType ? (
                 <InputField
                   {...fieldForm.register("placeholder")}
                   containerClassName="mt-6"
-                  label="Placeholder"
+                  label={t("placeholder")}
                   placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                 />
               ) : null}
@@ -469,12 +477,13 @@ export const FormBuilder = function FormBuilder({
                 render={({ field: { value, onChange } }) => {
                   return (
                     <BooleanToggleGroupField
+                      data-testid="field-required"
                       disabled={fieldForm.getValues("editable") === "system"}
                       value={value}
                       onValueChange={(val) => {
                         onChange(val);
                       }}
-                      label="Required"
+                      label={t("required")}
                     />
                   );
                 }}

@@ -7,10 +7,9 @@ import { useRouter } from "next/router";
 import type { SyntheticEvent } from "react";
 import React from "react";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
-
-import { getSession } from "@lib/auth";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -133,18 +132,21 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-ForgotPassword.getInitialProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
-  const session = await getSession({ req });
+
+  const session = await getServerSession({ req, res });
 
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
-    return;
+    return { props: {} };
   }
 
   return {
-    csrfToken: await getCsrfToken(context),
-    ...(await serverSideTranslations(context.locale || "en", ["common"])),
+    props: {
+      csrfToken: await getCsrfToken(context),
+      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+    },
   };
 };

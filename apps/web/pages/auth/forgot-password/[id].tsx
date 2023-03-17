@@ -22,7 +22,7 @@ type Props = {
 export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{ message: string } | null>(null);
+  const [, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
 
   const [password, setPassword] = React.useState("");

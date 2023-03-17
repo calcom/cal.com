@@ -203,6 +203,12 @@
     "categories": ["video"],
     "slug": "facetime",
     "type": "facetime_video",
+    "isTemplate": false},
+  {
+    "dirName": "zohocrm",
+    "categories": ["other"],
+    "slug": "zohocrm",
+    "type": "zohocrm_other_calendar",
     "isTemplate": false
   },
   {
