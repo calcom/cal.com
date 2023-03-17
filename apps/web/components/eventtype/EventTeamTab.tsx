@@ -35,6 +35,7 @@ const mapMemberToChildrenOption = (member: EventTypeSetupProps["teamMembers"][nu
     owner: {
       id: member.id,
       name: member.name ?? "",
+      email: member.email,
       username: member.username ?? "",
       membership: member.membership,
       eventTypeSlugs: member.eventTypes ?? [],
@@ -70,9 +71,6 @@ const ChildrenEventTypesList = ({
       <div>
         <Label>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
-          isOptionDisabled={(option) =>
-            value && !!value.find((children) => children.owner.id.toString() === option.value)
-          }
           onChange={(options) => {
             onChange &&
               onChange(
@@ -82,7 +80,7 @@ const ChildrenEventTypesList = ({
               );
           }}
           value={value}
-          options={options}
+          options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           {...rest}
         />
@@ -205,12 +203,9 @@ const ChildrenEventTypes = ({
   return (
     <Controller<FormValues>
       name="children"
-      render={({ field: { onChange, value } }) => {
-        console.log({ value });
-        return (
-          <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
-        );
-      }}
+      render={({ field: { onChange, value } }) => (
+        <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+      )}
     />
   );
 };

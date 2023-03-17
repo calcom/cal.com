@@ -2,7 +2,10 @@ import type { Prisma, PrismaClient, EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 import { pick } from "lodash";
 
+import { sendSlugReplacementEmail } from "@calcom/emails";
 import { _EventTypeModel } from "@calcom/prisma/zod";
+
+import { getTranslation } from "./server/i18n";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -17,6 +20,8 @@ interface handleChildrenEventTypesProps {
         hidden: boolean;
         owner: {
           id: number;
+          email: string;
+          eventTypeSlugs: string[];
         };
       }[]
     | undefined;
@@ -69,6 +74,14 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
+};
+
+const sendAllSlugReplacementEmails = async (
+  children: handleChildrenEventTypesProps["children"],
+  slug: string
+) => {
+  const t = await getTranslation("en", "common");
+  children?.map(async (ch) => await sendSlugReplacementEmail({ email: ch.owner.email, slug, t }));
 };
 
 export default async function handleChildrenEventTypes({
@@ -148,7 +161,14 @@ export default async function handleChildrenEventTypes({
         });
       })
     );
-    console.log("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));
+    // Delete replaced event type first? overwrite it?
+    /*await sendAllSlugReplacementEmails(
+      children?.filter(
+        (ch) => ch.owner.eventTypeSlugs.includes(updatedEventType.slug) && newUserIds.includes(ch.owner.id)
+      ),
+      updatedEventType.slug
+    );
+    console.log("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));*/
   }
 
   // Old users updated

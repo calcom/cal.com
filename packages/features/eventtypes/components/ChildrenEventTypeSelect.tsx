@@ -14,10 +14,11 @@ export type ChildrenEventType = {
   created: boolean;
   owner: {
     id: number;
+    email: string;
     name: string;
     username: string;
     membership: MembershipRole;
-    eventTypeSlugs: { slug: string }[];
+    eventTypeSlugs: string[];
   };
   slug: string;
   hidden: boolean;

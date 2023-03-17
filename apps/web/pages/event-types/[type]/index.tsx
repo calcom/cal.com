@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { PeriodType } from "@prisma/client";
 import type { SchedulingType } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
+import { Trans } from "next-i18next";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,7 +26,7 @@ import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { Form, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog, Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -212,7 +213,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     minimumBookingNotice: eventType.minimumBookingNotice,
     metadata,
     hosts: eventType.hosts,
-    children: eventType.children.map((ch) => ({ ...ch, created: true })),
+    children: eventType.children.map((ch) => ({
+      ...ch,
+      created: true,
+      owner: { ...ch.owner, eventTypeSlugs: Array<string>(0) },
+    })),
   } as const;
 
   const formMethods = useForm<FormValues>({
@@ -286,85 +291,136 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
   } as const;
 
+  const handleSubmit = async (values: FormValues) => {
+    const {
+      periodDates,
+      periodCountCalendarDays,
+      beforeBufferTime,
+      afterBufferTime,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      bookingLimits,
+      durationLimits,
+      recurringEvent,
+      locations,
+      metadata,
+      customInputs,
+      children,
+      // We don't need to send send these values to the backend
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      seatsPerTimeSlotEnabled,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      minimumBookingNoticeInDurationType,
+      ...input
+    } = values;
+
+    if (bookingLimits) {
+      const isValid = validateIntervalLimitOrder(bookingLimits);
+      if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
+    }
+
+    if (metadata?.multipleDuration !== undefined) {
+      if (metadata?.multipleDuration.length < 1) {
+        throw new Error(t("event_setup_multiple_duration_error"));
+      } else {
+        if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
+          throw new Error(t("event_setup_multiple_duration_default_error"));
+        }
+      }
+    }
+
+    updateMutation.mutate({
+      ...input,
+      locations,
+      recurringEvent,
+      periodStartDate: periodDates.startDate,
+      periodEndDate: periodDates.endDate,
+      periodCountCalendarDays: periodCountCalendarDays === "1",
+      id: eventType.id,
+      beforeEventBuffer: beforeBufferTime,
+      afterEventBuffer: afterBufferTime,
+      bookingLimits,
+      durationLimits,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      metadata,
+      customInputs,
+      children,
+    });
+  };
+
+  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+
   return (
-    <EventTypeSingleLayout
-      enabledAppsNumber={numberOfActiveApps}
-      installedAppsNumber={numberOfInstalledApps}
-      enabledWorkflowsNumber={eventType.workflows.length}
-      eventType={eventType}
-      team={team}
-      isUpdateMutationLoading={updateMutation.isLoading}
-      formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
-      currentUserMembership={currentUserMembership}>
-      <Form
-        form={formMethods}
-        id="event-type-form"
-        handleSubmit={async (values) => {
-          const {
-            periodDates,
-            periodCountCalendarDays,
-            beforeBufferTime,
-            afterBufferTime,
-            seatsPerTimeSlot,
-            seatsShowAttendees,
-            bookingLimits,
-            durationLimits,
-            recurringEvent,
-            locations,
-            metadata,
-            customInputs,
-            children,
-            // We don't need to send send these values to the backend
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            seatsPerTimeSlotEnabled,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            minimumBookingNoticeInDurationType,
-            ...input
-          } = values;
-
-          if (bookingLimits) {
-            const isValid = validateIntervalLimitOrder(bookingLimits);
-            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
-          }
-
-          if (durationLimits) {
-            const isValid = validateIntervalLimitOrder(durationLimits);
-            if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
-          }
-
-          if (metadata?.multipleDuration !== undefined) {
-            if (metadata?.multipleDuration.length < 1) {
-              throw new Error(t("event_setup_multiple_duration_error"));
-            } else {
-              if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
-                throw new Error(t("event_setup_multiple_duration_default_error"));
-              }
-            }
-          }
-
-          updateMutation.mutate({
-            ...input,
-            locations,
-            recurringEvent,
-            periodStartDate: periodDates.startDate,
-            periodEndDate: periodDates.endDate,
-            periodCountCalendarDays: periodCountCalendarDays === "1",
-            id: eventType.id,
-            beforeEventBuffer: beforeBufferTime,
-            afterEventBuffer: afterBufferTime,
-            bookingLimits,
-            durationLimits,
-            seatsPerTimeSlot,
-            seatsShowAttendees,
-            metadata,
-            customInputs,
-            children,
-          });
+    <>
+      <EventTypeSingleLayout
+        enabledAppsNumber={numberOfActiveApps}
+        installedAppsNumber={numberOfInstalledApps}
+        enabledWorkflowsNumber={eventType.workflows.length}
+        eventType={eventType}
+        team={team}
+        isUpdateMutationLoading={updateMutation.isLoading}
+        formMethods={formMethods}
+        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        currentUserMembership={currentUserMembership}>
+        <Form
+          form={formMethods}
+          id="event-type-form"
+          handleSubmit={async (values: FormValues) => {
+            if (!values.children.length) return handleSubmit(values);
+            const existingSlugEventTypes = values.children.filter((ch) =>
+              ch.owner.eventTypeSlugs.includes(eventType.slug)
+            );
+            if (!existingSlugEventTypes.length) return handleSubmit(values);
+            setSlugExistsChildrenDialogOpen(existingSlugEventTypes);
+          }}>
+          <div ref={animationParentRef}>{tabMap[tabName]}</div>
+        </Form>
+      </EventTypeSingleLayout>
+      <Dialog
+        open={slugExistsChildrenDialogOpen.length > 0}
+        onOpenChange={() => {
+          setSlugExistsChildrenDialogOpen([]);
         }}>
-        <div ref={animationParentRef}>{tabMap[tabName]}</div>
-      </Form>
-    </EventTypeSingleLayout>
+        <ConfirmationDialogContent
+          isLoading={formMethods.formState.isSubmitting}
+          variety="warning"
+          title={t("managed_event_dialog_title", {
+            slug: eventType.slug,
+            count: slugExistsChildrenDialogOpen.length,
+          })}
+          confirmBtnText={t("managed_event_dialog_confirm_button", {
+            count: slugExistsChildrenDialogOpen.length,
+          })}
+          cancelBtnText={t("go_back")}
+          onConfirm={(e) => {
+            e.preventDefault();
+            handleSubmit(formMethods.getValues());
+          }}>
+          <p className="mt-5">
+            <Trans
+              i18nKey="managed_event_dialog_information"
+              values={{
+                names: `${slugExistsChildrenDialogOpen
+                  .map((ch) => ch.owner.name)
+                  .slice(0, -1)
+                  .join(",")} ${
+                  slugExistsChildrenDialogOpen.length > 1 ? t("and") : ""
+                } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
+                slug: eventType.slug,
+              }}
+              count={slugExistsChildrenDialogOpen.length}
+            />
+          </p>{" "}
+          <p className="mt-5">{t("managed_event_dialog_clarification")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
+    </>
   );
 };
 

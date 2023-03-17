@@ -1,4 +1,4 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 import { Trans } from "next-i18next";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -17,7 +17,7 @@ import {
   ToggleGroup,
 } from "@calcom/ui";
 
-import { PendingMember } from "../lib/types";
+import type { PendingMember } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;

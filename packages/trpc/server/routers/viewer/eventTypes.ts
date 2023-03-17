@@ -92,6 +92,8 @@ const EventTypeUpdateInput = _EventTypeModel
         z.object({
           owner: z.object({
             id: z.number(),
+            email: z.string(),
+            eventTypeSlugs: z.array(z.string()),
           }),
           hidden: z.boolean(),
         })
@@ -639,6 +641,7 @@ export const eventTypesRouter = router({
     if (users.length || children?.length) {
       let updatedUsers = users.map((userId: number) => ({ id: userId }));
       if (children?.length) {
+        // Adding children owners as users to show in the UI
         updatedUsers = updatedUsers.concat(children.map((ch) => ({ id: ch.owner.id })));
       }
       data.users = {

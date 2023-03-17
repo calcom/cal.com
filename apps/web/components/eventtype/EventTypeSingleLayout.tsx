@@ -184,7 +184,9 @@ function EventTypeSingleLayout({
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType ? ` - ${t("count_members", { count: eventType.users.length || 0 })}` : ""
+          isManagedEventType
+            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+            : ""
         }`,
       });
       if (isManagedEventType || isChildrenManagedEventType) {

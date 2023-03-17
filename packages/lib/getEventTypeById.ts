@@ -152,6 +152,7 @@ export default async function getEventTypeById({
             select: {
               name: true,
               username: true,
+              email: true,
               id: true,
             },
           },
@@ -265,7 +266,10 @@ export default async function getEventTypeById({
     users: rawEventType.users,
     children: restEventType.children.flatMap((ch) =>
       ch.owner !== null
-        ? { ...ch, owner: { ...ch.owner, name: ch.owner.name ?? "", username: ch.owner.username ?? "" } }
+        ? {
+            ...ch,
+            owner: { email: ch.owner.email, name: ch.owner.name ?? "", username: ch.owner.username ?? "" },
+          }
         : []
     ),
   };
@@ -317,7 +321,7 @@ export default async function getEventTypeById({
     ? eventTypeObject.team.members.map((member) => {
         const user = member.user;
         user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-        return { ...user, membership: member.role };
+        return { ...user, eventTypes: user.eventTypes.map((evTy) => evTy.slug), membership: member.role };
       })
     : [];
 
