@@ -15,3 +15,4 @@ public
 .eslintignore
 packages/prisma/zod
 packages/features/ee
+apps/web/public/embed

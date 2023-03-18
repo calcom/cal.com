@@ -46,7 +46,10 @@ function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -195,7 +198,9 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+  const startTime = dayjs(booking.startTime)
+    .locale(language)
+    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -431,7 +436,10 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((date) => {
     return (
@@ -461,7 +469,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, user?.timeFormat, user?.timeZone)}
                     {" - "}
-                    {dayjs(aDate).format("D MMMM YYYY")}
+                    {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
                 );
               })}>
