@@ -255,7 +255,7 @@ const BookingPage = ({
       );
     }
     reserveSlot();
-    const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK || "5") * 60 * 1000 - 2000);
+    const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
     return () => {
       clearInterval(interval);
       releaseSlotMutation.mutate();
