@@ -8,6 +8,7 @@ import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -124,7 +125,7 @@ export const slotsRouter = router({
     const { prisma, req, res } = ctx;
     const uid = req?.cookies?.uid || uuid();
     const { slotUtcDate, eventTypeId } = input;
-    const releaseAt = dayjs.utc().add(parseInt(NEXT_PUBLIC_MINUTES_TO_BOOK), "minutes").format();
+    const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
     await prisma.selectedSlots.upsert({
       where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
       update: {
@@ -377,13 +378,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     select: { id: true, slotUtcDate: true },
   });
   const ids: number[] = [];
-  const slotBusy =
-    selectedSlots?.length > 0
-      ? selectedSlots.map((item) => {
-          ids.push(item.id);
-          return item.slotUtcDate.toISOString();
-        })
-      : [];
+  const slotBusy = selectedSlots.map((item) => {
+    ids.push(item.id);
+    return item.slotUtcDate.toISOString();
+  });
   await prisma.selectedSlots.deleteMany({
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: ids } },
   });
