@@ -286,6 +286,7 @@ const BookingPage = ({
       return router.push({
         pathname: `/booking/${uid}`,
         query: {
+          isSuccessBookingPage: true,
           allRemainingBookings: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,

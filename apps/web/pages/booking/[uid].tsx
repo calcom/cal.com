@@ -180,7 +180,7 @@ const querySchema = z.object({
   cancel: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
-  isSuccessBookingPage: z.string().optional(),
+  isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
