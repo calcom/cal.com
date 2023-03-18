@@ -33,7 +33,7 @@ import getBookingResponsesSchema, {
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -255,10 +255,7 @@ const BookingPage = ({
       );
     }
     reserveSlot();
-    const interval = setInterval(
-      reserveSlot,
-      parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5") * 60 * 1000 - 2000
-    );
+    const interval = setInterval(reserveSlot, parseInt(MINUTES_TO_BOOK || "5") * 60 * 1000 - 2000);
     return () => {
       clearInterval(interval);
       releaseSlotMutation.mutate();
