@@ -1,9 +1,8 @@
 import classNames from "classnames";
-import DOMPurify from "dompurify";
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
@@ -11,10 +10,10 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
@@ -35,15 +34,6 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   const router = useRouter();
   const teamName = team.name || "Nameless Team";
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
-  const [safeTeamBio, setSafeTeamBio] = useState(""); //needed as error otherwise
-
-  useEffect(() => {
-    if (team.bio) {
-      const bioHTML = md.render(team.bio);
-      setSafeTeamBio(DOMPurify.sanitize(bioHTML));
-    }
-  }, []);
 
   useEffect(() => {
     telemetry.event(
@@ -123,7 +113,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             <>
               <div
                 className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: safeTeamBio }}
+                dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
           )}
@@ -199,9 +189,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })),
   }));
 
+  const safeBio = parseAndSanitize(team.bio || "");
+
+  const members = team.members.map((member) => {
+    return { ...member, safeBio: parseAndSanitize(member.bio || "") };
+  });
+
   return {
     props: {
-      team,
+      team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
     },
   } as const;

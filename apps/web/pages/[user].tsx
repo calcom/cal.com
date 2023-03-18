@@ -24,9 +24,9 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, AvatarGroup, HeadSeo } from "@calcom/ui";
@@ -147,7 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <>
                   <div
                     className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
+                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
               )}
@@ -352,9 +352,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
+  const safeBio = parseAndSanitize(user.bio || "");
+
   return {
     props: {
       users,
+      safeBio,
       profile,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),

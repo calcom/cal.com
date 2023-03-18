@@ -1,4 +1,4 @@
-import { md } from "@calcom/lib/markdownIt";
+import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
 
 const Spacer = () => <p style={{ height: 6 }} />;
 
@@ -13,6 +13,8 @@ export const Info = (props: {
   if (!props.description || props.description === "") return null;
 
   const descriptionCSS = "color: '#101010'; font-weight: 400; line-height: 24px; margin: 0;";
+
+  const safeDescription = parseAndSanitize(props.description.toString());
 
   return (
     <>
@@ -31,10 +33,11 @@ export const Info = (props: {
             <p
               className="dark:text-darkgray-600 mt-2 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
               dangerouslySetInnerHTML={{
-                __html: md
-                  .render(props.description.toString() || "")
-                  .replaceAll("<p>", `<p style="${descriptionCSS}">`)
-                  .replaceAll("<li>", `<li style="${descriptionCSS}">`),
+                __html:
+                  safeDescription ||
+                  ""
+                    .replaceAll("<p>", `<p style="${descriptionCSS}">`)
+                    .replaceAll("<li>", `<li style="${descriptionCSS}">`), //todo
               }}
             />
           ) : (
