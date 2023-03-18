@@ -47,7 +47,7 @@ const getScheduleSchema = z
     "Either usernameList or eventTypeId should be filled in."
   );
 
-const markSelectedSlotSchema = z
+const reverveSlotSchema = z
   .object({
     eventTypeId: z.number().int(),
     // startTime ISOString
@@ -120,14 +120,11 @@ export const slotsRouter = router({
   getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
     return await getSchedule(input, ctx);
   }),
-  markSelectedSlot: publicProcedure.input(markSelectedSlotSchema).mutation(async ({ ctx, input }) => {
+  reserveSlot: publicProcedure.input(reverveSlotSchema).mutation(async ({ ctx, input }) => {
     const { prisma, req, res } = ctx;
     const uid = req?.cookies?.uid || uuid();
     const { slotUtcDate, eventTypeId } = input;
-    const releaseAt = dayjs
-      .utc()
-      .add(parseInt(process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5"), "minutes")
-      .format();
+    const releaseAt = dayjs.utc().add(parseInt(NEXT_PUBLIC_MINUTES_TO_BOOK), "minutes").format();
     await prisma.selectedSlots.upsert({
       where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
       update: {

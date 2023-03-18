@@ -44,7 +44,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   bookingAttendees,
   ethSignature,
 }) => {
-  const mutation = trpc.viewer.public.slots.markSelectedSlot.useMutation();
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -66,7 +66,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
-    mutation.mutate({ slotUtcDate: slot.time, eventTypeId });
+    reserveSlotMutation.mutate({ slotUtcDate: slot.time, eventTypeId });
   };
 
   return (

@@ -199,7 +199,7 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const releaseSlotMutation = trpc.viewer.public.slots.removeSelectedSlotMark.useMutation();
-  const selectSlotMutation = trpc.viewer.public.slots.markSelectedSlot.useMutation();
+  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const { t, i18n } = useLocale();
   const { duration: queryDuration } = useRouterQuery("duration");
   const { date: queryDate } = useRouterQuery("date");
@@ -219,7 +219,7 @@ const BookingPage = ({
     {}
   );
   const reserveSlot = () => {
-    selectSlotMutation.mutate({ eventTypeId: eventType.id, slotUtcDate: dayjs(queryDate).utc().format() });
+    reserveSlotMutation.mutate({ eventTypeId: eventType.id, slotUtcDate: dayjs(queryDate).utc().format() });
   };
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
