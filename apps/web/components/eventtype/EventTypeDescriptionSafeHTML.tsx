@@ -6,8 +6,8 @@ export type EventTypeDescriptionSafeProps = {
 
 export const EventTypeDescriptionSafeHTML = ({ eventType }: EventTypeDescriptionSafeProps) => {
   const props: JSX.IntrinsicElements["div"] = { suppressHydrationWarning: true };
-  // @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts
   if (eventType.description)
+    // @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts
     props.dangerouslySetInnerHTML = { __html: addListFormatting(eventType.descriptionAsSafeHTML) };
   return <div {...props} />;
 };
