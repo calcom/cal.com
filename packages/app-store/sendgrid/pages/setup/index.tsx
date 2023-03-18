@@ -45,7 +45,7 @@ export default function SendgridSetup() {
             <h1 className="text-gray-600">{t("provide_api_key")}</h1>
 
             <div className="mt-1 text-sm">
-              {t("generate_api_key_description")}{" "}
+              {t("generate_api_key_description", { appName: "Sendgrid" })}{" "}
               <a
                 className="text-indigo-400"
                 href="https://app.sendgrid.com/settings/api_keys"
