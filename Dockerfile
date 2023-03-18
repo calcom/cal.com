@@ -1,4 +1,4 @@
-FROM node:16 as builder
+FROM node:18 as builder
 
 WORKDIR /calcom
 ARG NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
@@ -28,7 +28,7 @@ RUN yarn config set network-timeout 1000000000 -g && \
 
 RUN yarn build
 
-FROM node:16 as runner
+FROM node:18 as runner
 
 WORKDIR /calcom
 ENV NODE_ENV production
