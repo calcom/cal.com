@@ -19,7 +19,7 @@ ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     CALENDSO_ENCRYPTION_KEY=${CALENDSO_ENCRYPTION_KEY} \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
 
-#COPY ./package.json ./yarn.lock ./turbo.json ./
+COPY ./package.json ./yarn.lock ./turbo.json ./
 #COPY calcom/apps/web ./apps/web
 #COPY calcom/packages ./packages
 
@@ -32,7 +32,7 @@ RUN yarn turbo run build --filter=@calcom/web
 
 FROM node:18 as runner
 
-WORKDIR /calcom
+WORKDIR /
 ENV NODE_ENV production
 
 RUN apt-get update && \
@@ -40,7 +40,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     npm install --global prisma
 
-#COPY ./package.json ./yarn.lock ./turbo.json ./
+COPY ./package.json ./yarn.lock ./turbo.json ./
 #COPY --from=builder /calcom/node_modules ./node_modules
 #COPY --from=builder /calcom/packages ./packages
 #COPY --from=builder /calcom/apps/web ./apps/web
