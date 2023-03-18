@@ -33,11 +33,9 @@ export const Info = (props: {
             <p
               className="dark:text-darkgray-600 mt-2 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
               dangerouslySetInnerHTML={{
-                __html:
-                  safeDescription ||
-                  ""
-                    .replaceAll("<p>", `<p style="${descriptionCSS}">`)
-                    .replaceAll("<li>", `<li style="${descriptionCSS}">`), //todo
+                __html: safeDescription
+                  .replaceAll("<p>", `<p style="${descriptionCSS}">`)
+                  .replaceAll("<li>", `<li style="${descriptionCSS}">`),
               }}
             />
           ) : (

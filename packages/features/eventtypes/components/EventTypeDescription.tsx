@@ -58,7 +58,7 @@ export const EventTypeDescription = ({
             )}
             dangerouslySetInnerHTML={{
               // @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts
-              __html: addListFormatting(eventType.descriptionAsSafeHTML),
+              __html: addListFormatting(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}
