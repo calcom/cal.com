@@ -153,7 +153,6 @@
     "@types/react-phone-number-input": "^3.0.14",
     "@types/react-virtualized-auto-sizer": "^1.0.1",
     "@types/react-window": "^1.8.5",
-    "@types/stripe": "^8.0.417",
     "@types/uuid": "8.3.1",
     "autoprefixer": "^10.4.12",
     "babel-jest": "^28.1.0",
