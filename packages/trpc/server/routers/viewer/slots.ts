@@ -14,7 +14,8 @@ import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import type prisma from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -126,7 +127,7 @@ export const slotsRouter = router({
     const uid = req?.cookies?.uid || uuid();
     const { slotUtcDate, eventTypeId } = input;
     const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
-    await prisma.selectedSlots.upsert({
+    await ctx.prisma.selectedSlots.upsert({
       where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
       update: {
         slotUtcDate,
@@ -146,7 +147,7 @@ export const slotsRouter = router({
     const { req, prisma } = ctx;
     const uid = req?.cookies?.uid;
     if (uid) {
-      await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
+      await ctx.prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
     }
     return;
   }),
@@ -370,19 +371,21 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
-  const selectedSlots = await prisma.selectedSlots.findMany({
-    where: {
-      eventTypeId: { equals: eventType.id },
-      releaseAt: { gt: dayjs.utc().format() },
-    },
-    select: { id: true, slotUtcDate: true },
-  });
+  const selectedSlots =
+    /* FIXME: For some reason this returns undefined while testing in Jest */
+    (await ctx.prisma.selectedSlots.findMany({
+      where: {
+        eventTypeId: { equals: eventType.id },
+        releaseAt: { gt: dayjs.utc().format() },
+      },
+      select: { id: true, slotUtcDate: true },
+    })) || [];
   const ids: number[] = [];
   const slotBusy = selectedSlots.map((item) => {
     ids.push(item.id);
     return item.slotUtcDate.toISOString();
   });
-  await prisma.selectedSlots.deleteMany({
+  await ctx.prisma.selectedSlots.deleteMany({
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: ids } },
   });
 
