@@ -253,7 +253,7 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private translateEvent = (event: CalendarEvent) => {
-    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
+    const utcOffset = dayjs(event.startTime).tz(event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
