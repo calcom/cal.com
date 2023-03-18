@@ -20,8 +20,8 @@ ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
 
 COPY ./package.json ./yarn.lock ./turbo.json ./
-#COPY calcom/apps/web ./apps/web
-#COPY calcom/packages ./packages
+COPY apps/web ./apps/web
+COPY packages ./packages
 
 RUN yarn global add turbo && \
     yarn config set network-timeout 1000000000 -g && \
@@ -41,10 +41,10 @@ RUN apt-get update && \
     npm install --global prisma
 
 COPY ./package.json ./yarn.lock ./turbo.json ./
-#COPY --from=builder /calcom/node_modules ./node_modules
-#COPY --from=builder /calcom/packages ./packages
-#COPY --from=builder /calcom/apps/web ./apps/web
-#COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
+COPY --from=builder /node_modules ./node_modules
+COPY --from=builder /packages ./packages
+COPY --from=builder /apps/web ./apps/web
+COPY --from=builder /packages/prisma/schema.prisma ./prisma/schema.prisma
 
 EXPOSE 3000
 CMD ["yarn", "start"]
