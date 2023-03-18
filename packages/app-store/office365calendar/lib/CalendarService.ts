@@ -210,7 +210,13 @@ export default class Office365CalendarService implements Calendar {
   }
 
   private o365Auth = (credential: CredentialPayload) => {
-    const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
+    const isExpired = (expiryDate: number) => {
+      if (!expiryDate) {
+        return true;
+      } else {
+        return expiryDate < Math.round(+new Date() / 1000);
+      }
+    };
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 
     const refreshAccessToken = async (refreshToken: string) => {
@@ -240,14 +246,14 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
-        !isExpired(o365AuthCredentials.expiry_date)
+        !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
           : refreshAccessToken(o365AuthCredentials.refresh_token),
     };
   };
 
   private translateEvent = (event: CalendarEvent) => {
-    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
+    const utcOffset = dayjs(event.startTime).tz(event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
