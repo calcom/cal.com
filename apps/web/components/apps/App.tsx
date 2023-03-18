@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
@@ -45,12 +46,12 @@ const Component = ({
   tos,
   privacy,
   isProOnly,
-  images,
+  descriptionItems,
   isTemplate,
   dependencies,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
-  const hasImages = images && images.length > 0;
+  const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
   const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
@@ -94,17 +95,25 @@ const Component = ({
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
-      {hasImages && (
+      {hasDescriptionItems && (
         <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
-          {images ? (
-            images.map((img) => (
-              <img
-                key={img}
-                src={img}
-                alt={`Screenshot of app ${name}`}
-                className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
-              />
-            ))
+          {descriptionItems ? (
+            descriptionItems.map((descriptionItem, index) =>
+              typeof descriptionItem === "object" ? (
+                <div
+                  key={`iframe-${index}`}
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  <iframe allowFullScreen {...descriptionItem.iframe} />
+                </div>
+              ) : (
+                <img
+                  key={descriptionItem}
+                  src={descriptionItem}
+                  alt={`Screenshot of app ${name}`}
+                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
+                />
+              )
+            )
           ) : (
             <SkeletonText />
           )}
@@ -113,7 +122,7 @@ const Component = ({
       <div
         className={classNames(
           "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
-          hasImages && "lg:ml-8"
+          hasDescriptionItems && "lg:ml-8"
         )}>
         <div className="mb-8 flex pt-4">
           <header>
@@ -354,7 +363,7 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
-  images?: string[];
+  descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
   disableInstall?: boolean;
   dependencies?: string[];

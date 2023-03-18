@@ -30,10 +30,11 @@ ${calEvent.attendees[0].timeZone}
 };
 
 export const getWho = (calEvent: CalendarEvent) => {
+  let attendeesFromCalEvent = [...calEvent.attendees];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
-    calEvent.attendees = [];
+    attendeesFromCalEvent = [];
   }
-  const attendees = calEvent.attendees
+  const attendees = attendeesFromCalEvent
     .map((attendee) => {
       return `
 ${attendee?.name || calEvent.organizer.language.translate("guest")}
@@ -144,7 +145,12 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
 };
 
 export const getUid = (calEvent: CalendarEvent): string => {
-  return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+  const uid = calEvent.uid;
+  return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+};
+
+const getSeatReferenceId = (calEvent: CalendarEvent): string => {
+  return calEvent.attendeeSeatId ? `seatReferenceUid=${calEvent.attendeeSeatId}` : "";
 };
 
 export const getManageLink = (calEvent: CalendarEvent) => {
@@ -156,12 +162,18 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
-    WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+    WEBAPP_URL +
+    `/booking/${getUid(
+      calEvent
+    )}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}&${getSeatReferenceId}`
   );
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
+  const Uid = getUid(calEvent);
+  const seatUid = getSeatReferenceId(calEvent);
+
+  return `${WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
@@ -179,7 +191,7 @@ ${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
-  getManageLink(calEvent)
+  !calEvent.seatsPerTimeSlot && getManageLink(calEvent)
 }
 ${
   calEvent.paymentInfo

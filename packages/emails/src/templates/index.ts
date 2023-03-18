@@ -1,5 +1,6 @@
 export { AttendeeAwaitingPaymentEmail } from "./AttendeeAwaitingPaymentEmail";
 export { AttendeeCancelledEmail } from "./AttendeeCancelledEmail";
+export { AttendeeCancelledSeatEmail } from "./AttendeeCancelledSeatEmail";
 export { AttendeeDeclinedEmail } from "./AttendeeDeclinedEmail";
 export { AttendeeLocationChangeEmail } from "./AttendeeLocationChangeEmail";
 export { AttendeeRequestEmail } from "./AttendeeRequestEmail";
@@ -19,4 +20,5 @@ export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { TeamInviteEmail } from "./TeamInviteEmail";
 export { BrokenIntegrationEmail } from "./BrokenIntegrationEmail";
+export { OrganizerAttendeeCancelledSeatEmail } from "./OrganizerAttendeeCancelledSeatEmail";
 export * from "@calcom/app-store/routing-forms/emails/components";

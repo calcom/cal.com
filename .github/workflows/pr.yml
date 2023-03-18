@@ -21,6 +21,7 @@ jobs:
     outputs:
       app-store: ${{ steps.filter.outputs.app-store }}
       embed: ${{ steps.filter.outputs.embed }}
+      embed-react: ${{ steps.filter.outputs.embed-react }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
@@ -32,6 +33,9 @@ jobs:
               - 'apps/web/**'
               - 'packages/app-store/**'
             embed:
+              - 'apps/web/**'
+              - 'packages/embeds/**'
+            embed-react:
               - 'apps/web/**'
               - 'packages/embeds/**'
 
@@ -79,6 +83,13 @@ jobs:
     if: ${{ needs.changes.outputs.embed == 'true' }}
     needs: [changes, lint, build]
     uses: ./.github/workflows/e2e-embed.yml
+    secrets: inherit
+
+  e2e-embed-react:
+    name: E2E React embeds tests
+    if: ${{ needs.changes.outputs.embed-react == 'true' }}
+    needs: [changes, lint, build]
+    uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
   analyze:

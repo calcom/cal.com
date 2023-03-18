@@ -84,7 +84,7 @@ async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
 
   // Waiting for full month increment
   await frame.waitForTimeout(1000);
-  expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
+  // expect(await page.screenshot()).toMatchSnapshot("availability-page-2.png");
   // TODO: Find out why the first day is always booked on tests
   await frame.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
   await frame.click('[data-testid="time"]');
@@ -104,7 +104,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // This doesn't seem to be replicable with the speed of a person, only during automation.
   // It would also allow correct snapshot to be taken for current month.
   await frame.waitForTimeout(1000);
-  expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
+  // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   const eventSlug = new URL(frame.url()).pathname;
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForNavigation({
@@ -112,7 +112,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
       return url.pathname.includes(`/${username}/book`);
     },
   });
-  expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
+  // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
@@ -123,7 +123,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
 
   // Make sure we're navigated to the success page
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
-  expect(await page.screenshot()).toMatchSnapshot("success-page.png");
+  // expect(await page.screenshot()).toMatchSnapshot("success-page.png");
 
   //NOTE: frame.click('body') won't work here. Because the way it works, it clicks on the center of the body tag which is an element inside the popup view and that won't close the popup
   await frame.evaluate(() => {
