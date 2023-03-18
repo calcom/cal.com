@@ -328,7 +328,7 @@ type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: Submi
   "onSubmit"
 >;
 
-const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLFormElement>) => {
+const PlainForm = (props: FormProps<{ apiError: string }>, ref: Ref<HTMLFormElement>) => {
   const { form, handleSubmit, ...passThrough } = props;
 
   return (
@@ -338,6 +338,11 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
+
+          if (form.formState?.errors?.apiError) {
+            form.clearErrors("apiError");
+          }
+
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
