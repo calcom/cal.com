@@ -31,15 +31,15 @@ module.exports = {
           // Figure out a way to automate this for self hosted users
           // Goto https://javisperez.github.io/tailwindcolorshades to generate your brand color
           50: "#d1d5db",
-          100: "#9ca3af",
-          200: "#6b7280",
-          300: "#4b5563",
-          400: "#374151",
-          500: "#111827", // Brand color
-          600: "#0f1623",
-          700: "#0d121d",
-          800: "#0a0e17",
-          900: "#080c13",
+          100: "#F6F8F6",
+          200: "#EDF2F0",
+          300: "#D7E1DB",
+          400: "#BDCCBE",
+          500: "#637A6F",
+          600: "#505A54",
+          700: "#505A54",
+          800: "#505A54",
+          900: "#505A54",
           DEFAULT: "var(--brand-color)",
         },
         gray: {
@@ -138,6 +138,23 @@ module.exports = {
           700: "#d6d6d6",
           800: "#e8e8e8",
           900: "#f3f4f6",
+        },
+        sage: {
+          100: "#F6F8F6",
+          200: "#EDF2F0",
+          300: "#D7E1DB",
+          400: "#BDCCBE",
+          500: "#637A6F",
+          600: "#505A54",
+        },
+        sunny: {
+          100: "#FEFBF7",
+          200: "#FBF5EC",
+          300: "#FFEBB2",
+          400: "#FDE288",
+          500: "#FFCF27",
+          600: "#E1B30F",
+          700: "#F5EFE5",
         },
       },
       screens: {

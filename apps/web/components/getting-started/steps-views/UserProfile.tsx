@@ -83,20 +83,42 @@ const UserProfile = (props: IUserProfileProps) => {
 
   const DEFAULT_EVENT_TYPES = [
     {
-      title: t("15min_meeting"),
-      slug: "15min",
-      length: 15,
+      title: "Start Bi-Weekly Coaching",
+      slug: "bi-weekly-start-coaching-session",
+      eventName: "{ATTENDEE} & {HOST} | Mento Bi-Weekly Coaching",
+      description:
+        "Choose a time that works for you every two weeks. You'll get the first invite right-away and a complete schedule confirmed soon after.",
+      locations: [{ type: "integrations:google:meet" }],
+      length: 45,
+      hidden: false,
+      afterEventBuffer: 15,
+      minimumBookingNotice: 1440,
+      slotInterval: 30,
     },
     {
-      title: t("30min_meeting"),
-      slug: "30min",
-      length: 30,
+      title: "Single Coaching Session",
+      slug: "single-coaching-session",
+      eventName: "{ATTENDEE} & {HOST} | Mento Coaching Session",
+      description: "Please use this to book one-time and make up sessions when necessary.",
+      locations: [{ type: "integrations:google:meet" }],
+      length: 45,
+      hidden: false,
+      afterEventBuffer: 15,
+      minimumBookingNotice: 1440,
+      slotInterval: 30,
     },
     {
-      title: t("secret_meeting"),
-      slug: "secret",
-      length: 15,
+      title: "Bi-Weekly Coaching session",
+      slug: "bi-weekly-coaching-session",
+      eventName: "{ATTENDEE} & {HOST} | Mento Bi-Weekly Coaching",
+      description: "Set up your ongoing Mento Coaching schedule (45 minutes every two weeks).",
+      locations: [{ type: "integrations:google:meet" }],
+      recurringEvent: { freq: 2, count: 24, interval: 2 },
+      length: 45,
       hidden: true,
+      afterEventBuffer: 15,
+      minimumBookingNotice: 1440,
+      slotInterval: 30,
     },
   ];
 
@@ -152,9 +174,7 @@ const UserProfile = (props: IUserProfileProps) => {
           {t("few_sentences_about_yourself")}
         </p>
       </fieldset>
-      <Button
-        type="submit"
-        className="mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white">
+      <Button type="submit" className="mt-8 flex w-full flex-row justify-center">
         {t("finish")}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>

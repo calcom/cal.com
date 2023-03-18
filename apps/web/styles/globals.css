@@ -10,10 +10,10 @@ body  {
 }
 
 :root {
-  --brand-color: #292929;
+  --brand-color: #637A6F;
   --brand-text-color: #ffffff;
-  --brand-color-dark-mode: #fafafa;
-  --brand-text-color-dark-mode: #292929;
+  --brand-color-dark-mode: #637A6F;
+  --brand-text-color-dark-mode: #ffffff;
 }
 
 /*

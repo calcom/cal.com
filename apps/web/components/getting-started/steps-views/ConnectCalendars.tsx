@@ -1,9 +1,8 @@
 import { ArrowRightIcon } from "@heroicons/react/solid";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonAvatar, SkeletonText, SkeletonButton, List } from "@calcom/ui";
+import { SkeletonAvatar, SkeletonText, SkeletonButton, List, Button } from "@calcom/ui";
 
 import { CalendarItem } from "../components/CalendarItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
@@ -85,18 +84,13 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
           })}
         </ul>
       )}
-      <button
-        type="button"
-        data-testid="save-calendar-button"
-        className={classNames(
-          "mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white",
-          disabledNextButton ? "cursor-not-allowed opacity-20" : ""
-        )}
+      <Button
+        className="mt-8 flex w-full flex-row justify-center"
         onClick={() => nextStep()}
         disabled={disabledNextButton}>
         {firstCalendar ? `${t("continue")}` : `${t("next_step_text")}`}
         <ArrowRightIcon className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-      </button>
+      </Button>
     </>
   );
 };

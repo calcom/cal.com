@@ -19,7 +19,7 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -43,28 +43,20 @@ import {
 } from "@calcom/ui";
 import {
   FiMoreVertical,
-  FiMoon,
   FiExternalLink,
   FiLink,
-  FiSlack,
-  FiMap,
-  FiHelpCircle,
-  FiDownload,
   FiLogOut,
   FiCalendar,
   FiClock,
-  FiUsers,
   FiGrid,
   FiMoreHorizontal,
   FiFileText,
-  FiZap,
   FiSettings,
   FiArrowRight,
   FiArrowLeft,
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
-import { TeamInviteBadge } from "./TeamInviteBadge";
 
 /* TODO: Migate this */
 
@@ -328,30 +320,41 @@ function UserDropdown({ small }: { small?: boolean }) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon={(props) => (
-                      <FiMoon
-                        className={classNames(
-                          user.away
-                            ? "text-purple-500 group-hover:text-purple-700"
-                            : "text-gray-500 group-hover:text-gray-700",
-                          props.className
-                        )}
-                        aria-hidden="true"
-                      />
-                    )}
-                    onClick={() => {
-                      mutation.mutate({ away: !user?.away });
-                      utils.viewer.me.invalidate();
-                    }}>
-                    {user.away ? t("set_as_free") : t("set_as_away")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {/*<DropdownMenuItem>*/}
+                {/*  <DropdownItem*/}
+                {/*    type="button"*/}
+                {/*    StartIcon={(props) => (*/}
+                {/*      <FiMoon*/}
+                {/*        className={classNames(*/}
+                {/*          user.away*/}
+                {/*            ? "text-purple-500 group-hover:text-purple-700"*/}
+                {/*            : "text-gray-500 group-hover:text-gray-700",*/}
+                {/*          props.className*/}
+                {/*        )}*/}
+                {/*        aria-hidden="true"*/}
+                {/*      />*/}
+                {/*    )}*/}
+                {/*    onClick={() => {*/}
+                {/*      mutation.mutate({ away: !user?.away });*/}
+                {/*      utils.viewer.me.invalidate();*/}
+                {/*    }}>*/}
+                {/*    {user.away ? t("set_as_free") : t("set_as_away")}*/}
+                {/*  </DropdownItem>*/}
+                {/*</DropdownMenuItem>*/}
+                {/*<DropdownMenuSeparator />*/}
                 {user.username && (
                   <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`${process.env.NEXT_PUBLIC_MENTO_COACH_URL}`}
+                        StartIcon={FiArrowLeft}>
+                        Back to Mento
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem>
                       <DropdownItem
                         target="_blank"
@@ -377,38 +380,38 @@ function UserDropdown({ small }: { small?: boolean }) {
                     </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={JOIN_SLACK}>
-                    {t("join_our_slack")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>
-                    {t("visit_roadmap")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}
-                    onClick={() => setHelpOpen(true)}>
-                    {t("help")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
-                  <DropdownItem
-                    StartIcon={FiDownload}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                {/*<DropdownMenuSeparator />*/}
+                {/*<DropdownMenuItem>*/}
+                {/*  <DropdownItem*/}
+                {/*    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}*/}
+                {/*    target="_blank"*/}
+                {/*    rel="noreferrer"*/}
+                {/*    href={JOIN_SLACK}>*/}
+                {/*    {t("join_our_slack")}*/}
+                {/*  </DropdownItem>*/}
+                {/*</DropdownMenuItem>*/}
+                {/*<DropdownMenuItem>*/}
+                {/*  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>*/}
+                {/*    {t("visit_roadmap")}*/}
+                {/*  </DropdownItem>*/}
+                {/*</DropdownMenuItem>*/}
+                {/*<DropdownMenuItem>*/}
+                {/*  <DropdownItem*/}
+                {/*    type="button"*/}
+                {/*    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}*/}
+                {/*    onClick={() => setHelpOpen(true)}>*/}
+                {/*    {t("help")}*/}
+                {/*  </DropdownItem>*/}
+                {/*</DropdownMenuItem>*/}
+                {/*<DropdownMenuItem className="desktop-hidden hidden lg:flex">*/}
+                {/*  <DropdownItem*/}
+                {/*    StartIcon={FiDownload}*/}
+                {/*    target="_blank"*/}
+                {/*    rel="noreferrer"*/}
+                {/*    href={DESKTOP_APP_LINK}>*/}
+                {/*    {t("download_desktop_app")}*/}
+                {/*  </DropdownItem>*/}
+                {/*</DropdownMenuItem>*/}
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
@@ -472,13 +475,13 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: FiClock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: FiUsers,
-    onlyDesktop: true,
-    badge: <TeamInviteBadge />,
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: FiUsers,
+  //   onlyDesktop: true,
+  //   badge: <TeamInviteBadge />,
+  // },
   {
     name: "apps",
     href: "/apps",
@@ -527,11 +530,11 @@ const navigation: NavigationItemType[] = [
       return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: FiZap,
-  },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: FiZap,
+  // },
   {
     name: "settings",
     href: "/settings/my-account/profile",

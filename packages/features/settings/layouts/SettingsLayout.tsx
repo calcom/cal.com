@@ -16,10 +16,7 @@ import type { VerticalTabItemProps } from "@calcom/ui";
 import { Badge, Button, ErrorBoundary, VerticalTabItem, Skeleton, useMeta } from "@calcom/ui";
 import {
   FiUser,
-  FiKey,
-  FiCreditCard,
   FiTerminal,
-  FiUsers,
   FiLock,
   FiArrowLeft,
   FiChevronDown,
@@ -38,27 +35,27 @@ const tabs: VerticalTabItemProps[] = [
       { name: "general", href: "/settings/my-account/general" },
       { name: "calendars", href: "/settings/my-account/calendars" },
       { name: "conferencing", href: "/settings/my-account/conferencing" },
-      { name: "appearance", href: "/settings/my-account/appearance" },
+      // { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
-  {
-    name: "security",
-    href: "/settings/security",
-    icon: FiKey,
-    children: [
-      { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
-      { name: "impersonation", href: "/settings/security/impersonation" },
-    ],
-  },
-  {
-    name: "billing",
-    href: "/settings/billing",
-    icon: FiCreditCard,
-    children: [{ name: "manage_billing", href: "/settings/billing" }],
-  },
+  // {
+  //   name: "security",
+  //   href: "/settings/security",
+  //   icon: FiKey,
+  //   children: [
+  //     // { name: "password", href: "/settings/security/password" },
+  //     // { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+  //     { name: "impersonation", href: "/settings/security/impersonation" },
+  //   ],
+  // },
+  // {
+  //   name: "billing",
+  //   href: "/settings/billing",
+  //   icon: FiCreditCard,
+  //   children: [{ name: "manage_billing", href: "/settings/billing" }],
+  // },
   {
     name: "developer",
     href: "/settings/developer",
@@ -71,22 +68,21 @@ const tabs: VerticalTabItemProps[] = [
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: FiUsers,
-    children: [],
-  },
+  // {
+  //   name: "teams",
+  //   href: "/settings/teams",
+  //   icon: FiUsers,
+  //   children: [],
+  // },
   {
     name: "admin",
     href: "/settings/admin",
     icon: FiLock,
     children: [
-      //
-      { name: "license", href: "/auth/setup?step=1" },
+      // { name: "license", href: "/auth/setup?step=1" },
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
-      { name: "users", href: "https://console.cal.com" },
+      // { name: "users", href: "https://console.cal.com" },
     ],
   },
 ];

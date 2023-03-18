@@ -22,7 +22,6 @@ import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL, WEBSITE_URL } from "@cal
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
-import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import slugify from "@calcom/lib/slugify";
@@ -44,7 +43,7 @@ const transporter = nodemailer.createTransport<TransportOptions>({
   ...(serverConfig.transport as TransportOptions),
 } as TransportOptions);
 
-const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+const usernameSlug = (username: string) => slugify(username);
 
 const signJwt = async (payload: { email: string }) => {
   const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
@@ -503,7 +502,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
       }
 
-      if (!user.email) {
+      if (!user.email || !user.email.endsWith("@mento.co")) {
         return false;
       }
 
@@ -563,6 +562,61 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
         /* --- END FIXES LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
         if (existingUser) {
+          // CUSTOM_CODE: Sync Mento app data on login
+          let existing = { name: "", bio: "", avatar: "" };
+          if (process.env?.NEXT_PUBLIC_MENTO_COACH_URL && process.env?.NEXT_PUBLIC_CALENDAR_KEY) {
+            try {
+              const response = await fetch(
+                `${process.env.NEXT_PUBLIC_MENTO_COACH_URL}/api/calendar/coach?email=${user?.email}`,
+                {
+                  method: "GET",
+                  headers: {
+                    Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
+                  },
+                }
+              );
+              const data = await response?.json();
+
+              if (data) {
+                existing = { name: data?.name, bio: data?.bio, avatar: data?.profileUrl };
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+
+          await prisma.user.update({
+            where: {
+              id: existingUser?.id,
+            },
+            data: {
+              // Slugify the incoming name and append a few random characters to
+              // prevent conflicts for users with the same name.
+              name: existing?.name || existingUser.name,
+              bio: existing?.bio || existingUser?.bio,
+              avatar: existing?.avatar || existingUser?.avatar,
+            },
+          });
+
+          // CUSTOM_CODE: Auto assign google meet
+          const credentials = await prisma.credential.findFirst({
+            where: {
+              userId: existingUser?.id,
+              appId: "google-meet",
+            },
+          });
+          if (!credentials) {
+            await prisma.credential.create({
+              data: {
+                type: "google_video",
+                key: {},
+                userId: existingUser?.id,
+                appId: "google-meet",
+                invalid: false,
+              },
+            });
+          }
+
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
           if (existingUser.email === user.email) {
@@ -680,16 +734,52 @@ export const AUTH_OPTIONS: AuthOptions = {
           return "/auth/error?error=use-identity-login";
         }
 
+        // CUSTOM_CODE: Add Mento data to new user
+        let existing = { name: "", bio: "", avatar: "" };
+        if (process.env?.NEXT_PUBLIC_MENTO_COACH_URL && process.env?.NEXT_PUBLIC_CALENDAR_KEY) {
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_MENTO_COACH_URL}/api/calendar/coach?email=${user?.email}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
+                },
+              }
+            );
+            const data = await response?.json();
+
+            if (data) {
+              existing = { name: data?.name, bio: data?.bio, avatar: data?.profileUrl };
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
         const newUser = await prisma.user.create({
           data: {
             // Slugify the incoming name and append a few random characters to
             // prevent conflicts for users with the same name.
             username: usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
-            name: user.name,
+            name: existing?.name || user.name,
+            bio: existing?.bio || undefined,
+            avatar: existing?.avatar || undefined,
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
+          },
+        });
+
+        // CUSTOM_CODE: Auto assign google meet
+        await prisma.credential.create({
+          data: {
+            type: "google_video",
+            key: {},
+            userId: newUser?.id,
+            appId: "google-meet",
+            invalid: false,
           },
         });
 

@@ -1865,6 +1865,7 @@ async function handler(
       const subscribers = await getWebhooks(subscriberOptions);
       console.log("evt:", {
         ...evt,
+        recurringEventId: reqBody?.recurringEventId,
         metadata: reqBody.metadata,
       });
       const bookingId = booking?.id;
@@ -1884,6 +1885,7 @@ async function handler(
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
+          recurringEventId: reqBody.recurringEventId,
           rescheduleStartTime: originalRescheduledBooking?.startTime
             ? dayjs(originalRescheduledBooking?.startTime).utc().format()
             : undefined,

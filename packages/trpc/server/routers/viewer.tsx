@@ -690,8 +690,36 @@ const loggedInViewerRouter = router({
           metadata: true,
           name: true,
           createdDate: true,
+          completedOnboarding: true,
+          bio: true,
+          avatar: true,
         },
       });
+
+      // CUSTOM_CODE: Update Properties from App DB
+      if (process.env?.NEXT_PUBLIC_MENTO_COACH_URL && process.env?.NEXT_PUBLIC_CALENDAR_KEY) {
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_MENTO_COACH_URL}/api/calendar/coach?email=${updatedUser?.email}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
+              },
+              body: JSON.stringify({
+                onboarded: updatedUser?.completedOnboarding,
+                username: updatedUser?.username,
+                name: updatedUser?.name,
+                bio: updatedUser?.bio,
+                avatar: updatedUser?.avatar,
+              }),
+            }
+          );
+        } catch (e) {
+          console.error(e);
+        }
+      }
 
       // Sync Services
       await syncServicesUpdateWebUser(updatedUser);

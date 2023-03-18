@@ -1,8 +1,6 @@
-import classNames from "classnames";
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -17,7 +15,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 import { FiArrowLeft } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -25,7 +23,6 @@ import type { WithNonceProps } from "@lib/withNonce";
 import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
-import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -78,11 +75,12 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("dont_have_an_account")}
-    </a>
-  );
+  const LoginFooter = null;
+  // const LoginFooter = (
+  //   <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+  //     {t("dont_have_an_account")}
+  //   </a>
+  // );
 
   const TwoFactorFooter = (
     <Button
@@ -140,78 +138,78 @@ export default function Login({
             : null
         }>
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
-            <div>
-              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
-            </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-                <EmailField
-                  id="email"
-                  label={t("email_address")}
-                  defaultValue={totpEmail || (router.query.email as string)}
-                  placeholder="john.doe@example.com"
-                  required
-                  {...register("email")}
-                />
-                <div className="relative">
-                  <div className="absolute -top-[6px]  z-10 ltr:right-0 rtl:left-0">
-                    <Link
-                      href="/auth/forgot-password"
-                      tabIndex={-1}
-                      className="text-sm font-medium text-gray-600">
-                      {t("forgot")}
-                    </Link>
-                  </div>
-                  <PasswordField
-                    id="password"
-                    autoComplete="off"
-                    required={!totpEmail}
-                    className="mb-0"
-                    {...register("password")}
-                  />
-                </div>
-              </div>
+          {/*<form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">*/}
+          {/*  <div>*/}
+          {/*    <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />*/}
+          {/*  </div>*/}
+          {/*  <div className="space-y-6">*/}
+          {/*    <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>*/}
+          {/*      <EmailField*/}
+          {/*        id="email"*/}
+          {/*        label={t("email_address")}*/}
+          {/*        defaultValue={totpEmail || (router.query.email as string)}*/}
+          {/*        placeholder="john.doe@example.com"*/}
+          {/*        required*/}
+          {/*        {...register("email")}*/}
+          {/*      />*/}
+          {/*      <div className="relative">*/}
+          {/*        <div className="absolute -top-[6px]  z-10 ltr:right-0 rtl:left-0">*/}
+          {/*          <Link*/}
+          {/*            href="/auth/forgot-password"*/}
+          {/*            tabIndex={-1}*/}
+          {/*            className="text-sm font-medium text-gray-600">*/}
+          {/*            {t("forgot")}*/}
+          {/*          </Link>*/}
+          {/*        </div>*/}
+          {/*        <PasswordField*/}
+          {/*          id="password"*/}
+          {/*          autoComplete="off"*/}
+          {/*          required={!totpEmail}*/}
+          {/*          className="mb-0"*/}
+          {/*          {...register("password")}*/}
+          {/*        />*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
 
-              {twoFactorRequired && <TwoFactor center />}
+          {/*    {twoFactorRequired && <TwoFactor center />}*/}
 
-              {errorMessage && <Alert severity="error" title={errorMessage} />}
+          {/*    {errorMessage && <Alert severity="error" title={errorMessage} />}*/}
+          {/*    <Button*/}
+          {/*      type="submit"*/}
+          {/*      color="primary"*/}
+          {/*      disabled={formState.isSubmitting}*/}
+          {/*      className="w-full justify-center">*/}
+          {/*      {twoFactorRequired ? t("submit") : t("sign_in")}*/}
+          {/*    </Button>*/}
+          {/*  </div>*/}
+          {/*</form>*/}
+          {/*{!twoFactorRequired && (*/}
+          {/*  <>*/}
+          {/*{(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}*/}
+          <div className="space-y-3">
+            {isGoogleLoginEnabled && (
               <Button
-                type="submit"
-                color="primary"
-                disabled={formState.isSubmitting}
-                className="w-full justify-center">
-                {twoFactorRequired ? t("submit") : t("sign_in")}
+                color="secondary"
+                className="w-full justify-center"
+                data-testid="google"
+                StartIcon={FaGoogle}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await signIn("google");
+                }}>
+                {t("signin_with_google")}
               </Button>
-            </div>
-          </form>
-          {!twoFactorRequired && (
-            <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
-              <div className="space-y-3">
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    className="w-full justify-center"
-                    data-testid="google"
-                    StartIcon={FaGoogle}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      await signIn("google");
-                    }}>
-                    {t("signin_with_google")}
-                  </Button>
-                )}
-                {isSAMLLoginEnabled && (
-                  <SAMLLogin
-                    samlTenantID={samlTenantID}
-                    samlProductID={samlProductID}
-                    setErrorMessage={setErrorMessage}
-                  />
-                )}
-              </div>
-            </>
-          )}
+            )}
+            {isSAMLLoginEnabled && (
+              <SAMLLogin
+                samlTenantID={samlTenantID}
+                samlProductID={samlProductID}
+                setErrorMessage={setErrorMessage}
+              />
+            )}
+          </div>
+          {/*  </>*/}
+          {/*)}*/}
         </FormProvider>
       </AuthContainer>
       <AddToHomescreen />

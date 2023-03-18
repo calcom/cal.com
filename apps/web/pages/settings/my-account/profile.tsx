@@ -358,9 +358,9 @@ const ProfileForm = ({
       <div className="mt-8">
         <TextField label={t("full_name")} {...formMethods.register("name")} />
       </div>
-      <div className="mt-8">
-        <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
-      </div>
+      {/*<div className="mt-8">*/}
+      {/*  <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />*/}
+      {/*</div>*/}
       <div className="mt-8">
         <Label>{t("about")}</Label>
         <Editor
