@@ -19,6 +19,9 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
       // It's possible that the location app got uninstalled
       return null;
     }
+    if (eventLocationType.variable === "hostDefault") {
+      return null;
+    }
 
     const translateAbleKeys = [
       "attendee_in_person",
@@ -29,14 +32,11 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
     ];
 
     const locationKey = z.string().default("").parse(locationKeyToString(location));
-
     const translatedLocation = location.type.startsWith("integrations:")
       ? eventLocationType.label
       : translateAbleKeys.includes(locationKey)
       ? t(locationKey)
       : locationKey;
-
-    if (translatedLocation === "use_organizer_default_conferencing_app") return null;
 
     return (
       <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">

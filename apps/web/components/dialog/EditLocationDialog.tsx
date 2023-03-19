@@ -293,7 +293,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 success={({ data }) => {
                   if (!data.length) return null;
                   const locationOptions = [...data].filter((option) => {
-                    return !isTeamEvent ? option.label !== "Team" : true;
+                    return !isTeamEvent ? option.label !== "Conferencing" : true;
                   });
                   if (booking) {
                     locationOptions.map((location) =>

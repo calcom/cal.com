@@ -693,7 +693,7 @@ async function handler(
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   // use host default
-  if (isTeamEventType && locationBodyString === "team") {
+  if (isTeamEventType && locationBodyString === "conferencing") {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata) {

@@ -12,7 +12,7 @@ export type DefaultEventLocationType = {
   type: DefaultEventLocationTypeEnum;
   label: string;
   messageForOrganizer: string;
-  category: "in person" | "team" | "other" | "phone";
+  category: "in person" | "conferencing" | "other" | "phone";
 
   iconUrl: string;
   urlRegExp?: string;
@@ -67,7 +67,7 @@ export enum DefaultEventLocationTypeEnum {
    */
   UserPhone = "userPhone",
   Link = "link",
-  Team = "team",
+  Conferencing = "conferencing",
 }
 
 export const defaultLocations: DefaultEventLocationType[] = [
@@ -98,13 +98,13 @@ export const defaultLocations: DefaultEventLocationType[] = [
   },
   {
     default: true,
-    type: DefaultEventLocationTypeEnum.Team,
+    type: DefaultEventLocationTypeEnum.Default,
     iconUrl: "/link.svg",
     organizerInputType: null,
-    label: "use_organizer_default_conferencing_app",
+    label: "organizer_default_conferencing_app",
     variable: "hostDefault",
     defaultValueVariable: "hostDefault",
-    category: "team",
+    category: "conferencing",
     messageForOrganizer: "",
   },
   {
