@@ -23,7 +23,7 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
     return (
       <li
         className={cn(
-          "dark:text-darkgray-400 flex cursor-not-allowed select-none justify-between truncate rounded-[4px] px-3 py-2 text-gray-300 ",
+          " flex cursor-not-allowed select-none justify-between truncate rounded-[4px] px-3 py-2 text-gray-300 ",
           focused ? "dark:bg-darkgray-200 bg-muted" : "dark:hover:bg-darkgray-200 hover:bg-subtle"
         )}>
         <>
@@ -36,8 +36,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
               className={cn(
                 "flex h-4 w-4 items-center justify-center rounded-[4px]  border opacity-70 ltr:mr-2 rtl:ml-2",
                 isSelected
-                  ? "dark:bg-darkgray-200 dark:text-darkgray-900 dark:border-darkgray-300 bg-gray-800 text-gray-50"
-                  : "dark:text-darkgray-600 dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+                  ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
+                  : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
               )}>
               {isSelected && <FiCheck className="h-3 w-3 text-current" />}
             </div>
@@ -58,8 +58,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
       className={cn(
         "block flex cursor-pointer select-none items-center justify-between truncate border-transparent px-3 py-2 transition duration-200",
         isSelected
-          ? "dark:bg-darkgray-200 dark:text-darkgray-900 bg-subtle text-emphasis"
-          : "dark:text-darkgray-700 dark:hover:bg-darkgray-200 text-default hover:bg-subtle",
+          ? "dark:bg-darkgray-200  bg-subtle text-emphasis"
+          : " dark:hover:bg-darkgray-200 text-default hover:bg-subtle",
         focused && "dark:bg-darkgray-200 bg-muted",
         classNames?.listItem
       )}>
@@ -73,8 +73,8 @@ const Item: React.FC<ItemProps> = ({ item, index, focused }) => {
           className={cn(
             "flex h-4 w-4 items-center justify-center rounded-[4px]  border ltr:mr-2 rtl:ml-2",
             isSelected
-              ? "dark:bg-darkgray-200 dark:text-darkgray-900 dark:border-darkgray-300 bg-gray-800 text-gray-50"
-              : "dark:text-darkgray-600 dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
+              ? "dark:bg-darkgray-200  dark:border-darkgray-300 bg-gray-800 text-gray-50"
+              : " dark:bg-darkgray-200 dark:border-darkgray-300 border-default bg-mutedext-gray-600"
           )}>
           {isSelected && <FiCheck className="h-3 w-3 text-current" />}
         </div>

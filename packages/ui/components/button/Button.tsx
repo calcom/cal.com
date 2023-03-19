@@ -86,13 +86,13 @@ const buttonClasses = cva(
         disabled: true,
         color: "secondary",
         className:
-          "border border-subtle bg-opacity-30 text-emphasis/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-subtle bg-opacity-30 text-emphasis/30 /30 dark:border-darkgray-200",
       },
       {
         loading: true,
         color: "secondary",
         className:
-          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
@@ -105,13 +105,13 @@ const buttonClasses = cva(
         disabled: true,
         color: "minimal",
         className:
-          "border:gray-200 bg-opacity-30 text-emphasis/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border:gray-200 bg-opacity-30 text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
       },
       {
         loading: true,
         color: "minimal",
         className:
-          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],

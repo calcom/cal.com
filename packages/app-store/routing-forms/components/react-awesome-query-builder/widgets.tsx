@@ -85,7 +85,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300 dark:text-darkgray-900 border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       {...customProps}
       {...remainingProps}
     />
@@ -112,7 +112,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300 dark:text-darkgray-900 border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       value={textValue}
       labelSrOnly={noLabel}
       placeholder={placeholder}
@@ -130,7 +130,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300 dark:text-darkgray-900 border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);

@@ -67,7 +67,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             className="flex justify-between px-6 py-4"
             data-testid="event-type-link">
             <div className="flex-shrink">
-              <p className="dark:text-darkgray-700 text-sm font-semibold text-emphasis">{type.title}</p>
+              <p className=" text-sm font-semibold text-emphasis">{type.title}</p>
               <EventTypeDescription className="text-sm" eventType={type} />
             </div>
             <div className="mt-1 self-center">
@@ -146,7 +146,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               {!isBioEmpty && (
                 <>
                   <div
-                    className=" dark:text-darkgray-600 text-sm text-subtle [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-sm text-subtle [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
@@ -193,7 +193,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                       }}
                       data-testid="event-type-link">
                       <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-default">
+                        <h2 className=" pr-2 text-sm font-semibold text-default">
                           {type.title}
                         </h2>
                       </div>

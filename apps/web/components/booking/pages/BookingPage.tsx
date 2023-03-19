@@ -530,7 +530,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             {showEventTypeDetails && (
-              <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
+              <div className="sm:dark:border-darkgray-300  text-default flex flex-col px-6 pt-6 pb-0 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
@@ -563,7 +563,7 @@ const BookingPage = ({
                             content={recurringStrings.slice(5).map((timeFormatted, key) => (
                               <p key={key}>{timeFormatted}</p>
                             ))}>
-                            <p className="dark:text-darkgray-600 text-sm">
+                            <p className=" text-sm">
                               + {t("plus_more", { count: recurringStrings.length - 5 })}
                             </p>
                           </Tooltip>

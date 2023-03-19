@@ -187,7 +187,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         <div
                           className={classNames(
                             "flex flex-nowrap items-center text-sm font-medium",
-                            "dark:text-darkgray-600 text-gray-600",
+                            " text-gray-600",
                             "ltr:mr-[10px] rtl:ml-[10px]"
                           )}>
                           <FiUser
@@ -246,7 +246,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
-                      <p className="text-subtle line-through dark:text-darkgray-600">
+                      <p className="text-subtle line-through ">
                         <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>

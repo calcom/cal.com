@@ -124,7 +124,7 @@ export const Components: Record<BookingFieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
       const inputClassName =
-        "dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
+        "dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
       return (
         <>
           {value.length ? (

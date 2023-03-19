@@ -239,7 +239,7 @@ const DatePicker = ({
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}
-            className="text-bookinglight dark:text-darkgray-900 my-4 text-xs uppercase tracking-widest">
+            className="text-bookinglight  my-4 text-xs uppercase tracking-widest">
             {weekDay}
           </div>
         ))}

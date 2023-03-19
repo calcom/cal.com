@@ -70,7 +70,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               className="flex justify-between">
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className="dark:text-darkgray-700 text-default text-sm font-semibold">{type.title}</h2>
+                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
@@ -106,13 +106,13 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-          <p className="font-cal dark:text-darkgray-900 text-emphasis mb-2 text-2xl tracking-wider">
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">
             {teamName}
           </p>
           {!isBioEmpty && (
             <>
               <div
-                className="dark:text-darkgray-600 text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
               />
             </>

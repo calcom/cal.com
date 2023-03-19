@@ -131,7 +131,7 @@ function Select<T extends Option>({
                 "min-w-64 border-default text-muted flex max-h-[36px] items-center justify-between rounded-md border text-sm transition-all duration-300 focus:outline-none",
                 isDisabled
                   ? " dark:bg-darkgray-200 dark:border-darkgray-300 bg-subtle dark:text-subtle text-muted border-subtle"
-                  : "dark:border-darkgray-300 dark:bg-darkgray-50 dark:text-darkgray-500 dark:focus:border-darkgray-700 dark:focus:bg-darkgray-100 dark:focus:text-darkgray-900 dark:hover:text-darkgray-900 bg-default hover:border-empthasis focus:border-gray-900"
+                  : "dark:border-darkgray-300 dark:bg-darkgray-50  dark:focus:border-darkgray-700 dark:focus:bg-darkgray-100 dark:focus:text-darkgray-900 dark:hover:text-darkgray-900 bg-default hover:border-empthasis focus:border-gray-900"
               )}>
               <div className="flex w-full grow-0 items-center gap-1 overflow-x-hidden">
                 <>
@@ -152,7 +152,7 @@ function Select<T extends Option>({
                           <p
                             className={cn(
                               classNames?.tagItemText ??
-                                "dark:text-darkgray-900 text-default cursor-default select-none truncate text-sm leading-none"
+                                " text-default cursor-default select-none truncate text-sm leading-none"
                             )}>
                             {item.label}
                           </p>
@@ -165,7 +165,7 @@ function Select<T extends Option>({
                               <FiX
                                 className={
                                   classNames?.tagItemIcon ??
-                                  "dark:text-darkgray-700 dark:hover:text-darkgray-900 hover:text-emphasis text-subtle h-4 w-4"
+                                  " dark:hover:text-darkgray-900 hover:text-emphasis text-subtle h-4 w-4"
                                 }
                               />
                             </button>
@@ -174,14 +174,14 @@ function Select<T extends Option>({
                       ))}
                     </div>
                   ) : (
-                    <div className="dark:text-darkgray-900 text-emphasis py-2.5 px-3 text-sm leading-none">
+                    <div className=" text-emphasis py-2.5 px-3 text-sm leading-none">
                       <p>{selectedItems?.label}</p>
                     </div>
                   )}
                 </>
               </div>
 
-              <div className="dark:text-darkgray-900 text-emphasis flex flex-none items-center rounded-[6px] p-1.5 opacity-75 ">
+              <div className=" text-emphasis flex flex-none items-center rounded-[6px] p-1.5 opacity-75 ">
                 <>
                   {isClearable && !isDisabled && selectedItems !== null && (
                     <div className="cursor-pointer" onClick={clearValue}>

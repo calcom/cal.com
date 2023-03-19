@@ -43,8 +43,8 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
             className={classNames(
               "relative rounded-[4px] px-3 py-1 text-sm leading-tight",
               option.disabled
-                ? "dark:text-darkgray-900 text-gray-400 hover:cursor-not-allowed"
-                : "dark:text-darkgray-800 dark:[&[aria-checked='false']]:hover:bg-darkgray-100 [&[aria-checked='false']]:hover:bg-gray-100",
+                ? " text-gray-400 hover:cursor-not-allowed"
+                : " dark:[&[aria-checked='false']]:hover:bg-darkgray-100 [&[aria-checked='false']]:hover:bg-gray-100",
               isFullWidth && "w-full"
             )}
             ref={(node) => {

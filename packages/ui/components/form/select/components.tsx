@@ -97,7 +97,7 @@ export const SingleValueComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis"
+      " dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis"
     )}
   />
 );
@@ -113,7 +113,7 @@ export const ValueContainerComponent = <
   <reactSelectComponents.ValueContainer
     {...props}
     className={classNames(
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis",
+      " dark:placeholder:text-darkgray-500 placeholder:text-muted text-emphasis",
       className
     )}
   />
@@ -130,7 +130,7 @@ export const MultiValueComponent = <
   <reactSelectComponents.MultiValue
     {...props}
     className={classNames(
-      "dark:bg-darkgray-200 dark:text-darkgray-900 bg-subtle text-default !rounded-md",
+      "dark:bg-darkgray-200  bg-subtle text-default !rounded-md",
       className
     )}
   />
