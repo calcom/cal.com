@@ -5,8 +5,8 @@ import type {
   Props,
   SingleValue,
   MultiValue,
-  SelectComponentsConfig,
   MenuPlacement,
+  SelectComponentsConfig,
 } from "react-select";
 import ReactSelect, { components as reactSelectComponents } from "react-select";
 
@@ -67,25 +67,53 @@ export const Select = <
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
-  className,
-  components,
-  styles,
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
-  const reactSelectProps = React.useMemo(() => {
-    return getReactSelectProps<Option, IsMulti, Group>({
-      className,
-      components: components || {},
-    });
-  }, [className, components]);
-
   return (
     <ReactSelect
-      {...reactSelectProps}
-      {...props}
-      styles={{
-        ...styles,
+      classNames={{
+        input: () =>
+          classNames(
+            "focus:ring-0 focus:ring-offset-0 dark:text-darkgray-900 text-black",
+            props.classNames?.input
+          ),
+        option: (state) =>
+          classNames(
+            "dark:bg-darkgray-100 flex cursor-pointer justify-between py-3",
+            state.isFocused && "dark:bg-darkgray-200 bg-gray-100",
+            state.isSelected && "dark:bg-darkgray-300 bg-neutral-900",
+            props.classNames?.option
+          ),
+        control: () =>
+          classNames(
+            "dark:bg-darkgray-100 dark:border-darkgray-300 min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white",
+            props.classNames?.control
+          ),
+        singleValue: () =>
+          classNames(
+            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+            props.classNames?.singleValue
+          ),
+        valueContainer: () =>
+          classNames(
+            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+            props.classNames?.valueContainer
+          ),
+        multiValue: () =>
+          classNames(
+            "dark:bg-darkgray-200 dark:text-darkgray-900 rounded-md bg-gray-100 text-gray-700",
+            props.classNames?.multiValue
+          ),
+        menu: () =>
+          classNames(
+            "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white",
+            props.classNames?.menu
+          ),
+        menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        ...props.classNames,
       }}
+      unstyled
+      {...props}
     />
   );
 };
