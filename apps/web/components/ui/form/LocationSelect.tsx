@@ -3,8 +3,7 @@ import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
-
-import Select from "@components/ui/form/Select";
+import { Select } from "@calcom/ui";
 
 export type LocationOption = {
   label: string;
