@@ -98,7 +98,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   },
   {
     default: true,
-    type: DefaultEventLocationTypeEnum.Default,
+    type: DefaultEventLocationTypeEnum.Conferencing,
     iconUrl: "/link.svg",
     organizerInputType: null,
     label: "organizer_default_conferencing_app",
