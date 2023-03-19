@@ -30,8 +30,9 @@ function getResponsesFromOldBooking(
     return acc;
   }, {});
   return {
-    name: rawBooking.attendees[0].name,
-    email: rawBooking.attendees[0].email,
+    // It is possible to have no attendees in a booking when the booking is cancelled.
+    name: rawBooking.attendees[0]?.name || "Nameless",
+    email: rawBooking.attendees[0]?.email || "",
     guests: rawBooking.attendees.slice(1).map((attendee) => {
       return attendee.email;
     }),
@@ -54,6 +55,8 @@ async function getBooking(
       uid,
     },
     select: {
+      id: true,
+      uid: true,
       startTime: true,
       description: true,
       customInputs: true,
@@ -64,6 +67,12 @@ async function getBooking(
         select: {
           email: true,
           name: true,
+          bookingSeat: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
         },
       },
     },
@@ -103,7 +112,11 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: getBookingResponsesPartialSchema({
-      bookingFields: eventType.bookingFields,
+      eventType: {
+        bookingFields: eventType.bookingFields,
+      },
+      // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
+      view: "ALL_VIEWS",
     }).parse(booking.responses || getResponsesFromOldBooking(booking)),
   };
 };

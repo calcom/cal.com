@@ -23,7 +23,7 @@ export const EditableSchema = z.enum([
   "user", // Fully editable
   "user-readonly", // All fields are readOnly.
 ]);
-
+export type ALL_VIEWS = "ALL_VIEWS";
 const fieldSchema = z.object({
   name: z.string(),
   // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
@@ -36,19 +36,25 @@ const fieldSchema = z.object({
   defaultLabel: z.string().optional(),
   defaultPlaceholder: z.string().optional(),
 
-  subFields: z
-    .record(
-      z
-        .object({
-          name: z.string(),
-          type: fieldTypeEnum,
-          label: z.string().optional(),
-          defaultLabel: z.string().optional(),
-          defaultPlaceholder: z.string().optional(),
-          required: z.boolean().optional(),
-        })
-        .array()
-    )
+  subFields: z.record(
+    z
+      .object({
+        name: z.string(),
+        type: fieldTypeEnum,
+        label: z.string().optional(),
+        defaultLabel: z.string().optional(),
+        defaultPlaceholder: z.string().optional(),
+        required: z.boolean().optional(),
+      })
+      .array()
+  ),
+  views: z
+    .object({
+      label: z.string(),
+      id: z.string(),
+      description: z.string().optional(),
+    })
+    .array()
     .optional(),
   type: fieldTypeEnum,
   options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),

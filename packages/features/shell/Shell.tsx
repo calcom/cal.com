@@ -63,6 +63,7 @@ import {
   FiArrowLeft,
 } from "@calcom/ui/components/icon";
 
+import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
 
 /* TODO: Migate this */
@@ -316,106 +317,112 @@ function UserDropdown({ small }: { small?: boolean }) {
       </div>
 
       <DropdownMenuPortal>
-        <DropdownMenuContent
-          onInteractOutside={() => {
-            setMenuOpen(false);
-            setHelpOpen(false);
-          }}
-          className="overflow-hidden rounded-md">
-          {helpOpen ? (
-            <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
-          ) : (
-            <>
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  StartIcon={(props) => (
-                    <FiMoon
-                      className={classNames(
-                        user.away
-                          ? "text-purple-500 group-hover:text-purple-700"
-                          : "text-gray-500 group-hover:text-gray-700",
-                        props.className
-                      )}
-                      aria-hidden="true"
-                    />
-                  )}
-                  onClick={() => {
-                    mutation.mutate({ away: !user?.away });
-                    utils.viewer.me.invalidate();
-                  }}>
-                  {user.away ? t("set_as_free") : t("set_as_away")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {user.username && (
-                <>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                      StartIcon={FiExternalLink}>
-                      {t("view_public_page")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      StartIcon={FiLink}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigator.clipboard.writeText(
-                          `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
-                        );
-                        showToast(t("link_copied"), "success");
-                      }}>
-                      {t("copy_public_page_link")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <DropdownItem
-                  StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}
-                  target="_blank"
-                  rel="noreferrer"
-                  href={JOIN_SLACK}>
-                  {t("join_our_slack")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>
-                  {t("visit_roadmap")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}
-                  onClick={() => setHelpOpen(true)}>
-                  {t("help")}
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="desktop-hidden hidden lg:flex">
-                <DropdownItem StartIcon={FiDownload} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                  {t("download_desktop_app")}
-                </DropdownItem>
-              </DropdownMenuItem>
+        <FreshChatProvider>
+          <DropdownMenuContent
+            onInteractOutside={() => {
+              setMenuOpen(false);
+              setHelpOpen(false);
+            }}
+            className="overflow-hidden rounded-md">
+            {helpOpen ? (
+              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
+            ) : (
+              <>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => (
+                      <FiMoon
+                        className={classNames(
+                          user.away
+                            ? "text-purple-500 group-hover:text-purple-700"
+                            : "text-gray-500 group-hover:text-gray-700",
+                          props.className
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
+                    onClick={() => {
+                      mutation.mutate({ away: !user?.away });
+                      utils.viewer.me.invalidate();
+                    }}>
+                    {user.away ? t("set_as_free") : t("set_as_away")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {user.username && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                        StartIcon={FiExternalLink}>
+                        {t("view_public_page")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        StartIcon={FiLink}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigator.clipboard.writeText(
+                            `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
+                          );
+                          showToast(t("link_copied"), "success");
+                        }}>
+                        {t("copy_public_page_link")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <DropdownItem
+                    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={JOIN_SLACK}>
+                    {t("join_our_slack")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>
+                    {t("visit_roadmap")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}
+                    onClick={() => setHelpOpen(true)}>
+                    {t("help")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                  <DropdownItem
+                    StartIcon={FiDownload}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={DESKTOP_APP_LINK}>
+                    {t("download_desktop_app")}
+                  </DropdownItem>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <DropdownItem
-                  type="button"
-                  StartIcon={(props) => <FiLogOut aria-hidden="true" {...props} />}
-                  onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
-                  {t("sign_out")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => <FiLogOut aria-hidden="true" {...props} />}
+                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+                    {t("sign_out")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </FreshChatProvider>
       </DropdownMenuPortal>
     </Dropdown>
   );
@@ -782,7 +789,7 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div
         className={classNames(
-          "my-4 flex items-center md:mt-0 md:mb-6",
+          "flex items-center md:mt-0 md:mb-6",
           props.smallHeading ? "lg:mb-7" : "lg:mb-8"
         )}>
         {!!props.backPath && (
@@ -882,7 +889,7 @@ function TopNav() {
           </span>
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
-            <Link href="/settings/profile">
+            <Link href="/settings/my-account/profile">
               <FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </Link>
           </button>

@@ -114,7 +114,7 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
-export const bookingLimitsType = z
+export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
     PER_WEEK: z.number().optional(),
@@ -158,6 +158,7 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   ethSignature: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -220,6 +221,7 @@ export const schemaBookingCancelParams = z.object({
   uid: z.string().optional(),
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({
@@ -433,3 +435,9 @@ export const fromEntries = <
 ): FromEntries<DeepWriteable<E>> => {
   return Object.fromEntries(entries) as FromEntries<DeepWriteable<E>>;
 };
+
+export const getAccessLinkResponseSchema = z.object({
+  download_link: z.string().url(),
+});
+
+export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;

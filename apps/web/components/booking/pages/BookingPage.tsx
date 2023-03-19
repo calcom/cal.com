@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -15,6 +15,7 @@ import { getEventLocationType, locationKeyToString } from "@calcom/app-store/loc
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -33,14 +34,14 @@ import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Form, Tooltip } from "@calcom/ui";
-import { FiAlertTriangle, FiCalendar, FiCreditCard, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
+import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -57,6 +58,13 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
+
+/** These are like 40kb that not every user needs */
+const BookingDescriptionPayment = dynamic(
+  () => import("@components/booking/BookingDescriptionPayment")
+) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
+
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({
   fields,
@@ -72,6 +80,7 @@ const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
+  const currentView = rescheduleUid ? "reschedule" : "";
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -81,12 +90,16 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+
         let noLabel = false;
         let hidden = !!field.hidden;
+        const fieldViews = field.views;
+
+        if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
-          if (!rescheduleUid) {
-            return null;
-          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -109,7 +122,10 @@ const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        if (
+          (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
+          !!rescheduleUid
+        ) {
           return null;
         }
 
@@ -198,7 +214,6 @@ const BookingPage = ({
     }),
     {}
   );
-  const paymentAppData = getPaymentAppData(eventType);
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (
@@ -209,6 +224,20 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
+
+  // This is a workaround for forcing the same time format for both server side rendering and client side rendering
+  // At initial render, we use the default time format which is 12H
+  const [withDefaultTimeFormat, setWithDefaultTimeFormat] = useState(true);
+  const parseDateFunc = useCallback(
+    (date: string | null | Dayjs) => {
+      return parseDate(date, i18n, withDefaultTimeFormat);
+    },
+    [withDefaultTimeFormat]
+  );
+  // After intial render on client side, we let parseDateFunc to use the time format from the localStorage
+  useEffect(() => {
+    setWithDefaultTimeFormat(false);
+  }, []);
 
   useEffect(() => {
     if (top !== window) {
@@ -223,12 +252,12 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { uid, paymentUid } = responseData;
+      const { uid } = responseData;
 
-      if (paymentUid) {
+      if ("paymentUid" in responseData && !!responseData.paymentUid) {
         return await router.push(
           createPaymentLink({
-            paymentUid,
+            paymentUid: responseData.paymentUid,
             date,
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
@@ -243,6 +272,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
       });
@@ -269,7 +299,10 @@ const BookingPage = ({
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    eventType: {
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
+    },
+    view: rescheduleUid ? "reschedule" : "booking",
   });
 
   const parsedQuery = querySchema.parse({
@@ -313,8 +346,8 @@ const BookingPage = ({
       }, {});
       defaults.responses = {
         ...responses,
-        name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name),
-        email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email),
+        name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+        email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
       };
 
       return defaults;
@@ -340,8 +373,8 @@ const BookingPage = ({
     }, {});
     defaults.responses = {
       ...responses,
-      name: defaultUserValues.name ?? (!loggedInIsOwner ? session?.user?.name ?? undefined : undefined),
-      email: defaultUserValues.email || (!loggedInIsOwner ? session?.user?.email : undefined) || "",
+      name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
+      email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
     };
     return defaults;
   };
@@ -349,7 +382,8 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       responses: getBookingResponsesSchema({
-        bookingFields: getBookingFieldsWithSystemFields(eventType),
+        eventType: { bookingFields: getBookingFieldsWithSystemFields(eventType) },
+        view: rescheduleUid ? "reschedule" : "booking",
       }),
     })
     .passthrough();
@@ -367,19 +401,30 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
+  const parseRecurringDatesFunc = useCallback(
+    (date: string | null | Dayjs, recurringEvent: RecurringEvent, recurringCount: number) => {
+      return parseRecurringDates(
+        {
+          startDate: date,
+          timeZone: timeZone(),
+          recurringEvent: recurringEvent,
+          recurringCount: recurringCount,
+          withDefaultTimeFormat: withDefaultTimeFormat,
+        },
+        i18n
+      );
+    },
+    [withDefaultTimeFormat, date, eventType.recurringEvent, recurringEventCount]
+  );
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings, recurringDates] = parseRecurringDates(
-      {
-        startDate: date,
-        timeZone: timeZone(),
-        recurringEvent: eventType.recurringEvent,
-        recurringCount: parseInt(recurringEventCount.toString()),
-      },
-      i18n
+    [recurringStrings, recurringDates] = parseRecurringDatesFunc(
+      date,
+      eventType.recurringEvent,
+      parseInt(recurringEventCount.toString())
     );
   }
 
-  const bookEvent = (booking: BookingFormValues) => {
+  const bookEvent = (bookingValues: BookingFormValues) => {
     telemetry.event(
       top !== window ? telemetryEventTypes.embedBookingConfirmed : telemetryEventTypes.bookingConfirmed,
       { isTeamBooking: document.URL.includes("team/") }
@@ -402,9 +447,9 @@ const BookingPage = ({
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
-        ...booking,
-        start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(duration, "minute").format(),
+        ...bookingValues,
+        start: dayjs(recurringDate).utc().format(),
+        end: dayjs(recurringDate).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -422,20 +467,21 @@ const BookingPage = ({
       recurringMutation.mutate(recurringBookings);
     } else {
       mutation.mutate({
-        ...booking,
-        start: dayjs(date).format(),
-        end: dayjs(date).add(duration, "minute").format(),
+        ...bookingValues,
+        start: dayjs(date).utc().format(),
+        end: dayjs(date).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        bookingUid: router.query.bookingUid as string,
+        bookingUid: (router.query.bookingUid as string) || booking?.uid,
         user: router.query.user,
         metadata,
         hasHashedBookingLink,
         hashedLink,
         ethSignature: gateState.rainbowToken,
+        seatReferenceUid: router.query.seatReferenceUid as string,
       });
     }
   };
@@ -478,7 +524,7 @@ const BookingPage = ({
         )}>
         <div
           className={classNames(
-            "main overflow-hidden",
+            "main",
             isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
@@ -486,18 +532,7 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  {paymentAppData.price > 0 && (
-                    <p className="text-bookinglight -ml-2 px-2 text-sm ">
-                      <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={paymentAppData.price / 100.0}
-                          style="currency"
-                          currency={paymentAppData?.currency?.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
+                  <BookingDescriptionPayment eventType={eventType} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
@@ -515,7 +550,7 @@ const BookingPage = ({
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
-                        `${parseDate(date, i18n)}`}
+                        `${parseDateFunc(date)}`}
                       {isClientTimezoneAvailable &&
                         !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
@@ -545,7 +580,7 @@ const BookingPage = ({
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDate(dayjs(booking.startTime), i18n)}
+                          parseDateFunc(dayjs(booking.startTime))}
                       </p>
                     </div>
                   )}
@@ -614,6 +649,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </Gates>
   );
 };
@@ -623,17 +659,28 @@ export default BookingPage;
 function ErrorMessage({ error }: { error: unknown }) {
   const { t } = useLocale();
   const { query: { rescheduleUid } = {} } = useRouter();
+  const router = useRouter();
 
   return (
-    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-blue-400 bg-blue-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+          <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
-          <p className="text-sm text-yellow-700">
+          <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? (
+              <>
+                {t("can_you_try_again")}{" "}
+                <span className="cursor-pointer underline" onClick={() => router.back()}>
+                  {t("go_back")}
+                </span>
+                .
+              </> /* t(error.message) */
+            ) : (
+              "Unknown error"
+            )}
           </p>
         </div>
       </div>

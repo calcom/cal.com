@@ -1,25 +1,15 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
-} from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
+} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import {
-  PhoneInput,
-  AddressInput,
-  Button,
-  Label,
-  Group,
-  RadioField,
-  EmailField,
-  Tooltip,
-  InputField,
-} from "@calcom/ui";
+import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
 import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -83,7 +73,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   number: {
     propsType: "text",
-    factory: (props) => <Widgets.NumberWidget {...props} />,
+    factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
   },
   name: {
     propsType: "subFields",
@@ -222,6 +212,7 @@ export const Components: Record<BookingFieldType, Component> = {
               </ul>
               {!readOnly && (
                 <Button
+                  data-testid="add-another-guest"
                   type="button"
                   color="minimal"
                   StartIcon={FiUserPlus}
@@ -240,6 +231,7 @@ export const Components: Record<BookingFieldType, Component> = {
 
           {!value.length && !readOnly && (
             <Button
+              data-testid="add-guests"
               color="minimal"
               variant="button"
               StartIcon={FiUserPlus}

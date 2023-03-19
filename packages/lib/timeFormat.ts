@@ -18,11 +18,17 @@ export const setIs24hClockInLocalStorage = (is24h: boolean) =>
 
 export const getIs24hClockFromLocalStorage = () => {
   const is24hFromLocalstorage = localStorage.getItem(is24hLocalstorageKey);
+
   if (is24hFromLocalstorage === null) return null;
 
   return is24hFromLocalstorage === "true";
 };
 
+/**
+ * Retrieves the browsers time format preference, checking local storage first
+ * for a user set preference. If no preference is found, it will use the browser
+ * locale to determine the time format and store it in local storage.
+ */
 export const isBrowserLocale24h = () => {
   const localStorageTimeFormat = getIs24hClockFromLocalStorage();
   // If time format is already stored in the browser then retrieve and return early
@@ -41,6 +47,9 @@ export const isBrowserLocale24h = () => {
   }
 };
 
+/**
+ * Returns the time format string based on whether the current set locale is 24h or 12h.
+ */
 export const detectBrowserTimeFormat = isBrowserLocale24h()
   ? TimeFormat.TWENTY_FOUR_HOUR
   : TimeFormat.TWELVE_HOUR;
