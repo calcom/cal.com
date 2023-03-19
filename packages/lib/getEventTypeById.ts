@@ -268,7 +268,12 @@ export default async function getEventTypeById({
       ch.owner !== null
         ? {
             ...ch,
-            owner: { email: ch.owner.email, name: ch.owner.name ?? "", username: ch.owner.username ?? "" },
+            owner: {
+              ...ch.owner,
+              email: ch.owner.email,
+              name: ch.owner.name ?? "",
+              username: ch.owner.username ?? "",
+            },
           }
         : []
     ),

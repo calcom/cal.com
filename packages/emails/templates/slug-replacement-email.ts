@@ -29,6 +29,8 @@ export default class SlugReplacementEmail extends BaseEmail {
   }
 
   protected getTextBody(): string {
-    return this.t("email_text_body_slug_replacement", { slug: this.slug });
+    return `${this.t("email_body_slug_replacement_notice", { slug: this.slug })} ${this.t(
+      "email_body_slug_replacement_suggestion"
+    )}`;
   }
 }

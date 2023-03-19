@@ -198,6 +198,9 @@ const ChildrenEventTypes = ({
       initialValue.current = { children: getValues("children"), submitCount };
       return;
     }
+    resetField("children", {
+      defaultValue: initialValue.current.children,
+    });
   }, [resetField, getValues, submitCount]);
 
   return (

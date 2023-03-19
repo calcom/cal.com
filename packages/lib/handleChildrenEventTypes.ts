@@ -2,7 +2,7 @@ import type { Prisma, PrismaClient, EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 import { pick } from "lodash";
 
-import { sendSlugReplacementEmail } from "@calcom/emails";
+import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 
 import { getTranslation } from "./server/i18n";
@@ -76,12 +76,44 @@ export const unlockedManagedEventTypeProps = {
   ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
 };
 
-const sendAllSlugReplacementEmails = async (
-  children: handleChildrenEventTypesProps["children"],
-  slug: string
-) => {
+const sendAllSlugReplacementEmails = async (emails: string[], slug: string) => {
   const t = await getTranslation("en", "common");
-  children?.map(async (ch) => await sendSlugReplacementEmail({ email: ch.owner.email, slug, t }));
+  emails.map(async (email) => await sendSlugReplacementEmail({ email, slug, t }));
+};
+
+const checkExistentEventTypes = async ({
+  updatedEventType,
+  children,
+  prisma,
+  userIds,
+}: Pick<handleChildrenEventTypesProps, "updatedEventType" | "children" | "prisma"> & {
+  userIds: number[];
+}) => {
+  const replaceEventType = children?.filter(
+    (ch) => ch.owner.eventTypeSlugs.includes(updatedEventType.slug) && userIds.includes(ch.owner.id)
+  );
+
+  // If so, delete their event type with the same slug to proceed to create a managed one
+  if (replaceEventType?.length) {
+    const deletedReplacedEventTypes = await prisma.eventType.deleteMany({
+      where: {
+        slug: updatedEventType.slug,
+        userId: {
+          in: replaceEventType.map((evTy) => evTy.owner.id),
+        },
+      },
+    });
+
+    // Sending notification after deleting
+    await sendAllSlugReplacementEmails(
+      replaceEventType.map((evTy) => evTy.owner.email),
+      updatedEventType.slug
+    );
+    console.log(
+      "handleChildrenEventTypes:deletedReplacedEventTypes",
+      JSON.stringify({ replaceEventType, deletedReplacedEventTypes }, null, 2)
+    );
+  }
 };
 
 export default async function handleChildrenEventTypes({
@@ -131,6 +163,10 @@ export default async function handleChildrenEventTypes({
 
   // New users added
   if (newUserIds?.length) {
+    // Check if there are children with existent homonym event types to send notifications
+    await checkExistentEventTypes({ updatedEventType, children, prisma, userIds: newUserIds });
+
+    // Create event types for new users added
     const newEventTypes = await prisma.$transaction(
       newUserIds.map((userId) => {
         return prisma.eventType.create({
@@ -161,18 +197,15 @@ export default async function handleChildrenEventTypes({
         });
       })
     );
-    // Delete replaced event type first? overwrite it?
-    /*await sendAllSlugReplacementEmails(
-      children?.filter(
-        (ch) => ch.owner.eventTypeSlugs.includes(updatedEventType.slug) && newUserIds.includes(ch.owner.id)
-      ),
-      updatedEventType.slug
-    );
-    console.log("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));*/
+    console.log("handleChildrenEventTypes:newEventTypes", JSON.stringify({ newEventTypes }, null, 2));
   }
 
   // Old users updated
   if (oldUserIds?.length) {
+    // Check if there are children with existent homonym event types to send notifications
+    await checkExistentEventTypes({ updatedEventType, children, prisma, userIds: oldUserIds });
+
+    // Update event types for old users
     const updatedOldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
         return prisma.eventType.update({
@@ -234,6 +267,7 @@ export default async function handleChildrenEventTypes({
 
   // Deleted users deleted
   if (deletedUserIds?.length) {
+    // Delete event types for deleted users
     const deletedEventTypes = await prisma.eventType.deleteMany({
       where: {
         userId: {

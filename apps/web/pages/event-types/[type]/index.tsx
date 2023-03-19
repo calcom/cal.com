@@ -398,9 +398,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             count: slugExistsChildrenDialogOpen.length,
           })}
           cancelBtnText={t("go_back")}
-          onConfirm={(e) => {
+          onConfirm={(e: { preventDefault: () => void }) => {
             e.preventDefault();
             handleSubmit(formMethods.getValues());
+            setSlugExistsChildrenDialogOpen([]);
           }}>
           <p className="mt-5">
             <Trans
@@ -409,7 +410,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 names: `${slugExistsChildrenDialogOpen
                   .map((ch) => ch.owner.name)
                   .slice(0, -1)
-                  .join(",")} ${
+                  .join(", ")} ${
                   slugExistsChildrenDialogOpen.length > 1 ? t("and") : ""
                 } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
                 slug: eventType.slug,

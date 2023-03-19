@@ -32,12 +32,12 @@ const lockedFieldsManager = (
     eventType.schedulingType !== SchedulingType.MANAGED;
 
   const shouldLockIndicator = (fieldName: string) => {
-    let locked = false;
+    let locked = isManagedEventType || isChildrenManagedEventType;
     // Supports "metadata.fieldName"
     if (fieldName.includes(".")) {
-      locked = get(unlockedFields, fieldName) === undefined;
+      locked = locked && get(unlockedFields, fieldName) === undefined;
     } else {
-      locked = unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
+      locked = locked && unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined;
     }
     return locked && Indicator(isManagedEventType ? adminLabel : memberLabel);
   };
