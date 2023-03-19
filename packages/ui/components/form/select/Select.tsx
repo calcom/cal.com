@@ -105,7 +105,7 @@ export const Select = <
           ),
         multiValue: () =>
           classNames(
-            "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm",
+            "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm leading-none",
             props.classNames?.multiValue
           ),
         menu: () =>
@@ -120,13 +120,11 @@ export const Select = <
               ? state.isMulti
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
                 : "rotate-180 transition-transform"
-              : "" // Woo it adds another SVG here on multi for some reason
+              : "text-gray-600 dark:text-darkgray-600" // Woo it adds another SVG here on multi for some reason
           ),
-        multiValueRemove: () => "text-gray-600 dark:text-darkgray-400",
+        multiValueRemove: () => "text-gray-600 dark:text-darkgray-600 py-auto ml-2",
+
         ...props.classNames,
-      }}
-      components={{
-        MultiValueRemove: () => null,
       }}
       unstyled
       {...props}
