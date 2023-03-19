@@ -74,19 +74,23 @@ export const Select = <
       classNames={{
         input: () =>
           classNames(
-            "focus:ring-0 focus:ring-offset-0 dark:text-darkgray-900 text-black",
+            "dark:text-darkgray-900 text-gray-900 [&>input]:focus:ring-0 [&>input]:focus:outline-none", // Tailwind forms screws us here and adds a default focus state to the input
             props.classNames?.input
           ),
         option: (state) =>
           classNames(
-            "dark:bg-darkgray-100 flex cursor-pointer justify-between py-3",
+            "dark:bg-darkgray-100 flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-gray-700 dark:text-darkgray-700",
             state.isFocused && "dark:bg-darkgray-200 bg-gray-100",
-            state.isSelected && "dark:bg-darkgray-300 bg-neutral-900",
+            state.isSelected && "dark:bg-darkgray-300 bg-gray-200 text-gray-900 dark:text-darkgray-900",
             props.classNames?.option
           ),
-        control: () =>
+        placeholder: (state) =>
+          classNames("text-gray-400 text-sm dark:text-darkgray-400", state.isFocused && "hidden"),
+        dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
+        control: (state) =>
           classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-300 min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white",
+            "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border ",
+            state.isMulti ? (state.hasValue ? "p-1" : "px-3 py-2") : "py-2 px-3", // Apply p-1 when item has been selected (prevents placeholder moving about)
             props.classNames?.control
           ),
         singleValue: () =>
@@ -96,21 +100,33 @@ export const Select = <
           ),
         valueContainer: () =>
           classNames(
-            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400 flex gap-1",
             props.classNames?.valueContainer
           ),
         multiValue: () =>
           classNames(
-            "dark:bg-darkgray-200 dark:text-darkgray-900 rounded-md bg-gray-100 text-gray-700",
+            "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm",
             props.classNames?.multiValue
           ),
         menu: () =>
           classNames(
-            "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white",
+            "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white mt-1 border border-gray-200 dark:border-darkgray-200 ",
             props.classNames?.menu
           ),
         menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        indicatorsContainer: (state) =>
+          classNames(
+            state.selectProps.menuIsOpen
+              ? state.isMulti
+                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
+                : "rotate-180 transition-transform"
+              : "" // Woo it adds another SVG here on multi for some reason
+          ),
+        multiValueRemove: () => "text-gray-600 dark:text-darkgray-400",
         ...props.classNames,
+      }}
+      components={{
+        MultiValueRemove: () => null,
       }}
       unstyled
       {...props}
