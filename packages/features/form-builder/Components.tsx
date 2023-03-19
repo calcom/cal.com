@@ -172,6 +172,7 @@ export const Components: Record<BookingFieldType, Component> = {
               </ul>
               {!readOnly && (
                 <Button
+                  data-testid="add-another-guest"
                   type="button"
                   color="minimal"
                   StartIcon={FiUserPlus}
@@ -190,6 +191,7 @@ export const Components: Record<BookingFieldType, Component> = {
 
           {!value.length && !readOnly && (
             <Button
+              data-testid="add-guests"
               color="minimal"
               variant="button"
               StartIcon={FiUserPlus}

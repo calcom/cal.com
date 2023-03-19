@@ -47,7 +47,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="w-full py-5">
         <p className="text-subtle mb-1 px-5">{t("resources").toUpperCase()}</p>
         <a
-          href="https://docs.cal.com/"
+          onClick={() => onHelpItemSelect()}
+          href="https://cal.com/docs/"
           target="_blank"
           className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
@@ -201,7 +202,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="text-subtle w-full bg-neutral-50 p-5">
         <p className="">{t("specific_issue")}</p>
         <button
-          className="hover:text-default  font-medium underline"
+          className="hover:text-emphasis text-defualt font-medium underline"
           onClick={() => {
             setActive(true);
             if (isFreshChatEnabled) {
@@ -216,7 +217,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
-          className="hover:text-default  font-medium underline"
+          className="hover:text-emphasis text-defualt font-medium underline"
           href="https://docs.cal.com/"
           target="_blank"
           rel="noreferrer">

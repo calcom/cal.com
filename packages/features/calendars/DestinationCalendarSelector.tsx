@@ -139,16 +139,6 @@ const DestinationCalendarSelector = ({
         styles={{
           placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
           singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          option: (defaultStyles, state) => ({
-            ...defaultStyles,
-            backgroundColor: state.isSelected
-              ? state.isFocused
-                ? "var(--brand-color)"
-                : "var(--brand-color)"
-              : state.isFocused
-              ? "var(--brand-color-dark-mode)"
-              : "var(--brand-text-color)",
-          }),
           control: (defaultStyles) => {
             return {
               ...defaultStyles,

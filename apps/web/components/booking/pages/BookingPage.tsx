@@ -58,6 +58,8 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
+
 /** These are like 40kb that not every user needs */
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
@@ -446,8 +448,8 @@ const BookingPage = ({
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...bookingValues,
-        start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(duration, "minute").format(),
+        start: dayjs(recurringDate).utc().format(),
+        end: dayjs(recurringDate).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -466,8 +468,8 @@ const BookingPage = ({
     } else {
       mutation.mutate({
         ...bookingValues,
-        start: dayjs(date).tz(timeZone()).format(),
-        end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
+        start: dayjs(date).utc().format(),
+        end: dayjs(date).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
@@ -647,6 +649,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </Gates>
   );
 };

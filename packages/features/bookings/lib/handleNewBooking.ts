@@ -38,7 +38,6 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
-import { getDSTDifference, isInDST } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -125,13 +124,11 @@ const isWithinAvailableHours = (
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  const isOrganizerInDSTWhenSlotStart = isInDST(timeSlotStart.tz(organizerTimeZone));
-  const organizerDSTDifference = getDSTDifference(organizerTimeZone);
+  const organizerDSTDiff =
+    dayjs().tz(organizerTimeZone).utcOffset() - timeSlotStart.tz(organizerTimeZone).utcOffset();
+  const getTime = (slotTime: Dayjs, minutes: number) =>
+    slotTime.startOf("day").add(minutes + organizerDSTDiff, "minutes");
 
-  const getTime = (slotTime: Dayjs, minutes: number) => {
-    const minutesDTS = isOrganizerInDSTWhenSlotStart ? minutes - organizerDSTDifference : minutes;
-    return slotTime.startOf("day").add(minutesDTS, "minutes");
-  };
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
     const endTime = getTime(timeSlotEnd, workingHour.endTime);
@@ -1541,7 +1538,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -1680,7 +1677,7 @@ async function handler(
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
-          videoCallUrl = metadata.hangoutLink || videoCallUrl;
+          videoCallUrl = metadata.hangoutLink || videoCallUrl || updatedEvent?.url;
         }
       }
       if (noEmail !== true) {
