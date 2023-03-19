@@ -1,9 +1,9 @@
 import type { Prisma, PrismaClient, EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
-import { pick } from "lodash";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { _EventTypeModel } from "@calcom/prisma/zod";
+import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 
 import { getTranslation } from "./server/i18n";
 
@@ -31,50 +31,6 @@ interface handleChildrenEventTypesProps {
     Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
   >;
 }
-
-// All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
-  title: true,
-  description: true,
-  slug: true,
-  length: true,
-  locations: true,
-  hidden: true,
-  availability: true,
-  recurringEvent: true,
-  customInputs: true,
-  disableGuests: true,
-  requiresConfirmation: true,
-  eventName: true,
-  metadata: true,
-  users: true,
-  hideCalendarNotes: true,
-  minimumBookingNotice: true,
-  beforeEventBuffer: true,
-  afterEventBuffer: true,
-  successRedirectUrl: true,
-  seatsPerTimeSlot: true,
-  seatsShowAttendees: true,
-  periodType: true,
-  hashedLink: true,
-  webhooks: true,
-  periodStartDate: true,
-  periodEndDate: true,
-  destinationCalendar: true,
-  periodCountCalendarDays: true,
-  bookingLimits: true,
-  slotInterval: true,
-  scheduleId: true,
-  workflows: true,
-  bookingFields: true,
-  durationLimits: true,
-};
-
-// All properties that are defined as unlocked based on all managed props
-// Eventually this is going to be just a default and the user can change the config through the UI
-export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "availability", "destinationCalendar"]),
-};
 
 const sendAllSlugReplacementEmails = async (emails: string[], slug: string) => {
   const t = await getTranslation("en", "common");

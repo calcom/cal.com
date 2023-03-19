@@ -8,13 +8,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { unlockedManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
