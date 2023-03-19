@@ -253,7 +253,6 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private translateEvent = (event: CalendarEvent) => {
-    const utcOffset = dayjs(event.startTime).tz(event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
@@ -261,11 +260,11 @@ export default class Office365CalendarService implements Calendar {
         content: getRichDescription(event),
       },
       start: {
-        dateTime: dayjs(event.startTime).utcOffset(utcOffset).format(),
+        dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: dayjs(event.endTime).utcOffset(utcOffset).format(),
+        dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({
