@@ -57,6 +57,8 @@ import type { BookPageProps } from "../../../pages/[user]/book";
 import type { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import type { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
+
 /** These are like 40kb that not every user needs */
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
@@ -77,6 +79,7 @@ const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
+  const currentView = rescheduleUid ? "reschedule" : "";
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -86,12 +89,16 @@ const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+
         let noLabel = false;
         let hidden = !!field.hidden;
+        const fieldViews = field.views;
+
+        if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
-          if (!rescheduleUid) {
-            return null;
-          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -291,7 +298,10 @@ const BookingPage = ({
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
   const querySchema = getBookingResponsesPartialSchema({
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    eventType: {
+      bookingFields: getBookingFieldsWithSystemFields(eventType),
+    },
+    view: rescheduleUid ? "reschedule" : "booking",
   });
 
   const parsedQuery = querySchema.parse({
@@ -371,7 +381,8 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       responses: getBookingResponsesSchema({
-        bookingFields: getBookingFieldsWithSystemFields(eventType),
+        eventType: { bookingFields: getBookingFieldsWithSystemFields(eventType) },
+        view: rescheduleUid ? "reschedule" : "booking",
       }),
     })
     .passthrough();
@@ -436,8 +447,8 @@ const BookingPage = ({
       const recurringEventId = uuidv4();
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...bookingValues,
-        start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(duration, "minute").format(),
+        start: dayjs(recurringDate).utc().format(),
+        end: dayjs(recurringDate).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -456,8 +467,8 @@ const BookingPage = ({
     } else {
       mutation.mutate({
         ...bookingValues,
-        start: dayjs(date).tz(timeZone()).format(),
-        end: dayjs(date).tz(timeZone()).add(duration, "minute").format(),
+        start: dayjs(date).utc().format(),
+        end: dayjs(date).utc().add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
@@ -637,6 +648,7 @@ const BookingPage = ({
           </div>
         </div>
       </main>
+      <Toaster position="bottom-right" />
     </Gates>
   );
 };

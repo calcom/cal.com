@@ -1651,6 +1651,7 @@
   "timeslot_missing_title": "No timeslot selected",
   "timeslot_missing_description": "Please select a timeslot to book the event.",
   "timeslot_missing_cta": "Select timeslot",
+  "this_meeting_has_not_started_yet": "This meeting has not started yet",
   "this_app_requires_connected_account": "{{appName}} requires a connected {{dependencyName}} account",
   "connect_app": "Connect {{dependencyName}}",
   "app_is_connected": "{{dependencyName}} is connected",
