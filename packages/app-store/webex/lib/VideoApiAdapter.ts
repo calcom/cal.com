@@ -249,12 +249,11 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
     //Required params - title, start, end
     //There are a ton of other options, what do we want to support?
-    const utcOffset = dayjs(event.startTime, event.organizer.timeZone).utcOffset() / 60;
-    console.log("calculated utcOffset", utcOffset);
-    console.log("calculated start", dayjs(event.startTime).utcOffset(utcOffset).format());
+
+    console.log("calculated start", dayjs(event.startTime).utc().format());
     return {
       title: event.title,
-      start: dayjs(event.startTime).utcOffset(utcOffset).format(),
+      start: dayjs(event.startTime).utc().format(),
       end: event.endTime,
       recurrence: event.recurrence, //Follows RFC 2445 https://www.ietf.org/rfc/rfc2445.txt, TODO check if needs conversion
       timezone: event.organizer.timeZone,

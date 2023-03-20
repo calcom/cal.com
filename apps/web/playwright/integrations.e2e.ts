@@ -4,6 +4,7 @@ import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";
 
+import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -290,6 +291,96 @@ test.fixme("Integrations", () => {
       /** HACK ENDS */
 
       await page.locator('[data-testid="zoom_video-integration-disconnect-button"]').click();
+      await page.locator('[data-testid="confirm-button"]').click();
+      await expect(page.locator('[data-testid="confirm-integration-disconnect-button"]')).toHaveCount(0);
+    });
+  });
+
+  const addWebexIntegration = async ({ page }: { page: Page }) => {
+    //get appKeys from DB to verify the request
+    const appKeys = await getAppKeysFromSlug("webex");
+
+    await addOauthBasedIntegration({
+      page,
+      slug: "webex",
+      authorization: {
+        url: "https://webexapis.com/v1/authorize",
+        verify({ params, code }) {
+          expect(params.get("response_type")).toBe("code");
+          expect(params.get("redirect_uri")).toBeTruthy();
+          return {
+            status: 307,
+            headers: {
+              location: `${params.get("redirect_uri")}?code=${code}`,
+            },
+          };
+        },
+      },
+      token: {
+        url: "https://webexapis.com/v1/access_token",
+        verify({ requestHeaders }) {
+          const authorization = requestHeaders.get("Authorization").replace("Basic ", "");
+          const clientPair = Buffer.from(authorization, "base64").toString("utf-8");
+          const [clientId, clientSecret] = clientPair.split(":");
+
+          //using the getAppKeysFromSlug function from the app-store package
+
+          expect(clientId).toBeTruthy();
+          expect(clientSecret).toBe(appKeys.client_id);
+          expect(clientSecret).toBeTruthy();
+          expect(clientSecret).toBe(appKeys.client_secret);
+
+          return {
+            status: 200,
+            body: {
+              scope: "spark:kms meeting:schedules_read meeting:schedules_write",
+              token_type: "Bearer",
+              access_token: "", //what should we take here?
+              expires_in: 3599,
+              refresh_token: "", //what should we take here?
+              refresh_token_expires_in: 3599,
+              expiry_date: 0, //what should we take here?
+            },
+          };
+        },
+      },
+    });
+  };
+
+  test.describe("Webex App", () => {
+    test("Can add integration", async ({ page, users }) => {
+      const user = await users.create();
+      await user.login();
+      await addWebexIntegration({ page });
+      await page.waitForNavigation({
+        url: (url) => {
+          return url.pathname === "/apps/installed";
+        },
+      });
+      //Check that disconnect button is now visible
+      //TODO Check the locator id
+      await expect(page.locator('[data-testid="integration-disconnect-button"]')).toHaveCount(1);
+    });
+
+    test("Can choose Webex as a location during booking", async ({ page, users }) => {
+      const user = await users.create();
+      await user.login();
+      const eventType = await addLocationIntegrationToFirstEvent({ user });
+      addWebexIntegration({ page });
+      await page.waitForURL("/apps/installed");
+      await bookEvent(page, `${user.username}/${eventType.slug}`);
+    });
+
+    test("Can disconnect from integration", async ({ page, users }) => {
+      const user = await users.create();
+      await user.login();
+      await addWebexIntegration({ page });
+      await page.waitForURL("/apps/installed");
+      await page.locator('[href="/apps"]').first().click();
+      await page.waitForURL("/apps");
+      await page.locator('[href="/apps/installed"]').first().click();
+
+      await page.locator('[data-testid="webex_video-integration-disconnect-button"]').click();
       await page.locator('[data-testid="confirm-button"]').click();
       await expect(page.locator('[data-testid="confirm-integration-disconnect-button"]')).toHaveCount(0);
     });
