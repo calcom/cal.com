@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
@@ -391,10 +391,11 @@ async function handler(req: CustomRequest) {
         },
       });
     }
+
+    const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
+
     const updatedBooking = await prisma.booking.update({
-      where: {
-        uid,
-      },
+      where,
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
