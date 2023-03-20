@@ -5,7 +5,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimezoneSelect } from "@calcom/ui";
-import { FiCalendar, FiChevronDown, FiGlobe } from "@calcom/ui/components/icon";
+import { FiCalendar, FiGlobe } from "@calcom/ui/components/icon";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -38,17 +38,20 @@ export const EventMeta = () => {
             )}
             <EventDetails event={event} />
             <EventMetaBlock
-              className="[&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
+              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative"
               icon={FiGlobe}>
-              <span className="current-timezone flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:h-[calc(100%_+_10px)] before:w-[calc(100%_+_30px)] before:rounded-md before:bg-gray-100 before:py-3 before:opacity-0 before:transition-opacity dark:before:bg-gray-100">
+              <span className="current-timezone dark:before:bg-darkgray-200 flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:h-[calc(100%_+_10px)] before:w-[calc(100%_+_30px)] before:rounded-md before:bg-gray-100 before:py-3 before:opacity-0 before:transition-opacity">
                 <TimezoneSelect
                   menuPosition="fixed"
-                  className="relative isolate z-40 h-auto [&_.cal-react-select\_\_control]:h-[20px] [&_.cal-react-select\_\_control]:!min-h-0 [&_.cal-react-select\_\_control]:cursor-pointer [&_.cal-react-select\_\_control]:border-0 [&_.cal-react-select\_\_control]:bg-transparent [&_.cal-react-select\_\_control]:ring-0 [&_.cal-react-select\_\_indicators]:hidden [&_.cal-react-select\_\_menu]:w-[300px] [&_.cal-react-select\_\_value-container]:p-0"
+                  className="[&_>div]:min-h-0"
+                  classNames={{
+                    singleValue: "dark:text-darkgray-600",
+                    menuList: "w-80 max-w-[90vw]",
+                  }}
                   value={timezone}
                   onChange={(tz) => setTimezone(tz.value)}
                 />
-                <FiChevronDown className="min-h-4 min-w-4 relative z-10 mx-2 mt-1 inline-block" />
               </span>
             </EventMetaBlock>
           </div>
