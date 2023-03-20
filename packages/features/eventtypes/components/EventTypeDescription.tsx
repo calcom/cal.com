@@ -66,7 +66,7 @@ export const EventTypeDescription = ({
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
           {eventType.metadata?.managedEventConfig && !isPublic && (
-            <Badge variant="blue" size="lg" StartIcon={FiLock}>
+            <Badge variant="blue" startIcon={FiLock}>
               {t("managed")}
             </Badge>
           )}

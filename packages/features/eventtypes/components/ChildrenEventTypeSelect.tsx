@@ -93,7 +93,7 @@ export const ChildrenEventTypeSelect = ({
                         checked={!children.hidden}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>
-                            item.value === children.value ? { ...item, hidden: !checked } : item
+                            item.owner.id === children.owner.id ? { ...item, hidden: !checked } : item
                           );
                           props.onChange(newData);
                         }}
@@ -117,7 +117,9 @@ export const ChildrenEventTypeSelect = ({
                         color="secondary"
                         target="_blank"
                         variant="icon"
-                        onClick={() => props.onChange(value.filter((item) => item.value !== children.value))}
+                        onClick={() =>
+                          props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
+                        }
                         StartIcon={FiX}
                       />
                     </Tooltip>

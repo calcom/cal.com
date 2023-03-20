@@ -170,10 +170,12 @@ export const EventSetupTab = (
       : undefined;
 
     const locationAvailable =
+      eventType.locations &&
       eventType.locations.length > 0 &&
       locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
 
-    const locationDetails = eventType.locations.length > 0 &&
+    const locationDetails = eventType.locations &&
+      eventType.locations.length > 0 &&
       !locationAvailable && {
         slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-"),
         name: eventType.locations[0].type

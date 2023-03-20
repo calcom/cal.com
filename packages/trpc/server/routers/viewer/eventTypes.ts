@@ -12,10 +12,11 @@ import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-st
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
-import updateChildrenEventTypes, { allManagedEventTypeProps } from "@calcom/lib/handleChildrenEventTypes";
+import updateChildrenEventTypes from "@calcom/lib/handleChildrenEventTypes";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { allManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
@@ -464,7 +465,7 @@ export const eventTypesRouter = router({
 
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
-      owner: !teamId || isManagedEventType ? { connect: { id: userId } } : undefined,
+      owner: teamId ? undefined : { connect: { id: userId } },
       metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
       // Only connecting the current user for non-managed event type
       users: isManagedEventType ? undefined : { connect: { id: userId } },

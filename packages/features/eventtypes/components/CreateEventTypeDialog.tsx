@@ -182,7 +182,7 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
                   required
-                  addOnLeading={<>/{!isManagedEventType ? pageSlug : "{username}"}/</>}
+                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });

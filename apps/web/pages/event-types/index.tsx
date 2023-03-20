@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { SchedulingType } from "@prisma/client";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { FC } from "react";
@@ -37,7 +38,6 @@ import {
   Tooltip,
   CreateButton,
   HorizontalTabs,
-  VerticalDivider,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -117,30 +117,45 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
 const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
-  return (
+  const content = () => (
+    <div>
+      <span
+        className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
+        data-testid={"event-type-title-" + type.id}>
+        {type.title}
+      </span>
+      {group.profile.slug ? (
+        <small
+          className="hidden font-normal leading-4 text-gray-600 sm:inline"
+          data-testid={"event-type-slug-" + type.id}>
+          {`/${
+            type.schedulingType !== SchedulingType.MANAGED ? group.profile.slug : t("username_placeholder")
+          }/${type.slug}`}
+        </small>
+      ) : null}
+      {readOnly && (
+        <Badge variant="gray" className="ml-2">
+          {t("readonly")}
+        </Badge>
+      )}
+    </div>
+  );
+
+  return readOnly ? (
+    <div className="flex-1 overflow-hidden pr-4 text-sm">
+      {content()}
+      <EventTypeDescription
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
+        eventType={type}
+        shortenDescription
+      />
+    </div>
+  ) : (
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
       title={type.title}>
-      <div>
-        <span
-          className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
-          data-testid={"event-type-title-" + type.id}>
-          {type.title}
-        </span>
-        {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
-          <small
-            className="hidden font-normal leading-4 text-gray-600 sm:inline"
-            data-testid={"event-type-slug-" + type.id}>
-            {`/${group.profile.slug}/${type.slug}`}
-          </small>
-        ) : null}
-        {readOnly && (
-          <Badge variant="gray" className="ml-2">
-            {t("readonly")}
-          </Badge>
-        )}
-      </div>
+      {content()}
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={type}
@@ -158,6 +173,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
+  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
+    null
+  );
   const utils = trpc.useContext();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
@@ -353,7 +371,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               title: organizer.name || "",
                             }))}
                           />
-                          {type.users.length > 0 && <VerticalDivider className="mt-2.5 hidden lg:block" />}
                         </>
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
@@ -412,16 +429,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  data-testid={"event-type-edit-" + type.id}
-                                  StartIcon={FiEdit2}
-                                  onClick={() => router.push("/event-types/" + type.id)}>
-                                  {t("edit")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              {!isManagedEventType && (
+                              {!readOnly && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    data-testid={"event-type-edit-" + type.id}
+                                    StartIcon={FiEdit2}
+                                    onClick={() => router.push("/event-types/" + type.id)}>
+                                    {t("edit")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
+                              {isManagedEventType && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
@@ -453,6 +472,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setDeleteDialogTypeId(type.id);
+                                      setDeleteDialogSchedulingType(type.schedulingType);
                                     }}
                                     StartIcon={FiTrash}
                                     className="w-full rounded-none">
@@ -538,6 +558,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             onClick={() => {
                               setDeleteDialogOpen(true);
                               setDeleteDialogTypeId(type.id);
+                              setDeleteDialogSchedulingType(type.schedulingType);
                             }}
                             StartIcon={FiTrash}
                             className="w-full rounded-none">
@@ -556,14 +577,37 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           variety="danger"
-          title={t("delete_event_type")}
-          confirmBtnText={t("confirm_delete_event_type")}
-          loadingText={t("confirm_delete_event_type")}
+          title={t(
+            `delete_${deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"}_event_type`
+          )}
+          confirmBtnText={t(
+            `confirm_delete_${
+              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+            }_event_type`
+          )}
+          loadingText={t(
+            `confirm_delete_${
+              deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+            }_event_type`
+          )}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
-          {t("delete_event_type_description")}
+          <p className="mt-5">
+            {t(
+              `delete_${
+                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+              }_event_type_description`
+            )}
+          </p>
+          <p className="mt-5">
+            <Trans
+              i18nKey={`delete_${
+                deleteDialogTypeSchedulingType === SchedulingType.MANAGED && "managed"
+              }_event_type_warning`}
+            />
+          </p>
         </ConfirmationDialogContent>
       </Dialog>
     </div>

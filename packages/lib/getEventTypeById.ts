@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
@@ -273,7 +274,11 @@ export default async function getEventTypeById({
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
+              membership:
+                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+                MembershipRole.MEMBER,
             },
+            created: true,
           }
         : []
     ),

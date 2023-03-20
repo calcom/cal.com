@@ -1,4 +1,6 @@
+import { SchedulingType } from "@prisma/client";
 import type { TFunction } from "next-i18next";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
@@ -132,7 +134,10 @@ function EventTypeSingleLayout({
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
+  const hasPermsToDelete =
+    currentUserMembership?.role !== "MEMBER" ||
+    !currentUserMembership ||
+    eventType.schedulingType === SchedulingType.MANAGED;
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
@@ -274,16 +279,14 @@ function EventTypeSingleLayout({
                 />
               </>
             )}
-            {isManagedEventType && (
-              <Button
-                color="secondary"
-                variant="icon"
-                StartIcon={FiTrash}
-                tooltip={t("delete")}
-                disabled={!hasPermsToDelete}
-                onClick={() => setDeleteDialogOpen(true)}
-              />
-            )}
+            <Button
+              color="secondary"
+              variant="icon"
+              StartIcon={FiTrash}
+              tooltip={t("delete")}
+              disabled={!hasPermsToDelete}
+              onClick={() => setDeleteDialogOpen(true)}
+            />
           </ButtonGroup>
 
           <VerticalDivider className="hidden lg:block" />
@@ -381,14 +384,31 @@ function EventTypeSingleLayout({
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
           variety="danger"
-          title={t("delete_event_type")}
-          confirmBtnText={t("confirm_delete_event_type")}
-          loadingText={t("confirm_delete_event_type")}
+          title={t(`delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`)}
+          confirmBtnText={t(
+            `confirm_delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`
+          )}
+          loadingText={t(
+            `confirm_delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`
+          )}
           onConfirm={(e) => {
             e.preventDefault();
             deleteMutation.mutate({ id: eventType.id });
           }}>
-          {t("delete_event_type_description")}
+          <p className="mt-5">
+            {t(
+              `delete_${
+                eventType.schedulingType === SchedulingType.MANAGED && "managed"
+              }_event_type_description`
+            )}
+          </p>
+          <p className="mt-5">
+            <Trans
+              i18nKey={`delete_${
+                eventType.schedulingType === SchedulingType.MANAGED && "managed"
+              }_event_type_warning`}
+            />
+          </p>
         </ConfirmationDialogContent>
       </Dialog>
       <EmbedDialog />

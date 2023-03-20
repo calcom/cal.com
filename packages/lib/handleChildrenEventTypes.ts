@@ -221,7 +221,7 @@ export default async function handleChildrenEventTypes({
     );*/
   }
 
-  // Deleted users deleted
+  // Old users deleted
   if (deletedUserIds?.length) {
     // Delete event types for deleted users
     const deletedEventTypes = await prisma.eventType.deleteMany({

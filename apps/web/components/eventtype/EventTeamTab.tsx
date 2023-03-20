@@ -7,7 +7,6 @@ import type { Options } from "react-select";
 
 import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,7 +26,10 @@ const mapUserToValue = ({ id, name, username, email }: IUserToValue) => ({
   email,
 });
 
-const mapMemberToChildrenOption = (member: EventTypeSetupProps["teamMembers"][number], slug: string) => {
+export const mapMemberToChildrenOption = (
+  member: EventTypeSetupProps["teamMembers"][number],
+  slug: string
+) => {
   return {
     slug,
     hidden: false,
@@ -66,6 +68,7 @@ const ChildrenEventTypesList = ({
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
+  console.log({ value });
   return (
     <div className="flex flex-col space-y-5">
       <div>
@@ -182,27 +185,6 @@ const ChildrenEventTypes = ({
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
 }) => {
-  const {
-    resetField,
-    getValues,
-    formState: { submitCount },
-  } = useFormContext<FormValues>();
-  const initialValue = useRef<{
-    submitCount: number;
-    children: ChildrenEventType[];
-  } | null>(null);
-
-  useEffect(() => {
-    // Handles init & out of date initial value after submission.
-    if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
-      initialValue.current = { children: getValues("children"), submitCount };
-      return;
-    }
-    resetField("children", {
-      defaultValue: initialValue.current.children,
-    });
-  }, [resetField, getValues, submitCount]);
-
   return (
     <Controller<FormValues>
       name="children"
