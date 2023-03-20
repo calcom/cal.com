@@ -125,6 +125,7 @@ export const viewerTeamsRouter = router({
           metadata: {
             requestedSlug: slug,
           },
+          ...(!IS_TEAM_BILLING_ENABLED && { slug }),
         },
       });
 

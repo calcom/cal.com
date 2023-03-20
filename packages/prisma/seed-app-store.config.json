@@ -206,6 +206,13 @@
     "isTemplate": false
   },
   {
+    "dirName": "zohocrm",
+    "categories": ["other"],
+    "slug": "zohocrm",
+    "type": "zohocrm_other_calendar",
+    "isTemplate": false
+  },
+  {
     "dirName": "cron",
     "categories": ["calendar"],
     "slug": "cron",
