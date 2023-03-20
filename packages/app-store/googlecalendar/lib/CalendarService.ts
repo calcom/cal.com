@@ -177,6 +177,12 @@ export default class GoogleCalendarService implements Calendar {
         ...rest,
         responseStatus: "accepted",
       }));
+      const teamMembers =
+        event.team?.members.map((m) => ({
+          email: m.email,
+          displayName: m.name,
+          responseStatus: "accepted",
+        })) || [];
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),
@@ -197,6 +203,7 @@ export default class GoogleCalendarService implements Calendar {
           },
           // eslint-disable-next-line
           ...eventAttendees,
+          ...teamMembers,
         ],
         reminders: {
           useDefault: true,
