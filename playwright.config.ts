@@ -52,7 +52,7 @@ if (IS_EMBED_REACT_TEST) {
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: 2,
+  retries: process.env.CI ? 2 : 0,
   workers: os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
@@ -102,13 +102,13 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-core",
       testDir: "./packages/embeds/embed-core/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3100/" },
     },
     {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/"  },
     },
     {
       name: "@calcom/embed-core--firefox",
