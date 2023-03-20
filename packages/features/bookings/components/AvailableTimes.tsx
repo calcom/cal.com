@@ -66,15 +66,19 @@ export const AvailableTimes = ({
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
               {hasTimeSlots && !bookingFull && (
-                <p
-                  className={`${
-                    slot.attendees && slot.attendees / seatsPerTimeslot >= 0.8
-                      ? "text-rose-600"
-                      : slot.attendees && slot.attendees / seatsPerTimeslot >= 0.33
-                      ? "text-yellow-500"
-                      : "text-emerald-400"
-                  } text-sm`}>
-                  {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot} / {seatsPerTimeslot}{" "}
+                <p className="flex items-center text-sm lowercase">
+                  <span
+                    className={classNames(
+                      slot.attendees && slot.attendees / seatsPerTimeslot >= 0.8
+                        ? "bg-rose-600"
+                        : slot.attendees && slot.attendees / seatsPerTimeslot >= 0.33
+                        ? "bg-yellow-500"
+                        : "bg-emerald-400",
+                      "mr-1 inline-block h-2 w-2 rounded-full"
+                    )}
+                    aria-hidden
+                  />
+                  {slot.attendees ? seatsPerTimeslot - slot.attendees : seatsPerTimeslot}{" "}
                   {t("seats_available")}
                 </p>
               )}
