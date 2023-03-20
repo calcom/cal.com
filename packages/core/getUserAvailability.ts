@@ -164,7 +164,7 @@ export async function getUserAvailability(
     let startDate = dayjs(dateFrom);
     const endDate = dayjs(dateTo);
     while (startDate.isBefore(endDate)) {
-      dates.push(startDate);
+      dates.push(startDate.add(1, "day"));
       startDate = startDate.add(1, "day");
     }
 
@@ -173,6 +173,7 @@ export async function getUserAvailability(
     );
 
     // Apply booking limit filter against our bookings
+
     for (const [key, limit] of Object.entries(bookingLimits)) {
       const limitKey = key as keyof BookingLimit;
 
@@ -191,16 +192,18 @@ export async function getUserAvailability(
         });
         break;
       }
+
       // Take PER_DAY and turn it into day and PER_WEEK into week etc.
-      const filter = limitKey.split("_")[1].toLowerCase() as "day" | "week" | "month" | "year";
+      const filter = limitKey.split("_")[1].toLocaleLowerCase() as "day" | "week" | "month" | "year";
+
       // loop through all dates and check if we have reached the limit
       for (const date of dates) {
         let total = 0;
-        const startDate = date.startOf(filter);
+        const startDate = dayjs(date).startOf(filter);
         // this is parsed above with parseBookingLimit so we know it's safe.
-        const endDate = date.endOf(filter);
+        const endDate = dayjs(date).endOf(filter);
         for (const booking of ourBookings) {
-          const bookingEventTypeId = parseInt(booking.source?.split("-")[1] as string, 10);
+          const bookingEventTypeId = booking.source?.split("-")[1];
           if (
             // Only check OUR booking that matches the current eventTypeId
             // we don't care about another event type in this case as we dont need to know their booking limits

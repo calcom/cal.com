@@ -265,6 +265,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
 
+  const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
     currentSeats,
@@ -279,80 +280,67 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       periodDays: eventType.periodDays,
     });
 
-  const getSlotsTime = 0;
+  let currentCheckedTime = startTime;
+  let getSlotsTime = 0;
   let checkForAvailabilityTime = 0;
-  const getSlotsCount = 0;
+  let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
-
-  const timeSlots: ReturnType<typeof getTimeSlots> = [];
-
-  for (
-    let currentCheckedTime = startTime;
-    currentCheckedTime.isBefore(endTime);
-    currentCheckedTime = currentCheckedTime.add(1, "day")
-  ) {
+  do {
+    const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
-    timeSlots.push(
-      ...getTimeSlots({
-        inviteeDate: currentCheckedTime,
-        eventLength: input.duration || eventType.length,
-        workingHours,
-        dateOverrides,
-        minimumBookingNotice: eventType.minimumBookingNotice,
-        frequency: eventType.slotInterval || input.duration || eventType.length,
-      })
-    );
-  }
+    const timeSlots = getTimeSlots({
+      inviteeDate: currentCheckedTime,
+      eventLength: input.duration || eventType.length,
+      workingHours,
+      dateOverrides,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
+    });
 
-  const isCollective = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
+    const endGetSlots = performance.now();
+    getSlotsTime += endGetSlots - startGetSlots;
+    getSlotsCount++;
 
-  let availableTimeSlots: typeof timeSlots = [];
-  if (isCollective) {
-    availableTimeSlots = timeSlots.filter((slot) =>
-      userAvailability.every((schedule) => {
-        const startCheckForAvailability = performance.now();
-        const isAvailable = checkIfIsAvailable({
-          time: slot.time,
-          ...schedule,
-          ...availabilityCheckProps,
-        });
-        const endCheckForAvailability = performance.now();
-        checkForAvailabilityCount++;
-        checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-        return isAvailable;
-      })
-    );
-  } else {
-    availableTimeSlots = timeSlots
-      .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const userSchedule = userAvailability.find(({ userId }) => userId === slotUserId);
-          if (!userSchedule) {
-            throw new TRPCError({
-              message: "Shouldn't happen that we don't have a matching user schedule here",
-              code: "INTERNAL_SERVER_ERROR",
-            });
-          }
-          return checkIfIsAvailable({
-            time: slot.time,
-            ...userSchedule,
-            ...availabilityCheckProps,
-          });
-        });
-        return slot;
-      })
-      .filter((slot) => slot.userIds && slot.userIds.length > 0);
-  }
+    const isCollective = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
+    const availableTimeSlots = timeSlots
+      .filter((slot) => isTimeWithinBounds(slot.time))
+      .filter((slot) =>
+        isCollective
+          ? // The slot should be available for every user
+            userAvailability.every((schedule) => {
+              const startCheckForAvailability = performance.now();
+              const isAvailable = checkIfIsAvailable({
+                time: slot.time,
+                ...schedule,
+                ...availabilityCheckProps,
+              });
+              const endCheckForAvailability = performance.now();
+              checkForAvailabilityCount++;
+              checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
+              return isAvailable;
+            })
+          : (() => {
+              // The slot should be available for the atleast one of the slot owners.
+              return slot.userIds?.some((slotUserId) => {
+                const userSchedule = userAvailability.find(({ userId }) => userId === slotUserId);
+                if (!userSchedule) {
+                  throw new TRPCError({
+                    message: "Shouldn't happen that we don't have a matching user schedule here",
+                    code: "INTERNAL_SERVER_ERROR",
+                  });
+                }
+                return checkIfIsAvailable({
+                  time: slot.time,
+                  ...userSchedule,
+                  ...availabilityCheckProps,
+                });
+              });
+            })()
+      );
 
-  const computedAvailableSlots = availableTimeSlots.reduce(
-    (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
-      { time: time, ...passThroughProps }
-    ) => {
-      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-      r[time.format("YYYY-MM-DD")].push({
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map(
+      ({ time: time, ...passThroughProps }) => ({
         ...passThroughProps,
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),
@@ -367,11 +355,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
               currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
             ].uid,
         }),
-      });
-      return r;
-    },
-    Object.create(null)
-  );
+      })
+    );
+    currentCheckedTime = currentCheckedTime.add(1, "day");
+  } while (currentCheckedTime.isBefore(endTime));
 
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 

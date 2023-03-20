@@ -6,6 +6,7 @@ import {
   SchedulingType,
 } from "@prisma/client";
 import { diff } from "jest-diff";
+import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
@@ -13,7 +14,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { getSchedule, Slot } from "@calcom/trpc/server/routers/viewer/slots";
 
-import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
+import { prismaMock } from "../../../../tests/config/singleton";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
@@ -227,7 +228,6 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 101,
@@ -249,12 +249,15 @@ describe("getSchedule", () => {
       // An event with one accepted booking
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus2DateString}T04:45:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus2DateString}T04:30:00.000Z`,
+            end: `${plus2DateString}T23:00:00.000Z`,
+          },
+        ],
+        scenarioData
+      );
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: 1,
@@ -266,7 +269,7 @@ describe("getSchedule", () => {
         ctx
       );
 
-      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
+      // As per Google Calendar Availability, only 4PM GMT slot would be available
       expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
         dateString: plus2DateString,
       });
@@ -287,7 +290,6 @@ describe("getSchedule", () => {
             id: 1,
             // If `slotInterval` is set, it supersedes `length`
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 101,
@@ -611,12 +613,15 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+        scenarioData
+      );
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule(
         {
@@ -685,12 +690,15 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+        scenarioData
+      );
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule(
         {
@@ -777,7 +785,6 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 101,
@@ -790,7 +797,6 @@ describe("getSchedule", () => {
           {
             id: 2,
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 102,
@@ -899,7 +905,6 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 101,
@@ -913,7 +918,6 @@ describe("getSchedule", () => {
           {
             id: 2,
             slotInterval: 45,
-            length: 45,
             users: [
               {
                 id: 102,
@@ -1078,6 +1082,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.eventType.findUnique.mockImplementation(({ where }) => {
+    console.log("eventTypesWithUsers", eventTypesWithUsers);
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
@@ -1205,6 +1210,7 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   const date = _date < 10 ? "0" + _date : _date;
   const month = _month < 10 ? "0" + _month : _month;
 
+  console.log(`Date, month, year for ${JSON.stringify(param)}`, date, month, year);
   return {
     date,
     month,
@@ -1214,13 +1220,38 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
 };
 
 /**
- * TODO: Improve this to validate the arguments passed to getBusyCalendarTimes if they are valid or not.
+ * Remember that this fn must be called only if you expect your test to lookup for busy times in Google Calendar.
+ * Calling it unnecessarily will result in a test failure. This is how nock works because it would expect a call to the requests and that too only once.
  */
 function addBusyTimesInGoogleCalendar(
   busy: {
     start: string;
     end: string;
-  }[]
+  }[],
+  data: ScenarioData
 ) {
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busy);
+  if (!data.users.find((u) => u.credentials && u.selectedCalendars)) {
+    throw new Error(
+      "Google Calendar mocking requires atleast one user with both `credentials` and `selectedCalendars`"
+    );
+  }
+  if (!data.apps?.find((app) => app.slug === "google-calendar")) {
+    throw new Error('Google Calendar mocking requires an app with slug "google-calendar"');
+  }
+  logger.silly("Adding busy times in Google Calendar", busy);
+  nock("https://oauth2.googleapis.com").post("/token").reply(200, {
+    access_token: "access_token",
+    expiry_date: Infinity,
+  });
+
+  // Google Calendar with 11th July having many events
+  nock("https://www.googleapis.com")
+    .post("/calendar/v3/freeBusy")
+    .reply(200, {
+      calendars: [
+        {
+          busy,
+        },
+      ],
+    });
 }
