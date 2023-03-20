@@ -5,6 +5,7 @@ import { privacyFilteredLocations } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -171,6 +172,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
+    descriptionAsSafeHTML: eventType.description ? parseAndSanitize(eventType.description) : null,
   });
 
   eventTypeObject.availability = [];

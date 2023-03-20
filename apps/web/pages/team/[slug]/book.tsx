@@ -5,6 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -121,6 +122,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: u.avatar,
         slug: u.username,
       })),
+      descriptionAsSafeHTML: eventType.description ? parseAndSanitize(eventType.description) : null,
     };
   })[0];
 

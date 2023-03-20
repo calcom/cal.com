@@ -14,6 +14,7 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 import {
   customInputSchema,
@@ -189,6 +190,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         slug: u.username,
         theme: u.theme,
       })),
+      descriptionAsSafeHTML: eventType.description ? parseAndSanitize(eventType.description) : null,
     };
   })[0];
 
