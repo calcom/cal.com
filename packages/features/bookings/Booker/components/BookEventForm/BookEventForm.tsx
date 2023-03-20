@@ -113,7 +113,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     .object({
       responses: event?.data
         ? getBookingResponsesSchema({
-            bookingFields: getBookingFieldsWithSystemFields(event.data),
+            eventType: { bookingFields: getBookingFieldsWithSystemFields(event.data) },
+            view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
           z.object({}),
