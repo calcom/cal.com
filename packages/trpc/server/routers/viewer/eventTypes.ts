@@ -2,6 +2,7 @@ import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/clie
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
 import _ from "lodash";
+import type { NextApiResponse } from "next";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -744,7 +745,10 @@ export const eventTypesRouter = router({
       children,
       prisma: ctx.prisma,
     });
-
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    }
     return { eventType };
   }),
   delete: eventOwnerProcedure
