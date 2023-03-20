@@ -192,7 +192,10 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: getAttendees(event.attendees),
+        attendees: [
+          ...getAttendees(event.attendees),
+          ...(event.team?.members ? getAttendees(event.team.members) : []),
+        ],
       });
 
       if (error) {
