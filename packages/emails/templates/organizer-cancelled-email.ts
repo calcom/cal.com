@@ -19,8 +19,7 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_cancelled_subject", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.attendees[0].name,
+        title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
       html: renderEmail("OrganizerCancelledEmail", {

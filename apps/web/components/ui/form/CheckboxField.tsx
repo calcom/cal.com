@@ -21,7 +21,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             {React.createElement(
               descriptionAsLabel ? "div" : "label",
               {
-                className: "flex text-sm font-medium text-neutral-700",
+                className: "flex text-sm font-medium text-gray-700",
                 ...(!descriptionAsLabel
                   ? {
                       htmlFor: rest.id,
@@ -39,7 +39,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               {
                 className: classNames(
                   "relative flex items-start",
-                  descriptionAsLabel ? "text-neutral-700" : "text-neutral-900"
+                  descriptionAsLabel ? "text-gray-700" : "text-gray-900"
                 ),
               },
               <>

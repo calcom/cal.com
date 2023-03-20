@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 
+import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -27,7 +28,6 @@ import {
   Icon,
   Meta,
   SettingsToggle,
-  ShellMain,
   showToast,
   TextAreaField,
   TextField,

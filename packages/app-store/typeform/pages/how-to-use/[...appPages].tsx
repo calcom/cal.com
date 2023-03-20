@@ -31,7 +31,7 @@ export default function HowToUse() {
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
                   <Icon.FiExternalLink
-                    className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2"
+                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
                     aria-hidden="true"
                   />
                   Click &quot;Copy Typeform Redirect URL&quot;
@@ -45,7 +45,7 @@ export default function HowToUse() {
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
                   <Icon.FiExternalLink
-                    className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2"
+                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
                     aria-hidden="true"
                   />
                   Redirect to your typeform
@@ -58,7 +58,7 @@ export default function HowToUse() {
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
                   <Icon.FiExternalLink
-                    className="h-4 w-4 text-neutral-500 ltr:mr-2 rtl:ml-2"
+                    className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2"
                     aria-hidden="true"
                   />
                   Recall Information in Typeform

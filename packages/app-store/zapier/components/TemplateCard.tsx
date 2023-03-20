@@ -13,7 +13,7 @@ export default function TemplateCard({ template }: { template: Template }) {
         </div>
         <div className="mr-4">
           <div>
-            <p className="truncate text-sm font-medium leading-4 text-neutral-900">{template.app}</p>
+            <p className="truncate text-sm font-medium leading-4 text-gray-900">{template.app}</p>
             <p className="mt-[2px] text-sm text-gray-500">{template.text}</p>
           </div>
         </div>

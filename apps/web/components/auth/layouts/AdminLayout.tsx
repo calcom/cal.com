@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect } from "react";
 
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
-import { ErrorBoundary, Shell } from "@calcom/ui";
+import Shell from "@calcom/features/shell/Shell";
+import { ErrorBoundary } from "@calcom/ui";
 
 import { UserPermissionRole } from ".prisma/client";
 

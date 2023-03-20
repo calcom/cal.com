@@ -94,7 +94,7 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
       footerText={
         !success && (
           <>
-            <Link href="/auth/login" className="font-medium text-neutral-900">
+            <Link href="/auth/login" className="font-medium text-gray-900">
               {t("back_to_signin")}
             </Link>
           </>

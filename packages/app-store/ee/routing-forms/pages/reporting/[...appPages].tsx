@@ -10,11 +10,12 @@ import {
   Utils as QbUtils,
 } from "react-awesome-query-builder";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, Shell } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 

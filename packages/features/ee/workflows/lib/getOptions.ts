@@ -13,7 +13,7 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
       return {
         label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
         value: action,
-        disabled: isSMSAction && !isTeamsPlan,
+        needsUpgrade: isSMSAction && !isTeamsPlan,
       };
     });
 }

@@ -1132,39 +1132,8 @@ const loggedInViewerRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { roomName } = input;
-      let shouldHideRecordingsData = false;
-      // If self-hosted, he should be able to get recordings
-      if (IS_TEAM_BILLING_ENABLED) {
-        // If user is not a team member, throw error
-        const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
-        if (!hasTeamPlan) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "You are not a team plan.",
-          });
-        } else {
-          shouldHideRecordingsData = true;
-        }
-      }
-
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
-
-        if (shouldHideRecordingsData) {
-          if (res && "data" in res && res.data.length > 0) {
-            res.data = res.data.map((recording) => {
-              return {
-                id: "",
-                room_name: "",
-                start_ts: recording.start_ts,
-                status: recording.status,
-                max_participants: recording.max_participants,
-                duration: recording.duration,
-                share_token: recording.share_token,
-              };
-            });
-          }
-        }
         return res;
       } catch (err) {
         throw new TRPCError({

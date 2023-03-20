@@ -383,11 +383,11 @@ nav#nav--settings > a svg {
 }
 
 nav#nav--settings > a.active {
-  @apply border-neutral-500 bg-neutral-50 text-neutral-700 hover:bg-neutral-50 hover:text-neutral-700;
+  @apply border-neutral-500 bg-neutral-50 text-gray-700 hover:bg-neutral-50 hover:text-gray-700;
 }
 
 nav#nav--settings > a.active svg {
-  @apply text-neutral-500;
+  @apply text-gray-500;
 }
 
 hr {

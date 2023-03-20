@@ -75,7 +75,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                         }}
                         type="button"
                         className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-                        <Icon.ClipboardCopyIcon className="h-5 w-5 text-neutral-100 ltr:mr-2 rtl:ml-2" />
+                        <Icon.ClipboardCopyIcon className="h-5 w-5 text-gray-100 ltr:mr-2 rtl:ml-2" />
                         {t("copy")}
                       </Button>
                     </Tooltip>

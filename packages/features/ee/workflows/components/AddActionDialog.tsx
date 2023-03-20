@@ -136,8 +136,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          disabled: boolean;
-                        }) => option.disabled}
+                          needsUpgrade: boolean;
+                        }) => option.needsUpgrade}
                       />
                     );
                   }}

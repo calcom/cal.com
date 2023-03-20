@@ -266,6 +266,7 @@
     "$GLOBAL_WEBHOOK_SECRET",
     "$ALCHEMY_API_KEY",
     "$INFURA_API_KEY",
+    "$GITHUB_API_REPO_TOKEN",
     "yarn.lock"
   ]
 }

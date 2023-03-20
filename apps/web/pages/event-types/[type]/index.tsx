@@ -186,6 +186,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
+      length: eventType.length,
       hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,

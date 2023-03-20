@@ -1,6 +1,7 @@
 // TODO: i18n
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
+import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -13,8 +14,6 @@ import {
   Icon,
   List,
   ListLinkItem,
-  Shell,
-  ShellMain,
   Tooltip,
 } from "@calcom/ui";
 

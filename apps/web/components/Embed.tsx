@@ -504,7 +504,7 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-neutral-500">
+            <small className="flex py-4 text-gray-500">
               {t("place_where_cal_widget_appear", { appName: APP_NAME })}
             </small>
           </div>
@@ -556,7 +556,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
       }
       return (
         <>
-          <small className="flex py-4 text-neutral-500">{t("create_update_react_component")}</small>
+          <small className="flex py-4 text-gray-500">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -650,7 +650,7 @@ const ChooseEmbedTypesDialogContent = () => {
             <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
               {embed.illustration}
             </div>
-            <div className="mt-2 font-medium text-neutral-900">{embed.title}</div>
+            <div className="mt-2 font-medium text-gray-900">{embed.title}</div>
             <p className="text-sm text-gray-500">{embed.subtitle}</p>
           </button>
         ))}
@@ -827,7 +827,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
                 <CollapsibleTrigger
                   type="button"
-                  className="flex w-full items-center text-base font-medium text-neutral-900">
+                  className="flex w-full items-center text-base font-medium text-gray-900">
                   <div>
                     {embedType === "inline"
                       ? "Inline Embed Customization"
@@ -838,7 +838,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <Icon.FiChevronRight
                     className={`${
                       isEmbedCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-neutral-500`}
+                    } ml-auto h-5 w-5 text-gray-500`}
                   />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="text-sm">
@@ -1001,11 +1001,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 open={isBookingCustomizationOpen}
                 onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
                 <CollapsibleTrigger className="flex w-full" type="button">
-                  <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
+                  <div className="text-base  font-medium text-gray-900">Cal Booking Customization</div>
                   <Icon.FiChevronRight
                     className={`${
                       isBookingCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-neutral-500`}
+                    } ml-auto h-5 w-5 text-gray-500`}
                   />
                 </CollapsibleTrigger>
                 <CollapsibleContent>

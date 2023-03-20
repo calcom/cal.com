@@ -38,7 +38,7 @@ export default function TeamAvailabilityModal(props: Props) {
               className="h-14 w-14 rounded-full"
             />
             <div className="inline-block pt-1 ltr:ml-3 rtl:mr-3">
-              <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>
+              <span className="text-lg font-bold text-gray-700">{props.member?.name}</span>
               <span className="-mt-1 block text-sm text-gray-400">{props.member?.email}</span>
             </div>
           </div>

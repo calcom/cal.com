@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import {
   components as reactSelectComponents,
   ControlProps,
@@ -12,8 +13,11 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../../components/icon";
+import { Badge } from "../../badge";
+import { Tooltip } from "../../tooltip";
 
 export const InputComponent = <
   Option,
@@ -35,6 +39,12 @@ export const InputComponent = <
   );
 };
 
+type ExtendedOption = {
+  value: string | number;
+  label: string;
+  needsUpgrade?: boolean;
+};
+
 export const OptionComponent = <
   Option,
   IsMulti extends boolean = false,
@@ -43,6 +53,9 @@ export const OptionComponent = <
   className,
   ...props
 }: OptionProps<Option, IsMulti, Group>) => {
+  const { t } = useLocale();
+  const router = useRouter();
+
   return (
     <reactSelectComponents.Option
       {...props}
@@ -52,7 +65,17 @@ export const OptionComponent = <
         props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
         props.isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}>
-      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="h-4 w-4" />}
+      <>
+        <span className="mr-auto">{props.label}</span>
+        {(props.data as unknown as ExtendedOption).needsUpgrade && (
+          <Tooltip content={t("upgrade_to_enable_feature")}>
+            <button type="button" onClick={() => router.replace("/teams")}>
+              <Badge variant="gray">{t("upgrade")}</Badge>
+            </button>
+          </Tooltip>
+        )}
+        {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
+      </>
     </reactSelectComponents.Option>
   );
 };

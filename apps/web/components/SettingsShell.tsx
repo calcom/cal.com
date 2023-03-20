@@ -1,6 +1,7 @@
 import React, { ComponentProps } from "react";
 
-import { ErrorBoundary, Icon, Shell } from "@calcom/ui";
+import Shell from "@calcom/features/shell/Shell";
+import { ErrorBoundary, Icon } from "@calcom/ui";
 
 import NavTabs from "./NavTabs";
 

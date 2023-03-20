@@ -89,7 +89,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                       <div
                         className={classNames(
                           "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
-                          workflow.name ? "text-gray-900" : "text-neutral-500"
+                          workflow.name ? "text-gray-900" : "text-gray-500"
                         )}>
                         {workflow.name
                           ? workflow.name

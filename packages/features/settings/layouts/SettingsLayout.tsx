@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect, useState } from "react";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -17,7 +18,6 @@ import {
   Icon,
   VerticalTabItemProps,
   VerticalTabItem,
-  Shell,
   Skeleton,
   useMeta,
 } from "@calcom/ui";

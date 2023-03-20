@@ -152,7 +152,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Icon.FiTrash className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
+        <Icon.FiTrash className="m-0 h-4 w-4 text-gray-500" onClick={onClick} />
       </button>
     );
   }

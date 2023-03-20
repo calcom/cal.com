@@ -191,7 +191,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
               return (
                 <>
-                  <div className="w-1/2 md:w-3/4">
+                  <div className="w-1/2 md:w-full">
                     <InputField
                       required
                       label={t("minimum_booking_notice")}

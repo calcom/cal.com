@@ -12,13 +12,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, Icon, HeadSeo } from "@calcom/ui";
+import { Avatar, Button, Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
-import AvatarGroup from "@components/ui/AvatarGroup";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
@@ -57,10 +56,9 @@ function TeamPage({ team }: TeamPageProps) {
             </div>
             <div className="mt-1 self-center">
               <AvatarGroup
-                border="border-2 border-white dark:border-darkgray-100"
                 truncateAfter={4}
                 className="flex flex-shrink-0"
-                size={10}
+                size="sm"
                 items={type.users.map((user) => ({
                   alt: user.name || "",
                   title: user.name || "",

@@ -2,8 +2,9 @@ import { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Shell, SkeletonText } from "@calcom/ui";
+import { Icon, SkeletonText } from "@calcom/ui";
 
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();

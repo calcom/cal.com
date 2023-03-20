@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import {
   BooleanToggleGroupField,
@@ -11,7 +12,6 @@ import {
   FormCard,
   Icon,
   SelectField,
-  Shell,
   TextAreaField,
   TextField,
 } from "@calcom/ui";

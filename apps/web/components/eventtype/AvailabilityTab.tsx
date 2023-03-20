@@ -109,7 +109,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
       <div className="space-y-4">
         <div>
           <div className="min-w-4 mb-2">
-            <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-neutral-700">
+            <label htmlFor="availability" className="mt-0 flex text-sm font-medium text-gray-700">
               {t("availability")}
             </label>
           </div>

@@ -84,12 +84,12 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
-                      className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                      className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                       id="modal-headline">
                       {t("payment")}
                     </h3>
                     <div className="mt-3">
-                      <p className="text-sm text-neutral-600 dark:text-gray-300">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         {t("pay_later_instructions")}
                       </p>
                     </div>

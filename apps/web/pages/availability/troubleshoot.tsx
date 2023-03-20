@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Shell, SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -55,7 +56,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
             if (e.target.value) setSelectedDate(e.target.value);
           }}
         />
-        <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
+        <small className="block text-gray-400">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
           <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-md">
             <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
@@ -81,13 +82,11 @@ const AvailabilityView = ({ user }: { user: User }) => {
                     data-testid="troubleshooter-busy-time">
                     <div className="px-4 py-5 text-black sm:p-6">
                       {t("calendar_shows_busy_between")}{" "}
-                      <span
-                        className="font-medium text-neutral-800"
-                        title={dayjs(slot.start).format("HH:mm")}>
+                      <span className="font-medium text-gray-800" title={dayjs(slot.start).format("HH:mm")}>
                         {dayjs(slot.start).format("HH:mm")}
                       </span>{" "}
                       {t("and")}{" "}
-                      <span className="font-medium text-neutral-800" title={dayjs(slot.end).format("HH:mm")}>
+                      <span className="font-medium text-gray-800" title={dayjs(slot.end).format("HH:mm")}>
                         {dayjs(slot.end).format("HH:mm")}
                       </span>{" "}
                       {t("on")} {dayjs(slot.start).format("D")}{" "}

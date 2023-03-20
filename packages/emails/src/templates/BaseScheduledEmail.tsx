@@ -66,7 +66,7 @@ export const BaseScheduledEmail = (
         withSpacer
       />
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
-      <Info label={t("what")} description={props.calEvent.type} withSpacer />
+      <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo calEvent={props.calEvent} t={t} timeZone={timeZone} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />

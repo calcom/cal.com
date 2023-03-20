@@ -59,6 +59,10 @@ export {
   Slider,
   Tooltip,
   useShouldShowArrows,
+  HorizontalTabs,
+  HorizontalTabItem,
+  VerticalTabs,
+  VerticalTabItem,
   StepCard,
   LinkIconButton,
   Editor,
@@ -70,7 +74,43 @@ export {
   DialogHeader,
   DialogTrigger,
   ConfirmationDialogContent,
+  DateRangePicker,
+  MultiSelectCheckbox,
+  BooleanToggleGroup,
+  BooleanToggleGroupField,
+  ToggleGroup,
+  ToggleGroupItem,
   showToast,
+  ShellSubHeading,
+  DatePicker as DatePickerField,
+  FormCard,
+  FormStep,
+  ColorPicker,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTriggerItem,
+  WizardForm,
+  Stepper,
+  Steps,
+  Switch,
+  SettingsToggle,
+  MeetingTimeInTimezones,
+  Loader,
+  Meta,
+  MetaProvider,
+  useMeta,
+  Swatch,
+  Logo,
 } from "./components";
 export type {
   ActionType,
@@ -87,37 +127,17 @@ export type {
   ListItemProps,
   ListProps,
   TopBannerProps,
+  NavTabProps,
+  HorizontalTabItemProps,
+  VerticalTabItemProps,
+  AvatarGroupProps,
 } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-export { default as Loader } from "./v2/core/Loader";
 
-export {
-  HorizontalTabs,
-  SettingsToggle,
-  Swatch,
-  Switch,
-  VerticalTabs,
-  HorizontalTabItem,
-  VerticalTabItem,
-} from "./v2";
-export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
-export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
-
-export { default as ColorPicker } from "./v2/core/colorpicker";
-export {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./v2/core/Dropdown";
 export {
   RadioGroup,
   /* TODO: solve this conflict -> Select, */
@@ -126,16 +146,6 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export { BooleanToggleGroupField } from "./v2/core/form/BooleanToggleGroup";
-export { DateRangePickerLazy as DateRangePicker } from "./v2/core/form/date-range-picker";
-export { default as DatePickerField } from "./v2/core/form/DatePicker";
-export { default as FormCard } from "./v2/core/form/FormCard";
-export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectCheckboxes";
-export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
-export { ToggleGroup } from "./v2/core/form/ToggleGroup";
-export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
-export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { default as Stepper } from "./v2/core/Stepper";
-export { Steps } from "./v2/core/Steps";
-export { default as WizardForm } from "./v2/core/WizardForm";
+export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
+export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
+export { default as ImageUploader } from "./components/image-uploader/ImageUploader";

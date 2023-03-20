@@ -48,7 +48,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
               <div className="inline-block overflow-hidden pt-1 ltr:ml-3 rtl:mr-3">
-                <span className="truncate text-lg font-bold text-neutral-700">{member?.name}</span>
+                <span className="truncate text-lg font-bold text-gray-700">{member?.name}</span>
                 <span className="-mt-1 block truncate text-sm text-gray-400">{member?.email}</span>
               </div>
             </div>
@@ -62,7 +62,7 @@ export default function TeamAvailabilityScreen(props: Props) {
     <div className="flex flex-1 flex-col rounded-sm border border-neutral-200 bg-white">
       <div className="flex w-full space-x-5 border-b border-gray-200 p-4 rtl:space-x-reverse">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-700">Date</span>
+          <span className="text-sm font-medium text-gray-700">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
             className="p-1.5"
@@ -72,7 +72,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-700">Timezone</span>
+          <span className="text-sm font-medium text-gray-700">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
@@ -82,7 +82,7 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="hidden sm:block">
-          <span className="text-sm font-medium text-neutral-700">Slot Length</span>
+          <span className="text-sm font-medium text-gray-700">Slot Length</span>
           <Select
             options={[
               { value: 15, label: "15 minutes" },

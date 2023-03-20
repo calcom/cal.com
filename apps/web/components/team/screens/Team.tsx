@@ -22,8 +22,8 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
         <section className="line-clamp-4 mt-2 w-full space-y-1">
-          <p className="font-medium text-neutral-900 dark:text-white">{member.name}</p>
-          <p className="line-clamp-3 overflow-ellipsis text-sm font-normal text-neutral-500 dark:text-white">
+          <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
+          <p className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
             {member.bio || t("user_from_team", { user: member.name, team: teamName })}
           </p>
         </section>
