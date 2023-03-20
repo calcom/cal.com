@@ -13,7 +13,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group>;
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
 
 export const Select = <
   Option,
@@ -22,6 +22,7 @@ export const Select = <
 >({
   components,
   menuPlacement,
+  variant = "default",
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
   const reactSelectProps = React.useMemo(() => {
@@ -46,12 +47,21 @@ export const Select = <
             props.classNames?.option
           ),
         placeholder: (state) =>
-          classNames("text-gray-400 text-sm dark:text-darkgray-400", state.isFocused && "hidden"),
+          classNames(
+            "text-gray-400 text-sm dark:text-darkgray-400",
+            state.isFocused && variant !== "checkbox" && "hidden"
+          ),
         dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
         control: (state) =>
           classNames(
             "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border ",
-            state.isMulti ? (state.hasValue ? "p-1" : "px-3 py-2") : "py-2 px-3",
+            state.isMulti
+              ? variant === "checkbox"
+                ? "px-3 py-2"
+                : state.hasValue
+                ? "p-1"
+                : "px-3 py-2"
+              : "py-2 px-3",
             props.classNames?.control
           ),
         singleValue: () =>
