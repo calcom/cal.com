@@ -1,4 +1,4 @@
-import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 
 const Spacer = () => <p style={{ height: 6 }} />;
 

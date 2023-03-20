@@ -10,10 +10,10 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
 import { Avatar, AvatarGroup, Button, EmptyScreen, HeadSeo } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 

@@ -5,8 +5,8 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
 import type { User } from "@calcom/prisma/client";
-import { parseAndSanitize } from "@calcom/prisma/middleware/eventTypeDescriptionParseAndSanitize";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
