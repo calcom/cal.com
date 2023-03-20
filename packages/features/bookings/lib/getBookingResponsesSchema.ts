@@ -40,7 +40,7 @@ function preprocess<T extends z.ZodType>({
   schema: T;
   isPartialSchema: boolean;
   eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+    bookingFields: (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
   };
   view: View;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
@@ -48,6 +48,7 @@ function preprocess<T extends z.ZodType>({
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
+      if (!eventType.bookingFields) return parsedResponses;
       eventType.bookingFields.forEach((field) => {
         const value = parsedResponses[field.name];
         if (value === undefined) {
@@ -86,6 +87,9 @@ function preprocess<T extends z.ZodType>({
       return newResponses;
     },
     schema.superRefine((responses, ctx) => {
+      if (!eventType.bookingFields) {
+        return;
+      }
       eventType.bookingFields.forEach((bookingField) => {
         const value = responses[bookingField.name];
         const stringSchema = z.string();

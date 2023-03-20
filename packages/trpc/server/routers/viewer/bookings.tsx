@@ -16,6 +16,7 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -772,12 +773,22 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+    const bookingFields = bookingRaw.eventType
+      ? getBookingFieldsWithSystemFields(bookingRaw.eventType)
+      : null;
     const booking = {
       ...bookingRaw,
+      responses: getBookingResponsesPartialSchema({
+        eventType: {
+          bookingFields,
+        },
+        // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
+        view: "ALL_VIEWS",
+      }),
       eventType: bookingRaw.eventType
         ? {
             ...bookingRaw.eventType,
-            bookingFields: getBookingFieldsWithSystemFields(bookingRaw.eventType),
+            bookingFields,
           }
         : null,
     };
