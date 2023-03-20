@@ -346,8 +346,8 @@ const BookingPage = ({
       }, {});
       defaults.responses = {
         ...responses,
-        name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
-        email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
+        name: defaultUserValues.name ?? (!loggedInIsOwner ? session?.user?.name ?? undefined : undefined),
+        email: defaultUserValues.email || (!loggedInIsOwner ? session?.user?.email : undefined) || "",
       };
 
       return defaults;
@@ -373,8 +373,8 @@ const BookingPage = ({
     }, {});
     defaults.responses = {
       ...responses,
-      name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
-      email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
+      name: defaultUserValues.name ?? (!loggedInIsOwner ? session?.user?.name ?? undefined : undefined),
+      email: defaultUserValues.email || (!loggedInIsOwner ? session?.user?.email : undefined) || "",
     };
     return defaults;
   };

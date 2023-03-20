@@ -191,13 +191,26 @@ function preprocess<T extends z.ZodType>({
           return;
         }
 
-        if (
-          ["address", "text", "select", "name", "number", "radio", "textarea"].includes(bookingField.type)
-        ) {
+        // TODO: Probably, use propsType to validate the type of the value instead of using the field.type.
+        if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
+          return;
+        }
+
+        if (bookingField.subFields) {
+          // If name is sent as a string, then we use the parent field otherwise the variant would be available in response and according to that we validate the data
+          const variantInResponse = "firstAndLastName";
+          bookingField.subFields[variantInResponse].forEach((subField) => {
+            const schema = stringSchema;
+            const valueIdentified = value as unknown as Record<string, string>;
+            if (subField.required && !schema.safeParse(valueIdentified[subField.name]).success) {
+              debugger;
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+            }
+          });
           return;
         }
 

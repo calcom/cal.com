@@ -575,8 +575,10 @@ export const ComponentForField = ({
       select: typeof val === "string",
       text: typeof val === "string",
       textList: val instanceof Array && val.every((v) => typeof v === "string"),
+      subFields: typeof val === "object" && val !== null,
     } as const;
-    if (!propsTypeConditionMap[propsType]) throw new Error(`Unknown propsType ${propsType}`);
+    if (!propsTypeConditionMap[propsType])
+      throw new Error(`Invalid value for propsType ${propsType}:"${JSON.stringify(val)}"`);
     return propsTypeConditionMap[propsType];
   };
 
@@ -688,7 +690,20 @@ export const ComponentForField = ({
     ) : null;
   }
 
-  throw new Error(`Field ${field.name} does not have a valid propsType`);
+  if (componentConfig.propsType === "subFields") {
+    return (
+      <componentConfig.factory
+        placeholder={field.placeholder}
+        readOnly={readOnly}
+        name={field.name}
+        value={value as { value: string; optionValue: string }}
+        setValue={setValue as (arg: typeof value) => void}
+        subFields={field.subFields}
+      />
+    );
+  }
+
+  assertUnreachable(componentConfig);
 };
 
 export const FormBuilderField = ({
@@ -750,3 +765,6 @@ export const FormBuilderField = ({
     </div>
   );
 };
+function assertUnreachable(arg: never) {
+  throw new Error(`Don't know how to handle ${arg}`);
+}

@@ -9,7 +9,17 @@ import type {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
-import { PhoneInput, AddressInput, Button, Label, Group, RadioField, EmailField, Tooltip } from "@calcom/ui";
+import {
+  PhoneInput,
+  AddressInput,
+  Button,
+  Label,
+  Group,
+  RadioField,
+  EmailField,
+  Tooltip,
+  InputField,
+} from "@calcom/ui";
 import { FiUserPlus, FiX } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilder";
@@ -107,6 +117,7 @@ export const Components: Record<BookingFieldType, Component> = {
                 name={subField.name}
                 label={subField.label}
                 value={value[subField.name]}
+                className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
                 type="text"
                 onChange={(e) => onChange(subField.name, e.target.value)}
               />

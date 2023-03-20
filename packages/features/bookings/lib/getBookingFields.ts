@@ -180,7 +180,7 @@ export const ensureBookingInputsHaveSystemFields = ({
             type: "text",
             defaultLabel: "last_name",
             label: "Last Name",
-            required: true,
+            required: false,
           },
         ],
         fullName: [
@@ -193,6 +193,7 @@ export const ensureBookingInputsHaveSystemFields = ({
           },
         ],
       },
+      defaultLabel: "Name",
       required: true,
       sources: [
         {
