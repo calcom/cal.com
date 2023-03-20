@@ -14,11 +14,9 @@
   "description": "Create meetings with Cisco Webex",
   "appData": {
     "location": {
-      "linkType": "static",
+      "linkType": "dynamic",
       "type": "integrations:webex_video",
-      "label": "Webex",
-      "organizerInputPlaceholder": "https://meet317.webex.com/meet/pr<id>...Link to your Webex Personal Room",
-      "urlRegExp": "^https?:\\/\\/meet317\\.webex\\.com\\/meet.+$"
+      "label": "Webex"
     }
   },
   "isTemplate": false,

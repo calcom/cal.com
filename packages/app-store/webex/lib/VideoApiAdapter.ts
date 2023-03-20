@@ -254,9 +254,9 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
     return {
       title: event.title,
       start: dayjs(event.startTime).utc().format(),
-      end: event.endTime,
+      end: dayjs(event.endTime).utc().format(),
       recurrence: event.recurrence, //Follows RFC 2445 https://www.ietf.org/rfc/rfc2445.txt, TODO check if needs conversion
-      timezone: event.organizer.timeZone,
+      // timezone: event.organizer.timeZone, // Comment this out for now
       agenda: event.description,
       enableJoinBeforeHost: true, //this is true in zoom's api, do we need it here?
       invitees: event.attendees.map((attendee) => ({
