@@ -1,29 +1,13 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type {
-  GroupBase,
-  Props,
-  SingleValue,
-  MultiValue,
-  SelectComponentsConfig,
-  MenuPlacement,
-} from "react-select";
-import ReactSelect, { components as reactSelectComponents } from "react-select";
+import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import ReactSelect from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Label } from "../inputs/Label";
-import {
-  ControlComponent,
-  InputComponent,
-  MenuComponent,
-  MenuListComponent,
-  OptionComponent,
-  SingleValueComponent,
-  ValueContainerComponent,
-  MultiValueComponent,
-} from "./components";
+import { getReactSelectProps } from "./selectTheme";
 
 export type SelectProps<
   Option,
@@ -31,76 +15,79 @@ export type SelectProps<
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group>;
 
-export const getReactSelectProps = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  components,
-  menuPlacement = "auto",
-}: {
-  className?: string;
-  components: SelectComponentsConfig<Option, IsMulti, Group>;
-  menuPlacement?: MenuPlacement;
-}) => ({
-  menuPlacement,
-  className: classNames("block min-h-6 w-full min-w-0 flex-1 rounded-md", className),
-  classNamePrefix: "cal-react-select",
-  components: {
-    ...reactSelectComponents,
-    IndicatorSeparator: () => null,
-    Input: InputComponent,
-    Option: OptionComponent,
-    Control: ControlComponent,
-    SingleValue: SingleValueComponent,
-    Menu: MenuComponent,
-    MenuList: MenuListComponent,
-    ValueContainer: ValueContainerComponent,
-    MultiValue: MultiValueComponent,
-    ...components,
-  },
-});
-
 export const Select = <
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
-  className,
   components,
-  styles,
+  menuPlacement,
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
-      className,
       components: components || {},
+      menuPlacement,
     });
-  }, [className, components]);
+  }, [components, menuPlacement]);
 
+  // Annoyingly if we update styles here we have to update timezone select too
+  // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
   return (
     <ReactSelect
       {...reactSelectProps}
-      {...props}
-      styles={{
-        ...styles,
+      classNames={{
+        input: () => classNames("dark:text-darkgray-900 text-gray-900", props.classNames?.input),
+        option: (state) =>
+          classNames(
+            "dark:bg-darkgray-100 flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-gray-700 dark:text-darkgray-700",
+            state.isFocused && "dark:bg-darkgray-200 bg-gray-100",
+            state.isSelected && "dark:bg-darkgray-300 bg-gray-200 text-gray-900 dark:text-darkgray-900",
+            props.classNames?.option
+          ),
+        placeholder: (state) =>
+          classNames("text-gray-400 text-sm dark:text-darkgray-400", state.isFocused && "hidden"),
+        dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
+        control: (state) =>
+          classNames(
+            "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border ",
+            state.isMulti ? (state.hasValue ? "p-1" : "px-3 py-2") : "py-2 px-3",
+            props.classNames?.control
+          ),
+        singleValue: () =>
+          classNames(
+            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+            props.classNames?.singleValue
+          ),
+        valueContainer: () =>
+          classNames(
+            "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400 flex gap-1",
+            props.classNames?.valueContainer
+          ),
+        multiValue: () =>
+          classNames(
+            "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm leading-none",
+            props.classNames?.multiValue
+          ),
+        menu: () =>
+          classNames(
+            "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white mt-1 border border-gray-200 dark:border-darkgray-200 ",
+            props.classNames?.menu
+          ),
+        menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        indicatorsContainer: (state) =>
+          classNames(
+            state.selectProps.menuIsOpen
+              ? state.isMulti
+                ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
+                : "rotate-180 transition-transform"
+              : "text-gray-600 dark:text-darkgray-600" // Woo it adds another SVG here on multi for some reason
+          ),
+        multiValueRemove: () => "text-gray-600 dark:text-darkgray-600 py-auto ml-2",
+        ...props.classNames,
       }}
+      {...props}
     />
-  );
-};
-
-type IconLeadingProps = {
-  icon: React.ReactNode;
-  children?: React.ReactNode;
-} & React.ComponentProps<typeof reactSelectComponents.Control>;
-
-export const IconLeading = ({ icon, children, ...props }: IconLeadingProps) => {
-  return (
-    <reactSelectComponents.Control {...props}>
-      {icon}
-      {children}
-    </reactSelectComponents.Control>
   );
 };
 
