@@ -4,6 +4,7 @@ import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { md } from "@calcom/lib/markdownIt";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
@@ -18,7 +19,7 @@ const interFontMedium = fetch(new URL("../../../../public/fonts/Inter-Medium.ttf
 );
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
 const meetingSchema = z.object({
@@ -73,10 +74,13 @@ export default async function handler(req: NextApiRequest) {
         meetingImage: searchParams.get("meetingImage"),
         imageType,
       });
+
+      const title_ = md.render(title).replace(/(<([^>]+)>)/gi, "");
+
       const img = new ImageResponse(
         (
           <Meeting
-            title={title}
+            title={title_}
             profile={{ name: meetingProfileName, image: meetingImage }}
             users={names.map((name, index) => ({ name, username: usernames[index] }))}
           />

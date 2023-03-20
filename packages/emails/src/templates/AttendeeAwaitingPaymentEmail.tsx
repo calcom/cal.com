@@ -8,7 +8,7 @@ function ManageLink(props: React.ComponentProps<typeof AttendeeScheduledEmail>) 
 
   return (
     <CallToActionTable>
-      <CallToAction label={manageText} href={props.calEvent.paymentInfo.link} />
+      <CallToAction label={manageText} href={props.calEvent.paymentInfo.link} endIconName="linkIcon" />
     </CallToActionTable>
   );
 }

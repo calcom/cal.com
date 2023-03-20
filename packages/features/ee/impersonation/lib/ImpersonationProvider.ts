@@ -1,8 +1,8 @@
 import type { User } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getSession } from "next-auth/react";
 import { z } from "zod";
 
+import { getSession } from "@calcom/features/auth/lib/getSession";
 import prisma from "@calcom/prisma";
 
 const teamIdschema = z.object({
