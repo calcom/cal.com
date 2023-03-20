@@ -1,6 +1,6 @@
-import { Payment, Prisma, Booking } from "@prisma/client";
+import type { Payment, Prisma, Booking } from "@prisma/client";
 
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export interface IAbstractPaymentService {
   create(

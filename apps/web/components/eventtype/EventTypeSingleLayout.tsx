@@ -1,8 +1,8 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { TbWebhook } from "react-icons/tb";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -197,7 +197,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
+          <div className="hidden items-center rounded-md px-2 sm:hover:bg-gray-100 lg:flex">
             <Skeleton
               as={Label}
               htmlFor="hiddenSwitch"
@@ -206,7 +206,7 @@ function EventTypeSingleLayout({
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              defaultChecked={formMethods.getValues("hidden")}
+              checked={formMethods.watch("hidden")}
               onCheckedChange={(e) => {
                 formMethods.setValue("hidden", e);
               }}
@@ -220,6 +220,7 @@ function EventTypeSingleLayout({
             <Tooltip content={t("preview")}>
               <Button
                 color="secondary"
+                data-testid="preview-button"
                 target="_blank"
                 variant="icon"
                 href={permalink}
@@ -261,7 +262,7 @@ function EventTypeSingleLayout({
             <DropdownMenuTrigger asChild>
               <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent style={{ minWidth: "200px" }}>
               <DropdownMenuItem className="focus:ring-gray-100">
                 <DropdownItem
                   target="_blank"
@@ -293,17 +294,17 @@ function EventTypeSingleLayout({
                   {t("delete")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="block sm:hidden" />
-              <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
+              <DropdownMenuSeparator />
+              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 sm:hover:bg-gray-100">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
-                  className="mt-2 inline cursor-pointer self-center pr-2 sm:hidden">
+                  className="mt-2 inline cursor-pointer self-center pr-2 ">
                   {t("hide_from_profile")}
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
-                  defaultChecked={formMethods.getValues("hidden")}
+                  checked={formMethods.watch("hidden")}
                   onCheckedChange={(e) => {
                     formMethods.setValue("hidden", e);
                   }}

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { JSONObject } from "superjson/dist/types";
+import type { JSONObject } from "superjson/dist/types";
 
 import prisma from "@calcom/prisma";
 

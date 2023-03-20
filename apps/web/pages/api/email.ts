@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { renderEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -60,7 +60,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("OrganizerScheduledEmail", {
+    renderEmail("OrganizerRequestEmail", {
       calEvent: evt,
       attendee: evt.organizer,
     })

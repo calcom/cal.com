@@ -1,4 +1,5 @@
-import { BookingStatus, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import queue from "queue";
 

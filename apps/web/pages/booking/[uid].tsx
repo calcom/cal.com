@@ -1,8 +1,8 @@
-import { BookingStatus, WorkflowActions } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,40 +11,48 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import {
-  getEventLocationValue,
-  getSuccessPageLocationMessage,
-  guessEventLocationType,
-} from "@calcom/app-store/locations";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import {
+  SystemField,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
-import { formatTime } from "@calcom/lib/date-fns";
+import {
+  formatToLocalizedDate,
+  formatToLocalizedTime,
+  formatToLocalizedTimezone,
+} from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { getBookingWithResponses } from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
@@ -175,6 +183,7 @@ const querySchema = z.object({
   isSuccessBookingPage: z.string().optional(),
   formerTime: z.string().optional(),
   email: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -187,28 +196,23 @@ export default function Success(props: SuccessProps) {
     changes,
     formerTime,
     email,
+    seatReferenceUid,
   } = querySchema.parse(router.query);
 
-  if ((isCancellationMode || changes) && typeof window !== "undefined") {
-    window.scrollTo(0, document.body.scrollHeight);
-  }
+  const tz =
+    (isSuccessBookingPage
+      ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
+      : props.bookingInfo.eventType?.timeZone || props.bookingInfo.user?.timeZone) || timeZone();
 
-  const location: ReturnType<typeof getEventLocationValue> = props.bookingInfo.location
-    ? props.bookingInfo.location
-    : // If there is no location set then we default to Cal Video
-      "integrations:daily";
+  const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
   )?.videoCallUrl;
 
-  if (!location) {
-    // Can't use logger.error because it throws error on client. stdout isn't available to it.
-    console.error(`No location found `);
-  }
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
-  const cancellationReason = props.bookingInfo.cancellationReason;
+  const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
 
   const attendeeName =
     typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
@@ -228,12 +232,24 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   function setIsCancellationMode(value: boolean) {
-    if (value) router.query.cancel = "true";
-    else delete router.query.cancel;
-    router.replace({
-      pathname: router.pathname,
-      query: { ...router.query },
-    });
+    const query_ = { ...router.query };
+
+    if (value) {
+      query_.cancel = "true";
+    } else {
+      if (query_.cancel) {
+        delete query_.cancel;
+      }
+    }
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...query_ },
+      },
+      undefined,
+      { scroll: false }
+    );
   }
 
   const eventNameObject = {
@@ -242,6 +258,7 @@ export default function Success(props: SuccessProps) {
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     location: location,
+    bookingFields: bookingInfo.responses,
     t,
   };
 
@@ -250,7 +267,14 @@ export default function Success(props: SuccessProps) {
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
-  const isCancelled = status === "CANCELLED" || status === "REJECTED";
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+
+  const isCancelled =
+    status === "CANCELLED" ||
+    status === "REJECTED" ||
+    (!!seatReferenceUid &&
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
+
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -333,12 +357,11 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
-  const customInputs = bookingInfo?.customInputs;
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -346,10 +369,6 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
-  const hasSMSAttendeeAction =
-    eventType.workflows.find((workflowEventType) =>
-      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
-    ) !== undefined;
   const providerName = guessEventLocationType(location)?.label;
 
   return (
@@ -412,7 +431,7 @@ export default function Success(props: SuccessProps) {
                       : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
-                  {giphyImage && !needsConfirmation && (
+                  {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
@@ -432,7 +451,9 @@ export default function Success(props: SuccessProps) {
                         ? t("submitted_recurring")
                         : t("submitted")
                       : isCancelled
-                      ? t("event_cancelled")
+                      ? seatReferenceUid
+                        ? t("no_longer_attending")
+                        : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
                       : t("meeting_is_scheduled")}
@@ -440,6 +461,19 @@ export default function Success(props: SuccessProps) {
                   <div className="mt-3">
                     <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
+                  {props.paymentStatus &&
+                    (bookingInfo.status === BookingStatus.CANCELLED ||
+                      bookingInfo.status === BookingStatus.REJECTED) && (
+                      <h4>
+                        {!props.paymentStatus.success &&
+                          !props.paymentStatus.refunded &&
+                          t("booking_with_payment_cancelled")}
+                        {props.paymentStatus.success &&
+                          !props.paymentStatus.refunded &&
+                          t("booking_with_payment_cancelled_already_paid")}
+                        {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
+                      </h4>
+                    )}
 
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
@@ -464,6 +498,7 @@ export default function Success(props: SuccessProps) {
                             date={dayjs(formerTime)}
                             is24h={is24h}
                             isCancelled={isCancelled}
+                            tz={tz}
                           />
                         </p>
                       )}
@@ -475,30 +510,34 @@ export default function Success(props: SuccessProps) {
                         date={date}
                         is24h={is24h}
                         isCancelled={isCancelled}
+                        tz={tz}
                       />
                     </div>
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 last:mb-0">
-                          <>
-                            {bookingInfo?.user && (
-                              <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                          {bookingInfo?.user && (
+                            <div className="mb-3">
+                              <div>
+                                <span className="mr-2">{bookingInfo.user.name}</span>
+                                <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                            )}
-                            {bookingInfo?.attendees.map((attendee) => (
-                              <div key={attendee.name} className="mb-3 last:mb-0">
-                                {attendee.name && <p>{attendee.name}</p>}
-                                <p className="text-bookinglight">{attendee.email}</p>
-                              </div>
-                            ))}
-                          </>
+                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                            </div>
+                          )}
+                          {bookingInfo?.attendees.map((attendee) => (
+                            <div key={attendee.name} className="mb-3 last:mb-0">
+                              {attendee.name && <p>{attendee.name}</p>}
+                              <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
+                                {attendee.email}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
-                    {locationToDisplay && (
+                    {locationToDisplay && !isCancelled && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3">
@@ -526,63 +565,33 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {customInputs &&
-                      Object.keys(customInputs).map((key) => {
-                        // This breaks if you have two label that are the same.
-                        // TODO: Fix this in another PR
-                        const customInput = customInputs[key as keyof typeof customInputs];
-                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
-                        return (
-                          <>
-                            {eventTypeCustomFound?.type === "RADIO" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {eventTypeCustomFound.label}
-                                </div>
-                                <div className="col-span-3 mt-1 mb-2">
-                                  {eventTypeCustomFound.options &&
-                                    eventTypeCustomFound.options.map((option) => {
-                                      const selected = option.label == customInput;
-                                      return (
-                                        <div
-                                          key={option.label}
-                                          className={classNames(
-                                            "flex space-x-1",
-                                            !selected && "text-gray-500"
-                                          )}>
-                                          <p>{option.label}</p>
-                                          <span>{option.label === customInput && "✅"}</span>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </>
-                            )}
-                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
-                              <>
-                                <div className="border-bookinglightest dark:border-darkgray-300 col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
-                                  {key}
-                                </div>
-                                <div className="col-span-3 mt-2 mb-2">
-                                  {typeof customInput === "boolean" ? (
-                                    <p>{customInput ? "true" : "false"}</p>
-                                  ) : (
-                                    <p>{customInput}</p>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </>
-                        );
-                      })}
-                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
-                      <>
-                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
-                        <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.smsReminderNumber}</p>
-                        </div>
-                      </>
-                    )}
+
+                    {Object.entries(bookingInfo.responses).map(([name, response]) => {
+                      const field = eventType.bookingFields.find((field) => field.name === name);
+                      // We show location in the "where" section
+                      // We show Booker Name, Emails and guests in Who section
+                      // We show notes in additional notes section
+                      // We show rescheduleReason at the top
+                      if (!field) return null;
+                      const isSystemField = SystemField.safeParse(field.name);
+                      if (isSystemField.success) return null;
+
+                      const label = field.label || t(field.defaultLabel || "");
+
+                      return (
+                        <>
+                          <div className="mt-9 font-medium">{label}</div>
+                          <div className="col-span-2 mb-2 mt-9">
+                            <p
+                              className="break-words"
+                              data-testid="field-response"
+                              data-fob-field={field.name}>
+                              {response.toString()}
+                            </p>
+                          </div>
+                        </>
+                      );
+                    })}
                   </div>
                 </div>
                 {(!needsConfirmation || !userIsOwner) &&
@@ -597,8 +606,10 @@ export default function Success(props: SuccessProps) {
 
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
-                            <span className="underline">
-                              <Link href={`/reschedule/${bookingInfo?.uid}`} legacyBehavior>
+                            <span className="underline" data-testid="reschedule-link">
+                              <Link
+                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                legacyBehavior>
                                 {t("reschedule")}
                               </Link>
                             </span>
@@ -628,6 +639,7 @@ export default function Success(props: SuccessProps) {
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
+                        seatReferenceUid={seatReferenceUid}
                       />
                     </>
                   ))}
@@ -635,7 +647,7 @@ export default function Success(props: SuccessProps) {
                   !needsConfirmation &&
                   !isCancellationMode &&
                   !isCancelled &&
-                  calculatedDuration && (
+                  !!calculatedDuration && (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                       <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
@@ -743,6 +755,7 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </>
                   )}
+
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
@@ -797,6 +810,7 @@ type RecurringBookingsProps = {
   is24h: boolean;
   allRemainingBookings: boolean;
   isCancelled: boolean;
+  tz: string;
 };
 
 export function RecurringBookings({
@@ -807,10 +821,13 @@ export function RecurringBookings({
   allRemainingBookings,
   is24h,
   isCancelled,
+  tz,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
-  const { t } = useLocale();
-
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
@@ -832,11 +849,13 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
-              {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-              {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-              <span className="text-bookinglight">({timeZone()})</span>
+              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+              <span className="text-bookinglight">
+                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+              </span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -850,11 +869,13 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
+                    {formatToLocalizedDate(dayjs.tz(date, tz), language, "full", tz)}
                     <br />
-                    {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-                    {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-                    <span className="text-bookinglight">({timeZone()})</span>
+                    {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+                    <span className="text-bookinglight">
+                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+                    </span>
                   </div>
                 ))}
             </CollapsibleContent>
@@ -866,11 +887,11 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {dayjs.tz(date, timeZone()).format("dddd, DD MMMM YYYY")}
+      {formatToLocalizedDate(date, language, "full", tz)}
       <br />
-      {formatTime(date, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
-      {formatTime(dayjs(date).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
-      <span className="text-bookinglight">({timeZone()})</span>
+      {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
+      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+      <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );
 }
@@ -905,6 +926,9 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      bookingFields: true,
+      disableGuests: true,
+      timeZone: true,
       owner: {
         select: userSelect,
       },
@@ -929,6 +953,7 @@ const getEventTypesFromDB = async (id: number) => {
         select: {
           workflow: {
             select: {
+              id: true,
               steps: true,
             },
           },
@@ -951,6 +976,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
     metadata,
   };
 };
@@ -995,9 +1021,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!parsedQuery.success) return { notFound: true };
   const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
-  const bookingInfo = await prisma.booking.findFirst({
+  const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
-      uid,
+      uid: await maybeGetBookingUidFromSeat(prisma, uid),
     },
     select: {
       title: true,
@@ -1013,18 +1039,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       status: true,
       metadata: true,
       cancellationReason: true,
+      responses: true,
+      rejectionReason: true,
       user: {
         select: {
           id: true,
           name: true,
           email: true,
           username: true,
+          timeZone: true,
         },
       },
       attendees: {
         select: {
           name: true,
           email: true,
+          timeZone: true,
         },
       },
       eventTypeId: true,
@@ -1032,30 +1062,37 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         select: {
           eventName: true,
           slug: true,
+          timeZone: true,
+        },
+      },
+      seatsReferences: {
+        select: {
+          referenceUid: true,
         },
       },
     },
   });
-
-  if (!bookingInfo) {
+  if (!bookingInfoRaw) {
     return {
       notFound: true,
     };
   }
 
-  // @NOTE: had to do this because Server side cant return [Object objects]
-  // probably fixable with json.stringify -> json.parse
-  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
-  const eventTypeRaw = !bookingInfo.eventTypeId
+  const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfo.eventTypeId);
+    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
   if (!eventTypeRaw) {
     return {
       notFound: true,
     };
   }
+
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
+
+  // @NOTE: had to do this because Server side cant return [Object objects]
+  // probably fixable with json.stringify -> json.parse
+  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   eventTypeRaw.users = !!eventTypeRaw.hosts?.length
     ? eventTypeRaw.hosts.map((host) => host.user)
@@ -1102,28 +1139,39 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 
-  let recurringBookings = null;
-  if (bookingInfo.recurringEventId) {
-    // We need to get the dates for the bookings to be able to show them in the UI
-    recurringBookings = await prisma.booking.findMany({
-      where: {
-        recurringEventId: bookingInfo.recurringEventId,
-      },
-      select: {
-        startTime: true,
-      },
-    });
-  }
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+    },
+  });
 
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,
-      recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
+      recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      paymentStatus: payment,
     },
   };
+}
+
+async function getRecurringBookings(recurringEventId: string | null) {
+  if (!recurringEventId) return null;
+  const recurringBookings = await prisma.booking.findMany({
+    where: {
+      recurringEventId,
+    },
+    select: {
+      startTime: true,
+    },
+  });
+  return recurringBookings.map((obj) => obj.startTime.toString());
 }

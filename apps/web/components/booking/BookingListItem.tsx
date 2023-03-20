@@ -2,14 +2,17 @@ import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
@@ -20,7 +23,6 @@ import {
   MeetingTimeInTimezones,
   showToast,
   Tooltip,
-  ActionType,
   TableActions,
   TextAreaField,
 } from "@calcom/ui";
@@ -44,7 +46,10 @@ function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -92,6 +97,13 @@ function BookingListItem(booking: BookingItemProps) {
     mutation.mutate(body);
   };
 
+  const getSeatReferenceUid = () => {
+    if (!booking.seatsReferences[0]) {
+      return undefined;
+    }
+    return booking.seatsReferences[0].referenceUid;
+  };
+
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -133,7 +145,8 @@ function BookingListItem(booking: BookingItemProps) {
          cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }`,
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
+      `,
       icon: FiX,
     },
     {
@@ -144,7 +157,9 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: FiClock,
           label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}`,
+          href: `/reschedule/${booking.uid}${
+            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+          }`,
         },
         {
           id: "reschedule_request",
@@ -177,14 +192,15 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
-        <FiSend className="-mt-[1px] w-4 rotate-45" />
-        <p className="ml-2 ">{t("reschedule_request_sent")}</p>
-      </div>
+      <Badge startIcon={FiSend} size="md" variant="gray" data-testid="request_reschedule_sent">
+        {t("reschedule_request_sent")}
+      </Badge>
     );
   };
 
-  const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+  const startTime = dayjs(booking.startTime)
+    .locale(language)
+    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -221,6 +237,8 @@ function BookingListItem(booking: BookingItemProps) {
   };
   const showRecordingsButtons =
     (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+
+  const title = booking.title;
   return (
     <>
       <RescheduleDialog
@@ -353,12 +371,12 @@ function BookingListItem(booking: BookingItemProps) {
 
           <div className="cursor-pointer py-4">
             <div
-              title={booking.title}
+              title={title}
               className={classNames(
                 "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
-              {booking.title}
+              {title}
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
@@ -382,13 +400,13 @@ function BookingListItem(booking: BookingItemProps) {
               />
             )}
             {isCancelled && booking.rescheduled && (
-              <div className="mt-2 inline-block text-left text-sm md:hidden">
+              <div className="mt-2 inline-block md:hidden">
                 <RequestSentMessage />
               </div>
             )}
           </div>
         </td>
-        <td className="py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
@@ -418,7 +436,10 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((date) => {
     return (
@@ -448,7 +469,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, user?.timeFormat, user?.timeZone)}
                     {" - "}
-                    {dayjs(aDate).format("D MMMM YYYY")}
+                    {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
                 );
               })}>

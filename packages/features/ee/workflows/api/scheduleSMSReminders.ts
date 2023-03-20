@@ -9,7 +9,8 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
-import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
+import type { VariablesType } from "../lib/reminders/templates/customTemplate";
+import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -53,6 +54,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!unscheduledReminders.length) res.json({ ok: true });
 
   for (const reminder of unscheduledReminders) {
+    if (!reminder.workflowStep || !reminder.booking) {
+      continue;
+    }
     try {
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
@@ -104,7 +108,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             timeZone: timeZone,
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,
-            customInputs: reminder.booking?.customInputs,
+            responses: reminder.booking?.responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           };
           const customMessage = await customTemplate(

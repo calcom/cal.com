@@ -1,6 +1,7 @@
 import z from "zod";
 
-import Sendgrid, { SendgridNewContact } from "@calcom/lib/Sendgrid";
+import type { SendgridNewContact } from "@calcom/lib/Sendgrid";
+import Sendgrid from "@calcom/lib/Sendgrid";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -10,7 +11,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),

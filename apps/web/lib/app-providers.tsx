@@ -1,11 +1,12 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { SessionProvider } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import { appWithTranslation, SSRConfig } from "next-i18next";
+import type { SSRConfig } from "next-i18next";
+import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import { NextRouter } from "next/router";
-import { ComponentProps, ReactNode } from "react";
+import type { NextRouter } from "next/router";
+import type { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
@@ -13,7 +14,7 @@ import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
-import { WithNonceProps } from "@lib/withNonce";
+import type { WithNonceProps } from "@lib/withNonce";
 
 const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
   ({ children }) => <>{children}</>

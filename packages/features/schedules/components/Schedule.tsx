@@ -10,15 +10,16 @@ import type {
   UseFieldArrayRemove,
 } from "react-hook-form";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { GroupBase, Props } from "react-select";
+import type { GroupBase, Props } from "react-select";
 
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { TimeRange } from "@calcom/types/schedule";
+import type { TimeRange } from "@calcom/types/schedule";
 import {
   Button,
   Dropdown,
@@ -117,6 +118,7 @@ const CopyButton = ({
           disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+            setOpen(false);
           }}
           onCancel={() => setOpen(false)}
         />

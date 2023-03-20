@@ -1,7 +1,7 @@
 import * as hubspot from "@hubspot/api-client";
-import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
-import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
+import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import type { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -16,7 +16,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { HubspotToken } from "../api/callback";

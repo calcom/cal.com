@@ -4,7 +4,7 @@ import * as templates from "./templates";
 
 function renderEmail<K extends keyof typeof templates>(
   template: K,
-  props: React.ComponentProps<typeof templates[K]>
+  props: React.ComponentProps<(typeof templates)[K]>
 ) {
   const Component = templates[template];
   return (

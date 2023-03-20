@@ -3,7 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
-import { Ensure, Optional } from "@calcom/types/utils";
+import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
 
@@ -12,10 +12,10 @@ export type DefaultEventLocationType = {
   type: DefaultEventLocationTypeEnum;
   label: string;
   messageForOrganizer: string;
-  category: string;
+  category: "in person" | "other" | "phone";
 
   iconUrl: string;
-
+  urlRegExp?: string;
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
   variable: "locationType" | "locationAddress" | "address" | "locationLink" | "locationPhoneNumber" | "phone";
   defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone";
@@ -66,7 +66,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
-    label: "attendeeInPerson",
+    label: "attendee_in_person",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",
@@ -79,7 +79,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.InPerson,
-    label: "inPerson",
+    label: "in_person",
     organizerInputType: "text",
     messageForOrganizer: "Provide an Address or Place",
     // HACK:
@@ -91,7 +91,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Link,
-    label: "Link",
+    label: "link_meeting",
     organizerInputType: "text",
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
@@ -102,7 +102,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Phone,
-    label: "Attendee Phone Number",
+    label: "attendee_phone_number",
     variable: "phone",
     organizerInputType: null,
     attendeeInputType: "phone",
@@ -117,7 +117,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.UserPhone,
-    label: "Organizer Phone Number",
+    label: "organizer_phone_number",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
     variable: "locationPhoneNumber",
