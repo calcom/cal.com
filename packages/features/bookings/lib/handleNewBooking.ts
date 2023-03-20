@@ -1948,7 +1948,7 @@ async function handler(
     await scheduleWorkflowReminders(
       eventType.workflows,
       smsReminderNumber || null,
-      { ...evt, ...{ metadata } },
+      { ...evt, responses, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true

@@ -431,7 +431,7 @@ export default function Success(props: SuccessProps) {
                       : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
-                  {giphyImage && !needsConfirmation && (
+                  {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
