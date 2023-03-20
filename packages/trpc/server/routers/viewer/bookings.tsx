@@ -16,7 +16,7 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -773,18 +773,14 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+
     const bookingFields = bookingRaw.eventType
       ? getBookingFieldsWithSystemFields(bookingRaw.eventType)
       : null;
+
     const booking = {
       ...bookingRaw,
-      responses: getBookingResponsesPartialSchema({
-        eventType: {
-          bookingFields,
-        },
-        // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
-        view: "ALL_VIEWS",
-      }),
+      responses: bookingResponsesDbSchema.parse(bookingRaw.responses),
       eventType: bookingRaw.eventType
         ? {
             ...bookingRaw.eventType,
@@ -850,6 +846,7 @@ export const bookingsRouter = router({
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
+    // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
     const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
       bookingFields: booking.eventType?.bookingFields ?? null,
       responses: booking.responses,

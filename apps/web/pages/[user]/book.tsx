@@ -237,11 +237,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid || query.bookingUid || bookingUidWithSeats) {
-    booking = await getBooking(
-      prisma,
-      rescheduleUid || query.bookingUid || bookingUidWithSeats || "",
-      eventTypeObject.bookingFields
-    );
+    booking = await getBooking(prisma, rescheduleUid || query.bookingUid || bookingUidWithSeats || "");
   }
 
   if (rescheduleEventTypeHasSeats && booking?.attendees && booking?.attendees.length > 0) {

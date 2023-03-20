@@ -1,7 +1,7 @@
 import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/getBookingFields";
-import type { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -12,7 +12,7 @@ export const getCalEventResponses = ({
   // If the eventType has been deleted and a booking is Accepted later on, then bookingFields will be null and we can't know the label of fields. So, we should store the label as well in the DB
   // Also, it is no longer straightforward to identify if a field is system field or not
   bookingFields: z.infer<typeof eventTypeBookingFields> | null;
-  responses: z.infer<ReturnType<typeof getBookingResponsesPartialSchema>>;
+  responses: z.infer<typeof bookingResponsesDbSchema>;
 }) => {
   const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
   const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
@@ -39,7 +39,7 @@ export const getCalEventResponses = ({
     for (const [name, value] of Object.entries(responses)) {
       const isSystemField = SystemField.safeParse(name);
 
-      // Use name for Label because we don't have access to the label.
+      // Use name for Label because we don't have access to the label. This will not be needed once we start storing the label along with the response
       const label = name;
 
       if (!isSystemField.success) {
