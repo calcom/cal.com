@@ -199,14 +199,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       hosts: !!eventType.hosts?.length
         ? eventType.hosts.filter((host) => !host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.ROUND_ROBIN)
-            .map((user) => ({ userId: user.id })),
-      hostsFixed: !!eventType.hosts?.length
-        ? eventType.hosts.filter((host) => host.isFixed)
-        : eventType.users
-            .filter(() => eventType.schedulingType === SchedulingType.COLLECTIVE)
-            .map((user) => ({ userId: user.id })),
+        : eventType.users.map((user) => ({ userId: user.id })),
+      hostsFixed: eventType.hosts.filter((host) => host.isFixed),
     },
     resolver: zodResolver(
       z
