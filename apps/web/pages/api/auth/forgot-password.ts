@@ -16,18 +16,18 @@ const limiter = rateLimit({
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const t = await getTranslation(req.body.language ?? "en", "common");
 
-  let ip = req.headers["x-real-ip"] as string;
-
-  const forwardedFor = req.headers["x-forwarded-for"] as string;
-  if (!ip && forwardedFor) {
-    ip = forwardedFor?.split(",").at(0) ?? "Unknown";
-  }
-
   const email = z
     .string()
     .email()
     .transform((val) => val.toLowerCase())
     .parse(req.body?.email);
+
+  let ip = req.headers["x-real-ip"] as string;
+
+  const forwardedFor = req.headers["x-forwarded-for"] as string;
+  if (!ip && forwardedFor) {
+    ip = forwardedFor?.split(",").at(0) ?? email;
+  }
 
   const { isRateLimited } = limiter.check(10, ip); // 10 requests per minute
 
