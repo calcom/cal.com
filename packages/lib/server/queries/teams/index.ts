@@ -1,11 +1,42 @@
 import { Prisma } from "@prisma/client";
 
-import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import prisma, { minimalEventTypeSelect, baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
+
+export async function getTeamEventsWithMembers() {
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    username: true,
+    email: true,
+  });
+
+  const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+    id: true,
+    name: true,
+    slug: true,
+    eventTypes: {
+      where: {
+        hidden: false,
+      },
+      select: {
+        users: {
+          select: userSelect,
+        },
+        ...minimalEventTypeSelect,
+      },
+    },
+  });
+
+  const teams = await prisma.team.findMany({
+    select: teamSelect,
+  });
+
+  return { teams };
+}
+
 export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,

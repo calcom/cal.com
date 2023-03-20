@@ -299,6 +299,7 @@ export const viewerTeamsRouter = router({
               create: {
                 teamId: input.teamId,
                 role: input.role as MembershipRole,
+                accepted: true,
               },
             },
           },
@@ -332,6 +333,7 @@ export const viewerTeamsRouter = router({
               teamId: input.teamId,
               userId: invitee.id,
               role: input.role as MembershipRole,
+              accepted: true,
             },
           });
         } catch (e) {

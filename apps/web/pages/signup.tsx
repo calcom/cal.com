@@ -5,6 +5,7 @@ import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -139,6 +140,15 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  if (SIGNUP_DISABLED) {
+    return {
+      redirect: {
+        destination: "/auth/login",
+        permanent: true,
+      },
+    };
+  }
+
   const ssr = await ssrInit(ctx);
   const token = asStringOrNull(ctx.query.token);
 
