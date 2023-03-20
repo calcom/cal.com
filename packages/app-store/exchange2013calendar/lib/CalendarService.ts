@@ -74,6 +74,12 @@ export default class ExchangeCalendarService implements Calendar {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
 
+      if (event.team?.members) {
+        event.team.members.forEach((member) => {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
+      }
+
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);
 
       return {
