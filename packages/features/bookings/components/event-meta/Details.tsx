@@ -84,10 +84,10 @@ export const EventMetaBlock = ({
           src={Icon}
           alt=""
           // @TODO: Use SVG's instead of images, so we can get rid of the filter.
-          className="mr-2 mt-1 h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.6)]"
+          className="mr-2 mt-[2px] h-4 w-4 flex-shrink-0 [filter:invert(0.5)_brightness(0.5)] dark:[filter:invert(1)_brightness(0.6)]"
         />
       ) : (
-        <Icon className="relative z-20 mr-2 mt-1 h-4 w-4 flex-shrink-0" />
+        <Icon className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0" />
       )}
       <div className={classNames("relative z-10", contentClassName)}>{children}</div>
     </div>
