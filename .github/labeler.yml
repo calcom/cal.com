@@ -1,6 +1,0 @@
-"❗️ migrations":
-  - packages/prisma/migrations/**/migration.sql
-
-"❗️ .env changes":
-  - .env.example
-  - .env.appStore.example

@@ -74,6 +74,7 @@
     "ts-jest": "^28.0.8"
   },
   "dependencies": {
+    "dompurify": "^2.4.1",
     "turbo": "^1.4.3"
   },
   "resolutions": {

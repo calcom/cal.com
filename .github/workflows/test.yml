@@ -22,8 +22,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
-      # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
-      - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:

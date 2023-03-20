@@ -1,18 +1,15 @@
-import { SchedulingType } from "@prisma/client";
+import { SchedulingType, EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
-import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getBufferedBusyTimes, BusyTimes } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import getTimeSlots from "@calcom/lib/slots";
+import getTimeSlots, { getTimeSlotsCompact, slotsOverlap } from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -28,6 +25,9 @@ const getScheduleSchema = z
     eventTypeId: z.number().int().optional(),
     // Event type slug
     eventTypeSlug: z.string(),
+    // Event type length
+    eventTypeLength: z.number().int(),
+    eventTypeTeamId: z.number().int().nullable().optional(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -38,6 +38,9 @@ const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
+    rescheduleUid: z.string().optional(),
+    rescheduleWithSameUser: z.boolean().optional(),
+    proxy: z.object({}).optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -46,7 +49,6 @@ const getScheduleSchema = z
 
 export type Slot = {
   time: string;
-  userIds?: number[];
   attendees?: number;
   bookingUid?: string;
   users?: string[];
@@ -56,55 +58,28 @@ const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
-  currentSeats,
 }: {
   time: Dayjs;
-  busy: EventBusyDate[];
+  busy: BusyTimes[];
   eventLength: number;
-  currentSeats?: CurrentSeats;
 }): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
-
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
-
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
-    return true;
+    return !slotsOverlap(
+      { startTime: slotStartTime, endTime: slotEndTime },
+      { startTime: busyTime.start, endTime: busyTime.end }
+    );
   });
 };
 
 /** This should be called getAvailableSlots */
 export const slotsRouter = router({
   getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
-    return await getSchedule(input, ctx);
+    return {
+      slots: await getSchedule(input, ctx),
+    };
   }),
 });
 
@@ -187,6 +162,28 @@ async function getDynamicEventType(ctx: { prisma: typeof prisma }, input: z.infe
   });
 }
 
+function getOriginalBooking(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
+  if (!input.rescheduleUid) {
+    return null;
+  }
+
+  return ctx.prisma.booking.findUnique({
+    where: {
+      uid: input.rescheduleUid,
+    },
+    select: {
+      uid: true,
+      startTime: true,
+      endTime: true,
+      user: {
+        select: {
+          ...availabilityUserSelect,
+        },
+      },
+    },
+  });
+}
+
 function getRegularOrDynamicEventType(
   ctx: { prisma: typeof prisma },
   input: z.infer<typeof getScheduleSchema>
@@ -194,6 +191,43 @@ function getRegularOrDynamicEventType(
   const isDynamicBooking = !input.eventTypeId;
   return isDynamicBooking ? getDynamicEventType(ctx, input) : getEventType(ctx, input);
 }
+
+const getMinimumStartTime = (
+  timeZone: string,
+  { periodType, periodStartDate }: Pick<EventType, "periodType" | "periodStartDate">
+) => {
+  const absoluteMinimum = dayjs().tz(timeZone).startOf("day");
+  if (periodType === PeriodType.RANGE) {
+    const minimum = dayjs(periodStartDate).tz(timeZone).startOf("day");
+    if (minimum.isAfter(absoluteMinimum)) {
+      return minimum;
+    }
+  }
+  return absoluteMinimum;
+};
+
+const getMaximumEndTime = (
+  timeZone: string,
+  {
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodEndDate,
+  }: Pick<EventType, "periodType" | "periodDays" | "periodCountCalendarDays" | "periodEndDate">
+) => {
+  if (periodType === PeriodType.ROLLING) {
+    const daysToAdd = periodDays || 0;
+    return periodCountCalendarDays
+      ? dayjs().tz(timeZone).add(daysToAdd, "days").endOf("day")
+      : dayjs().tz(timeZone).businessDaysAdd(daysToAdd).endOf("day");
+  }
+
+  if (periodType === PeriodType.RANGE) {
+    return dayjs(periodEndDate).tz(timeZone).endOf("day");
+  }
+
+  return null;
+};
 
 /** This should be called getAvailableSlots */
 export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
@@ -205,6 +239,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(ctx, input);
+  const originalBooking = await getOriginalBooking(ctx, input);
   const endPrismaEventTypeGet = performance.now();
   logger.debug(
     `Prisma eventType get took ${endPrismaEventTypeGet - startPrismaEventTypeGet}ms for event:${
@@ -215,148 +250,189 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const startTime =
-    input.timeZone === "Etc/GMT"
-      ? dayjs.utc(input.startTime)
-      : dayjs(input.startTime).utc().tz(input.timeZone);
-  const endTime =
-    input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
+  const eventLength: number = input.duration || eventType.length;
+  const timeZone = input.timeZone || "Etc/GMT";
+
+  let startTime =
+    timeZone === "Etc/GMT" ? dayjs.utc(input.startTime) : dayjs(input.startTime).utc().tz(timeZone);
+  let endTime = timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(timeZone);
+
+  const minimumStartTime = getMinimumStartTime(timeZone, {
+    periodType: eventType.periodType,
+    periodStartDate: eventType.periodStartDate,
+  });
+  const maximumEndTime = getMaximumEndTime(timeZone, {
+    periodType: eventType.periodType,
+    periodDays: eventType.periodDays,
+    periodCountCalendarDays: eventType.periodCountCalendarDays,
+    periodEndDate: eventType.periodEndDate,
+  });
+
+  if (maximumEndTime && startTime.isAfter(maximumEndTime)) {
+    return {};
+  }
+
+  if (startTime.isBefore(minimumStartTime)) {
+    startTime = minimumStartTime;
+  }
+  if (maximumEndTime && endTime.isAfter(maximumEndTime)) {
+    endTime = maximumEndTime;
+  }
 
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined = undefined;
+
+  // If rescheduleWithSameUser is `true` and if this is a reschedule, the only available user is the one
+  // the original booking was scheduled for.
+  const users =
+    input.rescheduleWithSameUser && originalBooking?.user ? [originalBooking.user] : eventType.users;
 
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    eventType.users.map(async (currentUser) => {
-      const {
-        busy,
-        workingHours,
-        dateOverrides,
-        currentSeats: _currentSeats,
-        timeZone,
-      } = await getUserAvailability(
-        {
-          userId: currentUser.id,
-          username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
-          afterEventBuffer: eventType.afterEventBuffer,
-          beforeEventBuffer: eventType.beforeEventBuffer,
-        },
-        { user: currentUser, eventType, currentSeats }
-      );
-      if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
+    users.map(async (currentUser) => {
+      const busy = await getBufferedBusyTimes({
+        credentials: currentUser.credentials,
+        userId: currentUser.id,
+        eventTypeId: input.eventTypeId,
+        startTime: startTime.format(),
+        endTime: endTime.format(),
+        selectedCalendars: currentUser.selectedCalendars,
+        userBufferTime: currentUser.bufferTime,
+        afterEventBuffer: eventType.afterEventBuffer,
+      });
 
       return {
-        timeZone,
-        workingHours,
-        dateOverrides,
         busy,
-        userId: currentUser.id,
+        user: currentUser,
       };
     })
   );
-  // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.userId, ...override }))
-  );
-  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
+
+  const singleHostMode = input.eventTypeTeamId === null;
+  // Collect all busy times in this record.
+  const userBusyTimesByDay = {} as Record<string, { startTime: Dayjs; endTime: Dayjs }[]>;
+  if (singleHostMode) {
+    // `userBusyTimesByDay` is only used in singleHostMode.
+    userAvailability.forEach(({ busy }) => {
+      busy.forEach(({ start, end }) => {
+        let currentStart = start;
+        while (currentStart.isSameOrBefore(end)) {
+          // busy times can span multiple days, so we need to add them to each day
+          // they cover.
+          const day = currentStart.format("YYYY-MM-DD");
+          if (!userBusyTimesByDay[day]) {
+            userBusyTimesByDay[day] = [];
+          }
+          userBusyTimesByDay[day].push({
+            startTime: start.utc(),
+            endTime: end.utc(),
+          });
+          currentStart = currentStart.add(1, "day");
+        }
+      });
+    });
+  }
+
+  // standard working hours for all users. Mo-Sa 8-20 Berlin time.
+  const days = [1, 2, 3, 4, 5, 6];
+  const shiftStartHour = 8;
+  const shiftEndHour = 21;
+  const workingHours = getWorkingHours({}, [
+    {
+      days,
+      startTime: dayjs().tz("Europe/Berlin").set("hour", shiftStartHour).set("minute", 0).set("second", 0),
+      endTime: dayjs().tz("Europe/Berlin").set("hour", shiftEndHour).set("minute", 0).set("second", 0),
+    },
+  ]);
 
   const computedAvailableSlots: Record<string, Slot[]> = {};
-  const availabilityCheckProps = {
-    eventLength: eventType.length,
-    currentSeats,
-  };
-
-  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
-    !isTimeOutOfBounds(_time, {
-      periodType: eventType.periodType,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodDays: eventType.periodDays,
-    });
+  const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
   let currentCheckedTime = startTime;
   let getSlotsTime = 0;
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
+
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
-    const timeSlots = getTimeSlots({
-      inviteeDate: currentCheckedTime,
-      eventLength: input.duration || eventType.length,
-      workingHours,
-      dateOverrides,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
-    });
+    const timeSlots = singleHostMode
+      ? getTimeSlotsCompact({
+          slotDay: currentCheckedTime,
+          shiftStart: currentCheckedTime
+            .tz("Europe/Berlin")
+            .set("hour", shiftStartHour)
+            .set("minute", 0)
+            .set("second", 0)
+            .utc(),
+          shiftEnd: currentCheckedTime
+            .tz("Europe/Berlin")
+            .set("hour", shiftEndHour)
+            .set("minute", 0)
+            .set("second", 0)
+            .utc(),
+          days,
+          eventLength,
+          minStartTime: dayjs().add(eventType.minimumBookingNotice, "minute"),
+          busyTimes: userBusyTimesByDay[currentCheckedTime.format("YYYY-MM-DD")] || [],
+        })
+      : getTimeSlots({
+          inviteeDate: currentCheckedTime,
+          eventLength,
+          workingHours,
+          minimumBookingNotice: eventType.minimumBookingNotice,
+          frequency: eventType.slotInterval || eventLength,
+        });
 
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
 
-    const isCollective = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
+    const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
+      if (singleHostMode) {
+        // If we are in singleHostMode, there is no need to check for conflicts.
+        // The slots have been generated respecting the host's busy times.
+        // See `getTimeSlotsCompact` above.
+        return true;
+      }
+      const schedule = userAvailability.find((s) => s.user.id === user.id);
+      if (!schedule) return false;
+      const start = performance.now();
+      const available = checkIfIsAvailable({
+        time,
+        busy: schedule.busy,
+        eventLength,
+      });
+      checkForAvailabilityTime += performance.now() - start;
+      checkForAvailabilityCount++;
+      return available;
+    };
 
-    const availableTimeSlots = timeSlots
-      .filter((slot) => isTimeWithinBounds(slot.time))
-      .filter((slot) =>
-        isCollective
-          ? // The slot should be available for every user
-            userAvailability.every((schedule) => {
-              const startCheckForAvailability = performance.now();
-              const isAvailable = checkIfIsAvailable({
-                time: slot.time,
-                ...schedule,
-                ...availabilityCheckProps,
-              });
-              const endCheckForAvailability = performance.now();
-              checkForAvailabilityCount++;
-              checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-              return isAvailable;
-            })
-          : (() => {
-              // The slot should be available for the atleast one of the slot owners.
-              return slot.userIds?.some((slotUserId) => {
-                const userSchedule = userAvailability.find(({ userId }) => userId === slotUserId);
-                if (!userSchedule) {
-                  throw new TRPCError({
-                    message: "Shouldn't happen that we don't have a matching user schedule here",
-                    code: "INTERNAL_SERVER_ERROR",
-                  });
-                }
-                return checkIfIsAvailable({
-                  time: slot.time,
-                  ...userSchedule,
-                  ...availabilityCheckProps,
-                });
-              });
-            })()
-      );
+    const timeSlotsForDay = timeSlots.reduce((acc, time) => {
+      const availableUsers = users
+        .filter((user) => userIsAvailable(user, time))
+        .map((user) => user.username || "");
 
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map(
-      ({ time: time, ...passThroughProps }) => ({
-        ...passThroughProps,
+      if (availableUsers.length === 0) {
+        // don't add the slot if no users are available
+        return acc;
+      }
+
+      if (needAllUsers && availableUsers.length !== users.length) {
+        // don't add the slot if not all users are available and we need all users (collective)
+        return acc;
+      }
+
+      acc.push({
         time: time.toISOString(),
-        users: eventType.users.map((user) => user.username || ""),
-        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-          attendees:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
-        }),
-      })
-    );
+        users: availableUsers,
+      });
+      return acc;
+    }, [] as Slot[]);
+
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlotsForDay;
     currentCheckedTime = currentCheckedTime.add(1, "day");
   } while (currentCheckedTime.isBefore(endTime));
 
@@ -365,9 +441,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   logger.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
-  return {
-    slots: computedAvailableSlots,
-  };
+  return computedAvailableSlots;
 }

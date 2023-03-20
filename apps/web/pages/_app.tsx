@@ -64,6 +64,7 @@ export default withTRPC<AppRouter>({
         : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/trpc`
         : `http://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+    const slotsProxyUrl = process.env.NEXT_PUBLIC_SLOTS_PROXY_URL;
 
     /**
      * If you want to use SSR, you need to use the server's full URL
@@ -87,10 +88,19 @@ export default withTRPC<AppRouter>({
           // when condition is true, use normal request
           true: httpLink({ url }),
           // when condition is false, use batching
-          false: httpBatchLink({
-            url,
-            /** @link https://github.com/trpc/trpc/issues/2008 */
-            // maxBatchSize: 7
+          false: splitLink({
+            // check for context property `slotsProxyUrl`
+            condition: (op) => {
+              return op.context.slotsProxyUrl === true && slotsProxyUrl !== undefined && slotsProxyUrl !== "";
+            },
+            // when condition is true, use normal request
+            true: httpLink({ url: slotsProxyUrl! }),
+            // when condition is false, use batching
+            false: httpBatchLink({
+              url,
+              /** @link https://github.com/trpc/trpc/issues/2008 */
+              // maxBatchSize: 7
+            }),
           }),
         }),
       ],

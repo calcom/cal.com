@@ -173,6 +173,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
