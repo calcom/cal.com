@@ -75,6 +75,13 @@ export default class GoogleCalendarService implements Calendar {
       ...rest,
       responseStatus: "accepted",
     }));
+    // TODO: Check every other CalendarService for team members
+    const teamMembers =
+      calEventRaw.team?.members.map((m) => ({
+        email: m.email,
+        displayName: m.name,
+        responseStatus: "accepted",
+      })) || [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
@@ -99,6 +106,7 @@ export default class GoogleCalendarService implements Calendar {
               : calEventRaw.organizer.email,
           },
           ...eventAttendees,
+          ...teamMembers,
         ],
         reminders: {
           useDefault: true,
