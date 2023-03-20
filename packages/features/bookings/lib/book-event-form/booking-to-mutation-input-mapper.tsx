@@ -16,6 +16,7 @@ type BookingOptions = {
   rescheduleUid: string | undefined;
   username: string;
   ethSignature?: string | null;
+  metadata?: Record<string, string>;
 };
 
 export const mapBookingToMutationInput = ({
@@ -28,6 +29,7 @@ export const mapBookingToMutationInput = ({
   rescheduleUid,
   username,
   ethSignature,
+  metadata,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
@@ -42,9 +44,7 @@ export const mapBookingToMutationInput = ({
     timeZone: timeZone,
     language: language,
     rescheduleUid,
-    // @TODO:
-    //metadata,
-    metadata: {},
+    metadata: metadata || {},
     hasHashedBookingLink: false,
     // hasHashedBookingLink,
     // hashedLink,

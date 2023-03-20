@@ -218,6 +218,15 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       rescheduleUid: rescheduleUid || undefined,
       username: username || "",
       ethSignature,
+      metadata: Object.keys(router.query)
+        .filter((key) => key.startsWith("metadata"))
+        .reduce(
+          (metadata, key) => ({
+            ...metadata,
+            [key.substring("metadata[".length, key.length - 1)]: router.query[key],
+          }),
+          {}
+        ),
     };
 
     if (event.data?.recurringEvent?.freq && recurringEventCount) {
