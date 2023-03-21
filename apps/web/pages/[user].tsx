@@ -343,6 +343,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
+    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
   }));
 
   const isSingleUser = users.length === 1;

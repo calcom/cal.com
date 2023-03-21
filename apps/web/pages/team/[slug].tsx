@@ -187,6 +187,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...user,
       avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
+    descriptionAsSafeHTML: markdownAndSanitize(type.description),
   }));
 
   const safeBio = markdownAndSanitize(team.bio || "");
