@@ -14,7 +14,7 @@ export const Info = (props: {
 
   const descriptionCSS = "color: '#101010'; font-weight: 400; line-height: 24px; margin: 0;";
 
-  const safeDescription = markdownAndSanitize(props.description.toString());
+  const safeDescription = markdownAndSanitize(props.description.toString()) || "";
 
   return (
     <>
