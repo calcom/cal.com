@@ -93,6 +93,7 @@ interface ProgressBarProps {
 }
 
 function ProgressBar(props: ProgressBarProps) {
+  const { t } = useLocale();
   const { startTime, endTime } = props;
   const currentTime = dayjs().second(0).millisecond(0);
   const startingTime = dayjs(startTime).second(0).millisecond(0);
@@ -111,7 +112,9 @@ function ProgressBar(props: ProgressBarProps) {
   const percentage = prev * (100 / startDuration);
   return (
     <div>
-      <p>{duration} minutes</p>
+      <p>
+        {duration} {t("minutes")}
+      </p>
       <div className="relative h-2 max-w-xl overflow-hidden rounded-full">
         <div className="absolute h-full w-full bg-gray-500/10" />
         <div className={classNames("relative h-full bg-green-500")} style={{ width: `${percentage}%` }} />
@@ -127,6 +130,7 @@ interface VideoMeetingInfo {
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
   const { booking } = props;
+  const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
@@ -139,25 +143,25 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
         <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
-          <h3>What:</h3>
+          <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
-          <h3>Invitee Time Zone:</h3>
+          <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
-          <h3>When:</h3>
+          <h3>{t("when")}:</h3>
           <p>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>
-          <h3>Time left</h3>
+          <h3>{t("time_left")}</h3>
           <ProgressBar
             key={String(open)}
             endTime={endTime.toISOString()}
             startTime={startTime.toISOString()}
           />
 
-          <h3>Who:</h3>
+          <h3>{t("who")}:</h3>
           <p>
-            {booking?.user?.name} - Organizer{" "}
+            {booking?.user?.name} - {t("organizer")}:{" "}
             <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
           </p>
 
@@ -169,12 +173,16 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
               ))
             : null}
 
-          <h3>Description</h3>
+          {booking.description && (
+            <>
+              <h3>{t("description")}:</h3>
 
-          <div
-            className="prose-sm prose prose-invert"
-            dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
-          />
+              <div
+                className="prose-sm prose prose-invert"
+                dangerouslySetInnerHTML={{ __html: md.render(booking.description ?? "") }}
+              />
+            </>
+          )}
         </main>
         <div className="flex items-center justify-center">
           <button

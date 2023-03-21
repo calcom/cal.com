@@ -90,6 +90,7 @@
   "new_event_scheduled_recurring": "A new recurring event has been scheduled.",
   "invitee_email": "Invitee Email",
   "invitee_timezone": "Invitee Time Zone",
+  "time_left": "Time left",
   "event_type": "Event Type",
   "enter_meeting": "Enter Meeting",
   "video_call_provider": "Video call provider",
