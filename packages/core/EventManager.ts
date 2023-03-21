@@ -279,6 +279,27 @@ export default class EventManager {
       });
     }
 
+    // Now we can delete the old booking and its references.
+    const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+      where: {
+        bookingId: booking.id,
+      },
+    });
+    const attendeeDeletes = prisma.attendee.deleteMany({
+      where: {
+        bookingId: booking.id,
+      },
+    });
+
+    const bookingDeletes = prisma.booking.delete({
+      where: {
+        id: booking.id,
+      },
+    });
+
+    // Wait for all deletions to be applied.
+    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+
     return {
       results,
       referencesToCreate: [...booking.references],
@@ -423,6 +444,7 @@ export default class EventManager {
     booking: PartialBooking,
     newBookingId?: number
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
+    newBookingId = undefined;
     let calendarReference: PartialReference | undefined = undefined,
       credential;
     try {
@@ -439,7 +461,7 @@ export default class EventManager {
         });
       }
 
-      if (newBooking) {
+      if (newBooking?.references.length) {
         calendarReference = newBooking.references.find((reference) => reference.type.includes("_calendar"));
       } else {
         // Bookings should only have one calendar reference
