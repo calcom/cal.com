@@ -439,10 +439,9 @@ export default class EventManager {
         });
       }
 
-      if (newBooking?.references.length) {
-        calendarReference = newBooking.references.find((reference) => reference.type.includes("_calendar"));
-      } else {
-        // Bookings should only have one calendar reference
+       calendarReference = newBooking?.references.length
+         ? newBooking.references.find((reference) => reference.type.includes("_calendar"))
+         : booking.references.find((reference) => reference.type.includes("_calendar"));
         calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
       }
 
