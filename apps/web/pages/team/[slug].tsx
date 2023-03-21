@@ -190,7 +190,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     descriptionAsSafeHTML: markdownAndSanitize(type.description),
   }));
 
-  const safeBio = markdownAndSanitize(team.bio || "");
+  const safeBio = markdownAndSanitize(team.bio) || "";
 
   const members = team.members.map((member) => {
     return { ...member, safeBio: markdownAndSanitize(member.bio || "") };

@@ -353,7 +353,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
-  const safeBio = markdownAndSanitize(user.bio || "");
+  const safeBio = markdownAndSanitize(user.bio) || "";
 
   return {
     props: {

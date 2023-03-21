@@ -9,6 +9,8 @@ type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number] & { safeBio: string | null };
 
+type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
+
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
 
@@ -42,7 +44,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   );
 };
 
-const Members = ({ members, teamName }: { members: MembersType; teamName: string | null }) => {
+const Members = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   if (!members || members.length === 0) {
     return null;
   }
@@ -56,7 +58,7 @@ const Members = ({ members, teamName }: { members: MembersType; teamName: string
   );
 };
 
-const Team = ({ team }: { team: TeamType }) => {
+const Team = ({ team }: { team: TeamTypeWithSafeHtml }) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />
