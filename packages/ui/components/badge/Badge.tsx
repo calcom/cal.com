@@ -20,14 +20,14 @@ const badgeStyles = cva("font-medium inline-flex items-center justify-center rou
       error: "bg-red-100 text-red-800",
     },
     size: {
-      sm: "px-1 py-0.5 text-xs",
-      md: "py-1 px-1.5 text-xs",
-      lg: "py-1 px-2 text-sm",
+      sm: "px-1 py-0.5 text-xs leading-3",
+      md: "py-1 px-1.5 text-xs leading-3",
+      lg: "py-1 px-2 text-sm leading-4",
     },
   },
   defaultVariants: {
     variant: "default",
-    size: "sm",
+    size: "md",
   },
 });
 

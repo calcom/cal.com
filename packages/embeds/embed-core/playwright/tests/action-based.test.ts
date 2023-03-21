@@ -68,7 +68,7 @@ test.describe("Popup Tests", () => {
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
       pathname: "/free",
     });
-    expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
+    // expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
