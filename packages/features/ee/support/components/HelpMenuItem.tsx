@@ -210,6 +210,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             } else {
               loadChat({ open: true });
             }
+            // TODO: somehow intercom doensnt open yet
             onHelpItemSelect();
           }}>
           {t("contact_support")}
