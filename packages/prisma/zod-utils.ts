@@ -453,6 +453,10 @@ export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSc
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
   slug: true,
   length: true,
   locations: true,
