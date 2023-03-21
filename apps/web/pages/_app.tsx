@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
+import { useEffect } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -16,6 +17,12 @@ import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import "../styles/globals.css";
 
+declare global {
+  interface Window {
+    intercomSettings: any;
+  }
+}
+
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
@@ -25,6 +32,15 @@ const calFont = localFont({
 });
 
 function MyApp(props: AppProps) {
+  useEffect(() => {
+    (window as any).intercomSettings = {
+      api_base: "https://api-iam.intercom.io",
+      name: "Jane Doe", // Full name – doesn't work yet
+      email: "customer@example.com", // Email address – doesn't work yet
+      created_at: 1312182000, // Signup date as a Unix timestamp – doesn't work yet
+    };
+  }, []);
+
   const { Component, pageProps, err, router } = props;
   let pageStatus = "200";
   if (router.pathname === "/404") {
