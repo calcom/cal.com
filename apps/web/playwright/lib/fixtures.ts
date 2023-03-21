@@ -2,6 +2,7 @@ import { test as base } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture, createGetActionFiredDetails } from "../fixtures/embeds";
 import { createPaymentsFixture } from "../fixtures/payments";
@@ -16,6 +17,21 @@ export interface Fixtures {
   getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace PlaywrightTest {
+    //FIXME: how to restrict it to Frame only
+    interface Matchers<R> {
+      toBeEmbedCalLink(
+        calNamespace: string,
+        // eslint-disable-next-line
+        getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
+        expectedUrlDetails?: ExpectedUrlDetails
+      ): Promise<R>;
+    }
+  }
 }
 
 /**

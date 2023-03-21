@@ -1,15 +1,18 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
-import MarkdownIt from "markdown-it";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { ErrorCode } from "@calcom/lib/auth";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -40,8 +43,6 @@ import { FiAlertTriangle, FiTrash2 } from "@calcom/ui/components/icon";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -317,6 +318,20 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
+
+  const profileFormSchema = z.object({
+    username: z.string(),
+    avatar: z.string(),
+    name: z
+      .string()
+      .min(1)
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+    email: z.string().email(),
+    bio: z.string(),
+  });
+
   const emailMd5 = crypto
     .createHash("md5")
     .update(defaultValues.email || "example@example.com")
@@ -324,6 +339,7 @@ const ProfileForm = ({
 
   const formMethods = useForm<FormValues>({
     defaultValues,
+    resolver: zodResolver(profileFormSchema),
   });
 
   const {
@@ -371,6 +387,7 @@ const ProfileForm = ({
             formMethods.setValue("bio", turndown(value), { shouldDirty: true });
           }}
           excludedToolbarItems={["blockType"]}
+          disableLists
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">

@@ -1,10 +1,12 @@
-import { AppCategories, BookingStatus, DestinationCalendar, IdentityProvider, Prisma } from "@prisma/client";
+import type { DestinationCalendar, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
+import { cityMapping } from "city-timezones";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
+import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -12,13 +14,19 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
-import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
+import {
+  getDownloadLinkOfCalVideoByRecordingId,
+  getRecordingsOfCalVideoByRoomName,
+} from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -61,6 +69,12 @@ const publicViewerRouter = router({
       i18n,
       locale,
     };
+  }),
+  countryCode: publicProcedure.query(({ ctx }) => {
+    const { req } = ctx;
+
+    const countryCode: string | string[] = req?.headers?.["x-vercel-ip-country"] ?? "";
+    return { countryCode: Array.isArray(countryCode) ? countryCode[0] : countryCode };
   }),
   samlTenantProduct: publicProcedure
     .input(
@@ -142,6 +156,7 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
+  cityTimezones: publicProcedure.query(() => cityMapping),
 });
 
 // routes only available to authenticated users
@@ -321,10 +336,11 @@ const loggedInViewerRouter = router({
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
-    const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
-    // store email of the destination calendar to display
-    let destinationCalendarEmail = null;
+    const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
+      calendarCredentials,
+      user.selectedCalendars,
+      user.destinationCalendar?.externalId
+    );
 
     if (connectedCalendars.length === 0) {
       /* As there are no connected calendars, delete the destination calendar if it exists */
@@ -348,7 +364,6 @@ const loggedInViewerRouter = router({
           credentialId,
         },
       });
-      destinationCalendarEmail = email ?? user.destinationCalendar?.externalId;
     } else {
       /* There are connected calendars and a destination calendar */
 
@@ -371,32 +386,14 @@ const loggedInViewerRouter = router({
           },
         });
       }
-      destinationCalendarEmail = destinationCal?.email ?? user.destinationCalendar?.externalId;
-    }
-
-    let destinationCalendarName = user.destinationCalendar?.externalId || "";
-    let destinationCalendarIntegration = "";
-
-    for (const integration of connectedCalendars) {
-      if (integration.calendars) {
-        for (const calendar of integration.calendars) {
-          if (calendar.externalId === user.destinationCalendar?.externalId) {
-            destinationCalendarName = calendar.name || calendar.externalId;
-            destinationCalendarIntegration = integration.integration.title || "";
-            break;
-          }
-        }
-      }
     }
 
     return {
       connectedCalendars,
       destinationCalendar: {
         ...(user.destinationCalendar as DestinationCalendar),
-        name: destinationCalendarName,
-        integration: destinationCalendarIntegration,
+        ...destinationCalendar,
       },
-      destinationCalendarEmail,
     };
   }),
   setDestinationCalendar: authedProcedure
@@ -412,7 +409,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
       const calendarCredentials = getCalendarCredentials(user.credentials);
-      const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+      const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
       const credentialId = allCals.find(
@@ -472,8 +469,9 @@ const loggedInViewerRouter = router({
       const { credentials } = user;
 
       const enabledApps = await getEnabledApps(credentials);
+      //TODO: Refactor this to pick up only needed fields and prevent more leaking
       let apps = enabledApps.map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+        ({ credentials: _, credential: _1, key: _2 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
             .filter((c) => c.type === app.type && c.invalid)
@@ -598,7 +596,7 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         username: z.string().optional(),
-        name: z.string().optional(),
+        name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
         email: z.string().optional(),
         bio: z.string().optional(),
         avatar: z.string().optional(),
@@ -1133,8 +1131,7 @@ const loggedInViewerRouter = router({
       });
       // Revalidate user calendar cache.
       if (credential.app?.slug.includes("calendar")) {
-        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+        await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
       }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
@@ -1172,8 +1169,36 @@ const loggedInViewerRouter = router({
     )
     .query(async ({ input }) => {
       const { roomName } = input;
+
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
+        return res;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
+      }
+    }),
+  getDownloadLinkOfCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        recordingId: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { recordingId } = input;
+      const { session } = ctx;
+
+      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+
+      if (!isDownloadAllowed) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
+
+      try {
+        const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
         return res;
       } catch (err) {
         throw new TRPCError({
