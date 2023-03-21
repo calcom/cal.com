@@ -55,16 +55,6 @@ export const SystemField = z.enum([
   "smsReminderNumber",
 ]);
 
-export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
-  name: "system",
-  email: "system",
-  location: "system",
-  notes: "system-but-optional",
-  guests: "system-but-optional",
-  rescheduleReason: "system-but-optional",
-  smsReminderNumber: "system",
-};
-
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields
  */
@@ -165,6 +155,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "your_name",
       type: "name",
       name: "name",
+      editable: "system",
       required: true,
       sources: [
         {
@@ -179,6 +170,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "email",
       name: "email",
       required: true,
+      editable: "system",
       sources: [
         {
           label: "Default",
@@ -191,6 +183,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "location",
       type: "radioInput",
       name: "location",
+      editable: "system",
       required: false,
       // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
       // options: `eventType.locations`
@@ -222,6 +215,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "additional_notes",
       type: "textarea",
       name: "notes",
+      editable: "system-but-optional",
       required: additionalNotesRequired,
       defaultPlaceholder: "share_additional_notes",
       sources: [
@@ -235,6 +229,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     {
       defaultLabel: "additional_guests",
       type: "multiemail",
+      editable: "system-but-optional",
       name: "guests",
       required: false,
       hidden: disableGuests,
@@ -249,6 +244,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     {
       defaultLabel: "reschedule_reason",
       type: "textarea",
+      editable: "system-but-optional",
       name: "rescheduleReason",
       defaultPlaceholder: "reschedule_placeholder",
       required: false,
@@ -337,18 +333,6 @@ export const ensureBookingInputsHaveSystemFields = ({
   }
 
   bookingFields = bookingFields.concat(missingSystemAfterFields);
-
-  bookingFields = bookingFields.map((field) => {
-    const foundEditableMap = SystemFieldsEditability[field.name as keyof typeof SystemFieldsEditability];
-    if (!foundEditableMap) {
-      return field;
-    }
-    // Ensure that system fields editability, even if modified to something else in DB(accidentally), get's reset to what's in the code.
-    return {
-      ...field,
-      editable: foundEditableMap,
-    };
-  });
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };
