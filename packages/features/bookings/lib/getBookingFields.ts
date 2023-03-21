@@ -304,7 +304,7 @@ export const ensureBookingInputsHaveSystemFields = ({
         label: input.label,
         editable: "user",
         // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
-        name: slugify(input.label),
+        name: `custom-${slugify(input.label)}`,
         placeholder: input.placeholder,
         type: CustomInputTypeToFieldType[input.type],
         required: input.required,
