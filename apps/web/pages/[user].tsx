@@ -24,7 +24,7 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
+import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
@@ -352,7 +352,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
-  const safeBio = parseAndSanitize(user.bio || "");
+  const safeBio = markdownAndSanitize(user.bio || "");
 
   return {
     props: {

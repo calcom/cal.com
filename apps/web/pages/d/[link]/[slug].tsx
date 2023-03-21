@@ -5,7 +5,7 @@ import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
-import { parseAndSanitize } from "@calcom/lib/parseAndSanitize";
+import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -121,7 +121,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       timeZone: u.timeZone,
     })),
     descriptionAsSafeHTML: hashedLink.eventType.description
-      ? parseAndSanitize(hashedLink.eventType.description)
+      ? markdownAndSanitize(hashedLink.eventType.description)
       : null,
   });
 
