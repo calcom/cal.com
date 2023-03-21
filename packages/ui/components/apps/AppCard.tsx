@@ -39,7 +39,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
   }, [app.name, searchText]);
 
   return (
-    <div className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5">
+    <div className="relative flex h-64 flex-col rounded-md border border-gray-200 p-5">
       <div className="flex">
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>

@@ -68,7 +68,6 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   closeText?: string;
   actionDisabled?: boolean;
   Icon?: SVGComponent;
-  allowScroll?: boolean;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -88,8 +87,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[560px] overscroll-auto md:h-auto md:max-h-[inherit]",
-            props.allowScroll ? "overflow-y-auto" : "overflow-visible",
+            "max-h-[95vh] overflow-auto",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>

@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "En hendelse venter fortsatt på din godkjenning",
   "booking_submitted_subject": "Booking sendt inn: {{eventType}} med {{name}} kl. {{date}}",
   "your_meeting_has_been_booked": "Møtet ditt er booket",
-  "event_type_has_been_rescheduled_on_time_date": "Din {{eventType}} med {{name}} har blitt flyttet til {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Din {{title}} har blitt flyttet til {{date}}.",
   "event_has_been_rescheduled": "Oppdatert – Hendelsen din har blitt endret",
   "request_reschedule_title_attendee": "Be om å få endre tidspunkt for bookingen din",
   "request_reschedule_subtitle": "{{organizer}} har kansellert bookingen og bedt deg om å velge et annet tidspunkt.",

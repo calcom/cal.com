@@ -13,6 +13,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
   List,
@@ -94,16 +95,17 @@ const ConferencingLayout = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem>
-                          <Button
+                          <DropdownItem
+                            type="button"
                             color="destructive"
-                            StartIcon={Icon.FiTrash}
                             disabled={app.isGlobal}
+                            StartIcon={Icon.FiTrash}
                             onClick={() => {
                               setDeleteCredentialId(app.credentialIds[0]);
                               setDeleteAppModal(true);
                             }}>
                             {t("remove_app")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </Dropdown>

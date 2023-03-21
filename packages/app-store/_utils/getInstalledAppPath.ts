@@ -2,7 +2,7 @@ import z from "zod";
 
 import { InstalledAppVariants } from "../utils";
 
-const variantSchema = z.nativeEnum(InstalledAppVariants);
+const variantSchema = z.enum(InstalledAppVariants);
 
 export default function getInstalledAppPath(
   { variant, slug }: { variant?: string; slug?: string },

@@ -119,22 +119,18 @@ export default function TeamListItem(props: Props) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
-                      <Button
-                        color="minimal"
-                        className="w-full rounded-none font-medium"
-                        StartIcon={Icon.FiCheck}
-                        onClick={acceptInvite}>
+                      <DropdownItem type="button" StartIcon={Icon.FiCheck} onClick={acceptInvite}>
                         {t("accept")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Button
+                      <DropdownItem
                         color="destructive"
-                        className="w-full rounded-none font-medium"
+                        type="button"
                         StartIcon={Icon.FiX}
                         onClick={declineInvite}>
                         {t("reject")}
-                      </Button>
+                      </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
@@ -186,20 +182,20 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
                         <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
                           <DialogTrigger asChild>
-                            <Button
+                            <DropdownItem
+                              color="destructive"
+                              type="button"
+                              StartIcon={Icon.FiTrash}
                               onClick={(e) => {
                                 e.stopPropagation();
-                              }}
-                              color="destructive"
-                              className="rounded-none px-3 font-normal"
-                              StartIcon={Icon.FiTrash}>
+                              }}>
                               {t("disband_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"

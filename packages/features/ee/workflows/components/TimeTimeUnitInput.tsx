@@ -6,6 +6,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
   TextField,
@@ -54,7 +55,7 @@ export const TimeTimeUnitInput = (props: Props) => {
           <DropdownMenuContent>
             {timeUnitOptions.map((option, index) => (
               <DropdownMenuItem key={index} className="outline-none">
-                <button
+                {/* <button
                   key={index}
                   type="button"
                   className="h-8 w-20 justify-start pl-3 text-left text-sm"
@@ -63,7 +64,16 @@ export const TimeTimeUnitInput = (props: Props) => {
                     form.setValue("timeUnit", option.value);
                   }}>
                   {option.label}
-                </button>
+                </button> */}
+                <DropdownItem
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    setTimeUnit(option.value);
+                    form.setValue("timeUnit", option.value);
+                  }}>
+                  {option.label}
+                </DropdownItem>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, Icon, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -156,7 +156,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           {member.username ? (
             <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
           ) : (
-            <p className="text-gray-600">{t("not_on_cal")}</p>
+            <p className="text-gray-600">{t("not_on_cal", { appName: APP_NAME })}</p>
           )}
         </div>
       </div>

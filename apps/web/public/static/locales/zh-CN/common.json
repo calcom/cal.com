@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "有活动仍在等待您的批准",
   "booking_submitted_subject": "预约已提交: 名称为 {{name}} 的 {{eventType}}，日期为 {{date}}",
   "your_meeting_has_been_booked": "您的会议已预定",
-  "event_type_has_been_rescheduled_on_time_date": "您与 {{name}} 的 {{eventType}} 已被重新安排到 {{date}} {{time}} ({{timeZone}})。",
+  "event_type_has_been_rescheduled_on_time_date": "您的 {{title}} 已改期至 {{date}}。",
   "event_has_been_rescheduled": "已更新 - 您的活动已被重新安排",
   "request_reschedule_title_attendee": "请求重新安排您的预约",
   "request_reschedule_subtitle": "{{organizer}} 取消了预约并要求您选择其他时间。",

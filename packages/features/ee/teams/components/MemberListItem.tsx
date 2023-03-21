@@ -165,21 +165,20 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowChangeMemberRoleModal(true)}
                         StartIcon={Icon.FiEdit2}>
-                        {t("edit") as string}
+                        {t("edit")}
                       </DropdownItem>
                     </DropdownMenuItem>
                     {impersonationMode && (
                       <>
                         <DropdownMenuItem>
-                          <Button
+                          <DropdownItem
+                            type="button"
                             onClick={() => setShowImpersonateModal(true)}
-                            color="minimal"
-                            StartIcon={Icon.FiLock}
-                            className="w-full flex-shrink-0 font-normal">
+                            StartIcon={Icon.FiLock}>
                             {t("impersonate")}
-                          </Button>
+                          </DropdownItem>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuSeparator />
                       </>
                     )}
                     <DropdownMenuItem>

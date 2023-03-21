@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Događaj još čeka na vaše odobrenje",
   "booking_submitted_subject": "Rezervacija podneta: {{eventType}} sa {{name}} datuma {{date}}",
   "your_meeting_has_been_booked": "Sastanak je zakazan",
-  "event_type_has_been_rescheduled_on_time_date": "Vaš {{eventType}} sa {{name}} je odložen za {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Ваш {{титле}} је померен за {{дате}}.",
   "event_has_been_rescheduled": "Ažurirano - Vaš dogadjaj je odložen",
   "request_reschedule_title_attendee": "Zahtev za promenu vremena rezervacije",
   "request_reschedule_subtitle": "{{organizer}} je otkazao/la rezervaciju i tražio/la je da odaberete drugo vreme.",

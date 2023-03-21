@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Un evento aún está esperando su aprobación",
   "booking_submitted_subject": "Reserva enviada: {{eventType}} con {{name}} el {{date}}",
   "your_meeting_has_been_booked": "Su reunión ha sido reservada",
-  "event_type_has_been_rescheduled_on_time_date": "Tu {{eventType}} con {{name}} se reprogramó para el {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Tu {{title}} ha sido reprogramado para {{date}}.",
   "event_has_been_rescheduled": "Tu evento ha sido reprogramado.",
   "request_reschedule_title_attendee": "Solicitud para reprogramar su reserva",
   "request_reschedule_subtitle": "{{organizer}} ha cancelado la reserva y le ha solicitado que elija otra hora.",

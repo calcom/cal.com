@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "イベントはまだあなたの承認待ちです",
   "booking_submitted_subject": "予約を送信しました: {{date}} の {{name}} との {{eventType}}",
   "your_meeting_has_been_booked": "ミーティングが予約されました",
-  "event_type_has_been_rescheduled_on_time_date": "{{name}} との {{eventType}} は {{date}} にスケジュールが変更されました。",
+  "event_type_has_been_rescheduled_on_time_date": "あなたの {{title}} は {{date}} に再スケジュールされました。",
   "event_has_been_rescheduled": "更新 - イベントのスケジュールが変更されました",
   "request_reschedule_title_attendee": "予約のスケジュール変更をリクエスト",
   "request_reschedule_subtitle": "{{organizer}} が予約をキャンセルしました。別の時間を選択することをあなたにリクエストしています。",

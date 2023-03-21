@@ -370,11 +370,12 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   {t("embed")}
                                 </EmbedButton>
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator className="h-px bg-gray-200" />
+                              <DropdownMenuSeparator />
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
                                 <DropdownMenuItem>
                                   <DropdownItem
+                                    color="destructive"
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setDeleteDialogTypeId(type.id);
@@ -466,7 +467,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             {t("duplicate")}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem className="outline-none">
                           <Button
                             onClick={() => {

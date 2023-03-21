@@ -66,7 +66,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
   };
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <h2 className="hidden text-lg font-semibold text-gray-900 sm:block">
+      <h2 className="hidden text-base font-semibold leading-none text-gray-900 sm:block">
         {searchText
           ? t("search")
           : t("explore_apps", {
@@ -158,7 +158,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true));
 
   return (
-    <div className="mb-16">
+    <div>
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
       {filteredApps.length ? (
         <div

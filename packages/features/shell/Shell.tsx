@@ -30,6 +30,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -148,6 +149,7 @@ type LayoutProps = {
   title?: string;
   heading?: ReactNode;
   subtitle?: ReactNode;
+  headerClassName?: string;
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
@@ -182,18 +184,29 @@ const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; childr
     <>{children}</>
   );
 
-export default function Shell(props: LayoutProps) {
+const PublicShell = (props: LayoutProps) => {
   const { status } = useSession();
-  // if a page is unauthed and isPublic is true, the redirect does not happen.
-  useRedirectToLoginIfUnauthenticated(props.isPublic);
-  useRedirectToOnboardingIfNeeded();
-  useTheme("light");
-
   return (
     <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
+  );
+};
+
+export default function Shell(props: LayoutProps) {
+  // if a page is unauthed and isPublic is true, the redirect does not happen.
+  useRedirectToLoginIfUnauthenticated(props.isPublic);
+  useRedirectToOnboardingIfNeeded();
+  useTheme("light");
+
+  return !props.isPublic ? (
+    <KBarWrapper withKBar>
+      <CustomBrandingContainer />
+      <Layout {...props} />
+    </KBarWrapper>
+  ) : (
+    <PublicShell {...props} />
   );
 }
 
@@ -240,7 +253,7 @@ function UserDropdown({ small }: { small?: boolean }) {
           <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
-                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
+                small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
               {
@@ -294,114 +307,96 @@ function UserDropdown({ small }: { small?: boolean }) {
           ) : (
             <>
               <DropdownMenuItem>
-                <button
+                <DropdownItem
+                  type="button"
+                  StartIcon={(props) => (
+                    <Icon.FiMoon
+                      className={classNames(
+                        user.away
+                          ? "text-purple-500 group-hover:text-purple-700"
+                          : "text-gray-500 group-hover:text-gray-700",
+                        props.className
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
                   onClick={() => {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
-                  }}
-                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm ltr:flex-row rtl:flex-row-reverse">
-                  <Icon.FiMoon
-                    className={classNames(
-                      user.away
-                        ? "text-purple-500 group-hover:text-purple-700"
-                        : "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
-                    )}
-                    aria-hidden="true"
-                  />
+                  }}>
                   {user.away ? t("set_as_free") : t("set_as_away")}
-                </button>
+                </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               {user.username && (
                 <>
                   <DropdownMenuItem>
-                    <a
+                    <DropdownItem
                       target="_blank"
                       rel="noopener noreferrer"
                       href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
-                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
+                      StartIcon={Icon.FiExternalLink}>
                       {t("view_public_page")}
-                    </a>
+                    </DropdownItem>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <a
-                      href="#"
+                    <DropdownItem
+                      type="button"
+                      StartIcon={Icon.FiLink}
                       onClick={(e) => {
                         e.preventDefault();
                         navigator.clipboard.writeText(
                           `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
                         );
                         showToast(t("link_copied"), "success");
-                      }}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
-                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
+                      }}>
                       {t("copy_public_page_link")}
-                    </a>
+                    </DropdownItem>
                   </DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <a
-                  href={JOIN_SLACK}
+                <DropdownItem
+                  StartIcon={(props) => <Icon.FiSlack strokeWidth={1.5} {...props} />}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
-                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
+                  href={JOIN_SLACK}>
                   {t("join_our_slack")}
-                </a>
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={ROADMAP}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
-                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" /> {t("visit_roadmap")}
-                </a>
+                <DropdownItem StartIcon={Icon.FiMap} target="_blank" href={ROADMAP}>
+                  {t("visit_roadmap")}
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <button
-                  onClick={() => setHelpOpen(true)}
-                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
-                  <Icon.FiHelpCircle
-                    className={classNames(
-                      "text-gray-500 group-hover:text-gray-500",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
-                    )}
-                    aria-hidden="true"
-                  />
-
+                <DropdownItem
+                  type="button"
+                  StartIcon={(props) => <Icon.FiHelpCircle aria-hidden="true" {...props} />}
+                  onClick={() => setHelpOpen(true)}>
                   {t("help")}
-                </button>
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <a
+                <DropdownItem
+                  StartIcon={Icon.FiDownload}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  href={DESKTOP_APP_LINK}
-                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse lg:flex">
-                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
+                  rel="noreferrer"
+                  className="desktop-hidden hidden lg:flex"
+                  href={DESKTOP_APP_LINK}>
                   {t("download_desktop_app")}
-                </a>
+                </DropdownItem>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <a
-                  onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 ltr:flex-row rtl:flex-row-reverse">
-                  <Icon.FiLogOut
-                    className={classNames(
-                      "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
-                    )}
-                    aria-hidden="true"
-                  />
+                <DropdownItem
+                  type="button"
+                  StartIcon={(props) => <Icon.FiLogOut aria-hidden="true" {...props} />}
+                  onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                   {t("sign_out")}
-                </a>
+                </DropdownItem>
               </DropdownMenuItem>
             </>
           )}
@@ -713,7 +708,7 @@ function SideBarContainer() {
 function SideBar() {
   return (
     <div className="relative">
-      <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
+      <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
@@ -747,9 +742,7 @@ function SideBar() {
         </div>
 
         <div>
-          <LicenseRequired toHide>
-            <Tips />
-          </LicenseRequired>
+          <Tips />
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
@@ -770,7 +763,7 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="flex items-baseline sm:mt-0">
+      <div className="mb-6 flex sm:mt-0 lg:mb-10">
         {!!props.backPath && (
           <Button
             size="icon"
@@ -784,15 +777,11 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <header
-            className={classNames(
-              props.large && "py-8",
-              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
-            )}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -805,7 +794,9 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
+                  props.backPath
+                    ? "relative"
+                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
@@ -831,7 +822,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

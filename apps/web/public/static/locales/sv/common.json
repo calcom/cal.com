@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "En bokning väntar fortfarande på ditt godkännande",
   "booking_submitted_subject": "Bokning skickad: {{eventType}} med {{name}} {{date}}",
   "your_meeting_has_been_booked": "Ditt möte har bokats",
-  "event_type_has_been_rescheduled_on_time_date": "Din {{eventType}} med {{name}} har bokats om till {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Din {{title}} har ändrats till {{date}}.",
   "event_has_been_rescheduled": "Uppdatering - Din bokning har blivit omplanerad",
   "request_reschedule_title_attendee": "Begäran om att boka om din bokning",
   "request_reschedule_subtitle": "{{organizer}} har avbokat bokningen och bett dig att välja en annan tid.",

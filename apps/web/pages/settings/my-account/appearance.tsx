@@ -7,7 +7,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Badge,
   Button,
   ColorPicker,
   Form,
@@ -17,6 +16,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   Switch,
+  UpgradeTeamsBadge,
 } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -49,6 +49,7 @@ const AppearanceView = () => {
   const session = useSession();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: dataHasTeamPlan, isLoading: isLoadingHasTeamPlan } = trpc.viewer.teams.hasTeamPlan.useQuery();
 
   const formMethods = useForm({
     defaultValues: {
@@ -73,7 +74,8 @@ const AppearanceView = () => {
     },
   });
 
-  if (isLoading) return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
+  if (isLoading || isLoadingHasTeamPlan)
+    return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (!user) return null;
 
@@ -180,18 +182,18 @@ const AppearanceView = () => {
                   <p className="font-semibold ltr:mr-2 rtl:ml-2">
                     {t("disable_cal_branding", { appName: APP_NAME })}
                   </p>
-                  <Badge variant="gray">{t("pro")}</Badge>
+                  {!dataHasTeamPlan?.hasTeamPlan && <UpgradeTeamsBadge />}
                 </div>
                 <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
-                  disabled={!session.data?.user.belongsToActiveTeam}
+                  disabled={!dataHasTeamPlan?.hasTeamPlan}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }
-                  checked={!session.data?.user.belongsToActiveTeam ? false : value}
+                  checked={!dataHasTeamPlan?.hasTeamPlan ? false : value}
                 />
               </div>
             </div>

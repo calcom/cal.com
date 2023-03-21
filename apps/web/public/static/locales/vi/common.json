@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Một sự kiện vẫn đang chờ bạn phê duyệt",
   "booking_submitted_subject": "Đặt chỗ đã được gửi: {{eventType}} với {{name}} lúc {{date}}",
   "your_meeting_has_been_booked": "Cuộc họp của bạn đã được đặt",
-  "event_type_has_been_rescheduled_on_time_date": "{{eventType}} của bạn với {{name}} đã được chuyển sang ngày {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "{{title}} của bạn đã được lên lịch lại vào {{date}}.",
   "event_has_been_rescheduled": "Đã cập nhật - Sự kiện của bạn đã được đổi",
   "request_reschedule_title_attendee": "Yêu cầu xếp lại lịch đặt chỗ của bạn",
   "request_reschedule_subtitle": "{{organizer}} đã huỷ đặt chỗ đó và yêu cầu bạn chọn thời gian khác.",

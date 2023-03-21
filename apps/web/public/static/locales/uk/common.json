@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Захід досі чекає на ваше схвалення",
   "booking_submitted_subject": "Бронювання надіслано: {{eventType}} «{{name}}», {{date}}",
   "your_meeting_has_been_booked": "Вашу нараду заброньовано",
-  "event_type_has_been_rescheduled_on_time_date": "{{eventType}} «{{name}}» перенесено. Новий час: {{time}} ({{timeZone}}), {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Ваш {{title}} перенесено на {{date}}.",
   "event_has_been_rescheduled": "Оновлено – ваш захід перенесено",
   "request_reschedule_title_attendee": "Надіслати запит на перенесення бронювання",
   "request_reschedule_subtitle": "{{organizer}} скасував(-ла) бронювання та попросив(-ла) вас вибрати інший час.",

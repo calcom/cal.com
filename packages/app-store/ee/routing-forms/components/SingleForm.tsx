@@ -109,7 +109,7 @@ const Actions = ({
           StartIcon={Icon.FiCode}
           tooltip={t("embed")}
         />
-        <DropdownMenuSeparator className="h-px bg-gray-200" />
+        <DropdownMenuSeparator />
         <FormAction
           routingForm={form}
           action="_delete"

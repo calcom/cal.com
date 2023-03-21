@@ -40,7 +40,7 @@ function SettingsToggle({
 
             <div className="">
               <Label className="text-sm font-semibold leading-none text-black">{title}</Label>
-              {description && <p className="-mt-2 text-sm leading-normal text-gray-600">{description}</p>}
+              {description && <p className="-mt-1.5 text-sm leading-normal text-gray-600">{description}</p>}
             </div>
           </div>
           {children && (

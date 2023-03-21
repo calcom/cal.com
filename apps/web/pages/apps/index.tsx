@@ -7,11 +7,30 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { AllApps, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
+import {
+  AllApps,
+  AppStoreCategories,
+  HorizontalTabItemProps,
+  HorizontalTabs,
+  Icon,
+  TextField,
+  TrendingAppsSlider,
+} from "@calcom/ui";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
 import { ssgInit } from "@server/lib/ssg";
+
+const tabs: HorizontalTabItemProps[] = [
+  {
+    name: "app_store",
+    href: "/apps",
+  },
+  {
+    name: "installed_apps",
+    href: "/apps/installed",
+  },
+];
 
 function AppsSearch({
   onChange,
@@ -43,20 +62,30 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
       heading={t("app_store")}
       subtitle={t("app_store_description")}
       actions={(className) => (
-        <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+        <div className="flex w-full flex-col  md:flex-row md:justify-between lg:w-auto">
+          <div className="lg:hidden">
+            <HorizontalTabs tabs={tabs} />
+          </div>
+          <div>
+            <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+          </div>
+        </div>
       )}
+      headerClassName="sm:hidden lg:block hidden"
       emptyStore={!appStore.length}>
-      {!searchText && (
-        <>
-          <AppStoreCategories categories={categories} />
-          <TrendingAppsSlider items={appStore} />
-        </>
-      )}
-      <AllApps
-        apps={appStore}
-        searchText={searchText}
-        categories={categories.map((category) => category.name)}
-      />
+      <div className="flex flex-col gap-y-8">
+        {!searchText && (
+          <>
+            <AppStoreCategories categories={categories} />
+            <TrendingAppsSlider items={appStore} />
+          </>
+        )}
+        <AllApps
+          apps={appStore}
+          searchText={searchText}
+          categories={categories.map((category) => category.name)}
+        />
+      </div>
     </AppsLayout>
   );
 }

@@ -92,8 +92,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: keyof typeof InstalledAppVariants;
-  exclude?: (keyof typeof InstalledAppVariants)[];
+  variant?: typeof InstalledAppVariants[number];
+  exclude?: typeof InstalledAppVariants[number][];
 }
 
 interface IntegrationsListProps {
@@ -143,8 +143,10 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
     automation: Icon.FiShare2,
     analytics: Icon.FiBarChart,
     payment: Icon.FiCreditCard,
+    web3: Icon.FiBarChart,
     other: Icon.FiGrid,
   };
+
   return (
     <QueryCell
       query={query}
@@ -198,31 +200,29 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
 };
 
 const querySchema = z.object({
-  category: z.nativeEnum(InstalledAppVariants),
+  category: z.enum(InstalledAppVariants),
 });
+
+type querySchemaType = z.infer<typeof querySchema>;
 
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
-  const category = router.query.category;
+  const category = router.query.category as querySchemaType["category"];
+  const categoryList: querySchemaType["category"][] = [
+    "payment",
+    "conferencing",
+    "automation",
+    "analytics",
+    "web3",
+  ];
+
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {category === InstalledAppVariants.calendar && <CalendarListContainer />}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={[
-            InstalledAppVariants.conferencing,
-            InstalledAppVariants.calendar,
-            InstalledAppVariants.analytics,
-            InstalledAppVariants.automation,
-          ]}
-        />
+      {categoryList.includes(category) && <IntegrationsContainer variant={category} />}
+      {category === "calendar" && <CalendarListContainer />}
+      {category === "other" && (
+        <IntegrationsContainer variant={category} exclude={[...categoryList, "calendar"]} />
       )}
     </InstalledAppsLayout>
   );
