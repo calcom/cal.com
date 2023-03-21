@@ -299,7 +299,8 @@ export const ensureBookingInputsHaveSystemFields = ({
       bookingFields.push({
         label: input.label,
         editable: "user",
-        // Custom Input's label could have been empty string as well. But it's not possible to have empty name. So generate a name automatically.
+        // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
+        // Also Custom Input's label could have been empty string as well. But it's not possible to have empty name. So generate a name automatically.
         name: slugify(input.label || `${input.type}-${index + 1}`),
         placeholder: input.placeholder,
         type: CustomInputTypeToFieldType[input.type],
