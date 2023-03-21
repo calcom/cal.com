@@ -4287,7 +4287,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/embed-react@^1.0.9, @calcom/embed-react@workspace:*, @calcom/embed-react@workspace:packages/embeds/embed-react":
+"@calcom/embed-react@workspace:*, @calcom/embed-react@workspace:^, @calcom/embed-react@workspace:packages/embeds/embed-react":
   version: 0.0.0-use.local
   resolution: "@calcom/embed-react@workspace:packages/embeds/embed-react"
   dependencies:
@@ -5047,7 +5047,7 @@ __metadata:
     "@calcom/app-store": "*"
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
-    "@calcom/embed-react": ^1.0.9
+    "@calcom/embed-react": "workspace:^"
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
@@ -5110,7 +5110,7 @@ __metadata:
     react-github-btn: ^1.4.0
     react-hook-form: ^7.43.3
     react-hot-toast: ^2.3.0
-    react-live-chat-loader: ^2.7.3
+    react-live-chat-loader: ^2.8.1
     react-merge-refs: 1.1.0
     react-twemoji: ^0.3.0
     react-use-measure: ^2.1.1
@@ -32571,6 +32571,15 @@ __metadata:
   peerDependencies:
     react: ^16.14.0 || ^17.0.0
   checksum: 5411dc4746dc872519980a0c839f74ec27d01e72bb3df20b5b0015f49f4907ff2da00a725865227e0d1d53cef420da20a2f7644570e8e9d45b7f80658c545472
+  languageName: node
+  linkType: hard
+
+"react-live-chat-loader@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "react-live-chat-loader@npm:2.8.1"
+  peerDependencies:
+    react: ^16.14.0 || ^17.0.0 || ^18.0.0
+  checksum: 784648dc5c8e56ad11517433b2685c4e562efde6116d03444d2e8a0f87076860712800551698f82e980939ed3ac305947b78a514187ae2d5a1a0fc0a659c5c22
   languageName: node
   linkType: hard
 
