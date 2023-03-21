@@ -25,7 +25,7 @@ export const useIntercom = () => {
       name: data?.name ?? "",
       email: data?.email,
       userId: String(data?.id),
-      createdAt: String(dayjs().unix()),
+      createdAt: String(dayjs(data?.createdDate).unix()),
     });
     hookData.show();
   };
