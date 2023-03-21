@@ -1,6 +1,6 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
-import { Dayjs } from "@calcom/dayjs";
-import { Prisma } from "@calcom/prisma/client";
+import type { Dayjs } from "@calcom/dayjs";
+import type { Prisma } from "@calcom/prisma/client";
 
 export type VariablesType = {
   eventName?: string;
@@ -12,7 +12,7 @@ export type VariablesType = {
   timeZone?: string;
   location?: string | null;
   additionalNotes?: string | null;
-  customInputs?: Prisma.JsonValue;
+  responses?: Prisma.JsonValue;
   meetingUrl?: string;
 };
 
@@ -49,17 +49,17 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
   });
 
   customInputvariables?.forEach((variable) => {
-    if (variables.customInputs) {
-      Object.keys(variables.customInputs).forEach((customInput) => {
+    if (variables.responses) {
+      Object.keys(variables.responses).forEach((customInput) => {
         const formatedToVariable = customInput
           .replace(/[^a-zA-Z0-9 ]/g, "")
           .trim()
           .replaceAll(" ", "_")
           .toUpperCase();
-        if (variable === formatedToVariable && variables.customInputs) {
+        if (variable === formatedToVariable && variables.responses) {
           dynamicText = dynamicText.replace(
             `{${variable}}`,
-            variables.customInputs[customInput as keyof typeof variables.customInputs]
+            variables.responses[customInput as keyof typeof variables.responses]
           );
         }
       });
