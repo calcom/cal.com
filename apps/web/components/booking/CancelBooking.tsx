@@ -86,7 +86,7 @@ export default function CancelBooking(props: Props) {
 
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
-                      id: booking?.id,
+                      uid: booking?.uid,
                       cancellationReason: cancellationReason,
                       allRemainingBookings,
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead

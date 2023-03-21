@@ -84,6 +84,8 @@ export const Select = <
             "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white mt-1 border border-gray-200 dark:border-darkgray-200 ",
             props.classNames?.menu
           ),
+        groupHeading: () =>
+          "leading-none text-xs uppercase text-gray-600 dark:text-darkgray-600 pl-2.5 pt-4 pb-2",
         menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
         indicatorsContainer: (state) =>
           classNames(
