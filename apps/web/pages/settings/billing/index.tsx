@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { HelpScout, useChat } from "react-live-chat-loader";
+import { Intercom, useChat } from "react-live-chat-loader";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
@@ -61,7 +61,7 @@ const BillingView = () => {
             {t("contact_support")}
           </Button>
         </CtaRow>
-        {showChat && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
+        {showChat && <Intercom />}
       </div>
     </>
   );
