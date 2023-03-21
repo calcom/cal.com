@@ -137,7 +137,37 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *                 type: array
  *                 description: A list of all available locations for the event type
  *                 items:
- *                   type: object
+ *                   type: array
+ *                   items:
+ *                     oneOf:
+ *                       - type: object
+ *                         properties:
+ *                           type:
+ *                             type: string
+ *                             enum: ['integrations:daily']
+ *                       - type: object
+ *                         properties:
+ *                           type:
+ *                             type: string
+ *                             enum: ['attendeeInPerson']
+ *                       - type: object
+ *                         properties:
+ *                           type:
+ *                             type: string
+ *                             enum: ['inPerson']
+ *                           address:
+ *                             type: string
+ *                           displayLocationPublicly:
+ *                             type: boolean
+ *                       - type: object
+ *                         properties:
+ *                           type:
+ *                             type: string
+ *                             enum: ['link']
+ *                           link:
+ *                             type: string
+ *                           displayLocationPublicly:
+ *                             type: boolean
  *           example:
  *              event-type:
  *                summary: An example of event type POST request
