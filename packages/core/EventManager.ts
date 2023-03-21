@@ -439,11 +439,9 @@ export default class EventManager {
         });
       }
 
-       calendarReference = newBooking?.references.length
-         ? newBooking.references.find((reference) => reference.type.includes("_calendar"))
-         : booking.references.find((reference) => reference.type.includes("_calendar"));
-        calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
-      }
+      calendarReference = newBooking?.references.length
+        ? newBooking.references.find((reference) => reference.type.includes("_calendar"))
+        : booking.references.find((reference) => reference.type.includes("_calendar"));
 
       if (!calendarReference) {
         return [];
