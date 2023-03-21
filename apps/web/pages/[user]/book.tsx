@@ -270,6 +270,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         name: user.name || user.username,
         image: user.avatar,
         slug: user.username,
+        username: user.username,
         theme: user.theme,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,

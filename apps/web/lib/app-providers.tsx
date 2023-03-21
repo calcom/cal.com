@@ -67,12 +67,15 @@ const AppProviders = (props: AppPropsWithChildren) => {
       ? props.Component.isThemeSupported({ router: props.router })
       : props.Component.isThemeSupported;
   const forcedTheme = isThemeSupported ? undefined : "light";
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const bookingPageSlug = props.pageProps.profile?.username || "";
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
-  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
-
+  const storageKey =
+    typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : `theme-${bookingPageSlug}`;
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider session={session || undefined}>

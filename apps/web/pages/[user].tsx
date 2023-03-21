@@ -331,6 +331,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         theme: user.theme,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
+        username: user.username,
       };
 
   const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);

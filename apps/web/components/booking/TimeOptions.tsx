@@ -5,8 +5,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import type { ITimezoneOption } from "@calcom/ui";
 import { TimezoneSelect } from "@calcom/ui";
 
-import useMeQuery from "@lib/hooks/useMeQuery";
-
 import { timeZone } from "../../lib/clock";
 
 type Props = {
@@ -15,8 +13,7 @@ type Props = {
 
 const TimeOptions: FC<Props> = ({ onSelectTimeZone }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const query = useMeQuery();
-  const userTheme = useTheme(query?.data?.theme).resolvedTheme;
+  const userTheme = useTheme().resolvedTheme;
 
   useEffect(() => {
     setSelectedTimeZone(timeZone());
