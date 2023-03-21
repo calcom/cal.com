@@ -3,7 +3,9 @@ import { JSDOM } from "jsdom";
 
 import { md } from "@calcom/lib/markdownIt";
 
-export function markdownAndSanitize(markdown: string) {
+export function markdownAndSanitize(markdown: string | null) {
+  if (!markdown) return null;
+
   const window = new JSDOM("").window;
   // @ts-expect-error as suggested here: https://github.com/cure53/DOMPurify/issues/437#issuecomment-632021941
   const purify = DOMPurify(window);

@@ -172,7 +172,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
-    descriptionAsSafeHTML: eventType.description ? markdownAndSanitize(eventType.description) : null,
+    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
   });
 
   eventTypeObject.availability = [];

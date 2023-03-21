@@ -125,8 +125,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
-  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
-
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: ((typeof user.eventTypes)[number] & {
@@ -153,7 +151,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: eventType.description ? markdownAndSanitize(eventType.description) : null,
+    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
   });
   // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =

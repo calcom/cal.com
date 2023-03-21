@@ -94,7 +94,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         brandColor: u.brandColor,
         darkBrandColor: u.darkBrandColor,
       })),
-      descriptionAsSafeHTML: eventType.description ? markdownAndSanitize(eventType.description) : null,
+      descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
     };
   })[0];
 

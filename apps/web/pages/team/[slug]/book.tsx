@@ -122,7 +122,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: u.avatar,
         slug: u.username,
       })),
-      descriptionAsSafeHTML: eventType.description ? markdownAndSanitize(eventType.description) : null,
+      descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
     };
   })[0];
 

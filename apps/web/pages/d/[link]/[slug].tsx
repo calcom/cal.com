@@ -120,9 +120,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding: u.hideBranding,
       timeZone: u.timeZone,
     })),
-    descriptionAsSafeHTML: hashedLink.eventType.description
-      ? markdownAndSanitize(hashedLink.eventType.description)
-      : null,
+    descriptionAsSafeHTML: markdownAndSanitize(hashedLink.eventType.description),
   });
 
   const [user] = users;

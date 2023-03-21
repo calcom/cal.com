@@ -7,7 +7,7 @@ import { Avatar } from "@calcom/ui";
 
 type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
-type MemberType = MembersType[number] & { safeBio?: string };
+type MemberType = MembersType[number] & { safeBio: string | null };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
