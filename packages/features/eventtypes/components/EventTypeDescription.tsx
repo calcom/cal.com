@@ -7,7 +7,6 @@ import type { z } from "zod";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { addListFormatting } from "@calcom/lib/markdownIt";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
@@ -58,7 +57,7 @@ export const EventTypeDescription = ({
             )}
             dangerouslySetInnerHTML={{
               // @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts
-              __html: addListFormatting(eventType.descriptionAsSafeHTML || ""),
+              __html: eventType.descriptionAsSafeHTML || "",
             }}
           />
         )}
