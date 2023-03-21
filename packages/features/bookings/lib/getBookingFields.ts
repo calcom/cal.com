@@ -295,12 +295,13 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
-    customInputs.forEach((input) => {
+    customInputs.forEach((input, index) => {
       bookingFields.push({
         label: input.label,
         editable: "user",
         // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
-        name: slugify(input.label),
+        // Also Custom Input's label could have been empty string as well. But it's not possible to have empty name. So generate a name automatically.
+        name: slugify(input.label || `${input.type}-${index + 1}`),
         placeholder: input.placeholder,
         type: CustomInputTypeToFieldType[input.type],
         required: input.required,
