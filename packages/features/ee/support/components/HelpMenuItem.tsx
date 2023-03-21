@@ -9,6 +9,7 @@ import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
+import { isInterComEnabled, useIntercom } from "../lib/intercom/useIntercom";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
@@ -17,6 +18,7 @@ interface HelpMenuItemProps {
 
 export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
+  const { open } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
@@ -207,10 +209,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             setActive(true);
             if (isFreshChatEnabled) {
               setFreshChat(true);
+            } else if (isInterComEnabled) {
+              open();
             } else {
               loadChat({ open: true });
             }
-            // TODO: somehow intercom doensnt open yet
+
             onHelpItemSelect();
           }}>
           {t("contact_support")}
