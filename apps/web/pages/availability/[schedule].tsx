@@ -223,7 +223,7 @@ export default function Availability() {
           </Button>
         </div>
       }>
-      <div className="w-full">
+      <div className="mt-4 w-full md:mt-0">
         <Form
           form={form}
           id="availability-form"

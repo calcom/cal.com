@@ -1,12 +1,15 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -315,6 +318,20 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
 }) => {
   const { t } = useLocale();
+
+  const profileFormSchema = z.object({
+    username: z.string(),
+    avatar: z.string(),
+    name: z
+      .string()
+      .min(1)
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+    email: z.string().email(),
+    bio: z.string(),
+  });
+
   const emailMd5 = crypto
     .createHash("md5")
     .update(defaultValues.email || "example@example.com")
@@ -322,6 +339,7 @@ const ProfileForm = ({
 
   const formMethods = useForm<FormValues>({
     defaultValues,
+    resolver: zodResolver(profileFormSchema),
   });
 
   const {
