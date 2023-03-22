@@ -46,8 +46,8 @@ export const EventMeta = () => {
                   menuPosition="fixed"
                   className="[&_>div]:min-h-0"
                   classNames={{
-                    singleValue: "dark:text-darkgray-600",
-                    menuList: "w-80 max-w-[90vw]",
+                    singleValue: () => "dark:text-darkgray-600",
+                    menu: () => "!w-64 max-w-[90vw]",
                   }}
                   value={timezone}
                   onChange={(tz) => setTimezone(tz.value)}

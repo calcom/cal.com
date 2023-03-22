@@ -44,7 +44,8 @@ export function TimezoneSelect({ className, components, ...props }: SelectProps)
       formatOptionLabel={(option) => <p className="truncate">{(option as ITimezoneOption).value}</p>}
       getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, cities)}
       classNames={{
-        input: () => classNames("dark:text-darkgray-900 text-gray-900", props.classNames?.input),
+        input: (state) =>
+          classNames("dark:text-darkgray-900 text-gray-900", props.classNames?.input?.(state)),
         option: (state) =>
           classNames(
             "dark:bg-darkgray-100 flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-gray-700 dark:text-darkgray-700",
@@ -55,28 +56,29 @@ export function TimezoneSelect({ className, components, ...props }: SelectProps)
         placeholder: (state) =>
           classNames("text-gray-400 text-sm dark:text-darkgray-400", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
-        control: () => classNames("", props.classNames?.control), // We remove all styling here to fit theme of booking page - no min-h also
-        singleValue: () =>
+        control: (state) => classNames("", props.classNames?.control?.(state)), // We remove all styling here to fit theme of booking page - no min-h also
+        singleValue: (state) =>
           classNames(
             "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
-            props.classNames?.singleValue
+            props.classNames?.singleValue?.(state)
           ),
-        valueContainer: () =>
+        valueContainer: (state) =>
           classNames(
             "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400 flex gap-1",
-            props.classNames?.valueContainer
+            props.classNames?.valueContainer?.(state)
           ),
-        multiValue: () =>
+        multiValue: (state) =>
           classNames(
             "dark:bg-darkgray-200 dark:text-darkgray-700 rounded-md bg-gray-100 text-gray-700 py-1.5 px-2 flex items-center text-sm leading-none",
-            props.classNames?.multiValue
+            props.classNames?.multiValue?.(state)
           ),
-        menu: () =>
+        menu: (state) =>
           classNames(
             "dark:bg-darkgray-100 rounded-md bg-white text-sm leading-4 dark:text-white mt-1 border border-gray-200 dark:border-darkgray-200 ",
-            props.classNames?.menu
+            props.classNames?.menu?.(state)
           ),
-        menuList: () => classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        menuList: (state) =>
+          classNames("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList?.(state)),
         indicatorsContainer: (state) =>
           classNames(
             state.selectProps.menuIsOpen
