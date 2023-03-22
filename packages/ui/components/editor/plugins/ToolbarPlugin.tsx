@@ -354,7 +354,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             root.clear().append(paragraph);
             paragraph.select();
             $insertNodes(nodes);
-            console.log("p: " + JSON.stringify($generateHtmlFromNodes(editor)));
           });
         }
       });
