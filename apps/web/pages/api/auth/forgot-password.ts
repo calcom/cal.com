@@ -1,14 +1,31 @@
 import type { ResetPasswordRequest } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/emails/templates/forgot-password-email";
+import rateLimit from "@calcom/lib/rateLimit";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
+const limiter = rateLimit({
+  intervalInMs: 60 * 1000, // 1 minute
+});
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const t = await getTranslation(req.body.language ?? "en", "common");
+  const email = z
+    .string()
+    .email()
+    .transform((val) => val.toLowerCase())
+    .parse(req.body?.email);
+
+  const { isRateLimited } = limiter.check(10, email); // 10 requests per minute
+
+  if (isRateLimited) {
+    return res.status(429).json({ message: "Too Many Requests." });
+  }
 
   if (req.method !== "POST") {
     return res.status(405).end();
@@ -17,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const maybeUser = await prisma.user.findUnique({
       where: {
-        email: req.body?.email?.toLowerCase(),
+        email,
       },
       select: {
         name: true,
