@@ -19,6 +19,8 @@ Dropdown fields allow users to input existing options that is preset by the deis
 export const options = [
     { value: 0, label: "Option One" },
     { value: 1, label: "Option Two" },
+    { value: 3, label: "Option Three" },
+    { value: 4, label: "Option Four" },
 ];
 
 
@@ -29,27 +31,27 @@ export const options = [
     <li>The difference between the types are when they are filled.  </li>
   </ul>
 }>
-  <Example title="Single Select [Unselected]">
+  <Example title="Single Select [Unselected]" isFullWidth>
     <SelectField
       label={"Single Select"}
       options={options}
     />
   </Example>
-    <Example title="Single Select [Selected]">
+    <Example title="Single Select [Selected]" isFullWidth>
     <SelectField
       label={"Single Select"}
       options={options}
       defaultValue={options[0]}
     />
   </Example>
-  <Example title="Multi Select [Unselected]">
+  <Example title="Multi Select [Unselected]" isFullWidth >
     <SelectField
       label={"Multi Select"}
       options={options}
       isMulti={true}
     />
   </Example>
-  <Example title="Multi Select [Selected]">
+  <Example title="Multi Select [Selected]" isFullWidth>
     <SelectField
       label={"Multi Select"}
       options={options}
