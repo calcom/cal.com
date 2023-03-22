@@ -30,6 +30,7 @@ const config = {
       "no",
       "uk",
       "da",
+      "ta",
     ],
   },
   reloadOnPrerender: process.env.NODE_ENV !== "production",
