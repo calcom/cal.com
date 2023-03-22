@@ -3,6 +3,7 @@ import { WorkflowActions } from "@prisma/client";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 
+//todo make sure all old reminders without body defined do still work
 const emailReminderTemplate = (
   isEditingMode: boolean,
   action?: WorkflowActions,
@@ -21,7 +22,10 @@ const emailReminderTemplate = (
     endTime = "{EVENT_END_TIME_H:mmA}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    attendee = "{ATTENDEE_NAME}";
+    attendee =
+      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+        ? "{ORGANIZER}"
+        : "{ATTENDEE}";
     name =
       action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
         ? "{ATTENDEE}"

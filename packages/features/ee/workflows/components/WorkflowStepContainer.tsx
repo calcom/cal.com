@@ -391,9 +391,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               ) {
                                 const currentReminderBody =
                                   form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                                const newReminderBody = isAttendeeAction(val.value)
-                                  ? currentReminderBody.replace("{ORGANIZER}", "{ATTENDEE}")
-                                  : currentReminderBody.replace("{ATTENDEE}", "{ORGANIZER}");
+
+                                const newReminderBody = currentReminderBody
+                                  .replaceAll("{ORGANIZER}", "{PLACEHOLDER}")
+                                  .replaceAll("{ATTENDEE}", "{ORGANIZER}")
+                                  .replaceAll("{PLACEHOLDER}", "{ATTENDEE}");
 
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
