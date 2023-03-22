@@ -20,9 +20,13 @@ export const SlugReplacementEmail = (
       headerType="teamCircle"
       title={t("event_replaced_notice")}>
       <>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <Trans i18nKey="email_body_slug_replacement_notice" values={{ slug }} />
-        </p>
+        <Trans i18nKey="email_body_slug_replacement_notice" slug={slug}>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            We would like to let you know an administrator of a team you belong to has replaced your event
+            type <strong>/{slug}</strong> for a managed event of their control.
+          </p>
+        </Trans>
+
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <>{t("email_body_slug_replacement_suggestion")}</>
         </p>
