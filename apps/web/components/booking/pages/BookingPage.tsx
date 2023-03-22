@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -15,7 +15,6 @@ import { getEventLocationType, locationKeyToString } from "@calcom/app-store/loc
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -37,15 +36,15 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseDate, parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import type { RecurringEvent } from "@calcom/types/Calendar";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { Button, Form, Tooltip } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -186,6 +185,22 @@ const BookingFields = ({
   );
 };
 
+const routerQuerySchema = z
+  .object({
+    timeFormat: z.nativeEnum(TimeFormat),
+    rescheduleUid: z.string().optional(),
+    date: z
+      .string()
+      .optional()
+      .transform((date) => {
+        if (date === undefined) {
+          return null;
+        }
+        return date;
+      }),
+  })
+  .passthrough();
+
 const BookingPage = ({
   eventType,
   booking,
@@ -223,20 +238,6 @@ const BookingPage = ({
   ) {
     duration = Number(queryDuration);
   }
-
-  // This is a workaround for forcing the same time format for both server side rendering and client side rendering
-  // At initial render, we use the default time format which is 12H
-  const [withDefaultTimeFormat, setWithDefaultTimeFormat] = useState(true);
-  const parseDateFunc = useCallback(
-    (date: string | null | Dayjs) => {
-      return parseDate(date, i18n.language, withDefaultTimeFormat);
-    },
-    [withDefaultTimeFormat]
-  );
-  // After intial render on client side, we let parseDateFunc to use the time format from the localStorage
-  useEffect(() => {
-    setWithDefaultTimeFormat(false);
-  }, []);
 
   useEffect(() => {
     if (top !== window) {
@@ -285,6 +286,7 @@ const BookingPage = ({
       return router.push({
         pathname: `/booking/${uid}`,
         query: {
+          isSuccessBookingPage: true,
           allRemainingBookings: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
@@ -294,9 +296,12 @@ const BookingPage = ({
     },
   });
 
-  const rescheduleUid = router.query.rescheduleUid as string;
+  const {
+    data: { timeFormat, rescheduleUid, date },
+  } = useTypedQuery(routerQuerySchema);
+
   useTheme(profile.theme);
-  const date = asStringOrNull(router.query.date);
+
   const querySchema = getBookingResponsesPartialSchema({
     eventType: {
       bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -400,26 +405,16 @@ const BookingPage = ({
   // Calculate the booking date(s)
   let recurringStrings: string[] = [],
     recurringDates: Date[] = [];
-  const parseRecurringDatesFunc = useCallback(
-    (date: string | null | Dayjs, recurringEvent: RecurringEvent, recurringCount: number) => {
-      return parseRecurringDates(
-        {
-          startDate: date,
-          timeZone: timeZone(),
-          recurringEvent: recurringEvent,
-          recurringCount: recurringCount,
-          withDefaultTimeFormat: withDefaultTimeFormat,
-        },
-        i18n.language
-      );
-    },
-    [withDefaultTimeFormat, date, eventType.recurringEvent, recurringEventCount]
-  );
   if (eventType.recurringEvent?.freq && recurringEventCount !== null) {
-    [recurringStrings, recurringDates] = parseRecurringDatesFunc(
-      date,
-      eventType.recurringEvent,
-      parseInt(recurringEventCount.toString())
+    [recurringStrings, recurringDates] = parseRecurringDates(
+      {
+        startDate: date,
+        timeZone: timeZone(),
+        recurringEvent: eventType.recurringEvent,
+        recurringCount: parseInt(recurringEventCount.toString()),
+        selectedTimeFormat: timeFormat,
+      },
+      i18n.language
     );
   }
 
@@ -549,7 +544,7 @@ const BookingPage = ({
                     <div className="text-sm font-medium">
                       {isClientTimezoneAvailable &&
                         (rescheduleUid || !eventType.recurringEvent?.freq) &&
-                        `${parseDateFunc(date)}`}
+                        `${parseDate(date, i18n.language, { selectedTimeFormat: timeFormat })}`}
                       {isClientTimezoneAvailable &&
                         !rescheduleUid &&
                         eventType.recurringEvent?.freq &&
@@ -579,7 +574,9 @@ const BookingPage = ({
                         <FiCalendar className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                         {isClientTimezoneAvailable &&
                           typeof booking.startTime === "string" &&
-                          parseDateFunc(dayjs(booking.startTime))}
+                          parseDate(dayjs(booking.startTime), i18n.language, {
+                            selectedTimeFormat: timeFormat,
+                          })}
                       </p>
                     </div>
                   )}

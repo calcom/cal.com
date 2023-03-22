@@ -249,7 +249,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       </p>
                       <p className="text-gray-500 line-through dark:text-darkgray-600">
                         <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
+                        {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n.language)}
                       </p>
                     </div>
                   )*/}

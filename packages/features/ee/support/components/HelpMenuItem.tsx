@@ -9,6 +9,7 @@ import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
+import { isInterComEnabled, useIntercom } from "../lib/intercom/useIntercom";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
@@ -17,6 +18,7 @@ interface HelpMenuItemProps {
 
 export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
+  const { open } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
@@ -52,20 +54,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
-          {t("support_documentation")}
-          <FiExternalLink
-            className={classNames(
-              "text-gray-400 group-hover:text-gray-500",
-              "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
-            )}
-          />
-        </a>
-        <a
-          href="https://developer.cal.com/"
-          target="_blank"
-          className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-          rel="noreferrer">
-          {t("developer_documentation")}
+          {t("documentation")}
           <FiExternalLink
             className={classNames(
               "text-gray-400 group-hover:text-gray-500",
@@ -207,9 +196,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             setActive(true);
             if (isFreshChatEnabled) {
               setFreshChat(true);
+            } else if (isInterComEnabled) {
+              open();
             } else {
               loadChat({ open: true });
             }
+
             onHelpItemSelect();
           }}>
           {t("contact_support")}
