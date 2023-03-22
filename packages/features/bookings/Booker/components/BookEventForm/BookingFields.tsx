@@ -22,6 +22,7 @@ export const BookingFields = ({
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
+  const currentView = rescheduleUid ? "reschedule" : "";
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -31,12 +32,16 @@ export const BookingFields = ({
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
           (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+
         let noLabel = false;
         let hidden = !!field.hidden;
+        const fieldViews = field.views;
+
+        if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
+          return null;
+        }
+
         if (field.name === SystemField.Enum.rescheduleReason) {
-          if (!rescheduleUid) {
-            return null;
-          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -59,7 +64,10 @@ export const BookingFields = ({
         }
 
         // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        if (
+          (field.name === SystemField.Enum.notes || field.name === SystemField.Enum.guests) &&
+          !!rescheduleUid
+        ) {
           return null;
         }
 

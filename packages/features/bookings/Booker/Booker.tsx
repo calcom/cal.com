@@ -81,7 +81,6 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             onValueChange={(layout) => setLayout(layout as BookerLayout)}
             defaultValue="small_calendar"
             options={[
-              // @TODO: Find right icon for grid, plus add a11y labels and tooltips.
               { value: "small_calendar", label: <FiCalendar />, tooltip: t("switch_monthly") },
               { value: "large_calendar", label: <FiGrid />, tooltip: t("switch_weekly") },
               { value: "large_timeslots", label: <FiColumns />, tooltip: t("switch_multiday") },
