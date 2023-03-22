@@ -1682,5 +1682,7 @@
   "events_created": "Events Created",
   "events_completed": "Events Completed",
   "events_cancelled": "Events Cancelled",
-  "events_rescheduled": "Events Rescheduled"
+  "events_rescheduled": "Events Rescheduled",
+  "from last period": "from last period",
+  "from_to_date_period": "From: {{startDate}} To: {{endDate}}"
 }
