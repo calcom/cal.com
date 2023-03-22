@@ -33,7 +33,7 @@ const ColorPicker = (props: ColorPickerProps) => {
           <Popover.Content align={props.popoverAlign ?? "center"} sideOffset={10}>
             <HexColorPicker
               color={color}
-              className="pointer-events-auto !h-32 !w-32"
+              className="!h-32 !w-32"
               onChange={(val) => {
                 setColor(val);
                 props.onChange(val);

@@ -110,12 +110,6 @@ function Select<
             color: "var(--brand-text-color)",
           },
         }),
-        dropdownIndicator: (styles) => {
-          return {
-            ...styles,
-            color: "rgba(75, 85, 99, 1)",
-          };
-        },
       }}
       components={{
         ...components,
