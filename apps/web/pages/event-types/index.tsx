@@ -360,18 +360,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && (
-                        <>
-                          <AvatarGroup
-                            className="relative top-1 right-3"
-                            size="sm"
-                            truncateAfter={4}
-                            items={type.users.map((organizer) => ({
-                              alt: organizer.name || "",
-                              image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
-                              title: organizer.name || "",
-                            }))}
-                          />
-                        </>
+                        <AvatarGroup
+                          className="relative top-1 right-3"
+                          size="sm"
+                          truncateAfter={4}
+                          items={type.users.map((organizer) => ({
+                            alt: organizer.name || "",
+                            image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
+                            title: organizer.name || "",
+                          }))}
+                        />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
                         {!type.metadata?.managedEventConfig && (
