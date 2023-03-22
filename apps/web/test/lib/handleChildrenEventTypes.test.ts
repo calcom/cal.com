@@ -154,5 +154,24 @@ describe("handleChildrenEventTypes", () => {
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([4]);
     });
+
+    it("New, old and deleted users", async () => {
+      mockFindFirstEventType({
+        users: [{ id: 5 }, { id: 4 }] as CompleteUser[],
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { users: [{ id: 4 }, { id: 1 }] },
+        children: [],
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+      });
+      expect(result.newUserIds).toEqual([5]);
+      expect(result.oldUserIds).toEqual([4]);
+      expect(result.deletedUserIds).toEqual([1]);
+    });
   });
 });
