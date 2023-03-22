@@ -69,6 +69,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const ethSignature = useBookerStore((state) => state.ethSignature);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
+  const eventType = event.data;
 
   const defaultValues = () => {
     const defaults = {
@@ -238,8 +239,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
     }
   };
-
-  const eventType = event.data;
 
   return (
     <div>
