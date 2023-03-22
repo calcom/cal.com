@@ -13,7 +13,12 @@ export interface ICity {
   timezone: string;
 }
 
-export function TimezoneSelect({ className, components, ...props }: SelectProps) {
+export function TimezoneSelect({
+  className,
+  components,
+  variant = "default",
+  ...props
+}: SelectProps & { variant?: "default" | "minimal" }) {
   const [cities, setCities] = useState<ICity[]>([]);
   const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
     trpc: { context: { skipBatch: true } },
@@ -45,6 +50,7 @@ export function TimezoneSelect({ className, components, ...props }: SelectProps)
       getOptionLabel={(option) => handleOptionLabel(option as ITimezoneOption, cities)}
       classNames={{
         input: () => classNames("dark:text-darkgray-900 text-gray-900", props.classNames?.input),
+        container: () => classNames("w-full", props.classNames?.container),
         option: (state) =>
           classNames(
             "dark:bg-darkgray-100 flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-gray-700 dark:text-darkgray-700",
@@ -55,7 +61,13 @@ export function TimezoneSelect({ className, components, ...props }: SelectProps)
         placeholder: (state) =>
           classNames("text-gray-400 text-sm dark:text-darkgray-400", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-gray-600 dark:text-darkgray-400",
-        control: () => classNames("", props.classNames?.control), // We remove all styling here to fit theme of booking page - no min-h also
+        control: () =>
+          classNames(
+            variant === "default"
+              ? "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border py-2 px-3"
+              : "text-sm",
+            props.classNames?.control
+          ), // We remove all styling here to fit theme of booking page if variant ==="minimal" - no min-h also
         singleValue: () =>
           classNames(
             "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
