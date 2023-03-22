@@ -111,7 +111,6 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log("🚀 ~ file: apps.tsx:114 ~ .mutation ~ input:", input);
       const { prisma } = ctx;
 
       // Get app name from metadata
@@ -242,6 +241,7 @@ export const appsRouter = router({
         type: z.string(),
         // Validate w/ app specific schema
         keys: z.unknown(),
+        fromEnabled: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -261,15 +261,16 @@ export const appsRouter = router({
         where: {
           slug: input.slug,
         },
-        update: { keys },
+        update: { keys, ...(input.fromEnabled && { enabled: true }) },
         create: {
           slug: input.slug,
-          dirName: appMetadata?.dirName || "",
+          dirName: appMetadata?.dirName || appMetadata?.slug || "",
           categories:
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
           keys: (input.keys as Prisma.InputJsonObject) || undefined,
+          ...(input.fromEnabled && { enabled: true }),
         },
       });
     }),
