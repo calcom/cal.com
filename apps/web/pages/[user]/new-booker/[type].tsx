@@ -16,8 +16,6 @@ import { BookerGates } from "@components/Gates";
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
-  // @TODO: dynamic booking not allowed.
-
   return (
     <main className="flex justify-center">
       <BookerGates>
