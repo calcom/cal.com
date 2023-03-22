@@ -11,6 +11,13 @@ import {
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
+/**
+ * PHONE -> Phone
+ */
+function upperCaseToCamelCase(upperCaseString: string) {
+  return upperCaseString[0].toUpperCase() + upperCaseString.slice(1).toLowerCase();
+}
+
 export const getSmsReminderNumberField = () =>
   ({
     name: SMS_REMINDER_NUMBER_FIELD,
@@ -296,8 +303,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
     customInputs.forEach((input, index) => {
+      const label = input.label || `${upperCaseToCamelCase(input.type)}`;
       bookingFields.push({
-        label: input.label,
+        label: label,
         editable: "user",
         // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
         // Also Custom Input's label could have been empty string as well. But it's not possible to have empty name. So generate a name automatically.
