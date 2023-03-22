@@ -116,14 +116,17 @@ const EventTypeScheduleDetails = () => {
     schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
   return (
-    <div className="space-y-4 rounded border px-6 pb-4">
+    <div className="border-default space-y-4 rounded border px-6 pb-4">
       <ol className="table border-collapse text-sm">
         {weekdayNames(i18n.language, 1, "long").map((day, index) => {
           const isAvailable = !!filterDays(index).length;
           return (
             <li key={day} className="my-6 flex border-transparent last:mb-2">
               <span
-                className={classNames("w-20 font-medium sm:w-32", !isAvailable && "text-subtle opacity-50")}>
+                className={classNames(
+                  "w-20 font-medium sm:w-32 ",
+                  !isAvailable ? "text-subtle line-through" : "text-default"
+                )}>
                 {day}
               </span>
               {isLoading ? (
@@ -131,7 +134,7 @@ const EventTypeScheduleDetails = () => {
               ) : isAvailable ? (
                 <div className="space-y-3 text-right">
                   {filterDays(index).map((dayRange, i) => (
-                    <div key={i} className="flex items-center leading-4">
+                    <div key={i} className="text-default flex items-center leading-4">
                       <span className="w-16 sm:w-28 sm:text-left">
                         {format(dayRange.startTime, timeFormat === 12)}
                       </span>
@@ -141,13 +144,13 @@ const EventTypeScheduleDetails = () => {
                   ))}
                 </div>
               ) : (
-                <span className="text-subtle ml-6 opacity-50 sm:ml-0">{t("unavailable")}</span>
+                <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
               )}
             </li>
           );
         })}
       </ol>
-      <hr />
+      <hr className="border-emphasis" />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
         <span className="text-default flex items-center justify-center text-sm sm:justify-start">
           <FiGlobe className="ltr:mr-2 rtl:ml-2" />

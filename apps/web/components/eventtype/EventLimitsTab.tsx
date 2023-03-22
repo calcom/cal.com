@@ -253,7 +253,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </div>
         </div>
       </div>
-      <hr />
+      <hr className="border-emphasis" />
       <Controller
         name="bookingLimits"
         control={formMethods.control}
@@ -275,7 +275,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
-      <hr />
+      <hr className="border-emphasis" />
       <Controller
         name="durationLimits"
         control={formMethods.control}
@@ -302,7 +302,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
-      <hr />
+      <hr className="border-emphasis" />
       <Controller
         name="periodType"
         control={formMethods.control}

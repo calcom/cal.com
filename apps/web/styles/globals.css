@@ -66,7 +66,7 @@
   /* Content/Text */
   --cal-text-emphasis: #f3f4f6;
   --cal-text: #d6d6d6;
-  --cal-text-subtle: #757575;
+  --cal-text-subtle: #A5a5a5;
   --cal-text-muted: #575757;
   --cal-text-inverted: #101010;
 
@@ -230,9 +230,6 @@ input[type="text"]:focus {
   }
 }
 
-button[role="switch"][data-state="checked"] {
-  @apply bg-inverted;
-}
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
   transform: translateX(16px);

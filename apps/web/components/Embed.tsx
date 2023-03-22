@@ -827,7 +827,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </button>
             {embed.title}
           </h3>
-          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
+          <hr className={classNames("border-emphasis mt-4", embedType === "element-click" ? "hidden" : "")} />
           <div className="flex flex-col overflow-y-auto">
             <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
               <Collapsible
@@ -1007,7 +1007,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleContent>
               </Collapsible>
             </div>
-            <hr className="mt-4" />
+            <hr className="border-emphasis mt-4" />
             <div className="mt-4 font-medium">
               <Collapsible
                 open={isBookingCustomizationOpen}

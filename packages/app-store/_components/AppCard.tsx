@@ -28,7 +28,7 @@ export default function AppCard({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div className={`mb-4 mt-2 rounded-md border border-subtle ${!app.enabled && "grayscale"}`}>
+    <div className={`border-subtle mb-4 mt-2 rounded-md border ${!app.enabled && "grayscale"}`}>
       <div className="p-4 text-sm sm:p-6">
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
@@ -64,7 +64,7 @@ export default function AppCard({
         </div>
       </div>
       <div ref={animationRef}>
-        {app?.isInstalled && switchChecked && <hr />}
+        {app?.isInstalled && switchChecked && <hr className="border-emphasis" />}
         {app?.isInstalled && switchChecked ? <div className="p-4 text-sm sm:px-8">{children}</div> : null}
       </div>
     </div>

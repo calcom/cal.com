@@ -62,8 +62,16 @@ const buttonClasses = cva(
         true: "cursor-not-allowed",
       },
     },
+    // FIXME
+    // TODO: come back to this and fix before merging. Buttons are all over the shop some use brand colour some use gray.
     compoundVariants: [
       // Primary variants
+      {
+        disabled: [undefined, false],
+        color: "primary",
+        className:
+          "bg-brand-default hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+      },
       {
         disabled: true,
         color: "primary",
@@ -75,24 +83,16 @@ const buttonClasses = cva(
         className:
           "bg-gray-800/30 text-inverted/30 dark:bg-opacity-30 dark:bg-darkgray-700 dark:text-emphasis/30",
       },
-      ...applyStyleToMultipleVariants({
-        disabled: [undefined, false],
-        color: "primary",
-        className:
-          "bg-brand-default hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
-      }),
       // Secondary variants
       {
         disabled: true,
         color: "secondary",
-        className:
-          "border border-subtle bg-opacity-30 text-emphasis/30 /30 dark:border-darkgray-200",
+        className: "border border-subtle bg-opacity-30 text-muted dark:border-darkgray-200",
       },
       {
         loading: true,
         color: "secondary",
-        className:
-          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/80 dark:bg-darkgray-100 dark:border-darkgray-200",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
@@ -110,8 +110,7 @@ const buttonClasses = cva(
       {
         loading: true,
         color: "minimal",
-        className:
-          "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],

@@ -21,8 +21,8 @@ import {
   InputField,
   Input,
   showToast,
+  Switch,
 } from "@calcom/ui";
-import { Switch } from "@calcom/ui";
 import { FiArrowDown, FiArrowUp, FiX, FiPlus, FiTrash2, FiInfo } from "@calcom/ui/components/icon";
 
 import { Components } from "./Components";
@@ -262,7 +262,7 @@ export const FormBuilder = function FormBuilder({
       <div>
         <div className="text-default text-sm font-semibold ltr:mr-1 rtl:ml-1">{title}</div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="mt-2 rounded-md border">
+        <ul className="border-default divide-subtle mt-2 divide-y-2 rounded-md border ">
           {fields.map((field, index) => {
             const fieldType = FieldTypesMap[field.type];
 
@@ -286,11 +286,11 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="group relative flex items-center justify-between border-b p-4 last:border-b-0">
+                className="group relative flex items-center justify-between  p-4">
                 {index >= 1 && (
                   <button
                     type="button"
-                    className="invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-default hover:border-emphasis invisible absolute -left-[12px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                     onClick={() => swap(index, index - 1)}>
                     <FiArrowUp className="h-5 w-5" />
                   </button>
@@ -298,7 +298,7 @@ export const FormBuilder = function FormBuilder({
                 {index < fields.length - 1 && (
                   <button
                     type="button"
-                    className="invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
+                    className="bg-default text-muted hover:border-emphasis border-default hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                     onClick={() => swap(index, index + 1)}>
                     <FiArrowDown className="h-5 w-5" />
                   </button>
@@ -347,7 +347,7 @@ export const FormBuilder = function FormBuilder({
                       Edit
                     </Button>
                     <Button
-                      color="minimal"
+                      color="secondary"
                       tooltip={
                         field.editable === "system" || field.editable === "system-but-optional"
                           ? t("form_builder_system_field_cant_delete")

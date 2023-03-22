@@ -324,7 +324,7 @@ const Component = ({
             </li>
           )}
         </ul>
-        <hr className="border-subtle my-8 border" />
+        <hr className="border-emphasis my-8 border" />
         <span className="leading-1 text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>

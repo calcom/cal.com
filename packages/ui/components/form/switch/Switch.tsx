@@ -31,7 +31,7 @@ const Switch = (
       <div className={classNames("flex h-auto w-auto flex-row items-center", fitToHeight && "h-fit")}>
         <PrimitiveSwitch.Root
           className={classNames(
-            props.checked ? "bg-brand-default" : "bg-emphasis",
+            props.checked ? "bg-inverted" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
             "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
             props.className
@@ -40,8 +40,8 @@ const Switch = (
           <PrimitiveSwitch.Thumb
             id={id}
             className={classNames(
-              "bg-default block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
-              props.checked && "shadow-inner",
+              "block h-[14px] w-[14px] rounded-full transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
+              props.checked ? "bg-default shadow-inner" : "bg-inverted",
               props.thumbProps?.className
             )}
           />

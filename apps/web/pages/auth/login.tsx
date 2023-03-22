@@ -187,7 +187,7 @@ export default function Login({
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
+              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="border-emphasis my-8" />}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
