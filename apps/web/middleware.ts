@@ -10,6 +10,39 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
 
+  // Require basic auth in staging to avoid duplicate content for search engines
+  if (url.hostname.endsWith("cal.dev")) {
+    const basicAuth = req.headers.get("authorization");
+    if (!basicAuth) {
+      // without the authorization header, we'll require basic auth prompt from browser
+      return new Response("Auth required", {
+        status: 401,
+        headers: {
+          "WWW-Authenticate": 'Basic realm="Access to staging sitecal.dev", charset="UTF-8"',
+        },
+      });
+    }
+    // checking the username and password from the authorization header
+    const auth = basicAuth.split(" ")[1];
+    const [username, password] = Buffer.from(auth, "base64").toString().split(":");
+    // since we don't mind having staging public, I just hard-coded username and password here (anyone can access)
+    if (username !== "cal" || password !== "dev") {
+      return NextResponse.json(
+        JSON.stringify({
+          success: false,
+          message: "Authentication failed",
+        }),
+        {
+          status: 401,
+          statusText: "Authentication failed",
+          headers: {
+            "content-type": "application/json",
+          },
+        }
+      );
+    }
+  }
+
   if (!url.pathname.startsWith("/api")) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
