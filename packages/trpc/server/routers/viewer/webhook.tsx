@@ -1,12 +1,10 @@
 import type { Prisma } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import handleChildrenEventTypes from "@calcom/lib/handleChildrenEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
@@ -14,17 +12,15 @@ import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../../trpc";
 
 // Common data for all endpoints under webhook
-const webhookIdAndEventTypeIdAndSchedulingTypeSchema = z.object({
+const webhookIdAndEventTypeIdSchema = z.object({
   // Webhook ID
   id: z.string().optional(),
   // Event type ID
   eventTypeId: z.number().optional(),
-  // Event scheduling type
-  eventSchedulingType: z.nativeEnum(SchedulingType).nullable().optional(),
 });
 
 const webhookProcedure = authedProcedure
-  .input(webhookIdAndEventTypeIdAndSchedulingTypeSchema.optional())
+  .input(webhookIdAndEventTypeIdSchema.optional())
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
     if (!input) return next();
@@ -124,40 +120,23 @@ export const webhookRouter = router({
         eventTypeId: z.number().optional(),
         appId: z.string().optional().nullable(),
         secret: z.string().optional().nullable(),
-        eventSchedulingType: z.nativeEnum(SchedulingType).nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { eventSchedulingType, ...rest } = input;
       if (input.eventTypeId) {
-        const webhook = await ctx.prisma.webhook.create({
+        return await ctx.prisma.webhook.create({
           data: {
             id: v4(),
-            ...rest,
-          },
-          include: {
-            eventType: true,
+            ...input,
           },
         });
-
-        if (webhook.eventType && eventSchedulingType === SchedulingType.MANAGED) {
-          handleChildrenEventTypes({
-            eventTypeId: input.eventTypeId,
-            currentUserId: ctx.user.id,
-            oldEventType: webhook.eventType,
-            updatedEventType: webhook.eventType,
-            prisma: ctx.prisma,
-          });
-        }
-
-        return webhook;
       }
 
       return await ctx.prisma.webhook.create({
         data: {
           id: v4(),
           userId: ctx.user.id,
-          ...rest,
+          ...input,
         },
       });
     }),
@@ -172,11 +151,10 @@ export const webhookRouter = router({
         eventTypeId: z.number().optional(),
         appId: z.string().optional().nullable(),
         secret: z.string().optional().nullable(),
-        eventSchedulingType: z.nativeEnum(SchedulingType).nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, eventSchedulingType, ...data } = input;
+      const { id, ...data } = input;
       const webhook = input.eventTypeId
         ? await ctx.prisma.webhook.findFirst({
             where: {
@@ -195,27 +173,12 @@ export const webhookRouter = router({
         // team event doesn't own this webhook
         return null;
       }
-      const updatedWebhook = await ctx.prisma.webhook.update({
+      return await ctx.prisma.webhook.update({
         where: {
           id,
         },
         data,
-        include: {
-          eventType: true,
-        },
       });
-
-      if (updatedWebhook.eventType && input.eventTypeId && eventSchedulingType === SchedulingType.MANAGED) {
-        handleChildrenEventTypes({
-          eventTypeId: input.eventTypeId,
-          currentUserId: ctx.user.id,
-          oldEventType: updatedWebhook.eventType,
-          updatedEventType: updatedWebhook.eventType,
-          prisma: ctx.prisma,
-        });
-      }
-
-      return updatedWebhook;
     }),
   delete: webhookProcedure
     .input(
