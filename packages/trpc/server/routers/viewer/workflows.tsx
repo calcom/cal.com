@@ -17,6 +17,7 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 // import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
@@ -25,7 +26,6 @@ import {
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
 import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
-import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -350,7 +350,7 @@ export const workflowsRouter = router({
           data: {
             name: "",
             trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-            time: 24,
+            time: 2,
             timeUnit: TimeUnit.HOUR,
             userId,
             teamId,
@@ -360,10 +360,10 @@ export const workflowsRouter = router({
         await ctx.prisma.workflowStep.create({
           data: {
             stepNumber: 1,
-            action: WorkflowActions.EMAIL_HOST,
+            action: WorkflowActions.EMAIL_ATTENDEE,
             template: WorkflowTemplates.REMINDER,
-            reminderBody: emailReminderTemplate(true).emailBody.html,
-            emailSubject: emailReminderTemplate(true).emailSubject,
+            reminderBody: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailBody.html,
+            emailSubject: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailSubject,
             workflowId: workflow.id,
             sender: SENDER_NAME,
             numberVerificationPending: false,

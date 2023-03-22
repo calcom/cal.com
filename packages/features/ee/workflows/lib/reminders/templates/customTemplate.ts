@@ -48,6 +48,7 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
+    .replaceAll("{TIMEZONE}", variables.timeZone || "")
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {

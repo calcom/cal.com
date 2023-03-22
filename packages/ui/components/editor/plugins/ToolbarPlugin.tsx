@@ -362,26 +362,26 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   }, [props.updateTemplate]);
 
   useEffect(() => {
-    props.setFirstRender(false);
-    editor.update(() => {
-      const parser = new DOMParser();
-      const dom = parser.parseFromString(props.getText(), "text/html");
+    if (props.setFirstRender) {
+      props.setFirstRender(false);
+      editor.update(() => {
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(props.getText(), "text/html");
 
-      const nodes = $generateNodesFromDOM(editor, dom);
+        const nodes = $generateNodesFromDOM(editor, dom);
 
-      $getRoot().select();
-      console.log("insert again");
-      $insertNodes(nodes);
+        $getRoot().select();
+        $insertNodes(nodes);
 
-      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-        editorState.read(() => {
-          console.log("test: " + $generateHtmlFromNodes(editor));
-          const textInHtml = $generateHtmlFromNodes(editor);
-          props.setText(textInHtml);
+        editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+          editorState.read(() => {
+            const textInHtml = $generateHtmlFromNodes(editor);
+            props.setText(textInHtml);
+          });
+          if (!prevEditorState._selection) editor.blur();
         });
-        if (!prevEditorState._selection) editor.blur();
       });
-    });
+    }
   }, []);
 
   useEffect(() => {
