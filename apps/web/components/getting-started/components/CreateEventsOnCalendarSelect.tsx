@@ -2,7 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 
-import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
+import DestinationCalendarSelectorComp from "@components/DestinationCalendarSelectorComp";
 
 interface ICreateEventsOnCalendarSelectProps {
   calendar?: RouterInputs["viewer"]["setDestinationCalendar"] | null;
@@ -21,7 +21,7 @@ const CreateEventsOnCalendarSelect = (props: ICreateEventsOnCalendarSelectProps)
             {t("create_events_on")}
           </label>
           <div className="mt-2">
-            <DestinationCalendarSelector
+            <DestinationCalendarSelectorComp
               value={calendar ? calendar.externalId : undefined}
               onChange={(calendar) => {
                 mutation.mutate(calendar);

@@ -15,7 +15,7 @@ interface Props {
   destinationCalendar?: DestinationCalendar | null;
 }
 
-const DestinationCalendarSelector = ({
+const DestinationCalendarSelectorComp = ({
   onChange,
   isLoading,
   value,
@@ -134,4 +134,4 @@ const DestinationCalendarSelector = ({
   );
 };
 
-export default DestinationCalendarSelector;
+export default DestinationCalendarSelectorComp;
