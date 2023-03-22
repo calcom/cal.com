@@ -194,17 +194,17 @@ function EventTypeSingleLayout({
             : ""
         }`,
       });
-      if (isManagedEventType || isChildrenManagedEventType) {
-        // Removing apps and workflows for manageg event types by admins v1
-        navigation = navigation.slice(0, -2);
-      } else {
-        navigation.push({
-          name: "webhooks",
-          href: `/event-types/${eventType.id}?tabName=webhooks`,
-          icon: TbWebhook,
-          info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
-        });
-      }
+    }
+    if (isManagedEventType || isChildrenManagedEventType) {
+      // Removing apps and workflows for manageg event types by admins v1
+      navigation = navigation.slice(0, -2);
+    } else {
+      navigation.push({
+        name: "webhooks",
+        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        icon: TbWebhook,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+      });
     }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
