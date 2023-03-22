@@ -19,7 +19,6 @@ const DateSelect = () => {
       value={[start, end, timeRange]}
       defaultValue={[start, end, timeRange]}
       onValueChange={(datesArray) => {
-        console.log({ datesArray });
         const [selected, ...rest] = datesArray;
         const [start, end, range] = datesArray;
         // If range has value and it's of type RangeType
@@ -41,7 +40,7 @@ const DateSelect = () => {
       minDate={currentDate.subtract(2, "year").toDate()}
       maxDate={currentDate.toDate()}
       color="blue"
-      className="mt-[2px] h-[42px] max-w-sm"
+      className="h-[42px] max-w-sm"
     />
   );
 };

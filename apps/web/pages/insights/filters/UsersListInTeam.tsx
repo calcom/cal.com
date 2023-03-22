@@ -6,6 +6,7 @@ import { useFilterContext } from "../UseFilterContext";
 const UserListInTeam = () => {
   const { filter, setSelectedUserId } = useFilterContext();
   const { selectedFilter } = filter;
+
   if (!selectedFilter?.includes("user")) return null;
 
   const { selectedTeamId, selectedUserId } = filter;
@@ -35,6 +36,11 @@ const UserListInTeam = () => {
               setSelectedUserId(input);
             }
           }}
+          placeholder={
+            <div className="flex flex-row">
+              <p>Select User</p>
+            </div>
+          }
         />
       )}
     </>
