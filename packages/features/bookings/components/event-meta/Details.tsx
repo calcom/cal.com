@@ -164,7 +164,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.OCCURENCES:
-            if (!event.requiresConfirmation) return null;
+            if (!event.requiresConfirmation || !event.recurringEvent) return null;
 
             return (
               <EventMetaBlock key={block} icon={FiRefreshCcw}>
