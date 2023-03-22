@@ -32,7 +32,7 @@ const FilterType = () => {
           }
         }
       }}
-      className="mx-2 w-32"
+      className="mx-2 w-32 min-w-[140px]"
       placeholder={
         <div className="flex flex-row">
           <FiFilter className="m-auto" />

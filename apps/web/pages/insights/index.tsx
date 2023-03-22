@@ -47,12 +47,14 @@ export default function InsightsPage() {
   });
 
   const [selectedTimeView, setSelectedTimeView] =
-    useState<FilterContextType["filter"]["selectedTimeView"]>("month");
+    useState<FilterContextType["filter"]["selectedTimeView"]>("week");
   const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(null);
   const [selectedEventTypeId, setSelectedEventTypeId] =
     useState<FilterContextType["filter"]["selectedEventTypeId"]>(null);
   const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(null);
+  const [selectedTeamName, setSelectedTeamName] =
+    useState<FilterContextType["filter"]["selectedTeamName"]>(null);
 
   return (
     <div>
@@ -84,6 +86,7 @@ export default function InsightsPage() {
                   selectedTimeView,
                   selectedUserId,
                   selectedTeamId,
+                  selectedTeamName,
                   selectedEventTypeId,
                   selectedFilter,
                 },
@@ -92,9 +95,16 @@ export default function InsightsPage() {
                 setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
                 setSelectedUserId: (selectedUserId) => setSelectedUserId(selectedUserId),
                 setSelectedTeamId: (selectedTeamId) => setSelectedTeamId(selectedTeamId),
+                setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
                 setSelectedEventTypeId: (selectedEventTypeId) => setSelectedEventTypeId(selectedEventTypeId),
               }}>
-              <div className="mb-4 ml-auto flex w-full">
+              <div className="mb-4 ml-auto flex w-full justify-between">
+                <div>
+                  <p className="text-lg font-semibold">
+                    {t("analytics_for_organisation", { organisationName: selectedTeamName })}
+                  </p>
+                  <p>{t("subtitle_analytics")}</p>
+                </div>
                 <Filters />
               </div>
               <div className="space-y-6">
@@ -128,9 +138,9 @@ export default function InsightsPage() {
   );
 }
 
-export const valueFormatter = (number: number) => `${Intl.NumberFormat().format(number).toString()}`;
+const valueFormatter = (number: number) => `${Intl.NumberFormat().format(number).toString()}`;
 
-export const colors: { [key: string]: Color } = {
+const colors: { [key: string]: Color } = {
   increase: "emerald",
   moderateIncrease: "emerald",
   unchanged: "orange",
@@ -138,7 +148,7 @@ export const colors: { [key: string]: Color } = {
   decrease: "rose",
 };
 
-export const CalculateDeltaType = (delta: number) => {
+const CalculateDeltaType = (delta: number) => {
   if (delta > 0) {
     return delta > 10 ? "increase" : "moderateIncrease";
   } else if (delta < 0) {
@@ -147,3 +157,5 @@ export const CalculateDeltaType = (delta: number) => {
     return "unchanged";
   }
 };
+
+export { valueFormatter, colors, CalculateDeltaType };

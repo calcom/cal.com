@@ -1683,6 +1683,9 @@
   "events_completed": "Events Completed",
   "events_cancelled": "Events Cancelled",
   "events_rescheduled": "Events Rescheduled",
-  "from last period": "from last period",
-  "from_to_date_period": "From: {{startDate}} To: {{endDate}}"
+  "from_last_period": "from last period",
+  "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
+  "analytics_for_organisation": "Analytics for {{organisationName}}",
+  "subtitle_analytics": "This is a organisation analytics",
+  "event_trends": "Event Trends"
 }

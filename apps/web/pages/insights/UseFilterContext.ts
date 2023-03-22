@@ -11,12 +11,14 @@ export type FilterContextType = {
     selectedTimeView: "year" | "week" | "month";
     selectedFilter: Array<"user" | "event-type"> | null;
     selectedTeamId: number | null;
+    selectedTeamName: string | null;
     selectedUserId: number | null;
     selectedEventTypeId: number | null;
   };
   setDateRange: (dateRange: { startDate: Dayjs; endDate: Dayjs }) => void;
   setSelectedFilter: (filter: Array<"user" | "event-type"> | null) => void;
   setSelectedTeamId: (teamId: number | null) => void;
+  setSelectedTeamName: (teamName: string | null) => void;
   setSelectedUserId: (userId: number | null) => void;
   setSelectedEventTypeId: (eventTypeId: number | null) => void;
   setSelectedTimeView: (timeView: "year" | "week" | "month") => void;
