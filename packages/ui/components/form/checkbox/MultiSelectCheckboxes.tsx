@@ -29,12 +29,6 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
 
   return (
     <components.Option
-      className={classNames(
-        className,
-        "dark:bg-darkgray-100 !flex !cursor-pointer !py-3 text-[inherit]",
-        isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
-        isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
-      )}
       {...rest}
       isDisabled={isDisabled}
       isFocused={isFocused}
@@ -81,6 +75,7 @@ export default function MultiSelectCheckboxes({
         setSelected(s);
         setValue(s);
       }}
+      variant="checkbox"
       options={options}
       isMulti
       className={classNames(className ? className : "w-64 text-sm")}
