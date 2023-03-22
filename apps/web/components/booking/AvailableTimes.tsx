@@ -94,7 +94,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               slots.map((slot) => {
                 type BookingURL = {
                   pathname: string;
-                  query: Record<string, string | number | string[] | undefined>;
+                  query: Record<string, string | number | string[] | undefined | TimeFormat>;
                 };
                 const bookingUrl: BookingURL = {
                   pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
@@ -103,6 +103,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     date: dayjs.utc(slot.time).tz(timeZone()).format(),
                     type: eventTypeId,
                     slug: eventTypeSlug,
+                    timeFormat,
                     /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                     count: recurringCount && !rescheduleUid ? recurringCount : undefined,
                     ...(ethSignature ? { ethSignature } : {}),
