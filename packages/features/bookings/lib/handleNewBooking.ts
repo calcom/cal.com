@@ -1655,7 +1655,7 @@ async function handler(
 
     // Use EventManager to conditionally use all needed integrations.
 
-    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid, booking?.id);
+    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
