@@ -49,7 +49,7 @@ export const EventTypeDescription = ({
   );
 
   const stripeAppData = getPaymentAppData(eventType);
-  console.log({ isPublic });
+
   return (
     <>
       <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
