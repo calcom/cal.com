@@ -46,7 +46,7 @@ function hasFileExtension(url: string): boolean {
 
 function getFileExtension(url: string): string | null {
   // Return null if the URL does not have a file extension
-  if (!hasFileExtension(url)) return null;
+  if (!hasFileExtension(url)) return "ics";
   // Get the last portion of the URL (after the last '/')
   const fileName = url.substring(url.lastIndexOf("/") + 1);
   // Extract the file extension
@@ -283,10 +283,6 @@ export default abstract class BaseCalendarService implements Calendar {
   isValidFormat = (url: string): boolean => {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
-    if (!urlExtension) {
-      console.error("Invalid request, calendar object extension missing");
-      return false;
-    }
     if (!allowedExtensions.includes(urlExtension)) {
       console.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
@@ -311,7 +307,8 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: sc.externalId,
               },
               headers: this.headers,
-              expand: true,
+              // using expand definitely breaks fetching events from Zoho Calendar
+              // expand: true,
               timeRange: {
                 start: startISOString,
                 end: new Date(dateTo).toISOString(),
@@ -325,7 +322,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
-
+      console.log("object", object.data);
       const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
       const vevent = vcalendar.getFirstSubcomponent("vevent");
