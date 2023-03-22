@@ -2,12 +2,14 @@ import { DateRangePicker } from "@tremor/react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useFilterContext } from "../UseFilterContext";
 
 type RangeType = "tdy" | "w" | "t" | "m" | "y" | undefined;
 
 const DateSelect = () => {
+  const { t } = useLocale();
   const { filter, setDateRange } = useFilterContext();
   const currentDate = dayjs();
   const { startDate, endDate } = filter.dateRange;
@@ -35,7 +37,7 @@ const DateSelect = () => {
       }}
       options={undefined}
       enableDropdown={true}
-      placeholder="Select Date Range..."
+      placeholder={t("select_date_range")}
       enableYearPagination={true}
       minDate={currentDate.subtract(2, "year").toDate()}
       maxDate={currentDate.toDate()}

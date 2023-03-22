@@ -1,20 +1,22 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
 import { useFilterContext } from "../UseFilterContext";
 
 const UserListInTeam = () => {
+  const { t } = useLocale();
   const { filter, setSelectedUserId } = useFilterContext();
   const { selectedFilter } = filter;
 
-  if (!selectedFilter?.includes("user")) return null;
-
   const { selectedTeamId, selectedUserId } = filter;
-  if (!selectedTeamId) return null;
 
   const { data, isSuccess } = trpc.viewer.analytics.userList.useQuery({
     teamId: selectedTeamId,
   });
+
+  if (!selectedFilter?.includes("user")) return null;
+  if (!selectedTeamId) return null;
 
   const UserListOptions: any =
     data?.map((item) => ({
@@ -38,7 +40,7 @@ const UserListInTeam = () => {
           }}
           placeholder={
             <div className="flex flex-row">
-              <p>Select User</p>
+              <p>{t("select_user")}</p>
             </div>
           }
         />

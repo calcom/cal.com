@@ -1,18 +1,20 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
 import { useFilterContext } from "../UseFilterContext";
 
 const EventTypeListInTeam = () => {
+  const { t } = useLocale();
   const { filter, setSelectedEventTypeId } = useFilterContext();
   const { selectedTeamId, selectedEventTypeId } = filter;
   const { selectedFilter } = filter;
-  if (!selectedFilter?.includes("event-type")) return null;
-
-  if (!selectedTeamId) return null;
   const { data, isSuccess } = trpc.viewer.analytics.eventTypeList.useQuery({
     teamId: selectedTeamId,
   });
+
+  if (!selectedFilter?.includes("event-type")) return null;
+  if (!selectedTeamId) return null;
 
   const filterOptions =
     data?.map((item) => ({
@@ -31,10 +33,15 @@ const EventTypeListInTeam = () => {
               setSelectedEventTypeId(input.value);
             }
           }}
+          value={
+            selectedEventTypeId
+              ? { value: selectedEventTypeId, label: data.find((item) => item.id === selectedEventTypeId) }
+              : null
+          }
           className="mx-2 w-48"
           placeholder={
             <div className="flex flex-row">
-              <p>Select Event Type</p>
+              <p>{t("select_event_type")}</p>
             </div>
           }
         />

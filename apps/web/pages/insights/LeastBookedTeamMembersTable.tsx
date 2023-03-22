@@ -1,17 +1,17 @@
 import { Card, Title } from "@tremor/react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "./UseFilterContext";
 import { TotalBookingUsersTable } from "./components/TotalBookingUsersTable";
 
 const LeastBookedTeamMembersTable = () => {
+  const { t } = useLocale();
   const { filter } = useFilterContext();
   const { dateRange } = filter;
   const { startDate, endDate } = dateRange;
   const { selectedTeamId: teamId } = filter;
-
-  if (!startDate || !endDate || !teamId) return null;
 
   const { data, isSuccess } = trpc.viewer.analytics.membersWithLeastBookings.useQuery({
     startDate: startDate.toISOString(),
@@ -19,9 +19,11 @@ const LeastBookedTeamMembersTable = () => {
     teamId,
   });
 
+  if (!startDate || !endDate || !teamId) return null;
+
   return (
     <Card>
-      <Title>Least Booked Members</Title>
+      <Title>{t("least_booked_members")}</Title>
       <TotalBookingUsersTable isSuccess={isSuccess} data={data} />
     </Card>
   );

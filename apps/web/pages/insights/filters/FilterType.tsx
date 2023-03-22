@@ -4,20 +4,20 @@ import { FiFilter } from "@calcom/ui/components/icon";
 
 import { useFilterContext } from "../UseFilterContext";
 
-const filterOptions = [
-  {
-    label: "Event Type",
-    value: "event-type",
-  },
-  {
-    label: "User",
-    value: "user",
-  },
-];
-
 const FilterType = () => {
   const { t } = useLocale();
   const { filter, setSelectedFilter } = useFilterContext();
+
+  const filterOptions = [
+    {
+      label: t("event_type"),
+      value: "event-type",
+    },
+    {
+      label: t("user"),
+      value: "user",
+    },
+  ];
 
   return (
     <Select
@@ -36,7 +36,7 @@ const FilterType = () => {
       placeholder={
         <div className="flex flex-row">
           <FiFilter className="m-auto" />
-          Add Filter
+          {t("add_filter")}
         </div>
       }
     />

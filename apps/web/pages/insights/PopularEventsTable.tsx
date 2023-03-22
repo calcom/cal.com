@@ -1,25 +1,28 @@
 import { Card, Title, Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "./UseFilterContext";
 
 const PopularEventsTable = () => {
+  const { t } = useLocale();
   const { filter } = useFilterContext();
   const { dateRange } = filter;
   const { startDate, endDate } = dateRange;
   const { selectedTeamId: teamId } = filter;
-
-  if (!startDate || !endDate || !teamId) return null;
 
   const { data, isSuccess } = trpc.viewer.analytics.popularEventTypes.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
   });
+
+  if (!startDate || !endDate || !teamId) return null;
+
   return (
     <Card>
-      <Title>Popular Events</Title>
+      <Title>{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
           {isSuccess ? (
@@ -35,7 +38,7 @@ const PopularEventsTable = () => {
             ))
           ) : (
             <TableRow>
-              <TableCell>No event types found</TableCell>
+              <TableCell>{t("no_event_types_found")}</TableCell>
               <TableCell>
                 <strong>0</strong>
               </TableCell>
