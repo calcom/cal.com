@@ -25,8 +25,9 @@ export type EventTypeDescriptionProps = {
     z.infer<typeof EventTypeModel>,
     Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
   > & {
+    descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
-    seatsPerTimeSlot?: number;
+    seatsPerTimeSlot?: number | null;
   };
   className?: string;
   shortenDescription?: boolean;
@@ -56,7 +57,6 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
-              // @ts-expect-error: @see packages/prisma/middleware/eventTypeDescriptionParseAndSanitize.ts
               __html: eventType.descriptionAsSafeHTML || "",
             }}
           />
