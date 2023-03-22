@@ -15,11 +15,36 @@ const UserSelect = {
   email: true,
   avatar: true,
 };
+
+const emptyResponseEventsByStatus = {
+  empty: true,
+  created: {
+    count: 0,
+    deltaPrevious: 0,
+  },
+  completed: {
+    count: 0,
+    deltaPrevious: 0,
+  },
+  rescheduled: {
+    count: 0,
+    deltaPrevious: 0,
+  },
+  cancelled: {
+    count: 0,
+    deltaPrevious: 0,
+  },
+  previousRange: {
+    startDate: dayjs().toISOString(),
+    endDate: dayjs().toISOString(),
+  },
+};
+
 export const analyticsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional().nullable(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -28,6 +53,10 @@ export const analyticsRouter = router({
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate, eventTypeId } = input;
       const user = ctx.user;
+
+      if (!input.teamId) {
+        return emptyResponseEventsByStatus;
+      }
 
       // Just for type safety but authedProcedure should have already checked this
       if (!user) {
@@ -99,6 +128,7 @@ export const analyticsRouter = router({
       );
 
       return {
+        empty: false,
         created: {
           count: baseBookings.length,
           deltaPrevious: EventsAnalytics.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
@@ -245,7 +275,7 @@ export const analyticsRouter = router({
     .input(
       z.object({
         userId: z.coerce.number().optional(),
-        teamId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional().nullable(),
         startDate: z.string(),
         endDate: z.string(),
       })
@@ -253,6 +283,10 @@ export const analyticsRouter = router({
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate } = input;
       const user = ctx.user;
+
+      if (!input.teamId) {
+        return [];
+      }
 
       // Just for type safety but authedProcedure should have already checked this
       if (!user) {
@@ -312,13 +346,18 @@ export const analyticsRouter = router({
     .input(
       z.object({
         userId: z.coerce.number().optional(),
-        teamId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional().nullable(),
         startDate: z.string(),
         endDate: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate: startDateString, endDate: endDateString, userId } = input;
+
+      if (!teamId) {
+        return [];
+      }
+
       const user = ctx.user;
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
@@ -394,13 +433,16 @@ export const analyticsRouter = router({
   membersWithMostBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number(),
+        teamId: z.coerce.number().nullable(),
         startDate: z.string(),
         endDate: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate } = input;
+      if (!teamId) {
+        return [];
+      }
       const user = ctx.user;
 
       // Just for type safety but authedProcedure should have already checked this
@@ -467,6 +509,9 @@ export const analyticsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate } = input;
+      if (!teamId) {
+        return [];
+      }
       const user = ctx.user;
 
       // Just for type safety but authedProcedure should have already checked this
@@ -601,11 +646,15 @@ export const analyticsRouter = router({
   userList: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number(),
+        teamId: z.coerce.number().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
       const user = ctx.user;
+
+      if (!input.teamId) {
+        return [];
+      }
 
       // Just for type safety but authedProcedure should have already checked this
       if (!user) {
@@ -645,11 +694,15 @@ export const analyticsRouter = router({
   eventTypeList: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number(),
+        teamId: z.coerce.number().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
       const user = ctx.user;
+
+      if (!input.teamId) {
+        return [];
+      }
 
       // Just for type safety but authedProcedure should have already checked this
       if (!user) {

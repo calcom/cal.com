@@ -1678,5 +1678,9 @@
   "no_event_types_found": "No event types found",
   "average_event_duration": "Average Event Duration",
   "most_booked_members": "Most Booked Members",
-  "least_booked_members": "Least Booked Members"
+  "least_booked_members": "Least Booked Members",
+  "events_created": "Events Created",
+  "events_completed": "Events Completed",
+  "events_cancelled": "Events Cancelled",
+  "events_rescheduled": "Events Rescheduled"
 }
