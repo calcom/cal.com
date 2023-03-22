@@ -9,7 +9,7 @@ import { TotalBookingUsersTable } from "./components/TotalBookingUsersTable";
 const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange } = filter;
+  const { dateRange, selectedEventTypeId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -17,14 +17,15 @@ const MostBookedTeamMembersTable = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
+    eventTypeId: selectedEventTypeId ?? undefined,
   });
 
-  if (!startDate || !endDate || !teamId) return null;
+  if (!isSuccess || !startDate || !endDate || !teamId) return null;
 
   return (
     <Card>
       <Title>{t("most_booked_members")}</Title>
-      <TotalBookingUsersTable isSuccess={isSuccess} data={data} />
+      <TotalBookingUsersTable data={data} />
     </Card>
   );
 };

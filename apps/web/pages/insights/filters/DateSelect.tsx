@@ -52,7 +52,7 @@ const DateSelect = () => {
       minDate={currentDate.subtract(2, "year").toDate()}
       maxDate={currentDate.toDate()}
       color="blue"
-      className="h-[42px] max-w-sm"
+      className="ml-2 h-[42px] max-w-sm"
     />
   );
 };

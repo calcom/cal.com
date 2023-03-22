@@ -48,10 +48,11 @@ export const analyticsRouter = router({
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
+        userId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId } = input;
+      const { teamId, startDate, endDate, eventTypeId, userId } = input;
       const user = ctx.user;
 
       if (!input.teamId) {
@@ -65,23 +66,16 @@ export const analyticsRouter = router({
         });
       }
 
-      let whereConditional: Prisma.BookingWhereInput = {
-        userId: user.id,
+      const whereConditional: Prisma.BookingWhereInput = {
+        eventType: {
+          teamId: teamId,
+        },
       };
-      if (teamId && !!whereConditional) {
-        delete whereConditional.userId;
-        whereConditional = {
-          ...whereConditional,
-          eventType: {
-            teamId: teamId,
-          },
-        };
-      } else if (eventTypeId && !!whereConditional) {
-        delete whereConditional.userId;
-        whereConditional = {
-          ...whereConditional,
-          eventTypeId: eventTypeId,
-        };
+
+      if (eventTypeId) {
+        whereConditional["eventTypeId"] = eventTypeId;
+      } else if (userId) {
+        whereConditional["userId"] = userId;
       }
 
       // Migrate to use prisma views
@@ -436,10 +430,11 @@ export const analyticsRouter = router({
         teamId: z.coerce.number().nullable(),
         startDate: z.string(),
         endDate: z.string(),
+        eventTypeId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate } = input;
+      const { teamId, startDate, endDate, eventTypeId } = input;
       if (!teamId) {
         return [];
       }
@@ -451,13 +446,17 @@ export const analyticsRouter = router({
           code: "UNAUTHORIZED",
         });
       }
+      const eventTypeWhere: Prisma.EventTypeWhereInput = {
+        teamId: teamId,
+      };
+      if (eventTypeId) {
+        eventTypeWhere["id"] = eventTypeId;
+      }
 
       const bookingsFromTeam = await ctx.prisma.booking.groupBy({
         by: ["userId"],
         where: {
-          eventType: {
-            teamId: teamId,
-          },
+          eventType: eventTypeWhere,
           createdAt: {
             gte: dayjs(startDate).startOf("day").toDate(),
             lte: dayjs(endDate).endOf("day").toDate(),
@@ -505,10 +504,11 @@ export const analyticsRouter = router({
         teamId: z.coerce.number(),
         startDate: z.string(),
         endDate: z.string(),
+        eventTypeId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate } = input;
+      const { teamId, startDate, endDate, eventTypeId } = input;
       if (!teamId) {
         return [];
       }
@@ -521,12 +521,17 @@ export const analyticsRouter = router({
         });
       }
 
+      const eventTypeWhere: Prisma.EventTypeWhereInput = {
+        teamId: teamId,
+      };
+      if (eventTypeId) {
+        eventTypeWhere["id"] = eventTypeId;
+      }
+
       const bookingsFromTeam = await ctx.prisma.booking.groupBy({
         by: ["userId"],
         where: {
-          eventType: {
-            teamId: teamId,
-          },
+          eventType: eventTypeWhere,
           createdAt: {
             gte: dayjs(startDate).startOf("day").toDate(),
             lte: dayjs(endDate).endOf("day").toDate(),

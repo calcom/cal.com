@@ -1,3 +1,5 @@
+import { isArray } from "lodash";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
@@ -20,32 +22,31 @@ const EventTypeListInTeam = () => {
     data?.map((item) => ({
       value: item.slug,
       label: item.title,
-    })) ?? ([] as { value: string; label: string }[]);
+    })) ?? ([{ label: "No event types found", value: "" }] as { value: string; label: string }[]);
 
+  const eventTypeValue = data?.find((item) => item.id === selectedEventTypeId)?.slug;
+
+  if (!isSuccess || !data || !isArray(data)) return null;
   return (
     <>
-      {isSuccess && data && data?.length > 0 && (
-        <Select
-          isSearchable={false}
-          options={filterOptions}
-          onChange={(input: { value: number; label: string }) => {
-            if (input) {
-              setSelectedEventTypeId(input.value);
-            }
-          }}
-          value={
-            selectedEventTypeId
-              ? { value: selectedEventTypeId, label: data.find((item) => item.id === selectedEventTypeId) }
-              : null
+      <Select
+        isSearchable={false}
+        isMulti={false}
+        options={filterOptions}
+        onChange={(input: { value: string; label: string }) => {
+          if (input) {
+            const selectedEventTypeId = data.find((item) => item.slug === input.value)?.id;
+            !!selectedEventTypeId && setSelectedEventTypeId(selectedEventTypeId);
           }
-          className="mx-2 w-48"
-          placeholder={
-            <div className="flex flex-row">
-              <p>{t("select_event_type")}</p>
-            </div>
-          }
-        />
-      )}
+        }}
+        defaultValue={eventTypeValue}
+        className="mx-2 w-48 min-w-[180px]"
+        placeholder={
+          <div className="flex flex-row">
+            <p>{t("select_event_type")}</p>
+          </div>
+        }
+      />
     </>
   );
 };

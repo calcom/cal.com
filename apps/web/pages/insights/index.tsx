@@ -99,7 +99,7 @@ export default function InsightsPage() {
                 setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
                 setSelectedEventTypeId: (selectedEventTypeId) => setSelectedEventTypeId(selectedEventTypeId),
               }}>
-              <div className="mb-4 ml-auto flex w-full justify-between">
+              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between md:flex-nowrap">
                 <div>
                   <p className="text-lg font-semibold">
                     {t("analytics_for_organisation", { organisationName: selectedTeamName })}
@@ -108,17 +108,17 @@ export default function InsightsPage() {
                 </div>
                 <Filters />
               </div>
-              <div className="space-y-6">
+              <div className="mb-4 space-y-6">
                 <BookingKPICards />
 
                 <BookingStatusLineChart />
 
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <PopularEventsTable />
 
                   <AverageEventDurationChart />
                 </div>
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>

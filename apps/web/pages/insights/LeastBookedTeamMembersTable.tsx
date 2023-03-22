@@ -19,12 +19,12 @@ const LeastBookedTeamMembersTable = () => {
     teamId,
   });
 
-  if (!startDate || !endDate || !teamId) return null;
+  if (!isSuccess || !startDate || !endDate || !teamId) return null;
 
   return (
     <Card>
       <Title>{t("least_booked_members")}</Title>
-      <TotalBookingUsersTable isSuccess={isSuccess} data={data} />
+      <TotalBookingUsersTable data={data} />
     </Card>
   );
 };

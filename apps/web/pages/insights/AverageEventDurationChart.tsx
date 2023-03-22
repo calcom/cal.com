@@ -19,21 +19,19 @@ const AverageEventDurationChart = () => {
     teamId,
   });
 
-  if (!startDate || !endDate || !teamId) return null;
+  if (!isSuccess || data?.length == 0 || !startDate || !endDate || !teamId) return null;
 
   return (
     <Card>
       <Title>{t("average_event_duration")}</Title>
-      {isSuccess && data.length > 0 && (
-        <LineChart
-          className="mt-4 h-80"
-          data={data}
-          index="Date"
-          categories={["Average"]}
-          colors={["blue"]}
-          valueFormatter={valueFormatter}
-        />
-      )}
+      <LineChart
+        className="mt-4 h-80"
+        data={data}
+        index="Date"
+        categories={["Average"]}
+        colors={["blue"]}
+        valueFormatter={valueFormatter}
+      />
     </Card>
   );
 };

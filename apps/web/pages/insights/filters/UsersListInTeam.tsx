@@ -25,26 +25,26 @@ const UserListInTeam = () => {
       option: item.name ?? "",
     })) ?? ([] as { value: number; label: string }[]);
 
+  if (!isSuccess || data?.length === 0) return null;
+
   return (
     <>
-      {isSuccess && data && data?.length > 0 && (
-        <Select
-          isSearchable={false}
-          className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
-          defaultValue={selectedUserId === null ? data[0].id : selectedUserId}
-          options={UserListOptions}
-          onChange={(input) => {
-            if (input) {
-              setSelectedUserId(input);
-            }
-          }}
-          placeholder={
-            <div className="flex flex-row">
-              <p>{t("select_user")}</p>
-            </div>
+      <Select
+        isSearchable={false}
+        className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        defaultValue={selectedUserId === null ? data[0].id : selectedUserId}
+        options={UserListOptions}
+        onChange={(input: { value: number; label: string }) => {
+          if (input) {
+            setSelectedUserId(input.value);
           }
-        />
-      )}
+        }}
+        placeholder={
+          <div className="flex flex-row">
+            <p>{t("select_user")}</p>
+          </div>
+        }
+      />
     </>
   );
 };

@@ -6,7 +6,7 @@ import { useFilterContext } from "../UseFilterContext";
 
 const FilterType = () => {
   const { t } = useLocale();
-  const { filter, setSelectedFilter } = useFilterContext();
+  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId } = useFilterContext();
 
   const filterOptions = [
     {
@@ -25,17 +25,19 @@ const FilterType = () => {
       options={filterOptions}
       onChange={(input: { value: "event-type" | "user"; label: string }) => {
         if (input) {
-          if (filter.selectedFilter?.includes(input.value)) {
-            setSelectedFilter(filter.selectedFilter.filter((item) => item !== input.value));
-          } else {
-            setSelectedFilter([...(filter.selectedFilter ?? []), input.value]);
+          // This can multiple values, but for now we only want to have one filter active at a time
+          setSelectedFilter([input.value]);
+          if (input.value === "event-type") {
+            setSelectedUserId(null);
+          } else if (input.value === "user") {
+            setSelectedEventTypeId(null);
           }
         }
       }}
       className="mx-2 w-32 min-w-[140px]"
       placeholder={
-        <div className="flex flex-row">
-          <FiFilter className="m-auto" />
+        <div className="flex flex-row text-gray-900">
+          <FiFilter className="m-auto text-gray-900" />
           {t("add_filter")}
         </div>
       }

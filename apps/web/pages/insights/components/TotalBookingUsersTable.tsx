@@ -4,10 +4,8 @@ import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
 const TotalBookingUsersTable = ({
-  isSuccess,
   data,
 }: {
-  isSuccess: boolean;
   data:
     | { userId: number | null; user: User; emailMd5?: string; count: number; Username?: string }[]
     | undefined;
@@ -16,7 +14,7 @@ const TotalBookingUsersTable = ({
     <Table>
       <TableBody>
         <>
-          {isSuccess ? (
+          {data && data?.length > 0 ? (
             data?.map((item) => (
               <TableRow key={item.userId}>
                 <TableCell className="flex flex-row">
