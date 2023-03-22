@@ -1,7 +1,9 @@
-import type { TimeUnit, WorkflowTemplates } from "@prisma/client";
+import type { TimeUnit } from "@prisma/client";
+import { WorkflowTemplates } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
+import emailReminderTemplate from "ee/workflows/lib/reminders/templates/emailReminderTemplate";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
@@ -76,37 +78,49 @@ export const scheduleEmailReminder = async (
       break;
   }
 
-  const emailContent = {
+  let emailContent = {
     emailSubject,
     emailBody: {
       text: emailBody,
       html: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
     },
   };
-  const variables: VariablesType = {
-    eventName: evt.title || "",
-    organizerName: evt.organizer.name,
-    attendeeName: evt.attendees[0].name,
-    attendeeEmail: evt.attendees[0].email,
-    eventDate: dayjs(startTime).tz(timeZone),
-    eventTime: dayjs(startTime).tz(timeZone),
-    eventEndTime: dayjs(endTime).tz(timeZone),
-    timeZone: timeZone,
-    location: evt.location,
-    additionalNotes: evt.additionalNotes,
-    customInputs: evt.customInputs,
-    meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-  };
+  if (emailBody) {
+    const variables: VariablesType = {
+      eventName: evt.title || "",
+      organizerName: evt.organizer.name,
+      attendeeName: evt.attendees[0].name,
+      attendeeEmail: evt.attendees[0].email,
+      eventDate: dayjs(startTime).tz(timeZone),
+      eventTime: dayjs(startTime).tz(timeZone),
+      eventEndTime: dayjs(endTime).tz(timeZone),
+      timeZone: timeZone,
+      location: evt.location,
+      additionalNotes: evt.additionalNotes,
+      customInputs: evt.customInputs,
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+    };
 
-  const locale =
-    action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-      ? evt.attendees[0].language?.locale
-      : evt.organizer.language.locale;
+    const locale =
+      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
+        ? evt.attendees[0].language?.locale
+        : evt.organizer.language.locale;
 
-  const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
-  emailContent.emailSubject = emailSubjectTemplate.text;
-  emailContent.emailBody = await customTemplate(emailBody, variables, locale);
-
+    const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
+    emailContent.emailSubject = emailSubjectTemplate.text;
+    emailContent.emailBody = await customTemplate(emailBody, variables, locale);
+  } else if (template === WorkflowTemplates.REMINDER) {
+    emailContent = emailReminderTemplate(
+      false,
+      action,
+      startTime,
+      endTime,
+      evt.title,
+      timeZone,
+      attendeeName,
+      name
+    );
+  }
   if (
     triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
     triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||

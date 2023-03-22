@@ -150,47 +150,46 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       };
 
-      switch (reminder.workflowStep.template) {
-        case WorkflowTemplates.REMINDER:
-          emailContent = emailReminderTemplate(
-            false,
-            reminder.workflowStep.action,
-            reminder.booking.startTime.toISOString() || "",
-            reminder.booking.endTime.toISOString() || "",
-            reminder.booking.eventType?.title || "",
-            timeZone || "",
-            attendeeName || "",
-            name || ""
-          );
-          break;
-        case WorkflowTemplates.CUSTOM:
-          const variables: VariablesType = {
-            eventName: reminder.booking.eventType?.title || "",
-            organizerName: reminder.booking.user?.name || "",
-            attendeeName: reminder.booking.attendees[0].name,
-            attendeeEmail: reminder.booking.attendees[0].email,
-            eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
-            eventTime: dayjs(reminder.booking.startTime).tz(timeZone),
-            eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
-            timeZone: timeZone,
-            location: reminder.booking.location || "",
-            additionalNotes: reminder.booking.description,
-            customInputs: reminder.booking.customInputs,
-            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
-          };
-          const emailSubject = await customTemplate(
-            reminder.workflowStep.emailSubject || "",
-            variables,
-            locale || ""
-          );
-          emailContent.emailSubject = emailSubject.text;
-          emailContent.emailBody = await customTemplate(
-            reminder.workflowStep.reminderBody || "",
-            variables,
-            locale || ""
-          );
-          break;
+      //todo are there old steps that have a body from custom and are reminder??
+      if (reminder.workflowStep.reminderBody) {
+        const variables: VariablesType = {
+          eventName: reminder.booking.eventType?.title || "",
+          organizerName: reminder.booking.user?.name || "",
+          attendeeName: reminder.booking.attendees[0].name,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
+          eventTime: dayjs(reminder.booking.startTime).tz(timeZone),
+          eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
+          timeZone: timeZone,
+          location: reminder.booking.location || "",
+          additionalNotes: reminder.booking.description,
+          customInputs: reminder.booking.customInputs,
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
+        };
+        const emailSubject = await customTemplate(
+          reminder.workflowStep.emailSubject || "",
+          variables,
+          locale || ""
+        );
+        emailContent.emailSubject = emailSubject.text;
+        emailContent.emailBody = await customTemplate(
+          reminder.workflowStep.reminderBody || "",
+          variables,
+          locale || ""
+        );
+      } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+        emailContent = emailReminderTemplate(
+          false,
+          reminder.workflowStep.action,
+          reminder.booking.startTime.toISOString() || "",
+          reminder.booking.endTime.toISOString() || "",
+          reminder.booking.eventType?.title || "",
+          timeZone || "",
+          attendeeName || "",
+          name || ""
+        );
       }
+
       if (emailContent.emailSubject.length > 0 && emailContent.emailBody.text.length > 0 && sendTo) {
         const batchIdResponse = await client.request({
           url: "/v3/mail/batch",
