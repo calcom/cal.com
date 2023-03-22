@@ -1,4 +1,3 @@
-import { IdentityProvider } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
@@ -92,7 +91,7 @@ const PasswordView = () => {
 
   const handleSubmit = (values: ChangePasswordSessionFormValues) => {
     const { oldPassword, newPassword, sessionTimeout: newSessionTimeout } = values;
-    
+
     if (!oldPassword && !allowEmptyOldPassword) {
       return formMethods.setError("oldPassword", {
         message: t("old_password_required"),
@@ -127,81 +126,81 @@ const PasswordView = () => {
   return (
     <>
       <Meta title={t("password")} description={t("password_description")} />
-        <Form form={formMethods} handleSubmit={handleSubmit}>
-          {formMethods.formState.errors.apiError && (
-            <div className="pb-6">
-              <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
-            </div>
-          )}
-          <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
-            {!allowEmptyOldPassword && (
+      <Form form={formMethods} handleSubmit={handleSubmit}>
+        {formMethods.formState.errors.apiError && (
+          <div className="pb-6">
+            <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />
+          </div>
+        )}
+        <div className="max-w-[38rem] sm:grid sm:grid-cols-2 sm:gap-x-4">
+          {!allowEmptyOldPassword && (
             <div>
               <PasswordField {...formMethods.register("oldPassword")} label={t("old_password")} />
             </div>
           )}
-            <div>
-              <PasswordField
-                {...formMethods.register("newPassword", {
-                  minLength: {
-                    message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
-                    value: passwordMinLength,
-                  },
-                  pattern: {
-                    message: "Should contain a number, uppercase and lowercase letters",
-                    value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
-                  },
-                })}
-                label={t("new_password")}
-              />
-            </div>
-          </div>
-          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
-            {t("invalid_password_hint", { passwordLength: passwordMinLength })}
-          </p>
-          <div className="mt-8 border-t border-gray-200 py-8">
-            <SettingsToggle
-              title={t("session_timeout")}
-              description={t("session_timeout_description")}
-              checked={sessionTimeoutWatch !== undefined}
-              data-testid="session-check"
-              onCheckedChange={(e) => {
-                if (!e) {
-                  formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
-                } else {
-                  formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
-                }
-              }}
+          <div>
+            <PasswordField
+              {...formMethods.register("newPassword", {
+                minLength: {
+                  message: t(isUser ? "password_hint_min" : "password_hint_admin_min"),
+                  value: passwordMinLength,
+                },
+                pattern: {
+                  message: "Should contain a number, uppercase and lowercase letters",
+                  value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).*$/gm,
+                },
+              })}
+              label={t("new_password")}
             />
-            {sessionTimeoutWatch && (
-              <div className="mt-4 text-sm">
-                <div className="flex items-center">
-                  <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
-                  <Select
-                    options={timeoutOptions}
-                    defaultValue={
-                      sessionTimeout
-                        ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
-                        : timeoutOptions[1]
-                    }
-                    isSearchable={false}
-                    className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
-                    onChange={(event) => {
-                      formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
-          {/* TODO: Why is this Form not submitting? Hacky fix but works */}
-          <Button
-            color="primary"
-            className="mt-8"
-            type="submit"
-            disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
-            {t("update")}
-          </Button>
-        </Form>
+        </div>
+        <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
+          {t("invalid_password_hint", { passwordLength: passwordMinLength })}
+        </p>
+        <div className="mt-8 border-t border-gray-200 py-8">
+          <SettingsToggle
+            title={t("session_timeout")}
+            description={t("session_timeout_description")}
+            checked={sessionTimeoutWatch !== undefined}
+            data-testid="session-check"
+            onCheckedChange={(e) => {
+              if (!e) {
+                formMethods.setValue("sessionTimeout", undefined, { shouldDirty: true });
+              } else {
+                formMethods.setValue("sessionTimeout", 10, { shouldDirty: true });
+              }
+            }}
+          />
+          {sessionTimeoutWatch && (
+            <div className="mt-4 text-sm">
+              <div className="flex items-center">
+                <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
+                <Select
+                  options={timeoutOptions}
+                  defaultValue={
+                    sessionTimeout
+                      ? timeoutOptions.find((tmo) => tmo.value === sessionTimeout)
+                      : timeoutOptions[1]
+                  }
+                  isSearchable={false}
+                  className="block h-[36px] !w-auto min-w-0 flex-none rounded-md text-sm"
+                  onChange={(event) => {
+                    formMethods.setValue("sessionTimeout", event?.value, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        {/* TODO: Why is this Form not submitting? Hacky fix but works */}
+        <Button
+          color="primary"
+          className="mt-8"
+          type="submit"
+          disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
+          {t("update")}
+        </Button>
+      </Form>
     </>
   );
 };
