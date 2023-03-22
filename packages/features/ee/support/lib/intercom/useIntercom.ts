@@ -3,6 +3,7 @@ import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { trpc } from "@calcom/trpc/react";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -16,9 +17,12 @@ const useIntercomHook = isInterComEnabled
         show: noop,
       };
     };
+
 export const useIntercom = () => {
   const hookData = useIntercomHook();
   const { data } = trpc.viewer.me.useQuery();
+  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasTeamPlan } = useHasTeamPlan();
 
   const open = () => {
     hookData.boot({
@@ -26,6 +30,17 @@ export const useIntercom = () => {
       email: data?.email,
       userId: String(data?.id),
       createdAt: String(dayjs(data?.createdDate).unix()),
+      customAttributes: {
+        //keys should be snake cased
+        user_name: data?.username,
+        identity_provider: data?.identityProvider,
+        timezone: data?.timeZone,
+        locale: data?.locale,
+        completed_onboarding: data?.completedOnboarding,
+        has_paid_plan: hasPaidPlan,
+        has_team_plan: hasTeamPlan,
+        metadata: data?.metadata,
+      },
     });
     hookData.show();
   };
