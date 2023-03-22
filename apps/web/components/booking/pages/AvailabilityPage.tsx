@@ -154,6 +154,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
         }}
+        isBrandingHidden={restProps.isBrandingHidden}
       />
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
