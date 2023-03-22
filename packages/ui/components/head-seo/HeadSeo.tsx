@@ -19,6 +19,7 @@ export type HeadSeoProps = {
   nextSeoProps?: NextSeoProps;
   app?: AppImageProps;
   meeting?: MeetingImageProps;
+  isBrandingHidden?: boolean;
 };
 
 /**
@@ -82,11 +83,20 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   // Set the default URL to either the current URL (if self-hosted) or https://cal.com canonical URL
   const defaultUrl = isCalcom ? calcomCanonical : url;
 
-  const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
+  const {
+    title,
+    description,
+    siteName,
+    canonical = defaultUrl,
+    nextSeoProps = {},
+    app,
+    meeting,
+    isBrandingHidden,
+  } = props;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
-  const pageTitle = title + " | " + APP_NAME;
+  const pageTitle = `${title}${isBrandingHidden ? "" : ` | ${APP_NAME}`}`;
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,

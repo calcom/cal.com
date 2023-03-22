@@ -1,8 +1,11 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -22,22 +25,29 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   const telemetry = useTelemetry();
+  const userSettingsSchema = z.object({
+    name: z
+      .string()
+      .min(1)
+      .max(FULL_NAME_LENGTH_MAX_LIMIT, {
+        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+      }),
+  });
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<z.infer<typeof userSettingsSchema>>({
     defaultValues: {
       name: user?.name || "",
     },
     reValidateMode: "onChange",
+    resolver: zodResolver(userSettingsSchema),
   });
 
   useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
-
-  const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();
   const onSuccess = async () => {
@@ -67,7 +77,9 @@ const UserSettings = (props: IUserSettingsProps) => {
             {t("full_name")}
           </label>
           <input
-            {...register("name", defaultOptions)}
+            {...register("name", {
+              required: true,
+            })}
             id="name"
             name="name"
             type="text"
@@ -77,7 +89,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           />
           {errors.name && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
-              {t("required")}
+              {errors.name.message}
             </p>
           )}
         </div>

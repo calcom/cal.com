@@ -431,7 +431,7 @@ export default function Success(props: SuccessProps) {
                       : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
-                  {giphyImage && !needsConfirmation && (
+                  {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
@@ -529,7 +529,9 @@ export default function Success(props: SuccessProps) {
                           {bookingInfo?.attendees.map((attendee) => (
                             <div key={attendee.name} className="mb-3 last:mb-0">
                               {attendee.name && <p>{attendee.name}</p>}
-                              <p className="text-bookinglight">{attendee.email}</p>
+                              <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
+                                {attendee.email}
+                              </p>
                             </div>
                           ))}
                         </div>

@@ -32,7 +32,7 @@ export type BookingInfo = {
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
-  customInputs?: Prisma.JsonValue;
+  responses?: Prisma.JsonValue;
   metadata?: Prisma.JsonValue;
 };
 
@@ -107,7 +107,7 @@ export const scheduleSMSReminder = async (
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,
-        customInputs: evt.customInputs,
+        responses: evt.responses,
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
       const customMessage = await customTemplate(message, variables, locale);
