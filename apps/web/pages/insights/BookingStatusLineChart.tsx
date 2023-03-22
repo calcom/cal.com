@@ -10,7 +10,7 @@ const BookingStatusLineChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const { selectedTeamId, selectedTimeView = "week", dateRange } = filter;
-  const { startDate, endDate } = dateRange;
+  const [startDate, endDate] = dateRange;
 
   if (!startDate || !endDate) return null;
 

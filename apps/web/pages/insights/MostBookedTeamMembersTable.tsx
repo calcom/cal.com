@@ -10,7 +10,7 @@ const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const { dateRange } = filter;
-  const { startDate, endDate } = dateRange;
+  const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
   const { data, isSuccess } = trpc.viewer.analytics.membersWithMostBookings.useQuery({

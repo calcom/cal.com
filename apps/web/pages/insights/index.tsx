@@ -41,10 +41,11 @@ export default function InsightsPage() {
     },
   ];
 
-  const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>({
-    startDate: dayjs().subtract(1, "month"),
-    endDate: dayjs(),
-  });
+  const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
+    dayjs().subtract(1, "month"),
+    dayjs(),
+    "t",
+  ]);
 
   const [selectedTimeView, setSelectedTimeView] =
     useState<FilterContextType["filter"]["selectedTimeView"]>("week");
@@ -126,6 +127,7 @@ export default function InsightsPage() {
                   <a
                     className="text-blue-500 hover:underline"
                     href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+                    {" "}
                     {t("contact_support")}
                   </a>
                 </small>

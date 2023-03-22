@@ -15,6 +15,9 @@ const Filters = () => {
 
       <EventTypeListInTeam />
 
+      <DateSelect />
+
+      {/* @NOTE: To be released in next iteration */}
       {/* <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>
          <Tooltip content={t("settings")}>
                   <Button
@@ -37,8 +40,6 @@ const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-
-      <DateSelect />
     </div>
   );
 };

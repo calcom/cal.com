@@ -4,10 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 
 export type FilterContextType = {
   filter: {
-    dateRange: {
-      startDate: Dayjs;
-      endDate: Dayjs;
-    };
+    dateRange: [Dayjs, Dayjs, null | string];
     selectedTimeView: "year" | "week" | "month";
     selectedFilter: Array<"user" | "event-type"> | null;
     selectedTeamId: number | null;
@@ -15,7 +12,7 @@ export type FilterContextType = {
     selectedUserId: number | null;
     selectedEventTypeId: number | null;
   };
-  setDateRange: (dateRange: { startDate: Dayjs; endDate: Dayjs }) => void;
+  setDateRange: ([start, end, range]: [Dayjs, Dayjs, null | string]) => void;
   setSelectedFilter: (filter: Array<"user" | "event-type"> | null) => void;
   setSelectedTeamId: (teamId: number | null) => void;
   setSelectedTeamName: (teamName: string | null) => void;
