@@ -346,10 +346,16 @@ const useOptions = () => {
 };
 
 const getNextRange = (field?: FieldArrayWithId) => {
-  const nextRangeStart = dayjs((field as unknown as TimeRange).end);
-  const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
+  const nextRangeStart = dayjs((field as unknown as TimeRange).end).utc();
+  const nextRangeEnd =
+    nextRangeStart.hour() === 23
+      ? dayjs(nextRangeStart).add(59, "minutes").add(59, "seconds").add(999, "milliseconds")
+      : dayjs(nextRangeStart).add(1, "hour");
 
-  if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
+  if (
+    nextRangeEnd.isBefore(nextRangeStart.endOf("day")) ||
+    nextRangeEnd.isSame(nextRangeStart.endOf("day"))
+  ) {
     return {
       start: nextRangeStart.toDate(),
       end: nextRangeEnd.toDate(),

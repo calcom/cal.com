@@ -26,6 +26,7 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -595,7 +596,7 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         username: z.string().optional(),
-        name: z.string().optional(),
+        name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
         email: z.string().optional(),
         bio: z.string().optional(),
         avatar: z.string().optional(),

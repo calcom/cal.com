@@ -198,8 +198,16 @@ export const EventSetupTab = (
 
               return (
                 <li
+                  onClick={() => {
+                    locationFormMethods.setValue("locationType", location.type);
+                    locationFormMethods.unregister("locationLink");
+                    locationFormMethods.unregister("locationAddress");
+                    locationFormMethods.unregister("locationPhoneNumber");
+                    setEditingLocationType(location.type);
+                    openLocationModal(location.type);
+                  }}
                   key={`${location.type}${index}`}
-                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
+                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
