@@ -391,6 +391,11 @@ export const AUTH_OPTIONS: AuthOptions = {
             name: true,
             email: true,
             role: true,
+            teams: {
+              include: {
+                team: true,
+              },
+            },
           },
         });
 
@@ -398,9 +403,23 @@ export const AUTH_OPTIONS: AuthOptions = {
           return token;
         }
 
+        // Check if the existingUser has any active teams
+        const belongsToActiveTeam =
+          existingUser.teams.filter((m: { team: { metadata: unknown } }) => {
+            if (!IS_TEAM_BILLING_ENABLED) return true;
+            const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+            if (metadata.success && metadata.data?.subscriptionId) return true;
+            return false;
+          }).length > 0;
+
         return {
-          ...existingUser,
+          id: existingUser.id,
+          username: existingUser.username,
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role,
           ...token,
+          belongsToActiveTeam,
         };
       };
       if (!user) {
