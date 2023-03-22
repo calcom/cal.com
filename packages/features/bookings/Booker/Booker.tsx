@@ -6,6 +6,7 @@ import { shallow } from "zustand/shallow";
 
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
@@ -22,10 +23,8 @@ import { useBookerStore, useInitializeBookerStore } from "./store";
 import type { BookerLayout, BookerProps } from "./types";
 import { useEvent } from "./utils/event";
 
-// @TODO: Test embed view
-/* @TODO: eth signature / gates */
-
 const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: BookerProps) => {
+  const { t } = useLocale();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -83,9 +82,9 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             defaultValue="small_calendar"
             options={[
               // @TODO: Find right icon for grid, plus add a11y labels and tooltips.
-              { value: "small_calendar", label: <FiCalendar /> },
-              { value: "large_calendar", label: <FiGrid /> },
-              { value: "large_timeslots", label: <FiColumns /> },
+              { value: "small_calendar", label: <FiCalendar />, tooltip: t("switch_monthly") },
+              { value: "large_calendar", label: <FiGrid />, tooltip: t("switch_weekly") },
+              { value: "large_timeslots", label: <FiColumns />, tooltip: t("switch_multiday") },
             ]}
           />
         </div>
