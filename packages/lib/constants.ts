@@ -1,4 +1,4 @@
-const VERCEL_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
+const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "";
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.RENDER_EXTERNAL_URL}` : "";
@@ -44,7 +44,7 @@ export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_SLACK = "https://cal.com/slack";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
-export const DOCS_URL = "https://docs.cal.com";
+export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
 export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
@@ -62,3 +62,4 @@ export const IS_STRIPE_ENABLED = !!(
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+export const FULL_NAME_LENGTH_MAX_LIMIT = 50;

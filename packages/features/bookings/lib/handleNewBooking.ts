@@ -131,7 +131,9 @@ const isWithinAvailableHours = (
 
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
-    const endTime = getTime(timeSlotEnd, workingHour.endTime);
+    // workingHours function logic set 1439 minutes when user select the end of the day (11:59) in his schedule
+    // so, we need to add a minute, to avoid, "No available user" error when the last available slot is selected.
+    const endTime = getTime(timeSlotEnd, workingHour.endTime === 1439 ? 1440 : workingHour.endTime);
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
@@ -1483,6 +1485,9 @@ async function handler(
       newBookingData.recurringEventId = reqBody.recurringEventId;
     }
     if (originalRescheduledBooking) {
+      newBookingData.metadata = {
+        ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
+      };
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (newBookingData.attendees?.createMany?.data) {
@@ -1948,7 +1953,7 @@ async function handler(
     await scheduleWorkflowReminders(
       eventType.workflows,
       smsReminderNumber || null,
-      { ...evt, ...{ metadata } },
+      { ...evt, responses, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
