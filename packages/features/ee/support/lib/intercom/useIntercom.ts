@@ -36,7 +36,6 @@ export const useIntercom = () => {
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
-        completed_onboarding: data?.completedOnboarding,
         has_paid_plan: hasPaidPlan,
         has_team_plan: hasTeamPlan,
         metadata: data?.metadata,
