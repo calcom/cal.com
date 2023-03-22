@@ -63,7 +63,7 @@ export const BookerGates = ({ children }: { children: React.ReactNode }) => {
   const event = useEvent();
   const setEthSignature = useBookerStore((state) => state.setEthSignature);
   const rainbowAppData = event?.data ? getEventTypeAppData(event.data, "rainbow") || {} : {};
-  const gates = [];
+  const gates: Gate[] = [];
   if (rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress) {
     gates.push("rainbow");
   }
@@ -77,7 +77,7 @@ export const BookerGates = ({ children }: { children: React.ReactNode }) => {
   );
 
   useEffect(() => {
-    setEthSignature(gateState.rainbowToken);
+    setEthSignature(gateState.rainbowToken || null);
   }, [gateState, setEthSignature]);
 
   return (
