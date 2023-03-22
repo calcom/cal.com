@@ -65,7 +65,7 @@ export function TimezoneSelect({
           classNames(
             variant === "default"
               ? "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal  focus-within:ring-2 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900 rounded-md border py-2 px-3"
-              : "text-sm",
+              : "text-sm ",
             props.classNames?.control
           ), // We remove all styling here to fit theme of booking page if variant ==="minimal" - no min-h also
         singleValue: () =>
