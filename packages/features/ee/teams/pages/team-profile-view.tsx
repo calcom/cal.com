@@ -10,7 +10,6 @@ import { z } from "zod";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitizeClientSide";
 import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
@@ -257,7 +256,7 @@ const ProfileView = () => {
                     <Label className="mt-5 text-black">{t("about")}</Label>
                     <div
                       className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: markdownAndSanitize(team.bio) }}
+                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>
                 )}

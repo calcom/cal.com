@@ -8,7 +8,8 @@ type Option = { value: "event-type" | "user"; label: string };
 
 export const FilterType = () => {
   const { t } = useLocale();
-  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId } = useFilterContext();
+  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId, filter } = useFilterContext();
+  const { selectedFilter } = filter;
 
   const filterOptions: Option[] = [
     {
@@ -21,18 +22,22 @@ export const FilterType = () => {
     },
   ];
 
+  const filterValue = selectedFilter
+    ? filterOptions.find((option) => option.value === selectedFilter[0])
+    : undefined;
+
   return (
     <Select<Option>
-      isMulti={false}
-      isSearchable={false}
       options={filterOptions}
-      onChange={(input) => {
-        if (input) {
+      value={filterValue}
+      defaultValue={filterValue}
+      onChange={(newValue) => {
+        if (newValue) {
           // This can multiple values, but for now we only want to have one filter active at a time
-          setSelectedFilter([input.value]);
-          if (input.value === "event-type") {
+          setSelectedFilter([newValue.value]);
+          if (newValue.value === "event-type") {
             setSelectedUserId(null);
-          } else if (input.value === "user") {
+          } else if (newValue.value === "user") {
             setSelectedEventTypeId(null);
           }
         }

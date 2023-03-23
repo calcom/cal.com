@@ -1,6 +1,3 @@
-import { useState } from "react";
-
-import dayjs from "@calcom/dayjs";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -9,8 +6,8 @@ import {
   MostBookedTeamMembersTable,
   PopularEventsTable,
 } from "@calcom/features/insights/components";
-import type { FilterContextType } from "@calcom/features/insights/context/provider";
-import { FilterProvider } from "@calcom/features/insights/context/provider";
+import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
+import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -20,42 +17,43 @@ import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
 
+const Heading = () => {
+  const { t } = useLocale();
+  const {
+    filter: { selectedTeamName },
+  } = useFilterContext();
+  return (
+    <div className="min-w-52">
+      <p className="text-lg font-semibold">
+        {t("analytics_for_organisation", {
+          organisationName: selectedTeamName,
+        })}
+      </p>
+      <p>{t("subtitle_analytics")}</p>
+    </div>
+  );
+};
+
 export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      icon: <FiUsers className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      icon: <FiRefreshCcw className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      icon: <FiUserPlus className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
   ];
-
-  const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    dayjs().subtract(1, "month"),
-    dayjs(),
-    "t",
-  ]);
-
-  const [selectedTimeView, setSelectedTimeView] =
-    useState<FilterContextType["filter"]["selectedTimeView"]>("week");
-  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(null);
-  const [selectedEventTypeId, setSelectedEventTypeId] =
-    useState<FilterContextType["filter"]["selectedEventTypeId"]>(null);
-  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(null);
-  const [selectedTeamName, setSelectedTeamName] =
-    useState<FilterContextType["filter"]["selectedTeamName"]>(null);
 
   return (
     <div>
@@ -80,32 +78,9 @@ export default function InsightsPage() {
           {!user ? (
             <></>
           ) : (
-            <FilterProvider
-              value={{
-                filter: {
-                  dateRange,
-                  selectedTimeView,
-                  selectedUserId,
-                  selectedTeamId,
-                  selectedTeamName,
-                  selectedEventTypeId,
-                  selectedFilter,
-                },
-                setSelectedFilter: (filter) => setSelectedFilter(filter),
-                setDateRange: (dateRange) => setDateRange(dateRange),
-                setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
-                setSelectedUserId: (selectedUserId) => setSelectedUserId(selectedUserId),
-                setSelectedTeamId: (selectedTeamId) => setSelectedTeamId(selectedTeamId),
-                setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
-                setSelectedEventTypeId: (selectedEventTypeId) => setSelectedEventTypeId(selectedEventTypeId),
-              }}>
-              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between lg:flex-nowrap">
-                <div className="min-w-52">
-                  <p className="text-lg font-semibold">
-                    {t("analytics_for_organisation", { organisationName: selectedTeamName })}
-                  </p>
-                  <p>{t("subtitle_analytics")}</p>
-                </div>
+            <FiltersProvider>
+              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between">
+                <Heading />
                 <Filters />
               </div>
               <div className="mb-4 space-y-6">
@@ -132,7 +107,7 @@ export default function InsightsPage() {
                   </a>
                 </small>
               </div>
-            </FilterProvider>
+            </FiltersProvider>
           )}
         </UpgradeTip>
       </Shell>

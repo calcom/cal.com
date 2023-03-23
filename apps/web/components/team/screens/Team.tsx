@@ -2,14 +2,13 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
 type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
-type MemberType = MembersType[number] & { safeBio: string | null };
-
-type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
+type MemberType = MembersType[number];
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
@@ -31,7 +30,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
               <>
                 <div
                   className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: member.safeBio || "" }}
+                  dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
                 />
               </>
             ) : (
@@ -44,7 +43,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   );
 };
 
-const Members = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
+const Members = ({ members, teamName }: { members: MembersType; teamName: string | null }) => {
   if (!members || members.length === 0) {
     return null;
   }
@@ -58,7 +57,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   );
 };
 
-const Team = ({ team }: { team: TeamTypeWithSafeHtml }) => {
+const Team = ({ team }: { team: TeamType }) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />
