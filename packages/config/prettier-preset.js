@@ -16,7 +16,7 @@ module.exports = {
     "^[./]",
   ],
   importOrderSeparation: true,
-  plugins: [require("./merged-prettier-plugin")],
+  plugins: ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
   overrides: [
     {
       files: ["apps/website/lib/utils/wordlist/wordlist.ts"],
