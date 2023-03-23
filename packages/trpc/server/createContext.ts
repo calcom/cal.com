@@ -5,7 +5,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import prisma from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
+import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
@@ -14,7 +14,21 @@ type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext
 type CreateInnerContextOptions = {
   session: Session | null;
   locale: string;
-  user?: User;
+  user?: Omit<
+    PrismaUser,
+    | "locale"
+    | "twoFactorSecret"
+    | "emailVerified"
+    | "password"
+    | "identityProviderId"
+    | "invitedTo"
+    | "allowDynamicBooking"
+    | "verified"
+  > & {
+    locale: NonNullable<PrismaUser["locale"]>;
+    credentials?: Credential[];
+    selectedCalendars?: Partial<SelectedCalendar>[];
+  };
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
@@ -56,7 +70,6 @@ export const createContext = async (
 
   const locale = getLocaleFromHeaders(req);
   const i18n = await serverSideTranslations(getLocaleFromHeaders(req), ["common", "vital"]);
-
   const contextInner = await createContextInner({ session, i18n, locale });
   return {
     ...contextInner,

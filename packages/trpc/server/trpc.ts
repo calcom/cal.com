@@ -105,13 +105,14 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
 
 const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
   const user = await getUserFromSession({ session });
-  if (!user) {
+  if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   const i18n =
     user.locale && user.locale !== locale
       ? await serverSideTranslations(user.locale, ["common", "vital"])
       : ctx.i18n;
+  locale = user.locale || locale;
   return next({
     ctx: {
       i18n,
@@ -119,7 +120,7 @@ const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next })
       session,
       user: {
         ...user,
-        locale: user.locale || locale,
+        locale,
       },
     },
   });
