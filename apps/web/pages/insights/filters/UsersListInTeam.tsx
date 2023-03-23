@@ -31,7 +31,7 @@ const UserListInTeam = () => {
     <>
       <Select
         isSearchable={false}
-        className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        className="mb-0 ml-2 h-[38px] w-40 min-w-[140px] capitalize md:min-w-[150px] md:max-w-[200px]"
         defaultValue={selectedUserId === null ? data[0].id : selectedUserId}
         options={UserListOptions}
         onChange={(input: { value: number; label: string }) => {

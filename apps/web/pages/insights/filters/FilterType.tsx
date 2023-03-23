@@ -22,6 +22,7 @@ const FilterType = () => {
   return (
     <Select
       isMulti={false}
+      isSearchable={false}
       options={filterOptions}
       onChange={(input: { value: "event-type" | "user"; label: string }) => {
         if (input) {
@@ -34,7 +35,7 @@ const FilterType = () => {
           }
         }
       }}
-      className="mx-2 w-32 min-w-[140px]"
+      className="w-32 min-w-[130px]"
       placeholder={
         <div className="flex flex-row text-gray-900">
           <FiFilter className="m-auto text-gray-900" />

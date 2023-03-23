@@ -6,7 +6,7 @@ import { UserListInTeam } from "./UsersListInTeam";
 
 const Filters = () => {
   return (
-    <div className="mt-2 inline-flex h-10 overflow-x-scroll md:mt-0 md:overflow-x-auto">
+    <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row md:flex-nowrap">
       <TeamList />
 
       <FilterType />

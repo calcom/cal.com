@@ -40,7 +40,7 @@ const EventTypeListInTeam = () => {
           }
         }}
         defaultValue={eventTypeValue}
-        className="mx-2 w-48 min-w-[180px]"
+        className="w-52 min-w-[180px]"
         placeholder={
           <div className="flex flex-row">
             <p>{t("select_event_type")}</p>

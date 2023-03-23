@@ -39,7 +39,7 @@ const TeamList = () => {
             : null
         }
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
-        className="mx-0 mb-0 h-[38px] w-full capitalize md:mr-2 md:min-w-[150px] md:max-w-[200px]"
+        className="h-[38px] w-[90vw] capitalize md:min-w-[100px] md:max-w-[100px]"
         options={UserListOptions}
         onChange={(input: { value: number; label: string }) => {
           if (input) {

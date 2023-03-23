@@ -99,8 +99,8 @@ export default function InsightsPage() {
                 setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
                 setSelectedEventTypeId: (selectedEventTypeId) => setSelectedEventTypeId(selectedEventTypeId),
               }}>
-              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between md:flex-nowrap">
-                <div>
+              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between lg:flex-nowrap">
+                <div className="min-w-52">
                   <p className="text-lg font-semibold">
                     {t("analytics_for_organisation", { organisationName: selectedTeamName })}
                   </p>
