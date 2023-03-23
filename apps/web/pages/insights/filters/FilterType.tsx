@@ -6,7 +6,8 @@ import { useFilterContext } from "../UseFilterContext";
 
 const FilterType = () => {
   const { t } = useLocale();
-  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId } = useFilterContext();
+  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId, filter } = useFilterContext();
+  const { selectedFilter } = filter;
 
   const filterOptions = [
     {
@@ -19,9 +20,15 @@ const FilterType = () => {
     },
   ];
 
+  const filterValue = selectedFilter
+    ? filterOptions.find((option) => option.value === selectedFilter[0])
+    : undefined;
+
   return (
     <Select<{ label: string; value: string }>
       options={filterOptions}
+      value={filterValue}
+      defaultValue={filterValue}
       onChange={(newValue) => {
         if (newValue) {
           // This can multiple values, but for now we only want to have one filter active at a time

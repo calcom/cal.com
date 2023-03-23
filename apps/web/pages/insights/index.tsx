@@ -1,5 +1,7 @@
 import type { Color } from "@tremor/react";
+import { useRouter } from "next/router";
 import { useState } from "react";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
@@ -41,19 +43,60 @@ export default function InsightsPage() {
     },
   ];
 
+  // useRouter to get initial values from query params
+  const router = useRouter();
+  const { startTime, endTime, teamId, userId, eventTypeId, filter } = router.query;
+  const querySchema = z.object({
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    teamId: z.coerce.number().optional(),
+    userId: z.coerce.number().optional(),
+    eventTypeId: z.coerce.number().optional(),
+    filter: z.enum(["event-type", "user"]).optional(),
+  });
+
+  let startTimeParsed, endTimeParsed, teamIdParsed, userIdParsed, eventTypeIdParsed, filterParsed;
+
+  const safe = querySchema.safeParse({
+    startTime,
+    endTime,
+    teamId,
+    userId,
+    eventTypeId,
+    filter,
+  });
+
+  if (!safe.success) {
+    console.error("Failed to parse query params");
+  } else {
+    startTimeParsed = safe.data.startTime;
+    endTimeParsed = safe.data.endTime;
+    teamIdParsed = safe.data.teamId;
+    userIdParsed = safe.data.userId;
+    eventTypeIdParsed = safe.data.eventTypeId;
+    filterParsed = safe.data.filter;
+  }
+
   const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    dayjs().subtract(1, "month"),
-    dayjs(),
+    startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
+    endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
     "t",
   ]);
 
   const [selectedTimeView, setSelectedTimeView] =
     useState<FilterContextType["filter"]["selectedTimeView"]>("week");
-  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(null);
-  const [selectedEventTypeId, setSelectedEventTypeId] =
-    useState<FilterContextType["filter"]["selectedEventTypeId"]>(null);
-  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(null);
+  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(
+    userIdParsed || null
+  );
+  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(
+    teamIdParsed || null
+  );
+  const [selectedEventTypeId, setSelectedEventTypeId] = useState<
+    FilterContextType["filter"]["selectedEventTypeId"]
+  >(eventTypeIdParsed || null);
+  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(
+    filterParsed && filterParsed.length > 0 ? [filterParsed] : null
+  );
   const [selectedTeamName, setSelectedTeamName] =
     useState<FilterContextType["filter"]["selectedTeamName"]>(null);
 
@@ -91,13 +134,54 @@ export default function InsightsPage() {
                   selectedEventTypeId,
                   selectedFilter,
                 },
-                setSelectedFilter: (filter) => setSelectedFilter(filter),
-                setDateRange: (dateRange) => setDateRange(dateRange),
+                setSelectedFilter: (filter) => {
+                  setSelectedFilter(filter);
+                  router.push({
+                    query: {
+                      ...router.query,
+                      filter,
+                    },
+                  });
+                },
+                setDateRange: (dateRange) => {
+                  setDateRange(dateRange);
+                  router.push({
+                    query: {
+                      ...router.query,
+                      startTime: dateRange[0].toISOString(),
+                      endTime: dateRange[1].toISOString(),
+                    },
+                  });
+                },
                 setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
-                setSelectedUserId: (selectedUserId) => setSelectedUserId(selectedUserId),
-                setSelectedTeamId: (selectedTeamId) => setSelectedTeamId(selectedTeamId),
+                setSelectedUserId: (selectedUserId) => {
+                  setSelectedUserId(selectedUserId);
+                  router.push({
+                    query: {
+                      ...router.query,
+                      userId: selectedUserId,
+                    },
+                  });
+                },
+                setSelectedTeamId: (selectedTeamId) => {
+                  setSelectedTeamId(selectedTeamId);
+                  router.push({
+                    query: {
+                      ...router.query,
+                      teamId: selectedTeamId,
+                    },
+                  });
+                },
                 setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
-                setSelectedEventTypeId: (selectedEventTypeId) => setSelectedEventTypeId(selectedEventTypeId),
+                setSelectedEventTypeId: (selectedEventTypeId) => {
+                  setSelectedEventTypeId(selectedEventTypeId);
+                  router.push({
+                    query: {
+                      ...router.query,
+                      eventTypeId: selectedEventTypeId,
+                    },
+                  });
+                },
               }}>
               <div className="mb-4 ml-auto flex w-full flex-wrap justify-between lg:flex-nowrap">
                 <div className="min-w-52">

@@ -19,32 +19,23 @@ const PopularEventsTable = () => {
     userId: selectedUserId ?? undefined,
   });
 
-  if (!startDate || !endDate || !teamId) return null;
+  if (!isSuccess || !startDate || !endDate || !teamId || data?.length === 0) return null;
 
   return (
     <Card>
       <Title>{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
-          {isSuccess ? (
-            data?.map((item) => (
-              <TableRow key={item.eventTypeId}>
-                <TableCell>{item.eventTypeName}</TableCell>
-                <TableCell>
-                  <Text>
-                    <strong>{item.count}</strong>
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell>{t("no_event_types_found")}</TableCell>
+          {data?.map((item) => (
+            <TableRow key={item.eventTypeId}>
+              <TableCell>{item.eventTypeName}</TableCell>
               <TableCell>
-                <strong>0</strong>
+                <Text>
+                  <strong>{item.count}</strong>
+                </Text>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
     </Card>

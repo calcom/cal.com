@@ -35,6 +35,7 @@ const EventTypeListInTeam = () => {
             !!selectedEventTypeId && setSelectedEventTypeId(selectedEventTypeId);
           }
         }}
+        value={eventTypeValue ? { value: eventTypeValue?.slug, label: eventTypeValue?.title } : null}
         defaultValue={eventTypeValue ? { value: eventTypeValue?.slug, label: eventTypeValue?.title } : null}
         className="w-52 min-w-[180px]"
         placeholder={
