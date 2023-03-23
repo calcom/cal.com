@@ -23,7 +23,7 @@ import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
-import { insightsRouter } from "@calcom/features/insights/trpc-router";
+import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { FULL_NAME_LENGTH_MAX_LIMIT, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";

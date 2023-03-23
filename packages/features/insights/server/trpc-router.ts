@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { authedProcedure, router, isAuthed } from "@calcom/trpc/server/trpc";
+import { authedProcedure, isAuthed, router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
