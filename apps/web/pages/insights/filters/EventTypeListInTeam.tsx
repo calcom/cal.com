@@ -1,17 +1,16 @@
 import { isArray } from "lodash";
 
+import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
-
-import { useFilterContext } from "../UseFilterContext";
 
 const EventTypeListInTeam = () => {
   const { t } = useLocale();
   const { filter, setSelectedEventTypeId } = useFilterContext();
   const { selectedTeamId, selectedEventTypeId } = filter;
   const { selectedFilter } = filter;
-  const { data, isSuccess } = trpc.viewer.analytics.eventTypeList.useQuery({
+  const { data, isSuccess } = trpc.viewer.insights.eventTypeList.useQuery({
     teamId: selectedTeamId,
   });
 

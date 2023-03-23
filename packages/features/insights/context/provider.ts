@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import * as React from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 
@@ -21,10 +21,10 @@ export type FilterContextType = {
   setSelectedTimeView: (timeView: "year" | "week" | "month") => void;
 };
 
-const FilterContext = createContext<FilterContextType | null>(null);
+export const FilterContext = React.createContext<FilterContextType | null>(null);
 
 export function useFilterContext() {
-  const context = useContext(FilterContext);
+  const context = React.useContext(FilterContext);
 
   if (!context) {
     throw new Error("useFilterContext must be used within a FilterProvider");
@@ -33,4 +33,6 @@ export function useFilterContext() {
   return context;
 }
 
-export default FilterContext;
+export function FilterProvider<F extends FilterContextType>(props: { value: F; children: React.ReactNode }) {
+  return React.createElement(FilterContext.Provider, { value: props.value }, props.children);
+}

@@ -3,20 +3,20 @@ import { Card, Title } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "./UseFilterContext";
-import { TotalBookingUsersTable } from "./components/TotalBookingUsersTable";
+import { useFilterContext } from "../context/provider";
+import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
-const MostBookedTeamMembersTable = () => {
+export const LeastBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId } = filter;
+  const { dateRange, selectedTeamId, selectedEventTypeId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess } = trpc.viewer.analytics.membersWithMostBookings.useQuery({
+  const { data, isSuccess } = trpc.viewer.insights.membersWithLeastBookings.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId,
+    teamId: selectedTeamId,
     eventTypeId: selectedEventTypeId ?? undefined,
   });
 
@@ -24,10 +24,8 @@ const MostBookedTeamMembersTable = () => {
 
   return (
     <Card>
-      <Title>{t("most_booked_members")}</Title>
+      <Title>{t("least_booked_members")}</Title>
       <TotalBookingUsersTable data={data} />
     </Card>
   );
 };
-
-export { MostBookedTeamMembersTable };

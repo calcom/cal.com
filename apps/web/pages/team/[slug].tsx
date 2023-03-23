@@ -10,7 +10,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
+import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -113,7 +113,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             <>
               <div
                 className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
           )}
@@ -187,11 +187,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...user,
       avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
+    descriptionAsSafeHTML: markdownAndSanitize(type.description),
   }));
+
+  const safeBio = markdownAndSanitize(team.bio) || "";
+
+  const members = team.members.map((member) => {
+    return { ...member, safeBio: markdownAndSanitize(member.bio || "") };
+  });
 
   return {
     props: {
-      team,
+      team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
     },
   } as const;

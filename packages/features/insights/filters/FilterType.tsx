@@ -2,14 +2,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select } from "@calcom/ui";
 import { FiFilter } from "@calcom/ui/components/icon";
 
-import { useFilterContext } from "../UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
-const FilterType = () => {
+type Option = { value: "event-type" | "user"; label: string };
+
+export const FilterType = () => {
   const { t } = useLocale();
   const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId, filter } = useFilterContext();
   const { selectedFilter } = filter;
 
-  const filterOptions = [
+  const filterOptions: Option[] = [
     {
       label: t("event_type"),
       value: "event-type",
@@ -50,5 +52,3 @@ const FilterType = () => {
     />
   );
 };
-
-export { FilterType };

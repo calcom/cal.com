@@ -10,7 +10,7 @@ interface ITimeRange {
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
-class EventsAnalytics {
+class EventsInsights {
   static getBookingsInTimeRange = async (timeRange: ITimeRange, where: Prisma.BookingWhereInput) => {
     const { start, end } = timeRange;
 
@@ -176,4 +176,4 @@ class EventsAnalytics {
   };
 }
 
-export { EventsAnalytics };
+export { EventsInsights };

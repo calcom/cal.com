@@ -1,14 +1,23 @@
 import { useEffect } from "react";
 
+import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
-import { useFilterContext } from "../UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
-const TeamList = () => {
+type Team = RouterOutputs["viewer"]["insights"]["teamListForUser"][number];
+type Option = { value: number; label: string };
+
+const mapTeamToOption = (team: Team): Option => ({
+  value: team.id,
+  label: team.name ?? "",
+});
+
+export const TeamList = () => {
   const { filter, setSelectedTeamId, setSelectedTeamName } = useFilterContext();
   const { selectedTeamId } = filter;
-  const { data, isSuccess } = trpc.viewer.analytics.teamListForUser.useQuery();
+  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery();
 
   useEffect(() => {
     if (data && data?.length > 0) {
@@ -17,31 +26,22 @@ const TeamList = () => {
     }
   }, [data]);
 
-  const UserListOptions =
-    data?.map((item) => ({
-      value: item.id,
-      label: item.name ?? "",
-    })) || ([{ label: "Empty", value: -1 }] as { value: number; label: string }[]);
+  const UserListOptions = data?.map(mapTeamToOption) || ([{ label: "Empty", value: -1 }] as Option[]);
+  const selectedTeam = data?.find((item) => item.id === selectedTeamId);
+  const teamValue = selectedTeam ? mapTeamToOption(selectedTeam) : null;
 
   if (!isSuccess || !selectedTeamId || data?.length === 0) return null;
 
   return (
     <>
-      <Select
+      <Select<Option>
         isSearchable={false}
         isMulti={false}
-        value={
-          selectedTeamId
-            ? {
-                value: selectedTeamId,
-                label: data.find((item: { id: number; name: string }) => item.id === selectedTeamId)?.name,
-              }
-            : null
-        }
+        value={teamValue}
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
         className="h-[38px] w-[90vw] capitalize md:min-w-[100px] md:max-w-[100px]"
         options={UserListOptions}
-        onChange={(input: { value: number; label: string }) => {
+        onChange={(input) => {
           if (input) {
             setSelectedTeamId(input.value);
             setSelectedTeamName(input.label);
@@ -51,5 +51,3 @@ const TeamList = () => {
     </>
   );
 };
-
-export { TeamList };

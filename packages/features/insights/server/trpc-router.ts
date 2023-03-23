@@ -3,11 +3,37 @@ import crypto from "crypto";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { EventsAnalytics } from "@calcom/features/analytics/events";
+import { authedProcedure, isAuthed, router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, router, userBelongsToTeamProcedure } from "../../trpc";
+import { EventsInsights } from "./events";
+
+const UserBelongsToTeamInput = z.object({
+  teamId: z.coerce.number().optional(),
+});
+
+const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, rawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+  if (!parse.success) {
+    throw new TRPCError({ code: "BAD_REQUEST" });
+  }
+
+  const team = await ctx.prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: parse.data.teamId,
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return next();
+});
+
+const userBelongsToTeamProcedure = authedProcedure.use(userBelongsToTeamMiddleware);
 
 const UserSelect = {
   id: true,
@@ -40,7 +66,7 @@ const emptyResponseEventsByStatus = {
   },
 };
 
-export const analyticsRouter = router({
+export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure
     .input(
       z.object({
@@ -53,17 +79,9 @@ export const analyticsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate, eventTypeId, userId } = input;
-      const user = ctx.user;
 
       if (!input.teamId) {
         return emptyResponseEventsByStatus;
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const whereConditional: Prisma.BookingWhereInput = {
@@ -79,7 +97,7 @@ export const analyticsRouter = router({
       }
 
       // Migrate to use prisma views
-      const baseBookings = await EventsAnalytics.getBaseBookingForEventStatus({
+      const baseBookings = await EventsInsights.getBaseBookingForEventStatus({
         ...whereConditional,
         createdAt: {
           gte: new Date(startDate),
@@ -93,14 +111,14 @@ export const analyticsRouter = router({
 
       const baseBookingIds = baseBookings.map((b) => b.id);
 
-      const totalRescheduled = await EventsAnalytics.getTotalRescheduledEvents(baseBookingIds);
+      const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseBookingIds);
 
-      const totalCancelled = await EventsAnalytics.getTotalCancelledEvents(baseBookingIds);
+      const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseBookingIds);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
 
-      const lastPeriodBaseBookings = await EventsAnalytics.getBaseBookingForEventStatus({
+      const lastPeriodBaseBookings = await EventsInsights.getBaseBookingForEventStatus({
         ...whereConditional,
         createdAt: {
           gte: lastPeriodStartDate.toDate(),
@@ -113,34 +131,32 @@ export const analyticsRouter = router({
 
       const lastPeriodBaseBookingIds = lastPeriodBaseBookings.map((b) => b.id);
 
-      const lastPeriodTotalRescheduled = await EventsAnalytics.getTotalRescheduledEvents(
+      const lastPeriodTotalRescheduled = await EventsInsights.getTotalRescheduledEvents(
         lastPeriodBaseBookingIds
       );
 
-      const lastPeriodTotalCancelled = await EventsAnalytics.getTotalCancelledEvents(
-        lastPeriodBaseBookingIds
-      );
+      const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseBookingIds);
 
       return {
         empty: false,
         created: {
           count: baseBookings.length,
-          deltaPrevious: EventsAnalytics.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
+          deltaPrevious: EventsInsights.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
         },
         completed: {
           count: baseBookings.length - totalCancelled - totalRescheduled,
-          deltaPrevious: EventsAnalytics.getPercentage(
+          deltaPrevious: EventsInsights.getPercentage(
             baseBookings.length - totalCancelled - totalRescheduled,
             lastPeriodBaseBookings.length - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
           ),
         },
         rescheduled: {
           count: totalRescheduled,
-          deltaPrevious: EventsAnalytics.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
+          deltaPrevious: EventsInsights.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
         },
         cancelled: {
           count: totalCancelled,
-          deltaPrevious: EventsAnalytics.getPercentage(totalCancelled, lastPeriodTotalCancelled),
+          deltaPrevious: EventsInsights.getPercentage(totalCancelled, lastPeriodTotalCancelled),
         },
         previousRange: {
           startDate: lastPeriodStartDate.format("YYYY-MM-DD"),
@@ -172,13 +188,6 @@ export const analyticsRouter = router({
       const endDate = dayjs(endDateString);
       const user = ctx.user;
       const timeView = inputTimeView;
-      // Just for type safety but authedProcedure should have already checked this
-
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
 
       let whereConditional: Prisma.BookingWhereInput = {
         eventType: {
@@ -203,7 +212,7 @@ export const analyticsRouter = router({
       }
 
       // Get timeline data
-      const timeline = await EventsAnalytics.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
+      const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
 
       // iterate timeline and fetch data
       if (!timeline) {
@@ -227,28 +236,28 @@ export const analyticsRouter = router({
         const endDate = dayjs(date).endOf(startOfEndOf);
 
         const promisesResult = await Promise.all([
-          EventsAnalytics.getCreatedEventsInTimeRange(
+          EventsInsights.getCreatedEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getCompletedEventsInTimeRange(
+          EventsInsights.getCompletedEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getRescheduledEventsInTimeRange(
+          EventsInsights.getRescheduledEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getCancelledEventsInTimeRange(
+          EventsInsights.getCancelledEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
@@ -280,13 +289,6 @@ export const analyticsRouter = router({
 
       if (!input.teamId) {
         return [];
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
@@ -364,13 +366,6 @@ export const analyticsRouter = router({
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
 
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-
       const whereConditional: Prisma.BookingWhereInput = {
         eventType: {
           teamId: teamId,
@@ -385,8 +380,8 @@ export const analyticsRouter = router({
         whereConditional["userId"] = userId;
       }
 
-      const timeView = EventsAnalytics.getTimeView("week", startDate, endDate);
-      const timeLine = await EventsAnalytics.getTimeLine("week", startDate, endDate);
+      const timeView = EventsInsights.getTimeView("week", startDate, endDate);
+      const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
 
       if (!timeLine) {
         return [];
@@ -446,13 +441,6 @@ export const analyticsRouter = router({
         return [];
       }
       const user = ctx.user;
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
         teamId: teamId,
       };
@@ -518,14 +506,6 @@ export const analyticsRouter = router({
       const { teamId, startDate, endDate, eventTypeId } = input;
       if (!teamId) {
         return [];
-      }
-      const user = ctx.user;
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
@@ -610,17 +590,13 @@ export const analyticsRouter = router({
   teamListForUser: authedProcedure.query(async ({ ctx }) => {
     const user = ctx.user;
 
-    // Just for type safety but authedProcedure should have already checked this
-    if (!user) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
-    }
-
     // Look if user it's admin in multiple teams
     const belongsToTeams = await ctx.prisma.membership.findMany({
       where: {
         userId: user.id,
+        team: {
+          slug: { not: null },
+        },
         OR: [
           {
             role: "ADMIN",
@@ -641,17 +617,7 @@ export const analyticsRouter = router({
         },
       },
     });
-    const result = belongsToTeams.map(
-      (
-        membership: Prisma.MembershipGetPayload<{
-          include: {
-            team: {
-              select: { id: true; name: true; logo: true; slug: true };
-            };
-          };
-        }>
-      ) => membership.team
-    );
+    const result = belongsToTeams.map((membership) => membership.team);
 
     return result;
   }),
@@ -666,13 +632,6 @@ export const analyticsRouter = router({
 
       if (!input.teamId) {
         return [];
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const membership = await ctx.prisma.membership.findFirst({
@@ -721,13 +680,6 @@ export const analyticsRouter = router({
             title: true;
           };
         }>[];
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const membership = await ctx.prisma.membership.findFirst({

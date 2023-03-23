@@ -3,11 +3,11 @@ import { DateRangePicker } from "@tremor/react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { useFilterContext } from "../UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
 type RangeType = "tdy" | "w" | "t" | "m" | "y" | undefined | null;
 
-const DateSelect = () => {
+export const DateSelect = () => {
   const { t } = useLocale();
   const { filter, setDateRange } = useFilterContext();
   const currentDate = dayjs();
@@ -56,5 +56,3 @@ const DateSelect = () => {
     />
   );
 };
-
-export { DateSelect };
