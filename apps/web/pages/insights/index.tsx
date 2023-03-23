@@ -1,24 +1,24 @@
-import type { Color } from "@tremor/react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import {
+  AverageEventDurationChart,
+  BookingKPICards,
+  BookingStatusLineChart,
+  LeastBookedTeamMembersTable,
+  MostBookedTeamMembersTable,
+  PopularEventsTable,
+} from "@calcom/features/insights/components";
+import type { FilterContextType } from "@calcom/features/insights/context/provider";
+import { FilterProvider } from "@calcom/features/insights/context/provider";
+import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
+import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { ButtonGroup, Button } from "@calcom/ui";
-import { FiUsers, FiRefreshCcw, FiUserPlus } from "@calcom/ui/components/icon";
-
-import { UpgradeTip } from "../../../../packages/features/tips";
-import { AverageEventDurationChart } from "./AverageEventDurationChart";
-import { BookingKPICards } from "./BookingKPICards";
-import { BookingStatusLineChart } from "./BookingStatusLineChart";
-import { LeastBookedTeamMembersTable } from "./LeastBookedTeamMembersTable";
-import { MostBookedTeamMembersTable } from "./MostBookedTeamMembersTable";
-import { PopularEventsTable } from "./PopularEventsTable";
-import type { FilterContextType } from "./UseFilterContext";
-import FilterContext from "./UseFilterContext";
-import { Filters } from "./filters";
+import { Button, ButtonGroup } from "@calcom/ui";
+import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
 
 export default function InsightsPage() {
   const { t } = useLocale();
@@ -80,7 +80,7 @@ export default function InsightsPage() {
           {!user ? (
             <></>
           ) : (
-            <FilterContext.Provider
+            <FilterProvider
               value={{
                 filter: {
                   dateRange,
@@ -132,32 +132,10 @@ export default function InsightsPage() {
                   </a>
                 </small>
               </div>
-            </FilterContext.Provider>
+            </FilterProvider>
           )}
         </UpgradeTip>
       </Shell>
     </div>
   );
 }
-
-const valueFormatter = (number: number) => `${Intl.NumberFormat().format(number).toString()}`;
-
-const colors: { [key: string]: Color } = {
-  increase: "emerald",
-  moderateIncrease: "emerald",
-  unchanged: "orange",
-  moderateDecrease: "rose",
-  decrease: "rose",
-};
-
-const CalculateDeltaType = (delta: number) => {
-  if (delta > 0) {
-    return delta > 10 ? "increase" : "moderateIncrease";
-  } else if (delta < 0) {
-    return delta < -10 ? "decrease" : "moderateDecrease";
-  } else {
-    return "unchanged";
-  }
-};
-
-export { valueFormatter, colors, CalculateDeltaType };

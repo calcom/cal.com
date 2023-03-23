@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui";
 
-const TotalBookingUsersTable = ({
+export const TotalBookingUsersTable = ({
   data,
 }: {
   data:
@@ -47,5 +47,3 @@ const TotalBookingUsersTable = ({
     </Table>
   );
 };
-
-export { TotalBookingUsersTable };

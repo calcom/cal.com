@@ -4,7 +4,7 @@ import { FilterType } from "./FilterType";
 import { TeamList } from "./TeamList";
 import { UserListInTeam } from "./UsersListInTeam";
 
-const Filters = () => {
+export const Filters = () => {
   return (
     <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row md:flex-nowrap">
       <TeamList />
@@ -43,5 +43,3 @@ const Filters = () => {
     </div>
   );
 };
-
-export { Filters };

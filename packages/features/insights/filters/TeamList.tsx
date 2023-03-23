@@ -3,12 +3,14 @@ import { useEffect } from "react";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
-import { useFilterContext } from "../UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
-const TeamList = () => {
+type Option = { value: number; label: string };
+
+export const TeamList = () => {
   const { filter, setSelectedTeamId, setSelectedTeamName } = useFilterContext();
   const { selectedTeamId } = filter;
-  const { data, isSuccess } = trpc.viewer.analytics.teamListForUser.useQuery();
+  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery();
 
   useEffect(() => {
     if (data && data?.length > 0) {
@@ -27,7 +29,7 @@ const TeamList = () => {
 
   return (
     <>
-      <Select
+      <Select<Option>
         isSearchable={false}
         isMulti={false}
         value={
@@ -36,12 +38,12 @@ const TeamList = () => {
                 value: selectedTeamId,
                 label: data.find((item: { id: number; name: string }) => item.id === selectedTeamId)?.name,
               }
-            : null
+            : undefined
         }
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
         className="h-[38px] w-[90vw] capitalize md:min-w-[100px] md:max-w-[100px]"
         options={UserListOptions}
-        onChange={(input: { value: number; label: string }) => {
+        onChange={(input) => {
           if (input) {
             setSelectedTeamId(input.value);
             setSelectedTeamName(input.label);
@@ -51,5 +53,3 @@ const TeamList = () => {
     </>
   );
 };
-
-export { TeamList };

@@ -3,11 +3,11 @@ import crypto from "crypto";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { EventsAnalytics } from "@calcom/features/analytics/events";
+import { authedProcedure, router, userBelongsToTeamProcedure } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, router, userBelongsToTeamProcedure } from "../../trpc";
+import { EventsInsights } from "./events";
 
 const UserSelect = {
   id: true,
@@ -40,7 +40,7 @@ const emptyResponseEventsByStatus = {
   },
 };
 
-export const analyticsRouter = router({
+export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure
     .input(
       z.object({
@@ -79,7 +79,7 @@ export const analyticsRouter = router({
       }
 
       // Migrate to use prisma views
-      const baseBookings = await EventsAnalytics.getBaseBookingForEventStatus({
+      const baseBookings = await EventsInsights.getBaseBookingForEventStatus({
         ...whereConditional,
         createdAt: {
           gte: new Date(startDate),
@@ -93,14 +93,14 @@ export const analyticsRouter = router({
 
       const baseBookingIds = baseBookings.map((b) => b.id);
 
-      const totalRescheduled = await EventsAnalytics.getTotalRescheduledEvents(baseBookingIds);
+      const totalRescheduled = await EventsInsights.getTotalRescheduledEvents(baseBookingIds);
 
-      const totalCancelled = await EventsAnalytics.getTotalCancelledEvents(baseBookingIds);
+      const totalCancelled = await EventsInsights.getTotalCancelledEvents(baseBookingIds);
 
       const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
       const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
 
-      const lastPeriodBaseBookings = await EventsAnalytics.getBaseBookingForEventStatus({
+      const lastPeriodBaseBookings = await EventsInsights.getBaseBookingForEventStatus({
         ...whereConditional,
         createdAt: {
           gte: lastPeriodStartDate.toDate(),
@@ -113,34 +113,32 @@ export const analyticsRouter = router({
 
       const lastPeriodBaseBookingIds = lastPeriodBaseBookings.map((b) => b.id);
 
-      const lastPeriodTotalRescheduled = await EventsAnalytics.getTotalRescheduledEvents(
+      const lastPeriodTotalRescheduled = await EventsInsights.getTotalRescheduledEvents(
         lastPeriodBaseBookingIds
       );
 
-      const lastPeriodTotalCancelled = await EventsAnalytics.getTotalCancelledEvents(
-        lastPeriodBaseBookingIds
-      );
+      const lastPeriodTotalCancelled = await EventsInsights.getTotalCancelledEvents(lastPeriodBaseBookingIds);
 
       return {
         empty: false,
         created: {
           count: baseBookings.length,
-          deltaPrevious: EventsAnalytics.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
+          deltaPrevious: EventsInsights.getPercentage(baseBookings.length, lastPeriodBaseBookings.length),
         },
         completed: {
           count: baseBookings.length - totalCancelled - totalRescheduled,
-          deltaPrevious: EventsAnalytics.getPercentage(
+          deltaPrevious: EventsInsights.getPercentage(
             baseBookings.length - totalCancelled - totalRescheduled,
             lastPeriodBaseBookings.length - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
           ),
         },
         rescheduled: {
           count: totalRescheduled,
-          deltaPrevious: EventsAnalytics.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
+          deltaPrevious: EventsInsights.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
         },
         cancelled: {
           count: totalCancelled,
-          deltaPrevious: EventsAnalytics.getPercentage(totalCancelled, lastPeriodTotalCancelled),
+          deltaPrevious: EventsInsights.getPercentage(totalCancelled, lastPeriodTotalCancelled),
         },
         previousRange: {
           startDate: lastPeriodStartDate.format("YYYY-MM-DD"),
@@ -203,7 +201,7 @@ export const analyticsRouter = router({
       }
 
       // Get timeline data
-      const timeline = await EventsAnalytics.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
+      const timeline = await EventsInsights.getTimeLine(timeView, dayjs(startDate), dayjs(endDate));
 
       // iterate timeline and fetch data
       if (!timeline) {
@@ -227,28 +225,28 @@ export const analyticsRouter = router({
         const endDate = dayjs(date).endOf(startOfEndOf);
 
         const promisesResult = await Promise.all([
-          EventsAnalytics.getCreatedEventsInTimeRange(
+          EventsInsights.getCreatedEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getCompletedEventsInTimeRange(
+          EventsInsights.getCompletedEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getRescheduledEventsInTimeRange(
+          EventsInsights.getRescheduledEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
             },
             whereConditional
           ),
-          EventsAnalytics.getCancelledEventsInTimeRange(
+          EventsInsights.getCancelledEventsInTimeRange(
             {
               start: startDate,
               end: endDate,
@@ -386,8 +384,8 @@ export const analyticsRouter = router({
         whereConditional["userId"] = userId;
       }
 
-      const timeView = EventsAnalytics.getTimeView("week", startDate, endDate);
-      const timeLine = await EventsAnalytics.getTimeLine("week", startDate, endDate);
+      const timeView = EventsInsights.getTimeView("week", startDate, endDate);
+      const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
 
       if (!timeLine) {
         return [];
@@ -509,7 +507,7 @@ export const analyticsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number(),
+        teamId: z.coerce.number().nullable(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),

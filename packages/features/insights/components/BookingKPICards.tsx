@@ -3,10 +3,10 @@ import { Grid } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "./UseFilterContext";
-import { KPICard } from "./components/KPICard";
+import { useFilterContext } from "../context/provider";
+import { KPICard } from "./KPICard";
 
-const BookingKPICards = () => {
+export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const { dateRange, selectedEventTypeId, selectedUserId } = filter;
@@ -14,7 +14,7 @@ const BookingKPICards = () => {
 
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess } = trpc.viewer.analytics.eventsByStatus.useQuery({
+  const { data, isSuccess } = trpc.viewer.insights.eventsByStatus.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
@@ -60,5 +60,3 @@ const BookingKPICards = () => {
     </Grid>
   );
 };
-
-export { BookingKPICards };

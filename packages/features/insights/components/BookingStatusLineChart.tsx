@@ -3,10 +3,10 @@ import { Card, LineChart, Title } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "./UseFilterContext";
-import { valueFormatter } from "./index";
+import { useFilterContext } from "../context/provider";
+import { valueFormatter } from "../lib/valueFormatter";
 
-const BookingStatusLineChart = () => {
+export const BookingStatusLineChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const { selectedTeamId, selectedTimeView = "week", dateRange, selectedEventTypeId } = filter;
@@ -14,7 +14,7 @@ const BookingStatusLineChart = () => {
 
   if (!startDate || !endDate) return null;
 
-  const { data: eventsTimeLine, isSuccess } = trpc.viewer.analytics.eventsTimeline.useQuery({
+  const { data: eventsTimeLine, isSuccess } = trpc.viewer.insights.eventsTimeline.useQuery({
     timeView: selectedTimeView,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
@@ -38,5 +38,3 @@ const BookingStatusLineChart = () => {
     </Card>
   );
 };
-
-export { BookingStatusLineChart };

@@ -2,16 +2,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
-import { useFilterContext } from "../UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
-const UserListInTeam = () => {
+export const UserListInTeam = () => {
   const { t } = useLocale();
   const { filter, setSelectedUserId } = useFilterContext();
   const { selectedFilter } = filter;
 
   const { selectedTeamId, selectedUserId } = filter;
 
-  const { data, isSuccess } = trpc.viewer.analytics.userList.useQuery({
+  const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
     teamId: selectedTeamId,
   });
 
@@ -48,5 +48,3 @@ const UserListInTeam = () => {
     </>
   );
 };
-
-export { UserListInTeam };

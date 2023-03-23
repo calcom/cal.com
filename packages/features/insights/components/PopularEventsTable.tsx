@@ -3,16 +3,16 @@ import { Card, Title, Table, TableBody, TableCell, TableRow, Text } from "@tremo
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "./UseFilterContext";
+import { useFilterContext } from "../context/provider";
 
-const PopularEventsTable = () => {
+export const PopularEventsTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
   const { dateRange, selectedUserId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess } = trpc.viewer.analytics.popularEventTypes.useQuery({
+  const { data, isSuccess } = trpc.viewer.insights.popularEventTypes.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
@@ -50,5 +50,3 @@ const PopularEventsTable = () => {
     </Card>
   );
 };
-
-export { PopularEventsTable };
