@@ -45,16 +45,23 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // TODO: Sync insight filters with URL parameters
   const [selectedTimeView, setSelectedTimeView] =
     useState<FilterContextType["filter"]["selectedTimeView"]>("week");
-  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(null);
-  const [selectedEventTypeId, setSelectedEventTypeId] =
-    useState<FilterContextType["filter"]["selectedEventTypeId"]>(null);
-  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(null);
+  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(
+    userIdParsed || null
+  );
+  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(
+    teamIdParsed || null
+  );
+  const [selectedEventTypeId, setSelectedEventTypeId] = useState<
+    FilterContextType["filter"]["selectedEventTypeId"]
+  >(eventTypeIdParsed || null);
+  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(
+    filterParsed ? [filterParsed] : null
+  );
   const [selectedTeamName, setSelectedTeamName] =
     useState<FilterContextType["filter"]["selectedTeamName"]>(null);
   const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    dayjs().subtract(1, "month"),
-    dayjs(),
+    startTimeParsed || dayjs().subtract(1, "month"),
+    endTimeParsed || dayjs(),
     "t",
   ]);
   return (
