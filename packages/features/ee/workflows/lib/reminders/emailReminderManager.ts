@@ -3,7 +3,6 @@ import { WorkflowTemplates } from "@prisma/client";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowMethods } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
-import emailReminderTemplate from "ee/workflows/lib/reminders/templates/emailReminderTemplate";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
@@ -12,6 +11,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
+import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 
