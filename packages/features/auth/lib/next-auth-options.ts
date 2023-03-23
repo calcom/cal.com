@@ -413,13 +413,9 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-
+        const { teams, ...existingUserWithoutTeams } = existingUser;
         return {
-          id: existingUser.id,
-          username: existingUser.username,
-          name: existingUser.name,
-          email: existingUser.email,
-          role: existingUser.role,
+          ...existingUserWithoutTeams,
           ...token,
           belongsToActiveTeam,
         };
