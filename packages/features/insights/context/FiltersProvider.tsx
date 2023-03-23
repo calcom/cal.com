@@ -60,8 +60,8 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const [selectedTeamName, setSelectedTeamName] =
     useState<FilterContextType["filter"]["selectedTeamName"]>(null);
   const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    startTimeParsed || dayjs().subtract(1, "month"),
-    endTimeParsed || dayjs(),
+    startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
+    endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
     "t",
   ]);
   return (
