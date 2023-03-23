@@ -240,17 +240,8 @@ export default class GoogleCalendarService implements Calendar {
           conferenceDataVersion: 1,
         },
         function (err, evt) {
-          console.log(
-            "🚀 ~ file: CalendarService.ts:279 ~ GoogleCalendarService ~ returnnewPromise ~ evt:",
-            evt
-          );
-          console.log(
-            "🚀 ~ file: CalendarService.ts:279 ~ GoogleCalendarService ~ returnnewPromise ~ err:",
-            err
-          );
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
-
             return reject(err);
           }
 
