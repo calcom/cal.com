@@ -333,7 +333,7 @@ async function ensureAvailableUsers(
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
     }
-    // no conflicts found, add to a vailable users.
+    // no conflicts found, add to available users.
     if (!foundConflict) {
       availableUsers.push(user);
     }
