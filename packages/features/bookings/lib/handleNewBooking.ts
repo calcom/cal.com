@@ -143,6 +143,9 @@ const isWithinAvailableHours = (
       return true;
     }
   }
+  log.error(
+    `NAUF: isWithinAvailableHours ${JSON.stringify({ ...timeSlot, organizerTimeZone, workingHours })}`
+  );
   return false;
 };
 
@@ -158,10 +161,22 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     const endTime = dayjs(busyTime.end);
     // Check if time is between start and end times
     if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
+      log.error(
+        `NAUF: start between a busy time slot ${JSON.stringify({
+          ...busyTime,
+          time: dayjs(time).format(),
+        })}`
+      );
       return true;
     }
     // Check if slot end time is between start and end time
     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      log.error(
+        `NAUF: Ends between a busy time slot ${JSON.stringify({
+          ...busyTime,
+          time: dayjs(time).add(length, "minutes").format(),
+        })}`
+      );
       return true;
     }
     // Check if startTime is between slot
@@ -537,14 +552,14 @@ async function handler(
       periodCountCalendarDays: eventType.periodCountCalendarDays,
     });
   } catch (error) {
+    log.warn({
+      message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
+    });
     if (error instanceof BookingDateInPastError) {
       // TODO: HttpError should not bleed through to the console.
       log.info(`Booking eventType ${eventTypeId} failed`, error);
       throw new HttpError({ statusCode: 400, message: error.message });
     }
-    log.debug({
-      message: "Unable set timeOutOfBounds. Using false. ",
-    });
   }
 
   if (timeOutOfBounds) {
@@ -552,7 +567,9 @@ async function handler(
       errorCode: "BookingTimeOutOfBounds",
       message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
     };
-
+    log.warn({
+      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
+    });
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
@@ -583,6 +600,7 @@ async function handler(
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
+    log.warn({ message: "NewBooking: Some of the users in this group do not allow dynamic booking" });
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
       statusCode: 400,
@@ -598,7 +616,10 @@ async function handler(
       },
       ...userSelect,
     });
-    if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+    if (!eventTypeUser) {
+      log.warn({ message: "NewBooking: eventTypeUser.notFound" });
+      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+    }
     users.push(eventTypeUser);
   }
 
