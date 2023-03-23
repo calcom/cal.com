@@ -156,7 +156,21 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  cityTimezones: publicProcedure.query(() => cityMapping),
+  cityTimezones: publicProcedure.query(() => {
+    const maxPops: { [key: string]: { city: string; timezone: string; pop: number } } = {};
+    cityMapping.forEach((city) => {
+      const cityPop = city.pop;
+      if (maxPops[city.city]?.pop === undefined || cityPop > maxPops[city.city].pop) {
+        maxPops[city.city] = { city: city.city, timezone: city.timezone, pop: city.pop };
+      }
+    });
+    const uniqueCities = Object.values(maxPops);
+    uniqueCities.forEach((city) => {
+      if (city.city === "London") city.timezone = "Europe/London";
+      if (city.city === "Londonderry") city.city = "London";
+    });
+    return uniqueCities;
+  }),
 });
 
 // routes only available to authenticated users
