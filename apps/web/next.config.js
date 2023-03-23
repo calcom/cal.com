@@ -99,6 +99,11 @@ const nextConfig = {
       skipDefaultConversion: true,
       preventFullImport: true,
     },
+    "@calcom/features/insights/components": {
+      transform: "@calcom/features/insights/components/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
+    },
     lodash: {
       transform: "lodash/{{member}}",
     },

@@ -4,6 +4,7 @@ import superjson from "superjson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import rateLimit from "@calcom/lib/rateLimit";
 import prisma from "@calcom/prisma";
 
 import type { Maybe } from "@trpc/server";
@@ -103,7 +104,7 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
   return result;
 });
 
-const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
+export const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
   const user = await getUserFromSession({ session });
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -135,10 +136,37 @@ const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   });
 });
 
+interface IRateLimitOptions {
+  intervalInMs: number;
+  limit: number;
+}
+const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOptions) =>
+  t.middleware(({ ctx, next }) => {
+    // validate user exists
+    if (!ctx.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const { isRateLimited } = rateLimit({ intervalInMs }).check(limit, ctx.user.id.toString());
+
+    if (isRateLimited) {
+      throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    }
+
+    return next({
+      ctx: {
+        // infers that `user` and `session` are non-nullable to downstream procedures
+        session: ctx.session,
+        user: ctx.user,
+      },
+    });
+  });
+
 export const router = t.router;
 export const mergeRouters = t.mergeRouters;
 export const middleware = t.middleware;
 export const publicProcedure = t.procedure.use(perfMiddleware);
 export const authedProcedure = t.procedure.use(perfMiddleware).use(isAuthed);
-
+export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
+  authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
