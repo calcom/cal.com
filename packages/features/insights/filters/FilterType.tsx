@@ -27,14 +27,14 @@ export const FilterType = () => {
     : undefined;
 
   return (
-    <Select<{ label: string; value: string }>
+    <Select<Option>
       options={filterOptions}
       value={filterValue}
       defaultValue={filterValue}
       onChange={(newValue) => {
         if (newValue) {
           // This can multiple values, but for now we only want to have one filter active at a time
-          setSelectedFilter([newValue.value as "event-type" | "user"]);
+          setSelectedFilter([newValue.value]);
           if (newValue.value === "event-type") {
             setSelectedUserId(null);
           } else if (newValue.value === "user") {
