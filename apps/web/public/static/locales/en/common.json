@@ -1471,10 +1471,11 @@
   "duration_limit_reached": "Duration Limit for this event type has been reached",
   "admin_has_disabled": "An admin has disabled {{appName}}",
   "disabled_app_affects_event_type": "An admin has disabled {{appName}} which affects your event type {{eventType}}",
-  "event_replaced_notice": "Replaced event notice",
+  "event_replaced_notice": "An admin has replaced one of your event types",
   "email_subject_slug_replacement": "A team administrator has replaced your event /{{slug}}",
-  "email_body_slug_replacement_notice": "We would like to let you know an administrator of a team you belong to has replaced your event type <strong>/{{slug}}</strong> for a managed event of their control.",
-  "email_body_slug_replacement_suggestion": "Please be sure you check your updated list of events in your account and modify the fields open to be changed by your team administrator.",
+  "email_body_slug_replacement_notice": "An administrator on the <strong>{{teamName}}</strong> team has replaced your event type <strong>/{{slug}}</strong> with a managed event type that they control.",
+  "email_body_slug_replacement_info": "Your link will continue to work but somesettings for it may have changed. You can review it in event types.",
+  "email_body_slug_replacement_suggestion": "If you have any questions about the event type, please reach out to your administrator.<br /><br />Happy scheduling, <br />The Cal.com team",
   "disable_payment_app": "The admin has disabled {{appName}} which affects your event type {{title}}. Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide the event type to prevent this until your admin renables your payment method.",
   "payment_disabled_still_able_to_book": "Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide the event type to prevent this until your admin reenables your payment method.",
   "app_disabled_with_event_type": "The admin has disabled {{appName}} which affects your event type {{title}}.",
@@ -1685,6 +1686,7 @@
   "default_conferencing_bulk_title": "Bulk update existing event types",
   "invalid_event_name_variables": "There is an invalid variable in your event name",
   "members_default_schedule": "Member's default schedule",
+  "set_by_admin": "Set by team admin",
   "members_default_location": "Member's default location",
   "members_default_schedule_description": "We will use each members default availability schedule. They will be able to edit or change it.",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
@@ -1702,5 +1704,5 @@
   "managed_event_dialog_information_one": "<strong>{{names}}</strong> is already using the <strong>/{{slug}}</strong> url.",
   "managed_event_dialog_information_other": "<strong>{{names}}</strong> are already using the <string>/{{slug}}</strong> url.",
   "managed_event_dialog_clarification": "If you choose to replace it, we will notify them. Go back and remove them if you don't want to overwrite it.",
-  "review_my_event_types": "Review my event types"
+  "review_event_type": "Review Event Type"
 }

@@ -289,12 +289,16 @@ export const sendDisabledAppEmail = async ({
 
 export const sendSlugReplacementEmail = async ({
   email,
+  name,
+  teamName,
   t,
   slug,
 }: {
   email: string;
+  name: string;
+  teamName: string | null;
   t: TFunction;
   slug: string;
 }) => {
-  await sendEmail(() => new SlugReplacementEmail(email, slug, t));
+  await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
 };

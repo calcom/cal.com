@@ -176,11 +176,18 @@ function EventTypeSingleLayout({
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: FiCalendar,
-      info: isManagedEventType
-        ? eventType.schedule === null
-          ? "Member's default schedule"
-          : eventType.scheduleName ?? `default_schedule_name`
-        : `default_schedule_name`,
+      info:
+        isManagedEventType || isChildrenManagedEventType
+          ? eventType.schedule === null
+            ? "Member's default schedule"
+            : isChildrenManagedEventType
+            ? `${
+                eventType.scheduleName
+                  ? `${eventType.scheduleName} - ${t("set_by_admin")}`
+                  : `default_schedule_name`
+              }`
+            : eventType.scheduleName ?? `default_schedule_name`
+          : `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {

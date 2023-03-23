@@ -17,7 +17,6 @@ import updateChildrenEventTypes from "@calcom/lib/handleChildrenEventTypes";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
-import { allManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
 import {
   customInputSchema,
@@ -94,6 +93,7 @@ const EventTypeUpdateInput = _EventTypeModel
         z.object({
           owner: z.object({
             id: z.number(),
+            name: z.string(),
             email: z.string(),
             eventTypeSlugs: z.array(z.string()),
           }),
@@ -728,7 +728,14 @@ export const eventTypesRouter = router({
     const [oldEventType, eventType] = await ctx.prisma.$transaction([
       ctx.prisma.eventType.findFirst({
         where: { id },
-        select: allManagedEventTypeProps,
+        select: {
+          users: true,
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
       }),
       ctx.prisma.eventType.update({
         where: { id },

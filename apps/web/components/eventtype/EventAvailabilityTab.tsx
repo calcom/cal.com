@@ -170,11 +170,12 @@ const EventTypeScheduleDetails = ({
 
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType } = lockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
+    lockedFieldsManager(
+      eventType,
+      t("locked_fields_admin_description"),
+      t("locked_fields_member_description")
+    );
   const { watch } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
 
@@ -192,6 +193,14 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     options.push({
       value: 0,
       label: t("members_default_schedule"),
+      isDefault: false,
+    });
+  }
+
+  if (isChildrenManagedEventType) {
+    options.push({
+      value: watchSchedule || 0,
+      label: `${eventType.scheduleName ? `${eventType.scheduleName} - ` : ""} ${t("set_by_admin")}`,
       isDefault: false,
     });
   }
@@ -234,7 +243,10 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         />
       </div>
       {isManagedEventType || value?.value !== 0 ? (
-        <EventTypeScheduleDetails selectedScheduleValue={value} isManagedEventType={isManagedEventType} />
+        <EventTypeScheduleDetails
+          selectedScheduleValue={value}
+          isManagedEventType={isManagedEventType || isChildrenManagedEventType}
+        />
       ) : (
         isManagedEventType && (
           <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>

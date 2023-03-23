@@ -11,12 +11,13 @@ interface handleChildrenEventTypesProps {
   eventTypeId: number;
   updatedEventType: { schedulingType: SchedulingType | null; slug: string };
   currentUserId: number;
-  oldEventType: { users?: { id: number }[] | null } | null;
+  oldEventType: { users?: { id: number }[] | null; team: { name: string } | null } | null;
   children:
     | {
         hidden: boolean;
         owner: {
           id: number;
+          name: string;
           email: string;
           eventTypeSlugs: string[];
         };
@@ -29,9 +30,16 @@ interface handleChildrenEventTypesProps {
   >;
 }
 
-const sendAllSlugReplacementEmails = async (emails: string[], slug: string) => {
+const sendAllSlugReplacementEmails = async (
+  persons: { email: string; name: string }[],
+  slug: string,
+  teamName: string | null
+) => {
   const t = await getTranslation("en", "common");
-  emails.map(async (email) => await sendSlugReplacementEmail({ email, slug, t }));
+  persons.map(
+    async (person) =>
+      await sendSlugReplacementEmail({ email: person.email, name: person.name, teamName, slug, t })
+  );
 };
 
 const checkExistentEventTypes = async ({
@@ -39,8 +47,10 @@ const checkExistentEventTypes = async ({
   children,
   prisma,
   userIds,
+  teamName,
 }: Pick<handleChildrenEventTypesProps, "updatedEventType" | "children" | "prisma"> & {
   userIds: number[];
+  teamName: string | null;
 }) => {
   const replaceEventType = children?.filter(
     (ch) => ch.owner.eventTypeSlugs.includes(updatedEventType.slug) && userIds.includes(ch.owner.id)
@@ -59,13 +69,12 @@ const checkExistentEventTypes = async ({
 
     // Sending notification after deleting
     await sendAllSlugReplacementEmails(
-      replaceEventType.map((evTy) => evTy.owner.email),
-      updatedEventType.slug
+      replaceEventType.map((evTy) => evTy.owner),
+      updatedEventType.slug,
+      teamName
     );
-    console.log(
-      "handleChildrenEventTypes:deletedReplacedEventTypes",
-      JSON.stringify({ replaceEventType, deletedReplacedEventTypes }, null, 2)
-    );
+
+    return deletedReplacedEventTypes;
   }
 };
 
@@ -118,10 +127,19 @@ export default async function handleChildrenEventTypes({
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
 
+  // Store result for existent event types deletion process
+  let deletedExistentEventTypes;
+
   // New users added
   if (newUserIds?.length) {
     // Check if there are children with existent homonym event types to send notifications
-    await checkExistentEventTypes({ updatedEventType, children, prisma, userIds: newUserIds });
+    deletedExistentEventTypes = await checkExistentEventTypes({
+      updatedEventType,
+      children,
+      prisma,
+      userIds: newUserIds,
+      teamName: oldEventType.team?.name ?? null,
+    });
 
     // Create event types for new users added
     await prisma.$transaction(
@@ -137,6 +155,7 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            userId,
             users: {
               connect: [{ id: userId }],
             },
@@ -161,7 +180,13 @@ export default async function handleChildrenEventTypes({
   // Old users updated
   if (oldUserIds?.length) {
     // Check if there are children with existent homonym event types to send notifications
-    await checkExistentEventTypes({ updatedEventType, children, prisma, userIds: oldUserIds });
+    deletedExistentEventTypes = await checkExistentEventTypes({
+      updatedEventType,
+      children,
+      prisma,
+      userIds: oldUserIds,
+      teamName: oldEventType.team?.name || null,
+    });
 
     // Update event types for old users
     await prisma.$transaction(
@@ -232,5 +257,5 @@ export default async function handleChildrenEventTypes({
     });
   }
 
-  return { newUserIds, oldUserIds, deletedUserIds };
+  return { newUserIds, oldUserIds, deletedUserIds, deletedExistentEventTypes };
 }

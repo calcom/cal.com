@@ -5,12 +5,16 @@ import BaseEmail from "./_base-email";
 
 export default class SlugReplacementEmail extends BaseEmail {
   email: string;
+  name: string;
+  teamName: string | null;
   slug: string;
   t: TFunction;
 
-  constructor(email: string, slug: string, t: TFunction) {
+  constructor(email: string, name: string, teamName: string | null, slug: string, t: TFunction) {
     super();
     this.email = email;
+    this.name = name;
+    this.teamName = teamName;
     this.slug = slug;
     this.t = t;
   }
@@ -22,6 +26,8 @@ export default class SlugReplacementEmail extends BaseEmail {
       subject: this.t("email_subject_slug_replacement", { slug: this.slug }),
       html: renderEmail("SlugReplacementEmail", {
         slug: this.slug,
+        name: this.name,
+        teamName: this.teamName || "",
         t: this.t,
       }),
       text: this.getTextBody(),

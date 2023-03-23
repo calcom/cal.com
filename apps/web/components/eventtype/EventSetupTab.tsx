@@ -177,10 +177,14 @@ export const EventSetupTab = (
     const locationDetails = eventType.locations &&
       eventType.locations.length > 0 &&
       !locationAvailable && {
-        slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-"),
+        slug: eventType.locations[0].type
+          .replace("integrations:", "")
+          .replace(":", "-")
+          .replace("_video", ""),
         name: eventType.locations[0].type
           .replace("integrations:", "")
           .replace(":", " ")
+          .replace("_video", "")
           .split(" ")
           .map((word) => word[0].toUpperCase() + word.slice(1))
           .join(" "),

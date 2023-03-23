@@ -216,7 +216,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     children: eventType.children.map((ch) => ({
       ...ch,
       created: true,
-      owner: { ...ch.owner, eventTypeSlugs: Array<string>(0) },
+      owner: {
+        ...ch.owner,
+        eventTypeSlugs:
+          eventType.team?.members
+            .find((mem) => mem.user.id === ch.owner.id)
+            ?.user.eventTypes.map((evTy) => evTy.slug)
+            .filter((slug) => slug !== eventType.slug) ?? [],
+      },
     })),
   } as const;
 
@@ -355,6 +362,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const slug = formMethods.watch("slug");
 
   return (
     <>
@@ -374,7 +382,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           handleSubmit={async (values: FormValues) => {
             if (!values.children.length) return handleSubmit(values);
             const existingSlugEventTypes = values.children.filter((ch) =>
-              ch.owner.eventTypeSlugs.includes(eventType.slug)
+              ch.owner.eventTypeSlugs.includes(slug)
             );
             if (!existingSlugEventTypes.length) return handleSubmit(values);
             setSlugExistsChildrenDialogOpen(existingSlugEventTypes);
@@ -391,7 +399,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           isLoading={formMethods.formState.isSubmitting}
           variety="warning"
           title={t("managed_event_dialog_title", {
-            slug: eventType.slug,
+            slug,
             count: slugExistsChildrenDialogOpen.length,
           })}
           confirmBtnText={t("managed_event_dialog_confirm_button", {
@@ -413,7 +421,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                   .join(", ")} ${
                   slugExistsChildrenDialogOpen.length > 1 ? t("and") : ""
                 } ${slugExistsChildrenDialogOpen.map((ch) => ch.owner.name).slice(-1)}`,
-                slug: eventType.slug,
+                slug,
               }}
               count={slugExistsChildrenDialogOpen.length}
             />

@@ -24,7 +24,7 @@ describe("handleChildrenEventTypes", () => {
       mockFindFirstEventType();
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [] },
+        oldEventType: { users: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: null, slug: "something" },
         currentUserId: 1,
@@ -40,7 +40,7 @@ describe("handleChildrenEventTypes", () => {
       mockFindFirstEventType();
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [] },
+        oldEventType: { users: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -62,7 +62,7 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [] },
+        oldEventType: { users: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -87,7 +87,7 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [] },
+        oldEventType: { users: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -97,9 +97,13 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...evType,
           parentId: 1,
-          userId: 4,
+          users: { connect: [{ id: 4 }] },
+          bookingLimits: undefined,
+          durationLimits: undefined,
+          recurringEvent: undefined,
           webhooks: undefined,
           workflows: undefined,
+          userId: 4,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -118,7 +122,7 @@ describe("handleChildrenEventTypes", () => {
         });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }] },
+        oldEventType: { users: [{ id: 4 }], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -127,6 +131,10 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
+          bookingLimits: undefined,
+          durationLimits: undefined,
+          recurringEvent: undefined,
+          scheduleId: undefined,
         },
         where: {
           userId_parentId: {
@@ -144,7 +152,7 @@ describe("handleChildrenEventTypes", () => {
       mockFindFirstEventType({ users: [], metadata: { managedEventConfig: {} }, locations: [] });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }] },
+        oldEventType: { users: [{ id: 4 }], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -163,7 +171,7 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }, { id: 1 }] },
+        oldEventType: { users: [{ id: 4 }, { id: 1 }], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,

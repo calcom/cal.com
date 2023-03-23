@@ -82,14 +82,13 @@ export const availabilityRouter = router({
             eventType: {
               select: {
                 _count: true,
-                parentId: true,
                 id: true,
                 eventName: true,
               },
             },
           },
         });
-        if (!schedule || schedule.userId !== user.id) {
+        if (!schedule || (schedule.userId !== user.id && !input.isManagedEventType)) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
           });
