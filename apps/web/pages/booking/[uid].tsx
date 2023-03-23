@@ -266,7 +266,11 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
+  // Confirmation can be needed in two cases as of now
+  // - Event Type has require confirmation option enabled always
+  // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
+  // - It's a paid event and payment is pending.
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
