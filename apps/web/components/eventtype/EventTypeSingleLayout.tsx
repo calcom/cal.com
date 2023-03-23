@@ -221,6 +221,7 @@ function EventTypeSingleLayout({
   }`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+  const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
 
   return (
     <Shell
@@ -391,30 +392,16 @@ function EventTypeSingleLayout({
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
           variety="danger"
-          title={t(`delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`)}
-          confirmBtnText={t(
-            `confirm_delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`
-          )}
-          loadingText={t(
-            `confirm_delete_${eventType.schedulingType === SchedulingType.MANAGED && "managed"}_event_type`
-          )}
+          title={t(`delete${isManagedEvent}_event_type`)}
+          confirmBtnText={t(`confirm_delete${isManagedEvent}_event_type`)}
+          loadingText={t(`confirm_delete${isManagedEvent}_event_type`)}
           onConfirm={(e) => {
             e.preventDefault();
             deleteMutation.mutate({ id: eventType.id });
           }}>
+          <p className="mt-5">{t(`delete${isManagedEvent}_event_type_description`)}</p>
           <p className="mt-5">
-            {t(
-              `delete_${
-                eventType.schedulingType === SchedulingType.MANAGED && "managed"
-              }_event_type_description`
-            )}
-          </p>
-          <p className="mt-5">
-            <Trans
-              i18nKey={`delete_${
-                eventType.schedulingType === SchedulingType.MANAGED && "managed"
-              }_event_type_warning`}
-            />
+            <Trans i18nKey={`delete${isManagedEvent}_event_type_warning`} />
           </p>
         </ConfirmationDialogContent>
       </Dialog>
