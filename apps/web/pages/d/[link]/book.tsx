@@ -1,7 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { parseRecurringEvent } from "@calcom/lib";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -94,7 +93,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         brandColor: u.brandColor,
         darkBrandColor: u.darkBrandColor,
       })),
-      descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
     };
   })[0];
 
