@@ -1,12 +1,12 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import { cityMapping } from "city-timezones";
-import _ from "lodash";
+import { reverse } from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
+import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -20,12 +20,14 @@ import {
 } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -595,7 +597,7 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         username: z.string().optional(),
-        name: z.string().optional(),
+        name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
         email: z.string().optional(),
         bio: z.string().optional(),
         avatar: z.string().optional(),
@@ -754,7 +756,7 @@ const loggedInViewerRouter = router({
         });
       }
       await Promise.all(
-        _.reverse(input.ids).map((id, position) => {
+        reverse(input.ids).map((id, position) => {
           return prisma.eventType.update({
             where: {
               id,
@@ -1130,8 +1132,7 @@ const loggedInViewerRouter = router({
       });
       // Revalidate user calendar cache.
       if (credential.app?.slug.includes("calendar")) {
-        const baseURL = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-        await fetch(`${baseURL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
+        await fetch(`${WEBAPP_URL}/api/revalidate-calendar-cache/${ctx?.user?.username}`);
       }
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {

@@ -1,5 +1,5 @@
 import type { SelectedCalendar } from "@prisma/client";
-import _ from "lodash";
+import { sortBy } from "lodash";
 import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -54,8 +54,8 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendar.listCalendars();
-        const calendars = _(cals)
-          .map((cal) => {
+        const calendars = sortBy(
+          cals.map((cal) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
@@ -64,9 +64,9 @@ export const getConnectedCalendars = async (
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
             };
-          })
-          .sortBy(["primary"])
-          .value();
+          }),
+          ["primary"]
+        );
         const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
@@ -208,7 +208,12 @@ export const getBusyCalendarTimes = async (
   } else {
     // if dateFrom and dateTo is from different months get cache by each month
     const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (let i = 1; dayjs(dateFrom).add(i, "month").isBefore(dateTo); i++) {
+    for (
+      let i = 1;
+      dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+      dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+      i++
+    ) {
       months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
     }
     const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
@@ -231,7 +236,7 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
   }
 
-  // TODO: Surfice success/error messages coming from apps to improve end user visibility
+  // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;

@@ -23,8 +23,9 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { trpc } from "@calcom/trpc";
 import { HeadSeo } from "@calcom/ui";
-import { FiCreditCard, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { FiCreditCard, FiUser, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 
@@ -52,6 +53,7 @@ const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
+  seatReferenceUid: z.string().optional(),
 });
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
@@ -124,6 +126,15 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       : undefined,
   ];
 
+  const { data: bookingAttendees } = trpc.viewer.bookings.getBookingAttendees.useQuery(
+    {
+      seatReferenceUid: rescheduleUid,
+    },
+    {
+      enabled: !!(rescheduleUid && eventType.seatsPerTimeSlot),
+    }
+  );
+
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
@@ -143,6 +154,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
         }}
+        isBrandingHidden={restProps.isBrandingHidden}
       />
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
@@ -168,10 +180,26 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   <div
                     className={classNames(
                       "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                      "min-w-full md:w-[230px] md:min-w-[230px]",
+                      "min-w-full md:w-[280px] md:min-w-[280px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
+                      {rescheduleUid && eventType.seatsPerTimeSlot && bookingAttendees && (
+                        <div
+                          className={classNames(
+                            "flex flex-nowrap items-center text-sm font-medium",
+                            "dark:text-darkgray-600 text-gray-600",
+                            "ltr:mr-[10px] rtl:ml-[10px]"
+                          )}>
+                          <FiUser
+                            className={classNames(
+                              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
+                              "mt-[2px]"
+                            )}
+                          />{" "}
+                          {t("event_type_seats", { numberOfSeats: bookingAttendees })}
+                        </div>
+                      )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
                           <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
@@ -247,6 +275,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   timeZone={timeZone}
                   users={userList}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                  bookingAttendees={bookingAttendees || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
                 />

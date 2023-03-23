@@ -20,7 +20,7 @@ export const tips = [
     mediaLink: "https://go.cal.com/teams-video",
     title: "How to set up Teams",
     description: "Learn how to use round-robin and collective events.",
-    href: "https://docs.cal.com/deep-dives/event-types",
+    href: "https://cal.com/docs/enterprise-features/teams",
   },
   {
     id: 3,
@@ -36,7 +36,7 @@ export const tips = [
     mediaLink: "https://go.cal.com/confirmation-video",
     title: "Requires Confirmation",
     description: "Learn how to be in charge of your bookings",
-    href: "https://docs.cal.com/deep-dives/event-types#opt-in-booking",
+    href: "https://cal.com/resources/feature/opt-in",
   },
   {
     id: 5,

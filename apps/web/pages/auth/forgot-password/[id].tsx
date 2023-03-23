@@ -1,5 +1,5 @@
 import type { ResetPasswordRequest } from "@prisma/client";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -22,7 +22,7 @@ type Props = {
 export default function Page({ resetPasswordRequest, csrfToken }: Props) {
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<{ message: string } | null>(null);
+  const [, setError] = React.useState<{ message: string } | null>(null);
   const [success, setSuccess] = React.useState(false);
 
   const [password, setPassword] = React.useState("");

@@ -11,6 +11,13 @@ import {
 
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 
+/**
+ * PHONE -> Phone
+ */
+function upperCaseToCamelCase(upperCaseString: string) {
+  return upperCaseString[0].toUpperCase() + upperCaseString.slice(1).toLowerCase();
+}
+
 export const getSmsReminderNumberField = () =>
   ({
     name: SMS_REMINDER_NUMBER_FIELD,
@@ -54,16 +61,6 @@ export const SystemField = z.enum([
   "rescheduleReason",
   "smsReminderNumber",
 ]);
-
-export const SystemFieldsEditability: Record<z.infer<typeof SystemField>, Fields[number]["editable"]> = {
-  name: "system",
-  email: "system",
-  location: "system",
-  notes: "system-but-optional",
-  guests: "system-but-optional",
-  rescheduleReason: "system",
-  smsReminderNumber: "system",
-};
 
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields
@@ -163,9 +160,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   const systemBeforeFields: typeof bookingFields = [
     {
       defaultLabel: "your_name",
-      defaultPlaceholder: "example_name",
       type: "name",
       name: "name",
+      editable: "system",
       required: true,
       sources: [
         {
@@ -177,10 +174,10 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
     {
       defaultLabel: "email_address",
-      defaultPlaceholder: "you@example.com",
       type: "email",
       name: "email",
       required: true,
+      editable: "system",
       sources: [
         {
           label: "Default",
@@ -193,6 +190,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       defaultLabel: "location",
       type: "radioInput",
       name: "location",
+      editable: "system",
       required: false,
       // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
       // options: `eventType.locations`
@@ -218,20 +216,13 @@ export const ensureBookingInputsHaveSystemFields = ({
     },
   ];
 
-  // Backward Compatibility for SMS Reminder Number
-  if (smsNumberSources.length) {
-    systemBeforeFields.push({
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
-  }
-
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
     {
       defaultLabel: "additional_notes",
       type: "textarea",
       name: "notes",
+      editable: "system-but-optional",
       required: additionalNotesRequired,
       defaultPlaceholder: "share_additional_notes",
       sources: [
@@ -245,6 +236,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     {
       defaultLabel: "additional_guests",
       type: "multiemail",
+      editable: "system-but-optional",
       name: "guests",
       required: false,
       hidden: disableGuests,
@@ -259,9 +251,16 @@ export const ensureBookingInputsHaveSystemFields = ({
     {
       defaultLabel: "reschedule_reason",
       type: "textarea",
+      editable: "system-but-optional",
       name: "rescheduleReason",
       defaultPlaceholder: "reschedule_placeholder",
       required: false,
+      views: [
+        {
+          id: "reschedule",
+          label: "Reschedule View",
+        },
+      ],
       sources: [
         {
           label: "Default",
@@ -274,22 +273,43 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemBeforeFields = [];
   for (const field of systemBeforeFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemBeforeFields.push(field);
+    } else {
+      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
+      bookingFields[existingBookingFieldIndex] = {
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
+  // Backward Compatibility for SMS Reminder Number
+  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
+  // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
+  if (smsNumberSources.length && !bookingFields.find((f) => f.name !== SMS_REMINDER_NUMBER_FIELD)) {
+    const indexForLocation = bookingFields.findIndex((f) => f.name === "location");
+    // Add the SMS Reminder Number field after `location` field always
+    bookingFields.splice(indexForLocation + 1, 0, {
+      ...getSmsReminderNumberField(),
+      sources: smsNumberSources,
+    });
+  }
+
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
   if (handleMigration) {
-    customInputs.forEach((input) => {
+    customInputs.forEach((input, index) => {
+      const label = input.label || `${upperCaseToCamelCase(input.type)}`;
       bookingFields.push({
-        label: input.label,
+        label: label,
         editable: "user",
         // Custom Input's slugified label was being used as query param for prefilling. So, make that the name of the field
-        name: slugify(input.label),
+        // Also Custom Input's label could have been empty string as well. But it's not possible to have empty name. So generate a name automatically.
+        name: slugify(input.label || `${input.type}-${index + 1}`),
         placeholder: input.placeholder,
         type: CustomInputTypeToFieldType[input.type],
         required: input.required,
@@ -308,25 +328,20 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   const missingSystemAfterFields = [];
   for (const field of systemAfterFields) {
+    const existingBookingFieldIndex = bookingFields.findIndex((f) => f.name === field.name);
     // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (!bookingFields.find((f) => f.name === field.name)) {
+    if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);
+    } else {
+      bookingFields[existingBookingFieldIndex] = {
+        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
+        ...field,
+        ...bookingFields[existingBookingFieldIndex],
+      };
     }
   }
 
   bookingFields = bookingFields.concat(missingSystemAfterFields);
-
-  bookingFields = bookingFields.map((field) => {
-    const foundEditableMap = SystemFieldsEditability[field.name as keyof typeof SystemFieldsEditability];
-    if (!foundEditableMap) {
-      return field;
-    }
-    // Ensure that system fields editability, even if modified to something else in DB(accidentally), get's reset to what's in the code.
-    return {
-      ...field,
-      editable: foundEditableMap,
-    };
-  });
 
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };

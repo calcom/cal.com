@@ -99,6 +99,9 @@ const nextConfig = {
       skipDefaultConversion: true,
       preventFullImport: true,
     },
+    lodash: {
+      transform: "lodash/{{member}}",
+    },
     // TODO: We need to have all components in `@calcom/ui/components` in order to use this
     // "@calcom/ui": {
     //   transform: "@calcom/ui/components/{{member}}",

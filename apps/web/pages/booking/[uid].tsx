@@ -39,6 +39,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -46,7 +47,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Badge, Button, EmailInput, HeadSeo } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -179,9 +180,10 @@ const querySchema = z.object({
   cancel: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
-  isSuccessBookingPage: z.string().optional(),
+  isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   email: z.string().optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -194,11 +196,9 @@ export default function Success(props: SuccessProps) {
     changes,
     formerTime,
     email,
+    seatReferenceUid,
   } = querySchema.parse(router.query);
 
-  if ((isCancellationMode || changes) && typeof window !== "undefined") {
-    window.scrollTo(0, document.body.scrollHeight);
-  }
   const tz =
     (isSuccessBookingPage
       ? props.bookingInfo.attendees.find((attendee) => attendee.email === email)?.timeZone
@@ -210,10 +210,6 @@ export default function Success(props: SuccessProps) {
     props?.bookingInfo?.metadata || {}
   )?.videoCallUrl;
 
-  if (!location) {
-    // Can't use logger.error because it throws error on client. stdout isn't available to it.
-    console.error(`No location found `);
-  }
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
@@ -236,12 +232,24 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
 
   function setIsCancellationMode(value: boolean) {
-    if (value) router.query.cancel = "true";
-    else delete router.query.cancel;
-    router.replace({
-      pathname: router.pathname,
-      query: { ...router.query },
-    });
+    const query_ = { ...router.query };
+
+    if (value) {
+      query_.cancel = "true";
+    } else {
+      if (query_.cancel) {
+        delete query_.cancel;
+      }
+    }
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...query_ },
+      },
+      undefined,
+      { scroll: false }
+    );
   }
 
   const eventNameObject = {
@@ -250,6 +258,7 @@ export default function Success(props: SuccessProps) {
     eventName: (props.dynamicEventName as string) || props.eventType.eventName,
     host: props.profile.name || "Nameless",
     location: location,
+    bookingFields: bookingInfo.responses,
     t,
   };
 
@@ -257,8 +266,19 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
-  const isCancelled = status === "CANCELLED" || status === "REJECTED";
+  // Confirmation can be needed in two cases as of now
+  // - Event Type has require confirmation option enabled always
+  // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
+  // - It's a paid event and payment is pending.
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
+
+  const isCancelled =
+    status === "CANCELLED" ||
+    status === "REJECTED" ||
+    (!!seatReferenceUid &&
+      !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
+
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -342,7 +362,6 @@ export default function Success(props: SuccessProps) {
     return t("emailed_you_and_attendees" + titleSuffix);
   }
 
-  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
@@ -416,7 +435,7 @@ export default function Success(props: SuccessProps) {
                       : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
-                  {giphyImage && !needsConfirmation && (
+                  {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
@@ -436,7 +455,9 @@ export default function Success(props: SuccessProps) {
                         ? t("submitted_recurring")
                         : t("submitted")
                       : isCancelled
-                      ? t("event_cancelled")
+                      ? seatReferenceUid
+                        ? t("no_longer_attending")
+                        : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
                       : t("meeting_is_scheduled")}
@@ -468,7 +489,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -500,25 +521,23 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 last:mb-0">
-                          <>
-                            {bookingInfo?.user && (
-                              <div className="mb-3">
-                                <p>
-                                  <span className="mr-2">{bookingInfo.user.name}</span>
-                                  <Badge variant="blue" bold>
-                                    {t("Host")}
-                                  </Badge>
-                                </p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                          {bookingInfo?.user && (
+                            <div className="mb-3">
+                              <div>
+                                <span className="mr-2">{bookingInfo.user.name}</span>
+                                <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                            )}
-                            {bookingInfo?.attendees.map((attendee) => (
-                              <div key={attendee.name} className="mb-3 last:mb-0">
-                                {attendee.name && <p>{attendee.name}</p>}
-                                <p className="text-bookinglight">{attendee.email}</p>
-                              </div>
-                            ))}
-                          </>
+                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                            </div>
+                          )}
+                          {bookingInfo?.attendees.map((attendee) => (
+                            <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                              {attendee.name && <p>{attendee.name}</p>}
+                              <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
+                                {attendee.email}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
@@ -591,8 +610,10 @@ export default function Success(props: SuccessProps) {
 
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
-                            <span className="underline">
-                              <Link href={`/reschedule/${bookingInfo?.uid}`} legacyBehavior>
+                            <span className="underline" data-testid="reschedule-link">
+                              <Link
+                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                legacyBehavior>
                                 {t("reschedule")}
                               </Link>
                             </span>
@@ -622,6 +643,7 @@ export default function Success(props: SuccessProps) {
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
                         allRemainingBookings={allRemainingBookings}
+                        seatReferenceUid={seatReferenceUid}
                       />
                     </>
                   ))}
@@ -629,7 +651,7 @@ export default function Success(props: SuccessProps) {
                   !needsConfirmation &&
                   !isCancellationMode &&
                   !isCancelled &&
-                  calculatedDuration && (
+                  !!calculatedDuration && (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                       <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
@@ -737,6 +759,7 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </>
                   )}
+
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
@@ -1004,7 +1027,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
-      uid,
+      uid: await maybeGetBookingUidFromSeat(prisma, uid),
     },
     select: {
       title: true,
@@ -1044,6 +1067,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           eventName: true,
           slug: true,
           timeZone: true,
+        },
+      },
+      seatsReferences: {
+        select: {
+          referenceUid: true,
         },
       },
     },
@@ -1115,19 +1143,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 
-  let recurringBookings = null;
-  if (bookingInfo.recurringEventId) {
-    // We need to get the dates for the bookings to be able to show them in the UI
-    recurringBookings = await prisma.booking.findMany({
-      where: {
-        recurringEventId: bookingInfo.recurringEventId,
-      },
-      select: {
-        startTime: true,
-      },
-    });
-  }
-
   const payment = await prisma.payment.findFirst({
     where: {
       bookingId: bookingInfo.id,
@@ -1137,21 +1152,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       refunded: true,
     },
   });
-  const paymentStatus = {
-    success: payment?.success,
-    refunded: payment?.refunded,
-  };
 
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,
-      recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
+      recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       trpcState: ssr.dehydrate(),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
-      paymentStatus: payment ? paymentStatus : null,
+      paymentStatus: payment,
     },
   };
+}
+
+async function getRecurringBookings(recurringEventId: string | null) {
+  if (!recurringEventId) return null;
+  const recurringBookings = await prisma.booking.findMany({
+    where: {
+      recurringEventId,
+    },
+    select: {
+      startTime: true,
+    },
+  });
+  return recurringBookings.map((obj) => obj.startTime.toString());
 }

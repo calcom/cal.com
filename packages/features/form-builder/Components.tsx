@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
   TextLikeComponentProps,
   SelectLikeComponentProps,
-} from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
-import Widgets from "@calcom/app-store/ee/routing-forms/components/react-awesome-query-builder/widgets";
+} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingFieldType } from "@calcom/prisma/zod-utils";
@@ -172,6 +172,7 @@ export const Components: Record<BookingFieldType, Component> = {
               </ul>
               {!readOnly && (
                 <Button
+                  data-testid="add-another-guest"
                   type="button"
                   color="minimal"
                   StartIcon={FiUserPlus}
@@ -190,6 +191,7 @@ export const Components: Record<BookingFieldType, Component> = {
 
           {!value.length && !readOnly && (
             <Button
+              data-testid="add-guests"
               color="minimal"
               variant="button"
               StartIcon={FiUserPlus}

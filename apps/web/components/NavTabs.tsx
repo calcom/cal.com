@@ -1,5 +1,5 @@
 import { AdminRequired } from "components/ui/AdminRequired";
-import noop from "lodash/noop";
+import { noop } from "lodash";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
 import { useRouter } from "next/router";

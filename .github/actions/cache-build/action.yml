@@ -3,7 +3,7 @@ description: "Cache or restore if necessary"
 inputs:
   node_version:
     required: false
-    default: v16.x
+    default: v18.x
 runs:
   using: "composite"
   steps:
@@ -20,6 +20,7 @@ runs:
       with:
         path: |
           ${{ github.workspace }}/apps/web/.next
+          ${{ github.workspace }}/apps/web/public/embed
           **/.turbo/**
           **/dist/**
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}

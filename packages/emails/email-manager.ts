@@ -1,10 +1,14 @@
+import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
+import type { EventNameObjectType } from "@calcom/core/event";
+import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
 import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
+import AttendeeCancelledSeatEmail from "./templates/attendee-cancelled-seat-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
@@ -17,6 +21,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
@@ -39,7 +44,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
+export const sendScheduledEmails = async (calEvent: CalendarEvent, eventNameObject?: EventNameObjectType) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent })));
@@ -52,7 +57,18 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeScheduledEmail(calEvent, attendee));
+      return sendEmail(
+        () =>
+          new AttendeeScheduledEmail(
+            {
+              ...calEvent,
+              ...(eventNameObject && {
+                title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+              }),
+            },
+            attendee
+          )
+      );
     })
   );
 
@@ -70,12 +86,21 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
     }
   }
 
-  // @TODO: we should obtain who is rescheduling the event and send them a different email
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
       return sendEmail(() => new AttendeeRescheduledEmail(calEvent, attendee));
     })
   );
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  const clonedCalEvent = cloneDeep(calEvent);
+  const emailsToSend: Promise<unknown>[] = [
+    sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)),
+    sendEmail(() => new OrganizerRescheduledEmail({ calEvent })),
+  ];
 
   await Promise.all(emailsToSend);
 };
@@ -99,6 +124,14 @@ export const sendScheduledSeatsEmails = async (
   emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
 
   await Promise.all(emailsToSend);
+};
+
+export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+  const clonedCalEvent = cloneDeep(calEvent);
+  await Promise.all([
+    sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
+    sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent })),
+  ]);
 };
 
 export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {

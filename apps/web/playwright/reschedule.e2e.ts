@@ -19,7 +19,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Reschedule Tests", async () => {
   test("Should do a booking request reschedule from /bookings", async ({ page, users, bookings }) => {
     const user = await users.create();
-
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.ACCEPTED,
     });
@@ -45,15 +45,18 @@ test.describe("Reschedule Tests", async () => {
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
-    test.skip(true, "TODO: Re-enable after v1.7 launch");
     const user = await users.create();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
       status: BookingStatus.CANCELLED,
       rescheduled: true,
     });
 
     await page.goto(`/${user.username}/${user.eventTypes[0].slug}?rescheduleUid=${booking.uid}`);
-    const formerTimeElement = page.locator('[data-testid="former_time_p_desktop"]');
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const formerTimeElement = page.locator('[data-testid="former_time_p"]');
     await expect(formerTimeElement).toBeVisible();
     await booking.delete();
   });
@@ -90,10 +93,12 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
+    await page.waitForLoadState("networkidle");
+
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // NOTE: remove if old booking should not be deleted
-    expect(await booking.self()).toBeNull();
+    expect(await (await booking.self()).status).toBe(BookingStatus.CANCELLED);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking.uid } });
     expect(newBooking).not.toBeNull();
@@ -106,6 +111,7 @@ test.describe("Reschedule Tests", async () => {
     const user = await users.create();
     await user.login();
     await user.getPaymentCredential();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -150,6 +156,7 @@ test.describe("Reschedule Tests", async () => {
     await user.login();
     await user.getPaymentCredential();
     await users.logout();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "paid")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       rescheduled: true,
@@ -171,6 +178,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be PENDING when rescheduled by USER", async ({ page, users, bookings }) => {
     const user = await users.create();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -191,6 +199,7 @@ test.describe("Reschedule Tests", async () => {
 
   test("Opt in event should be ACCEPTED when rescheduled by OWNER", async ({ page, users, bookings }) => {
     const user = await users.create();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const eventType = user.eventTypes.find((e) => e.slug === "opt-in")!;
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,

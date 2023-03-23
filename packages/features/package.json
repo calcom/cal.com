@@ -6,12 +6,12 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@calcom/dayjs": "*",
+    "@calcom/lib": "*",
+    "@calcom/ui": "*",
     "@lexical/react": "^0.5.0",
     "dompurify": "^2.4.1",
     "lexical": "^0.5.0",
-    "zustand": "^4.1.4",
-    "@calcom/ui": "*",
-    "@calcom/lib": "*",
-    "@calcom/dayjs": "*"
+    "zustand": "^4.1.4"
   }
 }
