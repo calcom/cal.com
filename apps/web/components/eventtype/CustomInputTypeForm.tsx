@@ -5,7 +5,8 @@ import { FC } from "react";
 import { Control, Controller, useFieldArray, useForm, UseFormRegister, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, TextField } from "@calcom/ui";
+import { Button, Label, Select, TextField } from "@calcom/ui";
+import { FiPlus, FiX } from "@calcom/ui/components/icon";
 
 interface OptionTypeBase {
   label: string;
@@ -78,7 +79,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
               defaultValue={selectedInputOption}
               options={inputOptions}
               isSearchable={false}
-              className="mt-1 mb-2 block w-full min-w-0 flex-1  text-sm"
+              className="mt-1 mb-2 block w-full min-w-0 flex-1 text-sm"
               onChange={(option) => option && field.onChange(option.value)}
               value={selectedInputOption}
               onBlur={field.onBlur}
@@ -184,9 +185,9 @@ function RadioInputHandler({
                 {...register(`options.${index}.label` as const, { required: true })}
                 addOnSuffix={
                   <Button
-                    size="icon"
+                    variant="icon"
                     color="minimal"
-                    StartIcon={Icon.FiX}
+                    StartIcon={FiX}
                     onClick={() => {
                       remove(index);
                     }}
@@ -197,7 +198,7 @@ function RadioInputHandler({
           ))}
           <Button
             color="minimal"
-            StartIcon={Icon.FiPlus}
+            StartIcon={FiPlus}
             className="!text-sm !font-medium"
             onClick={() => {
               append({ label: "", type: "text" });

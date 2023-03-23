@@ -10,7 +10,8 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton, Icon, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { Button as CalButton, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
+import { FiTrash, FiPlus } from "@calcom/ui/components/icon";
 
 // import { mapListValues } from "../../../../utils/stuff";
 
@@ -152,7 +153,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <Icon.FiTrash className="m-0 h-4 w-4 text-gray-500" onClick={onClick} />
+        <FiTrash className="m-0 h-4 w-4 text-gray-500" onClick={onClick} />
       </button>
     );
   }
@@ -166,7 +167,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
-      StartIcon={Icon.FiPlus}
+      StartIcon={FiPlus}
       data-testid={dataTestId}
       type="button"
       color="secondary"

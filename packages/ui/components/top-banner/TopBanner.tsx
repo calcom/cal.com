@@ -1,10 +1,9 @@
-import { ExclamationIcon } from "@heroicons/react/outline";
 import { XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import noop from "lodash/noop";
 import { ReactNode } from "react";
 
-import { Icon } from "@calcom/ui";
+import { FiAlertTriangle, FiInfo } from "@calcom/ui/components/icon";
 
 export type TopBannerProps = {
   text: string;
@@ -31,10 +30,10 @@ export function TopBanner(props: TopBannerProps) {
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
         <p className="flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 text-gray-900 lg:flex-row lg:items-center">
           {variant === "error" && (
-            <Icon.FiAlertTriangle className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
+            <FiAlertTriangle className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
           )}
           {variant === "warning" && (
-            <Icon.FiInfo className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
+            <FiInfo className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
           )}
           {text}
         </p>

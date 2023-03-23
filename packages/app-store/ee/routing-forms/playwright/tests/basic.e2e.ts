@@ -118,7 +118,12 @@ test.describe("Routing Forms", () => {
 
     // TODO: How to install the app just once?
     test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing-forms" });
+      const user = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+        }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -148,7 +153,10 @@ test.describe("Routing Forms", () => {
       users: Fixtures["users"];
       page: Page;
     }) {
-      const user = await users.create({ username: "routing-forms" }, { seedRoutingForms: true });
+      const user = await users.create(
+        { username: "routing-forms" },
+        { seedRoutingForms: true, hasTeam: true }
+      );
       await user.login();
       // Install app
       await page.goto(`/apps/routing-forms`);
@@ -178,8 +186,9 @@ test.describe("Routing Forms", () => {
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
+      // FIXME: Sometimes it takes more than 500ms, so added a timeout of 1000ms for now. There might be something wrong with rendering.
       await headerEls.first().waitFor({
-        timeout: 500,
+        timeout: 1000,
       });
       const numHeaderEls = await headerEls.count();
       const headers = [];

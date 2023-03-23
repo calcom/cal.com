@@ -96,6 +96,8 @@ const WebhookForm = (props: {
                 label={t("subscriber_url")}
                 labelClassName="font-medium text-gray-900 font-sm"
                 value={value}
+                required
+                type="url"
                 onChange={(e) => {
                   formMethods.setValue("subscriberUrl", e?.target.value);
                   if (hasTemplateIntegration({ url: e.target.value })) {

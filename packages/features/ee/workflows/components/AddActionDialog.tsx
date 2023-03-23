@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -17,10 +18,10 @@ import {
   DialogFooter,
   EmailField,
   Form,
+  Input,
   Label,
   PhoneInput,
   Select,
-  TextField,
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
@@ -29,7 +30,13 @@ import { onlyLettersNumbersSpaces } from "../pages/workflow";
 interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
+  addAction: (
+    action: WorkflowActions,
+    sendTo?: string,
+    numberRequired?: boolean,
+    senderId?: string,
+    senderName?: string
+  ) => void;
 }
 
 interface ISelectActionOption {
@@ -41,7 +48,8 @@ type AddActionFormValues = {
   action: WorkflowActions;
   sendTo?: string;
   numberRequired?: boolean;
-  sender?: string;
+  senderId?: string;
+  senderName?: string;
 };
 
 export const AddActionDialog = (props: IAddActionDialog) => {
@@ -59,17 +67,19 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
       .optional(),
     numberRequired: z.boolean().optional(),
-    sender: z
+    senderId: z
       .string()
       .refine((val) => onlyLettersNumbersSpaces(val))
       .nullable(),
+    senderName: z.string().nullable(),
   });
 
   const form = useForm<AddActionFormValues>({
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: SENDER_ID,
+      senderId: SENDER_ID,
+      senderName: SENDER_NAME,
     },
     resolver: zodResolver(formSchema),
   });
@@ -111,7 +121,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             <Form
               form={form}
               handleSubmit={(values) => {
-                addAction(values.action, values.sendTo, values.numberRequired, values.sender);
+                addAction(
+                  values.action,
+                  values.sendTo,
+                  values.numberRequired,
+                  values.senderId,
+                  values.senderName
+                );
                 form.unregister("sendTo");
                 form.unregister("action");
                 form.unregister("numberRequired");
@@ -169,15 +185,25 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <EmailField required label={t("email_address")} {...form.register("sendTo")} />
                 </div>
               )}
-              {isSenderIdNeeded && (
+              {isSenderIdNeeded ? (
+                <>
+                  <div className="mt-5">
+                    <Label>{t("sender_id")}</Label>
+                    <Input
+                      type="text"
+                      placeholder={SENDER_ID}
+                      maxLength={11}
+                      {...form.register(`senderId`)}
+                    />
+                  </div>
+                  {form.formState.errors && form.formState?.errors?.senderId && (
+                    <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                  )}
+                </>
+              ) : (
                 <div className="mt-5">
-                  <TextField
-                    label={t("sender_id")}
-                    type="text"
-                    placeholder={SENDER_ID}
-                    maxLength={11}
-                    {...form.register(`sender`)}
-                  />
+                  <Label>{t("sender_name")}</Label>
+                  <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
                 </div>
               )}
               {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (

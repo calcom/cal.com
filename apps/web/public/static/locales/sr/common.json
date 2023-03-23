@@ -426,7 +426,6 @@
   "password_hint_num": "Sadrži barem 1 broj",
   "invalid_password_hint": "Lozinka mora da bude dugačka najmanje 7 znakova, da sadrži najmanje jedan broj i da ima mešavinu velikih i malih slova",
   "incorrect_password": "Lozinka je netačna.",
-  "1_on_1": "1 na 1",
   "24_h": "24 sata",
   "use_setting": "Koristi podešavanje",
   "am_pm": "am/pm",

@@ -5,7 +5,7 @@ import { ComponentProps, forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { ButtonProps } from "@calcom/ui";
+import { ButtonColor } from "@calcom/ui";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -14,11 +14,10 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Trigger
       {...props}
-      className={
-        props.asChild
-          ? classNames(className, "rounded-md ring-0")
-          : `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
-      }
+      className={classNames(
+        !props.asChild &&
+          `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
+      )}
       ref={forwardedRef}
     />
   )
@@ -102,7 +101,7 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 
 type DropdownItemProps = {
   children: React.ReactNode;
-  color?: ButtonProps["color"];
+  color?: ButtonColor;
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
   href?: string;

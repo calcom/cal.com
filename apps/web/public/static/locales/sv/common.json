@@ -426,7 +426,6 @@
   "password_hint_num": "Innehåller minst 1 siffra",
   "invalid_password_hint": "Lösenordet måste innehålla minst 7 tecken och har minst en siffra samt en blandning av versaler och gemener",
   "incorrect_password": "Lösenordet är felaktigt.",
-  "1_on_1": "1 och 1",
   "24_h": "24 timmar",
   "use_setting": "Använd inställning",
   "am_pm": "am/pm",

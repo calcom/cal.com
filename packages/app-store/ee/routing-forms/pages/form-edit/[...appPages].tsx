@@ -10,11 +10,11 @@ import {
   Button,
   EmptyScreen,
   FormCard,
-  Icon,
   SelectField,
   TextAreaField,
   TextField,
 } from "@calcom/ui";
+import { FiPlus, FiFileText } from "@calcom/ui/components/icon";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -286,7 +286,7 @@ const FormEdit = ({
             <Button
               data-testid="add-field"
               type="button"
-              StartIcon={Icon.FiPlus}
+              StartIcon={FiPlus}
               color="secondary"
               onClick={addField}>
               Add Field
@@ -298,7 +298,7 @@ const FormEdit = ({
   ) : (
     <div className="w-full">
       <EmptyScreen
-        Icon={Icon.FiFileText}
+        Icon={FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
         buttonRaw={

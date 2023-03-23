@@ -36,19 +36,17 @@ export default function TeamList(props: Props) {
   }
 
   return (
-    <div>
-      <ul className="mb-2 divide-y divide-neutral-200 rounded border bg-white">
-        {props.teams.map((team) => (
-          <TeamListItem
-            key={team?.id as number}
-            team={team}
-            onActionSelect={(action: string) => selectAction(action, team?.id as number)}
-            isLoading={deleteTeamMutation.isLoading}
-            hideDropdown={hideDropdown}
-            setHideDropdown={setHideDropdown}
-          />
-        ))}
-      </ul>
-    </div>
+    <ul className="mb-2 divide-y divide-neutral-200 rounded border bg-white">
+      {props.teams.map((team) => (
+        <TeamListItem
+          key={team?.id as number}
+          team={team}
+          onActionSelect={(action: string) => selectAction(action, team?.id as number)}
+          isLoading={deleteTeamMutation.isLoading}
+          hideDropdown={hideDropdown}
+          setHideDropdown={setHideDropdown}
+        />
+      ))}
+    </ul>
   );
 }

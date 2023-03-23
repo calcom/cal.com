@@ -5,7 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button, Icon, TextArea } from "@calcom/ui";
+import { Button, TextArea } from "@calcom/ui";
+import { FiX } from "@calcom/ui/components/icon";
 
 type Props = {
   booking: {
@@ -39,7 +40,7 @@ export default function CancelBooking(props: Props) {
       {error && (
         <div className="mt-8">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <Icon.FiX className="h-6 w-6 text-red-600" />
+            <FiX className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
             <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">

@@ -426,7 +426,6 @@
   "password_hint_num": "Debe contener al menos 1 número",
   "invalid_password_hint": "La contraseña debe tener un mínimo de 7 caracteres que contengan al menos un número y una mezcla de letras mayúsculas y minúsculas",
   "incorrect_password": "La Contraseña es Incorrecta.",
-  "1_on_1": "1 a 1",
   "24_h": "24hs",
   "use_setting": "Usar Ajuste",
   "am_pm": "am/pm",

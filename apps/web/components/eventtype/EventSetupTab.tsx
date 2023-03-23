@@ -12,16 +12,27 @@ import { z } from "zod";
 import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { Button, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { slugify } from "@lib/slugify";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import LocationSelect, {
+  SingleValueLocationOption,
+  LocationOption,
+} from "@components/ui/form/LocationSelect";
 
-type OptionTypeBase = {
-  label: string;
-  value: EventLocationType["type"];
-  disabled?: boolean;
+const getLocationFromType = (
+  type: EventLocationType["type"],
+  locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
+) => {
+  for (const locationOption of locationOptions) {
+    const option = locationOption.options.find((option) => option.value === type);
+    if (option) {
+      return option;
+    }
+  }
 };
 
 export const EventSetupTab = (
@@ -32,7 +43,7 @@ export const EventSetupTab = (
   const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
 
   const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
@@ -51,7 +62,8 @@ export const EventSetupTab = (
   );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
-    setSelectedLocation(locationOptions.find((option) => option.value === type));
+    const option = getLocationFromType(type, locationOptions);
+    setSelectedLocation(option);
     setShowLocationModal(true);
   };
 
@@ -131,14 +143,14 @@ export const EventSetupTab = (
       <div className="w-full">
         {validLocations.length === 0 && (
           <div className="flex">
-            <Select
+            <LocationSelect
               placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              onChange={(e) => {
+              onChange={(e: SingleValueLocationOption) => {
                 if (e?.value) {
-                  const newLocationType: EventLocationType["type"] = e.value;
+                  const newLocationType = e.value;
                   const eventLocationType = getEventLocationType(newLocationType);
                   if (!eventLocationType) {
                     return;
@@ -162,7 +174,7 @@ export const EventSetupTab = (
                 return null;
               }
               return (
-                <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
+                <li key={location.type} className="mb-2 rounded-md border border-gray-300 py-1.5 px-2">
                   <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
@@ -187,10 +199,10 @@ export const EventSetupTab = (
                         }}
                         aria-label={t("edit")}
                         className="mr-1 p-1 text-gray-500 hover:text-gray-900">
-                        <Icon.FiEdit2 className="h-4 w-4" />
+                        <FiEdit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <Icon.FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                        <FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
                       </button>
                     </div>
                   </div>
@@ -199,7 +211,7 @@ export const EventSetupTab = (
             })}
             {validLocations.some((location) => location.type === MeetLocationType) && (
               <div className="flex text-sm text-gray-600">
-                <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
@@ -216,7 +228,7 @@ export const EventSetupTab = (
             )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                <Button StartIcon={FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
                 </Button>
               </li>
@@ -362,7 +374,9 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
+          selectedLocation
+            ? { value: selectedLocation.value, label: t(selectedLocation.label), icon: selectedLocation.icon }
+            : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}

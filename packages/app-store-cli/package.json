@@ -7,10 +7,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "ts-node --transpile-only src/app-store.ts",
+    "build": "ts-node --transpile-only src/build.ts",
     "cli": "ts-node --transpile-only src/cli.tsx",
-    "watch": "ts-node --transpile-only src/app-store.ts --watch",
-    "generate": "ts-node --transpile-only src/app-store.ts",
+    "watch": "ts-node --transpile-only src/build.ts --watch",
+    "generate": "ts-node --transpile-only src/build.ts",
     "post-install": "yarn build"
   },
   "files": [

@@ -12,7 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
-import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,11 +24,11 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Icon,
   Select,
   SkeletonText,
   Switch,
 } from "@calcom/ui";
+import { FiCopy, FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 export type { TimeRange };
 
@@ -102,12 +102,15 @@ const CopyButton = ({
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          className={classNames(
+            "text-gray-700",
+            open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1"
+          )}
           type="button"
-          tooltip={t("duplicate")}
+          tooltip={t("copy_times_to_tooltip")}
           color="minimal"
-          size="icon"
-          StartIcon={Icon.FiCopy}
+          variant="icon"
+          StartIcon={FiCopy}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -181,11 +184,11 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className=" text-gray-400"
+                className="mx-2 text-gray-700 "
                 type="button"
                 color="minimal"
-                size="icon"
-                StartIcon={Icon.FiPlus}
+                variant="icon"
+                StartIcon={FiPlus}
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
@@ -193,7 +196,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} className="mx-2 text-gray-700" />}
           </div>
         </Fragment>
       ))}
@@ -213,9 +216,9 @@ const RemoveTimeButton = ({
   return (
     <Button
       type="button"
-      size="icon"
+      variant="icon"
       color="minimal"
-      StartIcon={Icon.FiTrash}
+      StartIcon={FiTrash}
       onClick={() => remove(index)}
       className={className}
     />

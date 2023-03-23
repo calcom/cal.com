@@ -13,12 +13,12 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
-  Icon,
   Label,
   Meta,
   showToast,
   AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
+import { ClipboardCopyIcon, FiDatabase, FiTrash2 } from "@calcom/ui/components/icon";
 
 export default function SAMLConfiguration({ teamId }: { teamId: number | null }) {
   const { t } = useLocale();
@@ -90,7 +90,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
           <div>
             <Button
               color="secondary"
-              StartIcon={Icon.FiDatabase}
+              StartIcon={FiDatabase}
               onClick={() => {
                 setConfigModal(true);
               }}>
@@ -102,7 +102,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
         {/* Service Provider Details */}
         {connection && connection.provider && (
           <>
-            <hr className="border-1 my-8 border-gray-200" />
+            <hr className="my-8 border border-gray-200" />
             <div className="mb-3 text-base font-semibold">{t("saml_sp_title")}</div>
             <p className="mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
               {t("saml_sp_description")}
@@ -122,7 +122,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
+                  <ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
                   {t("copy")}
                 </Button>
               </div>
@@ -142,7 +142,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
+                  <ClipboardCopyIcon className="h-5 w-5 text-gray-100" />
                   {t("copy")}
                 </Button>
               </div>
@@ -153,11 +153,11 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
         {/* Danger Zone and Delete Confirmation */}
         {connection && connection.provider && (
           <>
-            <hr className="border-1 my-8 border-gray-200" />
+            <hr className="my-8 border border-gray-200" />
             <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
+                <Button color="destructive" className="border" StartIcon={FiTrash2}>
                   {t("delete_saml_configuration")}
                 </Button>
               </DialogTrigger>

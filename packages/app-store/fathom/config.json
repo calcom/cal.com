@@ -11,6 +11,18 @@
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "extendsFeature": "EventType",
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "src": "https://cdn.usefathom.com/script.js",
+          "attrs": {
+            "data-site": "{TRACKING_ID}"
+          }
+        }
+      ]
+    }
+  },
   "description": "Fathom Analytics provides simple, privacy-focused website analytics. We're a GDPR-compliant, Google Analytics alternative.",
   "__createdUsingCli": true
 }

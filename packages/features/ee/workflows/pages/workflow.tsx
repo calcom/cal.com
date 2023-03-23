@@ -15,6 +15,7 @@ import { z } from "zod";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -25,12 +26,13 @@ import { Alert, Button, Form, showToast } from "@calcom/ui";
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
+import { isSMSAction } from "../lib/isSMSAction";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: WorkflowStep[];
+  steps: (WorkflowStep & { senderName: string | null })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -69,6 +71,7 @@ const formSchema = z.object({
         .refine((val) => onlyLettersNumbersSpaces(val))
         .optional()
         .nullable(),
+      senderName: z.string().optional().nullable(),
     })
     .array(),
 });
@@ -124,7 +127,11 @@ function WorkflowPage() {
 
       //translate dynamic variables into local language
       const steps = workflow.steps.map((step) => {
-        const updatedStep = step;
+        const updatedStep = {
+          ...step,
+          senderName: step.sender,
+          sender: isSMSAction(step.action) ? step.sender : SENDER_ID,
+        };
         if (step.reminderBody) {
           updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
             locale: i18n.language,
@@ -181,13 +188,12 @@ function WorkflowPage() {
         let isVerified = true;
 
         values.steps.forEach((step) => {
-          const isSMSAction =
-            step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER;
-
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
           const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM && !isSMSAction && strippedHtml.length <= 1;
+            step.template === WorkflowTemplates.CUSTOM &&
+            !isSMSAction(step.action) &&
+            strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {

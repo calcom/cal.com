@@ -426,7 +426,6 @@
   "password_hint_num": "Zawrzyj co najmniej 1 cyfrę",
   "invalid_password_hint": "Hasło musi składać się z co najmniej 7 znaków, zawierać co najmniej jedną cyfrę oraz kombinację wielkich i małych liter",
   "incorrect_password": "Hasło jest nieprawidłowe.",
-  "1_on_1": "1-na-1",
   "24_h": "24 godz.",
   "use_setting": "Użyj ustawień",
   "am_pm": "rano/po południu",

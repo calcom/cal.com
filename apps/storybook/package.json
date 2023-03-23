@@ -22,7 +22,8 @@
     "@radix-ui/react-tooltip": "^1.0.0",
     "next": "^13.1.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "storybook-addon-rtl-direction": "^0.0.19"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",

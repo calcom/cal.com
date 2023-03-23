@@ -11,13 +11,13 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  Icon,
   List,
   showToast,
   AppSkeletonLoader as SkeletonLoader,
   Switch,
   ShellSubHeading,
 } from "@calcom/ui";
+import { FiArrowLeft, FiCalendar, FiPlus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -100,7 +100,7 @@ function CalendarSwitch(props: {
       />
       {!!props.destination && (
         <span className="ml-4 inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
-          <Icon.FiArrowLeft className="h-4 w-4" />
+          <FiArrowLeft className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
       )}
@@ -282,8 +282,8 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <div className="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-4">
                       <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
                         <div className="relative rounded-md border border-gray-200 bg-white p-1.5">
-                          <Icon.FiCalendar className="h-8 w-8" strokeWidth="1" />
-                          <Icon.FiPlus
+                          <FiCalendar className="h-8 w-8" strokeWidth="1" />
+                          <FiPlus
                             className="absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2 text-black"
                             strokeWidth="4"
                           />
@@ -322,7 +322,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={Icon.FiCalendar}
+                Icon={FiCalendar}
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}

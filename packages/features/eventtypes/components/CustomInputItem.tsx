@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Button, ButtonGroup, Icon } from "@calcom/ui";
+import { Badge, Button, ButtonGroup } from "@calcom/ui";
+import { FiTrash } from "@calcom/ui/components/icon";
 
 type Props = {
   required?: boolean;
@@ -27,8 +28,8 @@ function CustomInputItem({ required, deleteOnClick, editOnClick, type, question 
           {t("edit")}
         </Button>
         <Button
-          StartIcon={Icon.FiTrash}
-          size="icon"
+          StartIcon={FiTrash}
+          variant="icon"
           color="destructive"
           onClick={deleteOnClick}
           className="h-[36px] border border-gray-200"

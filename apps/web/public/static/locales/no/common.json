@@ -429,7 +429,6 @@
   "password_hint_num": "Inneholde minst 1 tall",
   "invalid_password_hint": "Passordet må være minst 7 tegn langt og inneholde minst ett tall og ha en blanding av store og små bokstaver",
   "incorrect_password": "Passordet er feil.",
-  "1_on_1": "1-til-1",
   "24_h": "24t",
   "use_setting": "Bruk innstilling",
   "am_pm": "am/pm",

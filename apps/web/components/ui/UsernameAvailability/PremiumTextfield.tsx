@@ -11,7 +11,8 @@ import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Icon, Input, Label } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Input, Label } from "@calcom/ui";
+import { FiCheck, FiEdit2, FiExternalLink, StarIconSolid } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -190,7 +191,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div className="flex rounded-md">
         <span
           className={classNames(
-            isInputUsernamePremium ? "border-1 border-orange-400 " : "",
+            isInputUsernamePremium ? "border border-orange-400 " : "",
             "hidden h-9 items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
@@ -207,8 +208,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             className={classNames(
               "border-l-1 mb-0 mt-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
               isInputUsernamePremium
-                ? "border-1 focus:border-1 border-orange-400 focus:border-orange-400"
-                : "border-1 focus:border-2",
+                ? "border border-orange-400 focus:border focus:border-orange-400"
+                : "border focus:border",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
                 : "border-l-gray-300",
@@ -230,8 +231,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <Icon.StarIconSolid className="mt-[2px] w-6" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
+              {!isInputUsernamePremium && usernameIsAvailable ? <FiCheck className="mt-2 w-6" /> : <></>}
             </span>
           </div>
         </div>
@@ -249,7 +250,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <DialogContent>
           <div className="flex flex-row">
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <Icon.FiEdit2 className="m-auto h-6 w-6" />
+              <FiEdit2 className="m-auto h-6 w-6" />
             </div>
             <div className="mb-4 w-full px-4 pt-1">
               <DialogHeader title={t("confirm_username_change_dialog_title")} />
@@ -283,7 +284,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon.FiExternalLink className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <FiExternalLink className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

@@ -4,7 +4,8 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Button, Icon, Select } from "@calcom/ui";
+import { Button, Select } from "@calcom/ui";
+import { FiPlus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -31,7 +32,7 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
     />
   ) : (
     <Button className="w-full" color="minimal" href="/apps/categories/calendar">
-      <Icon.FiPlus className="text-color mr-3 ml-1 h-4 w-4" />
+      <FiPlus className="text-color mr-3 ml-1 h-4 w-4" />
       <p>{t("install_new_calendar_app")}</p>
     </Button>
   );
@@ -61,7 +62,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
           <Select
             name="additionalCalendar"
             placeholder={
-              <Button StartIcon={Icon.FiPlus} color="secondary">
+              <Button StartIcon={FiPlus} color="secondary">
                 {t("add")}
               </Button>
             }

@@ -64,7 +64,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "border-1 rounded-md border-gray-200 bg-white"
+        "rounded-md border border-gray-200 bg-white"
       )}
       {...containerProps}>
       {image && (

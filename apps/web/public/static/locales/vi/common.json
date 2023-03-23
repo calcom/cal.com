@@ -426,7 +426,6 @@
   "password_hint_num": "Chứa ít nhất 1 con số",
   "invalid_password_hint": "Mật khẩu phải có tối thiểu 7 ký tự chứa ít nhất một con số và phải kết hợp chữ cái in hoa lẫn in thường",
   "incorrect_password": "Mật khẩu không đúng.",
-  "1_on_1": "1 với 1",
   "24_h": "24h",
   "use_setting": "Sử dụng cài đặt",
   "am_pm": "\u001dam/pm",

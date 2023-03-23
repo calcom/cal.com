@@ -426,7 +426,6 @@
   "password_hint_num": "1개 이상 숫자 포함",
   "invalid_password_hint": "비밀번호는 7자 이상이어야 하고 숫자가 하나 이상 포함되어야 하며 대문자와 소문자가 혼합되어야 합니다",
   "incorrect_password": "비밀번호가 잘못되었습니다",
-  "1_on_1": "일대일",
   "24_h": "24시간",
   "use_setting": "사용 설정",
   "am_pm": "am/pm",

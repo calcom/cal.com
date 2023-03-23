@@ -1,7 +1,13 @@
+import { CSSProperties } from "react";
+
 import EmailCommonDivider from "./EmailCommonDivider";
 
-const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle?: React.ReactNode }) => (
-  <EmailCommonDivider headStyles={{ padding: 0 }} mutipleRows>
+const EmailScheduledBodyHeaderContent = (props: {
+  title: string;
+  subtitle?: React.ReactNode;
+  headStyles?: CSSProperties;
+}) => (
+  <EmailCommonDivider headStyles={{ padding: 0, ...props.headStyles }} mutipleRows>
     <tr>
       <td
         align="center"
@@ -19,7 +25,7 @@ const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle?: Reac
             fontWeight: 700,
             lineHeight: "24px",
             textAlign: "center",
-            color: "#292929",
+            color: "#111827",
           }}>
           {props.title}
         </div>
@@ -35,7 +41,7 @@ const EmailScheduledBodyHeaderContent = (props: { title: string; subtitle?: Reac
               fontWeight: 400,
               lineHeight: "24px",
               textAlign: "center",
-              color: "#494949",
+              color: "#4B5563",
             }}>
             {props.subtitle}
           </div>

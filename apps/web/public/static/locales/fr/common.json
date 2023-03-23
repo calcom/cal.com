@@ -429,7 +429,6 @@
   "password_hint_num": "Contient au moins 1 chiffre",
   "invalid_password_hint": "Le mot de passe doit contenir au moins 7 caractères, un chiffre et un mélange de lettres, majuscules et minuscules.",
   "incorrect_password": "Le mot de passe est incorrect.",
-  "1_on_1": "tête-à-tête",
   "24_h": "24 h",
   "use_setting": "Utiliser le paramètre",
   "am_pm": "AM/PM",

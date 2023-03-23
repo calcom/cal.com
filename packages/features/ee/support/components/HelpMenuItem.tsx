@@ -4,7 +4,8 @@ import { useChat } from "react-live-chat-loader";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, showToast } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
+import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import ContactMenuItem from "./ContactMenuItem";
 
@@ -48,7 +49,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
           {t("support_documentation")}
-          <Icon.FiExternalLink
+          <FiExternalLink
             className={classNames(
               "text-gray-400 group-hover:text-gray-500",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
@@ -62,7 +63,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
           {t("developer_documentation")}
-          <Icon.FiExternalLink
+          <FiExternalLink
             className={classNames(
               "text-gray-400 group-hover:text-gray-500",
               "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
@@ -186,7 +187,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         {mutation.isError && (
           <div className="mb-4 flex bg-red-100 p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
-              <Icon.FiAlertTriangle className="h-5 w-5" />
+              <FiAlertTriangle className="h-5 w-5" />
             </div>
             <div className="ml-3 flex-grow">
               <p className="font-medium">{t("feedback_error")}</p>

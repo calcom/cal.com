@@ -426,7 +426,6 @@
   "password_hint_num": "Contém pelo menos um número",
   "invalid_password_hint": "A senha precisa ter pelo menos sete caracteres com pelo menos um número e ser uma combinação de letras maiúsculas e minúsculas",
   "incorrect_password": "Senha incorreta.",
-  "1_on_1": "1 em 1",
   "24_h": "24h",
   "use_setting": "Usar configurações",
   "am_pm": "manhã/tarde",

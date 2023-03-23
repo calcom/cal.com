@@ -29,15 +29,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import {
-  Icon,
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuContent,
-  Button,
-} from "@calcom/ui";
+import { Dropdown, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, Button } from "@calcom/ui";
+import { FiChevronDown } from "@calcom/ui/components/icon";
 
 import { TextEditorProps } from "../Editor";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
@@ -407,7 +400,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   <span className="text hidden text-gray-700 sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <Icon.FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
+                  <FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
                 </>
               </DropdownMenuTrigger>
               <DropdownMenuContent>

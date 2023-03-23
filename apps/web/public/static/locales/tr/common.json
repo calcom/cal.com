@@ -426,7 +426,6 @@
   "password_hint_num": "En az 1 rakam içermelidir",
   "invalid_password_hint": "Şifre en az 7 karakter uzunluğunda olmalı, en az bir rakam içermeli ve büyük ve küçük harflerin karışımından oluşmalıdır",
   "incorrect_password": "Şifre hatalı.",
-  "1_on_1": "Bire bir",
   "24_h": "24 sa",
   "use_setting": "Ayarı kullan",
   "am_pm": "öö/ös",

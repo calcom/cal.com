@@ -1,32 +1,26 @@
 import { WorkflowActions, WorkflowStep } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui";
+import { FiZap, FiSmartphone, FiMail, FiBell } from "@calcom/ui/components/icon";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {
     return (
-      <Icon.FiZap
-        className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
-        aria-hidden="true"
-      />
+      <FiZap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
     );
   }
 
   if (steps.length === 1) {
     if (steps[0].action === WorkflowActions.SMS_ATTENDEE || steps[0].action === WorkflowActions.SMS_NUMBER) {
       return (
-        <Icon.FiSmartphone
+        <FiSmartphone
           className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
           aria-hidden="true"
         />
       );
     } else {
       return (
-        <Icon.FiMail
-          className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
-          aria-hidden="true"
-        />
+        <FiMail className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />
       );
     }
   }
@@ -55,30 +49,27 @@ export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.El
     switch (messageType) {
       case "SMS":
         return (
-          <Icon.FiSmartphone
+          <FiSmartphone
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "EMAIL":
         return (
-          <Icon.FiMail
+          <FiMail
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       case "MIX":
         return (
-          <Icon.FiBell
+          <FiBell
             className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
             aria-hidden="true"
           />
         );
       default:
-        <Icon.FiZap
-          className={classNames(className ? className : "mr-1.5 inline h-3 w-3")}
-          aria-hidden="true"
-        />;
+        <FiZap className={classNames(className ? className : "mr-1.5 inline h-3 w-3")} aria-hidden="true" />;
     }
   }
 

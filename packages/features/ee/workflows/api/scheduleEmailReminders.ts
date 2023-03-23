@@ -152,7 +152,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
           await sgMail.send({
             to: sendTo,
-            from: senderEmail,
+            from: {
+              email: senderEmail,
+              name: reminder.workflowStep.sender || "Cal.com",
+            },
             subject: emailContent.emailSubject,
             text: emailContent.emailBody.text,
             html: emailContent.emailBody.html,
