@@ -41,6 +41,7 @@ WORKDIR /calcom
 COPY package.json yarn.lock turbo.json ./
 COPY apps/web ./apps/web
 COPY packages ./packages
+COPY git-init.sh git-setup.sh ./
 
 RUN yarn config set network-timeout 1000000000 -g && \
     yarn install --frozen-lockfile
