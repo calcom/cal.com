@@ -373,7 +373,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               if (isSMSAction(oldValue)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderBody.emailBody.html
+                                  emailReminderBody.emailBody
                                 );
                                 form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
                               }
@@ -599,7 +599,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 emailReminderTemplate(
                                   true,
                                   form.getValues(`steps.${step.stepNumber - 1}.action`)
-                                ).emailBody.html
+                                ).emailBody
                               );
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,

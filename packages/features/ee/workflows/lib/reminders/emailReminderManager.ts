@@ -80,10 +80,7 @@ export const scheduleEmailReminder = async (
 
   let emailContent = {
     emailSubject,
-    emailBody: {
-      text: emailBody,
-      html: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
-    },
+    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
   };
   if (emailBody) {
     const variables: VariablesType = {
@@ -108,7 +105,7 @@ export const scheduleEmailReminder = async (
 
     const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
     emailContent.emailSubject = emailSubjectTemplate.text;
-    emailContent.emailBody = await customTemplate(emailBody, variables, locale);
+    emailContent.emailBody = await customTemplate(emailBody, variables, locale).html;
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,
@@ -134,8 +131,7 @@ export const scheduleEmailReminder = async (
           name: sender,
         },
         subject: emailContent.emailSubject,
-        text: emailContent.emailBody.text,
-        html: emailContent.emailBody.html,
+        html: emailContent.emailBody,
         batchId: batchIdResponse[1].batch_id,
         replyTo: evt.organizer.email,
       });
@@ -161,8 +157,7 @@ export const scheduleEmailReminder = async (
             name: sender,
           },
           subject: emailContent.emailSubject,
-          text: emailContent.emailBody.text,
-          html: emailContent.emailBody.html,
+          html: emailContent.emailBody,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
           replyTo: evt.organizer.email,

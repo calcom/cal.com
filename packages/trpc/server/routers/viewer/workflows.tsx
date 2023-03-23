@@ -362,7 +362,7 @@ export const workflowsRouter = router({
             stepNumber: 1,
             action: WorkflowActions.EMAIL_ATTENDEE,
             template: WorkflowTemplates.REMINDER,
-            reminderBody: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailBody.html,
+            reminderBody: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailBody,
             emailSubject: emailReminderTemplate(true, WorkflowActions.EMAIL_ATTENDEE).emailSubject,
             workflowId: workflow.id,
             sender: SENDER_NAME,
