@@ -1,7 +1,6 @@
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
-import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
@@ -105,7 +104,7 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
   return result;
 });
 
-const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
+export const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
   const user = await getUserFromSession({ session });
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -163,34 +162,6 @@ const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOpti
     });
   });
 
-const UserBelongsToTeamInput = z.object({
-  teamId: z.coerce.number().optional(),
-});
-
-const userBelongsToTeamMiddleware = t.middleware(async ({ ctx, next, rawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(rawInput);
-  if (!ctx.user || !ctx.session) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  if (!parse.success) {
-    throw new TRPCError({ code: "BAD_REQUEST" });
-  }
-
-  const team = await prisma.membership.findFirst({
-    where: {
-      userId: ctx.user.id,
-      teamId: parse.data.teamId,
-    },
-  });
-
-  if (!team) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return next();
-});
-
 export const router = t.router;
 export const mergeRouters = t.mergeRouters;
 export const middleware = t.middleware;
@@ -199,4 +170,3 @@ export const authedProcedure = t.procedure.use(perfMiddleware).use(isAuthed);
 export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
   authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
-export const userBelongsToTeamProcedure = authedProcedure.use(userBelongsToTeamMiddleware);

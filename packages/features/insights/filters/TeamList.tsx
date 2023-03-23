@@ -1,11 +1,18 @@
 import { useEffect } from "react";
 
+import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { Select } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
+type Team = RouterOutputs["viewer"]["insights"]["teamListForUser"][number];
 type Option = { value: number; label: string };
+
+const mapTeamToOption = (team: Team): Option => ({
+  value: team.id,
+  label: team.name ?? "",
+});
 
 export const TeamList = () => {
   const { filter, setSelectedTeamId, setSelectedTeamName } = useFilterContext();
@@ -19,11 +26,9 @@ export const TeamList = () => {
     }
   }, [data]);
 
-  const UserListOptions =
-    data?.map((item) => ({
-      value: item.id,
-      label: item.name ?? "",
-    })) || ([{ label: "Empty", value: -1 }] as { value: number; label: string }[]);
+  const UserListOptions = data?.map(mapTeamToOption) || ([{ label: "Empty", value: -1 }] as Option[]);
+  const selectedTeam = data?.find((item) => item.id === selectedTeamId);
+  const teamValue = selectedTeam ? mapTeamToOption(selectedTeam) : null;
 
   if (!isSuccess || !selectedTeamId || data?.length === 0) return null;
 
@@ -32,14 +37,7 @@ export const TeamList = () => {
       <Select<Option>
         isSearchable={false}
         isMulti={false}
-        value={
-          selectedTeamId
-            ? {
-                value: selectedTeamId,
-                label: data.find((item: { id: number; name: string }) => item.id === selectedTeamId)?.name,
-              }
-            : undefined
-        }
+        value={teamValue}
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
         className="h-[38px] w-[90vw] capitalize md:min-w-[100px] md:max-w-[100px]"
         options={UserListOptions}

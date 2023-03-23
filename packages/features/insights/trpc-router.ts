@@ -3,11 +3,37 @@ import crypto from "crypto";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { authedProcedure, router, userBelongsToTeamProcedure } from "@calcom/trpc/server/trpc";
+import { authedProcedure, router, isAuthed } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
+
+const UserBelongsToTeamInput = z.object({
+  teamId: z.coerce.number().optional(),
+});
+
+const userBelongsToTeamMiddleware = isAuthed.unstable_pipe(async ({ ctx, next, rawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+  if (!parse.success) {
+    throw new TRPCError({ code: "BAD_REQUEST" });
+  }
+
+  const team = await ctx.prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: parse.data.teamId,
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  return next();
+});
+
+const userBelongsToTeamProcedure = authedProcedure.use(userBelongsToTeamMiddleware);
 
 const UserSelect = {
   id: true,
@@ -53,17 +79,9 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate, eventTypeId, userId } = input;
-      const user = ctx.user;
 
       if (!input.teamId) {
         return emptyResponseEventsByStatus;
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const whereConditional: Prisma.BookingWhereInput = {
@@ -170,13 +188,6 @@ export const insightsRouter = router({
       const endDate = dayjs(endDateString);
       const user = ctx.user;
       const timeView = inputTimeView;
-      // Just for type safety but authedProcedure should have already checked this
-
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
 
       let whereConditional: Prisma.BookingWhereInput = {
         eventType: {
@@ -280,13 +291,6 @@ export const insightsRouter = router({
         return [];
       }
 
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
         teamId: teamId,
       };
@@ -361,13 +365,6 @@ export const insightsRouter = router({
       const user = ctx.user;
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
 
       const whereConditional: Prisma.BookingWhereInput = {
         eventType: {
@@ -445,13 +442,6 @@ export const insightsRouter = router({
         return [];
       }
       const user = ctx.user;
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
         teamId: teamId,
       };
@@ -517,14 +507,6 @@ export const insightsRouter = router({
       const { teamId, startDate, endDate, eventTypeId } = input;
       if (!teamId) {
         return [];
-      }
-      const user = ctx.user;
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
@@ -609,17 +591,13 @@ export const insightsRouter = router({
   teamListForUser: authedProcedure.query(async ({ ctx }) => {
     const user = ctx.user;
 
-    // Just for type safety but authedProcedure should have already checked this
-    if (!user) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
-    }
-
     // Look if user it's admin in multiple teams
     const belongsToTeams = await ctx.prisma.membership.findMany({
       where: {
         userId: user.id,
+        team: {
+          slug: { not: null },
+        },
         OR: [
           {
             role: "ADMIN",
@@ -640,17 +618,7 @@ export const insightsRouter = router({
         },
       },
     });
-    const result = belongsToTeams.map(
-      (
-        membership: Prisma.MembershipGetPayload<{
-          include: {
-            team: {
-              select: { id: true; name: true; logo: true; slug: true };
-            };
-          };
-        }>
-      ) => membership.team
-    );
+    const result = belongsToTeams.map((membership) => membership.team);
 
     return result;
   }),
@@ -665,13 +633,6 @@ export const insightsRouter = router({
 
       if (!input.teamId) {
         return [];
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const membership = await ctx.prisma.membership.findFirst({
@@ -713,13 +674,6 @@ export const insightsRouter = router({
 
       if (!input.teamId) {
         return [];
-      }
-
-      // Just for type safety but authedProcedure should have already checked this
-      if (!user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       }
 
       const membership = await ctx.prisma.membership.findFirst({

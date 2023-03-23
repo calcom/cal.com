@@ -4411,6 +4411,7 @@ __metadata:
   dependencies:
     "@calcom/dayjs": "*"
     "@calcom/lib": "*"
+    "@calcom/trpc": "*"
     "@calcom/ui": "*"
     "@lexical/react": ^0.5.0
     dompurify: ^2.4.1
