@@ -154,6 +154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       recurringEventCount,
       booking,
+      currentSlotBooking: null,
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,
       hashedLink: null,
