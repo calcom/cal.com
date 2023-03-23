@@ -344,15 +344,13 @@ function keepParentInformedAboutDimensionChanges() {
     // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
       parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
-    );
+      parseFloat(mainElementStyles.marginTop) +
+      parseFloat(mainElementStyles.marginBottom));
     const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
-        parseFloat(mainElementStyles.marginLeft) +
-        parseFloat(mainElementStyles.marginRight)
-    );
-
+      parseFloat(mainElementStyles.marginLeft) +
+      parseFloat(mainElementStyles.marginRight));
+    
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
     // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe get's bigger in height, it would never shrink

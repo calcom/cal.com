@@ -13,7 +13,6 @@ import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitizeClientSide";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -142,7 +141,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       </div>
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={{ ...type, descriptionAsSafeHTML: markdownAndSanitize(type.description) }}
+        eventType={type}
         shortenDescription
       />
     </Link>
