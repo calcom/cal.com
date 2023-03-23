@@ -261,6 +261,7 @@ const BookingPage = ({
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
             absolute: false,
+            tz: timeZone(),
           })
         );
       }
