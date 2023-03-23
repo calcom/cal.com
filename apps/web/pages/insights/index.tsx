@@ -79,7 +79,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between lg:flex-nowrap">
+              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between">
                 <Heading />
                 <Filters />
               </div>
