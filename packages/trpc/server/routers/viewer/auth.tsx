@@ -63,6 +63,7 @@ export const authRouter = router({
         },
         data: {
           password: hashedPassword,
+          identityProvider: IdentityProvider.CAL
         },
       });
     }),
