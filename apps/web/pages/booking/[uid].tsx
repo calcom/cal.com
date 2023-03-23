@@ -914,7 +914,6 @@ const handleSeatsEventTypeOnBooking = (
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-
   const session = await getServerSession(context);
   let tz: string | null = null;
 
