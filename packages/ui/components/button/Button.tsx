@@ -43,7 +43,7 @@ const buttonClasses = cva(
       },
       color: {
         primary: "text-white dark:text-black",
-        secondary: "text-gray-900 dark:text-darkgray-900",
+        secondary: "text-gray-900 dark:text-darkgray-900 bg-white",
         minimal: "text-gray-900 dark:text-darkgray-900",
         destructive: "",
       },
@@ -82,7 +82,7 @@ const buttonClasses = cva(
         disabled: true,
         color: "secondary",
         className:
-          "border border-gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-gray-200 bg-opacity-30 text-gray-900/30 bg-white dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,

@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Select } from "@calcom/ui";
 import { FiX } from "@calcom/ui/components/icon";
 
-export type CheckedSelectOption = {
+type CheckedSelectOption = {
   avatar: string;
   label: string;
   value: string;

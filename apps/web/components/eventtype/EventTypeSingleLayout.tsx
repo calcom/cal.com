@@ -169,7 +169,7 @@ function EventTypeSingleLayout({
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
-        name: "assignment",
+        name: "scheduling_type",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",

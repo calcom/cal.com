@@ -1,5 +1,6 @@
 import { PrismaClient, WebhookTriggerEvents } from "@prisma/client";
 
+import getGlobalSubscribers from "@calcom/lib/getGlobalSubscribers";
 import defaultPrisma from "@calcom/prisma";
 
 export type GetSubscriberOptions = {
@@ -36,6 +37,16 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       appId: true,
       secret: true,
     },
+  });
+
+  getGlobalSubscribers(options.triggerEvent).forEach((subscriberUrl) => {
+    allWebhooks.push({
+      id: "global",
+      subscriberUrl,
+      payloadTemplate: null,
+      appId: null,
+      secret: process.env.GLOBAL_WEBHOOK_SECRET || null,
+    });
   });
 
   return allWebhooks;

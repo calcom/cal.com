@@ -11,9 +11,11 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const uid = asStringOrUndefined(context.query.uid);
+
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: asStringOrUndefined(context.query.uid),
+      uid,
     },
     select: {
       ...bookingMinimalSelect,
@@ -58,6 +60,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
+  const queryParams = context.query;
+  delete queryParams.uid;
+  queryParams.rescheduleUid = uid;
+  const query = new URLSearchParams(queryParams as Record<string, string>);
+
   const eventPage =
     (eventType.team
       ? "team/" + eventType.team.slug
@@ -68,7 +75,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventType?.slug;
   return {
     redirect: {
-      destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
+      destination: "/" + eventPage + "?" + query.toString(),
       permanent: false,
     },
   };
