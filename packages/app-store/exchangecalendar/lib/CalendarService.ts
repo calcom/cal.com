@@ -24,7 +24,7 @@ import {
   SendInvitationsOrCancellationsMode,
   Uri,
   WebCredentials,
-  WellKnownFolderName,
+  WellKnownFolderName
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -198,7 +198,7 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   private getExchangeService(): ExchangeService {
-    const service: ExchangeService = new ExchangeService();
+    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
     service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
     service.Url = new Uri(this.payload.url);
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
