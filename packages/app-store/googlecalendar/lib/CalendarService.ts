@@ -133,6 +133,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
+          sendUpdates: "none",
         },
         function (error, event) {
           if (error || !event?.data) {
@@ -234,11 +235,19 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: uid,
           sendNotifications: true,
-          sendUpdates: "all",
+          sendUpdates: "none",
           requestBody: payload,
           conferenceDataVersion: 1,
         },
         function (err, evt) {
+          console.log(
+            "🚀 ~ file: CalendarService.ts:279 ~ GoogleCalendarService ~ returnnewPromise ~ evt:",
+            evt
+          );
+          console.log(
+            "🚀 ~ file: CalendarService.ts:279 ~ GoogleCalendarService ~ returnnewPromise ~ err:",
+            err
+          );
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
 
@@ -246,6 +255,7 @@ export default class GoogleCalendarService implements Calendar {
           }
 
           if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+            console.log("This meet point triggers");
             calendar.events.patch({
               // Update the same event but this time we know the hangout link
               calendarId: selectedCalendar,
@@ -293,7 +303,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: false,
-          sendUpdates: "all",
+          sendUpdates: "none",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
