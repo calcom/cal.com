@@ -37,7 +37,7 @@ export const ClearFilters = () => {
 
 export const Filters = () => {
   return (
-    <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row">
+    <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row lg:flex-nowrap">
       <TeamList />
 
       <FilterType />
