@@ -1,3 +1,6 @@
+import type { User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
@@ -12,7 +15,7 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
-const publicEventSelect = {
+const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
   description: true,
@@ -31,6 +34,7 @@ const publicEventSelect = {
   currency: true,
   seatsPerTimeSlot: true,
   bookingFields: true,
+  team: true,
   workflows: {
     include: {
       workflow: {
@@ -40,15 +44,19 @@ const publicEventSelect = {
       },
     },
   },
-
-  users: {
+  hosts: {
     select: {
-      username: true,
-      name: true,
-      weekStart: true,
+      user: {
+        select: {
+          username: true,
+          name: true,
+          weekStart: true,
+        },
+      },
     },
   },
-};
+  owner: true,
+});
 
 export const getPublicEvent = async (username: string, eventSlug: string, prisma: PrismaClient) => {
   const usernameList = username.split("+");
@@ -104,25 +112,19 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
   // In case it's not a group event, it's either a single user or a team, and we query that data.
   const event = await prisma.eventType.findFirst({
     where: {
-      AND: [
+      slug: eventSlug,
+      OR: [
         {
-          OR: [
-            {
-              users: {
-                some: {
-                  username: username,
-                },
-              },
+          users: {
+            some: {
+              username,
             },
-            {
-              team: {
-                slug: username,
-              },
-            },
-          ],
+          },
         },
         {
-          slug: eventSlug,
+          team: {
+            slug: username,
+          },
         },
       ],
     },
@@ -139,11 +141,53 @@ export const getPublicEvent = async (username: string, eventSlug: string, prisma
     bookingFields: getBookingFieldsWithSystemFields(event),
     recurringEvent: isRecurringEvent(event.recurringEvent) ? parseRecurringEvent(event.recurringEvent) : null,
     // Sets user data on profile object for easier access
-    profile: {
-      username: event.users[0].username,
-      name: event.users[0].name,
-      weekStart: event.users[0].weekStart,
-      image: `${WEBAPP_URL}/${event.users[0].username}/avatar.png`,
-    },
+    profile: getProfileFromEvent(event),
+    users: getUsersFromEvent(event),
   };
 };
+
+const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
+  select: publicEventSelect,
+});
+
+type Event = Prisma.EventTypeGetPayload<typeof eventData>;
+
+function getProfileFromEvent(event: Event) {
+  const { team, hosts, owner } = event;
+  const profile = team || hosts?.[0]?.user || owner;
+  if (!profile) throw new Error("Event has no owner");
+
+  const username = "username" in profile ? profile.username : team?.slug;
+  if (!username) throw new Error("Event has no username/team slug");
+
+  const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
+  const basePath = team ? `/team/${username}` : `/${username}`;
+
+  return {
+    username,
+    name: profile.name,
+    weekStart,
+    image: `${WEBAPP_URL}${basePath}/avatar.png`,
+  };
+}
+
+function getUsersFromEvent(event: Event) {
+  const { team, hosts, owner } = event;
+  if (team) {
+    if (!hosts.length) throw new Error("Team event has no hosts");
+    return hosts.map(mapHostsToUsers);
+  }
+
+  if (!owner) throw new Error("Event has no owner");
+
+  const { username, name, weekStart } = owner;
+  return [{ username, name, weekStart }];
+}
+
+function mapHostsToUsers(host: { user: Pick<User, "username" | "name" | "weekStart"> }) {
+  return {
+    username: host.user.username,
+    name: host.user.name,
+    weekStart: host.user.weekStart,
+  };
+}
