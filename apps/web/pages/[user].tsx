@@ -24,7 +24,7 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
+import { md } from "@calcom/lib/markdownIt";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
@@ -147,7 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <>
                   <div
                     className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
               )}
@@ -343,7 +343,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
   }));
 
   const isSingleUser = users.length === 1;
@@ -353,12 +352,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
-  const safeBio = markdownAndSanitize(user.bio) || "";
-
   return {
     props: {
       users,
-      safeBio,
       profile,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),

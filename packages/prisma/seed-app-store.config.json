@@ -203,8 +203,7 @@
     "categories": ["video"],
     "slug": "facetime",
     "type": "facetime_video",
-    "isTemplate": false
-  },
+    "isTemplate": false},
   {
     "dirName": "zohocrm",
     "categories": ["other"],
