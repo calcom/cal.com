@@ -7,9 +7,9 @@ declare module "next-auth" {
    */
   interface Session {
     hasValidLicense: boolean;
-    user: User;
+    user: SessionUser;
   }
-  interface User extends Omit<DefaultUser, "id"> {
+  interface SessionUser extends Omit<DefaultUser, "id"> {
     id: PrismaUser["id"];
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
