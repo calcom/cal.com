@@ -9,14 +9,13 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 export const LeastBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedTeamId, selectedEventTypeId } = filter;
+  const { dateRange, selectedEventTypeId, selectedTeamId: teamId } = filter;
   const [startDate, endDate] = dateRange;
-  const { selectedTeamId: teamId } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.membersWithLeastBookings.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId: selectedTeamId,
+    teamId,
     eventTypeId: selectedEventTypeId ?? undefined,
   });
 

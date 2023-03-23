@@ -9,10 +9,53 @@ import { FilterType } from "./FilterType";
 import { TeamList } from "./TeamList";
 import { UserListInTeam } from "./UsersListInTeam";
 
-export const Filters = () => {
+export const ClearFilters = () => {
   const { t } = useLocale();
   const { filter, setSelectedUserId, setSelectedFilter, setSelectedEventTypeId } = useFilterContext();
   const { selectedFilter } = filter;
+
+  return (
+    <>
+      {selectedFilter && selectedFilter?.length > 0 && (
+        <Tooltip content={t("clear_filters")}>
+          <Button
+            variant="icon"
+            color="secondary"
+            target="_blank"
+            rel="noreferrer"
+            StartIcon={FiTrash}
+            className="h-[38px]"
+            onClick={() => {
+              setSelectedFilter(null);
+              setSelectedUserId(null);
+              setSelectedEventTypeId(null);
+            }}
+          />
+        </Tooltip>
+      )}
+
+      {selectedFilter && selectedFilter?.length > 0 && (
+        <Tooltip content={t("clear_filters")}>
+          <Button
+            variant="icon"
+            color="secondary"
+            target="_blank"
+            rel="noreferrer"
+            StartIcon={FiTrash}
+            className="h-[38px]"
+            onClick={() => {
+              setSelectedFilter(null);
+              setSelectedUserId(null);
+              setSelectedEventTypeId(null);
+            }}
+          />
+        </Tooltip>
+      )}
+    </>
+  );
+};
+
+export const Filters = () => {
   return (
     <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row md:flex-nowrap">
       <TeamList />
@@ -23,43 +66,9 @@ export const Filters = () => {
 
       <EventTypeListInTeam />
 
-      {selectedFilter && selectedFilter?.length > 0 && (
-        <Tooltip content={t("clear_filters")}>
-          <Button
-            variant="icon"
-            color="secondary"
-            target="_blank"
-            rel="noreferrer"
-            StartIcon={FiTrash}
-            className="h-[38px]"
-            onClick={() => {
-              setSelectedFilter(null);
-              setSelectedUserId(null);
-              setSelectedEventTypeId(null);
-            }}
-          />
-        </Tooltip>
-      )}
-
-      {selectedFilter && selectedFilter?.length > 0 && (
-        <Tooltip content={t("clear_filters")}>
-          <Button
-            variant="icon"
-            color="secondary"
-            target="_blank"
-            rel="noreferrer"
-            StartIcon={FiTrash}
-            className="h-[38px]"
-            onClick={() => {
-              setSelectedFilter(null);
-              setSelectedUserId(null);
-              setSelectedEventTypeId(null);
-            }}
-          />
-        </Tooltip>
-      )}
-
       <DateSelect />
+
+      <ClearFilters />
 
       {/* @NOTE: To be released in next iteration */}
       {/* <ButtonGroup combined containerProps={{ className: "hidden lg:flex mr-2" }}>

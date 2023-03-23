@@ -1,4 +1,4 @@
-import { Card, Title, Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
+import { Card, Table, TableBody, TableCell, TableRow, Text, Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -26,7 +26,7 @@ export const PopularEventsTable = () => {
       <Title>{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
-          {data?.map((item) => (
+          {data.map((item) => (
             <TableRow key={item.eventTypeId}>
               <TableCell>{item.eventTypeName}</TableCell>
               <TableCell>

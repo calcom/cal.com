@@ -672,14 +672,7 @@ export const insightsRouter = router({
       const user = ctx.user;
 
       if (!input.teamId) {
-        return [] as Prisma.EventTypeGetPayload<{
-          select: {
-            id: true;
-            slug: true;
-            teamId: true;
-            title: true;
-          };
-        }>[];
+        return [];
       }
 
       const membership = await ctx.prisma.membership.findFirst({

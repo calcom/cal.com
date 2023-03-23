@@ -1,8 +1,3 @@
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { z } from "zod";
-
-import dayjs from "@calcom/dayjs";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -11,8 +6,8 @@ import {
   MostBookedTeamMembersTable,
   PopularEventsTable,
 } from "@calcom/features/insights/components";
-import type { FilterContextType } from "@calcom/features/insights/context/provider";
-import { FilterProvider } from "@calcom/features/insights/context/provider";
+import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
+import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -21,6 +16,23 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
+
+const Heading = () => {
+  const { t } = useLocale();
+  const {
+    filter: { selectedTeamName },
+  } = useFilterContext();
+  return (
+    <div className="min-w-52">
+      <p className="text-lg font-semibold">
+        {t("analytics_for_organisation", {
+          organisationName: selectedTeamName,
+        })}
+      </p>
+      <p>{t("subtitle_analytics")}</p>
+    </div>
+  );
+};
 
 export default function InsightsPage() {
   const { t } = useLocale();
@@ -42,63 +54,6 @@ export default function InsightsPage() {
       description: t("spot_popular_event_types_description"),
     },
   ];
-
-  // useRouter to get initial values from query params
-  const router = useRouter();
-  const { startTime, endTime, teamId, userId, eventTypeId, filter } = router.query;
-  const querySchema = z.object({
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    teamId: z.coerce.number().optional(),
-    userId: z.coerce.number().optional(),
-    eventTypeId: z.coerce.number().optional(),
-    filter: z.enum(["event-type", "user"]).optional(),
-  });
-
-  let startTimeParsed, endTimeParsed, teamIdParsed, userIdParsed, eventTypeIdParsed, filterParsed;
-
-  const safe = querySchema.safeParse({
-    startTime,
-    endTime,
-    teamId,
-    userId,
-    eventTypeId,
-    filter,
-  });
-
-  if (!safe.success) {
-    console.error("Failed to parse query params");
-  } else {
-    startTimeParsed = safe.data.startTime;
-    endTimeParsed = safe.data.endTime;
-    teamIdParsed = safe.data.teamId;
-    userIdParsed = safe.data.userId;
-    eventTypeIdParsed = safe.data.eventTypeId;
-    filterParsed = safe.data.filter;
-  }
-
-  const [dateRange, setDateRange] = useState<FilterContextType["filter"]["dateRange"]>([
-    startTimeParsed ? dayjs(startTimeParsed) : dayjs().subtract(1, "month"),
-    endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
-    "t",
-  ]);
-
-  const [selectedTimeView, setSelectedTimeView] =
-    useState<FilterContextType["filter"]["selectedTimeView"]>("week");
-  const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(
-    userIdParsed || null
-  );
-  const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(
-    teamIdParsed || null
-  );
-  const [selectedEventTypeId, setSelectedEventTypeId] = useState<
-    FilterContextType["filter"]["selectedEventTypeId"]
-  >(eventTypeIdParsed || null);
-  const [selectedFilter, setSelectedFilter] = useState<FilterContextType["filter"]["selectedFilter"]>(
-    filterParsed && filterParsed.length > 0 ? [filterParsed] : null
-  );
-  const [selectedTeamName, setSelectedTeamName] =
-    useState<FilterContextType["filter"]["selectedTeamName"]>(null);
 
   return (
     <div>
@@ -123,73 +78,9 @@ export default function InsightsPage() {
           {!user ? (
             <></>
           ) : (
-            <FilterProvider
-              value={{
-                filter: {
-                  dateRange,
-                  selectedTimeView,
-                  selectedUserId,
-                  selectedTeamId,
-                  selectedTeamName,
-                  selectedEventTypeId,
-                  selectedFilter,
-                },
-                setSelectedFilter: (filter) => {
-                  setSelectedFilter(filter);
-                  router.push({
-                    query: {
-                      ...router.query,
-                      filter,
-                    },
-                  });
-                },
-                setDateRange: (dateRange) => {
-                  setDateRange(dateRange);
-                  router.push({
-                    query: {
-                      ...router.query,
-                      startTime: dateRange[0].toISOString(),
-                      endTime: dateRange[1].toISOString(),
-                    },
-                  });
-                },
-                setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
-                setSelectedUserId: (selectedUserId) => {
-                  setSelectedUserId(selectedUserId);
-                  router.push({
-                    query: {
-                      ...router.query,
-                      userId: selectedUserId,
-                    },
-                  });
-                },
-                setSelectedTeamId: (selectedTeamId) => {
-                  setSelectedTeamId(selectedTeamId);
-                  router.push({
-                    query: {
-                      ...router.query,
-                      teamId: selectedTeamId,
-                    },
-                  });
-                },
-                setSelectedTeamName: (selectedTeamName) => setSelectedTeamName(selectedTeamName),
-                setSelectedEventTypeId: (selectedEventTypeId) => {
-                  setSelectedEventTypeId(selectedEventTypeId);
-                  router.push({
-                    query: {
-                      ...router.query,
-                      eventTypeId: selectedEventTypeId,
-                    },
-                  });
-                },
-              }}>
-              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between lg:flex-nowrap">
-                <div className="min-w-52">
-                  <p className="text-lg font-semibold">
-                    {t("analytics_for_organisation", { organisationName: selectedTeamName })}
-                  </p>
-                  <p>{t("subtitle_analytics")}</p>
-                </div>
+            <FiltersProvider>
+              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between">
+                <Heading />
                 <Filters />
               </div>
               <div className="mb-4 space-y-6">
@@ -216,7 +107,7 @@ export default function InsightsPage() {
                   </a>
                 </small>
               </div>
-            </FilterProvider>
+            </FiltersProvider>
           )}
         </UpgradeTip>
       </Shell>
