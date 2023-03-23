@@ -25,6 +25,9 @@ import {
   Uri,
   WebCredentials,
   WellKnownFolderName,
+  AutodiscoverService,
+  ExchangeVersion,
+  ExchangeServiceBase
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -167,7 +170,7 @@ export default class ExchangeCalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    const service: ExchangeService = this.getExchangeService();
+    const service: ExchangeServiceBase = this.getExchangeService();
     const view: FolderView = new FolderView(1000);
     view.PropertySet = new PropertySet(BasePropertySet.IdOnly);
     view.PropertySet.Add(FolderSchema.ParentFolderId);
@@ -197,17 +200,25 @@ export default class ExchangeCalendarService implements Calendar {
       });
   }
 
-  private getExchangeService(): ExchangeService {
-    const service: ExchangeService = new ExchangeService();
-    service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
-    service.Url = new Uri(this.payload.url);
-    if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
-      const xhr: XhrApi = new XhrApi({
-        rejectUnauthorized: false,
-        gzip: this.payload.useCompression,
-      }).useNtlmAuthentication(this.payload.username, this.payload.password);
-      service.XHRApi = xhr;
+  private getExchangeService(): ExchangeServiceBase {
+    if (this.payload.autoDiscoverService) {
+        // TODO Handle AutodiscoverService
+      // This can probably be handled as another form of authentication
+      const service = new AutodiscoverService(ExchangeVersion.Exchange2016);
+      service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
+      return service;
+    } else {
+      const service: ExchangeService = new ExchangeService();
+      service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
+      service.Url = new Uri(this.payload.url);
+      if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
+        const xhr: XhrApi = new XhrApi({
+          rejectUnauthorized: false,
+          gzip: this.payload.useCompression,
+        }).useNtlmAuthentication(this.payload.username, this.payload.password);
+        service.XHRApi = xhr;
+      }
+      return service;
     }
-    return service;
   }
 }

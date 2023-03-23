@@ -16,6 +16,7 @@ interface IFormData {
   password: string;
   authenticationMethod: ExchangeAuthentication;
   useCompression: boolean;
+  autoDiscoverService: boolean;
 }
 
 const schema = z
@@ -25,6 +26,7 @@ const schema = z
     password: z.string(),
     authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
     useCompression: z.boolean().default(false),
+    autoDiscoverService: z.boolean().default(false),
   })
   .strict();
 
@@ -77,7 +79,6 @@ export default function ExchangeSetup() {
                   }}>
                   <fieldset className="space-y-4" disabled={form.formState.isSubmitting}>
                     <TextField
-                      required
                       type="url"
                       {...form.register("url")}
                       label={t("url")}
@@ -118,6 +119,14 @@ export default function ExchangeSetup() {
                         form.setValue("useCompression", alt);
                       }}
                     />
+                    <Switch
+                      label={t("exchange_auto_discover")}
+                      name="autoDiscoverService"
+                      onCheckedChange={async (alt) => {
+                        form.setValue("autoDiscoverService", alt);
+                      }}
+                    />
+
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
                   <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
