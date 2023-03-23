@@ -180,7 +180,7 @@ const querySchema = z.object({
   cancel: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
-  isSuccessBookingPage: z.string().optional(),
+  isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
@@ -431,7 +431,7 @@ export default function Success(props: SuccessProps) {
                       : "",
                     isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
                   )}>
-                  {giphyImage && !needsConfirmation && (
+                  {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
