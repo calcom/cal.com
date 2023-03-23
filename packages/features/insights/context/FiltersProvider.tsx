@@ -6,6 +6,7 @@ import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
+  // TODO: Sync insight filters with URL parameters
   const [selectedTimeView, setSelectedTimeView] =
     useState<FilterContextType["filter"]["selectedTimeView"]>("week");
   const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(null);
