@@ -1,6 +1,5 @@
-import type { UserPermissionRole } from "@prisma/client";
+import type { UserPermissionRole, Membership, Team } from "@prisma/client";
 import { IdentityProvider } from "@prisma/client";
-import type { Membership, Team } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
 import { SignJWT } from "jose";
