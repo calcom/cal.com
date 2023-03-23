@@ -159,12 +159,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
-    return {
-      notFound: true,
-    };
-  }
-
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
