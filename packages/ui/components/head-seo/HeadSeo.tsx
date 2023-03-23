@@ -75,7 +75,8 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   // Get the current URL from the window object
   const url = getBrowserInfo()?.url;
   // Check if the URL is from cal.com
-  const isCalcom = url && new URL(url).hostname.endsWith("cal.com");
+  const isCalcom =
+    url && (new URL(url).hostname.endsWith("cal.com") || new URL(url).hostname.endsWith("cal.dev"));
   // Get the router's path
   const path = useRouter().asPath;
   // Build the canonical URL using the router's path, without query parameters. Note: on homepage it omits the trailing slash
