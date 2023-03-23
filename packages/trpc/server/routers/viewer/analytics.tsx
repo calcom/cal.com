@@ -382,7 +382,6 @@ export const analyticsRouter = router({
       };
 
       if (userId) {
-        delete whereConditional.eventType;
         whereConditional["userId"] = userId;
       }
 
@@ -509,7 +508,7 @@ export const analyticsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number(),
+        teamId: z.coerce.number().nullable(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -714,7 +713,14 @@ export const analyticsRouter = router({
       const user = ctx.user;
 
       if (!input.teamId) {
-        return [];
+        return [] as Prisma.EventTypeGetPayload<{
+          select: {
+            id: true;
+            slug: true;
+            teamId: true;
+            title: true;
+          };
+        }>[];
       }
 
       // Just for type safety but authedProcedure should have already checked this
@@ -755,6 +761,12 @@ export const analyticsRouter = router({
       }
 
       const eventTypes = await ctx.prisma.eventType.findMany({
+        select: {
+          id: true,
+          slug: true,
+          teamId: true,
+          title: true,
+        },
         where: {
           teamId: input.teamId,
         },

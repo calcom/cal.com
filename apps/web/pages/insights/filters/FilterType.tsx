@@ -20,17 +20,15 @@ const FilterType = () => {
   ];
 
   return (
-    <Select
-      isMulti={false}
-      isSearchable={false}
+    <Select<{ label: string; value: string }>
       options={filterOptions}
-      onChange={(input: { value: "event-type" | "user"; label: string }) => {
-        if (input) {
+      onChange={(newValue) => {
+        if (newValue) {
           // This can multiple values, but for now we only want to have one filter active at a time
-          setSelectedFilter([input.value]);
-          if (input.value === "event-type") {
+          setSelectedFilter([newValue.value as "event-type" | "user"]);
+          if (newValue.value === "event-type") {
             setSelectedUserId(null);
-          } else if (input.value === "user") {
+          } else if (newValue.value === "user") {
             setSelectedEventTypeId(null);
           }
         }

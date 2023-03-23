@@ -22,21 +22,19 @@ const UserListInTeam = () => {
     data?.map((item) => ({
       value: item.id,
       label: item.name ?? "",
-      option: item.name ?? "",
     })) ?? ([] as { value: number; label: string }[]);
 
   if (!isSuccess || data?.length === 0) return null;
 
   return (
     <>
-      <Select
-        isSearchable={false}
+      <Select<{ label: string; value: number }>
         className="mb-0 ml-2 h-[38px] w-40 min-w-[140px] capitalize md:min-w-[150px] md:max-w-[200px]"
-        defaultValue={selectedUserId === null ? data[0].id : selectedUserId}
+        defaultValue={selectedUserId ? { value: selectedUserId, label: data[0].name || "" } : null}
         options={UserListOptions}
-        onChange={(input: { value: number; label: string }) => {
-          if (input) {
-            setSelectedUserId(input.value);
+        onChange={(newValue) => {
+          if (newValue) {
+            setSelectedUserId(newValue.value);
           }
         }}
         placeholder={
