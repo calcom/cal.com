@@ -137,7 +137,9 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            userId,
+            users: {
+              connect: [{ id: userId }],
+            },
             parentId,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             workflows: eventType.workflows && {
