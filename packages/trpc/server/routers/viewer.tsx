@@ -1,7 +1,7 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import { cityMapping } from "city-timezones";
-import _ from "lodash";
+import { reverse } from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
 
@@ -755,7 +755,7 @@ const loggedInViewerRouter = router({
         });
       }
       await Promise.all(
-        _.reverse(input.ids).map((id, position) => {
+        reverse(input.ids).map((id, position) => {
           return prisma.eventType.update({
             where: {
               id,
