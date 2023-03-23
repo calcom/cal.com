@@ -109,6 +109,10 @@ const providers: Provider[] = [
         intervalInMs: 60 * 1000, // 1 minute
       });
       await limiter.check(10, user.email); // 10 requests per minute
+      
+      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
+        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+      }
 
       if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
