@@ -219,22 +219,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rescheduleUid = bookingSeat.booking.uid;
       attendeeEmail = bookingSeat.attendee.email;
     }
-  } else if (eventTypeRaw.seatsPerTimeSlot && query.duration && query.date) {
-    // If it's not reschedule but event Type has seats we should obtain
-    // the bookingUid regardless and use it to get the booking
-    const currentSeats = await prisma.booking.findFirst({
-      where: {
-        eventTypeId: eventTypeRaw.id,
-        startTime: dayjs(query.date).toISOString(),
-        endTime: dayjs(query.date).add(query.duration, "minutes").toISOString(),
-      },
-      select: {
-        uid: true,
-      },
-    });
-    if (currentSeats && currentSeats) {
-      bookingUidWithSeats = currentSeats.uid;
-    }
+  }
+  // If it's not reschedule but event Type has seats we should obtain
+  // the bookingUid regardless and use it to get the booking
+  const currentSeats = await prisma.booking.findFirst({
+    where: {
+      eventTypeId: eventTypeRaw.id,
+      startTime: dayjs(query.date).toISOString(),
+      endTime: dayjs(query.date).add(query.duration, "minutes").toISOString(),
+    },
+    select: {
+      uid: true,
+    },
+  });
+  if (currentSeats && currentSeats) {
+    bookingUidWithSeats = currentSeats.uid;
   }
 
   let booking: GetBookingType | null = null;
@@ -287,12 +286,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : eventType.recurringEvent.count)) ||
     null;
 
+  const currentSlotBooking = await getBooking(
+    prisma,
+    bookingUidWithSeats || "",
+    eventTypeObject.bookingFields
+  );
+
   return {
     props: {
       away: user.away,
       profile,
       eventType: eventTypeObject,
       booking,
+      currentSlotBooking: currentSlotBooking,
       recurringEventCount,
       trpcState: ssr.dehydrate(),
       isDynamicGroupBooking,
