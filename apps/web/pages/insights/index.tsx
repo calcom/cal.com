@@ -24,12 +24,12 @@ const Heading = () => {
   } = useFilterContext();
   return (
     <div className="min-w-52">
-      <p className="text-lg font-semibold">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full">
         {t("analytics_for_organisation", {
           organisationName: selectedTeamName,
         })}
-      </p>
-      <p>{t("subtitle_analytics")}</p>
+      </h3>
+      <p className="hidden text-sm text-gray-500 md:block">{t("subtitle_analytics")}</p>
     </div>
   );
 };
@@ -79,7 +79,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-4 ml-auto flex w-full flex-wrap justify-between">
+              <div className="mb-4 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
                 <Filters />
               </div>
