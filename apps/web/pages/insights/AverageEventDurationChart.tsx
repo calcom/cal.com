@@ -9,7 +9,7 @@ import { valueFormatter } from "./index";
 const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange } = filter;
+  const { dateRange, selectedUserId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -17,6 +17,7 @@ const AverageEventDurationChart = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
+    userId: selectedUserId ?? undefined,
   });
 
   if (!isSuccess || data?.length == 0 || !startDate || !endDate || !teamId) return null;
