@@ -35,7 +35,7 @@ export default function ExchangeSetup() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<IFormData>({
-    defaultValues: { 
+    defaultValues: {
       authenticationMethod: ExchangeAuthentication.STANDARD,
       exchangeVersion: ExchangeVersion.Exchange2016,
     },

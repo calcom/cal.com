@@ -24,7 +24,7 @@ import {
   SendInvitationsOrCancellationsMode,
   Uri,
   WebCredentials,
-  WellKnownFolderName
+  WellKnownFolderName,
 } from "ews-javascript-api";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
