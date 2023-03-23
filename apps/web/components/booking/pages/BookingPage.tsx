@@ -263,6 +263,7 @@ const BookingPage = ({
             name: bookingForm.getValues("responses.name"),
             email: bookingForm.getValues("responses.email"),
             absolute: false,
+            tz: timeZone(),
           })
         );
       }
@@ -273,6 +274,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
+          tz: timeZone(),
           seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
           ...(rescheduleUid && booking?.startTime && { formerTime: booking.startTime.toString() }),
         },
@@ -292,6 +294,7 @@ const BookingPage = ({
           email: bookingForm.getValues("responses.email"),
           eventTypeSlug: eventType.slug,
           formerTime: booking?.startTime.toString(),
+          tz: timeZone(),
         },
       });
     },
