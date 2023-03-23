@@ -1,7 +1,7 @@
 import { CAL_URL } from "@calcom/lib/constants";
 import { AvatarGroup } from "@calcom/ui";
 
-import { PublicEvent } from "../../types";
+import type { PublicEvent } from "../../types";
 import { SchedulingType } from ".prisma/client";
 
 export interface EventMembersProps {

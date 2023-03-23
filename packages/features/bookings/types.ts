@@ -1,6 +1,5 @@
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { Attendee, Booking } from "@calcom/prisma/client";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
@@ -29,8 +28,6 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   currentRecurringIndex?: number;
 };
 
-export type BookingResponse = Booking & {
-  paymentUid?: string;
-  attendees: Attendee[];
-  appsStatus?: AppsStatus[];
-};
+export type BookingResponse = Awaited<
+  ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
+>;

@@ -22,7 +22,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { createRecurringBooking, createBooking } from "@calcom/features/bookings/lib";
+import { createBooking, createRecurringBooking } from "@calcom/features/bookings/lib";
 import {
   getBookingFieldsWithSystemFields,
   SystemField,
