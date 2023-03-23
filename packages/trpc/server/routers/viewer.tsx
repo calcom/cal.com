@@ -23,6 +23,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
@@ -1007,6 +1008,7 @@ const loggedInViewerRouter = router({
                   ...bookingMinimalSelect,
                   recurringEventId: true,
                   userId: true,
+                  responses: true,
                   user: {
                     select: {
                       id: true,
@@ -1032,6 +1034,7 @@ const loggedInViewerRouter = router({
                     select: {
                       recurringEvent: true,
                       title: true,
+                      bookingFields: true,
                     },
                   },
                   uid: true,
@@ -1090,12 +1093,17 @@ const loggedInViewerRouter = router({
 
                 const attendeesList = await Promise.all(attendeesListPromises);
                 const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-
+                const { calEventResponses, calEventUserFieldsResponses } = getCalEventResponses({
+                  bookingFields: booking.eventType?.bookingFields ?? null,
+                  booking,
+                });
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
                   title: booking.title,
                   description: booking.description,
                   customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  responses: calEventResponses,
+                  userFieldsResponses: calEventUserFieldsResponses,
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {

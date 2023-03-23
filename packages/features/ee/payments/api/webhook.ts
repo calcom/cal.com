@@ -1,5 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
+import { getCalEventResponses } from "bookings/lib/getCalEventResponses";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
@@ -65,6 +66,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       paid: true,
       destinationCalendar: true,
       status: true,
+      responses: true,
       user: {
         select: {
           id: true,
@@ -114,6 +116,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
+    ...getCalEventResponses({
+      booking: booking,
+      bookingFields: booking.eventType?.bookingFields || null,
+    }),
     organizer: {
       email: user.email,
       name: user.name!,

@@ -404,10 +404,11 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
-      bookingFields: eventType.bookingFields,
-      responses,
-    });
+    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+      getCalEventResponses({
+        bookingFields: eventType.bookingFields,
+        responses,
+      });
     return {
       ...reqBody,
       name: responses.name,

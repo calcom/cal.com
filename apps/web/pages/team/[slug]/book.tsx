@@ -10,7 +10,7 @@ import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } fr
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
+import getBooking from "@calcom/lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";

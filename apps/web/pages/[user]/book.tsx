@@ -13,6 +13,7 @@ import {
   getGroupName,
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
+import getBooking from "@calcom/lib/getBooking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 import {
@@ -22,7 +23,6 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
