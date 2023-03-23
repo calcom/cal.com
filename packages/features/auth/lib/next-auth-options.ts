@@ -1,5 +1,6 @@
 import type { UserPermissionRole } from "@prisma/client";
 import { IdentityProvider } from "@prisma/client";
+import type { Membership, Team } from "@prisma/client";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
 import { SignJWT } from "jose";
@@ -60,6 +61,20 @@ const signJwt = async (payload: { email: string }) => {
 
 const loginWithTotp = async (user: { email: string }) =>
   `/auth/login?totp=${await signJwt({ email: user.email })}`;
+
+type UserTeams = {
+  teams: (Membership & {
+    team: Team;
+  })[];
+};
+
+const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T): boolean =>
+  user.teams.filter((m: { team: { metadata: unknown } }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return true;
+    const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+    if (metadata.success && metadata.data?.subscriptionId) return true;
+    return false;
+  }).length > 0;
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -157,13 +172,7 @@ const providers: Provider[] = [
         }
       }
       // Check if the user you are logging into has any active teams
-      const hasActiveTeams =
-        user.teams.filter((m: { team: { metadata: unknown } }) => {
-          if (!IS_TEAM_BILLING_ENABLED) return true;
-          const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-          if (metadata.success && metadata.data?.subscriptionId) return true;
-          return false;
-        }).length > 0;
+      const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
 
       // authentication success- but does it meet the minimum password requirements?
       const validateRole = (role: UserPermissionRole) => {
@@ -404,13 +413,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         }
 
         // Check if the existingUser has any active teams
-        const belongsToActiveTeam =
-          existingUser.teams.filter((m: { team: { metadata: unknown } }) => {
-            if (!IS_TEAM_BILLING_ENABLED) return true;
-            const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-            if (metadata.success && metadata.data?.subscriptionId) return true;
-            return false;
-          }).length > 0;
+        const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
 
         return {
           id: existingUser.id,
