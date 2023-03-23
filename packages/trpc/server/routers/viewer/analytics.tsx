@@ -275,7 +275,7 @@ export const analyticsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate } = input;
+      const { teamId, startDate, endDate, userId } = input;
       const user = ctx.user;
 
       if (!input.teamId) {
@@ -289,17 +289,25 @@ export const analyticsRouter = router({
         });
       }
 
+      const eventTypeWhere: Prisma.EventTypeWhereInput = {
+        teamId: teamId,
+      };
+
+      const bookingWhere: Prisma.BookingWhereInput = {
+        eventType: eventTypeWhere,
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+      };
+
+      if (userId) {
+        bookingWhere.userId = userId;
+      }
+
       const bookingsFromTeam = await ctx.prisma.booking.groupBy({
         by: ["eventTypeId"],
-        where: {
-          eventType: {
-            teamId: teamId,
-          },
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-        },
+        where: bookingWhere,
         _count: {
           id: true,
         },

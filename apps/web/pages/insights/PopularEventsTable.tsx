@@ -8,7 +8,7 @@ import { useFilterContext } from "./UseFilterContext";
 const PopularEventsTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange } = filter;
+  const { dateRange, selectedUserId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
@@ -16,6 +16,7 @@ const PopularEventsTable = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
+    userId: selectedUserId ?? undefined,
   });
 
   if (!startDate || !endDate || !teamId) return null;
