@@ -485,7 +485,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -527,7 +527,7 @@ export default function Success(props: SuccessProps) {
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
-                            <div key={attendee.name} className="mb-3 last:mb-0">
+                            <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                               {attendee.name && <p>{attendee.name}</p>}
                               <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
                                 {attendee.email}
