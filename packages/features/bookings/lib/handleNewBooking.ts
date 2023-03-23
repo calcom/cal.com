@@ -131,7 +131,9 @@ const isWithinAvailableHours = (
 
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
-    const endTime = getTime(timeSlotEnd, workingHour.endTime);
+    // workingHours function logic set 1439 minutes when user select the end of the day (11:59) in his schedule
+    // so, we need to add a minute, to avoid, "No available user" error when the last available slot is selected.
+    const endTime = getTime(timeSlotEnd, workingHour.endTime === 1439 ? 1440 : workingHour.endTime);
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
@@ -1483,6 +1485,9 @@ async function handler(
       newBookingData.recurringEventId = reqBody.recurringEventId;
     }
     if (originalRescheduledBooking) {
+      newBookingData.metadata = {
+        ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
+      };
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (newBookingData.attendees?.createMany?.data) {
@@ -1650,7 +1655,7 @@ async function handler(
 
     // Use EventManager to conditionally use all needed integrations.
 
-    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid, booking?.id);
+    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
