@@ -362,7 +362,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const slug = formMethods.watch("slug");
+  const slug = formMethods.watch("slug") ?? eventType.slug;
 
   return (
     <>
