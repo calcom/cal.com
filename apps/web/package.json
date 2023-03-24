@@ -136,6 +136,7 @@
     "@calcom/types": "*",
     "@microsoft/microsoft-graph-types-beta": "0.15.0-preview",
     "@playwright/test": "^1.31.2",
+    "@tanstack/react-query-devtools": "^4.28.0",
     "@testing-library/react": "^13.3.0",
     "@types/accept-language-parser": "1.5.2",
     "@types/async": "^3.2.15",

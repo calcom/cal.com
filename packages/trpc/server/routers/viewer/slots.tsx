@@ -105,9 +105,7 @@ const checkIfIsAvailable = ({
 
 /** This should be called getAvailableSlots */
 export const slotsRouter = router({
-  getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
-    return await getSchedule(input, ctx);
-  }),
+  getSchedule: publicProcedure.input(getScheduleSchema).query(({ input, ctx }) => getSchedule(input, ctx)),
 });
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
@@ -156,9 +154,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
         },
       },
       users: {
-        select: {
-          ...availabilityUserSelect,
-        },
+        select: availabilityUserSelect,
       },
     },
   });
@@ -208,7 +204,8 @@ function getRegularOrDynamicEventType(
 
 /** This should be called getAvailableSlots */
 export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
-  if (input.debug === true) {
+  console.log("--------------------");
+  if (input.debug === true || true) {
     logger.setSettings({ minLevel: "debug" });
   }
   if (process.env.INTEGRATION_TEST_MODE === "true") {

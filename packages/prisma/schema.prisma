@@ -204,6 +204,8 @@ model User {
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
 
+  @@index([username])
+  @@index([allowDynamicBooking])
   @@map(name: "users")
 }
 
@@ -329,6 +331,9 @@ model Booking {
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
+
+  @@index([startTime])
+  @@index([endTime])
 }
 
 model Schedule {
@@ -358,6 +363,8 @@ model Availability {
 
   @@index([eventTypeId])
   @@index([scheduleId])
+  @@index([startTime])
+  @@index([endTime])
 }
 
 model SelectedCalendar {

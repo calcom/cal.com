@@ -161,29 +161,14 @@ export async function getUserAvailability(
   const bookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-${eventType?.id}`));
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  if (bookingLimits) {
-    const bookingBusyTimes = await getBusyTimesFromBookingLimits(
-      bookings,
-      bookingLimits,
-      dateFrom,
-      dateTo,
-      eventType
-    );
-    bufferedBusyTimes = bufferedBusyTimes.concat(bookingBusyTimes);
-  }
-
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
-  if (durationLimits) {
-    const durationBusyTimes = await getBusyTimesFromDurationLimits(
-      bookings,
-      durationLimits,
-      dateFrom,
-      dateTo,
-      duration,
-      eventType
-    );
-    bufferedBusyTimes = bufferedBusyTimes.concat(durationBusyTimes);
-  }
+
+  const [bookingBusyTimes, durationBusyTimes] = await Promise.all([
+    bookingLimits && getBusyTimesFromBookingLimits(bookings, bookingLimits, dateFrom, dateTo, eventType),
+    durationLimits &&
+      getBusyTimesFromDurationLimits(bookings, durationLimits, dateFrom, dateTo, duration, eventType),
+  ]);
+  bufferedBusyTimes = bufferedBusyTimes.concat(bookingBusyTimes || [], durationBusyTimes || []);
 
   const userSchedule = user.schedules.filter(
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId

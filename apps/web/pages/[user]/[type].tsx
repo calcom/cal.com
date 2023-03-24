@@ -69,6 +69,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   const { type: slug, user: username } = paramsSchema.parse(context.params);
   const ssg = await ssgInit(context);
 
+  console.time("getUserPageProps - prisma call");
   const user = await prisma.user.findUnique({
     where: {
       /** TODO: We should standarize this */
@@ -124,6 +125,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
     },
   });
+  console.timeEnd("getUserPageProps - prisma call");
 
   const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
@@ -146,6 +148,19 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   ];
 
   if (!eventType) return { notFound: true };
+
+  const dayjs = await import("@calcom/dayjs").then((mod) => mod.default);
+  user.username &&
+    (await ssg.viewer.public.slots.getSchedule.prefetch({
+      eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
+      usernameList: [user.username],
+      // TODO: parse dates properly instead of hardcoding
+      startTime: "2023-03-21T23:00:00.000Z",
+      endTime: "2023-03-31T21:59:59.999Z",
+      timeZone: dayjs.tz.guess(),
+      duration: eventType.length.toString(),
+    }));
 
   //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];

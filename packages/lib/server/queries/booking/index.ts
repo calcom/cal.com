@@ -18,6 +18,5 @@ export const getTotalBookingDuration = async ({
       AND "startTime" >= ${startDate}
       AND "endTime" <= ${endDate};
   `) as { totalMinutes: number }[];
-
   return totalBookingTime.totalMinutes;
 };

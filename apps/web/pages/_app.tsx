@@ -1,3 +1,4 @@
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -75,6 +76,7 @@ function MyApp(props: AppProps) {
         ),
         router
       )}
+      <ReactQueryDevtools initialIsOpen={false} />
     </AppProviders>
   );
 }
