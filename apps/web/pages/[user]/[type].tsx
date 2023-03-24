@@ -123,7 +123,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
     },
   });
-  s;
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: ((typeof user.eventTypes)[number] & {

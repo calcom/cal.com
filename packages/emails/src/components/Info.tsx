@@ -8,6 +8,7 @@ export const Info = (props: {
   extraInfo?: React.ReactNode;
   withSpacer?: boolean;
   lineThrough?: boolean;
+  formatted?: boolean;
 }) => {
   if (!props.description || props.description === "") return null;
 
