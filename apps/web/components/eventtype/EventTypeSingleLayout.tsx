@@ -117,6 +117,11 @@ function getNavigation(props: {
   ];
 }
 
+function Debugger(props: { children: string }) {
+  debugger;
+  return <li>{props.children}</li>;
+}
+
 function EventTypeSingleLayout({
   children,
   eventType,
@@ -393,15 +398,23 @@ function EventTypeSingleLayout({
           isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t(`delete${isManagedEvent}_event_type`)}
-          confirmBtnText={t(`confirm_delete${isManagedEvent}_event_type`)}
-          loadingText={t(`confirm_delete${isManagedEvent}_event_type`)}
+          confirmBtnText={t(`confirm_delete_event_type`)}
+          loadingText={t(`confirm_delete_event_type`)}
           onConfirm={(e) => {
             e.preventDefault();
             deleteMutation.mutate({ id: eventType.id });
           }}>
-          <p className="mt-5">{t(`delete${isManagedEvent}_event_type_description`)}</p>
           <p className="mt-5">
-            <Trans i18nKey={`delete${isManagedEvent}_event_type_warning`} />
+            <Trans
+              i18nKey={`delete${isManagedEvent}_event_type_description`}
+              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
           </p>
         </ConfirmationDialogContent>
       </Dialog>
