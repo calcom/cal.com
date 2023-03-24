@@ -1,4 +1,4 @@
-import noop from "lodash/noop";
+import { noop } from "lodash";
 import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 

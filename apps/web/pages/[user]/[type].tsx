@@ -5,7 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
+import { addListFormatting } from "@calcom/lib/markdownIt";
 import type { User } from "@calcom/prisma/client";
 
 import { isBrandingHidden } from "@lib/isBrandingHidden";
@@ -59,6 +59,7 @@ Type.isThemeSupported = true;
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies
+  const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
   const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
@@ -124,6 +125,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
+  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: ((typeof user.eventTypes)[number] & {
@@ -150,7 +153,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
+    descriptionAsSafeHTML: eventType.description ? addListFormatting(md.render(eventType.description)) : null,
   });
   // Check if the user you are logging into has any active teams or premium user name
   const hasActiveTeam =
