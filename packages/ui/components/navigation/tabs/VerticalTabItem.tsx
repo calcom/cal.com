@@ -25,9 +25,10 @@ export type VerticalTabItemProps = {
   isExternalLink?: boolean;
   linkProps?: Omit<ComponentProps<typeof Link>, "href">;
   avatar?: string;
+  iconClassName?: string;
 };
 
-const VerticalTabItem = function ({
+const VerticalTabItem = ({
   name,
   href,
   info,
@@ -35,11 +36,10 @@ const VerticalTabItem = function ({
   disableChevron,
   linkProps,
   ...props
-}: VerticalTabItemProps) {
+}: VerticalTabItemProps) => {
   const { t } = useLocale();
   const { asPath } = useRouter();
   const isCurrent = asPath.startsWith(href);
-
   return (
     <Fragment key={name}>
       {!props.hidden && (
@@ -60,7 +60,12 @@ const VerticalTabItem = function ({
             data-testid={`vertical-tab-${name}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
-              <props.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0" />
+              <props.icon
+                className={classNames(
+                  "h-[16px] w-[16px] stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0",
+                  props.iconClassName
+                )}
+              />
             )}
             <div className="h-fit">
               <span className="flex items-center space-x-2 rtl:space-x-reverse">

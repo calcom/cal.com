@@ -319,6 +319,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             seatsPerTimeSlotEnabled,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             minimumBookingNoticeInDurationType,
+            availability,
             ...input
           } = values;
 

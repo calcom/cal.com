@@ -1,5 +1,5 @@
 import type { FormValues } from "pages/event-types/[type]";
-import { useEffect } from "react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -48,58 +48,6 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
         </Badge>
       )}
     </components.SingleValue>
-  );
-};
-
-const AvailabilitySelect = ({
-  className = "",
-  ...props
-}: {
-  className?: string;
-  name: string;
-  value: number;
-  onBlur: () => void;
-  onChange: (value: AvailabilityOption | null) => void;
-}) => {
-  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
-  const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
-
-  const schedules = data?.schedules || [];
-
-  const options = schedules.map((schedule) => ({
-    value: schedule.id,
-    label: schedule.name,
-    isDefault: schedule.isDefault,
-  }));
-
-  const value = options.find((option) =>
-    props.value
-      ? option.value === props.value
-      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-  );
-
-  useEffect(() => {
-    if (value) {
-      formMethods.setValue("availability", value);
-    }
-  }, [value?.value]);
-
-  if (isLoading) {
-    return <SelectSkeletonLoader />;
-  }
-
-  return (
-    <Select
-      placeholder={t("select")}
-      options={options}
-      isSearchable={false}
-      onChange={props.onChange}
-      className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
-      value={value}
-      components={{ Option, SingleValue }}
-      isMulti={false}
-    />
   );
 };
 
@@ -184,6 +132,31 @@ const EventTypeScheduleDetails = () => {
 
 const EventTypeSchedule = () => {
   const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+  const [options, setOptions] = useState<AvailabilityOption[]>([]);
+
+  const { data, isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
+    onSuccess: ({ schedules }) => {
+      const options = schedules.map((schedule) => ({
+        value: schedule.id,
+        label: schedule.name,
+        isDefault: schedule.isDefault,
+      }));
+
+      setOptions(options);
+
+      const scheduleId = formMethods.getValues("schedule");
+      const value = options.find((option) =>
+        scheduleId
+          ? option.value === scheduleId
+          : option.value === schedules.find((schedule) => schedule.isDefault)?.id
+      );
+
+      formMethods.setValue("availability", value);
+    },
+  });
+
+  const availabilityValue = formMethods.watch("availability");
 
   return (
     <div className="space-y-4">
@@ -191,19 +164,29 @@ const EventTypeSchedule = () => {
         <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
           {t("availability")}
         </label>
-        <Controller
-          name="schedule"
-          render={({ field }) => (
-            <AvailabilitySelect
-              value={field.value}
-              onBlur={field.onBlur}
-              name={field.name}
-              onChange={(selected) => {
-                field.onChange(selected?.value || null);
-              }}
-            />
-          )}
-        />
+        {isLoading && <SelectSkeletonLoader />}
+        {!isLoading && (
+          <Controller
+            name="schedule"
+            render={({ field }) => {
+              return (
+                <Select
+                  placeholder={t("select")}
+                  options={options}
+                  isSearchable={false}
+                  onChange={(selected) => {
+                    field.onChange(selected?.value || null);
+                    if (selected?.value) formMethods.setValue("availability", selected);
+                  }}
+                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                  value={availabilityValue}
+                  components={{ Option, SingleValue }}
+                  isMulti={false}
+                />
+              );
+            }}
+          />
+        )}
       </div>
       <EventTypeScheduleDetails />
     </div>

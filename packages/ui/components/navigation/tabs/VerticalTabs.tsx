@@ -12,9 +12,19 @@ export interface NavTabProps {
   sticky?: boolean;
   linkProps?: VerticalTabItemProps["linkProps"];
   itemClassname?: string;
+  iconClassName?: string;
 }
 
-const NavTabs = function ({ tabs, className = "", sticky, linkProps, itemClassname, ...props }: NavTabProps) {
+const NavTabs = function ({
+  tabs,
+  className = "",
+  sticky,
+  linkProps,
+  itemClassname,
+  iconClassName,
+  ...props
+}: NavTabProps) {
+  console.log("TABS", tabs);
   return (
     <nav
       className={classNames(
@@ -27,7 +37,13 @@ const NavTabs = function ({ tabs, className = "", sticky, linkProps, itemClassna
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} className={itemClassname} />
+        <VerticalTabItem
+          {...tab}
+          key={idx}
+          linkProps={linkProps}
+          className={itemClassname}
+          iconClassName={iconClassName}
+        />
       ))}
     </nav>
   );
