@@ -232,11 +232,17 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      const responseJson = await handleErrorsJson(response);
+      // const responseJson = await handleErrorsJson(response);
+      const responseJson = { error: "This is an error" };
       const tokenResponse = refreshTokenResponseSchema.safeParse(responseJson);
       o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
       if (!tokenResponse.success) {
-        console.error("zodError:", tokenResponse.error, "MS response:", responseJson);
+        console.error(
+          "Outlook error grabbing new tokens ~ zodError:",
+          tokenResponse.error,
+          "MS response:",
+          responseJson
+        );
       }
       await prisma.credential.update({
         where: {
@@ -251,7 +257,7 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
-        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success ||
+        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success &&
         !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
           : refreshAccessToken(o365AuthCredentials),
