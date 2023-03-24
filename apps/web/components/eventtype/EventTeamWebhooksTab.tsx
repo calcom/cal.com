@@ -77,7 +77,6 @@ export const EventTeamWebhooksTab = ({
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
       eventTypeId: eventType.id,
-      eventSchedulingType: eventType.schedulingType,
     });
   };
 
@@ -198,7 +197,6 @@ export const EventTeamWebhooksTab = ({
                     payloadTemplate: values.payloadTemplate,
                     secret: values.secret,
                     eventTypeId: webhookToEdit?.eventTypeId || undefined,
-                    eventSchedulingType: eventType.schedulingType,
                   });
                 }}
               />

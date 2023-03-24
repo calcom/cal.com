@@ -256,6 +256,11 @@ export const eventTypesRouter = router({
                 members: {
                   select: {
                     userId: true,
+                    user: {
+                      select: {
+                        username: true,
+                      },
+                    },
                   },
                 },
                 eventTypes: {
@@ -329,6 +334,7 @@ export const eventTypesRouter = router({
       };
       metadata: {
         membershipCount: number;
+        usernames: string[];
         readOnly: boolean;
       };
       eventTypes: typeof userEventTypes;
@@ -354,6 +360,7 @@ export const eventTypesRouter = router({
       eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
+        usernames: [],
         readOnly: false,
       },
     });
@@ -370,6 +377,7 @@ export const eventTypesRouter = router({
         },
         metadata: {
           membershipCount: membership.team.members.length,
+          usernames: membership.team.members.flatMap((mem) => mem.user.username ?? []),
           readOnly: membership.role === MembershipRole.MEMBER,
         },
         eventTypes: membership.team.eventTypes

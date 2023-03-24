@@ -698,6 +698,7 @@ const CTA = () => {
         label: profile.name || profile.slug,
         image: profile.image,
         membershipRole: profile.membershipRole,
+        usernames: profile.usernames,
         slug: profile.slug,
       };
     });

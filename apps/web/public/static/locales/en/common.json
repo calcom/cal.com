@@ -589,7 +589,6 @@
   "managed_event": "Managed event",
   "username_placeholder": "{username}",
   "managed_event_description": "Create & distribute event types in bulk to team members",
-  "managed_event_url_clarification": "{username} will be filled by the username of the members assigned",
   "managed": "Managed",
   "assign_to": "Assign to",
   "add_members": "Add members...",
