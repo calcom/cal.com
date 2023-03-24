@@ -40,12 +40,13 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
-  showToast,
   SkeletonText,
+  showToast,
 } from "@calcom/ui";
 import {
   FiArrowLeft,
   FiArrowRight,
+  FiBarChart,
   FiCalendar,
   FiClock,
   FiDownload,
@@ -62,7 +63,7 @@ import {
   FiSettings,
   FiSlack,
   FiUsers,
-  FiZap,
+  FiZap
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -533,6 +534,11 @@ const navigation: NavigationItemType[] = [
     name: "workflows",
     href: "/workflows",
     icon: FiZap,
+  },
+  {
+    name: "Insights",
+    href: "/insights",
+    icon: FiBarChart,
   },
   {
     name: "settings",
