@@ -78,10 +78,14 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         },
         setSelectedFilter: (filter) => {
           setSelectedFilter(filter);
+          const userId = filter?.[0] === "user" ? selectedUserId : undefined;
+          const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
           router.push({
             query: {
               ...router.query,
-              filter,
+              filter: filter?.[0],
+              userId,
+              eventTypeId,
             },
           });
         },
