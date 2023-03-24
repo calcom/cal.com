@@ -61,25 +61,25 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         <div className="bg-subtle mb-6 rounded-md p-2">
           <h1 className="text-emphasis mb-2 ml-1 font-medium">{t("available_variables")}</h1>
           <div className="mb-2.5 flex font-normal">
-            <p className="text-muted ml-1 mr-5 w-28">{`{Event type title}`}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Event type title}`}</p>
             <p className="text-emphasis">{t("event_name_info")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="text-muted ml-1 mr-5 w-28">{`{Organiser}`}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser}`}</p>
             <p className="text-emphasis">{t("your_full_name")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="text-muted ml-1 mr-5 w-28">{`{Scheduler}`}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler}`}</p>
             <p className="text-emphasis">{t("scheduler_full_name")}</p>
           </div>
           <div className="mb-1 flex font-normal">
-            <p className="text-muted ml-1 mr-5 w-28">{`{Location}`}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Location}`}</p>
             <p className="text-emphasis">{t("location_info")}</p>
           </div>
         </div>
         <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
         <div
-          className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center"
+          className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center dark:invert"
           style={{
             backgroundImage: "url(/calendar-preview.svg)",
           }}>
