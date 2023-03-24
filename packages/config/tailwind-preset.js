@@ -139,6 +139,13 @@ module.exports = {
       addVariant("windows", ".windows &");
       addVariant("ios", ".ios &");
     }),
+    plugin(({ addBase, theme }) => {
+      addBase({
+        hr: {
+          borderColor: theme("subtle"),
+        },
+      });
+    }),
   ],
   variants: {
     scrollbar: ["rounded", "dark"],

@@ -408,7 +408,7 @@ const CopyTimes = ({
           })}
         </ol>
       </div>
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <div className="space-x-2 px-2 rtl:space-x-reverse">
         <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}

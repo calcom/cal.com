@@ -97,7 +97,7 @@ const EnterpriseLicense = (
             {t("purchase_license")}
           </Button>
           <div className="relative flex justify-center">
-            <hr className="border-emphasis my-8 w-full border-[1.5px]" />
+            <hr className="border-subtle my-8 w-full border-[1.5px]" />
             <span className="bg-default absolute mt-[22px] px-3.5 text-sm">OR</span>
           </div>
           {t("already_have_key")}

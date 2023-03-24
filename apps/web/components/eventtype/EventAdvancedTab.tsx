@@ -141,21 +141,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }
         />
       </div>
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <FormBuilder
         title={t("booking_questions_title")}
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
       />
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <RequiresConfirmationController
         seatsEnabled={seatsEnabled}
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -169,7 +169,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -215,7 +215,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
@@ -257,7 +257,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </SettingsToggle>
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}

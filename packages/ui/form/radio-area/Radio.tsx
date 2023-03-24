@@ -11,7 +11,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default focus:ring-empthasis mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
+      "hover:bg-subtle border-default focus:ring-emphasis mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
       props.disabled && "opacity-60"
     )}>
     {props.children}
@@ -30,7 +30,7 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
   <label
     {...props}
     className={classNames(
-      "text-emphasis dark:text-inverted text-sm font-medium leading-5 ltr:ml-2 rtl:mr-2",
+      "text-emphasis w-full text-sm font-medium leading-5 ltr:ml-2 rtl:mr-2",
       props.disabled && "text-subtle"
     )}
   />
@@ -43,7 +43,7 @@ export const RadioField = ({
   value,
   className,
 }: {
-  label: string;
+  label: string | ReactNode;
   disabled?: boolean;
   id: string;
   value: string;

@@ -1007,7 +1007,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleContent>
               </Collapsible>
             </div>
-            <hr className="border-emphasis mt-4" />
+            <hr className="border-subtle mt-4" />
             <div className="mt-4 font-medium">
               <Collapsible
                 open={isBookingCustomizationOpen}

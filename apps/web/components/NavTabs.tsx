@@ -91,7 +91,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           );
         })}
       </nav>
-      <hr className="border-emphasis" />
+      <hr className="border-subtle" />
     </>
   );
 };

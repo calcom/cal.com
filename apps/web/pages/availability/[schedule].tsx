@@ -277,7 +277,7 @@ export default function Availability() {
                   }
                 />
               </div>
-              <hr className="border-emphasis my-6 mr-8" />
+              <hr className="border-subtle my-6 mr-8" />
               <div className="hidden rounded-md md:block">
                 <h3 className="text-emphasis text-sm font-medium">{t("something_doesnt_look_right")}</h3>
                 <div className="mt-3 flex">
