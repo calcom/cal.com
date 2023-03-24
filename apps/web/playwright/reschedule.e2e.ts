@@ -97,9 +97,6 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    // NOTE: remove if old booking should not be deleted
-    expect(await (await booking.self()).status).toBe(BookingStatus.CANCELLED);
-
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking.uid } });
     expect(newBooking).not.toBeNull();
     await prisma.booking.delete({ where: { id: newBooking?.id } });
@@ -148,7 +145,6 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await expect(page).toHaveURL(/.*payment/);
-    await payment.delete();
   });
 
   test("Paid rescheduling should go to success page", async ({ page, users, bookings, payments }) => {
