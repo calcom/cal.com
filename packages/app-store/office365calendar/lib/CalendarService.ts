@@ -232,8 +232,7 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      // const responseJson = await handleErrorsJson(response);
-      const responseJson = { error: "This is an error" };
+      const responseJson = await handleErrorsJson(response);
       const tokenResponse = refreshTokenResponseSchema.safeParse(responseJson);
       o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
       if (!tokenResponse.success) {
