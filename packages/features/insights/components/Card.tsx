@@ -9,7 +9,7 @@ const CardInsights = (props: ICardProps) => {
   const { children, className = "", ...rest } = props;
 
   return (
-    <Card className={`shadow-none ${className}`} {...rest}>
+    <Card className={`shadow-none ring-gray-300 ${className}`} {...rest}>
       {children}
     </Card>
   );
