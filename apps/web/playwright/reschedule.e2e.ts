@@ -172,8 +172,6 @@ test.describe("Reschedule Tests", async () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
     await expect(page).toHaveURL(/.*booking/);
-
-    await payment.delete();
   });
 
   test("Opt in event should be PENDING when rescheduled by USER", async ({ page, users, bookings }) => {
