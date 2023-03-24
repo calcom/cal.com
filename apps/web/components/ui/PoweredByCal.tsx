@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { LOGO, COMPANY_NAME } from "@calcom/lib/constants";
 import { POWERED_BY_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -14,16 +15,7 @@ const PoweredByCal = () => {
         target="_blank"
         className="text-bookinglight opacity-50 hover:opacity-100 dark:text-white">
         {t("powered_by")}{" "}
-        <img
-          className="relative -mt-px inline h-[10px] w-auto dark:hidden"
-          src="/cal-logo-word.svg"
-          alt="Cal.com Logo"
-        />
-        <img
-          className="relativ -mt-px hidden h-[10px] w-auto dark:inline"
-          src="/cal-logo-word-dark.svg"
-          alt="Cal.com Logo"
-        />
+        <img className="relative -mt-px inline h-[12px] w-auto dark:invert" src={LOGO} alt={COMPANY_NAME} />
       </Link>
     </div>
   );
