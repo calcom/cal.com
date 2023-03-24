@@ -1,7 +1,7 @@
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Tooltip } from "@calcom/ui";
-import { FiTrash } from "@calcom/ui/components/icon";
+import { FiX } from "@calcom/ui/components/icon";
 
 import { DateSelect } from "./DateSelect";
 import { EventTypeListInTeam } from "./EventTypeListInTeam";
@@ -23,7 +23,7 @@ export const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        StartIcon={FiTrash}
+        StartIcon={FiX}
         className="h-[38px]"
         onClick={() => {
           setSelectedFilter(null);
