@@ -36,9 +36,9 @@ export function AppStoreCategories({
             data-testid={`app-store-category-${category.name}`}
             className="relative flex rounded-md"
             style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>
-            <div className="w-full self-center bg-[url('/noise.svg')] bg-cover bg-center bg-no-repeat px-6 py-4">
+            <div className="dark:bg-muted light:bg-[url('/noise.svg')] dark:from-subtle dark:to-muted w-full self-center bg-cover bg-center bg-no-repeat px-6 py-4 dark:bg-gradient-to-tr">
               {isLocaleReady ? (
-                <h3 className="text-sm font-semibold capitalize">{category.name}</h3>
+                <h3 className="text-emphasis text-sm font-semibold capitalize">{category.name}</h3>
               ) : (
                 <SkeletonText invisible />
               )}
