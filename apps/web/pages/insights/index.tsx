@@ -24,7 +24,7 @@ const Heading = () => {
   } = useFilterContext();
   return (
     <div className="min-w-52">
-      <p className="text-lg font-semibold">
+      <p className="font-cal text-lg font-semibold">
         {t("analytics_for_organisation", {
           organisationName: selectedTeamName,
         })}

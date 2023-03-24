@@ -1,9 +1,10 @@
-import { Card, Table, TableBody, TableCell, TableRow, Text, Title } from "@tremor/react";
+import { Table, TableBody, TableCell, TableRow, Text, Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "../context/provider";
+import { CardInsights } from "./Card";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
@@ -22,7 +23,7 @@ export const PopularEventsTable = () => {
   if (!isSuccess || !startDate || !endDate || !teamId || data?.length === 0) return null;
 
   return (
-    <Card>
+    <CardInsights>
       <Title>{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
@@ -38,6 +39,6 @@ export const PopularEventsTable = () => {
           ))}
         </TableBody>
       </Table>
-    </Card>
+    </CardInsights>
   );
 };
