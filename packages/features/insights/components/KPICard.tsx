@@ -41,7 +41,9 @@ export const KPICard = ({
               startDate: previousDateRange.startDate,
               endDate: previousDateRange.endDate,
             })}>
-            <small className="relative top-px text-xs text-gray-600">{t("from_last_period")}</small>
+            <small className="relative top-px cursor-pointer text-xs text-gray-600">
+              {t("from_last_period")}
+            </small>
           </Tooltip>
         </Flex>
       </Flex>
