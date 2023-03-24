@@ -1685,8 +1685,8 @@
   "events_rescheduled": "Events Rescheduled",
   "from_last_period": "from last period",
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
-  "analytics_for_organisation": "Analytics for {{organisationName}}",
-  "subtitle_analytics": "This is a organisation analytics",
+  "analytics_for_organisation": "Insights for {{organisationName}}",
+  "subtitle_analytics": "Learn more about your team's activity",
   "event_trends": "Event Trends",
   "clear_filters": "Clear Filters"
 }
