@@ -30,7 +30,7 @@ export const PopularEventsTable = () => {
           {data.map((item) => (
             <TableRow key={item.eventTypeId}>
               <TableCell>{item.eventTypeName}</TableCell>
-              <TableCell>
+              <TableCell className="text-right">
                 <Text>
                   <strong>{item.count}</strong>
                 </Text>
