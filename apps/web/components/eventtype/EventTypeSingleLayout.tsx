@@ -117,11 +117,6 @@ function getNavigation(props: {
   ];
 }
 
-function Debugger(props: { children: string }) {
-  debugger;
-  return <li>{props.children}</li>;
-}
-
 function EventTypeSingleLayout({
   children,
   eventType,

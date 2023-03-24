@@ -506,7 +506,6 @@ export const eventTypesRouter = router({
       const eventType = await ctx.prisma.eventType.create({ data });
       return { eventType };
     } catch (e) {
-      console.log(e);
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });

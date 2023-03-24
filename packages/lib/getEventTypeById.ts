@@ -335,8 +335,6 @@ export default async function getEventTypeById({
       })
     : [];
 
-  console.log(JSON.stringify(teamMembers, null, 2));
-
   // Find the current users memebership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type
   const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;

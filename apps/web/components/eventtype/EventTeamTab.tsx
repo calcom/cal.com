@@ -68,7 +68,6 @@ const ChildrenEventTypesList = ({
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
-  console.log({ value });
   return (
     <div className="flex flex-col space-y-5">
       <div>
