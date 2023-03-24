@@ -220,20 +220,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       attendeeEmail = bookingSeat.attendee.email;
     }
   }
-  // If it's not reschedule but event Type has seats we should obtain
-  // the bookingUid regardless and use it to get the booking
-  const currentSeats = await prisma.booking.findFirst({
-    where: {
-      eventTypeId: eventTypeRaw.id,
-      startTime: dayjs(query.date).toISOString(),
-      endTime: dayjs(query.date).add(query.duration, "minutes").toISOString(),
-    },
-    select: {
-      uid: true,
-    },
-  });
-  if (currentSeats && currentSeats) {
-    bookingUidWithSeats = currentSeats.uid;
+
+  if (query.duration) {
+    // If it's not reschedule but event Type has seats we should obtain
+    // the bookingUid regardless and use it to get the booking
+    const currentSeats = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: eventTypeRaw.id,
+        startTime: dayjs(query.date).toISOString(),
+        endTime: dayjs(query.date).add(query.duration, "minutes").toISOString(),
+      },
+      select: {
+        uid: true,
+      },
+    });
+    if (currentSeats && currentSeats) {
+      bookingUidWithSeats = currentSeats.uid;
+    }
   }
 
   let booking: GetBookingType | null = null;
