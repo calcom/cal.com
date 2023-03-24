@@ -44,7 +44,7 @@ const ColorPicker = (props: ColorPickerProps) => {
       </Popover.Root>
 
       <HexColorInput
-        className="border-default block w-full border px-3 py-2  ltr:rounded-r-md rtl:rounded-l-md sm:text-sm"
+        className="border-default bg-default block w-full border px-3 py-2  ltr:rounded-r-md rtl:rounded-l-md sm:text-sm"
         color={color}
         onChange={(val) => {
           setColor(val);

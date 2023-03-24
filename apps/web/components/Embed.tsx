@@ -517,7 +517,7 @@ const tabs = [
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={
@@ -566,7 +566,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
@@ -644,7 +644,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted hover:bg-subtle w-1/3 rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
+            className="hover:bg-subtle bg-muted  w-1/3 rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -849,10 +849,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     } text-subtle ml-auto h-5 w-5`}
                   />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="text-sm">
+                <CollapsibleContent className="text-default text-sm">
                   <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
                     {/*TODO: Add Auto/Fixed toggle from Figma */}
-                    <div className="text-sm">Embed Window Sizing</div>
+                    <div className="text-default text-sm">Embed Window Sizing</div>
                     <div className="justify-left flex items-center">
                       <TextField
                         labelProps={{ className: "hidden" }}
@@ -938,7 +938,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         });
                       }}
                     />
-                    <div className="text-sm">Display Calendar Icon Button</div>
+                    <div className="text-default text-sm">Display Calendar Icon Button</div>
                   </div>
                   <div
                     className={classNames(
@@ -1034,7 +1034,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           });
                         }}
                       />
-                      <div className="text-sm">{t("hide_eventtype_details")}</div>
+                      <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                     </div>
                     <Label className="">
                       <div className="mb-2">Theme</div>
