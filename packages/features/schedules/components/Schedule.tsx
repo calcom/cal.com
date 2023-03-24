@@ -56,7 +56,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
+          <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
@@ -237,7 +237,7 @@ const TimeRangeField = ({ className, value, onChange }: { className?: string } &
           onChange({ ...value, start: new Date(option?.value as number) });
         }}
       />
-      <span className="mx-2 w-2 self-center"> - </span>
+      <span className="text-default mx-2 w-2 self-center"> - </span>
       <LazySelect
         className="inline-block w-[100px] rounded-md"
         value={value.end}
@@ -380,13 +380,13 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 text-muted pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
+        <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
               <li key={weekday}>
-                <label className="flex w-full items-center justify-between">
+                <label className="text-default flex w-full items-center justify-between">
                   <span className="px-1">{weekday}</span>
                   <input
                     value={weekdayIndex}
@@ -400,7 +400,7 @@ const CopyTimes = ({
                       }
                     }}
                     type="checkbox"
-                    className="border-default text-emphasis disabled:text-muted inline-block rounded-[4px] focus:ring-neutral-500"
+                    className="border-default bg-default text-emphasis disabled:text-muted focus:ring-emphasis dark:checked:bg-muted focus:bg-default dark:checked:focus:bg-default dark:checked:hover:bg-subtle dark:checked:hover:text-inverted inline-block rounded-[4px]"
                   />
                 </label>
               </li>

@@ -237,7 +237,7 @@ export default function Availability() {
           }}
           className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="mb-6 rounded-md border">
+            <div className="border-subtle mb-6 rounded-md border">
               <div>
                 {typeof me.data?.weekStart === "string" && (
                   <Schedule
@@ -252,7 +252,7 @@ export default function Availability() {
                 )}
               </div>
             </div>
-            <div className="my-6 rounded-md border">
+            <div className="border-subtle my-6 rounded-md border">
               {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
             </div>
           </div>
