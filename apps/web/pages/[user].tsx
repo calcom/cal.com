@@ -24,7 +24,7 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
@@ -343,7 +343,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-    descriptionAsSafeHTML: markdownAndSanitize(eventType.description),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
 
   const isSingleUser = users.length === 1;
@@ -353,7 +353,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       })
     : [];
 
-  const safeBio = markdownAndSanitize(user.bio) || "";
+  const safeBio = markdownToSafeHTML(user.bio) || "";
 
   return {
     props: {

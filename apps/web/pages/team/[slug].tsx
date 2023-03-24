@@ -10,7 +10,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitize";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -187,13 +187,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...user,
       avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
-    descriptionAsSafeHTML: markdownAndSanitize(type.description),
+    descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));
 
-  const safeBio = markdownAndSanitize(team.bio) || "";
+  const safeBio = markdownToSafeHTML(team.bio) || "";
 
   const members = team.members.map((member) => {
-    return { ...member, safeBio: markdownAndSanitize(member.bio || "") };
+    return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
   });
 
   return {
