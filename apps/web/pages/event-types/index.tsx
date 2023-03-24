@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { SchedulingType } from "@prisma/client";
+import { SchedulingType, MembershipRole } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -438,7 +438,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {isManagedEventType && (
+                              {isManagedEventType && group.membershipRole !== MembershipRole.MEMBER && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
@@ -449,16 +449,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="outline-none">
-                                    <EmbedButton
-                                      as={DropdownItem}
-                                      type="button"
-                                      StartIcon={FiCode}
-                                      className="w-full rounded-none"
-                                      embedUrl={encodeURIComponent(embedLink)}>
-                                      {t("embed")}
-                                    </EmbedButton>
-                                  </DropdownMenuItem>
+                                  {!isManagedEventType && (
+                                    <DropdownMenuItem className="outline-none">
+                                      <EmbedButton
+                                        as={DropdownItem}
+                                        type="button"
+                                        StartIcon={FiCode}
+                                        className="w-full rounded-none"
+                                        embedUrl={encodeURIComponent(embedLink)}>
+                                        {t("embed")}
+                                      </EmbedButton>
+                                    </DropdownMenuItem>
+                                  )}
                                 </>
                               )}
                               <DropdownMenuSeparator />
