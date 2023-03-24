@@ -56,7 +56,7 @@ export const DateSelect = () => {
         enableYearPagination={true}
         minDate={currentDate.subtract(2, "year").toDate()}
         maxDate={currentDate.toDate()}
-        color="blue"
+        color="black"
         className="h-[42px] max-w-sm"
       />
     </div>
