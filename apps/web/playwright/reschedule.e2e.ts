@@ -98,7 +98,11 @@ test.describe("Reschedule Tests", async () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking.uid } });
+    const rescheduledBooking = await prisma.booking.findFirst({ where: { uid: booking.uid } });
+
     expect(newBooking).not.toBeNull();
+    expect(rescheduledBooking).toBeNull();
+
     await prisma.booking.delete({ where: { id: newBooking?.id } });
   });
 
