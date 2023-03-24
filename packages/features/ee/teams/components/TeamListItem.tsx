@@ -124,11 +124,7 @@ export default function TeamListItem(props: Props) {
         }}
         members={teamQuery?.data?.members || []}
       />
-      <div
-        className={classNames(
-          "flex items-center  justify-between",
-          !isInvitee && "group hover:bg-neutral-50"
-        )}>
+      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link
             href={"/settings/teams/" + team.id + "/profile"}
