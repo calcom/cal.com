@@ -12,6 +12,7 @@ import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $isAtNodeEnd, $wrapNodes } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import classNames from "classnames";
+import DOMPurify from "dompurify";
 import type { EditorState, GridSelection, LexicalEditor, NodeSelection, RangeSelection } from "lexical";
 import {
   $createParagraphNode,
@@ -24,8 +25,6 @@ import {
 } from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../form/dropdown";
@@ -354,7 +353,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.registerUpdateListener(({ editorState, prevEditorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-          props.setText(markdownToSafeHTML(textInHtml));
+          props.setText(DOMPurify.sanitize(textInHtml));
         });
         if (!prevEditorState._selection) editor.blur();
       });
