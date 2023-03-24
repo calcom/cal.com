@@ -59,6 +59,7 @@ Type.isThemeSupported = true;
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies
+  const MarkdownIt = await import("markdown-it").then((mod) => mod.default);
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const { privacyFilteredLocations } = await import("@calcom/app-store/locations");
   const { parseRecurringEvent } = await import("@calcom/lib/isRecurringEvent");
@@ -123,6 +124,8 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       },
     },
   });
+
+  const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
   if (!user || !user.eventTypes.length) return { notFound: true };
 

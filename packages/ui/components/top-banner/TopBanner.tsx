@@ -1,6 +1,6 @@
 import { XIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
-import noop from "lodash/noop";
+import { noop } from "lodash";
 import type { ReactNode } from "react";
 
 import { FiAlertTriangle, FiInfo } from "../icon";

@@ -8,7 +8,6 @@ export const Info = (props: {
   extraInfo?: React.ReactNode;
   withSpacer?: boolean;
   lineThrough?: boolean;
-  formatted?: boolean;
 }) => {
   if (!props.description || props.description === "") return null;
 
@@ -29,18 +28,7 @@ export const Info = (props: {
             whiteSpace: "pre-wrap",
             textDecoration: props.lineThrough ? "line-through" : undefined,
           }}>
-          {props.formatted ? (
-            <p
-              className="dark:text-darkgray-600 mt-2 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-              dangerouslySetInnerHTML={{
-                __html: safeDescription
-                  .replaceAll("<p>", `<p style="${descriptionCSS}">`)
-                  .replaceAll("<li>", `<li style="${descriptionCSS}">`),
-              }}
-            />
-          ) : (
-            props.description
-          )}
+          {props.description}
         </p>
         {props.extraInfo}
       </div>

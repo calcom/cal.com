@@ -113,7 +113,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             <>
               <div
                 className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: team.safeBio }}
+                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
               />
             </>
           )}
@@ -198,7 +198,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      team: { ...team, safeBio, members },
+      team,
       trpcState: ssr.dehydrate(),
     },
   } as const;

@@ -147,7 +147,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <>
                   <div
                     className=" dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
+                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
                   />
                 </>
               )}
@@ -358,7 +358,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       users,
-      safeBio,
       profile,
       user: {
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
