@@ -1218,6 +1218,7 @@
   "impersonation": "Impersonation",
   "impersonation_description": "Settings to manage user impersonation",
   "users": "Users",
+  "user": "User",
   "profile_description": "Manage settings for your {{appName}} profile",
   "users_description": "Here you can find a list of all users",
   "users_listing": "User listing",
