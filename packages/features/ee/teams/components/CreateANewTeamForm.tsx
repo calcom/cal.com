@@ -16,6 +16,19 @@ const querySchema = z.object({
   returnTo: z.string(),
 });
 
+function noTrailingHyphenSlugify(str: string) {
+  const slugified_str = slugify(str);
+  const trailing_hyphens = /(-*)$/g;
+  const slugified_trailing_hyphen_count = (slugified_str.match(trailing_hyphens) || [""])[0].length;
+  const str_trailing_hyphen_count = (str.match(trailing_hyphens) || [""])[0].length;
+
+  if (slugified_trailing_hyphen_count > str_trailing_hyphen_count) {
+    return slugified_str.slice(0, -(slugified_trailing_hyphen_count - str_trailing_hyphen_count));
+  }
+
+  return slugified_str;
+}
+
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -73,7 +86,7 @@ export const CreateANewTeamForm = () => {
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
+                      newTeamFormMethods.setValue("slug", noTrailingHyphenSlugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -99,7 +112,7 @@ export const CreateANewTeamForm = () => {
                 )}/team/`}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
+                  newTeamFormMethods.setValue("slug", noTrailingHyphenSlugify(e?.target.value), {
                     shouldTouch: true,
                   });
                 }}
