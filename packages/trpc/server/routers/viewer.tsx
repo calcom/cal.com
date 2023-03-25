@@ -2,6 +2,7 @@ import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import { cityMapping } from "city-timezones";
 import { reverse } from "lodash";
+import type { NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import z from "zod";
 
@@ -708,6 +709,25 @@ const loggedInViewerRouter = router({
             userId: updatedUser.id,
           },
         });
+      }
+      // Revalidate booking pages
+      const res = ctx.res as NextApiResponse;
+      if (typeof res?.revalidate !== "undefined") {
+        const eventTypes = await prisma.eventType.findMany({
+          where: {
+            userId: user.id,
+            team: null,
+            hidden: false,
+          },
+          select: {
+            id: true,
+            slug: true,
+          },
+        });
+        // waiting for this isn't needed
+        Promise.all(eventTypes.map((eventType) => res?.revalidate(`/${ctx.user.username}/${eventType.slug}`)))
+          .then(() => console.info("Booking pages revalidated"))
+          .catch((e) => console.error(e));
       }
     }),
   eventTypeOrder: authedProcedure
