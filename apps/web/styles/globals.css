@@ -235,19 +235,6 @@ input[type="text"]:focus {
   transform: translateX(16px);
 } */
 
-/* DateRangePicker */
-/*
-  TODO:: Remove on V2 launch
- */
-.react-daterange-picker > .react-daterange-picker__wrapper {
-  /* border consistent with other inputs */
-  @apply border-default rounded-sm px-2 py-1.5 text-sm lg:py-1;
-}
-
-.react-daterange-picker > .react-daterange-picker__wrapper input {
-  /* Makes sure the on-focus behaviour is like Cal.com's */
-  @apply my-0.5 h-auto rounded-sm py-0.5;
-}
 
 @layer components {
   /* slider */
@@ -399,26 +386,6 @@ input[type="text"]:focus {
   100% {
     height: 0%;
   }
-}
-
-nav#nav--settings > a {
-  @apply text-emphasis hover:bg-muted hover:text-emphasis flex items-center border-l-4 border-transparent px-3 py-2 text-sm font-medium;
-}
-
-nav#nav--settings > a svg {
-  @apply text-muted group-hover:text-subtle mr-3 -ml-1 h-6 w-6 flex-shrink-0;
-}
-
-nav#nav--settings > a.active {
-  @apply bg-muted text-default hover:bg-muted hover:text-default border-gray-500;
-}
-
-nav#nav--settings > a.active svg {
-  @apply text-subtle;
-}
-
-hr {
-  @apply border-gray-200;
 }
 
 .text-inverted-important {

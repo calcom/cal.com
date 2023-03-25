@@ -133,11 +133,11 @@ const ProfileView = () => {
             />
           </div>
 
-          <hr className="my-8 border-subtle" />
-          <div className="mb-6 flex items-center text-sm">
+          <hr className="border-subtle my-8" />
+          <div className="text-default mb-6 flex items-center text-sm">
             <div>
               <p className="font-semibold">{t("custom_brand_colors")}</p>
-              <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
+              <p className="mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ const ProfileView = () => {
               )}
             />
           </div>
-          <hr className="my-8 border-subtle" />
+          <hr className="border-subtle my-8" />
 
           <div className="flex flex-col gap-8">
             <div className="relative flex items-start">
@@ -229,7 +229,7 @@ const ProfileView = () => {
           </Button>
         </Form>
       ) : (
-        <div className="rounded-md border border-subtle p-5">
+        <div className="border-subtle rounded-md border p-5">
           <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}

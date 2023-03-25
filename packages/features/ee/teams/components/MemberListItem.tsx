@@ -107,7 +107,7 @@ export default function MemberListItem(props: Props) {
 
             <div className="inline-block ltr:ml-3 rtl:mr-3">
               <div className="mb-1 flex">
-                <span className="mr-1 text-sm font-bold leading-4">{name}</span>
+                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}

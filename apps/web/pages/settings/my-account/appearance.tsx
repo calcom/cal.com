@@ -93,7 +93,7 @@ const AppearanceView = () => {
       <Meta title={t("appearance")} description={t("appearance_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="font-semibold">{t("theme")}</p>
+          <p className="text-default font-semibold">{t("theme")}</p>
           <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
@@ -124,7 +124,7 @@ const AppearanceView = () => {
       <hr className="border-subtle my-8 border" />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="font-semibold">{t("custom_brand_colors")}</p>
+          <p className="text-default font-semibold">{t("custom_brand_colors")}</p>
           <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
@@ -136,7 +136,7 @@ const AppearanceView = () => {
           defaultValue={user.brandColor}
           render={() => (
             <div>
-              <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
+              <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
                 onChange={(value) => formMethods.setValue("brandColor", value, { shouldDirty: true })}
@@ -150,7 +150,7 @@ const AppearanceView = () => {
           defaultValue={user.darkBrandColor}
           render={() => (
             <div className="mt-6 sm:mt-0">
-              <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
+              <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
                 onChange={(value) => formMethods.setValue("darkBrandColor", value, { shouldDirty: true })}
@@ -177,7 +177,7 @@ const AppearanceView = () => {
             <div className="flex w-full text-sm">
               <div className="mr-1 flex-grow">
                 <div className="flex items-center">
-                  <p className="font-semibold ltr:mr-2 rtl:ml-2">
+                  <p className="text-default font-semibold ltr:mr-2 rtl:ml-2">
                     {t("disable_cal_branding", { appName: APP_NAME })}
                   </p>
                   <UpgradeTeamsBadge />

@@ -44,7 +44,7 @@ const TwoFactorAuthView = () => {
         />
         <div>
           <div className="flex">
-            <p className="font-semibold">{t("two_factor_auth")}</p>
+            <p className="text-default font-semibold">{t("two_factor_auth")}</p>
             <Badge className="ml-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
