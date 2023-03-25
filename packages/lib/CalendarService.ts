@@ -44,7 +44,7 @@ function hasFileExtension(url: string): boolean {
   return fileName.includes(".") && !fileName.substring(fileName.lastIndexOf(".")).includes("/");
 }
 
-function getFileExtension(url: string): string | null {
+function getFileExtension(url: string): string {
   // Return null if the URL does not have a file extension
   if (!hasFileExtension(url)) return "ics";
   // Get the last portion of the URL (after the last '/')
@@ -322,9 +322,14 @@ export default abstract class BaseCalendarService implements Calendar {
 
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
-      console.log("object", object.data);
-      const jcalData = ICAL.parse(sanitizeCalendarObject(object));
-      const vcalendar = new ICAL.Component(jcalData);
+      let vcalendar;
+      try {
+        const jcalData = ICAL.parse(sanitizeCalendarObject(object));
+        vcalendar = new ICAL.Component(jcalData);
+      } catch (e) {
+        console.error("Error parsing calendar object: ", e);
+        return;
+      }
       const vevent = vcalendar.getFirstSubcomponent("vevent");
 
       // if event status is free or transparent, return
