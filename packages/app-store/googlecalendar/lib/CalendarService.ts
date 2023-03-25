@@ -246,7 +246,6 @@ export default class GoogleCalendarService implements Calendar {
           }
 
           if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-            console.log("This meet point triggers");
             calendar.events.patch({
               // Update the same event but this time we know the hangout link
               calendarId: selectedCalendar,
