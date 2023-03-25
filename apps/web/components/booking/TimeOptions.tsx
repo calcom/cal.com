@@ -26,6 +26,10 @@ const TimeOptions: FC<Props> = ({ onSelectTimeZone }) => {
   return !!selectedTimeZone ? (
     <TimezoneSelect
       id="timeZone"
+      classNames={{
+        singleValue: () => "dark:text-darkgray-600 text-gray-600",
+        menu: () => "!w-64 max-w-[90vw]",
+      }}
       variant="minimal"
       value={selectedTimeZone}
       onChange={(tz: ITimezoneOption) => setSelectedTimeZone(tz.value)}
