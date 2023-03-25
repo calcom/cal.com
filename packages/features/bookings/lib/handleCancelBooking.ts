@@ -494,7 +494,8 @@ async function handler(req: CustomRequest) {
     bookingToDelete.user.credentials
       .filter((credential) => credential.type.endsWith("_video"))
       .forEach((credential) => {
-        apiDeletes.push(deleteMeeting(credential, bookingToDelete.uid));
+        const uidToDelete = bookingToDelete?.references?.[0].uid ?? bookingToDelete.uid;
+        apiDeletes.push(deleteMeeting(credential, uidToDelete));
       });
   }
 
