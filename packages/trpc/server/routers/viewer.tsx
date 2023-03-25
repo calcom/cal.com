@@ -23,6 +23,7 @@ import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
@@ -1278,6 +1279,7 @@ export const viewerRouter = mergeRouters(
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    features: featureFlagRouter,
     appsRouter,
   })
 );

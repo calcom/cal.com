@@ -686,3 +686,28 @@ model VerifiedNumber {
   team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
 }
+
+model Feature {
+  // The feature slug, ex: 'v2-workflows'
+  slug        String       @id @unique
+  // If the feature is currently enabled
+  enabled     Boolean      @default(false)
+  // A short description of the feature
+  description String?
+  // The type of feature flag
+  type        FeatureType? @default(RELEASE)
+  // If the flag is considered stale
+  stale       Boolean?     @default(false)
+  lastUsedAt  DateTime?
+  createdAt   DateTime?    @default(now())
+  updatedAt   DateTime?    @default(now()) @updatedAt
+  updatedBy   Int?
+}
+
+enum FeatureType {
+  RELEASE
+  EXPERIMENT
+  OPERATIONAL
+  KILL_SWITCH
+  PERMISSION
+}
