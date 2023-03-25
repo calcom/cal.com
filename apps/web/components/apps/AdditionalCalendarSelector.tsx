@@ -59,7 +59,9 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                         return (
                           <DropdownItem {...props} color="minimal" type="button">
                             <span className="flex items-center gap-x-2">
-                              {data.image && <img className=" h-5 w-5" src={data.image} alt={data.label} />}
+                              {data.image && (
+                                <img className="-ml-2 h-5 w-5" src={data.image} alt={data.label} />
+                              )}
                               {`${t("add")} ${data.label}`}
                             </span>
                           </DropdownItem>
