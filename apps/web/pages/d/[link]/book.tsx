@@ -18,8 +18,6 @@ export default function Book(props: HashLinkPageProps) {
   return <BookingPage {...props} />;
 }
 
-Book.isThemeSupported = true;
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const link = asStringOrThrow(context.query.link as string);

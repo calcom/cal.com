@@ -151,8 +151,6 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
   return <RoutingForm {...props} />;
 }
 
-RoutingLink.isThemeSupported = true;
-
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma

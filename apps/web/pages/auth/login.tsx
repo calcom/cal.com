@@ -292,4 +292,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   };
 };
 
+Login.isThemeSupported = false;
+
 export const getServerSideProps = withNonce(_getServerSideProps);

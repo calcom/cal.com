@@ -800,8 +800,6 @@ export default function Success(props: SuccessProps) {
   );
 }
 
-Success.isThemeSupported = true;
-
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];

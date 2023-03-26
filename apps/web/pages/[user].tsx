@@ -190,7 +190,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     </>
   );
 }
-User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (

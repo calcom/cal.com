@@ -54,8 +54,6 @@ export default function Type(props: AvailabilityPageProps) {
   );
 }
 
-Type.isThemeSupported = true;
-
 const paramsSchema = z.object({ type: z.string(), user: z.string() });
 async function getUserPageProps(context: GetStaticPropsContext) {
   // load server side dependencies

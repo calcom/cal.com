@@ -23,7 +23,6 @@ export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
 }
-TeamType.isThemeSupported = true;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slugParam = asStringOrNull(context.query.slug);

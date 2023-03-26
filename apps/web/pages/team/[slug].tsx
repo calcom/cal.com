@@ -106,9 +106,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">
-            {teamName}
-          </p>
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">{teamName}</p>
           {!isBioEmpty && (
             <>
               <div
@@ -199,4 +197,3 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 export default TeamPage;
-TeamPage.isThemeSupported = true;

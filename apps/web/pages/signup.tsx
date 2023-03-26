@@ -209,3 +209,5 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   };
 };
+
+Signup.isThemeSupported = false;
