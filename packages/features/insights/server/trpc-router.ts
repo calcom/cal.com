@@ -430,7 +430,7 @@ export const insightsRouter = router({
   membersWithMostBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.coerce.number().optional(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -497,7 +497,7 @@ export const insightsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.coerce.number().optional(),
         startDate: z.string(),
         endDate: z.string(),
         eventTypeId: z.coerce.number().optional(),
@@ -625,7 +625,7 @@ export const insightsRouter = router({
   userList: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -666,7 +666,7 @@ export const insightsRouter = router({
   eventTypeList: userBelongsToTeamProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {

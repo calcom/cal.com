@@ -16,7 +16,7 @@ export const PopularEventsTable = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
-    userId: selectedUserId ?? undefined,
+    userId: selectedUserId,
   });
 
   if (!startDate || !endDate || !teamId) return null;

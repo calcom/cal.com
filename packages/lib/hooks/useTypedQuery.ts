@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useMemo } from "react";
+import { useCallback, useRef } from "react";
 import { z } from "zod";
 
 type OptionalKeys<T> = { [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? K : never }[keyof T];
@@ -35,34 +35,34 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   const { query: unparsedQuery, ...router } = useRouter();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
 
-  let parsedQuery: Output = useMemo(() => {
-    return {} as Output;
-  }, []);
+  const parsedQuery = useRef({} as Output);
 
-  if (parsedQuerySchema.success) parsedQuery = parsedQuerySchema.data;
+  if (parsedQuerySchema.success) parsedQuery.current = parsedQuerySchema.data;
   else if (!parsedQuerySchema.success) console.error(parsedQuerySchema.error);
 
   // Set the query based on schema values
   const setQuery = useCallback(
     function setQuery<J extends OutputKeys>(key: J, value: Output[J]) {
       // Remove old value by key so we can merge new value
-      const { [key]: _, ...newQuery } = parsedQuery;
-      const newValue = { ...newQuery, [key]: value };
-      const search = new URLSearchParams(newValue as any).toString();
+      const { [key]: _, ...newQuery } = parsedQuery.current;
+      parsedQuery.current = { ...newQuery, [key]: value };
+      const search = new URLSearchParams(parsedQuery.current).toString();
+
       router.replace({ query: search }, undefined, { shallow: true });
     },
-    [parsedQuery, router]
+    [router]
   );
 
   // Delete a key from the query
   function removeByKey(key: OutputOptionalKeys) {
-    const { [key]: _, ...newQuery } = parsedQuery;
+    const { [key]: _, ...newQuery } = parsedQuery.current;
+    parsedQuery.current = newQuery;
     router.replace({ query: newQuery as Output }, undefined, { shallow: true });
   }
 
   // push item to existing key
   function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
-    const existingValue = parsedQuery[key];
+    const existingValue = parsedQuery.current[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
       // @ts-expect-error this is too much for TS it seems
@@ -75,7 +75,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
 
   // Remove item by key and value
   function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
-    const existingValue = parsedQuery[key];
+    const existingValue = parsedQuery.current[key];
     if (Array.isArray(existingValue) && existingValue.length > 1) {
       // @ts-expect-error this is too much for TS it seems
       const newValue = existingValue.filter((item) => item !== value);
@@ -86,5 +86,5 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
     }
   }
 
-  return { data: parsedQuery, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue };
+  return { data: parsedQuery.current, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue };
 }

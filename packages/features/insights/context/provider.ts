@@ -1,24 +1,19 @@
+import type { FilterQuery } from "insights/context/FiltersProvider";
 import * as React from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 
 export type FilterContextType = {
-  filter: {
-    dateRange: [Dayjs, Dayjs, null | string];
-    selectedTimeView: "year" | "week" | "month";
-    selectedFilter: Array<"user" | "event-type"> | null;
-    selectedTeamId: number | null;
-    selectedTeamName: string | null;
-    selectedUserId: number | null;
-    selectedEventTypeId: number | null;
+  filter: Omit<FilterQuery, "dateRange"> & {
+    dateRange: readonly [Dayjs, Dayjs, undefined | string];
   };
-  setDateRange: ([start, end, range]: [Dayjs, Dayjs, null | string]) => void;
-  setSelectedFilter: (filter: Array<"user" | "event-type"> | null) => void;
-  setSelectedTeamId: (teamId: number | null) => void;
-  setSelectedTeamName: (teamName: string | null) => void;
-  setSelectedUserId: (userId: number | null) => void;
-  setSelectedEventTypeId: (eventTypeId: number | null) => void;
-  setSelectedTimeView: (timeView: "year" | "week" | "month") => void;
+  setDateRange: ([start, end, range]: [Dayjs, Dayjs, undefined | string]) => void;
+  setSelectedFilter: (filter: FilterQuery["selectedFilter"]) => void;
+  setSelectedTeamId: (teamId: FilterQuery["selectedTeamId"]) => void;
+  setSelectedTeamName: (teamName: FilterQuery["selectedTeamName"]) => void;
+  setSelectedUserId: (userId: FilterQuery["selectedUserId"]) => void;
+  setSelectedEventTypeId: (eventTypeId: FilterQuery["selectedEventTypeId"]) => void;
+  setSelectedTimeView: (timeView: FilterQuery["selectedTimeView"]) => void;
 };
 
 export const FilterContext = React.createContext<FilterContextType | null>(null);

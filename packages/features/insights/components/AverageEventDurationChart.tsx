@@ -17,7 +17,7 @@ export const AverageEventDurationChart = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
-    userId: selectedUserId ?? undefined,
+    userId: selectedUserId,
   });
 
   if (!isSuccess || data?.length == 0 || !startDate || !endDate || !teamId) return null;

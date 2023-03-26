@@ -9,7 +9,7 @@ import { valueFormatter } from "../lib/valueFormatter";
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { selectedTeamId, selectedTimeView = "week", dateRange, selectedEventTypeId } = filter;
+  const { selectedTeamId, selectedTimeView, dateRange, selectedEventTypeId } = filter;
   const [startDate, endDate] = dateRange;
 
   if (!startDate || !endDate) return null;
@@ -19,7 +19,7 @@ export const BookingStatusLineChart = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId: selectedTeamId || -1,
-    eventTypeId: selectedEventTypeId ?? undefined,
+    eventTypeId: selectedEventTypeId,
   });
 
   if (!isSuccess) return null;

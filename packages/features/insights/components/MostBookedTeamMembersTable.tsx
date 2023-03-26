@@ -17,7 +17,7 @@ export const MostBookedTeamMembersTable = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
+    eventTypeId: selectedEventTypeId,
   });
 
   if (!isSuccess || !startDate || !endDate || !teamId) return null;

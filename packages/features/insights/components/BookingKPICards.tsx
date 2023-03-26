@@ -18,8 +18,8 @@ export const BookingKPICards = () => {
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
-    eventTypeId: selectedEventTypeId ?? undefined,
-    userId: selectedUserId ?? undefined,
+    eventTypeId: selectedEventTypeId,
+    userId: selectedUserId,
   });
 
   const categories: {
