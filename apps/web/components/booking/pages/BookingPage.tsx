@@ -205,6 +205,7 @@ const routerQuerySchema = z
 const BookingPage = ({
   eventType,
   booking,
+  currentSlotBooking,
   profile,
   isDynamicGroupBooking,
   recurringEventCount,
@@ -586,23 +587,27 @@ const BookingPage = ({
                     <div className="text-bookinghighlight flex items-start text-sm">
                       <FiUser
                         className={`ml-[2px] mt-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] ${
-                          booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          currentSlotBooking &&
+                          currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                             ? "text-rose-600"
-                            : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                            : currentSlotBooking &&
+                              currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
                             ? "text-yellow-500"
                             : "text-bookinghighlight"
                         }`}
                       />
                       <p
                         className={`${
-                          booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          currentSlotBooking &&
+                          currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
                             ? "text-rose-600"
-                            : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                            : currentSlotBooking &&
+                              currentSlotBooking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
                             ? "text-yellow-500"
                             : "text-bookinghighlight"
                         } mb-2 font-medium`}>
-                        {booking
-                          ? eventType.seatsPerTimeSlot - booking.attendees.length
+                        {currentSlotBooking
+                          ? eventType.seatsPerTimeSlot - currentSlotBooking.attendees.length
                           : eventType.seatsPerTimeSlot}{" "}
                         / {eventType.seatsPerTimeSlot} {t("seats_available")}
                       </p>
@@ -634,6 +639,7 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
+                    className="dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand hover:border-brand text-brandcontrast"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}

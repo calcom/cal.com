@@ -120,6 +120,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType: eventTypeObject,
       booking: null,
+      currentSlotBooking: null,
       trpcState: ssr.dehydrate(),
       recurringEventCount,
       isDynamicGroupBooking: false,
