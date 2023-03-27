@@ -77,7 +77,7 @@ export default function CancelBooking(props: Props) {
                 {t("nevermind")}
               </Button>
               <Button
-                className="flex justify-center"
+                className="dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand hover:border-brand text-brandcontrast flex justify-center"
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
