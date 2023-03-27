@@ -1,7 +1,8 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
 import { cityMapping } from "city-timezones";
-import _ from "lodash";
+import { reverse } from "lodash";
+import type { NextApiResponse } from "next";
 import { authenticator } from "otplib";
 import z from "zod";
 
@@ -23,9 +24,11 @@ import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
+import { featureFlagRouter } from "@calcom/features/flags/server/router";
+import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -594,7 +597,7 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         username: z.string().optional(),
-        name: z.string().optional(),
+        name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
         email: z.string().optional(),
         bio: z.string().optional(),
         avatar: z.string().optional(),
@@ -706,6 +709,25 @@ const loggedInViewerRouter = router({
           },
         });
       }
+      // Revalidate booking pages
+      const res = ctx.res as NextApiResponse;
+      if (typeof res?.revalidate !== "undefined") {
+        const eventTypes = await prisma.eventType.findMany({
+          where: {
+            userId: user.id,
+            team: null,
+            hidden: false,
+          },
+          select: {
+            id: true,
+            slug: true,
+          },
+        });
+        // waiting for this isn't needed
+        Promise.all(eventTypes.map((eventType) => res?.revalidate(`/${ctx.user.username}/${eventType.slug}`)))
+          .then(() => console.info("Booking pages revalidated"))
+          .catch((e) => console.error(e));
+      }
     }),
   eventTypeOrder: authedProcedure
     .input(
@@ -753,7 +775,7 @@ const loggedInViewerRouter = router({
         });
       }
       await Promise.all(
-        _.reverse(input.ids).map((id, position) => {
+        reverse(input.ids).map((id, position) => {
           return prisma.eventType.update({
             where: {
               id,
@@ -1270,10 +1292,12 @@ export const viewerRouter = mergeRouters(
     apiKeys: apiKeysRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
+    insights: insightsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    features: featureFlagRouter,
     appsRouter,
   })
 );

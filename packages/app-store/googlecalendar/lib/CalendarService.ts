@@ -133,6 +133,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
+          sendUpdates: "none",
         },
         function (error, event) {
           if (error || !event?.data) {
@@ -234,14 +235,13 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: uid,
           sendNotifications: true,
-          sendUpdates: "all",
+          sendUpdates: "none",
           requestBody: payload,
           conferenceDataVersion: 1,
         },
         function (err, evt) {
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
-
             return reject(err);
           }
 
@@ -293,7 +293,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: false,
-          sendUpdates: "all",
+          sendUpdates: "none",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {
