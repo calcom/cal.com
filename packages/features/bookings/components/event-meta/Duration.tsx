@@ -16,8 +16,9 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
 
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
-    if (!selectedDuration) setSelectedDuration(event.length);
-  }, [selectedDuration, setSelectedDuration, event.length]);
+    // Only store event duration in url if event has multiple durations.
+    if (!selectedDuration && event.metadata?.multipleDuration) setSelectedDuration(event.length);
+  }, [selectedDuration, setSelectedDuration, event.length, event.metadata?.multipleDuration]);
 
   if (!event?.metadata?.multipleDuration) return <>{t("multiple_duration_mins", { count: event.length })}</>;
 
