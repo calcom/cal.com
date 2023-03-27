@@ -16,6 +16,7 @@ export const EventMeta = () => {
   const { timezone, setTimezone, timeFormat } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
+  const bookerState = useBookerStore((state) => state.state);
   const { i18n } = useLocale();
   const { data: event, isLoading } = useEvent();
 
@@ -41,18 +42,22 @@ export const EventMeta = () => {
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative"
               icon={FiGlobe}>
-              <span className="current-timezone dark:before:bg-darkgray-200 flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:h-[calc(100%_+_10px)] before:w-[calc(100%_+_30px)] before:rounded-md before:bg-gray-100 before:py-3 before:opacity-0 before:transition-opacity">
-                <TimezoneSelect
-                  menuPosition="fixed"
-                  className="[&_>div]:min-h-0"
-                  classNames={{
-                    singleValue: () => "dark:text-darkgray-600",
-                    menu: () => "!w-64 max-w-[90vw]",
-                  }}
-                  value={timezone}
-                  onChange={(tz) => setTimezone(tz.value)}
-                />
-              </span>
+              {bookerState === "booking" ? (
+                <>{timezone}</>
+              ) : (
+                <span className="current-timezone dark:before:bg-darkgray-200 flex items-center justify-center before:absolute before:inset-0 before:left-[-30px] before:top-[-5px] before:bottom-[-5px] before:h-[calc(100%_+_10px)] before:w-[calc(100%_+_30px)] before:rounded-md before:bg-gray-100 before:py-3 before:opacity-0 before:transition-opacity">
+                  <TimezoneSelect
+                    menuPosition="fixed"
+                    className="[&_>div]:min-h-0"
+                    classNames={{
+                      singleValue: () => "dark:text-darkgray-600",
+                      menu: () => "!w-64 max-w-[90vw]",
+                    }}
+                    value={timezone}
+                    onChange={(tz) => setTimezone(tz.value)}
+                  />
+                </span>
+              )}
             </EventMetaBlock>
           </div>
         </m.div>
