@@ -32,6 +32,7 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -403,23 +404,9 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
-    const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
-    eventType.bookingFields.forEach((field) => {
-      const label = field.label || field.defaultLabel;
-      if (!label) {
-        throw new Error('Missing label for booking field "' + field.name + '"');
-      }
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        calEventUserFieldsResponses[field.name] = {
-          label,
-          value: responses[field.name],
-        };
-      }
-      calEventResponses[field.name] = {
-        label,
-        value: responses[field.name],
-      };
+    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
     });
     return {
       ...reqBody,
