@@ -1,7 +1,9 @@
-import React, { FC } from "react";
-import { IconType } from "react-icons/lib";
+import type { FC } from "react";
+import React from "react";
+import type { IconType } from "react-icons/lib";
 
-import { Button, ButtonBaseProps } from "../button";
+import type { ButtonBaseProps } from "../button";
+import { Button } from "../button";
 import {
   Dropdown,
   DropdownMenuContent,

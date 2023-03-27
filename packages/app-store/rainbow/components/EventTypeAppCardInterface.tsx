@@ -5,7 +5,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();

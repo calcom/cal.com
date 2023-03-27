@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 import type { Calendar } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 
@@ -17,6 +17,7 @@ export const getCalendar = (credential: CredentialPayload | null): Calendar | nu
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
+  log.info("calendarApp", calendarApp.lib.CalendarService);
   const CalendarService = calendarApp.lib.CalendarService;
   return new CalendarService(credential);
 };

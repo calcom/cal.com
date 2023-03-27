@@ -1,8 +1,13 @@
+import { decodeHTML } from "entities";
 import nodemailer from "nodemailer";
+import { z } from "zod";
 
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import prisma from "@calcom/prisma";
 
 declare let global: {
   E2E_EMAILS?: Record<string, unknown>[];
@@ -26,17 +31,31 @@ export default class BaseEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {};
   }
-  public sendEmail() {
+  public async sendEmail() {
+    const featureFlags = await getFeatureFlagMap(prisma);
+    /** If email kill switch exists and is active, we prevent emails being sent. */
+    if (featureFlags.emails) {
+      console.warn("Skipped Sending Email due to active Kill Switch");
+      return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
+    }
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       global.E2E_EMAILS = global.E2E_EMAILS || [];
       global.E2E_EMAILS.push(this.getNodeMailerPayload());
       console.log("Skipped Sending Email as NEXT_PUBLIC_IS_E2E==1");
       return new Promise((r) => r("Skipped sendEmail for E2E"));
     }
+
+    const payload = this.getNodeMailerPayload();
+    const parseSubject = z.string().safeParse(payload?.subject);
+    const payloadWithUnEscapedSubject = {
+      ...payload,
+      ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
+    };
+
     new Promise((resolve, reject) =>
       nodemailer
         .createTransport(this.getMailerOptions().transport)
-        .sendMail(this.getNodeMailerPayload(), (_err, info) => {
+        .sendMail(payloadWithUnEscapedSubject, (_err, info) => {
           if (_err) {
             const err = getErrorFromUnknown(_err);
             this.printNodeMailerError(err);

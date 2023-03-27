@@ -7,14 +7,17 @@ import {
   KBarSearch,
   useKBar,
   useMatches,
+  useRegisterActions,
 } from "kbar";
+import type { Action } from "kbar";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui";
 import { FiSearch, FiArrowUp, FiArrowDown, FiCornerDownLeft, FiCommand } from "@calcom/ui/components/icon";
 
@@ -24,15 +27,6 @@ type shortcutArrayType = {
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroup = EventTypeGroups[number];
-type EventType = EventTypeGroup["eventTypes"][number];
-
-type KBarAction = {
-  perform: () => Promise<boolean>;
-  id: string;
-  name: string;
-  section: string;
-  keywords: string;
-};
 
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
   id: slug,
@@ -41,216 +35,208 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
   keywords: `app ${name}`,
 }));
 
-export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
+const useEventTypesAction = () => {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const eventTypeActions = data?.eventTypeGroups.reduce<Action[]>((acc: Action[], group: EventTypeGroup) => {
+    const item: Action[] = group.eventTypes.map((item) => ({
+      id: `event-type-${item.id}`,
+      name: item.title,
+      section: "event_types_page_title",
+      keywords: "event types",
+      perform: () => router.push(`/event-types/${item.id}`),
+    }));
+    acc.push(...item);
+    return acc;
+  }, []);
+
+  const actions = eventTypeActions?.length ? eventTypeActions : [];
+
+  return useRegisterActions(actions);
+};
+
+export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
 
   // grab link to events
   // quick nested actions would be extremely useful
-  const appStoreActions = useMemo(
-    () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
 
-  if (!data) return null;
-
-  const eventTypes =
-    data?.eventTypeGroups.reduce((acc: EventType[], group: EventTypeGroup): EventType[] => {
-      acc.push(...group.eventTypes);
-      return acc;
-    }, [] as EventType[]) || [];
-
-  const eventTypeActions =
-    eventTypes.map(
-      (item: EventType): KBarAction => ({
-        id: `event-type-${item.id}`,
-        name: item.title,
+  const actions = useMemo(() => {
+    const appStoreActions = getApps.map((item) => ({
+      ...item,
+      perform: () => router.push(`/apps/${item.id}`),
+    }));
+    return [
+      {
+        id: "workflows",
+        name: "workflows",
+        section: "workflows",
+        shortcut: ["w", "f"],
+        keywords: "workflows automation",
+        perform: () => router.push("/workflows"),
+      },
+      {
+        id: "event-types",
+        name: "event_types_page_title",
         section: "event_types_page_title",
+        shortcut: ["e", "t"],
         keywords: "event types",
-        perform: () => router.push(`/event-types/${item.id}`),
-      })
-    ) || [];
-
-  const actions = [
-    // {
-    //   id: "toggle-idle",
-    //   name: "Test Function",
-    //   section: "Status",
-    //   shortcut: ["t", "f"],
-    //   keywords: "set yourself away bookings",
-    //   perform: () => alert("Hello World"),
-    // },
-
-    {
-      id: "workflows",
-      name: "workflows",
-      section: "workflows",
-      shortcut: ["w", "f"],
-      keywords: "workflows automation",
-      perform: () => router.push("/workflows"),
-    },
-    {
-      id: "event-types",
-      name: "event_types_page_title",
-      section: "event_types_page_title",
-      shortcut: ["e", "t"],
-      keywords: "event types",
-      perform: () => router.push("/event-types"),
-    },
-    {
-      id: "app-store",
-      name: "app_store",
-      section: "apps",
-      shortcut: ["a", "s"],
-      keywords: "app store",
-      perform: () => router.push("/apps"),
-    },
-    {
-      id: "upcoming-bookings",
-      name: "upcoming",
-      section: "bookings",
-      shortcut: ["u", "b"],
-      keywords: "upcoming bookings",
-      perform: () => router.push("/bookings/upcoming"),
-    },
-    {
-      id: "recurring-bookings",
-      name: "recurring",
-      section: "bookings",
-      shortcut: ["r", "b"],
-      keywords: "recurring bookings",
-      perform: () => router.push("/bookings/recurring"),
-    },
-    {
-      id: "past-bookings",
-      name: "past",
-      section: "bookings",
-      shortcut: ["p", "b"],
-      keywords: "past bookings",
-      perform: () => router.push("/bookings/past"),
-    },
-    {
-      id: "cancelled-bookings",
-      name: "cancelled",
-      section: "bookings",
-      shortcut: ["c", "b"],
-      keywords: "cancelled bookings",
-      perform: () => router.push("/bookings/cancelled"),
-    },
-    {
-      id: "schedule",
-      name: "availability",
-      section: "availability",
-      shortcut: ["s", "a"],
-      keywords: "schedule availability",
-      perform: () => router.push("/availability"),
-    },
-    {
-      id: "profile",
-      name: "profile",
-      section: "profile",
-      shortcut: ["p", "s"],
-      keywords: "setting profile",
-      perform: () => router.push("/settings/my-account/profile"),
-    },
-    {
-      id: "avatar",
-      name: "change_avatar",
-      section: "profile",
-      shortcut: ["c", "a"],
-      keywords: "remove change modify avatar",
-      perform: () => router.push("/settings/my-account/profile"),
-    },
-    {
-      id: "timezone",
-      name: "timezone",
-      section: "profile",
-      shortcut: ["c", "t"],
-      keywords: "change modify timezone",
-      perform: () => router.push("/settings/my-account/general"),
-    },
-    {
-      id: "brand-color",
-      name: "brand_color",
-      section: "profile",
-      shortcut: ["b", "c"],
-      keywords: "change modify brand color",
-      perform: () => router.push("/settings/my-account/appearance"),
-    },
-    {
-      id: "teams",
-      name: "teams",
-      shortcut: ["t", "s"],
-      keywords: "add manage modify team",
-      perform: () => router.push("/settings/teams"),
-    },
-    {
-      id: "password",
-      name: "change_password",
-      section: "security",
-      shortcut: ["c", "p"],
-      keywords: "change modify password",
-      perform: () => router.push("/settings/security/password"),
-    },
-    {
-      id: "two-factor",
-      name: "two_factor_auth",
-      section: "security",
-      shortcut: ["t", "f", "a"],
-      keywords: "two factor authentication",
-      perform: () => router.push("/settings/security/two-factor-auth"),
-    },
-    {
-      id: "impersonation",
-      name: "user_impersonation_heading",
-      section: "security",
-      shortcut: ["u", "i"],
-      keywords: "user impersonation",
-      perform: () => router.push("/settings/security/impersonation"),
-    },
-    {
-      id: "license",
-      name: "choose_a_license",
-      section: "admin",
-      shortcut: ["u", "l"],
-      keywords: "license",
-      perform: () => router.push("/auth/setup?step=1"),
-    },
-    {
-      id: "webhooks",
-      name: "Webhooks",
-      section: "developer",
-      shortcut: ["w", "h"],
-      keywords: "webhook automation",
-      perform: () => router.push("/settings/developer/webhooks"),
-    },
-    {
-      id: "api-keys",
-      name: "api_keys",
-      section: "developer",
-      shortcut: ["a", "p", "i"],
-      keywords: "api keys",
-      perform: () => router.push("/settings/developer/api-keys"),
-    },
-    {
-      id: "billing",
-      name: "manage_billing",
-      section: "billing",
-      shortcut: ["m", "b"],
-      keywords: "billing view manage",
-      perform: () => router.push("/settings/billing"),
-    },
-    ...appStoreActions,
-    ...eventTypeActions,
-  ];
+        perform: () => router.push("/event-types"),
+      },
+      {
+        id: "app-store",
+        name: "app_store",
+        section: "apps",
+        shortcut: ["a", "s"],
+        keywords: "app store",
+        perform: () => router.push("/apps"),
+      },
+      {
+        id: "upcoming-bookings",
+        name: "upcoming",
+        section: "bookings",
+        shortcut: ["u", "b"],
+        keywords: "upcoming bookings",
+        perform: () => router.push("/bookings/upcoming"),
+      },
+      {
+        id: "recurring-bookings",
+        name: "recurring",
+        section: "bookings",
+        shortcut: ["r", "b"],
+        keywords: "recurring bookings",
+        perform: () => router.push("/bookings/recurring"),
+      },
+      {
+        id: "past-bookings",
+        name: "past",
+        section: "bookings",
+        shortcut: ["p", "b"],
+        keywords: "past bookings",
+        perform: () => router.push("/bookings/past"),
+      },
+      {
+        id: "cancelled-bookings",
+        name: "cancelled",
+        section: "bookings",
+        shortcut: ["c", "b"],
+        keywords: "cancelled bookings",
+        perform: () => router.push("/bookings/cancelled"),
+      },
+      {
+        id: "schedule",
+        name: "availability",
+        section: "availability",
+        shortcut: ["s", "a"],
+        keywords: "schedule availability",
+        perform: () => router.push("/availability"),
+      },
+      {
+        id: "profile",
+        name: "profile",
+        section: "profile",
+        shortcut: ["p", "s"],
+        keywords: "setting profile",
+        perform: () => router.push("/settings/my-account/profile"),
+      },
+      {
+        id: "avatar",
+        name: "change_avatar",
+        section: "profile",
+        shortcut: ["c", "a"],
+        keywords: "remove change modify avatar",
+        perform: () => router.push("/settings/my-account/profile"),
+      },
+      {
+        id: "timezone",
+        name: "timezone",
+        section: "profile",
+        shortcut: ["c", "t"],
+        keywords: "change modify timezone",
+        perform: () => router.push("/settings/my-account/general"),
+      },
+      {
+        id: "brand-color",
+        name: "brand_color",
+        section: "profile",
+        shortcut: ["b", "c"],
+        keywords: "change modify brand color",
+        perform: () => router.push("/settings/my-account/appearance"),
+      },
+      {
+        id: "teams",
+        name: "teams",
+        shortcut: ["t", "s"],
+        keywords: "add manage modify team",
+        perform: () => router.push("/settings/teams"),
+      },
+      {
+        id: "password",
+        name: "change_password",
+        section: "security",
+        shortcut: ["c", "p"],
+        keywords: "change modify password",
+        perform: () => router.push("/settings/security/password"),
+      },
+      {
+        id: "two-factor",
+        name: "two_factor_auth",
+        section: "security",
+        shortcut: ["t", "f", "a"],
+        keywords: "two factor authentication",
+        perform: () => router.push("/settings/security/two-factor-auth"),
+      },
+      {
+        id: "impersonation",
+        name: "user_impersonation_heading",
+        section: "security",
+        shortcut: ["u", "i"],
+        keywords: "user impersonation",
+        perform: () => router.push("/settings/security/impersonation"),
+      },
+      {
+        id: "license",
+        name: "choose_a_license",
+        section: "admin",
+        shortcut: ["u", "l"],
+        keywords: "license",
+        perform: () => router.push("/auth/setup?step=1"),
+      },
+      {
+        id: "webhooks",
+        name: "Webhooks",
+        section: "developer",
+        shortcut: ["w", "h"],
+        keywords: "webhook automation",
+        perform: () => router.push("/settings/developer/webhooks"),
+      },
+      {
+        id: "api-keys",
+        name: "api_keys",
+        section: "developer",
+        shortcut: ["a", "p", "i"],
+        keywords: "api keys",
+        perform: () => router.push("/settings/developer/api-keys"),
+      },
+      {
+        id: "billing",
+        name: "manage_billing",
+        section: "billing",
+        shortcut: ["m", "b"],
+        keywords: "billing view manage",
+        perform: () => router.push("/settings/billing"),
+      },
+      ...appStoreActions,
+    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
 };
 
 export const KBarContent = () => {
   const { t } = useLocale();
-
+  useEventTypesAction();
   return (
     <KBarPortal>
       <KBarPositioner>

@@ -1,12 +1,12 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
 
@@ -71,6 +71,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    bookingFields: eventTypeBookingFields.parse(eventTypeRaw.bookingFields || []),
   };
 
   const eventTypeObject = [eventType].map((e) => {
@@ -119,6 +120,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       profile,
       eventType: eventTypeObject,
       booking: null,
+      currentSlotBooking: null,
       trpcState: ssr.dehydrate(),
       recurringEventCount,
       isDynamicGroupBooking: false,

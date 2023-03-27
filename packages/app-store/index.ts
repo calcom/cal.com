@@ -6,6 +6,7 @@ import * as dailyvideo from "./dailyvideo";
 import * as exchange2013calendar from "./exchange2013calendar";
 import * as exchange2016calendar from "./exchange2016calendar";
 import * as exchangecalendar from "./exchangecalendar";
+import * as facetime from "./facetime";
 import * as giphy from "./giphy";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
@@ -23,6 +24,7 @@ import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
+import * as zohocrm from "./zohocrm";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
@@ -41,6 +43,7 @@ const appStore = {
   office365video,
   plausible,
   salesforce,
+  zohocrm,
   sendgrid,
   stripepayment,
   tandemvideo,
@@ -52,6 +55,7 @@ const appStore = {
   exchange2013calendar,
   exchange2016calendar,
   exchangecalendar,
+  facetime,
 };
 
 export default appStore;

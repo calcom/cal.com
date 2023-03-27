@@ -1,8 +1,11 @@
-import { PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { PeriodType, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { userSelect } from "@calcom/prisma/selects";
-import { CustomInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import type { userSelect } from "@calcom/prisma/selects";
+import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -44,6 +47,7 @@ const user: User = {
   brandColor: "#797979",
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
+  timeFormat: 12,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -80,6 +84,7 @@ const commons = {
   team: null,
   requiresConfirmation: false,
   bookingLimits: null,
+  durationLimits: null,
   hidden: false,
   userId: 0,
   owner: null,
@@ -87,6 +92,14 @@ const commons = {
   users: [user],
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
+  bookingFields: getBookingFieldsWithSystemFields({
+    bookingFields: [],
+    customInputs: [],
+    // Default value of disableGuests from DB.
+    disableGuests: false,
+    metadata: {},
+    workflows: [],
+  }),
 };
 
 const min15Event = {

@@ -1,25 +1,11 @@
-import {
-  BookingReference,
-  BookingStatus,
-  EventType,
-  MembershipRole,
-  Prisma,
-  SchedulingType,
-  User,
-  WebhookTriggerEvents,
-  Workflow,
-  WorkflowsOnEventTypes,
-  WorkflowStep,
-  PrismaPromise,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
 import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
@@ -28,15 +14,13 @@ import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import {
-  sendDeclinedEmails,
-  sendLocationChangeEmails,
-  sendRequestRescheduleEmail,
-  sendScheduledEmails,
-} from "@calcom/emails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -46,7 +30,7 @@ import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import { authedProcedure, router } from "../../trpc";
 
 export type PersonAttendeeCommonFields = Pick<
   User,
@@ -57,8 +41,6 @@ export type PersonAttendeeCommonFields = Pick<
 const commonBookingSchema = z.object({
   bookingId: z.number(),
 });
-
-const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
 const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async ({ ctx, input, next }) => {
   // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
@@ -255,6 +237,15 @@ export const bookingsRouter = router({
                 },
               },
             },
+            {
+              seatsReferences: {
+                some: {
+                  attendee: {
+                    email: user.email,
+                  },
+                },
+              },
+            },
           ],
           AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
@@ -288,6 +279,21 @@ export const bookingsRouter = router({
           },
           rescheduled: true,
           references: true,
+          seatsReferences: {
+            where: {
+              attendee: {
+                email: user.email,
+              },
+            },
+            select: {
+              referenceUid: true,
+              attendee: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
         orderBy,
         take: take + 1,
@@ -325,7 +331,7 @@ export const bookingsRouter = router({
 
       const recurringInfo = recurringInfoBasic.map(
         (
-          info: typeof recurringInfoBasic[number]
+          info: (typeof recurringInfoBasic)[number]
         ): {
           recurringEventId: string | null;
           count: number;
@@ -479,29 +485,17 @@ export const bookingsRouter = router({
           },
         });
 
-        // delete scheduled jobs of cancelled bookings
+        // delete scheduled jobs of previous booking
         cancelScheduledJobs(bookingToReschedule);
 
-        //cancel workflow reminders
-        const remindersToDelete: PrismaPromise<Prisma.BatchPayload>[] = [];
-
+        //cancel workflow reminders of previous booking
         bookingToReschedule.workflowReminders.forEach((reminder) => {
-          if (reminder.scheduled && reminder.referenceId) {
-            if (reminder.method === WorkflowMethods.EMAIL) {
-              deleteScheduledEmailReminder(reminder.referenceId);
-            } else if (reminder.method === WorkflowMethods.SMS) {
-              deleteScheduledSMSReminder(reminder.referenceId);
-            }
+          if (reminder.method === WorkflowMethods.EMAIL) {
+            deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+          } else if (reminder.method === WorkflowMethods.SMS) {
+            deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
           }
-          const reminderToDelete = prisma.workflowReminder.deleteMany({
-            where: {
-              id: reminder.id,
-            },
-          });
-          remindersToDelete.push(reminderToDelete);
         });
-
-        await Promise.all(remindersToDelete);
 
         const [mainAttendee] = bookingToReschedule.attendees;
         // @NOTE: Should we assume attendees language?
@@ -726,7 +720,7 @@ export const bookingsRouter = router({
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-    const booking = await prisma.booking.findUniqueOrThrow({
+    const bookingRaw = await prisma.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
@@ -738,6 +732,7 @@ export const bookingsRouter = router({
         endTime: true,
         attendees: true,
         eventTypeId: true,
+        responses: true,
         eventType: {
           select: {
             id: true,
@@ -750,6 +745,9 @@ export const bookingsRouter = router({
             length: true,
             description: true,
             price: true,
+            bookingFields: true,
+            disableGuests: true,
+            metadata: true,
             workflows: {
               include: {
                 workflow: {
@@ -759,6 +757,7 @@ export const bookingsRouter = router({
                 },
               },
             },
+            customInputs: true,
           },
         },
         location: true,
@@ -774,6 +773,22 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+
+    const bookingFields = bookingRaw.eventType
+      ? getBookingFieldsWithSystemFields(bookingRaw.eventType)
+      : null;
+
+    const booking = {
+      ...bookingRaw,
+      responses: bookingResponsesDbSchema.parse(bookingRaw.responses),
+      eventType: bookingRaw.eventType
+        ? {
+            ...bookingRaw.eventType,
+            bookingFields,
+          }
+        : null,
+    };
+
     const authorized = async () => {
       // if the organizer
       if (booking.userId === user.id) {
@@ -831,10 +846,18 @@ export const bookingsRouter = router({
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
+    // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
+    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
+      bookingFields: booking.eventType?.bookingFields ?? null,
+      responses: booking.responses,
+    });
+
     const evt: CalendarEvent = {
       type: booking.eventType?.title || booking.title,
       title: booking.title,
       description: booking.description,
+      responses: calEventResponses,
+      userFieldsResponses: calEventUserFieldsResponses,
       customInputs: isPrismaObjOrUndefined(booking.customInputs),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
@@ -885,212 +908,7 @@ export const bookingsRouter = router({
     }
 
     if (confirmed) {
-      const eventManager = new EventManager(user);
-      const scheduleResult = await eventManager.create(evt);
-
-      const results = scheduleResult.results;
-
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingCreatingMeetingFailed",
-          message: "Booking failed",
-        };
-
-        log.error(`Booking ${user.username} failed`, error, results);
-      } else {
-        const metadata: AdditionalInformation = {};
-
-        if (results.length) {
-          // TODO: Handle created event metadata more elegantly
-          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-          metadata.conferenceData = results[0].createdEvent?.conferenceData;
-          metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        }
-        try {
-          await sendScheduledEmails({ ...evt, additionalInformation: metadata });
-        } catch (error) {
-          log.error(error);
-        }
-      }
-      let updatedBookings: {
-        scheduledJobs: string[];
-        id: number;
-        startTime: Date;
-        endTime: Date;
-        uid: string;
-        smsReminderNumber: string | null;
-        eventType: {
-          workflows: (WorkflowsOnEventTypes & {
-            workflow: Workflow & {
-              steps: WorkflowStep[];
-            };
-          })[];
-        } | null;
-      }[] = [];
-
-      if (recurringEventId) {
-        // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
-        // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
-        const unconfirmedRecurringBookings = await prisma.booking.findMany({
-          where: {
-            recurringEventId,
-            status: BookingStatus.PENDING,
-          },
-        });
-
-        const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
-          return prisma.booking.update({
-            where: {
-              id: recurringBooking.id,
-            },
-            data: {
-              status: BookingStatus.ACCEPTED,
-              references: {
-                create: scheduleResult.referencesToCreate,
-              },
-            },
-            select: {
-              eventType: {
-                select: {
-                  workflows: {
-                    include: {
-                      workflow: {
-                        include: {
-                          steps: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              uid: true,
-              startTime: true,
-              endTime: true,
-              smsReminderNumber: true,
-              id: true,
-              scheduledJobs: true,
-            },
-          });
-        });
-        const updatedBookingsResult = await Promise.all(updateBookingsPromise);
-        updatedBookings = updatedBookings.concat(updatedBookingsResult);
-      } else {
-        // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
-        // Should perform update on booking (confirm) -> then trigger the rest handlers
-        const updatedBooking = await prisma.booking.update({
-          where: {
-            id: bookingId,
-          },
-          data: {
-            status: BookingStatus.ACCEPTED,
-            references: {
-              create: scheduleResult.referencesToCreate,
-            },
-          },
-          select: {
-            eventType: {
-              select: {
-                workflows: {
-                  include: {
-                    workflow: {
-                      include: {
-                        steps: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            uid: true,
-            startTime: true,
-            endTime: true,
-            smsReminderNumber: true,
-            id: true,
-            scheduledJobs: true,
-          },
-        });
-        updatedBookings.push(updatedBooking);
-      }
-
-      //Workflows - set reminders for confirmed events
-      try {
-        for (let index = 0; index < updatedBookings.length; index++) {
-          if (updatedBookings[index].eventType?.workflows) {
-            const evtOfBooking = evt;
-            evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
-            evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-            evtOfBooking.uid = updatedBookings[index].uid;
-
-            const isFirstBooking = index === 0;
-
-            await scheduleWorkflowReminders(
-              updatedBookings[index]?.eventType?.workflows || [],
-              updatedBookings[index].smsReminderNumber,
-              evtOfBooking,
-              false,
-              false,
-              isFirstBooking
-            );
-          }
-        }
-      } catch (error) {
-        // Silently fail
-        console.error(error);
-      }
-
-      try {
-        // schedule job for zapier trigger 'when meeting ends'
-        const subscriberOptionsMeetingEnded = {
-          userId: booking.userId || 0,
-          eventTypeId: booking.eventTypeId || 0,
-          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-        };
-
-        const subscriberOptionsBookingCreated = {
-          userId: booking.userId || 0,
-          eventTypeId: booking.eventTypeId || 0,
-          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-        };
-
-        const subscribersBookingCreated = await getWebhooks(subscriberOptionsBookingCreated);
-
-        const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
-        subscribersMeetingEnded.forEach((subscriber) => {
-          updatedBookings.forEach((booking) => {
-            scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-          });
-        });
-
-        const eventTypeInfo: EventTypeInfo = {
-          eventTitle: booking.eventType?.title,
-          eventDescription: booking.eventType?.description,
-          requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-          price: booking.eventType?.price,
-          currency: booking.eventType?.currency,
-          length: booking.eventType?.length,
-        };
-
-        const promises = subscribersBookingCreated.map((sub) =>
-          sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
-            ...evt,
-            ...eventTypeInfo,
-            bookingId,
-            eventTypeId: booking.eventType?.id,
-            status: "ACCEPTED",
-            smsReminderNumber: booking.smsReminderNumber || undefined,
-          }).catch((e) => {
-            console.error(
-              `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
-              e
-            );
-          })
-        );
-        await Promise.all(promises);
-      } catch (error) {
-        // Silently fail
-        console.error(error);
-      }
+      await handleConfirmation({ user, evt, recurringEventId, prisma, bookingId, booking });
     } else {
       evt.rejectionReason = rejectionReason;
       if (recurringEventId) {
@@ -1194,4 +1012,29 @@ export const bookingsRouter = router({
 
     return { message, status };
   }),
+  getBookingAttendees: authedProcedure
+    .input(z.object({ seatReferenceUid: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const bookingSeat = await ctx.prisma.bookingSeat.findUniqueOrThrow({
+        where: {
+          referenceUid: input.seatReferenceUid,
+        },
+        select: {
+          booking: {
+            select: {
+              _count: {
+                select: {
+                  seatsReferences: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!bookingSeat) {
+        throw new Error("Booking not found");
+      }
+      return bookingSeat.booking._count.seatsReferences;
+    }),
 });

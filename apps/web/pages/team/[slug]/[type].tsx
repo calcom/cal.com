@@ -1,15 +1,17 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 
-import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
+import type { LocationObject } from "@calcom/core/location";
+import { privacyFilteredLocations } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
-import getBooking, { GetBookingType } from "@lib/getBooking";
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import { EmbedProps } from "@lib/withEmbedSsr";
+import type { GetBookingType } from "@lib/getBooking";
+import getBooking from "@lib/getBooking";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
@@ -76,6 +78,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           availability: true,
           description: true,
           length: true,
+          disableGuests: true,
           schedulingType: true,
           periodType: true,
           periodStartDate: true,
@@ -94,10 +97,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           slotInterval: true,
           metadata: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
+          customInputs: true,
           schedule: {
             select: {
               timeZone: true,
               availability: true,
+            },
+          },
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  id: true,
+                  steps: true,
+                },
+              },
             },
           },
           team: {

@@ -16,6 +16,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   disabled = false,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onValueChange = () => {},
+  ...passThrough
 }: {
   defaultValue?: boolean;
   value?: boolean;
@@ -32,7 +33,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     return null;
   }
   const commonClass =
-    "mb-2 inline-flex items-center justify-center rounded-md py-[10px] px-4 text-sm font-medium  leading-4 md:mb-0";
+    "w-full inline-flex items-center justify-center rounded py-[10px] px-4 text-sm font-medium  leading-4";
   const selectedClass = classNames(commonClass, "bg-gray-200  text-gray-900");
   const unselectedClass = classNames(commonClass, "text-gray-600 hover:bg-gray-100 hover:text-gray-900");
   return (
@@ -40,11 +41,12 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       value={yesNoValue}
       type="single"
       disabled={disabled}
-      className="space-x-2 rounded-sm rtl:space-x-reverse"
+      className="flex space-x-2 rounded-md border border-gray-200 p-1 rtl:space-x-reverse"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));
-      }}>
+      }}
+      {...passThrough}>
       <ToggleGroupItemPrimitive
         className={classNames(boolean(yesNoValue) ? selectedClass : unselectedClass)}
         disabled={disabled}

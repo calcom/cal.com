@@ -1,14 +1,13 @@
-import { GetServerSidePropsContext } from "next";
+import { BookingStatus } from "@prisma/client";
+import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
-
-import { BookingStatus } from ".prisma/client";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 

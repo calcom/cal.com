@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { IframeHTMLAttributes } from "react";
 import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
+import { InstallAppButton, AppDependencyComponent } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import Shell from "@calcom/features/shell/Shell";
@@ -11,7 +12,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { App as AppType } from "@calcom/types/App";
+import type { App as AppType } from "@calcom/types/App";
 import { Button, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
 import {
   FiBookOpen,
@@ -23,6 +24,8 @@ import {
   FiPlus,
   FiShield,
 } from "@calcom/ui/components/icon";
+
+/* These app slugs all require Google Cal to be installed */
 
 const Component = ({
   name,
@@ -43,11 +46,12 @@ const Component = ({
   tos,
   privacy,
   isProOnly,
-  images,
+  descriptionItems,
   isTemplate,
+  dependencies,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
-  const hasImages = images && images.length > 0;
+  const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
   const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
@@ -76,23 +80,40 @@ const Component = ({
     }
   );
 
+  const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
+    enabled: !!dependencies,
+  });
+
+  const disableInstall =
+    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+
+  // const disableInstall = requiresGCal && !gCalInstalled.data;
+
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
-      {hasImages && (
+      {hasDescriptionItems && (
         <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
-          {images ? (
-            images.map((img) => (
-              <img
-                key={img}
-                src={img}
-                alt={`Screenshot of app ${name}`}
-                className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
-              />
-            ))
+          {descriptionItems ? (
+            descriptionItems.map((descriptionItem, index) =>
+              typeof descriptionItem === "object" ? (
+                <div
+                  key={`iframe-${index}`}
+                  className="mr-4 max-h-full min-h-[315px] min-w-[90%] max-w-full snap-center last:mb-0 lg:mb-4 lg:mr-0 [&_iframe]:h-full [&_iframe]:min-h-[315px] [&_iframe]:w-full">
+                  <iframe allowFullScreen {...descriptionItem.iframe} />
+                </div>
+              ) : (
+                <img
+                  key={descriptionItem}
+                  src={descriptionItem}
+                  alt={`Screenshot of app ${name}`}
+                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
+                />
+              )
+            )
           ) : (
             <SkeletonText />
           )}
@@ -101,7 +122,7 @@ const Component = ({
       <div
         className={classNames(
           "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
-          hasImages && "lg:ml-8"
+          hasDescriptionItems && "lg:ml-8"
         )}>
         <div className="mb-8 flex pt-4">
           <header>
@@ -137,6 +158,7 @@ const Component = ({
                 <InstallAppButton
                   type={type}
                   isProOnly={isProOnly}
+                  disableInstall={disableInstall}
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
@@ -176,6 +198,7 @@ const Component = ({
             <InstallAppButton
               type={type}
               isProOnly={isProOnly}
+              disableInstall={disableInstall}
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
@@ -203,6 +226,16 @@ const Component = ({
         ) : (
           <SkeletonButton className="h-10 w-24" />
         )}
+
+        {dependencies &&
+          (!dependencyData.isLoading ? (
+            <div className="mt-6">
+              <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
+            </div>
+          ) : (
+            <SkeletonButton className="mt-6 h-20 grow" />
+          ))}
+
         {price !== 0 && (
           <span className="block text-right">
             {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
@@ -303,6 +336,11 @@ const Component = ({
   );
 };
 
+const ShellHeading = () => {
+  const { t } = useLocale();
+  return <span className="block py-2">{t("app_store")}</span>;
+};
+
 export default function App(props: {
   name: string;
   description: AppType["description"];
@@ -325,13 +363,13 @@ export default function App(props: {
   privacy?: string;
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
-  images?: string[];
+  descriptionItems?: Array<string | { iframe: IframeHTMLAttributes<HTMLIFrameElement> }>;
   isTemplate?: boolean;
+  disableInstall?: boolean;
+  dependencies?: string[];
 }) {
-  const { t } = useLocale();
-
   return (
-    <Shell smallHeading isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+    <Shell smallHeading isPublic heading={<ShellHeading />} backPath="/apps" withoutSeo>
       <HeadSeo
         title={props.name}
         description={props.description}

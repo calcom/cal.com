@@ -3,7 +3,7 @@
  * caching system that NextJS uses SSG pages.
  * TODO: Redirect to user profile on browser
  */
-import { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 
 import { getCachedResults } from "@calcom/core";
@@ -30,7 +30,7 @@ export const getStaticProps: GetStaticProps<
     },
   });
   const startDate = (
-    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs() : dayjs(month, "YYYY-MM")
+    dayjs(month, "YYYY-MM").isSame(dayjs(), "month") ? dayjs.utc() : dayjs.utc(month, "YYYY-MM")
   ).startOf("day");
   const endDate = startDate.endOf("month");
   try {
