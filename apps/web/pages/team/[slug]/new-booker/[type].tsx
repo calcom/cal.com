@@ -10,16 +10,12 @@ import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { BookerGates } from "@components/Gates";
-
 type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Type({ slug, user, booking, away }: PageProps) {
   return (
     <main className="flex justify-center">
-      <BookerGates>
-        <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
-      </BookerGates>
+      <Booker username={user} eventSlug={slug} rescheduleBooking={booking} isAway={away} />
     </main>
   );
 }

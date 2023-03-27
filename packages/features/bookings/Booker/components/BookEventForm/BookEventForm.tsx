@@ -66,7 +66,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
-  const ethSignature = useBookerStore((state) => state.ethSignature);
   const isRescheduling = !!rescheduleUid && !!rescheduleBooking;
   const event = useEvent();
   const eventType = event.data;
@@ -219,7 +218,6 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       language: i18n.language,
       rescheduleUid: rescheduleUid || undefined,
       username: username || "",
-      ethSignature,
       metadata: Object.keys(router.query)
         .filter((key) => key.startsWith("metadata"))
         .reduce(
