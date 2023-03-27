@@ -352,14 +352,12 @@ test.fixme("Integrations", () => {
       const user = await users.create();
       await user.login();
       await addWebexIntegration({ page });
-      await page.waitForNavigation({
-        url: (url) => {
-          return url.pathname === "/apps/installed";
-        },
+      await page.waitForURL((url) => {
+        return url.pathname === "/apps/installed";
       });
       //Check that disconnect button is now visible
       //TODO Check the locator id
-      await expect(page.locator('[data-testid="integration-disconnect-button"]')).toHaveCount(1);
+      await expect(page.locator('[data-testid="webex_video-integration-disconnect-button"]')).toHaveCount(1);
     });
 
     test("Can choose Webex as a location during booking", async ({ page, users }) => {
@@ -367,7 +365,9 @@ test.fixme("Integrations", () => {
       await user.login();
       const eventType = await addLocationIntegrationToFirstEvent({ user });
       addWebexIntegration({ page });
-      await page.waitForURL("/apps/installed");
+      await page.waitForURL((url) => {
+        return url.pathname === "/apps/installed";
+      });
       await bookEvent(page, `${user.username}/${eventType.slug}`);
     });
 
