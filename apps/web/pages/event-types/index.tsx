@@ -314,8 +314,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
         {types.map((type, index) => {
-          const bookerPath = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${CAL_URL}/${bookerPath}`;
+          const embedLink = `${group.profile.slug}/${type.slug}`;
+          const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
               <div className="flex w-full items-center justify-between hover:bg-gray-50">
@@ -422,7 +422,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   type="button"
                                   StartIcon={FiCode}
                                   className="w-full rounded-none"
-                                  embedUrl={encodeURIComponent(bookerPath)}>
+                                  embedUrl={encodeURIComponent(embedLink)}>
                                   {t("embed")}
                                 </EmbedButton>
                               </DropdownMenuItem>
