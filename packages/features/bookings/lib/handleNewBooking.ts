@@ -1663,6 +1663,16 @@ async function handler(
     // Use EventManager to conditionally use all needed integrations.
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
+
+    //delete orignal rescheduled booking (no seats event)
+    if (!eventType.seatsPerTimeSlot) {
+      await prisma.booking.delete({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+      });
+    }
+
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
