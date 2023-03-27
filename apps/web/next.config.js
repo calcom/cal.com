@@ -185,6 +185,16 @@ const nextConfig = {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
+      {
+        source: "/:user/:type",
+        destination: "/:user/new-booker/:type",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
+      {
+        source: "/team/:slug/:type",
+        destination: "/team/:slug/new-booker/:type",
+        has: [{ type: "cookie", key: "new-booker-enabled" }],
+      },
     ];
   },
   async headers() {

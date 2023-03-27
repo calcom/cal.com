@@ -32,12 +32,6 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
 
-  // Allow visiting new booker page when cookie is present.
-  if (url.pathname.includes("/new-booker/") && !req.cookies.has("new-booker-enabled")) {
-    url.pathname = url.pathname.replace("/new-booker/", "/");
-    return NextResponse.redirect(url);
-  }
-
   if (["/api/collect-events", "/api/auth"].some((p) => url.pathname.startsWith(p))) {
     const callbackUrl = url.searchParams.get("callbackUrl");
     const { isBot } = userAgent(req);
@@ -96,7 +90,6 @@ export const config = {
     "/api/auth/:path*",
     "/apps/routing_forms/:path*",
     "/:path*/embed",
-    "/:path*/new-booker/:path*",
     "/api/trpc/:path*",
     "/auth/login",
   ],

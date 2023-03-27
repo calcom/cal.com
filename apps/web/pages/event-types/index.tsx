@@ -169,8 +169,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
-  const newBookerEnabled =
-    typeof document !== "undefined" && document.cookie.indexOf("new-booker-enabled=true") > -1;
 
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
@@ -316,8 +314,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
         {types.map((type, index) => {
-          const embedLink = `${group.profile.slug}/${type.slug}`;
-          const bookerPath = newBookerEnabled ? `${group.profile.slug}/new-booker/${type.slug}` : embedLink;
+          const bookerPath = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${bookerPath}`;
           return (
             <li key={type.id}>
@@ -425,7 +422,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   type="button"
                                   StartIcon={FiCode}
                                   className="w-full rounded-none"
-                                  embedUrl={encodeURIComponent(embedLink)}>
+                                  embedUrl={encodeURIComponent(bookerPath)}>
                                   {t("embed")}
                                 </EmbedButton>
                               </DropdownMenuItem>

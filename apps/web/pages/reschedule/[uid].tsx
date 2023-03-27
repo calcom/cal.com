@@ -12,7 +12,6 @@ export default function Type() {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const newBookerEnabled = context.req.cookies["new-booker-enabled"];
   const { uid: bookingId } = z
     .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
     .parse(context.query);
@@ -71,8 +70,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? "team/" + eventType.team.slug
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : (booking.user?.username || "rick") /* This shouldn't happen */ +
-        (newBookerEnabled ? "/new-booker" : "")) +
+      : booking.user?.username || "rick") /* This shouldn't happen */ +
     "/" +
     eventType?.slug;
   const destinationUrl = new URLSearchParams();
