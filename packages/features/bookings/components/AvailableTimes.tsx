@@ -12,7 +12,6 @@ import { TimeFormatToggle } from "./TimeFormatToggle";
 type AvailableTimesProps = {
   date: Dayjs;
   slots: Slots[string];
-  timezone: string;
   onTimeSelect: (time: string) => void;
   seatsPerTimeslot?: number | null;
   showTimeformatToggle?: boolean;
@@ -22,14 +21,13 @@ type AvailableTimesProps = {
 export const AvailableTimes = ({
   date,
   slots,
-  timezone,
   onTimeSelect,
   seatsPerTimeslot,
   showTimeformatToggle = true,
   className,
 }: AvailableTimesProps) => {
   const { t, i18n } = useLocale();
-  const timeFormat = useTimePreferences((state) => state.timeFormat);
+  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const hasTimeSlots = !!seatsPerTimeslot;
 
   return (

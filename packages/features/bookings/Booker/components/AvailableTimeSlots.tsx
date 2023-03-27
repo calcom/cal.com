@@ -2,7 +2,6 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useSlotsForMultipleDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 
@@ -26,7 +25,6 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
-  const { timezone } = useTimePreferences();
 
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
@@ -72,7 +70,6 @@ export const AvailableTimeSlots = ({ extraDays, limitHeight, seatsPerTimeslot }:
               onTimeSelect={setSelectedTimeslot}
               date={dayjs(slots.date)}
               slots={slots.slots}
-              timezone={timezone}
               seatsPerTimeslot={seatsPerTimeslot}
             />
           ))}

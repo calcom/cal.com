@@ -34,7 +34,13 @@ export const EventMeta = () => {
           <div className="space-y-4">
             {selectedTimeslot && (
               <EventMetaBlock icon={FiCalendar}>
-                {formatEventFromToTime(selectedTimeslot, selectedDuration, timeFormat, i18n.language)}
+                {formatEventFromToTime(
+                  selectedTimeslot,
+                  selectedDuration,
+                  timeFormat,
+                  timezone,
+                  i18n.language
+                )}
               </EventMetaBlock>
             )}
             <EventDetails event={event} />

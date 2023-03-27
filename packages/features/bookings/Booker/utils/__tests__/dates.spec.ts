@@ -9,55 +9,147 @@ describe("Booker: formatEventFromToTime", () => {
     MockDate.set("2023-03-23");
   });
   it("Should show the correct date format based on locale", () => {
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 30, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 8:30am – 9:00am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        30,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30am – 12:00pm");
 
     // Day is translated by dayjs settings instead of this utility. This utility only ensure the format is correct.
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 30, TimeFormat.TWELVE_HOUR, "nl-NL")).toEqual(
-      "Thursday, 23 maart 2023 8:30am – 9:00am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        30,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "nl-NL"
+      )
+    ).toEqual("Thursday, 23 maart 2023 11:30am – 12:00pm");
   });
 
   it("Should show correct end time for a meeting based on duration", () => {
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 30, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 8:30am – 9:00am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        30,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30am – 12:00pm");
 
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 120, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 8:30am – 10:30am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        120,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30am – 1:30pm");
 
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 1, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 8:30am – 8:31am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        1,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30am – 11:31am");
   });
 
   it("Should show correct time format", () => {
-    expect(formatEventFromToTime("2023-03-23T10:30:00.000Z", 30, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 8:30am – 9:00am"
-    );
-
-    expect(formatEventFromToTime("2023-03-23T18:17:00.000Z", 30, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 4:17pm – 4:47pm"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        30,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30am – 12:00pm");
 
     expect(
-      formatEventFromToTime("2023-03-23T10:30:00.000Z", 30, TimeFormat.TWENTY_FOUR_HOUR, "en-US")
-    ).toEqual("Thursday, March 23, 2023 08:30 – 09:00");
+      formatEventFromToTime(
+        "2023-03-23T18:17:00.000Z",
+        30,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 7:17pm – 7:47pm");
 
     expect(
-      formatEventFromToTime("2023-03-23T18:17:00.000Z", 30, TimeFormat.TWENTY_FOUR_HOUR, "en-US")
-    ).toEqual("Thursday, March 23, 2023 16:17 – 16:47");
+      formatEventFromToTime(
+        "2023-03-23T10:30:00.000Z",
+        30,
+        TimeFormat.TWENTY_FOUR_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 11:30 – 12:00");
+
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T18:17:00.000Z",
+        30,
+        TimeFormat.TWENTY_FOUR_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 19:17 – 19:47");
   });
 
   it("Should show correct time if duration flows over into next day", () => {
-    expect(formatEventFromToTime("2023-03-23T23:30:00.000Z", 300, TimeFormat.TWELVE_HOUR, "en-US")).toEqual(
-      "Thursday, March 23, 2023 9:30pm – 2:30am"
-    );
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T21:30:00.000Z",
+        300,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 10:30pm – 3:30am");
 
     expect(
-      formatEventFromToTime("2023-03-23T23:30:00.000Z", 300, TimeFormat.TWENTY_FOUR_HOUR, "en-US")
-    ).toEqual("Thursday, March 23, 2023 21:30 – 02:30");
+      formatEventFromToTime(
+        "2023-03-23T21:30:00.000Z",
+        300,
+        TimeFormat.TWENTY_FOUR_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 22:30 – 03:30");
+  });
+
+  it("Should format the time according to the correct timezone", () => {
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T12:30:00.000Z",
+        60,
+        TimeFormat.TWELVE_HOUR,
+        "Europe/Amsterdam",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 1:30pm – 2:30pm");
+
+    expect(
+      formatEventFromToTime(
+        "2023-03-23T12:30:00.000Z",
+        60,
+        TimeFormat.TWELVE_HOUR,
+        "America/New_York",
+        "en-US"
+      )
+    ).toEqual("Thursday, March 23, 2023 8:30am – 9:30am");
+
+    expect(
+      formatEventFromToTime("2023-03-23T12:30:00.000Z", 60, TimeFormat.TWELVE_HOUR, "Asia/Hong_Kong", "en-US")
+    ).toEqual("Thursday, March 23, 2023 8:30pm – 9:30pm");
   });
 });

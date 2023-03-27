@@ -5,9 +5,10 @@ export const formatEventFromToTime = (
   date: string,
   duration: number | null,
   timeFormat: TimeFormat,
+  timeZone: string,
   language: string
 ) => {
-  const start = dayjs(date);
+  const start = dayjs(date).tz(timeZone);
   const end = duration ? start.add(duration, "minute") : null;
   return `${start.format("dddd")}, ${start
     .toDate()
