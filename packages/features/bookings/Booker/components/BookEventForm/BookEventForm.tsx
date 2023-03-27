@@ -20,7 +20,7 @@ import {
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { HttpError } from "@calcom/lib/http-error";
+import { HttpError } from "@calcom/lib/http-error";
 import { Form, Button, Alert, EmptyScreen } from "@calcom/ui";
 import { FiCalendar } from "@calcom/ui/components/icon";
 
@@ -299,6 +299,15 @@ const getError = (
   t: TFunction
 ) => {
   if (globalError) return globalError.message;
+
+  const error = bookingMutation.error || recurringBookingMutation.error;
+
+  return error instanceof HttpError || error instanceof Error ? (
+    <>{t("can_you_try_again")}</>
+  ) : (
+    "Unknown error"
+  );
+
   return bookingMutation.isError && (bookingMutation?.error as HttpError)?.message
     ? t((bookingMutation.error as HttpError).message)
     : recurringBookingMutation.isError && (recurringBookingMutation?.error as HttpError)?.message
