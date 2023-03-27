@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -39,44 +40,27 @@ export function UpgradeTip({
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
-  if (IS_SELF_HOSTED)
-    return (
-      <EmptyScreen
-        Icon={FiUsers}
-        headline={emptyTitle ? t(emptyTitle) : t(title)}
-        description={emptyDescription ? t(emptyDescription) : t(description)}
-        buttonRaw={buttons}
-      />
-    );
-
   return (
     <>
-      <div className="-mt-10 rtl:ml-4 sm:mt-0 md:rtl:ml-0 lg:-mt-6">
-        <div
-          className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
-          style={{
-            background: `url(${background})`,
-            backgroundSize: "cover",
-            backgroundRepeat: "no-repeat",
-          }}>
-          <div className="mt-3 px-8 sm:px-14">
-            <h1 className={classNames("font-cal text-3xl", dark && "text-white")}>{t(title)}</h1>
-            <p className={classNames("my-4 max-w-sm", dark ? "text-white" : "text-gray-600")}>
-              {t(description)}
-            </p>
-            {buttons}
-          </div>
+      <div className="relative flex justify-between w-full pb-10 min-h-[295px] items-center rounded-lg overflow-hidden">
+        <Image alt={title} src={background} className="absolute object-cover min-h-[295px] w-full rounded-lg" height={295} width={1118} quality={100} />
+        <div className="relative px-8 mt-4 sm:px-14">
+          <h1 className={classNames("font-cal text-3xl", dark && "text-white")}>{t(title)}</h1>
+          <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-white" : "text-gray-700")}>
+            {t(description)}
+          </p>
+          {buttons}
         </div>
+      </div>
 
-        <div className="mt-4 grid-cols-3 md:grid md:gap-4">
-          {features.map((feature) => (
-            <div key={feature.title} className="mb-4 min-h-[180px] w-full rounded-md bg-gray-50 p-8 md:mb-0">
-              {feature.icon}
-              <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
-              <p className="text-gray-700">{feature.description}</p>
-            </div>
-          ))}
-        </div>
+      <div className="grid-cols-3 mt-4 md:grid md:gap-4">
+        {features.map((feature) => (
+          <div key={feature.title} className="mb-4 min-h-[180px] w-full rounded-md bg-gray-50 p-8 md:mb-0">
+            {feature.icon}
+            <h2 className="mt-4 text-lg font-cal">{feature.title}</h2>
+            <p className="text-gray-700">{feature.description}</p>
+          </div>
+        ))}
       </div>
     </>
   );
