@@ -88,6 +88,7 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [React](https://reactjs.org/?ref=cal.com)
 - [Tailwind](https://tailwindcss.com/?ref=cal.com)
 - [Prisma](https://prisma.io/?ref=cal.com)
+- [Daily.co](https://go.cal.com/daily)
 
 ## Stay Up-to-Date
 
@@ -432,7 +433,7 @@ following
 
 ### Obtaining Daily API Credentials
 
-1. Open [Daily](https://www.daily.co/) and sign into your account.
+1. Visit our [Daily.co Partnership Form](https://go.cal.com/daily) and enter your information
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.

@@ -1,7 +1,6 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-// REVIEW: From lint error
-import _ from "lodash";
+import { orderBy } from "lodash";
 import type { NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -336,7 +335,7 @@ export const eventTypesRouter = router({
         name: user.name,
         image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
