@@ -1687,5 +1687,6 @@
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
   "analytics_for_organisation": "Analytics for {{organisationName}}",
   "subtitle_analytics": "This is a organisation analytics",
-  "event_trends": "Event Trends"
+  "event_trends": "Event Trends",
+  "redirect_url_warning": "Adding a redirect will disable the success page. Make sure to mention \"Booking Confirmed\" on your custom success page."
 }
