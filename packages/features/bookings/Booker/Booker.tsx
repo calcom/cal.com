@@ -107,7 +107,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           <StickyOnDesktop key="meta" className="relative z-10">
             <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
               <EventMeta />
-              {layout !== "small_calendar" && (
+              {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
                 <div className=" mt-auto p-6">
                   <DatePicker />
                 </div>
