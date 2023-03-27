@@ -169,8 +169,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       utils.viewer.eventTypes.invalidate();
     },
   });
-  const newBookerEnabled =
-    typeof document !== "undefined" && document.cookie.indexOf("new-booker-enabled=true") > -1;
 
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
@@ -317,8 +315,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const bookerPath = newBookerEnabled ? `${group.profile.slug}/new-booker/${type.slug}` : embedLink;
-          const calLink = `${CAL_URL}/${bookerPath}`;
+          const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
               <div className="flex w-full items-center justify-between hover:bg-gray-50">

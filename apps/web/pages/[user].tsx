@@ -43,8 +43,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   useTheme(user.theme);
   const { t } = useLocale();
   const router = useRouter();
-  const newBookerEnabled =
-    typeof document !== "undefined" && document.cookie.indexOf("new-booker-enabled=true") > -1;
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -184,9 +182,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                     <Link
                       prefetch={false}
                       href={{
-                        pathname: newBookerEnabled
-                          ? `/${user.username}/new-booker/${type.slug}`
-                          : `/${user.username}/${type.slug}`,
+                        pathname: `/${user.username}/${type.slug}`,
                         query,
                       }}
                       passHref
