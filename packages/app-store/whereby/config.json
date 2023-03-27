@@ -19,7 +19,7 @@
       "type": "integrations:whereby_video",
       "label": "Whereby Video",
       "organizerInputPlaceholder": "https://www.whereby.com/cal",
-      "urlRegExp": "https:\\/\\/(?:[a-z0-9]+(?:[-a-z0-9]*[a-z0-9])?\\.)*whereby\\.com(?:\\/[a-zA-Z0-9\\-._~:?#\\[\\]@!$&'()*+,;%=]+)*"
+      "urlRegExp": "^(?:https?:\/\/)?(?:(?!.*-\.)(?:\w+(-\w+)*\.))*whereby\.com(\/[\w\-._~:?#\[\]@!$&'()*+,;%=]+)*$"
     }
   }
 }
