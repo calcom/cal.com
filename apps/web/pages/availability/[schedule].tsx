@@ -94,6 +94,7 @@ export default function Availability() {
     data: { schedule: scheduleId },
   } = useTypedQuery(querySchema);
 
+  const { fromEventType } = router.query;
   const { timeFormat } = me.data || { timeFormat: null };
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
@@ -153,7 +154,7 @@ export default function Availability() {
 
   return (
     <Shell
-      backPath="/availability"
+      backPath={fromEventType ? true : "/availability"}
       title={schedule?.name ? schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
@@ -200,7 +201,14 @@ export default function Availability() {
           <VerticalDivider />
           <Dialog>
             <DialogTrigger asChild>
-              <Button StartIcon={FiTrash} variant="icon" color="destructive" aria-label={t("delete")} />
+              <Button
+                StartIcon={FiTrash}
+                variant="icon"
+                color="destructive"
+                aria-label={t("delete")}
+                disabled={schedule?.isLastSchedule}
+                tooltip={t("requires_at_least_one_schedule")}
+              />
             </DialogTrigger>
             <ConfirmationDialogContent
               isLoading={deleteMutation.isLoading}

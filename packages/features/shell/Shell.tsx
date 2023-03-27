@@ -63,7 +63,7 @@ import {
   FiSettings,
   FiSlack,
   FiUsers,
-  FiZap
+  FiZap,
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
