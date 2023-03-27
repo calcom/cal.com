@@ -28,9 +28,7 @@ test.describe("Onboarding", () => {
         await page.locator("input[role=combobox]").click();
         await page
           .locator("*")
-          .filter((el: { textContent: string }) => {
-            return el.textContent.startsWith("Europe/London");
-          })
+          .filter({ hasText: /^Europe\/London/ })
           .first()
           .click();
 
