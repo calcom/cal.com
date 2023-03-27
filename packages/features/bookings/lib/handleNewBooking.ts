@@ -1664,7 +1664,7 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    //delete orignal rescheduled booking (no seats event)
+    //delete original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
       await prisma.booking.delete({
         where: {
