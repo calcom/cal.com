@@ -15,6 +15,9 @@ import dayjs from "@calcom/dayjs";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
@@ -717,7 +720,7 @@ export const bookingsRouter = router({
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-    const booking = await prisma.booking.findUniqueOrThrow({
+    const bookingRaw = await prisma.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
@@ -729,6 +732,7 @@ export const bookingsRouter = router({
         endTime: true,
         attendees: true,
         eventTypeId: true,
+        responses: true,
         eventType: {
           select: {
             id: true,
@@ -741,6 +745,9 @@ export const bookingsRouter = router({
             length: true,
             description: true,
             price: true,
+            bookingFields: true,
+            disableGuests: true,
+            metadata: true,
             workflows: {
               include: {
                 workflow: {
@@ -750,6 +757,7 @@ export const bookingsRouter = router({
                 },
               },
             },
+            customInputs: true,
           },
         },
         location: true,
@@ -765,6 +773,22 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+
+    const bookingFields = bookingRaw.eventType
+      ? getBookingFieldsWithSystemFields(bookingRaw.eventType)
+      : null;
+
+    const booking = {
+      ...bookingRaw,
+      responses: bookingResponsesDbSchema.parse(bookingRaw.responses),
+      eventType: bookingRaw.eventType
+        ? {
+            ...bookingRaw.eventType,
+            bookingFields,
+          }
+        : null,
+    };
+
     const authorized = async () => {
       // if the organizer
       if (booking.userId === user.id) {
@@ -822,10 +846,18 @@ export const bookingsRouter = router({
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
+    // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
+    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
+      bookingFields: booking.eventType?.bookingFields ?? null,
+      responses: booking.responses,
+    });
+
     const evt: CalendarEvent = {
       type: booking.eventType?.title || booking.title,
       title: booking.title,
       description: booking.description,
+      responses: calEventResponses,
+      userFieldsResponses: calEventUserFieldsResponses,
       customInputs: isPrismaObjOrUndefined(booking.customInputs),
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
