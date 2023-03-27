@@ -1668,6 +1668,7 @@
   "invalid_event_name_variables": "There is an invalid variable in your event name",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
+  "requires_at_least_one_schedule": "You are required to have at least one schedule",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
   "looking_for_more_analytics": "Looking for more analytics?",
   "add_filter": "Add filter",
