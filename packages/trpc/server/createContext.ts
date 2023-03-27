@@ -3,108 +3,32 @@ import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import prisma from "@calcom/prisma";
+import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
 
-import type { Maybe } from "@trpc/server";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
-async function getUserFromSession({
-  session,
-  req,
-}: {
-  session: Maybe<Session>;
-  req: CreateContextOptions["req"];
-}) {
-  if (!session?.user?.id) {
-    return null;
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      bio: true,
-      timeZone: true,
-      weekStart: true,
-      startTime: true,
-      endTime: true,
-      defaultScheduleId: true,
-      bufferTime: true,
-      theme: true,
-      createdDate: true,
-      hideBranding: true,
-      avatar: true,
-      twoFactorEnabled: true,
-      disableImpersonation: true,
-      identityProvider: true,
-      brandColor: true,
-      darkBrandColor: true,
-      away: true,
-      credentials: {
-        select: {
-          id: true,
-          type: true,
-          key: true,
-          userId: true,
-          appId: true,
-          invalid: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      },
-      selectedCalendars: {
-        select: {
-          externalId: true,
-          integration: true,
-        },
-      },
-      completedOnboarding: true,
-      destinationCalendar: true,
-      locale: true,
-      timeFormat: true,
-      trialEndsAt: true,
-      metadata: true,
-      role: true,
-    },
-  });
-
-  // some hacks to make sure `username` and `email` are never inferred as `null`
-  if (!user) {
-    return null;
-  }
-  const { email, username } = user;
-  if (!email) {
-    return null;
-  }
-  const rawAvatar = user.avatar;
-  // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
-  user.avatar = rawAvatar ? `${WEBAPP_URL}/${user.username}/avatar.png` : defaultAvatarSrc({ email });
-
-  const locale = user.locale || getLocaleFromHeaders(req);
-  return {
-    ...user,
-    rawAvatar,
-    email,
-    username,
-    locale,
-  };
-}
-
 type CreateInnerContextOptions = {
   session: Session | null;
   locale: string;
-  user: Awaited<ReturnType<typeof getUserFromSession>>;
+  user?: Omit<
+    PrismaUser,
+    | "locale"
+    | "twoFactorSecret"
+    | "emailVerified"
+    | "password"
+    | "identityProviderId"
+    | "invitedTo"
+    | "allowDynamicBooking"
+    | "verified"
+  > & {
+    locale: NonNullable<PrismaUser["locale"]>;
+    credentials?: Credential[];
+    selectedCalendars?: Partial<SelectedCalendar>[];
+  };
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
@@ -144,11 +68,9 @@ export const createContext = async (
   // for API-response caching see https://trpc.io/docs/caching
   const session = await sessionGetter({ req, res });
 
-  const user = await getUserFromSession({ session, req });
-  const locale = user?.locale ?? getLocaleFromHeaders(req);
-  const i18n = await serverSideTranslations(locale, ["common", "vital"]);
-
-  const contextInner = await createContextInner({ session, i18n, locale, user });
+  const locale = getLocaleFromHeaders(req);
+  const i18n = await serverSideTranslations(getLocaleFromHeaders(req), ["common", "vital"]);
+  const contextInner = await createContextInner({ session, i18n, locale });
   return {
     ...contextInner,
     req,
