@@ -283,11 +283,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : eventType.recurringEvent.count)) ||
     null;
 
-  const currentSlotBooking = await getBooking(
-    prisma,
-    bookingUidWithSeats || "",
-    eventTypeObject.bookingFields
-  );
+  const currentSlotBooking = await getBooking(prisma, bookingUidWithSeats || "");
 
   return {
     props: {
