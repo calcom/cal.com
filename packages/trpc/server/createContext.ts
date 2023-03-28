@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@prisma/client";
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -5,7 +6,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import prisma from "@calcom/prisma";
-import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
+import type { Credential, SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
@@ -30,6 +31,7 @@ type CreateInnerContextOptions = {
     selectedCalendars?: Partial<SelectedCalendar>[];
   };
   i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
+  prisma?: PrismaClient;
 } & Partial<CreateContextOptions>;
 
 export type GetSessionFn =
@@ -52,7 +54,7 @@ const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession(
  */
 export async function createContextInner(opts: CreateInnerContextOptions) {
   return {
-    prisma,
+    prisma: opts.prisma ?? prisma,
     ...opts,
   };
 }

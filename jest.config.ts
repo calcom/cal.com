@@ -66,6 +66,20 @@ const config: Config = {
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "jsdom",
     },
+    {
+      displayName: "@calcom/features",
+      roots: ["<rootDir>/packages/features"],
+      testEnvironment: "node",
+      moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+      transform: {
+        "^.+\\.tsx?$": "ts-jest",
+      },
+      globals: {
+        "ts-jest": {
+          tsconfig: "<rootDir>/packages/lib/tsconfig.test.json",
+        },
+      },
+    },
     // FIXME: Prevent this breaking Jest when API module is missing
     // {
     //   displayName: "@calcom/api",

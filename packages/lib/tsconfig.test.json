@@ -3,6 +3,7 @@
 
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
+    "lib": ["ES2021.String"],
     "esModuleInterop": true,
     "target": "es5",
     "jsx": "react-jsx",
