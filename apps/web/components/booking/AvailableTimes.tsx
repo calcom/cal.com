@@ -29,6 +29,7 @@ type AvailableTimesProps = {
   slots?: Slot[];
   isLoading: boolean;
   ethSignature?: string;
+  duration: number;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -43,6 +44,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   seatsPerTimeSlot,
   bookingAttendees,
   ethSignature,
+  duration,
 }) => {
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
@@ -66,7 +68,11 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   );
 
   const reserveSlot = (slot: Slot) => {
-    reserveSlotMutation.mutate({ slotUtcDate: slot.time, eventTypeId });
+    reserveSlotMutation.mutate({
+      slotUtcStartDate: slot.time,
+      eventTypeId,
+      slotUtcEndDate: dayjs(slot.time).utc().add(duration, "minutes").format(),
+    });
   };
 
   return (
