@@ -887,7 +887,7 @@ async function handler(
             id: originalRescheduledBooking.id,
           },
           data: {
-            status: "RESCHEDULED",
+            status: BookingStatus.CANCELLED,
           },
         });
       });
@@ -1169,13 +1169,13 @@ async function handler(
           cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        // Update the old booking with the rescheduled status
+        // Update the old booking with the cancelled status
         await prisma.booking.update({
           where: {
             id: booking.id,
           },
           data: {
-            status: "RESCHEDULED",
+            status: BookingStatus.CANCELLED,
           },
         });
 
@@ -1675,7 +1675,7 @@ async function handler(
           id: originalRescheduledBooking.id,
         },
         data: {
-          status: "RESCHEDULED",
+          status: BookingStatus.CANCELLED,
         },
       });
     }
