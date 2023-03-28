@@ -167,7 +167,7 @@ const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
       const height = getDimension(previewState.inline.height);
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {
@@ -187,12 +187,12 @@ function MyComponent() {
     }) => {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {
       const cal = await getCalApi();
-      Cal("floatingButton", ${floatingButtonArg});
+      cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
   }, [])
@@ -201,7 +201,7 @@ function MyComponent() {
     "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {

@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { HelpScout, useChat } from "react-live-chat-loader";
 
+import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -33,15 +32,13 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 
 const BillingView = () => {
   const { t } = useLocale();
-  const [, loadChat] = useChat();
-  const [showChat, setShowChat] = useState(false);
+  const { open } = useIntercom();
   const router = useRouter();
   const returnTo = router.asPath;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = () => {
-    setShowChat(true);
-    loadChat({ open: true });
+    open();
   };
 
   return (
@@ -61,7 +58,6 @@ const BillingView = () => {
             {t("contact_support")}
           </Button>
         </CtaRow>
-        {showChat && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
       </div>
     </>
   );

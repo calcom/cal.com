@@ -7,7 +7,6 @@ import type { z } from "zod";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { addListFormatting, md } from "@calcom/lib/markdownIt";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
@@ -26,6 +25,7 @@ export type EventTypeDescriptionProps = {
     z.infer<typeof EventTypeModel>,
     Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
   > & {
+    descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
     seatsPerTimeSlot?: number;
   };
@@ -57,7 +57,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: addListFormatting(md.render(eventType.description)),
+              __html: eventType.descriptionAsSafeHTML || "",
             }}
           />
         )}

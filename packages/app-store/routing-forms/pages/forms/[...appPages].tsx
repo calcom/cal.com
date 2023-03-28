@@ -99,16 +99,15 @@ export default function RoutingForms({
       CTA={hasPaidPlan && <NewFormButton />}
       subtitle={t("routing_forms_description")}>
       <UpgradeTip
-        dark
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
         features={features}
-        background="/routing-form-banner-background.jpg"
+        background="/banners/routing-forms.jpg"
         isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
-              <Button color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
+              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                 {t("upgrade")}
               </Button>
               <Button

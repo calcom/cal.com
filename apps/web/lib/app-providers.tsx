@@ -11,6 +11,8 @@ import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
+import { FeatureProvider } from "@calcom/features/flags/context/provider";
+import { useFlags } from "@calcom/features/flags/hooks";
 import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui";
 
@@ -97,6 +99,11 @@ const CalcomThemeProvider = (
   );
 };
 
+function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
+  const flags = useFlags();
+  return <FeatureProvider value={flags}>{children}</FeatureProvider>;
+}
+
 const AppProviders = (props: AppPropsWithChildren) => {
   const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
@@ -111,7 +118,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
               isThemeSupported={props.Component.isThemeSupported}>
-              <MetaProvider>{props.children}</MetaProvider>
+              <FeatureFlagsProvider>
+                <MetaProvider>{props.children}</MetaProvider>
+              </FeatureFlagsProvider>
             </CalcomThemeProvider>
           </TooltipProvider>
         </CustomI18nextProvider>

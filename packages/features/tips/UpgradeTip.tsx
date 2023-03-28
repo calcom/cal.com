@@ -1,11 +1,9 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { classNames } from "@calcom/lib";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui";
-import { FiUsers } from "@calcom/ui/components/icon";
 
 export function UpgradeTip({
   dark,
@@ -39,34 +37,25 @@ export function UpgradeTip({
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
-  if (IS_SELF_HOSTED)
-    return (
-      <EmptyScreen
-        Icon={FiUsers}
-        headline={emptyTitle ? t(emptyTitle) : t(title)}
-        description={emptyDescription ? t(emptyDescription) : t(description)}
-        buttonRaw={buttons}
-      />
-    );
-
   return (
     <>
-      <div className="-mt-10 rtl:ml-4 sm:mt-0 md:rtl:ml-0 lg:-mt-6">
-        <div
-          className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
-          style={{
-            background: `url(${background})`,
-            backgroundSize: "cover",
-            backgroundRepeat: "no-repeat",
-          }}>
-          <div className="mt-3 px-8 sm:px-14">
-            <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
-            <p className={classNames("my-4 max-w-sm", dark ? "text-inverted" : "text-default")}>
-              {t(description)}
-            </p>
-            {buttons}
-          </div>
+      <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
+        <Image
+          alt={title}
+          src={background}
+          className="absolute min-h-[295px] w-full rounded-lg object-cover"
+          height={295}
+          width={1118}
+          quality={100}
+        />
+        <div className="relative mt-4 px-8 sm:px-14">
+          <h1 className={classNames("font-cal text-3xl", dark && "text-inverted")}>{t(title)}</h1>
+          <p className={classNames("mt-4 mb-8 max-w-sm", dark ? "text-inverted" : "text-default")}>
+            {t(description)}
+          </p>
+          {buttons}
         </div>
+      </div>
 
         <div className="mt-4 grid-cols-3 md:grid md:gap-4">
           {features.map((feature) => (

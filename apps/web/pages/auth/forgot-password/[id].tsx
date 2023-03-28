@@ -1,5 +1,5 @@
 import type { ResetPasswordRequest } from "@prisma/client";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";

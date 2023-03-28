@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IdentityProvider } from "@prisma/client";
-import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -332,11 +331,6 @@ const ProfileForm = ({
     bio: z.string(),
   });
 
-  const emailMd5 = crypto
-    .createHash("md5")
-    .update(defaultValues.email || "example@example.com")
-    .digest("hex");
-
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(profileFormSchema),
@@ -356,7 +350,7 @@ const ProfileForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
+              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
               <div className="ltr:ml-4 rtl:mr-4">
                 <ImageUploader
                   target="avatar"

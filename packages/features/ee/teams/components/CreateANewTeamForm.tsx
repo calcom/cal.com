@@ -76,6 +76,7 @@ export const CreateANewTeamForm = () => {
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
                       newTeamFormMethods.setValue("slug", slugify(e?.target.value));
                     }
+                    createTeamMutation.reset();
                   }}
                   autoComplete="off"
                 />
@@ -104,6 +105,7 @@ export const CreateANewTeamForm = () => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
                   });
+                  createTeamMutation.reset();
                 }}
               />
             )}
@@ -124,6 +126,7 @@ export const CreateANewTeamForm = () => {
                     buttonMsg={t("update")}
                     handleAvatarChange={(newAvatar: string) => {
                       newTeamFormMethods.setValue("logo", newAvatar);
+                      createTeamMutation.reset();
                     }}
                     imageSrc={value}
                   />

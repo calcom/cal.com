@@ -5,6 +5,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -119,13 +120,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         image: u.avatar,
         slug: u.username,
       })),
+      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
     };
   })[0];
 
   let booking: GetBookingType | null = null;
   const { rescheduleUid, bookingUid } = querySchema.parse(context.query);
   if (rescheduleUid || bookingUid) {
-    booking = await getBooking(prisma, rescheduleUid || bookingUid || "", eventTypeObject.bookingFields);
+    booking = await getBooking(prisma, rescheduleUid || bookingUid || "");
   }
 
   // Checking if number of recurring event ocurrances is valid against event type configuration
@@ -150,6 +152,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType: eventTypeObject,
       recurringEventCount,
       booking,
+      currentSlotBooking: null,
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,
       hashedLink: null,

@@ -247,7 +247,7 @@ function EventTypeSingleLayout({
               tooltip={t("embed")}
             />
             <Button
-              color="secondary"
+              color="destructive"
               variant="icon"
               StartIcon={FiTrash}
               tooltip={t("delete")}

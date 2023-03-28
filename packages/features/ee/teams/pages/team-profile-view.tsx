@@ -181,7 +181,7 @@ const ProfileView = () => {
                 />
               </div>
 
-              <hr className="my-8 border-subtle" />
+              <hr className="border-subtle my-8" />
 
               <Controller
                 control={form.control}
@@ -276,7 +276,7 @@ const ProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="my-8 border border-subtle" />
+          <hr className="border-subtle my-8 border" />
 
           <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {team?.membership.role === "OWNER" ? (

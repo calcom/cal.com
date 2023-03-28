@@ -9,6 +9,7 @@ import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
+import { isInterComEnabled, useIntercom } from "../lib/intercom/useIntercom";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
@@ -17,6 +18,7 @@ interface HelpMenuItemProps {
 
 export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
+  const { open } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
@@ -52,20 +54,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           target="_blank"
           className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
           rel="noreferrer">
-          {t("support_documentation")}
-          <FiExternalLink
-            className={classNames(
-              "group-hover:text-subtle text-muted",
-              "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
-            )}
-          />
-        </a>
-        <a
-          href="https://developer.cal.com/"
-          target="_blank"
-          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium"
-          rel="noreferrer">
-          {t("developer_documentation")}
+          {t("documentation")}
           <FiExternalLink
             className={classNames(
               "group-hover:text-subtle text-muted",
@@ -90,7 +79,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           className="border-default my-1  block w-full rounded-sm py-2 pb-2 text-sm"
         />
 
-        <div className="my-3 flex justify-end">
+        <div className="flex my-3 justify-end">
           <button
             className={classNames(
               "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
@@ -175,7 +164,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             </svg>
           </button>
         </div>
-        <div className="my-2 flex justify-end">
+        <div className="flex my-2 justify-end">
           <Button
             disabled={disableSubmit}
             loading={mutation.isLoading}
@@ -188,7 +177,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </Button>
         </div>
         {mutation.isError && (
-          <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
+          <div className="bg-error flex mb-4 p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
               <FiAlertTriangle className="h-5 w-5" />
             </div>
@@ -207,9 +196,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             setActive(true);
             if (isFreshChatEnabled) {
               setFreshChat(true);
+            } else if (isInterComEnabled) {
+              open();
             } else {
               loadChat({ open: true });
             }
+
             onHelpItemSelect();
           }}>
           {t("contact_support")}
