@@ -16620,6 +16620,7 @@ __metadata:
     lint-staged: ^12.5.0
     prettier: ^2.8.6
     ts-jest: ^28.0.8
+    tsc-absolute: ^1.0.0
     turbo: ^1.8.3
     typescript: ^4.9.4
   languageName: unknown
@@ -31905,6 +31906,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"process-wrapper@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "process-wrapper@npm:1.0.0"
+  checksum: 442371ccb9b2a2104cc5cdfb6e14a993f726ec3a9540d6a757c964ed2593ffc40c7fa1d0f66eecee6b07e0c107a25c74708d97cc8b9fc7dc3920e769c05ba29b
+  languageName: node
+  linkType: hard
+
 "process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
@@ -37400,6 +37408,19 @@ __metadata:
     typescript:
       optional: true
   checksum: c2a698b85d521298fe6f2435fbf2d3dc5834b423ea25abd321805ead3f399dbeedce7ca09492d7eb005b9d2c009c6b9587055bc3ab273dc6b9e40eefd7edb5b2
+  languageName: node
+  linkType: hard
+
+"tsc-absolute@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "tsc-absolute@npm:1.0.0"
+  dependencies:
+    process-wrapper: ^1.0.0
+  peerDependencies:
+    typescript: ">=4.6"
+  bin:
+    tsc-absolute: dist/index.js
+  checksum: fe8308f7addddce83012bc1451f7009ae37771b08a9972370b7a46eb63e3dc919783ea3894c06101459335fdb275eda8de300498894e55d460408991f97f5409
   languageName: node
   linkType: hard
 
