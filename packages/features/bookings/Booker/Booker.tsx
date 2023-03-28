@@ -8,7 +8,7 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { ToggleGroup } from "@calcom/ui";
+import { Logo, ToggleGroup } from "@calcom/ui";
 import { FiCalendar, FiColumns, FiGrid } from "@calcom/ui/components/icon";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -88,86 +88,91 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           />
         </div>
       )}
-      <m.div
-        layout
-        // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
-        // where there's no styles applied yet (meaning there wouldn't be a grid + widths), which would cause
-        // the layout to jump around on load.
-        style={resizeAnimationConfig.small_calendar.default as MotionStyle}
-        animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
-        transition={{ ease: "easeInOut", duration: 0.4 }}
-        className={classNames(
-          "[--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-          "dark:bg-darkgray-100 max-w-screen grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
-          layout === "small_calendar" &&
-            "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
-          layout !== "small_calendar" && "h-auto min-h-screen w-screen"
-        )}>
-        <AnimatePresence>
-          <StickyOnDesktop key="meta" className="relative z-10">
-            <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
-              <EventMeta />
-              {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
-                <div className=" mt-auto p-6">
-                  <DatePicker />
-                </div>
-              )}
+      <div className="flex h-full flex-col items-center">
+        <m.div
+          layout
+          // Passing the default animation styles here as the styles, makes sure that there's no initial loading state
+          // where there's no styles applied yet (meaning there wouldn't be a grid + widths), which would cause
+          // the layout to jump around on load.
+          style={resizeAnimationConfig.small_calendar.default as MotionStyle}
+          animate={resizeAnimationConfig[layout]?.[bookerState] || resizeAnimationConfig[layout].default}
+          transition={{ ease: "easeInOut", duration: 0.4 }}
+          className={classNames(
+            "mb-6 [--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
+            "dark:bg-darkgray-100 max-w-screen grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
+            layout === "small_calendar" &&
+              "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
+            layout !== "small_calendar" && "h-auto min-h-screen w-screen"
+          )}>
+          <AnimatePresence>
+            <StickyOnDesktop key="meta" className="relative z-10">
+              <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
+                <EventMeta />
+                {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
+                  <div className=" mt-auto p-6">
+                    <DatePicker />
+                  </div>
+                )}
+              </BookerSection>
+            </StickyOnDesktop>
+
+            <BookerSection
+              key="book-event-form"
+              area="main"
+              className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:w-[var(--booker-main-width)] md:border-l"
+              {...fadeInUp}
+              visible={bookerState === "booking"}>
+              <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
             </BookerSection>
-          </StickyOnDesktop>
 
-          <BookerSection
-            key="book-event-form"
-            area="main"
-            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 p-6 md:w-[var(--booker-main-width)] md:border-l"
-            {...fadeInUp}
-            visible={bookerState === "booking"}>
-            <BookEventForm onCancel={() => setSelectedTimeslot(null)} />
-          </BookerSection>
+            <BookerSection
+              key="datepicker"
+              area="main"
+              visible={bookerState !== "booking" && layout === "small_calendar"}
+              {...fadeInUp}
+              initial="visible"
+              className="md:dark:border-darkgray-300 ml-[-1px] h-full flex-shrink p-6 md:border-l md:border-gray-200 lg:w-[var(--booker-main-width)]">
+              <DatePicker />
+            </BookerSection>
 
-          <BookerSection
-            key="datepicker"
-            area="main"
-            visible={bookerState !== "booking" && layout === "small_calendar"}
-            {...fadeInUp}
-            initial="visible"
-            className="md:dark:border-darkgray-300 ml-[-1px] h-full flex-shrink p-6 md:border-l md:border-gray-200 lg:w-[var(--booker-main-width)]">
-            <DatePicker />
-          </BookerSection>
+            <BookerSection
+              key="large-calendar"
+              area="main"
+              visible={
+                layout === "large_calendar" &&
+                (bookerState === "selecting_date" || bookerState === "selecting_time")
+              }
+              className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 md:border-l"
+              {...fadeInUp}>
+              <LargeCalendar />
+            </BookerSection>
 
-          <BookerSection
-            key="large-calendar"
-            area="main"
-            visible={
-              layout === "large_calendar" &&
-              (bookerState === "selecting_date" || bookerState === "selecting_time")
-            }
-            className="dark:border-darkgray-300 sticky top-0 ml-[-1px] h-full border-gray-200 md:border-l"
-            {...fadeInUp}>
-            <LargeCalendar />
-          </BookerSection>
-
-          <BookerSection
-            key="timeslots"
-            area={{ default: "main", small_calendar: "timeslots" }}
-            visible={
-              (layout !== "large_calendar" && bookerState === "selecting_time") ||
-              (layout === "large_timeslots" && bookerState !== "booking")
-            }
-            className={classNames(
-              "dark:border-darkgray-300 flex h-full w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
-              layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
-              layout !== "small_calendar" && "sticky top-0"
-            )}
-            ref={timeslotsRef}
-            {...fadeInLeft}>
-            <AvailableTimeSlots
-              extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
-              limitHeight={layout === "small_calendar"}
-              seatsPerTimeslot={event.data?.seatsPerTimeSlot}
-            />
-          </BookerSection>
-        </AnimatePresence>
-      </m.div>
+            <BookerSection
+              key="timeslots"
+              area={{ default: "main", small_calendar: "timeslots" }}
+              visible={
+                (layout !== "large_calendar" && bookerState === "selecting_time") ||
+                (layout === "large_timeslots" && bookerState !== "booking")
+              }
+              className={classNames(
+                "dark:border-darkgray-300 flex h-full w-full flex-row border-gray-200 p-6 pb-0 md:border-l",
+                layout === "small_calendar" && "h-full overflow-auto md:w-[var(--booker-timeslots-width)]",
+                layout !== "small_calendar" && "sticky top-0"
+              )}
+              ref={timeslotsRef}
+              {...fadeInLeft}>
+              <AvailableTimeSlots
+                extraDays={layout === "large_timeslots" ? (isTablet ? 2 : 4) : 0}
+                limitHeight={layout === "small_calendar"}
+                seatsPerTimeslot={event.data?.seatsPerTimeSlot}
+              />
+            </BookerSection>
+          </AnimatePresence>
+        </m.div>
+        <span className="mt-auto">
+          <Logo small />
+        </span>
+      </div>
     </>
   );
 };
