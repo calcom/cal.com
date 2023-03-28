@@ -36,16 +36,6 @@ const getLocationFromType = (
   }
 };
 
-const getDefaultLocationValue = (options: EventTypeSetupProps["locationOptions"], type: string) => {
-  for (const locationType of options) {
-    for (const location of locationType.options) {
-      if (location.value === type && location.disabled === false) {
-        return location;
-      }
-    }
-  }
-};
-
 export const EventSetupTab = (
   props: Pick<
     EventTypeSetupProps,
@@ -54,11 +44,15 @@ export const EventSetupTab = (
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team, destinationCalendar } = props;
+  const { eventType, team, destinationCalendar } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
+
+  const locationOptions = props.locationOptions.filter((option) => {
+    return !team ? option.label !== "Conferencing" : true;
+  });
 
   const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
     value: mins,
@@ -467,6 +461,7 @@ export const EventSetupTab = (
 
       {/* We portal this modal so we can submit the form inside. Otherwise we get issues submitting two forms at once  */}
       <EditLocationDialog
+        isTeamEvent={!!team}
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
         saveLocation={saveLocation}

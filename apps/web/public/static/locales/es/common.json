@@ -1213,6 +1213,7 @@
   "impersonation": "Suplantación",
   "impersonation_description": "Configuración para administrar la suplantación del usuario",
   "users": "Usuarios",
+  "user": "Usuario",
   "profile_description": "Administra los ajustes para tu perfil de {{appName}}",
   "users_description": "Aquí puede encontrar una lista de todos los usuarios",
   "users_listing": "Lista de usuarios",
