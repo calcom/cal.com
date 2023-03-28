@@ -4,7 +4,11 @@
     "target": "ES2015",
     "baseUrl": ".",
     "module": "esnext",
-    "declaration": true
+    "declaration": true,
+    "outDir": "dist",
+    "paths": {
+      "@calcom/*": ["../../packages/*/src"]
+    }
   },
   "include": ["."],
   "exclude": ["dist", "build", "node_modules"]
