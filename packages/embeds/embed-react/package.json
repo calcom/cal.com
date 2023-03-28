@@ -15,6 +15,7 @@
     "preview": "vite preview",
     "prepare": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com'  yarn build",
     "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
     "embed-tests": "yarn playwright test --config=./playwright/config/playwright.config.ts",
     "embed-tests-quick": "QUICK=true yarn embed-tests",

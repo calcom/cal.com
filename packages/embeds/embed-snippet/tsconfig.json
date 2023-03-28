@@ -1,6 +1,7 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
+    "target": "ES2015",
     "baseUrl": ".",
     "module": "esnext",
     "declaration": true
