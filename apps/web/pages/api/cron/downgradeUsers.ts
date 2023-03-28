@@ -1,7 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import prisma from "@calcom/prisma";
+
+const querySchema = z.object({
+  page: z.coerce.number().min(0).optional().default(0),
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -16,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
-  let pageNumber = 0;
+  let { page: pageNumber } = querySchema.parse(req.query);
 
   while (true) {
     const teams = await prisma.team.findMany({
