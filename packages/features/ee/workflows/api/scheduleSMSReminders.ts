@@ -108,7 +108,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             timeZone: timeZone,
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,
-            customInputs: reminder.booking?.customInputs,
+            responses: reminder.booking?.responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           };
           const customMessage = await customTemplate(

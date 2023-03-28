@@ -1,4 +1,4 @@
-import type { WebhookTriggerEvents, WorkflowReminder } from "@prisma/client";
+import type { WebhookTriggerEvents, WorkflowReminder, Prisma } from "@prisma/client";
 import { BookingStatus, MembershipRole, WorkflowMethods } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
@@ -266,9 +266,12 @@ async function handler(req: CustomRequest) {
 
     await Promise.all(integrationsToDelete).then(async () => {
       if (lastAttendee) {
-        await prisma.booking.delete({
+        await prisma.booking.update({
           where: {
             id: bookingToDelete.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
       }
@@ -388,11 +391,11 @@ async function handler(req: CustomRequest) {
         },
       });
     }
+
+    const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
+
     const updatedBooking = await prisma.booking.update({
-      where: {
-        id,
-        uid,
-      },
+      where,
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
@@ -491,7 +494,8 @@ async function handler(req: CustomRequest) {
     bookingToDelete.user.credentials
       .filter((credential) => credential.type.endsWith("_video"))
       .forEach((credential) => {
-        apiDeletes.push(deleteMeeting(credential, bookingToDelete.uid));
+        const uidToDelete = bookingToDelete?.references?.[0]?.uid ?? bookingToDelete.uid;
+        apiDeletes.push(deleteMeeting(credential, uidToDelete));
       });
   }
 

@@ -32,6 +32,7 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -131,7 +132,9 @@ const isWithinAvailableHours = (
 
   for (const workingHour of workingHours) {
     const startTime = getTime(timeSlotStart, workingHour.startTime);
-    const endTime = getTime(timeSlotEnd, workingHour.endTime);
+    // workingHours function logic set 1439 minutes when user select the end of the day (11:59) in his schedule
+    // so, we need to add a minute, to avoid, "No available user" error when the last available slot is selected.
+    const endTime = getTime(timeSlotEnd, workingHour.endTime === 1439 ? 1440 : workingHour.endTime);
     if (
       workingHour.days.includes(timeSlotStart.day()) &&
       // UTC mode, should be performant.
@@ -141,6 +144,9 @@ const isWithinAvailableHours = (
       return true;
     }
   }
+  log.error(
+    `NAUF: isWithinAvailableHours ${JSON.stringify({ ...timeSlot, organizerTimeZone, workingHours })}`
+  );
   return false;
 };
 
@@ -156,10 +162,22 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     const endTime = dayjs(busyTime.end);
     // Check if time is between start and end times
     if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
+      log.error(
+        `NAUF: start between a busy time slot ${JSON.stringify({
+          ...busyTime,
+          time: dayjs(time).format(),
+        })}`
+      );
       return true;
     }
     // Check if slot end time is between start and end time
     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
+      log.error(
+        `NAUF: Ends between a busy time slot ${JSON.stringify({
+          ...busyTime,
+          time: dayjs(time).add(length, "minutes").format(),
+        })}`
+      );
       return true;
     }
     // Check if startTime is between slot
@@ -386,23 +404,9 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
-    const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
-    eventType.bookingFields.forEach((field) => {
-      const label = field.label || field.defaultLabel;
-      if (!label) {
-        throw new Error('Missing label for booking field "' + field.name + '"');
-      }
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        calEventUserFieldsResponses[field.name] = {
-          label,
-          value: responses[field.name],
-        };
-      }
-      calEventResponses[field.name] = {
-        label,
-        value: responses[field.name],
-      };
+    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
     });
     return {
       ...reqBody,
@@ -535,14 +539,14 @@ async function handler(
       periodCountCalendarDays: eventType.periodCountCalendarDays,
     });
   } catch (error) {
+    log.warn({
+      message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
+    });
     if (error instanceof BookingDateInPastError) {
       // TODO: HttpError should not bleed through to the console.
       log.info(`Booking eventType ${eventTypeId} failed`, error);
       throw new HttpError({ statusCode: 400, message: error.message });
     }
-    log.debug({
-      message: "Unable set timeOutOfBounds. Using false. ",
-    });
   }
 
   if (timeOutOfBounds) {
@@ -550,7 +554,9 @@ async function handler(
       errorCode: "BookingTimeOutOfBounds",
       message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
     };
-
+    log.warn({
+      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
+    });
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
@@ -581,6 +587,7 @@ async function handler(
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
+    log.warn({ message: "NewBooking: Some of the users in this group do not allow dynamic booking" });
     throw new HttpError({
       message: "Some of the users in this group do not allow dynamic booking",
       statusCode: 400,
@@ -596,7 +603,10 @@ async function handler(
       },
       ...userSelect,
     });
-    if (!eventTypeUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+    if (!eventTypeUser) {
+      log.warn({ message: "NewBooking: eventTypeUser.notFound" });
+      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+    }
     users.push(eventTypeUser);
   }
 
@@ -930,14 +940,6 @@ async function handler(
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
     if (rescheduleUid) {
-      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
-      // Required for Typescript, these should always be set.
-      if (!seatAttendee || !bookingSeat || !rescheduleUid) {
-        throw new Error("Internal Error.");
-      }
-
-      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-
       // See if the new date has a booking already
       const newTimeSlotBooking = await prisma.booking.findFirst({
         where: {
@@ -1001,9 +1003,16 @@ async function handler(
         }),
       };
 
-      // If owner reschedules the event we want to update the entire booking
-      // Also if owner is rescheduling there should be no bookingSeat
-      if (booking.user?.id === req.userId && !bookingSeat) {
+      if (!bookingSeat) {
+        // if no bookingSeat is given and the userId != owner, 401.
+        // TODO: Next step; Evaluate ownership, what about teams?
+        if (booking.user?.id !== req.userId) {
+          throw new HttpError({ statusCode: 401 });
+        }
+
+        // If owner reschedules the event we want to update the entire booking
+        // Also if owner is rescheduling there should be no bookingSeat
+
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
           const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -1182,14 +1191,13 @@ async function handler(
         return { ...resultBooking };
       }
 
+      // seatAttendee is null when the organizer is rescheduling.
+      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+
+      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
       // If there is no booking then remove the attendee from the old booking and create a new one
       if (!newTimeSlotBooking) {
-        await prisma.bookingSeat.delete({
-          where: {
-            id: bookingSeat.id,
-          },
-        });
-
         await prisma.attendee.delete({
           where: {
             id: seatAttendee.id,
@@ -1435,8 +1443,7 @@ async function handler(
     // Otherwise, an owner rescheduling should be always accepted.
     // Before comparing make sure that userId is set, otherwise undefined === undefined
     const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-    const isConfirmedByDefault =
-      (!eventType.requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
+    const isConfirmedByDefault = (!requiresConfirmation && !paymentAppData.price) || userReschedulingIsOwner;
 
     const attendeesData = evt.attendees.map((attendee) => {
       //if attendee is team member, it should fetch their locale not booker's locale
@@ -1496,6 +1503,9 @@ async function handler(
       newBookingData.recurringEventId = reqBody.recurringEventId;
     }
     if (originalRescheduledBooking) {
+      newBookingData.metadata = {
+        ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
+      };
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (newBookingData.attendees?.createMany?.data) {
@@ -1662,8 +1672,18 @@ async function handler(
     }
 
     // Use EventManager to conditionally use all needed integrations.
+    addVideoCallDataToEvt(originalRescheduledBooking.references);
+    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid, booking?.id);
+    //delete original rescheduled booking (no seats event)
+    if (!eventType.seatsPerTimeSlot) {
+      await prisma.booking.delete({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+      });
+    }
+
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -1961,7 +1981,7 @@ async function handler(
     await scheduleWorkflowReminders(
       eventType.workflows,
       smsReminderNumber || null,
-      { ...evt, ...{ metadata } },
+      { ...evt, responses, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true

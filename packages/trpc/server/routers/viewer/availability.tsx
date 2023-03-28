@@ -38,6 +38,16 @@ export const availabilityRouter = router({
     });
 
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    if (!user.defaultScheduleId) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
 
     return {
       schedules: schedules.map((schedule) => ({
@@ -93,6 +103,12 @@ export const availabilityRouter = router({
           });
         }
         const timeZone = schedule.timeZone || user.timeZone;
+
+        const schedulesCount = await ctx.prisma.schedule.count({
+          where: {
+            userId: ctx.user.id,
+          },
+        });
         return {
           id: schedule.id,
           name: schedule.name,
@@ -139,6 +155,7 @@ export const availabilityRouter = router({
             return acc;
           }, [] as { ranges: TimeRange[] }[]),
           isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
+          isLastSchedule: schedulesCount <= 1,
         };
       }),
     create: authedProcedure
@@ -201,9 +218,16 @@ export const availabilityRouter = router({
         const schedule = await prisma.schedule.create({
           data,
         });
-        const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
-        if (!hasDefaultScheduleId) {
-          await setupDefaultSchedule(user.id, schedule.id, prisma);
+
+        if (!user.defaultScheduleId) {
+          await prisma.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              defaultScheduleId: schedule.id,
+            },
+          });
         }
 
         return { schedule };
@@ -247,7 +271,7 @@ export const availabilityRouter = router({
               id: user.id,
             },
             data: {
-              defaultScheduleId: scheduleToSetAsDefault?.id,
+              defaultScheduleId: scheduleToSetAsDefault?.id || null,
             },
           });
         }
@@ -450,6 +474,7 @@ const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
     return user.defaultScheduleId;
   }
 
+  // If we're returning the default schedule for the first time then we should set it in the user record
   const defaultSchedule = await prisma.schedule.findFirst({
     where: {
       userId,
