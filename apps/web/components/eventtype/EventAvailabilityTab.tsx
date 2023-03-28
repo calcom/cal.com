@@ -152,7 +152,7 @@ const EventTypeScheduleDetails = ({
           <FiGlobe className="ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
-        {!!schedule?.id && (
+        {!!schedule?.id && !schedule.isManaged && (
           <Button
             href={`/availability/${schedule.id}`}
             disabled={isLoading}

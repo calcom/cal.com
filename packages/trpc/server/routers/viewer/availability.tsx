@@ -97,6 +97,7 @@ export const availabilityRouter = router({
         return {
           id: schedule.id,
           name: schedule.name,
+          isManaged: schedule.userId !== user.id,
           workingHours: getWorkingHours(
             { timeZone: schedule.timeZone || undefined },
             schedule.availability || []

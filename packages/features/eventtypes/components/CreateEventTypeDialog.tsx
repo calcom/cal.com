@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { MembershipRole } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -75,12 +74,10 @@ export default function CreateEventTypeDialog({
     label: string | null;
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
-    usernames: string[];
   }[];
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const session = useSession();
 
   const {
     data: { teamId, eventPage: pageSlug },
@@ -185,22 +182,16 @@ export default function CreateEventTypeDialog({
                 <TextField
                   label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
                   required
-                  addOnLeading={
-                    <>
-                      /
-                      {!isManagedEventType
-                        ? pageSlug
-                        : teamProfile?.usernames.at(
-                            Math.floor(Math.random() * teamProfile?.usernames.length)
-                          ) ?? session.data?.user.username}
-                      /
-                    </>
-                  }
+                  addOnLeading={<>/{!isManagedEventType ? pageSlug : t("username_placeholder")}/</>}
                   {...register("slug")}
                   onChange={(e) => {
                     form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                   }}
                 />
+
+                {isManagedEventType && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
               </div>
             ) : (
               <div>
@@ -210,16 +201,14 @@ export default function CreateEventTypeDialog({
                   addOnLeading={
                     <>
                       {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      {!isManagedEventType
-                        ? pageSlug
-                        : teamProfile?.usernames.at(
-                            Math.floor(Math.random() * teamProfile?.usernames.length)
-                          ) ?? session.data?.user.username}
-                      /
+                      {!isManagedEventType ? pageSlug : t("username_placeholder")}/
                     </>
                   }
                   {...register("slug")}
                 />
+                {isManagedEventType && (
+                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                )}
               </div>
             )}
             {!teamId && (

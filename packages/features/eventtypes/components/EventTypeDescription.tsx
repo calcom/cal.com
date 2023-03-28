@@ -65,11 +65,6 @@ export const EventTypeDescription = ({
           />
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
-          {eventType.metadata?.managedEventConfig && !isPublic && (
-            <Badge variant="blue" startIcon={FiLock}>
-              {t("managed")}
-            </Badge>
-          )}
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
@@ -92,6 +87,11 @@ export const EventTypeDescription = ({
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
             </li>
+          )}
+          {eventType.metadata?.managedEventConfig && !isPublic && (
+            <Badge variant="gray" startIcon={FiLock}>
+              {t("managed")}
+            </Badge>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block">
