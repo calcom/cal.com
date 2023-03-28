@@ -1,6 +1,5 @@
 import type { DestinationCalendar, Booking } from "@prisma/client";
-import { cloneDeep } from "lodash";
-import merge from "lodash/merge";
+import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
