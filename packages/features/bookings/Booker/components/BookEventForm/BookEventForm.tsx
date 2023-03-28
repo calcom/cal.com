@@ -288,7 +288,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         <div data-testid="booking-fail">
           <Alert
             className="mt-2"
-            severity="warning"
+            severity="info"
             title={rescheduleUid ? t("reschedule_fail") : t("booking_fail")}
             message={getError(
               bookingForm.formState.errors["globalError"],
