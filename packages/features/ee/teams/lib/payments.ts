@@ -23,7 +23,7 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   if (!metadata?.paymentId) return { url: null };
   const checkoutSession = await stripe.checkout.sessions.retrieve(metadata.paymentId);
   /** If there's a pending session but it isn't paid, we need to pay this team */
-  if (checkoutSession.payment_status === "paid") return { url: null };
+  if (checkoutSession.payment_status !== "paid") return { url: null };
   /** If the session is already paid we return the upgrade URL so team is updated. */
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
