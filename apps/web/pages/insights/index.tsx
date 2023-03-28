@@ -23,8 +23,8 @@ const Heading = () => {
     filter: { selectedTeamName },
   } = useFilterContext();
   return (
-    <div className="min-w-52">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full">
+    <div className="min-w-52 hidden md:block">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 truncate text-xl font-semibold tracking-wide text-black xl:max-w-full">
         {t("analytics_for_organisation", {
           organisationName: selectedTeamName,
         })}

@@ -39,7 +39,7 @@ export const TeamList = () => {
         isMulti={false}
         value={teamValue}
         defaultValue={selectedTeamId ? { value: data[0].id, label: data[0].name } : null}
-        className="h-[38px] w-[90vw] capitalize md:min-w-[100px] md:max-w-[100px]"
+        className="h-[38px] w-[90vw] min-w-[160px] max-w-[100px]"
         options={UserListOptions}
         onChange={(input) => {
           if (input) {
