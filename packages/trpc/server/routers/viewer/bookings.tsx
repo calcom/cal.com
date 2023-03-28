@@ -117,11 +117,18 @@ export const bookingsRouter = router({
           OR: [
             {
               recurringEventId: { not: null },
-              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+              status: {
+                notIn: [
+                  BookingStatus.PENDING,
+                  BookingStatus.CANCELLED,
+                  BookingStatus.REJECTED,
+                  BookingStatus.RESCHEDULED,
+                ],
+              },
             },
             {
               recurringEventId: { equals: null },
-              status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+              status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED, BookingStatus.RESCHEDULED] },
             },
           ],
         },
@@ -129,7 +136,9 @@ export const bookingsRouter = router({
           endTime: { gte: new Date() },
           AND: [
             { NOT: { recurringEventId: { equals: null } } },
-            { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
+            {
+              status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED, BookingStatus.RESCHEDULED] },
+            },
           ],
         },
         past: {
@@ -137,6 +146,7 @@ export const bookingsRouter = router({
           AND: [
             { NOT: { status: { equals: BookingStatus.CANCELLED } } },
             { NOT: { status: { equals: BookingStatus.REJECTED } } },
+            { NOT: { status: { equals: BookingStatus.RESCHEDULED } } },
           ],
         },
         cancelled: {
