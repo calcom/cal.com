@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDom from "react-dom";
 
 import Cal, { getCalApi } from "./src/index";
