@@ -11,7 +11,7 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
-type CreateInnerContextOptions = {
+export type CreateInnerContextOptions = {
   session: Session | null;
   locale: string;
   user?: Omit<
