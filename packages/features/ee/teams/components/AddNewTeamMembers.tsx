@@ -64,7 +64,7 @@ export const AddNewTeamMembersForm = ({
   return (
     <>
       <div>
-        <ul className="rounded-md border" data-testid="pending-member-list">
+        <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
           {defaultValues.members.map((member, index) => (
             <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
           ))}
@@ -92,7 +92,7 @@ export const AddNewTeamMembersForm = ({
         }}
         members={defaultValues.members}
       />
-      <hr className="my-6 border-neutral-200" />
+      <hr className="border-subtle my-6" />
       <Button
         EndIcon={FiArrowRight}
         className="mt-6 w-full justify-center"

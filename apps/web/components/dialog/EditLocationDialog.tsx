@@ -181,7 +181,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <ErrorMessage
               errors={locationFormMethods.formState.errors}
               name={eventLocationType.variable}
-              className="mt-1 text-sm text-red-500"
+              className="text-error mt-1 text-sm"
               as="p"
             />
           </div>
@@ -207,7 +207,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         </div>
       );
     } else {
-      return <p className="text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
+      return <p className="text-default text-sm">{getMessageForOrganizer(selectedLocation, t)}</p>;
     }
   })();
 
