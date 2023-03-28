@@ -31,9 +31,7 @@ const emailReminderTemplate = (
     eventDate = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
     eventDateSMS = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format("ddd, MMM D, YYYY");
-
-    startTime = dayjs(startTime).tz(timeZone).format("H:mmA");
+    eventDate = dayjs(startTime).tz(timeZone).format("ddd, MMM D, YYYY H:mmA");
 
     endTime = dayjs(endTime).tz(timeZone).format("H:mmA");
   }
