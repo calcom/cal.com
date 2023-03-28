@@ -2,6 +2,9 @@
 It summarizes whatever things I observe while working on a PR. These can be unrelated bugs, related bugs, pending tasks.
 Life of this file is till PR Review after which either these comments are moved to PR Description if they are related to the PR or they are filed as bugs/features if unrelated to PR.
 
+## Documentation
+- responses.location actually has the values selected by the booker. It doesn't have the inferred value e.g. if "Link Meeting" option is selected, the link isn't available in responses.location because this isn't something input by user. But, payload.location received in webhook would have that value because it's enriched from the DB. 
+  
 ## Bugs Seen during testing
 - [ ] [Important] rescheduleReason isn't shown on booking/[uid]. It used to be shown earlier, I clearly remember. Important because apart from email, organizer won't be able to see the reason for reschedule.
 - [ ] Reschedule still showing Reason for cancellation in email ![](2023-03-23-16-18-47.png)
