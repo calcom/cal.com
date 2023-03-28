@@ -50,6 +50,12 @@ export const AvailableTimes = ({
         )}
       </header>
       <div className="pb-4">
+        {!slots.length && (
+          <div className="flex h-full w-full flex-col content-center items-center justify-center">
+            <p className="my-12 text-xl text-black dark:text-white">{t("all_booked_today")}</p>
+          </div>
+        )}
+
         {slots.map((slot) => {
           const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeslot);
           return (
@@ -59,7 +65,7 @@ export const AvailableTimes = ({
               data-testid="time"
               data-time={slot.time}
               onClick={() => onTimeSelect(slot.time)}
-              className="mb-3 block flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
+              className="mb-3 flex h-auto min-h-[44px] w-full flex-col items-center justify-center py-2"
               color="secondary">
               {dayjs.utc(slot.time).tz(timezone).format(timeFormat)}
               {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
