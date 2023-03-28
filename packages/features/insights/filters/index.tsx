@@ -9,7 +9,7 @@ import { FilterType } from "./FilterType";
 import { TeamList } from "./TeamList";
 import { UserListInTeam } from "./UsersListInTeam";
 
-export const ClearFilters = () => {
+const ClearFilters = () => {
   const { t } = useLocale();
   const { filter, setSelectedUserId, setSelectedFilter, setSelectedEventTypeId } = useFilterContext();
   const { selectedFilter } = filter;

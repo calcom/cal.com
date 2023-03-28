@@ -35,11 +35,6 @@ export const FilterType = () => {
         if (newValue) {
           // This can multiple values, but for now we only want to have one filter active at a time
           setSelectedFilter([newValue.value]);
-          if (newValue.value === "event-type") {
-            setSelectedUserId(null);
-          } else if (newValue.value === "user") {
-            setSelectedEventTypeId(null);
-          }
         }
       }}
       className="w-32 min-w-[130px]"

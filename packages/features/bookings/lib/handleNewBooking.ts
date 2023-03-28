@@ -32,6 +32,7 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -403,23 +404,9 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const calEventResponses = {} as NonNullable<CalendarEvent["responses"]>;
-    const calEventUserFieldsResponses = {} as NonNullable<CalendarEvent["userFieldsResponses"]>;
-    eventType.bookingFields.forEach((field) => {
-      const label = field.label || field.defaultLabel;
-      if (!label) {
-        throw new Error('Missing label for booking field "' + field.name + '"');
-      }
-      if (field.editable === "user" || field.editable === "user-readonly") {
-        calEventUserFieldsResponses[field.name] = {
-          label,
-          value: responses[field.name],
-        };
-      }
-      calEventResponses[field.name] = {
-        label,
-        value: responses[field.name],
-      };
+    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
     });
     return {
       ...reqBody,
@@ -940,14 +927,6 @@ async function handler(
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
     if (rescheduleUid) {
-      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
-      // Required for Typescript, these should always be set.
-      if (!seatAttendee || !bookingSeat || !rescheduleUid) {
-        throw new Error("Internal Error.");
-      }
-
-      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-
       // See if the new date has a booking already
       const newTimeSlotBooking = await prisma.booking.findFirst({
         where: {
@@ -1011,9 +990,16 @@ async function handler(
         }),
       };
 
-      // If owner reschedules the event we want to update the entire booking
-      // Also if owner is rescheduling there should be no bookingSeat
-      if (booking.user?.id === req.userId && !bookingSeat) {
+      if (!bookingSeat) {
+        // if no bookingSeat is given and the userId != owner, 401.
+        // TODO: Next step; Evaluate ownership, what about teams?
+        if (booking.user?.id !== req.userId) {
+          throw new HttpError({ statusCode: 401 });
+        }
+
+        // If owner reschedules the event we want to update the entire booking
+        // Also if owner is rescheduling there should be no bookingSeat
+
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
           const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -1192,14 +1178,13 @@ async function handler(
         return { ...resultBooking };
       }
 
+      // seatAttendee is null when the organizer is rescheduling.
+      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+
+      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
       // If there is no booking then remove the attendee from the old booking and create a new one
       if (!newTimeSlotBooking) {
-        await prisma.bookingSeat.delete({
-          where: {
-            id: bookingSeat.id,
-          },
-        });
-
         await prisma.attendee.delete({
           where: {
             id: seatAttendee.id,
@@ -1676,6 +1661,16 @@ async function handler(
     // Use EventManager to conditionally use all needed integrations.
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
+
+    //delete original rescheduled booking (no seats event)
+    if (!eventType.seatsPerTimeSlot) {
+      await prisma.booking.delete({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+      });
+    }
+
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
