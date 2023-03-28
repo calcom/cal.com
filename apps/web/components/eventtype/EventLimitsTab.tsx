@@ -155,6 +155,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     t("locked_fields_member_description")
   );
 
+  const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
+
   return (
     <div className="space-y-8">
       <div className="space-y-4 lg:space-y-8">
@@ -288,7 +290,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         render={({ field: { value } }) => (
           <SettingsToggle
             title={t("limit_booking_frequency")}
-            {...shouldLockDisableProps("bookingLimits")}
+            {...bookingLimitsLocked}
             description={t("limit_booking_frequency_description")}
             checked={Object.keys(value ?? {}).length > 0}
             onCheckedChange={(active) => {
@@ -300,7 +302,12 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 formMethods.setValue("bookingLimits", {});
               }
             }}>
-            <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+            <IntervalLimitsManager
+              disabled={bookingLimitsLocked.disabled}
+              propertyName="bookingLimits"
+              defaultLimit={1}
+              step={1}
+            />
           </SettingsToggle>
         )}
       />
@@ -481,6 +488,7 @@ type IntervalLimitsManagerProps<K extends "durationLimits" | "bookingLimits"> = 
   defaultLimit: number;
   step: number;
   textFieldSuffix?: string;
+  disabled?: boolean;
 };
 
 const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
@@ -488,6 +496,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   defaultLimit,
   step,
   textFieldSuffix,
+  disabled,
 }: IntervalLimitsManagerProps<K>) => {
   const { watch, setValue, control } = useFormContext<FormValues>();
   const watchIntervalLimits = watch(propertyName);
@@ -567,7 +576,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                     />
                   );
                 })}
-            {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && (
+            {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && !disabled && (
               <Button color="minimal" StartIcon={FiPlus} onClick={addLimit}>
                 {t("add_limit")}
               </Button>

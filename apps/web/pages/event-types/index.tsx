@@ -158,7 +158,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       {content()}
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={type}
+        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
         shortenDescription
       />
     </Link>

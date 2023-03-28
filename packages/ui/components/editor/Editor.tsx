@@ -11,6 +11,8 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 
+import { classNames } from "@calcom/lib";
+
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
@@ -31,6 +33,7 @@ export type TextEditorProps = {
   height?: string;
   placeholder?: string;
   disableLists?: boolean;
+  editable?: boolean;
 };
 
 const editorConfig = {
@@ -56,16 +59,20 @@ const editorConfig = {
 
 export const Editor = (props: TextEditorProps) => {
   return (
-    <div className="editor">
-      <LexicalComposer initialConfig={editorConfig}>
-        <div className="editor-container">
-          <ToolbarPlugin
-            getText={props.getText}
-            setText={props.setText}
-            excludedToolbarItems={props.excludedToolbarItems}
-            variables={props.variables}
-          />
-          <div className="editor-inner" style={{ height: props.height }}>
+    <div className="editor rounded-md">
+      <LexicalComposer initialConfig={{ ...editorConfig, editable: props.editable }}>
+        <div className="editor-container rounded-md p-0">
+          {!!props.editable && (
+            <ToolbarPlugin
+              getText={props.getText}
+              setText={props.setText}
+              excludedToolbarItems={props.excludedToolbarItems}
+              variables={props.variables}
+            />
+          )}
+          <div
+            className={classNames("editor-inner", !props.editable && "bg-gray-100")}
+            style={{ height: props.height }}>
             <RichTextPlugin
               contentEditable={<ContentEditable style={{ height: props.height }} className="editor-input" />}
               placeholder={<div className="-mt-11 p-3 text-sm text-gray-300">{props.placeholder || ""}</div>}

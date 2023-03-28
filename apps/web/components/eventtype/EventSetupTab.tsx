@@ -337,16 +337,13 @@ export const EventSetupTab = (
             {t("description")}
             {shouldLockIndicator("description")}
           </Label>
-          {descriptionLockedProps.disabled ? (
-            <TextField value={formMethods.getValues("description")} disabled />
-          ) : (
-            <Editor
-              getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
-              setText={(value: string) => formMethods.setValue("description", turndown(value))}
-              excludedToolbarItems={["blockType"]}
-              placeholder={t("quick_video_meeting")}
-            />
-          )}
+          <Editor
+            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
+            setText={(value: string) => formMethods.setValue("description", turndown(value))}
+            excludedToolbarItems={["blockType"]}
+            placeholder={t("quick_video_meeting")}
+            editable={!descriptionLockedProps.disabled}
+          />
         </div>
         <TextField
           required

@@ -288,7 +288,7 @@ function EventTypeSingleLayout({
               </>
             )}
             <Button
-              color="secondary"
+              color="destructive"
               variant="icon"
               StartIcon={FiTrash}
               tooltip={t("delete")}

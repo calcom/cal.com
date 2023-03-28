@@ -5,16 +5,15 @@ import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
+import { NewScheduleButton } from "@calcom/features/schedules";
 import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { FiExternalLink, FiGlobe } from "@calcom/ui/components/icon";
-
-import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
+import { Badge, Button, Select, SettingsToggle, SkeletonText, EmptyScreen } from "@calcom/ui";
+import { FiExternalLink, FiGlobe, FiClock } from "@calcom/ui/components/icon";
 
 type AvailabilityOption = {
   label: string;
@@ -181,6 +180,17 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
   const { data, isLoading } = trpc.viewer.availability.list.useQuery();
 
+  if (!data?.schedules.length && !isLoading)
+    return (
+      <EmptyScreen
+        Icon={FiClock}
+        headline={t("new_schedule_heading")}
+        description={t("new_schedule_description")}
+        buttonRaw={<NewScheduleButton fromEventType />}
+        border={false}
+      />
+    );
+
   const schedules = data?.schedules || [];
 
   const options = schedules.map((schedule) => ({
@@ -224,10 +234,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         </label>
         <Controller
           name="schedule"
-          render={({ field }) =>
-            isLoading ? (
-              <SelectSkeletonLoader />
-            ) : (
+          render={({ field }) => (
+            <>
               <AvailabilitySelect
                 value={value}
                 options={options}
@@ -238,8 +246,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                   field.onChange(selected?.value || null);
                 }}
               />
-            )
-          }
+            </>
+          )}
         />
       </div>
       {isManagedEventType || value?.value !== 0 ? (

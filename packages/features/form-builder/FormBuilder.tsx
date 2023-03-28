@@ -349,42 +349,48 @@ export const FormBuilder = function FormBuilder({
                         update(index, { ...field, hidden: !checked });
                       }}
                     />
-                    <Button
-                      data-testid="edit-field-action"
-                      color="secondary"
-                      onClick={() => {
-                        editField(index, field);
-                      }}>
-                      Edit
-                    </Button>
-                    <Button
-                      color="minimal"
-                      tooltip={
-                        field.editable === "system" || field.editable === "system-but-optional"
-                          ? t("form_builder_system_field_cant_delete")
-                          : ""
-                      }
-                      disabled={field.editable === "system" || field.editable === "system-but-optional"}
-                      variant="icon"
-                      onClick={() => {
-                        removeField(index);
-                      }}
-                      StartIcon={FiTrash2}
-                    />
+                    {!disabled && (
+                      <Button
+                        data-testid="edit-field-action"
+                        color="secondary"
+                        onClick={() => {
+                          editField(index, field);
+                        }}>
+                        Edit
+                      </Button>
+                    )}
+                    {!disabled && (
+                      <Button
+                        color="minimal"
+                        tooltip={
+                          field.editable === "system" || field.editable === "system-but-optional"
+                            ? t("form_builder_system_field_cant_delete")
+                            : ""
+                        }
+                        disabled={field.editable === "system" || field.editable === "system-but-optional"}
+                        variant="icon"
+                        onClick={() => {
+                          removeField(index);
+                        }}
+                        StartIcon={FiTrash2}
+                      />
+                    )}
                   </div>
                 )}
               </li>
             );
           })}
         </ul>
-        <Button
-          color="minimal"
-          data-testid="add-field"
-          onClick={addField}
-          className="mt-4"
-          StartIcon={FiPlus}>
-          {addFieldLabel}
-        </Button>
+        {!disabled && (
+          <Button
+            color="minimal"
+            data-testid="add-field"
+            onClick={addField}
+            className="mt-4"
+            StartIcon={FiPlus}>
+            {addFieldLabel}
+          </Button>
+        )}
       </div>
       <Dialog
         open={fieldDialog.isOpen}

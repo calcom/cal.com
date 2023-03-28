@@ -13,6 +13,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import updateChildrenEventTypes from "@calcom/lib/handleChildrenEventTypes";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -296,6 +297,7 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
+      safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
     });
