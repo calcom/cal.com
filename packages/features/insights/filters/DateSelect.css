@@ -19,3 +19,10 @@
 .recharts-responsive-container{
   @apply -mx-4
 }
+.tremor-Card-root > p {
+  @apply text-base font-semibold text-black mb-2
+}
+
+.tremor-Legend-legendItem{
+  @apply ml-2
+}

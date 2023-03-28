@@ -79,7 +79,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-4 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
+              <div className="mb-8 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
                 <Filters />
               </div>
@@ -98,7 +98,7 @@ export default function InsightsPage() {
                   <LeastBookedTeamMembersTable />
                 </div>
                 <small className="block text-center text-gray-600">
-                  {t("looking_for_more_analytics")}
+                  {t("looking_for_more_insights")}
                   <a
                     className="text-blue-500 hover:underline"
                     href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">

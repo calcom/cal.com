@@ -1671,7 +1671,7 @@
   "default_conferencing_bulk_title": "Bulk update existing event types",
   "requires_at_least_one_schedule": "You are required to have at least one schedule",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
-  "looking_for_more_analytics": "Looking for more analytics?",
+  "looking_for_more_insights": "Looking for more Insights?",
   "add_filter": "Add filter",
   "select_user": "Select User",
   "select_event_type": "Select Event Type",
