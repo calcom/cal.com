@@ -279,8 +279,6 @@ export default function Success(props: SuccessProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
-  const isRescheduled = status === "RESCHEDULED";
-
   const telemetry = useTelemetry();
   useEffect(() => {
     if (top !== window) {
@@ -462,8 +460,6 @@ export default function Success(props: SuccessProps) {
                         : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
-                      : isRescheduled
-                      ? t("meeting_is_rescheduled")
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
@@ -517,7 +513,7 @@ export default function Success(props: SuccessProps) {
                         allRemainingBookings={allRemainingBookings}
                         date={date}
                         is24h={is24h}
-                        isCancelled={isCancelled || isRescheduled}
+                        isCancelled={isCancelled}
                         tz={tz}
                       />
                     </div>
@@ -545,7 +541,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {locationToDisplay && !isCancelled && !isRescheduled && (
+                    {locationToDisplay && !isCancelled && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3">
@@ -604,7 +600,6 @@ export default function Success(props: SuccessProps) {
                 </div>
                 {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
-                  !isRescheduled &&
                   (!isCancellationMode ? (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
@@ -656,7 +651,6 @@ export default function Success(props: SuccessProps) {
                   !needsConfirmation &&
                   !isCancellationMode &&
                   !isCancelled &&
-                  !isRescheduled &&
                   !!calculatedDuration && (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
