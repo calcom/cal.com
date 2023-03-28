@@ -166,6 +166,6 @@ export const mergeRouters = t.mergeRouters;
 export const middleware = t.middleware;
 export const publicProcedure = t.procedure.use(perfMiddleware);
 export const authedProcedure = t.procedure.use(perfMiddleware).use(isAuthed);
-export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
-  authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
+// export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
+//   authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
