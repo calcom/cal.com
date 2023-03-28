@@ -159,7 +159,6 @@ function getProfileFromEvent(event: Event) {
 
   const username = "username" in profile ? profile.username : team?.slug;
   if (!username) throw new Error("Event has no username/team slug");
-
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const basePath = team ? `/team/${username}` : `/${username}`;
 
@@ -174,8 +173,7 @@ function getProfileFromEvent(event: Event) {
 function getUsersFromEvent(event: Event) {
   const { team, hosts, owner } = event;
   if (team) {
-    if (!hosts.length) throw new Error("Team event has no hosts");
-    return hosts.map(mapHostsToUsers);
+    return (hosts || []).map(mapHostsToUsers);
   }
 
   if (!owner) throw new Error("Event has no owner");
