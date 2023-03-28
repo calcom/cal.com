@@ -11,7 +11,8 @@
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/docs.json",
     "start": "PORT=4000 next start",
-    "type-check": "tsc --pretty --noEmit"
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "author": "Cal.com, Inc.",
   "license": "MIT",
