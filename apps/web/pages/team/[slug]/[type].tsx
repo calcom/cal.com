@@ -6,6 +6,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import getBooking from "@calcom/lib/getBooking";
 import type { GetBookingType } from "@calcom/lib/getBooking";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -170,6 +171,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   });
 
   eventTypeObject.availability = [];
