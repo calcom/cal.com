@@ -4,6 +4,7 @@ import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -63,7 +64,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                 select: {
                   id: true,
                   name: true,
-                  avatar: true,
                   username: true,
                   timeZone: true,
                   hideBranding: true,
@@ -170,6 +170,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   });
 
   eventTypeObject.availability = [];

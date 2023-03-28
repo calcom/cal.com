@@ -1,11 +1,12 @@
 name: Cron - downgradeUsers
 
 on:
+  workflow_dispatch:
   # "Scheduled workflows run on the latest commit on the default or base branch."
   # — https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
   schedule:
-    # Runs “At minute 0, 15, 30, and 45.” (see https://crontab.guru)
-    - cron: "0,15,30,45 * * * *"
+    # Runs “Every month at 1st (see https://crontab.guru)
+    - cron: "0 0 1 * *"
 jobs:
   cron-downgradeUsers:
     env:
