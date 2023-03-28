@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import type { Dispatch } from "react";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { JSONObject } from "superjson/dist/types";
 
 export type Gate = undefined | "rainbow"; // Add more like ` | "geolocation" | "payment"`
