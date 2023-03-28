@@ -1093,17 +1093,15 @@ const loggedInViewerRouter = router({
 
                 const attendeesList = await Promise.all(attendeesListPromises);
                 const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-                const { calEventResponses, calEventUserFieldsResponses } = getCalEventResponses({
-                  bookingFields: booking.eventType?.bookingFields ?? null,
-                  booking,
-                });
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
                   title: booking.title,
                   description: booking.description,
                   customInputs: isPrismaObjOrUndefined(booking.customInputs),
-                  responses: calEventResponses,
-                  userFieldsResponses: calEventUserFieldsResponses,
+                  ...getCalEventResponses({
+                    bookingFields: booking.eventType?.bookingFields ?? null,
+                    booking,
+                  }),
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {

@@ -1,7 +1,7 @@
-import type { bookingResponsesDbSchema } from "bookings/lib/getBookingResponsesSchema";
 import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/getBookingFields";
+import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";

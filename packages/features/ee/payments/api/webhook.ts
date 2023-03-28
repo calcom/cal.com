@@ -1,6 +1,5 @@
 import { BookingStatus } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
-import { getCalEventResponses } from "bookings/lib/getCalEventResponses";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
@@ -8,6 +7,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";

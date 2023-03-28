@@ -175,12 +175,12 @@ async function handler(req: CustomRequest) {
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
-    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
-    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
     }),
+    startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
+    endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
       email: organizer.email,
       name: organizer.name ?? "Nameless",

@@ -9,7 +9,7 @@ import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import type { GetBookingType } from "@lib/getBooking";
+import type { GetBookingType } from "@calcom/lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 

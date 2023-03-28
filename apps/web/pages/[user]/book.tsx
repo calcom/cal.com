@@ -22,7 +22,7 @@ import {
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
-import type { GetBookingType } from "@lib/getBooking";
+import type { GetBookingType } from "@calcom/lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";

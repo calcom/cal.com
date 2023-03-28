@@ -9,7 +9,7 @@ import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import type { GetBookingType } from "@lib/getBooking";
+import type { GetBookingType } from "@calcom/lib/getBooking";
 import getBooking from "@calcom/lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 

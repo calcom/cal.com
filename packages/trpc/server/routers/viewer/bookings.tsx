@@ -416,6 +416,7 @@ export const bookingsRouter = router({
           smsReminderNumber: true,
           scheduledJobs: true,
           workflowReminders: true,
+          responses: true,
         },
         where: {
           uid: bookingId,
@@ -576,8 +577,8 @@ export const bookingsRouter = router({
           description: bookingToReschedule?.description || "",
           customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
           ...getCalEventResponses({
-            booking: bookingToDelete,
-            bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+            booking: bookingToReschedule,
+            bookingFields: bookingToReschedule.eventType?.bookingFields ?? null,
           }),
           startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
           endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
