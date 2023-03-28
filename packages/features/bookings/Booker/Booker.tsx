@@ -28,7 +28,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
-  const StickyOnDesktop = isMobile ? Fragment : StickyBox;
+  const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const rescheduleUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("rescheduleUid") : null;
   const event = useEvent();
@@ -99,14 +99,14 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
           transition={{ ease: "easeInOut", duration: 0.4 }}
           className={classNames(
             "mb-6 [--booker-meta-width:280px] [--booker-main-width:480px] [--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px]",
-            "dark:bg-darkgray-100 max-w-screen grid w-[calc(var(--booker-meta-width)+var(--booker-main-width))] items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
+            "dark:bg-darkgray-100 max-w-screen grid items-start overflow-x-clip bg-white dark:[color-scheme:dark] md:flex-row",
             layout === "small_calendar" &&
-              "dark:border-darkgray-300 mt-20 min-h-[450px] rounded-md border border-gray-200",
+              "dark:border-darkgray-300 mt-20 min-h-[450px] w-[calc(var(--booker-meta-width)+var(--booker-main-width))] rounded-md border border-gray-200",
             layout !== "small_calendar" && "h-auto min-h-screen w-screen"
           )}>
           <AnimatePresence>
             <StickyOnDesktop key="meta" className="relative z-10">
-              <BookerSection area="meta" className="md:w-[var(--booker-meta-width)]">
+              <BookerSection area="meta" className="max-w-screen w-full md:w-[var(--booker-meta-width)]">
                 <EventMeta />
                 {layout !== "small_calendar" && !(layout === "mobile" && bookerState === "booking") && (
                   <div className=" mt-auto p-6">
@@ -169,7 +169,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             </BookerSection>
           </AnimatePresence>
         </m.div>
-        <span className="mt-auto">
+        <span className="mt-auto mb-6">
           <Logo small />
         </span>
       </div>

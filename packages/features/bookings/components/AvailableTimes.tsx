@@ -51,9 +51,13 @@ export const AvailableTimes = ({
       </header>
       <div className="pb-4">
         {!slots.length && (
-          <div className="flex h-full w-full flex-col content-center items-center justify-center">
-            <p className="my-12 text-xl text-black dark:text-white">{t("all_booked_today")}</p>
-          </div>
+          <p
+            className={classNames(
+              "text-black dark:text-white",
+              showTimeformatToggle ? "-mt-1 text-lg" : "text-sm"
+            )}>
+            {t("all_booked_today")}
+          </p>
         )}
 
         {slots.map((slot) => {
