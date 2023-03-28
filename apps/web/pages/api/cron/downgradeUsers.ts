@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-  const pageSize = 10; // Adjust this value based on the total number of teams and the available processing time
+  const pageSize = 90; // Adjust this value based on the total number of teams and the available processing time
   let pageNumber = 0;
 
   while (true) {
@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (const team of teams) {
       await updateQuantitySubscriptionFromStripe(team.id);
-      await delay(500); // Adjust the delay as needed to avoid rate limiting
+      await delay(100); // Adjust the delay as needed to avoid rate limiting
     }
 
     pageNumber++;
