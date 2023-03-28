@@ -1,14 +1,4 @@
-import type {
-  ControlProps,
-  GroupBase,
-  InputProps,
-  MenuListProps,
-  MenuProps,
-  MultiValueProps,
-  OptionProps,
-  SingleValueProps,
-  ValueContainerProps,
-} from "react-select";
+import type { GroupBase, InputProps, OptionProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
@@ -47,122 +37,31 @@ export const OptionComponent = <
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
-  className,
   ...props
 }: OptionProps<Option, IsMulti, Group>) => {
   return (
-    <reactSelectComponents.Option
-      {...props}
-      className={classNames(
-        className,
-        "dark:bg-darkgray-100 !flex !cursor-pointer justify-between !py-3",
-        props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
-        props.isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
-      )}>
-      <>
+    // This gets styled in the select classNames prop now - handles overrides with styles vs className here doesnt
+    <reactSelectComponents.Option {...props}>
+      <div className="flex">
         <span className="mr-auto">{props.label}</span>
         {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
         {props.isSelected && <FiCheck className="ml-2 h-4 w-4" />}
-      </>
+      </div>
     </reactSelectComponents.Option>
   );
 };
 
-export const ControlComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: ControlProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.Control
-    {...props}
-    className={classNames(
-      className,
-      "dark:bg-darkgray-100 dark:border-darkgray-300 !min-h-9  border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
-    )}
-  />
-);
+// We need to override this component if we need a icon - we can't simpily override styles
+type IconLeadingProps = {
+  icon: React.ReactNode;
+  children?: React.ReactNode;
+} & React.ComponentProps<typeof reactSelectComponents.Control>;
 
-export const SingleValueComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: SingleValueProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.SingleValue
-    {...props}
-    className={classNames(
-      className,
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400"
-    )}
-  />
-);
-
-export const ValueContainerComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: ValueContainerProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.ValueContainer
-    {...props}
-    className={classNames(
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
-      className
-    )}
-  />
-);
-
-export const MultiValueComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: MultiValueProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.MultiValue
-    {...props}
-    className={classNames(
-      "dark:bg-darkgray-200 dark:text-darkgray-900 !rounded-md bg-gray-100 text-gray-700",
-      className
-    )}
-  />
-);
-
-export const MenuComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: MenuProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.Menu
-    {...props}
-    className={classNames(
-      "dark:bg-darkgray-100 !rounded-md bg-white text-sm leading-4 dark:text-white",
-      className
-    )}
-  />
-);
-
-export const MenuListComponent = <
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
->({
-  className,
-  ...props
-}: MenuListProps<Option, IsMulti, Group>) => (
-  <reactSelectComponents.MenuList
-    {...props}
-    className={classNames("scroll-bar scrollbar-track-w-20 rounded-md", className)}
-  />
-);
+export const IconLeading = ({ icon, children, ...props }: IconLeadingProps) => {
+  return (
+    <reactSelectComponents.Control {...props}>
+      {icon}
+      {children}
+    </reactSelectComponents.Control>
+  );
+};

@@ -1,7 +1,7 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-// REVIEW: From lint error
-import _ from "lodash";
+import { orderBy } from "lodash";
+import type { NextApiResponse } from "next";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -9,9 +9,10 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -283,6 +284,7 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
+      safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
@@ -335,7 +337,7 @@ export const eventTypesRouter = router({
         name: user.name,
         image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
@@ -528,6 +530,7 @@ export const eventTypesRouter = router({
       periodType,
       locations,
       bookingLimits,
+      durationLimits,
       destinationCalendar,
       customInputs,
       recurringEvent,
@@ -582,10 +585,17 @@ export const eventTypesRouter = router({
     }
 
     if (bookingLimits) {
-      const isValid = validateBookingLimitOrder(bookingLimits);
+      const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
       data.bookingLimits = bookingLimits;
+    }
+
+    if (durationLimits) {
+      const isValid = validateIntervalLimitOrder(durationLimits);
+      if (!isValid)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Duration limits must be in ascending order." });
+      data.durationLimits = durationLimits;
     }
 
     if (schedule) {
@@ -692,7 +702,10 @@ export const eventTypesRouter = router({
       where: { id },
       data,
     });
-
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    }
     return { eventType };
   }),
   delete: eventOwnerProcedure
@@ -769,6 +782,7 @@ export const eventTypesRouter = router({
         team,
         recurringEvent,
         bookingLimits,
+        durationLimits,
         metadata,
         workflows,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -794,6 +808,7 @@ export const eventTypesRouter = router({
         users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
         recurringEvent: recurringEvent || undefined,
         bookingLimits: bookingLimits ?? undefined,
+        durationLimits: durationLimits ?? undefined,
         metadata: metadata === null ? Prisma.DbNull : metadata,
         bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       };

@@ -374,7 +374,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
           editorState.read(() => {
-            const textInHtml = $generateHtmlFromNodes(editor);
+            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
             props.setText(textInHtml);
           });
           if (!prevEditorState._selection) editor.blur();

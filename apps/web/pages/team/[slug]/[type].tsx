@@ -2,9 +2,9 @@ import type { GetServerSidePropsContext } from "next";
 
 import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -171,13 +171,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideBranding,
       timeZone,
     })),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   });
 
   eventTypeObject.availability = [];
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBooking(prisma, rescheduleUid, getBookingFieldsWithSystemFields(eventTypeObject));
+    booking = await getBooking(prisma, rescheduleUid);
   }
 
   const weekStart = eventType.team?.members?.[0]?.user?.weekStart;

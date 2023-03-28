@@ -83,6 +83,7 @@ const tabs: VerticalTabItemProps[] = [
     icon: FiLock,
     children: [
       //
+      { name: "features", href: "/settings/admin/flags" },
       { name: "license", href: "/auth/setup?step=1" },
       { name: "impersonation", href: "/settings/admin/impersonation" },
       { name: "apps", href: "/settings/admin/apps/calendar" },
@@ -447,7 +448,7 @@ function ShellHeader() {
             <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
-        <div className="ml-auto">{meta.CTA}</div>
+        <div className="flex-shrink-0 ltr:ml-auto rtl:mr-auto">{meta.CTA}</div>
       </div>
     </header>
   );

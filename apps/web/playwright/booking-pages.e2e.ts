@@ -132,4 +132,26 @@ test.describe("pro user", () => {
     // This is the only booking in there that needed confirmation and now it should be empty screen
     await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
+
+  test("can book with multiple guests", async ({ page, users }) => {
+    const additionalGuests = ["test@gmail.com", "test2@gmail.com"];
+
+    await page.click('[data-testid="event-type-link"]');
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.fill('[name="name"]', "test1234");
+    await page.fill('[name="email"]', "test1234@example.com");
+    await page.locator('[data-testid="add-guests"]').click();
+
+    await page.locator('input[type="email"]').nth(1).fill(additionalGuests[0]);
+    await page.locator('[data-testid="add-another-guest"]').click();
+    await page.locator('input[type="email"]').nth(2).fill(additionalGuests[1]);
+
+    await page.locator('[data-testid="confirm-book-button"]').click();
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    additionalGuests.forEach(async (email) => {
+      await expect(page.locator(`[data-testid="attendee-${email}"]`)).toHaveText(email);
+    });
+  });
 });

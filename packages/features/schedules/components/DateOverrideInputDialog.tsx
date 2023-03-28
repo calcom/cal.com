@@ -116,8 +116,8 @@ const DateOverrideForm = ({
         );
         onClose();
       }}
-      className="space-y-4 sm:flex sm:space-x-4">
-      <div className={classNames(date && "w-full sm:border-r sm:pr-6")}>
+      className="p-6 sm:flex sm:p-0">
+      <div className={classNames(date && "w-full sm:border-r sm:pr-6", "sm:p-4 md:p-8")}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           includedDates={includedDates}
@@ -133,7 +133,7 @@ const DateOverrideForm = ({
         />
       </div>
       {date && (
-        <div className="relative flex w-full flex-col sm:pl-2">
+        <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
             <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
@@ -150,7 +150,7 @@ const DateOverrideForm = ({
               data-testid="date-override-mark-unavailable"
             />
           </div>
-          <div className="flex flex-row-reverse">
+          <div className="mt-4 flex flex-row-reverse sm:mt-0">
             <Button
               className="ml-2"
               color="primary"
@@ -190,7 +190,7 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md">
+      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

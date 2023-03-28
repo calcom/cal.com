@@ -94,7 +94,7 @@ export const scheduleEmailReminder = async (
       timeZone: timeZone,
       location: evt.location,
       additionalNotes: evt.additionalNotes,
-      customInputs: evt.customInputs,
+      responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
     };
 

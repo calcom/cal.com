@@ -13,7 +13,7 @@ export type VariablesType = {
   timeZone?: string;
   location?: string | null;
   additionalNotes?: string | null;
-  customInputs?: Prisma.JsonValue;
+  responses?: Prisma.JsonValue;
   meetingUrl?: string;
 };
 
@@ -72,17 +72,17 @@ const customTemplate = (text: string, variables: VariablesType, locale: string) 
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
       return;
     }
-    if (variables.customInputs) {
-      Object.keys(variables.customInputs).forEach((customInput) => {
+    if (variables.responses) {
+      Object.keys(variables.responses).forEach((customInput) => {
         const formatedToVariable = customInput
           .replace(/[^a-zA-Z0-9 ]/g, "")
           .trim()
           .replaceAll(" ", "_")
           .toUpperCase();
-        if (variable === formatedToVariable && variables.customInputs) {
+        if (variable === formatedToVariable && variables.responses) {
           dynamicText = dynamicText.replace(
             `{${variable}}`,
-            variables.customInputs[customInput as keyof typeof variables.customInputs]
+            variables.responses[customInput as keyof typeof variables.responses]
           );
         }
       });
