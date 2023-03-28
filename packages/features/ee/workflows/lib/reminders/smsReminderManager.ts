@@ -26,6 +26,10 @@ export type BookingInfo = {
     name: string;
     email: string;
     timeZone: string;
+    username?: string;
+  };
+  eventType: {
+    slug?: string;
   };
   startTime: string;
   endTime: string;
@@ -110,6 +114,8 @@ export const scheduleSMSReminder = async (
         additionalNotes: evt.additionalNotes,
         responses: evt.responses,
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+        cancelLink: `/booking/${evt.uid}?cancel=true`,
+        rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
       };
       const customMessage = await customTemplate(message, variables, locale);
       message = customMessage.text;

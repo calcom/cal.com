@@ -96,6 +96,8 @@ export const scheduleEmailReminder = async (
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      cancelLink: `/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };
 
     const locale =

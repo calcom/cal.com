@@ -14,7 +14,7 @@ export const scheduleWorkflowReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent & { metadata?: { videoCallUrl: string } },
+  evt: CalendarEvent & { metadata?: { videoCallUrl: string }; eventType: { slug?: string } },
   needsConfirmation: boolean,
   isRescheduleEvent: boolean,
   isFirstRecurringEvent: boolean

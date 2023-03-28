@@ -71,6 +71,7 @@ export async function handleConfirmation(args: {
     uid: string;
     smsReminderNumber: string | null;
     eventType: {
+      slug: string;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
           steps: WorkflowStep[];
@@ -104,6 +105,7 @@ export async function handleConfirmation(args: {
         select: {
           eventType: {
             select: {
+              slug: true,
               workflows: {
                 include: {
                   workflow: {
@@ -142,6 +144,7 @@ export async function handleConfirmation(args: {
       select: {
         eventType: {
           select: {
+            slug: true,
             workflows: {
               include: {
                 workflow: {
@@ -172,13 +175,15 @@ export async function handleConfirmation(args: {
         evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
         evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
         evtOfBooking.uid = updatedBookings[index].uid;
+        const eventTypeSlug = updatedBookings[index].eventType ? updatedBookings[index].eventType?.slug : "";
 
         const isFirstBooking = index === 0;
 
+        //todo responses are missing here and metadata too
         await scheduleWorkflowReminders(
           updatedBookings[index]?.eventType?.workflows || [],
           updatedBookings[index].smsReminderNumber,
-          evtOfBooking,
+          { ...evtOfBooking, ...{ eventType: { slug: eventTypeSlug } } },
           false,
           false,
           isFirstBooking

@@ -1,5 +1,6 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Prisma } from "@calcom/prisma/client";
 
 export type VariablesType = {
@@ -15,6 +16,8 @@ export type VariablesType = {
   additionalNotes?: string | null;
   responses?: Prisma.JsonValue;
   meetingUrl?: string;
+  cancelLink?: string;
+  rescheduleLink?: string;
 };
 
 const customTemplate = (text: string, variables: VariablesType, locale: string) => {
@@ -31,6 +34,9 @@ const customTemplate = (text: string, variables: VariablesType, locale: string) 
     locationString = guessEventLocationType(locationString)?.label || locationString;
   }
 
+  const cancelLink = variables.cancelLink ? `${WEBAPP_URL}${variables.cancelLink}` : "";
+  const rescheduleLink = variables.rescheduleLink ? `${WEBAPP_URL}${variables.rescheduleLink}` : "";
+
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
     .replaceAll("{ORGANIZER}", variables.organizerName || "")
@@ -45,6 +51,8 @@ const customTemplate = (text: string, variables: VariablesType, locale: string) 
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
     .replaceAll("{TIMEZONE}", variables.timeZone || "")
+    .replaceAll("{CANCEL_LINK}", cancelLink)
+    .replaceAll("{RESCHEDULE_LINK}", rescheduleLink)
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {

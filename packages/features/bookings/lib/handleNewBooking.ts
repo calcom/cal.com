@@ -198,6 +198,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       customInputs: true,
       disableGuests: true,
       users: userSelect,
+      slug: true,
       team: {
         select: {
           id: true,
@@ -785,6 +786,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
+      username: organizerUser.username,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
@@ -1968,7 +1970,7 @@ async function handler(
     await scheduleWorkflowReminders(
       eventType.workflows,
       smsReminderNumber || null,
-      { ...evt, responses, ...{ metadata } },
+      { ...evt, ...{ responses, metadata, eventType: { slug: eventType.slug } } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
