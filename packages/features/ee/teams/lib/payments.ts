@@ -98,6 +98,9 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: team.members.length, id: subscriptionItemId }],
     });
+    console.info(
+      `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
+    );
   } catch (error) {
     let message = "Unknown error on updateQuantitySubscriptionFromStripe";
     if (error instanceof Error) message = error.message;
