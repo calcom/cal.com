@@ -1,7 +1,7 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-// REVIEW: From lint error
-import _ from "lodash";
+import { orderBy } from "lodash";
+import type { NextApiResponse } from "next";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -335,7 +335,7 @@ export const eventTypesRouter = router({
         name: user.name,
         image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
@@ -700,7 +700,10 @@ export const eventTypesRouter = router({
       where: { id },
       data,
     });
-
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    }
     return { eventType };
   }),
   delete: eventOwnerProcedure

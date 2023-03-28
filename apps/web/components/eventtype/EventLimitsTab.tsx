@@ -88,6 +88,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
+          min={0}
           className="mb-0 h-[38px] rounded-[4px] ltr:mr-2 rtl:ml-2"
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
@@ -424,7 +425,7 @@ const IntervalLimitItem = ({
       <TextField
         required
         type="number"
-        containerClassName={`${textFieldSuffix ? "w-36" : "w-16"} -mb-1`}
+        containerClassName={textFieldSuffix ? "w-44 -mb-1" : "w-16 mb-0"}
         placeholder={`${value}`}
         min={step}
         step={step}

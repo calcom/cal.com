@@ -9,6 +9,20 @@ type EventType = Parameters<typeof preprocess>[0]["eventType"];
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 
+export const bookingResponse = z.union([
+  z.string(),
+  z.boolean(),
+  z.string().array(),
+  z.object({
+    optionValue: z.string(),
+    value: z.string(),
+  }),
+]);
+
+export const bookingResponsesDbSchema = z.record(bookingResponse);
+
+const catchAllSchema = bookingResponsesDbSchema;
+
 export const getBookingResponsesPartialSchema = ({
   eventType,
   view,
@@ -16,7 +30,7 @@ export const getBookingResponsesPartialSchema = ({
   eventType: EventType;
   view: View;
 }) => {
-  const schema = bookingResponses.unwrap().partial().and(z.record(z.any()));
+  const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
   return preprocess({ schema, eventType, isPartialSchema: true, view });
 };
@@ -38,9 +52,12 @@ function preprocess<T extends z.ZodType>({
   view: currentView,
 }: {
   schema: T;
+  // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
+  // - Not all required fields are need to be provided for prefill.
+  // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
   eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+    bookingFields: (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
   };
   view: View;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
@@ -48,6 +65,8 @@ function preprocess<T extends z.ZodType>({
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
+      // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
+      if (!eventType.bookingFields) return parsedResponses;
       eventType.bookingFields.forEach((field) => {
         const value = parsedResponses[field.name];
         if (value === undefined) {
@@ -86,6 +105,10 @@ function preprocess<T extends z.ZodType>({
       return newResponses;
     },
     schema.superRefine((responses, ctx) => {
+      if (!eventType.bookingFields) {
+        // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
+        return;
+      }
       eventType.bookingFields.forEach((bookingField) => {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
