@@ -89,7 +89,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
     const primaryAttendee = rescheduleBooking.attendees[0];
     if (!primaryAttendee) return {};
 
-    const responses = eventType.bookingFields.reduce((responses, field) => {
+    const responses = eventType?.bookingFields.reduce((responses, field) => {
       return {
         ...responses,
         [field.name]: rescheduleBooking.responses[field.name],
@@ -149,6 +149,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
         );
       }
 
+      if (!uid) {
+        console.error("No uid returned from createBookingMutation");
+        return;
+      }
+
       return await router.push(
         getSuccessPath({
           uid,
@@ -166,6 +171,12 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const createRecurringBookingMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData) => {
       const { uid } = responseData[0] || {};
+
+      if (!uid) {
+        console.error("No uid returned from createRecurringBookingMutation");
+        return;
+      }
+
       return await router.push(
         getSuccessPath({
           uid,
@@ -237,6 +248,11 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
     }
   };
+
+  if (!eventType) {
+    console.warn("No event type found for event", router.query);
+    return <Alert severity="warning" message={t("error_booking_event")} />;
+  }
 
   return (
     <div className="flex h-full flex-col">
