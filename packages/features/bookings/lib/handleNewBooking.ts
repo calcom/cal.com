@@ -927,14 +927,6 @@ async function handler(
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
     if (rescheduleUid) {
-      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
-      // Required for Typescript, these should always be set.
-      if (!seatAttendee || !bookingSeat || !rescheduleUid) {
-        throw new Error("Internal Error.");
-      }
-
-      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
-
       // See if the new date has a booking already
       const newTimeSlotBooking = await prisma.booking.findFirst({
         where: {
@@ -998,9 +990,16 @@ async function handler(
         }),
       };
 
-      // If owner reschedules the event we want to update the entire booking
-      // Also if owner is rescheduling there should be no bookingSeat
-      if (booking.user?.id === req.userId && !bookingSeat) {
+      if (!bookingSeat) {
+        // if no bookingSeat is given and the userId != owner, 401.
+        // TODO: Next step; Evaluate ownership, what about teams?
+        if (booking.user?.id !== req.userId) {
+          throw new HttpError({ statusCode: 401 });
+        }
+
+        // If owner reschedules the event we want to update the entire booking
+        // Also if owner is rescheduling there should be no bookingSeat
+
         // If there is no booking during the new time slot then update the current booking to the new date
         if (!newTimeSlotBooking) {
           const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -1179,14 +1178,13 @@ async function handler(
         return { ...resultBooking };
       }
 
+      // seatAttendee is null when the organizer is rescheduling.
+      const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+
+      seatAttendee.language = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
       // If there is no booking then remove the attendee from the old booking and create a new one
       if (!newTimeSlotBooking) {
-        await prisma.bookingSeat.delete({
-          where: {
-            id: bookingSeat.id,
-          },
-        });
-
         await prisma.attendee.delete({
           where: {
             id: seatAttendee.id,
