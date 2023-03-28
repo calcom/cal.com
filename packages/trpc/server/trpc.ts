@@ -112,17 +112,17 @@ export const getLocale = async (ctx: CreateInnerContextOptions) => {
       ? await serverSideTranslations(user.locale, ["common", "vital"])
       : ctx.i18n;
   const locale = user?.locale || ctx.locale;
-  return { ...ctx, user, i18n, session: ctx.session, locale };
+  return { user, i18n, session: ctx.session, locale };
 };
 
 export const isAuthed = t.middleware(async ({ ctx, next }) => {
-  const { user, session, locale, i18n, ...rest } = await getLocale(ctx);
+  const { user, session, locale, i18n } = await getLocale(ctx);
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   return next({
-    ctx: { ...rest, locale, i18n, user: { ...user, locale }, session },
+    ctx: { locale, i18n, user: { ...user, locale }, session },
   });
 });
 
