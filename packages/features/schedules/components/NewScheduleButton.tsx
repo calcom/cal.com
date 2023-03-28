@@ -17,7 +17,13 @@ import {
 } from "@calcom/ui";
 import { FiPlus } from "@calcom/ui/components/icon";
 
-export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
+export function NewScheduleButton({
+  name = "new-schedule",
+  fromEventType,
+}: {
+  name?: string;
+  fromEventType?: boolean;
+}) {
   const router = useRouter();
   const { t } = useLocale();
 
@@ -29,7 +35,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
 
   const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
-      await router.push("/availability/" + schedule.id);
+      await router.push(`/availability/${schedule.id}${fromEventType ? "?fromEventType=true" : ""}`);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
       utils.viewer.availability.list.setData(undefined, (data) => {
         const newSchedule = { ...schedule, isDefault: false, availability: [] };
