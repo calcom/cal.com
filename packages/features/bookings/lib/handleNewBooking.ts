@@ -882,9 +882,12 @@ async function handler(
       }
 
       await Promise.all(integrationsToDelete).then(async () => {
-        await prisma.booking.delete({
+        await prisma.booking.update({
           where: {
             id: originalRescheduledBooking.id,
+          },
+          data: {
+            status: "RESCHEDULED",
           },
         });
       });
@@ -1166,10 +1169,13 @@ async function handler(
           cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        // Delete the old booking
-        await prisma.booking.delete({
+        // Update the old booking with the rescheduled status
+        await prisma.booking.update({
           where: {
             id: booking.id,
+          },
+          data: {
+            status: "RESCHEDULED",
           },
         });
 
@@ -1664,9 +1670,12 @@ async function handler(
 
     //delete original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.delete({
+      await prisma.booking.update({
         where: {
           id: originalRescheduledBooking.id,
+        },
+        data: {
+          status: "RESCHEDULED",
         },
       });
     }
