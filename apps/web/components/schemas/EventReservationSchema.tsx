@@ -37,8 +37,6 @@ const EventReservationSchema: FC<EventReservationSchemaInterface> = ({
       case "REJECTED":
       case "CANCELLED":
         return "ReservationCancelled";
-      case "RESCHEDULED":
-        return "ReservationCancelled";
       case "PENDING":
         return "ReservationPending";
       default:
