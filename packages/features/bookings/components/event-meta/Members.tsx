@@ -14,18 +14,19 @@ export interface EventMembersProps {
   profile: PublicEvent["profile"];
 }
 
-export const EventMembers = ({ schedulingType, users }: EventMembersProps) => {
+export const EventMembers = ({ schedulingType, users, profile }: EventMembersProps) => {
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
-  const shownUsers = showMembers ? users : [];
+  const shownUsers = showMembers ? [...users, profile] : [profile];
 
   const avatars = shownUsers
     .map((user) => ({
       title: `${user.name}`,
-      image: `${CAL_URL}/${user.username}/avatar.png`,
+      image: ("image" in user && user.image) || `${CAL_URL}/${user.username}/avatar.png`,
       alt: user.name || undefined,
       href: user.username ? `${CAL_URL}/${user.username}` : undefined,
     }))
-    .filter((item) => !!item.image);
+    .filter((item) => !!item.image)
+    .filter((item, index, self) => self.findIndex((t) => t.image === item.image) === index);
 
   return (
     <>
