@@ -5,7 +5,7 @@ interface ICardProps {
   className?: string;
 }
 
-const CardInsights = (props: ICardProps) => {
+export const CardInsights = (props: ICardProps) => {
   const { children, className = "", ...rest } = props;
 
   return (
@@ -15,4 +15,3 @@ const CardInsights = (props: ICardProps) => {
   );
 };
 
-export { CardInsights };
