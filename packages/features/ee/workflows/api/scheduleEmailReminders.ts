@@ -149,7 +149,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       let emailBodyEmpty = false;
 
-      //todo are there old steps that have a body from custom and are reminder??
+      //todo are there old steps that have a body from custom and are reminder?? yes there are
       if (reminder.workflowStep.reminderBody) {
         const variables: VariablesType = {
           eventName: reminder.booking.eventType?.title || "",
@@ -164,6 +164,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           additionalNotes: reminder.booking.description,
           responses: reminder.booking.responses,
           meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
+          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
+          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",

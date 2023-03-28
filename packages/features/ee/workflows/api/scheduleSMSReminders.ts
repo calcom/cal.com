@@ -111,6 +111,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             additionalNotes: reminder.booking?.description,
             responses: reminder.booking?.responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
+            cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
+            rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
           };
           const customMessage = await customTemplate(
             reminder.workflowStep.reminderBody || "",
