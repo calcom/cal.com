@@ -5,9 +5,9 @@ import EmbedSnippet from "@calcom/embed-snippet";
 
 import Cal from "./Cal";
 
-export const getCalApi = (): Promise<GlobalCal> =>
+export const getCalApi = (embedJsUrl?: string): Promise<GlobalCal> =>
   new Promise(function tryReadingFromWindow(resolve) {
-    EmbedSnippet();
+    EmbedSnippet(embedJsUrl);
     const api = window.Cal;
     if (!api) {
       setTimeout(() => {
