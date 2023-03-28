@@ -235,7 +235,11 @@ const BookingPage = ({
     {}
   );
   const reserveSlot = () => {
-    reserveSlotMutation.mutate({ eventTypeId: eventType.id, slotUtcDate: dayjs(queryDate).utc().format() });
+    reserveSlotMutation.mutate({
+      eventTypeId: eventType.id,
+      slotUtcStartDate: dayjs(queryDate).utc().format(),
+      slotUtcEndDate: dayjs(queryDate).utc().add(queryDuration, "minutes").format(),
+    });
   };
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;

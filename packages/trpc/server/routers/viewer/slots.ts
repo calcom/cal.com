@@ -1,5 +1,6 @@
 import { SchedulingType } from "@prisma/client";
 import { serialize } from "cookie";
+import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
@@ -53,11 +54,13 @@ const reverveSlotSchema = z
   .object({
     eventTypeId: z.number().int(),
     // startTime ISOString
-    slotUtcDate: z.string(),
+    slotUtcStartDate: z.string(),
+    // endTime ISOString
+    slotUtcEndDate: z.string(),
   })
   .refine(
-    (data) => !!data.eventTypeId || !!data.slotUtcDate,
-    "Either slotUtcDate or eventTypeId should be filled in."
+    (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
+    "Either slotUtcStartDate, slotUtcEndDate or eventTypeId should be filled in."
   );
 
 export type Slot = {
@@ -125,21 +128,41 @@ export const slotsRouter = router({
   reserveSlot: publicProcedure.input(reverveSlotSchema).mutation(async ({ ctx, input }) => {
     const { prisma, req, res } = ctx;
     const uid = req?.cookies?.uid || uuid();
-    const { slotUtcDate, eventTypeId } = input;
+    const { slotUtcStartDate, slotUtcEndDate, eventTypeId } = input;
     const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
-    await ctx.prisma.selectedSlots.upsert({
-      where: { selectedSlotUnique: { eventTypeId, slotUtcDate, uid } },
-      update: {
-        slotUtcDate,
-        releaseAt,
-      },
-      create: {
-        eventTypeId,
-        slotUtcDate,
-        uid,
-        releaseAt,
-      },
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
     });
+    if (eventType) {
+      await Promise.all(
+        eventType.users.map((user) =>
+          prisma.selectedSlots.upsert({
+            where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
+            update: {
+              slotUtcStartDate,
+              slotUtcEndDate,
+              releaseAt,
+              eventTypeId,
+            },
+            create: {
+              userId: user.id,
+              eventTypeId,
+              slotUtcStartDate,
+              slotUtcEndDate,
+              uid,
+              releaseAt,
+              isSeat: eventType.seatsPerTimeSlot !== null,
+            },
+          })
+        )
+      );
+    } else {
+      throw new TRPCError({
+        message: "Event type not found",
+        code: "NOT_FOUND",
+      });
+    }
     res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
     return;
   }),
@@ -147,7 +170,7 @@ export const slotsRouter = router({
     const { req, prisma } = ctx;
     const uid = req?.cookies?.uid;
     if (uid) {
-      await ctx.prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
+      await prisma.selectedSlots.deleteMany({ where: { uid: { equals: uid } } });
     }
     return;
   }),
@@ -280,7 +303,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined = undefined;
+  let currentSeats: CurrentSeats | undefined;
 
   let users = eventType.users.map((user) => ({
     isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
@@ -375,18 +398,20 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     /* FIXME: For some reason this returns undefined while testing in Jest */
     (await ctx.prisma.selectedSlots.findMany({
       where: {
-        eventTypeId: { equals: eventType.id },
+        userId: { in: users.map((user) => user.id) },
         releaseAt: { gt: dayjs.utc().format() },
       },
-      select: { id: true, slotUtcDate: true },
+      select: {
+        id: true,
+        slotUtcStartDate: true,
+        slotUtcEndDate: true,
+        userId: true,
+        isSeat: true,
+        eventTypeId: true,
+      },
     })) || [];
-  const ids: number[] = [];
-  const slotBusy = selectedSlots.map((item) => {
-    ids.push(item.id);
-    return item.slotUtcDate.toISOString();
-  });
   await ctx.prisma.selectedSlots.deleteMany({
-    where: { eventTypeId: { equals: eventType.id }, id: { notIn: ids } },
+    where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
 
   availableTimeSlots = timeSlots.filter((slot) => {
@@ -428,12 +453,72 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       .filter((slot) => !!slot.userIds?.length);
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => {
-    if (slotBusy?.includes?.(slot.time.toISOString())) {
-      return false;
+  if (selectedSlots?.length > 0) {
+    let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
+      (item) => item.isSeat && item.eventTypeId === eventType.id
+    );
+    if (occupiedSeats?.length) {
+      const addedToCurrentSeats: string[] = [];
+      if (typeof availabilityCheckProps.currentSeats !== undefined) {
+        availabilityCheckProps.currentSeats = (availabilityCheckProps.currentSeats as CurrentSeats).map(
+          (item) => {
+            const attendees =
+              occupiedSeats.filter(
+                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+              )?.length || 0;
+            if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
+            return {
+              ...item,
+              _count: {
+                attendees: item._count.attendees + attendees,
+              },
+            };
+          }
+        ) as CurrentSeats;
+        occupiedSeats = occupiedSeats.filter(
+          (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
+        );
+      }
+
+      if (occupiedSeats?.length && typeof availabilityCheckProps.currentSeats === undefined)
+        availabilityCheckProps.currentSeats = [];
+      const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
+      Object.keys(occupiedSeatsCount).forEach((date) => {
+        (availabilityCheckProps.currentSeats as CurrentSeats).push({
+          uid: uuid(),
+          startTime: dayjs(date).toDate(),
+          _count: { attendees: occupiedSeatsCount[date] },
+        });
+      });
+      currentSeats = availabilityCheckProps.currentSeats;
     }
-    return isTimeWithinBounds(slot.time);
-  });
+
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        slot.userIds = slot.userIds?.filter((slotUserId) => {
+          const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+            if (c.userId === slotUserId && !c.isSeat) {
+              r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+            }
+            return r;
+          }, []);
+
+          if (!busy?.length && eventType.seatsPerTimeSlot === null) {
+            return false;
+          }
+
+          return checkIfIsAvailable({
+            time: slot.time,
+            busy,
+            ...availabilityCheckProps,
+          });
+        });
+        return slot;
+      })
+      .filter((slot) => !!slot.userIds?.length);
+  }
+
+  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
