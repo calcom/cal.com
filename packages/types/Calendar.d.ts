@@ -172,6 +172,7 @@ export interface CalendarEvent {
   seatsShowAttendees?: boolean | null;
   attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
+  calendarEventUid?: string | null;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
