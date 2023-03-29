@@ -1,3 +1,6 @@
+import type { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -24,6 +27,14 @@ function Teams() {
     </Shell>
   );
 }
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+    },
+  };
+};
 
 Teams.requiresLicense = false;
 
