@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
@@ -28,10 +27,10 @@ function Teams() {
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getStaticProps = async () => {
   return {
     props: {
-      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+      ...(await serverSideTranslations("en", ["common"])),
     },
   };
 };
