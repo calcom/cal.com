@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { IframeHTMLAttributes } from "react";
@@ -106,12 +107,15 @@ const Component = ({
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
-                <img
-                  key={descriptionItem}
-                  src={descriptionItem}
-                  alt={`Screenshot of app ${name}`}
-                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
-                />
+                <div className="relative aspect-video" key={descriptionItem}>
+                  <Image
+                    src={descriptionItem}
+                    alt={`Screenshot of app ${name}`}
+                    width={450 * 16}
+                    height={450}
+                    className="rounded-md"
+                  />
+                </div>
               )
             )
           ) : (
@@ -119,6 +123,7 @@ const Component = ({
           )}
         </div>
       )}
+
       <div
         className={classNames(
           "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
@@ -127,7 +132,7 @@ const Component = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
-              <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
+              <Image width={64} height={64} src={logo} alt={name} />
               <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
             </div>
             <h2 className="text-sm font-medium text-gray-600">
