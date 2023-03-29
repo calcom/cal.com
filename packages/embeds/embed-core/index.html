@@ -4,6 +4,16 @@
     <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
     <!-- <script src="./src/embed.ts" type="module"></script> -->
     <script>
+      function generateRandomHexColor() {
+        // Generate a random integer between 0 and 16777215 (FFFFFF in hex)
+        const randomInt = Math.floor(Math.random() * 16777216);
+
+        // Convert the integer to a hex string with 6 digits and add leading zeros if necessary
+        const hexString = randomInt.toString(16).padStart(6, '0');
+
+        // Return the hex string with a '#' prefix
+        return `#${hexString}`;
+      }
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
       }
@@ -90,6 +100,7 @@
     </div>
     <span style="display: block;" ><a href="?only=all">Render All embeds together</a><small> - It would be slow to load</small></span>
     <div>
+      <a href="?only=ns:floatingButton">Floating Popup</a>
 
       <h2>Popup Examples</h2>
       <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
@@ -140,12 +151,12 @@
             Align Center
           </button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{enabledDateButton: {
-            backgroundColor: '#D3D3D3',
+            backgroundColor: generateRandomHexColor(),
           },
           disabledDateButton: {
-            backgroundColor: 'lightslategray',
+            backgroundColor: generateRandomHexColor(),
           },}})})()">
-            Change Date Button Color
+            Change 'enabledDateButton` and `disabledDateButton` background Color
           </button>
           
         </div>
@@ -189,318 +200,6 @@
       <div class="place">
       </div>
     </div>
-    
-
-    <script>
-      const callback = function (e) {
-        const detail = e.detail;
-        const namespace = detail.namespace || "default";
-
-        if (detail.type === "linkReady") {
-          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
-        } else if (detail.type === "linkFailed") {
-          document.querySelector(`#cal-booking-place-${namespace} .loader`).remove();
-        }
-        document.querySelector(`#cal-booking-place-${namespace} .last-action`).innerHTML = JSON.stringify(
-          e.detail
-        );
-      };
-      const searchParams = new URL(document.URL).searchParams;
-      let only = window.only
-      if (only === "all" || only === "ns:default") {
-        Cal("init", {
-          debug: 1,
-          origin: "http://localhost:3000",
-        });
-
-        Cal("inline", {
-          elementOrSelector: "#cal-booking-place-default .place",
-          calLink: "pro?case=1",
-          config: {
-            __autoScroll:true,
-            iframeAttrs: {
-              id: "cal-booking-place-default-iframe"
-            },
-            name: "John",
-            email: "johndoe@gmail.com",
-            notes: "Test Meeting",
-            guests: ["janedoe@example.com", "test@example.com"],
-            theme: "dark",
-          },
-        });
-        Cal("on", {
-          action: "*",
-          callback,
-        });
-      }
-      if (only === "all" || only === "ns:second") {
-        // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
-        Cal("init", "second", {
-          debug: 1,
-          origin: "http://localhost:3000",
-        });
-
-        // Bulk API is supported - Keep all configuration at one place.
-        Cal.ns.second(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-second .place",
-              calLink: "pro?case=2",
-              config: {
-                iframeAttrs: {
-                  id: "cal-booking-place-second-iframe"
-                },
-              }
-            },
-          ]
-        );
-        Cal.ns.second("on", {
-          action: "*",
-          callback,
-        });
-      }
-      if (only === "all" || only === "ns:third") {
-        // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
-        Cal("init", "third", {
-          debug: 1,
-          origin: "http://localhost:3000",
-        });
-
-        Cal.ns.third(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-third .place",
-              calLink: "pro/30min",
-              config: {
-                iframeAttrs: {
-                  id: "cal-booking-place-third-iframe"
-                },
-              }
-            },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "transparent",
-                },
-                branding: {
-                  brandColor: "#81e61c",
-                  lightColor: "#494545",
-                  lighterColor: "#4c4848",
-                  lightestColor: "#7c7777",
-                  highlightColor: "#9b0e0e",
-                  medianColor: "black",
-                },
-                enabledDateButton: {
-                  backgroundColor: "red"
-                },
-                disabledDateButton: {
-                  backgroundColor: "green"
-                }
-              },
-            },
-          ]
-        );
-        Cal.ns.third("on", {
-          action: "*",
-          callback,
-        });
-      }
-      if (only === "all" || only === "ns:fourth") {
-        Cal("init", "fourth", {
-          debug: 1,
-          origin: "http://localhost:3000",
-        });
-        Cal.ns.fourth(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-fourth .place",
-              calLink: "team/seeded-team",
-              config: {
-                iframeAttrs: {
-                  id: "cal-booking-place-fourth-iframe"
-                },
-              }
-            },
-          ],
-          [
-            "ui",
-            {
-              styles: {
-                body: {
-                  background: "transparent",
-                },
-                branding: {
-                  brandColor: "#81e61c",
-                  lightColor: "#494545",
-                  lighterColor: "#4c4848",
-                  lightestColor: "#7c7777",
-                  highlightColor: "#9b0e0e",
-                  medianColor: "black",
-                },
-              },
-            },
-          ]
-        );
-        Cal.ns.fourth("on", {
-          action: "*",
-          callback,
-        });
-      }
-      if (only === "all" || only === "ns:fifth") {
-        Cal("init", "fifth", {
-          debug: 1,
-          origin: "http://localhost:3000",
-        });
-        Cal.ns.fifth(
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-fifth .place",
-              calLink: "team/seeded-team/collective-seeded-team-event",
-              config: {
-                iframeAttrs: {
-                  id: "cal-booking-place-fifth-iframe"
-                },
-              }
-            },
-          ],
-        );
-        Cal.ns.fifth("on", {
-          action: "*",
-          callback,
-        });
-      }
-      if (only === "all" || only === "prerender-test") {
-        Cal('init', 'prerendertestLightTheme', {
-          debug: 1,
-          origin: "http://localhost:3000",
-        })
-        Cal.ns.prerendertestLightTheme("preload", {
-          calLink: "free",
-        });
-      }
-
-      if (only === "all" || only === "inline-routing-form") {
-        Cal('init', 'inline-routing-form', {
-          debug: 1,
-          origin: "http://localhost:3000",
-        })
-        Cal.ns['inline-routing-form'](
-          [
-            "inline",
-            {
-              elementOrSelector: "#cal-booking-place-inline-routing-form .place",
-              calLink: "forms/948ae412-d995-4865-875a-48302588de03",
-              config: {
-                iframeAttrs: {
-                  id: "cal-booking-place-inline-routing-form-iframe"
-                },
-              }
-            },
-          ],
-        );
-      }
-
-      if (only === "all" || only === "hideEventTypeDetails") {
-        let identifier = "hideEventTypeDetails"
-        Cal('init', identifier, {
-          debug: 1,
-          origin: "http://localhost:3000",
-        })
-        
-        Cal.ns.hideEventTypeDetails([
-          ['inline', {
-            elementOrSelector: `#cal-booking-place-${identifier} .place`,
-            calLink: "free/30min",
-            config: {
-                iframeAttrs: {
-                  id: `cal-booking-place-${identifier}-iframe`
-                },
-              }
-          }],
-          [
-            'ui', {
-              hideEventTypeDetails:true
-            }
-          ]
-        ]);
-      }
-
-      Cal('init', 'popupDarkTheme', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-      
-      Cal('init', 'popupHideEventTypeDetails', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      });
-      
-      Cal.ns.popupHideEventTypeDetails('ui', {
-        hideEventTypeDetails:true
-      });
-
-      Cal('init', 'popupReschedule', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-
-      Cal('init', 'popupAutoTheme', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-      Cal('init', 'popupTeamLinkLightTheme', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-      Cal('init', 'popupTeamLinkDarkTheme', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-
-      Cal('init', 'popupTeamLinkDarkTheme', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-
-      Cal('init', 'popupTeamLinksList', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-      
-      Cal('init', 'popupPaidEvent', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-
-      Cal("init", "floatingButton", {
-        debug: 1,
-        origin: "http://localhost:3000",
-      });
-
-      Cal('init', 'routingFormAuto', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-      
-      Cal('init', 'routingFormDark', {
-        debug: 1,
-        origin: "http://localhost:3000",
-      })
-
-
-      if (only === "all"  || only == "ns:floatingButton") {
-        Cal.ns.floatingButton("floatingButton", {
-          calLink: "pro"
-        })
-      }
-    </script>
-    <script></script>
+    <script src="./playground.ts"></script>
   </body>
 </html>

@@ -70,6 +70,7 @@
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "jest",
     "type-check": "turbo run type-check",
+    "type-check:ci": "turbo run type-check:ci --log-prefix=none",
     "web": "yarn workspace @calcom/web"
   },
   "devDependencies": {
@@ -88,6 +89,7 @@
     "lint-staged": "^12.5.0",
     "prettier": "^2.8.6",
     "ts-jest": "^28.0.8",
+    "tsc-absolute": "^1.0.0",
     "typescript": "^4.9.4"
   },
   "dependencies": {
