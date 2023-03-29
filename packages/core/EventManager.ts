@@ -10,15 +10,12 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { NewCalendarEventType } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
-import type {
-  CreateUpdateResult,
-  EventResult,
-  PartialBooking,
-  PartialReference,
-} from "@calcom/types/EventManager";
+import type { EventResult } from "@calcom/types/EventManager";
+import type { CreateUpdateResult, PartialBooking, PartialReference } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
 import { createMeeting, updateMeeting } from "./videoClient";
@@ -124,12 +121,25 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+    console.log("🚀 ~ file: EventManager.ts:127 ~ EventManager ~ create ~ results:", results);
+
+    // Since the result can be a new calendar event or video event, we have to create a type guard
+    // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
+    const isCalendarResult = (
+      result: (typeof results)[number]
+    ): result is EventResult<NewCalendarEventType> => {
+      return result.type.includes("_calendar");
+    };
 
     const referencesToCreate = results.map((result) => {
       let createdEventObj: createdEventSchema | null = null;
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
+
+      evt.iCalUID = isCalendarResult(result)
+        ? result.createdEvent?.iCalUID
+        : createdEventObj?.iCalUID || undefined;
 
       return {
         type: result.type,

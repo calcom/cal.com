@@ -136,6 +136,11 @@ export default class GoogleCalendarService implements Calendar {
           sendUpdates: "none",
         },
         function (error, event) {
+          console.log(
+            "🚀 ~ file: CalendarService.ts:172 ~ GoogleCalendarService ~ returnnewPromise ~ event:",
+            event
+          );
+
           if (error || !event?.data) {
             console.error("There was an error contacting google calendar service: ", error);
             return reject(error);
