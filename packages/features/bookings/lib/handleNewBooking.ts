@@ -1236,9 +1236,14 @@ async function handler(
           },
           data: {
             bookingId: newTimeSlotBooking.id,
-            bookingSeat: {
-              bookingId: newTimeSlotBooking.id,
-            },
+          },
+        }),
+        await prisma.bookingSeat.update({
+          where: {
+            id: bookingSeat.id,
+          },
+          data: {
+            bookingId: newTimeSlotBooking.id,
           },
         }),
       ]);
