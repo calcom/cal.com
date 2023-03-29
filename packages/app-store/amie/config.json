@@ -4,7 +4,7 @@
   "slug": "amie",
   "type": "amie_other",
   "imageSrc": "/api/app-store/amie/icon.svg",
-  "logo": "/api/app-store/amie/icon.svg",
+  "logo": "/app-store/amie/icon.svg",
   "url": "https://cal.com/apps/amie",
   "variant": "other",
   "categories": ["calendar"],

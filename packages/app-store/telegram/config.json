@@ -4,7 +4,7 @@
   "slug": "telegram",
   "type": "telegram_video",
   "imageSrc": "/api/app-store/telegram/icon.svg",
-  "logo": "/api/app-store/telegram/icon.svg",
+  "logo": "/app-store/telegram/icon.svg",
   "url": "https://cal.com/apps/telegram",
   "variant": "conferencing",
   "categories": ["video"],

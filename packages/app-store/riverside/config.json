@@ -4,7 +4,7 @@
   "slug": "riverside",
   "type": "riverside_video",
   "imageSrc": "/api/app-store/riverside/icon-dark.svg",
-  "logo": "/api/app-store/riverside/icon-dark.svg",
+  "logo": "/app-store/riverside/icon-dark.svg",
   "url": "https://cal.com/apps/riverside",
   "variant": "conferencing",
   "categories": ["video"],

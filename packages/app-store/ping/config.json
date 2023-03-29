@@ -5,7 +5,7 @@
   "slug": "ping",
   "type": "ping_video",
   "imageSrc": "/api/app-store/ping/icon.svg",
-  "logo": "/api/app-store/ping/icon.svg",
+  "logo": "/app-store/ping/icon.svg",
   "url": "https://ping.gg",
   "variant": "conferencing",
   "categories": ["video"],

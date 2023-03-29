@@ -4,7 +4,7 @@
   "slug": "n8n",
   "type": "n8n_automation",
   "imageSrc": "/api/app-store/n8n/icon.svg",
-  "logo": "/api/app-store/n8n/icon.svg",
+  "logo": "/app-store/n8n/icon.svg",
   "url": "https://cal.com/apps/n8n",
   "variant": "automation",
   "categories": ["automation"],

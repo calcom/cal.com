@@ -4,7 +4,7 @@
   "slug": "fathom",
   "type": "fathom_analytics",
   "imageSrc": "/api/app-store/fathom/icon.svg",
-  "logo": "/api/app-store/fathom/icon.svg",
+  "logo": "/app-store/fathom/icon.svg",
   "url": "https://cal.com/apps/fathom",
   "variant": "analytics",
   "categories": ["analytics"],

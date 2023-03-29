@@ -4,7 +4,7 @@
   "slug": "signal",
   "type": "signal_video",
   "imageSrc": "/api/app-store/signal/icon.svg",
-  "logo": "/api/app-store/signal/icon.svg",
+  "logo": "/app-store/signal/icon.svg",
   "url": "https://cal.com/apps/signal",
   "variant": "conferencing",
   "categories": ["video"],

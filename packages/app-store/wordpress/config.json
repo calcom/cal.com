@@ -4,7 +4,7 @@
   "slug": "wordpress",
   "type": "wordpress_other",
   "imageSrc": "/api/app-store/wordpress/icon.svg",
-  "logo": "/api/app-store/wordpress/icon.svg",
+  "logo": "/app-store/wordpress/icon.svg",
   "url": "https://github.com/calcom/wp-plugin",
   "variant": "other",
   "categories": ["other"],

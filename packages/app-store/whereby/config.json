@@ -5,7 +5,7 @@
   "slug": "whereby",
   "type": "whereby_video",
   "imageSrc": "/api/app-store/whereby/icon.svg",
-  "logo": "/api/app-store/whereby/icon.svg",
+  "logo": "/app-store/whereby/icon.svg",
   "url": "https://cal.com/apps/whereby",
   "variant": "conferencing",
   "categories": ["video"],

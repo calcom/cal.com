@@ -5,7 +5,7 @@
   "slug": "facetime",
   "type": "facetime_video",
   "imageSrc": "/api/app-store/facetime/icon.svg",
-  "logo": "/api/app-store/facetime/icon.svg",
+  "logo": "/app-store/facetime/icon.svg",
   "url": "https://cal.com/apps/facetime",
   "variant": "conferencing",
   "categories": ["video"],

@@ -4,7 +4,7 @@
   "slug": "qr_code",
   "type": "qr_code_other",
   "imageSrc": "/api/app-store/qr_code/icon.svg",
-  "logo": "/api/app-store/qr_code/icon.svg",
+  "logo": "/app-store/qr_code/icon.svg",
   "url": "https://cal.com/apps/qr_code",
   "variant": "other",
   "categories": ["other"],
