@@ -4084,7 +4084,6 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@next/font": ^13.1.6
     "@prisma/client": ^4.11.0
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
@@ -4094,7 +4093,7 @@ __metadata:
     client-only: ^0.0.1
     eslint: ^8.34.0
     next: ^13.2.1
-    next-auth: ^4.18.8
+    next-auth: ^4.20.1
     next-i18next: ^11.3.0
     postcss: ^8.4.18
     prisma: ^4.11.0
@@ -4102,7 +4101,7 @@ __metadata:
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
     react-dom: ^18.2.0
-    react-hook-form: ^7.34.2
+    react-hook-form: ^7.43.3
     react-live-chat-loader: ^2.7.3
     swr: ^1.2.2
     tailwindcss: ^3.2.1
@@ -7940,13 +7939,6 @@ __metadata:
   dependencies:
     glob: 7.1.7
   checksum: e4b49709d987ad5a6a67bdbcf43798e3a1d5d72e0cf503ae2dd8553add79221cb706ba824ab985d4cfccc5a6aafb2fa949f371f9b3a45832bc370a093cc9f096
-  languageName: node
-  linkType: hard
-
-"@next/font@npm:^13.1.6":
-  version: 13.2.4
-  resolution: "@next/font@npm:13.2.4"
-  checksum: f5319c895b6a6633b181f1c17d52dd98753dd7706db27644bf12383e0fa164f5223b8c5c70eb28edb9b9a113cdfb04a995accc16dba1655b850c9db8a05036b7
   languageName: node
   linkType: hard
 
@@ -16620,6 +16612,7 @@ __metadata:
     lint-staged: ^12.5.0
     prettier: ^2.8.6
     ts-jest: ^28.0.8
+    tsc-absolute: ^1.0.0
     turbo: ^1.8.3
     typescript: ^4.9.4
   languageName: unknown
@@ -29241,7 +29234,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-auth@npm:^4.18.8, next-auth@npm:^4.20.1":
+"next-auth@npm:^4.20.1":
   version: 4.20.1
   resolution: "next-auth@npm:4.20.1"
   dependencies:
@@ -31905,6 +31898,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"process-wrapper@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "process-wrapper@npm:1.0.0"
+  checksum: 442371ccb9b2a2104cc5cdfb6e14a993f726ec3a9540d6a757c964ed2593ffc40c7fa1d0f66eecee6b07e0c107a25c74708d97cc8b9fc7dc3920e769c05ba29b
+  languageName: node
+  linkType: hard
+
 "process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
@@ -32712,15 +32712,6 @@ __metadata:
   peerDependencies:
     react: ">=16.3.0"
   checksum: 33a416ad76ab4cc9238ac5cf5cfcab636bb2127c48fb30805385350fd3a3c2aa0aaeb78f6c726c52a0d3d133ca469be35d4b3d188c8e40c735c7ff458d2c8c3c
-  languageName: node
-  linkType: hard
-
-"react-hook-form@npm:^7.34.2":
-  version: 7.43.8
-  resolution: "react-hook-form@npm:7.43.8"
-  peerDependencies:
-    react: ^16.8.0 || ^17 || ^18
-  checksum: 1042b68950e1756dd907e7eb904c6efdf04f126a48797b25e8793705d930f7bbff2cc07f0ec7ea4c52272e808a359ae157742c551defa3b3fd0952ff414bd3e3
   languageName: node
   linkType: hard
 
@@ -37400,6 +37391,19 @@ __metadata:
     typescript:
       optional: true
   checksum: c2a698b85d521298fe6f2435fbf2d3dc5834b423ea25abd321805ead3f399dbeedce7ca09492d7eb005b9d2c009c6b9587055bc3ab273dc6b9e40eefd7edb5b2
+  languageName: node
+  linkType: hard
+
+"tsc-absolute@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "tsc-absolute@npm:1.0.0"
+  dependencies:
+    process-wrapper: ^1.0.0
+  peerDependencies:
+    typescript: ">=4.6"
+  bin:
+    tsc-absolute: dist/index.js
+  checksum: fe8308f7addddce83012bc1451f7009ae37771b08a9972370b7a46eb63e3dc919783ea3894c06101459335fdb275eda8de300498894e55d460408991f97f5409
   languageName: node
   linkType: hard
 

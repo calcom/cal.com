@@ -1,10 +1,11 @@
-import { Card, LineChart, Title } from "@tremor/react";
+import { LineChart, Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib/valueFormatter";
+import { CardInsights } from "./Card";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
@@ -25,7 +26,7 @@ export const BookingStatusLineChart = () => {
   if (!isSuccess) return null;
 
   return (
-    <Card>
+    <CardInsights>
       <Title>{t("event_trends")}</Title>
       <LineChart
         className="mt-4 h-80"
@@ -35,6 +36,6 @@ export const BookingStatusLineChart = () => {
         colors={["gray", "green", "blue", "red"]}
         valueFormatter={valueFormatter}
       />
-    </Card>
+    </CardInsights>
   );
 };
