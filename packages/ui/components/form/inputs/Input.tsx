@@ -23,7 +23,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300",
+        "min-h-9 mb-2 block rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         isFullWidth && "w-full",
         props.className
       )}
@@ -68,12 +69,12 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper h-9 border border-gray-300 px-3",
+      "addon-wrapper min-h-9 border border-gray-300 px-3",
       isFilled && "bg-gray-100",
       className
     )}>
     <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
-      <span className="whitespace-nowrap py-2.5">{children}</span>
+      <span className="whitespace-nowrap py-2">{children}</span>
     </div>
   </div>
 );
@@ -143,9 +144,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
+              "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300",
               addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
               addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
-              disabled && "bg-gray-100",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
@@ -185,7 +186,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           id={id}
           type={type}
           placeholder={placeholder}
-          className={classNames(className, disabled && "bg-gray-100")}
+          className={classNames(
+            className,
+            "disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300"
+          )}
           {...passThrough}
           readOnly={readOnly}
           ref={ref}

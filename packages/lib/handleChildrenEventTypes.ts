@@ -1,5 +1,7 @@
 import type { PrismaClient, Prisma } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { _EventTypeModel } from "@calcom/prisma/zod";
@@ -7,11 +9,20 @@ import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom
 
 import { getTranslation } from "./server/i18n";
 
+const generateHashedLink = (id: number) => {
+  const translator = short();
+  const seed = `${id}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+  return uid;
+};
+
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
   updatedEventType: { schedulingType: SchedulingType | null; slug: string };
   currentUserId: number;
   oldEventType: { users?: { id: number }[] | null; team: { name: string } | null } | null;
+  hashedLink: string | undefined;
+  connectedLink: { id: number } | null;
   children:
     | {
         hidden: boolean;
@@ -82,6 +93,8 @@ export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
   updatedEventType,
+  hashedLink,
+  connectedLink,
   children,
   prisma,
 }: handleChildrenEventTypesProps) {
@@ -127,6 +140,17 @@ export default async function handleChildrenEventTypes({
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
 
+  // Define hashedLink query input
+  const hashedLinkQuery = (userId: number) => {
+    return hashedLink
+      ? !connectedLink
+        ? { create: { link: generateHashedLink(userId) } }
+        : undefined
+      : connectedLink
+      ? { delete: true }
+      : undefined;
+  };
+
   // Store result for existent event types deletion process
   let deletedExistentEventTypes;
 
@@ -161,6 +185,8 @@ export default async function handleChildrenEventTypes({
             },
             parentId,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            // Reserved for v2
+            /*
             workflows: eventType.workflows && {
               createMany: {
                 data: eventType.workflows?.map((wf) => ({ ...wf, eventTypeId: undefined })),
@@ -170,7 +196,8 @@ export default async function handleChildrenEventTypes({
               createMany: {
                 data: eventType.webhooks?.map((wh) => ({ ...wh, eventTypeId: undefined })),
               },
-            },
+            },*/
+            hashedLink: hashedLinkQuery(userId),
           },
         });
       })
@@ -208,6 +235,7 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            hashedLink: hashedLinkQuery(userId),
           },
         });
       })

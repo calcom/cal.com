@@ -88,6 +88,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     eventName: formMethods.watch("eventName"),
   });
 
+  const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
+  const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
@@ -137,14 +140,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           {...formMethods.register("eventName")}
           addOnSuffix={
             <Button
-              type="button"
-              StartIcon={FiEdit}
-              variant="icon"
               color="minimal"
-              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
-              onClick={() => setShowEventNameTip((old) => !old)}
+              size="sm"
+              type="button"
               aria-label="edit custom name"
-            />
+              className="hover:stroke-3 min-w-fit px-0 !py-0 hover:bg-transparent hover:text-black"
+              onClick={() => setShowEventNameTip((old) => !old)}>
+              <FiEdit />
+            </Button>
           }
         />
       </div>
@@ -187,7 +190,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <>
             <SettingsToggle
               title={t("redirect_success_booking")}
-              {...shouldLockDisableProps("successRedirectUrl")}
+              {...successRedirectUrlLocked}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
               onCheckedChange={(e) => {
@@ -199,17 +202,23 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <TextField
                   label={t("redirect_success_booking")}
                   labelSrOnly
+                  disabled={successRedirectUrlLocked.disabled}
                   placeholder={t("external_redirect_url")}
                   required={redirectUrlVisible}
                   type="text"
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
+                {}
                 <div className="mt-2 flex">
                   <Checkbox
                     description={t("disable_success_page")}
                     // Disable if it's not Self Hosted or if the redirect url is not set
-                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
+                    disabled={
+                      !IS_SELF_HOSTED ||
+                      !formMethods.watch("successRedirectUrl") ||
+                      successRedirectUrlLocked.disabled
+                    }
                     {...formMethods.register("metadata.disableSuccessPage")}
                   />
                   {/*TODO: Extract it out into a component when used more than once*/}
@@ -252,6 +261,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <Tooltip content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
                 <Button
                   color="minimal"
+                  size="sm"
+                  type="button"
+                  className="hover:stroke-3 min-w-fit px-0 !py-0 hover:bg-transparent hover:text-black"
+                  aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);
                     if (eventType.hashedLink) {
@@ -259,9 +272,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     } else {
                       showToast(t("enabled_after_update_description"), "warning");
                     }
-                  }}
-                  className="hover:stroke-3 hover:bg-transparent hover:text-black"
-                  type="button">
+                  }}>
                   <FiCopy />
                 </Button>
               </Tooltip>
@@ -278,7 +289,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <SettingsToggle
             data-testid="offer-seats-toggle"
             title={t("offer_seats")}
-            {...shouldLockDisableProps("seatsPerTimeSlotEnabled")}
+            {...seatsLocked}
             description={t("offer_seats_description")}
             checked={value}
             onCheckedChange={(e) => {
@@ -305,6 +316,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     name="seatsPerTimeSlot"
                     labelSrOnly
                     label={t("number_of_seats")}
+                    disabled={seatsLocked.disabled}
                     type="number"
                     defaultValue={value || 2}
                     min={1}
@@ -316,6 +328,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   <div className="mt-2">
                     <Checkbox
                       description={t("show_attendees")}
+                      disabled={seatsLocked.disabled}
                       onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
                       defaultChecked={!!eventType.seatsShowAttendees}
                     />

@@ -6,7 +6,7 @@ import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert, Select, SettingsToggle } from "@calcom/ui";
+import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
 
 type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
@@ -37,6 +37,8 @@ export default function RecurringEventController({
     t("locked_fields_member_description")
   );
 
+  const recurringLocked = shouldLockDisableProps("recurringEvent");
+
   return (
     <div className="block items-start sm:flex">
       <div className={!paymentEnabled ? "w-full" : ""}>
@@ -46,7 +48,7 @@ export default function RecurringEventController({
           <>
             <SettingsToggle
               title={t("recurring_event")}
-              {...shouldLockDisableProps("recurringEvent")}
+              {...recurringLocked}
               description={t("recurring_event_description")}
               checked={recurringEventState !== null}
               data-testid="recurring-event-check"
@@ -68,11 +70,12 @@ export default function RecurringEventController({
                 <div data-testid="recurring-event-collapsible" className="text-sm">
                   <div className="flex items-center">
                     <p className="text-gray-900 ltr:mr-2 rtl:ml-2">{t("repeats_every")}</p>
-                    <input
+                    <TextField
+                      disabled={recurringLocked.disabled}
                       type="number"
                       min="1"
                       max="20"
-                      className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      className="mb-0"
                       defaultValue={recurringEventState.interval}
                       onChange={(event) => {
                         const newVal = {
@@ -87,7 +90,8 @@ export default function RecurringEventController({
                       options={recurringEventFreqOptions}
                       value={recurringEventFreqOptions[recurringEventState.freq]}
                       isSearchable={false}
-                      className="w-18 block h-[36px] min-w-0 rounded-md text-sm"
+                      className="w-18 ml-2 block min-w-0 rounded-md text-sm"
+                      isDisabled={recurringLocked.disabled}
                       onChange={(event) => {
                         const newVal = {
                           ...recurringEventState,
@@ -100,12 +104,13 @@ export default function RecurringEventController({
                   </div>
                   <div className="mt-4 flex items-center">
                     <p className="text-gray-900 ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
-                    <input
+                    <TextField
+                      disabled={recurringLocked.disabled}
                       type="number"
                       min="1"
                       max="20"
-                      className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                       defaultValue={recurringEventState.count}
+                      className="mb-0"
                       onChange={(event) => {
                         const newVal = {
                           ...recurringEventState,
@@ -115,7 +120,7 @@ export default function RecurringEventController({
                         setRecurringEventState(newVal);
                       }}
                     />
-                    <p className="text-gray-900 ltr:mr-2 rtl:ml-2">
+                    <p className="text-gray-900 ltr:ml-2 rtl:mr-2">
                       {t("events", {
                         count: recurringEventState.count,
                       })}

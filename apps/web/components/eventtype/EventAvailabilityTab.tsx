@@ -19,10 +19,11 @@ type AvailabilityOption = {
   label: string;
   value: number;
   isDefault: boolean;
+  isManaged?: boolean;
 };
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
-  const { label, isDefault } = props.data;
+  const { label, isDefault, isManaged = false } = props.data;
   const { t } = useLocale();
   return (
     <components.Option {...props}>
@@ -32,12 +33,17 @@ const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
           {t("default")}
         </Badge>
       )}
+      {isManaged && (
+        <Badge variant="gray" className="ml-2">
+          {t("managed")}
+        </Badge>
+      )}
     </components.Option>
   );
 };
 
 const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
-  const { label, isDefault } = props.data;
+  const { label, isDefault, isManaged = false } = props.data;
   const { t } = useLocale();
   return (
     <components.SingleValue {...props}>
@@ -45,6 +51,11 @@ const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
       {isDefault && (
         <Badge variant="blue" className="ml-2">
           {t("default")}
+        </Badge>
+      )}
+      {isManaged && (
+        <Badge variant="gray" className="ml-2">
+          {t("managed")}
         </Badge>
       )}
     </components.SingleValue>
@@ -197,21 +208,31 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     value: schedule.id,
     label: schedule.name,
     isDefault: schedule.isDefault,
+    isManaged: false,
   }));
 
+  // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
   if (isManagedEventType) {
     options.push({
       value: 0,
       label: t("members_default_schedule"),
       isDefault: false,
+      isManaged: false,
     });
   }
 
-  if (isChildrenManagedEventType) {
+  // We are showing a managed event for a member and team owner selected their own schedule, so adding
+  // the managed schedule option
+  if (
+    isChildrenManagedEventType &&
+    watchSchedule &&
+    !schedules.find((schedule) => schedule.id === watchSchedule)
+  ) {
     options.push({
-      value: watchSchedule || 0,
-      label: `${eventType.scheduleName ? `${eventType.scheduleName} - ` : ""} ${t("set_by_admin")}`,
+      value: watchSchedule,
+      label: eventType.scheduleName ?? t("default_schedule_name"),
       isDefault: false,
+      isManaged: false,
     });
   }
 
@@ -250,7 +271,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           )}
         />
       </div>
-      {isManagedEventType || value?.value !== 0 ? (
+      {value?.value !== 0 ? (
         <EventTypeScheduleDetails
           selectedScheduleValue={value}
           isManagedEventType={isManagedEventType || isChildrenManagedEventType}

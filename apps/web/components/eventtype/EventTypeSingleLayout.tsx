@@ -183,7 +183,7 @@ function EventTypeSingleLayout({
             : isChildrenManagedEventType
             ? `${
                 eventType.scheduleName
-                  ? `${eventType.scheduleName} - ${t("set_by_admin")}`
+                  ? `${eventType.scheduleName} - ${t("managed")}`
                   : `default_schedule_name`
               }`
             : eventType.scheduleName ?? `default_schedule_name`
@@ -287,14 +287,16 @@ function EventTypeSingleLayout({
                 />
               </>
             )}
-            <Button
-              color="destructive"
-              variant="icon"
-              StartIcon={FiTrash}
-              tooltip={t("delete")}
-              disabled={!hasPermsToDelete}
-              onClick={() => setDeleteDialogOpen(true)}
-            />
+            {!isChildrenManagedEventType && (
+              <Button
+                color="destructive"
+                variant="icon"
+                StartIcon={FiTrash}
+                tooltip={t("delete")}
+                disabled={!hasPermsToDelete}
+                onClick={() => setDeleteDialogOpen(true)}
+              />
+            )}
           </ButtonGroup>
 
           <VerticalDivider className="hidden lg:block" />

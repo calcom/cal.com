@@ -753,6 +753,8 @@ export const eventTypesRouter = router({
       eventTypeId: id,
       currentUserId: ctx.user.id,
       oldEventType,
+      hashedLink,
+      connectedLink,
       updatedEventType: eventType,
       children,
       prisma: ctx.prisma,
