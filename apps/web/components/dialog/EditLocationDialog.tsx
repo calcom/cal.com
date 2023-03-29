@@ -33,6 +33,7 @@ interface ISetLocationDialog {
   saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
   selection?: LocationOption;
   booking?: BookingItem;
+  isTeamEvent?: boolean;
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
@@ -74,6 +75,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     saveLocation,
     selection,
     booking,
+    isTeamEvent,
     setShowLocationModal,
     isOpenDialog,
     defaultValues,
@@ -290,7 +292,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 query={locationsQuery}
                 success={({ data }) => {
                   if (!data.length) return null;
-                  const locationOptions = [...data];
+                  const locationOptions = [...data].filter((option) => {
+                    return !isTeamEvent ? option.label !== "Conferencing" : true;
+                  });
                   if (booking) {
                     locationOptions.map((location) =>
                       location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
