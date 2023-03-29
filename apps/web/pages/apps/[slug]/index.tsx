@@ -109,7 +109,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     data.items = data.items.map((item) => {
       if (typeof item === "string" && !item.includes("/api/app-store")) {
         // Make relative paths absolute
-        return `/app-store/${appDirname}/${item}`;
+        return `/api/app-store/${appDirname}/${item}`;
       }
       if (typeof item === "string" && item.includes("/api/app-store")) {
         // Set paths to our public folder so that search engines can fetch the image (/api is blocked by robots.txt)
