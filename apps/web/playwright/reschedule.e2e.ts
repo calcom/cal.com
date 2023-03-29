@@ -101,9 +101,21 @@ test.describe("Reschedule Tests", async () => {
     const rescheduledBooking = await prisma.booking.findFirst({ where: { uid: booking.uid } });
 
     expect(newBooking).not.toBeNull();
-    expect(rescheduledBooking).toBeNull();
+    expect(rescheduledBooking?.status).toBe(BookingStatus.CANCELLED);
 
-    await prisma.booking.delete({ where: { id: newBooking?.id } });
+    const idsToDelete = [
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      ...(newBooking ? [newBooking.id] : []),
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      ...(rescheduledBooking ? [rescheduledBooking.id] : []),
+    ];
+    await prisma.booking.deleteMany({
+      where: {
+        id: {
+          in: idsToDelete,
+        },
+      },
+    });
   });
 
   test("Unpaid rescheduling should go to payment page", async ({ page, users, bookings, payments }) => {
