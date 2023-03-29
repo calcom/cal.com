@@ -14,6 +14,7 @@ import {
   getUsernameList,
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 import {
   customInputSchema,
@@ -189,6 +190,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         slug: u.username,
         theme: u.theme,
       })),
+      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
     };
   })[0];
 
@@ -283,11 +285,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : eventType.recurringEvent.count)) ||
     null;
 
-  const currentSlotBooking = await getBooking(
-    prisma,
-    bookingUidWithSeats || "",
-    eventTypeObject.bookingFields
-  );
+  const currentSlotBooking = await getBooking(prisma, bookingUidWithSeats || "");
 
   return {
     props: {

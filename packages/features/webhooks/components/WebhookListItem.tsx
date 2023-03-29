@@ -3,8 +3,20 @@ import type { WebhookTriggerEvents } from "@prisma/client";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Button, showToast, Switch, Tooltip } from "@calcom/ui";
-import { FiAlertCircle, FiTrash } from "@calcom/ui/components/icon";
+import {
+  Badge,
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  showToast,
+  Switch,
+  Tooltip,
+} from "@calcom/ui";
+import { FiAlertCircle, FiEdit, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -39,21 +51,30 @@ export default function WebhookListItem(props: {
     },
   });
 
+  const onDeleteWebhook = () => {
+    // TODO: Confimation dialog before deleting
+    deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
+  };
+
   return (
     <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
-      <div>
-        <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
+      <div className="w-full truncate">
+        <p className="truncate text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
         <Tooltip content={t("triggers_when")}>
-          <div className="mt-2.5 w-4/5">
+          <div className="flex w-4/5 flex-wrap">
             {webhook.eventTriggers.map((trigger) => (
-              <Badge key={trigger} className="ltr:mr-2 rtl:ml-2" variant="gray" startIcon={FiAlertCircle}>
+              <Badge
+                key={trigger}
+                className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
+                variant="gray"
+                startIcon={FiAlertCircle}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
           </div>
         </Tooltip>
       </div>
-      <div className="flex items-center space-x-4">
+      <div className="ml-2 flex items-center space-x-4">
         <Switch
           defaultChecked={webhook.active}
           onCheckedChange={() =>
@@ -65,18 +86,35 @@ export default function WebhookListItem(props: {
             })
           }
         />
-        <Button color="secondary" onClick={props.onEditWebhook}>
+        <Button className="hidden lg:flex" color="secondary" onClick={props.onEditWebhook}>
           {t("edit")}
         </Button>
         <Button
+          className="hidden lg:flex"
           color="destructive"
           StartIcon={FiTrash}
           variant="icon"
-          onClick={() => {
-            // TODO: Confimation dialog before deleting
-            deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
-          }}
+          onClick={onDeleteWebhook}
         />
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>
+              <DropdownItem StartIcon={FiEdit} color="secondary" onClick={props.onEditWebhook}>
+                {t("edit")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem>
+              <DropdownItem StartIcon={FiTrash} color="destructive" onClick={onDeleteWebhook}>
+                {t("delete")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </Dropdown>
       </div>
     </div>
   );

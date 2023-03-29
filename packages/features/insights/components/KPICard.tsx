@@ -1,9 +1,10 @@
-import { Card, Flex, Text, Metric, BadgeDelta } from "@tremor/react";
+import { Flex, Text, Metric, BadgeDelta } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 
 import { calculateDeltaType, colors, valueFormatter } from "../lib";
+import { CardInsights } from "./Card";
 
 export const KPICard = ({
   title,
@@ -20,7 +21,7 @@ export const KPICard = ({
 }) => {
   const { t } = useLocale();
   return (
-    <Card key={title}>
+    <CardInsights key={title}>
       <Text>{title}</Text>
       <Flex className="items-baseline justify-start space-x-3 truncate">
         <Metric>{valueFormatter(previousMetricData.count)}</Metric>
@@ -40,10 +41,12 @@ export const KPICard = ({
               startDate: previousDateRange.startDate,
               endDate: previousDateRange.endDate,
             })}>
-            <small className="relative top-px text-xs text-gray-600">{t("from_last_period")}</small>
+            <small className="relative top-px cursor-pointer text-xs text-gray-600">
+              {t("from_last_period")}
+            </small>
           </Tooltip>
         </Flex>
       </Flex>
-    </Card>
+    </CardInsights>
   );
 };

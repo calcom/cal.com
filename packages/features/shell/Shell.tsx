@@ -63,7 +63,7 @@ import {
   FiSettings,
   FiSlack,
   FiUsers,
-  FiZap
+  FiZap,
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -536,7 +536,7 @@ const navigation: NavigationItemType[] = [
     icon: FiZap,
   },
   {
-    name: "Insights",
+    name: "insights",
     href: "/insights",
     icon: FiBarChart,
   },
