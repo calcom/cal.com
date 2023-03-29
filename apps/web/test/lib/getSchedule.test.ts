@@ -10,8 +10,10 @@ import type {
   SchedulingType,
 } from "@prisma/client";
 import { diff } from "jest-diff";
+import MockDate from "mockdate";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/client";
@@ -33,6 +35,7 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       toHaveTimeSlots(expectedSlots: string[], date: { dateString: string }): R;
+      toHaveDateTimeSlots(expectedSlots: string[], date: { dateString: string }): R;
     }
   }
 }
@@ -61,6 +64,41 @@ expect.extend({
         message: () =>
           `has incorrect timeslots for ${dateString}.\n\r ${diff(
             expectedSlots.map((expectedSlot) => `${dateString}T${expectedSlot}`),
+            schedule.slots[`${dateString}`].map((slot) => slot.time)
+          )}`,
+      };
+    }
+    return {
+      pass: true,
+      message: () => "has correct timeslots ",
+    };
+  },
+});
+
+expect.extend({
+  toHaveDateTimeSlots(
+    schedule: { slots: Record<string, Slot[]> },
+    expectedSlots: string[],
+    { dateString }: { dateString: string }
+  ) {
+    if (!schedule.slots[`${dateString}`]) {
+      return {
+        pass: false,
+        message: () => `has no timeslots for ${dateString}`,
+      };
+    }
+    if (
+      !schedule.slots[`${dateString}`]
+        .map((slot) => slot.time)
+        .every((actualSlotTime, index) => {
+          return expectedSlots[index] === actualSlotTime;
+        })
+    ) {
+      return {
+        pass: false,
+        message: () =>
+          `has incorrect timeslots for ${dateString}.\n\r ${diff(
+            expectedSlots,
             schedule.slots[`${dateString}`].map((slot) => slot.time)
           )}`,
       };
@@ -232,6 +270,7 @@ afterEach(async () => {
 
 describe("getSchedule", () => {
   describe("Calendar event", () => {
+    MockDate.set(new Date().toISOString());
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -887,6 +926,7 @@ describe("getSchedule", () => {
 
   describe("Team Event", () => {
     test("correctly identifies unavailable slots from calendar for all users in collective scheduling, considers bookings of users in other events as well", async () => {
+      MockDate.set(dayjs().startOf("day").toISOString());
       const { dateString: todayDateString } = getDate();
 
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -1142,6 +1182,895 @@ describe("getSchedule", () => {
         ],
         { dateString: plus3DateString }
       );
+    });
+  });
+
+  describe("Daylight Saving Time", () => {
+    describe("Organizer: America/Detroit (UTC-5) DST (UTC-4) | Invitee: Europe/London (UTC+0) DST (UTC+1)", () => {
+      test("Current date no Organizer DST, selected date when organizer is on DST", async () => {
+        MockDate.set("2023-03-04T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        const { dateString } = getDate({ dateIncrement: 10 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "Europe/London";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${dateString}T00:00:00.000Z`,
+            endTime: `${dateString}T23:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        //console.log(schedule.slots);
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString,
+          }
+        );
+      });
+      test("Current date in Organizer DST, selected date when organizer and invitee is on DST", async () => {
+        MockDate.set("2023-03-27T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        const { dateString } = getDate({ dateIncrement: 1 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "Europe/London";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${dateString}T00:00:00.000Z`,
+            endTime: `${dateString}T23:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        //console.log(schedule.slots);
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString,
+          }
+        );
+      });
+    });
+
+    describe("Organizer America/Detroit (UTC-5) DST (UTC-4) | Invitee: America/Chihuahua (UTC-7) no DST", () => {
+      test("Current date no Organizer DST, selected date when organizer is on DST", async () => {
+        MockDate.set("2023-03-04T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "America/Chihuahua";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T07:00:00.000Z`,
+            endTime: `${plus11DateString}T06:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+
+      test("Current date in Organizer DST, selected date when organizer is on DST", async () => {
+        MockDate.set("2023-03-13T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "America/Chihuahua";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T06:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus1DateString,
+          }
+        );
+      });
+
+      test("Current date in Organizer DST, selected date when organizer is not on DST", async () => {
+        MockDate.set("2023-11-04T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "America/Chihuahua";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T07:00:00.000Z`,
+            endTime: `${plus11DateString}T06:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [14, 15, 16, 17, 18, 19, 20, 21, 22].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+    });
+
+    describe("Northern Hemisphere Organizer America/Detroit (UTC-5) DST (UTC-4) | Southern Hemisphere Invitee: America/Santiago (UTC-4) DST (UTC-3)", () => {
+      test("Current date no Organizer DST, selected date when organizer and invitee is on DST", async () => {
+        MockDate.set("2023-03-04T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "America/Santiago";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T03:00:00.000Z`,
+            endTime: `${plus11DateString}T02:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+
+      test("Current date in Organizer DST, selected date when organizer is not on DST", async () => {
+        MockDate.set("2023-04-13T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const organizerTimeZone = "America/Detroit";
+        const inviteeTimeZone = "America/Chihuahua";
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T07:00:00.000Z`,
+            endTime: `${plus2DateString}T06:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [13, 14, 15, 16, 17, 18, 19, 20, 21].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus1DateString,
+          }
+        );
+      });
+    });
+
+    describe("Southern Hemisphere Organizer America/Santiago (UTC-4) DST (UTC-3) | Northern Hemisphere Invitee: America/Detroit (UTC-5) DST (UTC-4)", () => {
+      test("Current date Organizer DST, selected date when organizer and invitee is on DST", async () => {
+        MockDate.set("2023-03-04T00:00:00Z"); // DST start on March 12th on America/Detroit time zone
+        //const { dateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+        const organizerTimeZone = "America/Santiago";
+        const inviteeTimeZone = "America/Detroit";
+
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T04:00:00.000Z`,
+            endTime: `${plus11DateString}T03:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          [12, 13, 14, 15, 16, 17, 18, 19, 20].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+    });
+
+    describe("Organizer in Europe/London (UTC+0) DST (UTC+1) | Invitee Asia/Seoul (UTC+9)", () => {
+      test("Current date Organizer no in DST, selected date when organizer and invitee not DST", async () => {
+        MockDate.set("2023-03-17T00:00:00Z"); // DST start on March 26th on Europe/London time zone
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: "Europe/London",
+                },
+              ],
+              timeZone: "Europe/London",
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T09:00:00.000Z`,
+            endTime: `${plus11DateString}T08:59:59.999Z`,
+            timeZone: "Asia/Seoul",
+          },
+          ctx
+        );
+        console.log("Schedules", schedule.slots);
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          ["09", 10, 11, 12, 13, 14, 15, 16, 17].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+
+      test("Current date Organizer in DST, selected date when organizer and invitee not DST", async () => {
+        MockDate.set("2023-04-04T00:00:00Z"); // DST start on March 26th on Europe/London time zone
+        const { dateString: plus9DateString } = getDate({ dateIncrement: 9 });
+        const { dateString: plus10DateString } = getDate({ dateIncrement: 10 });
+        const { dateString: plus11DateString } = getDate({ dateIncrement: 11 });
+        const organizerTimeZone = "Europe/London";
+        const inviteeTimeZone = "Asia/Seoul";
+
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimeZone,
+                },
+              ],
+              timeZone: organizerTimeZone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus10DateString}T09:00:00.000Z`,
+            endTime: `${plus11DateString}T08:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveDateTimeSlots(
+          [
+            `${plus9DateString}T15:00:00.000Z`,
+            `${plus10DateString}T08:00:00.000Z`,
+            `${plus10DateString}T09:00:00.000Z`,
+            `${plus10DateString}T10:00:00.000Z`,
+            `${plus10DateString}T11:00:00.000Z`,
+            `${plus10DateString}T12:00:00.000Z`,
+            `${plus10DateString}T13:00:00.000Z`,
+            `${plus10DateString}T14:00:00.000Z`,
+            `${plus10DateString}T15:00:00.000Z`,
+            `${plus10DateString}T16:00:00.000Z`,
+          ],
+          {
+            dateString: plus10DateString,
+          }
+        );
+      });
+    });
+
+    describe("Organizer in Asia/Seoul (UTC+9) | Invitee Europe/London (UTC+0) DST (UTC+1)", () => {
+      test("Current date Organizer no in DST, selected date when organizer and invitee not DST", async () => {
+        MockDate.set("2023-03-02T00:00:00Z"); // DST start on March 26th on Europe/London time zone
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const organizerTimezone = "Asia/Seoul";
+        const inviteeTimeZone = "Europe/London";
+
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimezone,
+                },
+              ],
+              timeZone: organizerTimezone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T00:00:00.000Z`,
+            endTime: `${plus1DateString}T23:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          ["00", "01", "02", "03", "04", "05", "06", "07"].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus1DateString,
+          }
+        );
+      });
+
+      test("Current date Organizer no in DST, selected date when organizer and invitee in DST", async () => {
+        MockDate.set("2023-03-29T00:00:00Z"); // DST start on March 26th on Europe/London time zone
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const organizerTimezone = "Asia/Seoul";
+        const inviteeTimeZone = "Europe/London";
+
+        // An event with one accepted booking
+        createBookingScenario({
+          // An event with length 60 minutes, slotInterval 60 minutes, and minimumBookingNotice 1440 minutes (24 hours)
+          eventTypes: [
+            {
+              id: 1,
+              // If `slotInterval` is set, it supersedes `length`
+              slotInterval: 60,
+              length: 60,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [
+                {
+                  id: 1,
+                  name: "9:00AM to 5PM in Detroit - 14:00AM to 22:00PM in GMT",
+                  availability: [
+                    {
+                      userId: null,
+                      eventTypeId: null,
+                      days: [0, 1, 2, 3, 4, 5],
+                      startTime: "1970-01-01T09:00:00.000Z",
+                      endTime: "1970-01-01T17:00:00.000Z",
+                      date: null,
+                    },
+                  ],
+                  timeZone: organizerTimezone,
+                },
+              ],
+              timeZone: organizerTimezone,
+            },
+          ],
+          bookings: [],
+          hosts: [],
+        });
+
+        // Day Plus 2 is completely free - It only has non accepted bookings
+        const schedule = await getSchedule(
+          {
+            eventTypeId: 1,
+            // EventTypeSlug doesn't matter for non-dynamic events
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T01:00:00.000Z`,
+            endTime: `${plus2DateString}T00:59:59.999Z`,
+            timeZone: inviteeTimeZone,
+          },
+          ctx
+        );
+        // getSchedule returns timeslots in GMT
+        expect(schedule).toHaveTimeSlots(
+          ["00", "01", "02", "03", "04", "05", "06", "07", "08"].map((i) => `${i}:00:00.000Z`),
+          {
+            dateString: plus1DateString,
+          }
+        );
+      });
     });
   });
 });
