@@ -1,8 +1,8 @@
 ---
 items:
-  - /api/app-store/n8n/1.png
-  - /api/app-store/n8n/2.png
-  - /api/app-store/n8n/3.png
+  - /app-store/n8n/1.png
+  - /app-store/n8n/2.png
+  - /app-store/n8n/3.png
   - https://docs.n8n.io/_images/integrations/builtin/credentials/cal/getting-api-key.gif
 ---
 

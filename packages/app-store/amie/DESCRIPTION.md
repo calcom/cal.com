@@ -1,11 +1,11 @@
 ---
 items:
-  - /api/app-store/amie/1.jpg
-  - /api/app-store/amie/2.jpg
-  - /api/app-store/amie/3.jpg
+  - /app-store/amie/1.jpg
+  - /app-store/amie/2.jpg
+  - /app-store/amie/3.jpg
 ---
 
-<iframe class="w-full aspect-video -mx-2" width="560" height="315" src="https://www.youtube.com/embed/OGe1NYKhZE8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe class="w-full -mx-2 aspect-video" width="560" height="315" src="https://www.youtube.com/embed/OGe1NYKhZE8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## The joyful productivity app
 
