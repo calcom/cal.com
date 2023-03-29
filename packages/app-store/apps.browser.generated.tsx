@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 import dynamic from "next/dynamic";
+
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   around: dynamic(() => import("./around/components/InstallAppButton")),
