@@ -1218,6 +1218,7 @@
   "impersonation": "Impersonation",
   "impersonation_description": "Settings to manage user impersonation",
   "users": "Users",
+  "user": "User",
   "profile_description": "Manage settings for your {{appName}} profile",
   "users_description": "Here you can find a list of all users",
   "users_listing": "User listing",
@@ -1608,6 +1609,7 @@
   "default_app_link_title": "Set a default app link",
   "default_app_link_description": "Setting a default app link allows all newly created event types to use the app link you set.",
   "change_default_conferencing_app": "Set as default",
+  "organizer_default_conferencing_app": "Organizer's default app",
   "under_maintenance": "Down for maintenance",
   "under_maintenance_description": "The {{appName}} team are performing scheduled maintenance. If you have any questions, please contact support.",
   "event_type_seats": "{{numberOfSeats}} seats",
@@ -1668,6 +1670,7 @@
   "invalid_event_name_variables": "There is an invalid variable in your event name",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
+  "requires_at_least_one_schedule": "You are required to have at least one schedule",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
   "looking_for_more_analytics": "Looking for more analytics?",
   "add_filter": "Add filter",
@@ -1685,7 +1688,9 @@
   "events_rescheduled": "Events Rescheduled",
   "from_last_period": "from last period",
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
-  "analytics_for_organisation": "Analytics for {{organisationName}}",
-  "subtitle_analytics": "This is a organisation analytics",
-  "event_trends": "Event Trends"
+  "analytics_for_organisation": "Insights for {{organisationName}}",
+  "subtitle_analytics": "Learn more about your team's activity",
+  "event_trends": "Event Trends",
+  "clear_filters": "Clear Filters",
+  "insights": "Insights"
 }
