@@ -97,22 +97,16 @@ test.describe("Reschedule Tests", async () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking.uid } });
-    const rescheduledBooking = await prisma.booking.findFirst({ where: { uid: booking.uid } });
+    const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking.uid } });
+    const rescheduledBooking = await prisma.booking.findFirstOrThrow({ where: { uid: booking.uid } });
 
     expect(newBooking).not.toBeNull();
-    expect(rescheduledBooking?.status).toBe(BookingStatus.CANCELLED);
+    expect(rescheduledBooking.status).toBe(BookingStatus.CANCELLED);
 
-    const idsToDelete = [
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      ...(newBooking ? [newBooking.id] : []),
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      ...(rescheduledBooking ? [rescheduledBooking.id] : []),
-    ];
     await prisma.booking.deleteMany({
       where: {
         id: {
-          in: idsToDelete,
+          in: [newBooking.id, rescheduledBooking.id],
         },
       },
     });
