@@ -269,6 +269,7 @@ export default class GoogleCalendarService implements Calendar {
               type: "google_calendar",
               password: "",
               url: "",
+              iCalUID: event.data.iCalUID,
             });
           }
           return resolve(evt?.data);
