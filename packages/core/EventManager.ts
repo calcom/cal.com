@@ -121,7 +121,6 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
-    console.log("🚀 ~ file: EventManager.ts:127 ~ EventManager ~ create ~ results:", results);
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates

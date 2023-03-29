@@ -1034,7 +1034,6 @@ async function handler(
           evt.description = eventType.description;
 
           const results = updateManager.results;
-          console.log("🚀 ~ file: handleNewBooking.ts:1033 ~ results:", results);
 
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
