@@ -107,7 +107,7 @@ export const CreateANewTeamForm = () => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
                   });
-                  newTeamFormMethods.clearError("slug");
+                  newTeamFormMethods.clearErrors("slug");
                 }}
               />
             )}
