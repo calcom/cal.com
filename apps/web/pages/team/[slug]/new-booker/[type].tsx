@@ -4,7 +4,6 @@ import { z } from "zod";
 import { Booker } from "@calcom/atoms";
 import getBooking from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma, { bookEventTypeSelect } from "@calcom/prisma";
 
@@ -87,5 +86,5 @@ const getBookingDetails = async (uid: string, slug: string) => {
 
   if (!booking || !eventTypeRaw) return null;
 
-  return await getBooking(prisma, uid, getBookingFieldsWithSystemFields(eventTypeRaw));
+  return await getBooking(prisma, uid);
 };
