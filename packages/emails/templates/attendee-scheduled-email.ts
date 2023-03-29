@@ -39,9 +39,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       // ics appends "RRULE:" already, so removing it from RRule generated string
       recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
-    const partstat: ParticipationStatus = "NEEDS-ACTION";
+    const partstat: ParticipationStatus = "ACCEPTED";
     const role: ParticipationRole = "REQ-PARTICIPANT";
     const icsEvent = createEvent({
+      uid: this.calEvent.iCalUID || this.calEvent.uid,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
@@ -53,7 +54,6 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-
       attendees: [
         ...this.calEvent.attendees.map((attendee: Person) => ({
           name: attendee.name,
