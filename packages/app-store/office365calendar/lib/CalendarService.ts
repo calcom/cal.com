@@ -73,6 +73,10 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(event)),
       });
 
+      const responseJson = await handleErrorsJson(response);
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
+
       return handleErrorsJson(response);
     } catch (error) {
       this.log.error(error);

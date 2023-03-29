@@ -35,6 +35,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
+      uid: this.calEvent.iCalUID || this.calEvent.uid,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()

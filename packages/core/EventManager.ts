@@ -136,9 +136,9 @@ export default class EventManager {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
 
-      evt.iCalUID = isCalendarResult(result)
-        ? result.createdEvent?.iCalUID
-        : createdEventObj?.iCalUID || undefined;
+      if (isCalendarResult(result)) {
+        evt.iCalUID = result.iCalUID || undefined;
+      }
 
       return {
         type: result.type,
