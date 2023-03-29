@@ -377,7 +377,6 @@ export const insightsRouter = router({
       };
 
       if (userId) {
-        delete whereConditional.eventType;
         whereConditional["userId"] = userId;
       }
 
@@ -707,6 +706,12 @@ export const insightsRouter = router({
       }
 
       const eventTypes = await ctx.prisma.eventType.findMany({
+        select: {
+          id: true,
+          slug: true,
+          teamId: true,
+          title: true,
+        },
         where: {
           teamId: input.teamId,
         },
