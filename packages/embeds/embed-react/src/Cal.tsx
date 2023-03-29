@@ -11,7 +11,7 @@ type CalProps = {
     debug?: boolean;
     uiDebug?: boolean;
   };
-  config?: any;
+  config?: Record<string, string>;
   embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
@@ -24,7 +24,7 @@ const Cal = function Cal(props: CalProps) {
   const Cal = useEmbed(embedJsUrl);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!Cal || initializedRef.current) {
+    if (!Cal || initializedRef.current || !ref.current) {
       return;
     }
     initializedRef.current = true;

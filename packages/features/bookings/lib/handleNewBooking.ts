@@ -622,6 +622,7 @@ async function handler(
 
   let locationBodyString = location;
   let defaultLocationUrl = undefined;
+
   if (dynamicUserList.length > 1) {
     users = users.sort((a, b) => {
       const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
@@ -701,6 +702,18 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+  // use host default
+  if (isTeamEventType && locationBodyString === "conferencing") {
+    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
+    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
+    if (organizerMetadata) {
+      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+      locationBodyString = app?.appData?.location?.type || locationBodyString;
+      defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+    } else {
+      locationBodyString = "";
+    }
+  }
 
   const invitee = [
     {
