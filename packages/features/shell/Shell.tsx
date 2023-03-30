@@ -536,7 +536,7 @@ const navigation: NavigationItemType[] = [
     icon: FiZap,
   },
   {
-    name: "Insights",
+    name: "insights",
     href: "/insights",
     icon: FiBarChart,
   },
