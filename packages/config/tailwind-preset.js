@@ -28,6 +28,7 @@ module.exports = {
         brand: {
           default: "var(--cal-brand)",
           emphasis: "var(--cal-brand-emphasis)",
+          subtle: "var(--cal-brand-subtle)",
         },
         gray: {
           50: "#F9FAFB",
@@ -70,6 +71,7 @@ module.exports = {
         success: "var(--cal-text-success, #285231)",
         attention: "var(--cal-text-attention, #73321B)",
         error: "var(--cal-text-error, #752522)",
+        brand: "var(--cal-brand-text)",
       },
       screens: {
         pwa: { raw: "(display-mode: standalone)" },
