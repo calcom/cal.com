@@ -1,6 +1,6 @@
 {
   "functions": {
-    "pages/api/experiments/raw.js": {
+    "api/experiments/*": {
       "memory": 3008,
       "maxDuration": 60
     }
