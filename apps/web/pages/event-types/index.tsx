@@ -372,13 +372,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {!type.metadata?.managedEventConfig && (
+                        {!isManagedEventType && (
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                             <Tooltip content={t("show_eventtype_on_profile")}>
                               <div className="self-center rounded-md p-2 hover:bg-gray-200">
                                 <Switch
                                   name="Hidden"
+                                  disabled={!!type.metadata?.managedEventConfig}
                                   checked={!type.hidden}
                                   onCheckedChange={() => {
                                     setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
@@ -463,23 +464,26 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   )}
                                 </>
                               )}
-                              <DropdownMenuSeparator />
                               {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                              {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
-                                <DropdownMenuItem>
-                                  <DropdownItem
-                                    color="destructive"
-                                    onClick={() => {
-                                      setDeleteDialogOpen(true);
-                                      setDeleteDialogTypeId(type.id);
-                                      setDeleteDialogSchedulingType(type.schedulingType);
-                                    }}
-                                    StartIcon={FiTrash}
-                                    className="w-full rounded-none">
-                                    {t("delete")}
-                                  </DropdownItem>
-                                </DropdownMenuItem>
-                              )}
+                              {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                                isManagedEventType && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                      <DropdownItem
+                                        color="destructive"
+                                        onClick={() => {
+                                          setDeleteDialogOpen(true);
+                                          setDeleteDialogTypeId(type.id);
+                                          setDeleteDialogSchedulingType(type.schedulingType);
+                                        }}
+                                        StartIcon={FiTrash}
+                                        className="w-full rounded-none">
+                                        {t("delete")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                             </DropdownMenuContent>
                           </Dropdown>
                         </ButtonGroup>
