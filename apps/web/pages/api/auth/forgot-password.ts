@@ -22,7 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .transform((val) => val.toLowerCase())
     .parse(req.body?.email);
 
-  let ip = req.headers["x-real-ip"] as string;
+  // fallback to email if ip is not present
+  let ip = (req.headers["x-real-ip"] as string) ?? email;
 
   const forwardedFor = req.headers["x-forwarded-for"] as string;
   if (!ip && forwardedFor) {
