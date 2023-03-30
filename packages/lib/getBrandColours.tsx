@@ -9,6 +9,28 @@ type Rgb = {
   b: number;
 };
 
+/**
+ * Given a html color name, check if it exists in our color palette
+ * and if it does, return the hex code for that color. Otherwise,
+ * return the default brand color.
+ */
+export function fallBackHex(val: string | null, dark: boolean): string {
+  if (val && isValidHexCode(val)) {
+    return val;
+  }
+  return dark ? DARK_BRAND_COLOR : BRAND_COLOR;
+}
+
+export function isValidHexCode(hexColor: string): boolean {
+  // Regular expression for hex color code pattern
+  const hexColorPattern = /^#([0-9A-Fa-f]{3}){1,2}$/;
+
+  // Check if hex color code matches pattern
+  const isHexColor = hexColorPattern.test(hexColor);
+
+  return isHexColor;
+}
+
 function hexToRgb(hex: string): Rgb {
   const sanitizedHex = hex.replace("##", "#");
   const colorParts = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(sanitizedHex);
@@ -80,7 +102,7 @@ function normalizeHexCode(hex: string | null, dark: boolean) {
   return hex;
 }
 
-const createColorMap = (brandColor: string) => {
+export const createColorMap = (brandColor: string) => {
   const response: Record<string, string> = {
     500: `#${brandColor}`.replace("##", "#"),
   };
@@ -108,24 +130,6 @@ const createColorMap = (brandColor: string) => {
   return response;
 };
 
-function getContrastColor(hexBackground: string): string {
-  // Convert hex color to RGB values
-  const color = hexToRgb(hexBackground);
-  // Calculate relative luminance using a standard formula
-  const relativeLuminance = (0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b) / 255;
-
-  // Calculate contrast ratio with white and black
-  const whiteContrast = (relativeLuminance + 0.05) / 1.05;
-  const blackContrast = 1.05 / (relativeLuminance + 0.05);
-
-  // Choose color with highest contrast ratio
-  const whiteHex = "#FFFFFF";
-  const blackHex = "#000000";
-  const textColor = whiteContrast > blackContrast ? whiteHex : blackHex;
-
-  return textColor;
-}
-
 /**
  * Given a light and dark brand color value, update the css variables
  * within the document to reflect the new brand colors.
@@ -149,18 +153,18 @@ const useGetBrandingColours = ({
   const lightColourMap = createColorMap(lightVal);
   const darkColourMap = createColorMap(darkVal);
 
-  return {
+  const theme = {
     light: {
       "cal-brand": lightColourMap["500"],
       "cal-brand-emphasis": lightColourMap["400"],
       "cal-brand-subtle": lightColourMap["200"],
-      "cal-brand-text": lightColourMap["200"],
+      "cal-brand-text": lightColourMap["100"], // No need to compute text - always a11y since we use the lightest colour for that shade
     },
     dark: {
       "cal-brand": darkColourMap["500"],
       "cal-brand-emphasis": darkColourMap["600"],
       "cal-brand-subtle": darkColourMap["800"],
-      "cal-brand-text": darkColourMap["200"],
+      "cal-brand-text": darkColourMap["100"],
     },
     // @hariom - are these needed still? Can we move these to tokens?
     root: {
@@ -173,6 +177,7 @@ const useGetBrandingColours = ({
       "booking-darker-color": embedBrandingColors.darkerColor || "#292929",
     },
   };
+  return theme;
 };
 
 export default useGetBrandingColours;
