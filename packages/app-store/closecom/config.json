@@ -4,7 +4,7 @@
   "title": "Close.com",
   "slug": "closecom",
   "type": "closecom_other_calendar",
-  "imageSrc": "/api/app-store/closecom/icon.svg",
+  "imageSrc": "/app-store/closecom/icon.svg",
   "logo": "/app-store/closecom/icon.svg",
   "url": "https://cal.com/apps/closecom",
   "variant": "other",

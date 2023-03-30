@@ -3,7 +3,7 @@
   "name": "WhatsApp",
   "slug": "whatsapp",
   "type": "whatsapp_video",
-  "imageSrc": "/api/app-store/whatsapp/icon.svg",
+  "imageSrc": "/app-store/whatsapp/icon.svg",
   "logo": "/app-store/whatsapp/icon.svg",
   "url": "https://cal.com/apps/whatsapp",
   "variant": "conferencing",

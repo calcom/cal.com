@@ -3,7 +3,7 @@
   "name": "Rainbow",
   "slug": "rainbow",
   "type": "rainbow_web3",
-  "imageSrc": "/api/app-store/rainbow/icon.svg",
+  "imageSrc": "/app-store/rainbow/icon.svg",
   "logo": "/app-store/rainbow/icon.svg",
   "url": "https://cal.com/apps/rainbow",
   "variant": "web3",

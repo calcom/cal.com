@@ -11,7 +11,7 @@ export default function HowToUse() {
       <div className="m-auto rounded bg-white p-10">
         <div className="flex flex-row">
           <div className="mr-5">
-            <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
+            <img className="w-11" src="/app-store/typeform/icon.svg" alt="Zapier Logo" />
           </div>
           <div className="ml-5">
             <div className="text-md text-gray-800">How to route a Typeform with Cal.com Routing</div>
@@ -28,7 +28,7 @@ export default function HowToUse() {
               </li>
               <li>
                 <Link
-                  href="/api/app-store/typeform/copy-typeform-redirect-url.png"
+                  href="/app-store/typeform/copy-typeform-redirect-url.png"
                   target="_blank"
                   className="inline-flex items-baseline text-base text-gray-500">
                   <FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" aria-hidden="true" />

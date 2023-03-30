@@ -9,8 +9,8 @@ export const metadata = {
   category: "other",
   categories: ["other"],
   // If using static next public folder, can then be referenced from the base URL (/).
-  imageSrc: "/api/app-store/wipemycalother/icon-dark.svg",
-  logo: "/api/app-store/wipemycalother/icon-dark.svg",
+  imageSrc: "/app-store/wipemycalother/icon-dark.svg",
+  logo: "/app-store/wipemycalother/icon-dark.svg",
   publisher: "Cal.com",
   rating: 0,
   reviews: 0,

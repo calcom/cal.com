@@ -107,20 +107,12 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const { content, data } = sourceSchema.parse({ content: result.content, data: result.data });
   if (data.items) {
     data.items = data.items.map((item) => {
-      if (typeof item === "string" && !item.includes("/api/app-store")) {
+      if (typeof item === "string" && !item.includes("/app-store")) {
         // Make relative paths absolute
         return `/app-store/${appDirname}/${item}`;
       }
-      if (typeof item === "string" && item.includes("/api/app-store")) {
-        // Set paths to our public folder so that search engines can fetch the image (/api is blocked by robots.txt)
-        return item.replace("/api/app-store", "/app-store");
-      }
       return item;
     });
-  }
-  if (Boolean(singleApp.logo)) {
-    // Set paths to our public folder so that search engines can fetch the image (/api is blocked by robots.txt)
-    singleApp.logo = singleApp.logo.replace("/api/app-store", "/app-store");
   }
   return {
     props: {

@@ -3,7 +3,7 @@
   "name": "Sendgrid",
   "slug": "sendgrid",
   "type": "sendgrid_other_calendar",
-  "imageSrc": "/api/app-store/sendgrid/logo.png",
+  "imageSrc": "/app-store/sendgrid/logo.png",
   "logo": "/app-store/sendgrid/logo.png",
   "url": "https://cal.com/apps/sendgrid",
   "variant": "other_calendar",

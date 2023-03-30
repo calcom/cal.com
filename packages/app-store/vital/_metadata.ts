@@ -9,8 +9,8 @@ export const metadata = {
   category: "other",
   categories: ["other"],
   // If using static next public folder, can then be referenced from the base URL (/).
-  imageSrc: "/api/app-store/vital/icon.svg",
-  logo: "/api/app-store/vital/icon.svg",
+  imageSrc: "/app-store/vital/icon.svg",
+  logo: "/app-store/vital/icon.svg",
   label: "Vital",
   publisher: "Vital",
   rating: 5,

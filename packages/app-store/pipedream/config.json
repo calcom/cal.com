@@ -3,7 +3,7 @@
   "name": "Pipedream",
   "slug": "pipedream",
   "type": "pipedream_automation",
-  "imageSrc": "/api/app-store/pipedream/icon.svg",
+  "imageSrc": "/app-store/pipedream/icon.svg",
   "logo": "/app-store/pipedream/icon.svg",
   "url": "https://pipedream.com/apps/cal-com",
   "variant": "automation",

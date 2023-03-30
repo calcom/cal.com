@@ -48,7 +48,7 @@ export default function ExchangeSetup() {
             <div>
               {/* eslint-disable @next/next/no-img-element */}
               <img
-                src="/api/app-store/exchangecalendar/icon.svg"
+                src="/app-store/exchangecalendar/icon.svg"
                 alt="Microsoft Exchange"
                 className="h-12 w-12 max-w-2xl"
               />

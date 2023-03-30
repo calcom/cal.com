@@ -3,7 +3,7 @@
   "name": "Raycast",
   "slug": "raycast",
   "type": "raycast_other",
-  "imageSrc": "/api/app-store/raycast/icon.svg",
+  "imageSrc": "/app-store/raycast/icon.svg",
   "logo": "/app-store/raycast/icon.svg",
   "url": "https://cal.com/apps/raycast",
   "variant": "other",

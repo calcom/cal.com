@@ -21,7 +21,7 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
   if (metadata.logo && !metadata.logo.includes("/")) {
     const appDirName = `${metadata.isTemplate ? "templates" : ""}/${metadata.slug}`;
-    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
+    metadata.logo = `/app-store/${appDirName}/${metadata.logo}`;
   }
   store[key] = metadata;
 

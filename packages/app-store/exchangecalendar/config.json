@@ -4,7 +4,7 @@
   "name": "Microsoft Exchange",
   "slug": "exchange",
   "type": "exchange_calendar",
-  "imageSrc": "/api/app-store/exchangecalendar/icon.svg",
+  "imageSrc": "/app-store/exchangecalendar/icon.svg",
   "logo": "/app-store/exchangecalendar/icon.svg",
   "url": "https://cal.com/apps/exchange",
   "variant": "calendar",

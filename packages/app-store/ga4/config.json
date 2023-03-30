@@ -3,7 +3,7 @@
   "name": "Google Analytics",
   "slug": "ga4",
   "type": "ga4_analytics",
-  "imageSrc": "/api/app-store/ga4/icon.svg",
+  "imageSrc": "/app-store/ga4/icon.svg",
   "logo": "/app-store/ga4/icon.svg",
   "url": "https://marketingplatform.google.com",
   "variant": "analytics",

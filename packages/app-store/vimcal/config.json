@@ -3,7 +3,7 @@
   "name": "Vimcal",
   "slug": "vimcal",
   "type": "vimcal_other",
-  "imageSrc": "/api/app-store/vimcal/icon.svg",
+  "imageSrc": "/app-store/vimcal/icon.svg",
   "logo": "/app-store/vimcal/icon.svg",
   "url": "https://cal.com/apps/vimcal",
   "variant": "other",

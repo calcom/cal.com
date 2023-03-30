@@ -3,7 +3,7 @@
   "name": "Riverside",
   "slug": "riverside",
   "type": "riverside_video",
-  "imageSrc": "/api/app-store/riverside/icon-dark.svg",
+  "imageSrc": "/app-store/riverside/icon-dark.svg",
   "logo": "/app-store/riverside/icon-dark.svg",
   "url": "https://cal.com/apps/riverside",
   "variant": "conferencing",

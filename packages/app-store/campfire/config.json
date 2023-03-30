@@ -3,7 +3,7 @@
   "name": "Campfire",
   "slug": "campfire",
   "type": "campfire_video",
-  "imageSrc": "/api/app-store/campfire/icon.svg",
+  "imageSrc": "/app-store/campfire/icon.svg",
   "logo": "/app-store/campfire/icon.svg",
   "url": "https://cal.com/apps/campfire",
   "variant": "conferencing",

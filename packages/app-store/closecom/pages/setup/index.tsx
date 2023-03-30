@@ -40,11 +40,7 @@ export default function CloseComSetup() {
         <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
-            <img
-              src="/api/app-store/closecom/icon.svg"
-              alt="Apple Calendar"
-              className="h-12 w-12 max-w-2xl"
-            />
+            <img src="/app-store/closecom/icon.svg" alt="Apple Calendar" className="h-12 w-12 max-w-2xl" />
           </div>
           <div>
             <h1 className="text-gray-600">{t("provide_api_key")}</h1>

@@ -27,7 +27,7 @@ export default function CalDavCalendarSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/caldavcalendar/icon.svg"
+              src="/app-store/caldavcalendar/icon.svg"
               alt="CalDav Calendar"
               className="h-12 w-12 max-w-2xl"
             />

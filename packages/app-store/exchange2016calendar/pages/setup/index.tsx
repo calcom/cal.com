@@ -24,7 +24,7 @@ export default function Exchange2016CalendarSetup() {
       <div className="m-auto rounded bg-white p-5 md:w-[560px] md:p-10">
         <div>
           <img
-            src="/api/app-store/exchange2016calendar/icon.svg"
+            src="/app-store/exchange2016calendar/icon.svg"
             alt="Exchange 2016 Calendar"
             className="h-12 w-12 max-w-2xl"
           />

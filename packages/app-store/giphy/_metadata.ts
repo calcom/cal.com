@@ -8,8 +8,8 @@ export const metadata = {
   installed: true,
   categories: ["other"],
   // If using static next public folder, can then be referenced from the base URL (/).
-  imageSrc: "/api/app-store/giphy/icon.svg",
-  logo: "/api/app-store/giphy/icon.svg",
+  imageSrc: "/app-store/giphy/icon.svg",
+  logo: "/app-store/giphy/icon.svg",
   publisher: "Cal.com",
   rating: 0,
   reviews: 0,

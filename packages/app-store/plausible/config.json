@@ -3,7 +3,7 @@
   "name": "Plausible",
   "slug": "plausible",
   "type": "plausible_analytics",
-  "imageSrc": "/api/app-store/plausible/icon.svg",
+  "imageSrc": "/app-store/plausible/icon.svg",
   "logo": "/app-store/plausible/icon.svg",
   "url": "https://cal.com/apps/plausible",
   "variant": "analytics",
