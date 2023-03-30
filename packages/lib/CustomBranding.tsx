@@ -309,6 +309,7 @@ const BrandColor = ({
       --brand-text-color: ${getContrastingTextColor(lightVal, true)};
       --brand-color-dark-mode: ${darkVal};
       --brand-text-color-dark-mode: ${getContrastingTextColor(darkVal, true)};
+      }
     `}
       </style>
     </Head>

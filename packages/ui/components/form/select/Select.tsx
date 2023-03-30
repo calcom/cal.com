@@ -41,7 +41,7 @@ export const Select = <
         input: () => classNames("text-emphasis", props.classNames?.input),
         option: (state) =>
           classNames(
-            "bg-muted flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
             state.isSelected && "bg-emphasis text-default",
             props.classNames?.option
