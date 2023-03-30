@@ -1284,6 +1284,8 @@ async function handler(
         };
       }
 
+      const attendeeUniqueId = uuid();
+
       const bookingUpdated = await prisma.booking.update({
         where: {
           uid: reqBody.bookingUid,
@@ -1298,32 +1300,25 @@ async function handler(
               name: invitee[0].name,
               timeZone: invitee[0].timeZone,
               locale: invitee[0].language.locale,
+              bookingSeat: {
+                create: {
+                  referenceUid: attendeeUniqueId,
+                  data: {
+                    description: additionalNotes,
+                  },
+                  booking: {
+                    connect: {
+                      id: booking.id,
+                    },
+                  },
+                },
+              },
             },
           },
           ...(booking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
         },
       });
 
-      // Add entry to bookingSeat table
-      const attendeeUniqueId = uuid();
-      await prisma.bookingSeat.create({
-        data: {
-          data: {
-            description: additionalNotes,
-          },
-          booking: {
-            connect: {
-              id: booking.id,
-            },
-          },
-          referenceUid: attendeeUniqueId,
-          attendee: {
-            connect: {
-              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
-            },
-          },
-        },
-      });
       evt.attendeeSeatId = attendeeUniqueId;
 
       const newSeat = booking.attendees.length !== 0;
