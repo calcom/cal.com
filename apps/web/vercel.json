@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/experiments/*": {
+    "pages/api/experiments/*": {
       "memory": 3008,
       "maxDuration": 60
     }
