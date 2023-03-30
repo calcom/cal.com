@@ -1692,5 +1692,8 @@
   "subtitle_analytics": "Learn more about your team's activity",
   "event_trends": "Event Trends",
   "clear_filters": "Clear Filters",
+  "hold": "Hold",
+  "on_booking_option": "Collect payment on booking",
+  "hold_option": "Place hold on card",
   "insights": "Insights"
 }

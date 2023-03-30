@@ -4,11 +4,11 @@ export const STRIPE_TEAM_MONTHLY_PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_TEAM_
 
 export const paymentOptions = [
   {
-    label: "on_booking",
+    label: "on_booking_option",
     value: "ON_BOOKING",
   },
   {
-    label: "hold",
+    label: "hold_option",
     value: "HOLD",
   },
 ];
