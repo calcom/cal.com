@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
 import { createEvent } from "ics";
-import type { DAVAccount, DAVCalendar } from "tsdav";
+import type { DAVAccount, DAVCalendar, DAVObject } from "tsdav";
 import {
   createAccount,
   createCalendarObject,
@@ -481,7 +481,12 @@ export default abstract class BaseCalendarService implements Calendar {
    * @returns {Promise<Array>} - A promise that resolves to a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
    */
 
-  async fetchObjectsWithOptionalExpand({ selectedCalendars, startISOString, dateTo, headers }) {
+  async fetchObjectsWithOptionalExpand({
+    selectedCalendars,
+    startISOString,
+    dateTo,
+    headers,
+  }: FetchObjectsWithOptionalExpandOptionsType): Promise<DAVObject[]> {
     const filteredCalendars = selectedCalendars.filter((sc) => sc.externalId);
     const fetchPromises = filteredCalendars.map(async (sc) => {
       const response = await fetchCalendarObjects({
@@ -526,7 +531,7 @@ export default abstract class BaseCalendarService implements Calendar {
       return processedResponse;
     });
 
-    return (await Promise.all(fetchPromises)).flat();
+    return (await Promise.all(fetchPromises)).flat().filter((obj) => obj !== undefined) as DAVObject[];
   }
 
   // The rest of the code remains the same
