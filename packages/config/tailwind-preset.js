@@ -15,19 +15,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        emphasis: "var(--cal-bg-emphasis, #E5E7EB)",
+        emphasis: "var(--cal-bg-emphasis)",
         default: "var(--cal-bg, white)",
-        subtle: "var(--cal-bg-subtle, #F3F4F6)",
-        muted: "var(--cal-bg-muted, #F9FAFB)",
-        inverted: "var(--cal-bg-inverted, #111827)",
-        info: "var(--cal-bg-info, #DEE9FC)",
-        success: "var(--cal-bg-success, #E2FBE8)",
-        attention: "var(--cal-bg-attention, #FCEED8)",
-        error: "var(--cal-bg-error, #F9E3E2)",
+        subtle: "var(--cal-bg-subtle)",
+        muted: "var(--cal-bg-muted)",
+        inverted: "var(--cal-bg-inverted)",
+        info: "var(--cal-bg-info)",
+        success: "var(--cal-bg-success)",
+        attention: "var(--cal-bg-attention)",
+        error: "var(--cal-bg-error)",
         black: "#111111",
         brand: {
-          default: "var(--cal-brand, #111827)",
-          emphasis: "var(--cal-brand-emphasis, #101010)",
+          default: "var(--cal-brand)",
+          emphasis: "var(--cal-brand-emphasis)",
         },
         gray: {
           50: "#F9FAFB",

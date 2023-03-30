@@ -30,9 +30,9 @@ import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -40,7 +40,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import { Button, Form, Tooltip } from "@calcom/ui";
+import { Button, Form, Tooltip, useCalcomTheme } from "@calcom/ui";
 import { FiAlertTriangle, FiCalendar, FiRefreshCw, FiUser } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -63,6 +63,14 @@ const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaste
 const BookingDescriptionPayment = dynamic(
   () => import("@components/booking/BookingDescriptionPayment")
 ) as unknown as typeof import("@components/booking/BookingDescriptionPayment").default;
+
+const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor?: string; darkBrandColor?: string }) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 const BookingFields = ({
@@ -303,6 +311,10 @@ const BookingPage = ({
   } = useTypedQuery(routerQuerySchema);
 
   useTheme(profile.theme);
+  useBrandColors({
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
+  });
 
   const querySchema = getBookingResponsesPartialSchema({
     eventType: {
@@ -512,7 +524,6 @@ const BookingPage = ({
         <link rel="icon" href="/favico.ico" />
       </Head>
       <BookingPageTagManager eventType={eventType} />
-      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",

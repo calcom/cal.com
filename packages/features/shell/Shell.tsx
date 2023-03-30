@@ -18,9 +18,9 @@ import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
@@ -42,6 +42,7 @@ import {
   Logo,
   SkeletonText,
   showToast,
+  useCalcomTheme,
 } from "@calcom/ui";
 import {
   FiArrowLeft,
@@ -193,9 +194,13 @@ type LayoutProps = {
   smallHeading?: boolean;
 };
 
-const CustomBrandingContainer = () => {
+const useBrandColors = () => {
   const { data: user } = useMeQuery();
-  return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
+  const brandTheme = getBrandColours({
+    lightVal: user?.brandColor,
+    darkVal: user?.darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -212,7 +217,6 @@ const PublicShell = (props: LayoutProps) => {
   const { status } = useSession();
   return (
     <KBarWrapper withKBar={status === "authenticated"}>
-      <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
   );
@@ -223,10 +227,10 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme();
+  useBrandColors();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
-      <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
   ) : (

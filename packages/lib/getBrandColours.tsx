@@ -1,5 +1,3 @@
-import Head from "next/head";
-
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
 const BRAND_COLOR = "#292929";
@@ -157,6 +155,31 @@ function isHtmlColor(color: string): color is keyof HTML_COLORS {
   return color in HTML_COLORS;
 }
 
+function increaseLuminance(hexColor: string, amount: number): string {
+  // Convert hex color to RGB values
+  const red = parseInt(hexColor.substr(1, 2), 16);
+  const green = parseInt(hexColor.substr(3, 2), 16);
+  const blue = parseInt(hexColor.substr(5, 2), 16);
+
+  // Calculate luminance using a standard formula
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+
+  // Calculate new RGB values based on increased luminance
+  const maxLuminance = 255;
+  const newLuminance = Math.min(luminance + amount, maxLuminance);
+  const factor = newLuminance / luminance;
+  const newRed = Math.min(Math.round(factor * red), maxLuminance);
+  const newGreen = Math.min(Math.round(factor * green), maxLuminance);
+  const newBlue = Math.min(Math.round(factor * blue), maxLuminance);
+
+  // Convert RGB values back to hex string
+  const newHexColor = `#${newRed.toString(16).padStart(2, "0")}${newGreen
+    .toString(16)
+    .padStart(2, "0")}${newBlue.toString(16).padStart(2, "0")}`;
+
+  return newHexColor;
+}
+
 export function colorNameToHex(color: string) {
   const normalizedColor = color.toLowerCase();
 
@@ -258,7 +281,7 @@ export function fallBackHex(val: string | null, dark: boolean): string {
  * Given a light and dark brand color value, update the css variables
  * within the document to reflect the new brand colors.
  */
-const BrandColor = ({
+const useGetBrandingColours = ({
   lightVal = BRAND_COLOR,
   darkVal = DARK_BRAND_COLOR,
 }: {
@@ -287,33 +310,30 @@ const BrandColor = ({
       : "#" + darkVal
     : fallBackHex(darkVal, true);
 
-  return (
-    <Head>
-      <style>
-        {`body {
-      /* green--500*/
-      --booking-highlight-color: ${embedBrandingColors.highlightColor || "#10B981"};
-      /*  gray--200 */
-      --booking-lightest-color: ${embedBrandingColors.lightestColor || "#E1E1E1"};
-      /* gray--400 */
-      --booking-lighter-color: ${embedBrandingColors.lighterColor || "#ACACAC"};
-      /* gray--500 */
-      --booking-light-color: ${embedBrandingColors.lightColor || "#888888"};
-      /* gray--600 */
-      --booking-median-color: ${embedBrandingColors.medianColor || "#494949"};
-      /* gray--800 */
-      --booking-dark-color: ${embedBrandingColors.darkColor || "#313131"};
-      /* gray--900 */
-      --booking-darker-color: ${embedBrandingColors.darkerColor || "#292929"};
-      --brand-color: ${lightVal};
-      --brand-text-color: ${getContrastingTextColor(lightVal, true)};
-      --brand-color-dark-mode: ${darkVal};
-      --brand-text-color-dark-mode: ${getContrastingTextColor(darkVal, true)};
-      }
-    `}
-      </style>
-    </Head>
-  );
+  return {
+    light: {
+      "cal-brand": lightVal,
+      "cal-brand-emphasis": increaseLuminance(lightVal, 40),
+      "cal-brand-subtle": increaseLuminance(lightVal, -20),
+      "cal-brand-text": getContrastingTextColor(lightVal, true),
+    },
+    dark: {
+      "cal-brand": darkVal,
+      "cal-brand-emphasis": increaseLuminance(darkVal, -20),
+      "cal-brand-subtle": increaseLuminance(darkVal, 20),
+      "cal-brand-text": getContrastingTextColor(darkVal, true),
+    },
+    // @hariom - are these needed still? Can we move these to tokens?
+    root: {
+      "booking-highlight-color": embedBrandingColors.highlightColor || "#10B981",
+      "booking-lightest-color": embedBrandingColors.lightestColor || "#E1E1E1",
+      "booking-lighter-color": embedBrandingColors.lighterColor || "#ACACAC",
+      "booking-light-color": embedBrandingColors.lightColor || "#888888",
+      "booking-median-color": embedBrandingColors.medianColor || "#494949",
+      "booking-dark-color": embedBrandingColors.darkColor || "#313131",
+      "booking-darker-color": embedBrandingColors.darkerColor || "#292929",
+    },
+  };
 };
 
-export default BrandColor;
+export default useGetBrandingColours;

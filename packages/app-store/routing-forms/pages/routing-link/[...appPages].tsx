@@ -6,25 +6,43 @@ import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast } from "@calcom/ui";
+import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import type { Response, Route } from "../../types/types";
 
+const useBrandColors = ({
+  brandColor,
+  darkBrandColor,
+}: {
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+}) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
+
 function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
+  useBrandColors({
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
+  });
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
@@ -94,8 +112,6 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
   return (
     <div>
-      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-
       <div>
         {!customPageMessage ? (
           <>

@@ -28,7 +28,6 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -36,6 +35,7 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -47,7 +47,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
@@ -62,6 +62,20 @@ import { ssrInit } from "@server/lib/ssr";
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
 }
+
+const useBrandColors = ({
+  brandColor,
+  darkBrandColor,
+}: {
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+}) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 /**
  * Redirects to external URL with query params from current URL.
@@ -363,6 +377,10 @@ export default function Success(props: SuccessProps) {
   }
 
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
+  useBrandColors({
+    brandColor: props.profile.brandColor,
+    darkBrandColor: props.profile.darkBrandColor,
+  });
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
@@ -401,7 +419,6 @@ export default function Success(props: SuccessProps) {
       )}
       <HeadSeo title={title} description={title} />
       <BookingPageTagManager eventType={eventType} />
-      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (

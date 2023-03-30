@@ -2,7 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-import { fallBackHex, isValidHexCode } from "@calcom/lib/CustomBranding";
+import { fallBackHex, isValidHexCode } from "@calcom/lib/getBrandColours";
 
 export type ColorPickerProps = {
   defaultValue: string;

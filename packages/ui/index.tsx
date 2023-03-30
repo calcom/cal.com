@@ -129,3 +129,4 @@ export type { Option as MultiSelectCheckboxesOptionType } from "./components/for
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton } from "./components/createButton";
+export { useCalcomTheme } from "./styles/useCalcomTheme";

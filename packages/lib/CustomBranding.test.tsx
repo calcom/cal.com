@@ -1,4 +1,4 @@
-import { colorNameToHex, fallBackHex, isValidHexCode } from "./CustomBranding";
+import { colorNameToHex, fallBackHex, isValidHexCode } from "./getBrandColours";
 
 describe("Custom Branding tests", () => {
   describe("fn: colorNameToHex", () => {
