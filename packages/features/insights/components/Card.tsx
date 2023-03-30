@@ -16,4 +16,3 @@ export const CardInsights = (props: ICardProps) => {
     </Card>
   );
 };
-

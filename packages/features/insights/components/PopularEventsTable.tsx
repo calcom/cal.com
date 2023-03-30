@@ -9,18 +9,19 @@ import { CardInsights } from "./Card";
 export const PopularEventsTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedUserId } = filter;
+  const { dateRange, selectedMemberUserId, selectedUserId } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.popularEventTypes.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId,
+    teamId: teamId ?? undefined,
     userId: selectedUserId ?? undefined,
+    memberUserId: selectedMemberUserId ?? undefined,
   });
 
-  if (!isSuccess || !startDate || !endDate || !teamId || data?.length === 0) return null;
+  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId) || data?.length === 0) return null;
 
   return (
     <CardInsights>

@@ -1691,5 +1691,6 @@
   "analytics_for_organisation": "Insights for {{organisationName}}",
   "subtitle_analytics": "Learn more about your team's activity",
   "event_trends": "Event Trends",
-  "clear_filters": "Clear Filters"
+  "clear_filters": "Clear Filters",
+  "insights": "Insights"
 }

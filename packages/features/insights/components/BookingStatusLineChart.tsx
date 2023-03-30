@@ -10,7 +10,13 @@ import { CardInsights } from "./Card";
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { selectedTeamId, selectedTimeView = "week", dateRange, selectedEventTypeId } = filter;
+  const {
+    selectedTeamId,
+    selectedUserId,
+    selectedTimeView = "week",
+    dateRange,
+    selectedEventTypeId,
+  } = filter;
   const [startDate, endDate] = dateRange;
 
   if (!startDate || !endDate) return null;
@@ -19,8 +25,9 @@ export const BookingStatusLineChart = () => {
     timeView: selectedTimeView,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId: selectedTeamId || -1,
+    teamId: selectedTeamId ?? undefined,
     eventTypeId: selectedEventTypeId ?? undefined,
+    userId: selectedUserId ?? undefined,
   });
 
   if (!isSuccess) return null;

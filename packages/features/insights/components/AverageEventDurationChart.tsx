@@ -10,18 +10,18 @@ import { CardInsights } from "./Card";
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedUserId } = filter;
+  const { dateRange, selectedMemberUserId } = filter;
   const [startDate, endDate] = dateRange;
-  const { selectedTeamId: teamId } = filter;
+  const { selectedTeamId: teamId, selectedUserId } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.averageEventDuration.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId,
-    userId: selectedUserId ?? undefined,
+    memberUserId: selectedMemberUserId ?? undefined,
   });
 
-  if (!isSuccess || data?.length == 0 || !startDate || !endDate || !teamId) return null;
+  if (!isSuccess || data?.length == 0 || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
 
   return (
     <CardInsights>

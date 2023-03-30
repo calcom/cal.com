@@ -9,7 +9,7 @@ import { KPICard } from "./KPICard";
 export const BookingKPICards = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, selectedUserId } = filter;
+  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId } = filter;
   const [startDate, endDate] = dateRange;
 
   const { selectedTeamId: teamId } = filter;
@@ -19,6 +19,7 @@ export const BookingKPICards = () => {
     endDate: endDate.toISOString(),
     teamId,
     eventTypeId: selectedEventTypeId ?? undefined,
+    memberUserId: selectedMemberUserId ?? undefined,
     userId: selectedUserId ?? undefined,
   });
 
@@ -44,7 +45,7 @@ export const BookingKPICards = () => {
     },
   ];
 
-  if (!isSuccess || !startDate || !endDate || !teamId || data?.empty) return null;
+  if (!isSuccess || !!data?.empty || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
 
   return (
     <Grid numColsSm={2} numColsLg={4} className="gap-x-6 gap-y-6">
