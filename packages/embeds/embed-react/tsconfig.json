@@ -9,7 +9,8 @@
     "jsx": "preserve",
     "outDir": "dist",
     "paths": {
-      "@calcom/*": ["../../packages/*/src"]
+      "@calcom/embed-core": ["../embed-core/src"],
+      "@calcom/embed-snippet": ["../embed-snippet/src"]
     }
   },
   "include": ["src", "env.d.ts"],

@@ -7,7 +7,8 @@
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
-      "@calcom/*": ["../../packages/*/src"]
+      "@calcom/embed-react": ["../embed-react/src"],
+      "@calcom/embed-snippet": ["../embed-snippet/src"]
     }
   },
   "include": ["src", "env.d.ts", "index.ts"],
