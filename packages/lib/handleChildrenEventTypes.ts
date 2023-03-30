@@ -18,9 +18,15 @@ const generateHashedLink = (id: number) => {
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
-  updatedEventType: { schedulingType: SchedulingType | null; slug: string };
+  updatedEventType: {
+    schedulingType: SchedulingType | null;
+    slug: string;
+  };
   currentUserId: number;
-  oldEventType: { users?: { id: number }[] | null; team: { name: string } | null } | null;
+  oldEventType: {
+    children?: { userId: number | null }[] | null | undefined;
+    team: { name: string } | null;
+  } | null;
   hashedLink: string | undefined;
   connectedLink: { id: number } | null;
   children:
@@ -133,12 +139,14 @@ export default async function handleChildrenEventTypes({
     .pick(unlockedManagedEventTypeProps)
     .parse(eventType);
 
-  // Calculate if there are new/deleted users for which the event type needs to be created/deleted
-  const previousUserIds = oldEventType.users?.map((user) => user.id);
-  const currentUserIds = eventType.users?.map((user) => user.id);
+  // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
+  const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
+  const currentUserIds = children?.map((ch) => ch.owner.id);
   const deletedUserIds = previousUserIds?.filter((id) => !currentUserIds?.includes(id));
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
+
+  console.log({ previousUserIds, currentUserIds, deletedUserIds, newUserIds, oldUserIds });
 
   // Define hashedLink query input
   const hashedLinkQuery = (userId: number) => {
@@ -152,7 +160,7 @@ export default async function handleChildrenEventTypes({
   };
 
   // Store result for existent event types deletion process
-  let deletedExistentEventTypes;
+  let deletedExistentEventTypes = undefined;
 
   // New users added
   if (newUserIds?.length) {

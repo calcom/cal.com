@@ -8,11 +8,11 @@ import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import type { PeriodType } from "@calcom/prisma/client";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import {
@@ -149,7 +149,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     defaultValue: periodType?.type,
   });
 
-  const { shouldLockIndicator, shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
@@ -404,7 +404,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                           name="periodDates"
                           control={formMethods.control}
                           defaultValue={periodDates}
-                          disabled={periodTypeLocked.disabled}
                           render={() => (
                             <DateRangePicker
                               startDate={formMethods.getValues("periodDates").startDate}

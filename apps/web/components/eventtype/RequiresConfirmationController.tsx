@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, Label, SettingsToggle } from "@calcom/ui";
 
@@ -40,7 +40,7 @@ export default function RequiresConfirmationController({
     }
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockDisableProps } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")

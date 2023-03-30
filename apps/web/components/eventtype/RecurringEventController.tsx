@@ -2,8 +2,8 @@ import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert, Select, SettingsToggle, TextField } from "@calcom/ui";
@@ -31,7 +31,7 @@ export default function RecurringEventController({
       value: value.toString(),
     }));
 
-  const { shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockDisableProps } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")

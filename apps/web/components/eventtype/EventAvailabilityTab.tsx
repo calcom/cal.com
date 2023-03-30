@@ -6,9 +6,9 @@ import { components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import { NewScheduleButton } from "@calcom/features/schedules";
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -181,7 +181,7 @@ const EventTypeScheduleDetails = ({
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
-    lockedFieldsManager(
+    useLockedFieldsManager(
       eventType,
       t("locked_fields_admin_description"),
       t("locked_fields_member_description")

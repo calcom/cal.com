@@ -16,7 +16,7 @@ const Indicator = (label: string) => (
   </Tooltip>
 );
 
-const lockedFieldsManager = (
+const useLockedFieldsManager = (
   eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata">,
   adminLabel: string,
   memberLabel: string
@@ -55,4 +55,4 @@ const lockedFieldsManager = (
   return { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType };
 };
 
-export default lockedFieldsManager;
+export default useLockedFieldsManager;

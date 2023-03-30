@@ -10,9 +10,9 @@ import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
@@ -78,7 +78,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps } = lockedFieldsManager(
+  const { shouldLockDisableProps } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")

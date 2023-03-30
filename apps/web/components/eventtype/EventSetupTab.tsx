@@ -11,9 +11,9 @@ import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType, LocationType } from "@calcom/app-store/locations";
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -139,7 +139,7 @@ export const EventSetupTab = (
   });
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    lockedFieldsManager(
+    useLockedFieldsManager(
       eventType,
       t("locked_fields_admin_description"),
       t("locked_fields_member_description")

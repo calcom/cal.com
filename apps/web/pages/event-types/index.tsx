@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { User } from "@prisma/client";
 import { SchedulingType, MembershipRole } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -359,16 +360,30 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.team && (
+                      {type.team && !isManagedEventType && (
                         <AvatarGroup
                           className="relative top-1 right-3"
                           size="sm"
                           truncateAfter={4}
-                          items={type.users.map((organizer) => ({
+                          items={type.users.map((organizer: { name: any; username: any }) => ({
                             alt: organizer.name || "",
                             image: `${WEBAPP_URL}/${organizer.username}/avatar.png`,
                             title: organizer.name || "",
                           }))}
+                        />
+                      )}
+                      {isManagedEventType && (
+                        <AvatarGroup
+                          className="relative top-1 right-3"
+                          size="sm"
+                          truncateAfter={4}
+                          items={type.children
+                            .flatMap((ch) => ch.users)
+                            .map((user: User) => ({
+                              alt: user.name || "",
+                              image: `${WEBAPP_URL}/${user.username}/avatar.png`,
+                              title: user.name || "",
+                            }))}
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">

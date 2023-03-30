@@ -2,7 +2,7 @@ import type { EventType } from "@prisma/client";
 
 import updateChildrenEventTypes from "@calcom/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
-import type { CompleteEventType, CompleteUser } from "@calcom/prisma/zod";
+import type { CompleteEventType } from "@calcom/prisma/zod";
 
 import { prismaMock } from "../../../../tests/config/singleton";
 
@@ -20,39 +20,45 @@ jest.mock("@calcom/emails/email-manager", () => {
 
 describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
-    it("No managed event type", async () => {
+    it("Throws 'No managed event type'", async () => {
       mockFindFirstEventType();
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: null, slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
+      // expect(result.deletedExistentEventTypes)
       expect(result.message).toBe("No managed event type");
     });
 
-    it("No managed event metadata", async () => {
+    it("Throws 'No managed event metadata'", async () => {
       mockFindFirstEventType();
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
+      // expect(result.deletedExistentEventTypes)
       expect(result.message).toBe("No managed event metadata");
     });
 
-    it("Missing event type", async () => {
+    it("Throws 'Missing event type'", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       prismaMock.eventType.findFirst.mockImplementation(() => {
@@ -62,35 +68,39 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
+      // expect(result.deletedExistentEventTypes)
       expect(result.message).toBe("Missing event type");
     });
   });
 
   describe("Happy paths", () => {
-    it("New users added", async () => {
+    it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
         id: 123,
-        users: [{ id: 4 } as CompleteUser],
         metadata: { managedEventConfig: {} },
         locations: [],
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [], team: { name: "" } },
-        children: [],
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
@@ -109,23 +119,25 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([4]);
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([]);
+      // expect(result.deletedExistentEventTypes)
     });
 
-    it("Old users updated", async () => {
+    it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const { schedulingType, id, teamId, timeZone, users, locations, parentId, userId, ...evType } =
         mockFindFirstEventType({
-          users: [{ id: 4 } as CompleteUser],
           metadata: { managedEventConfig: {} },
           locations: [],
         });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }], team: { name: "" } },
-        children: [],
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -146,40 +158,55 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
+      // expect(result.deletedExistentEventTypes)
     });
 
-    it("Old users deleted", async () => {
+    it("Deletes old users", async () => {
       mockFindFirstEventType({ users: [], metadata: { managedEventConfig: {} }, locations: [] });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }], team: { name: "" } },
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([4]);
+      // expect(result.deletedExistentEventTypes)
     });
 
-    it("New, old and deleted users", async () => {
+    it("Adds new users and updates/delete old users", async () => {
       mockFindFirstEventType({
-        users: [{ id: 5 }, { id: 4 }] as CompleteUser[],
         metadata: { managedEventConfig: {} },
         locations: [],
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { users: [{ id: 4 }, { id: 1 }], team: { name: "" } },
-        children: [],
+        oldEventType: { children: [{ userId: 4 }, { userId: 1 }], team: { name: "" } },
+        children: [
+          { hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } },
+          { hidden: false, owner: { id: 5, name: "", email: "", eventTypeSlugs: [] } },
+        ],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
+        hashedLink: undefined,
+        connectedLink: null,
         prisma: prismaMock,
       });
+      // Have been called
       expect(result.newUserIds).toEqual([5]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([1]);
+      // expect(result.deletedExistentEventTypes)
     });
   });
+
+  /*describe("Slug conflicts", () => {
+    it("Deletes existent event types for new users added", () => {});
+    it("Deletes existent event types for old users updated", () => {});
+  });*/
 });

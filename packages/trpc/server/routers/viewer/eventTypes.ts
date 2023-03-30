@@ -220,6 +220,11 @@ export const eventTypesRouter = router({
       users: {
         select: baseUserSelect,
       },
+      children: {
+        include: {
+          users: true,
+        },
+      },
       hosts: {
         select: {
           user: {
@@ -645,15 +650,10 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (users.length || children?.length) {
-      let updatedUsers = users.map((userId: number) => ({ id: userId }));
-      if (children?.length) {
-        // Adding children owners as users to show in the UI
-        updatedUsers = updatedUsers.concat(children.map((ch) => ({ id: ch.owner.id })));
-      }
+    if (users.length) {
       data.users = {
         set: [],
-        connect: updatedUsers,
+        connect: users.map((userId: number) => ({ id: userId })),
       };
     } else {
       data.users = {
@@ -734,7 +734,11 @@ export const eventTypesRouter = router({
       ctx.prisma.eventType.findFirst({
         where: { id },
         select: {
-          users: true,
+          children: {
+            select: {
+              userId: true,
+            },
+          },
           team: {
             select: {
               name: true,

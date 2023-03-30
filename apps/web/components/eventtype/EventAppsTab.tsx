@@ -5,8 +5,8 @@ import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppConte
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import lockedFieldsManager from "@calcom/lib/LockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
 import { FiGrid, FiLock } from "@calcom/ui/components/icon";
@@ -56,7 +56,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = lockedFieldsManager(
+  const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
