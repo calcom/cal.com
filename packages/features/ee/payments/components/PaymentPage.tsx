@@ -1,12 +1,13 @@
 import { Elements } from "@stripe/react-stripe-js";
 import classNames from "classnames";
 import Head from "next/head";
-import { FC, useEffect, useState } from "react";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -28,6 +29,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const paymentAppData = getPaymentAppData(props.eventType);
+  console.log("🚀 ~ file: PaymentPage.tsx:32 ~ paymentAppData:", paymentAppData);
   useEffect(() => {
     let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();

@@ -9,8 +9,8 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
-import type { StripePaymentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -38,7 +38,8 @@ export class PaymentService implements IAbstractPaymentService {
 
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: Booking["id"]
+    bookingId: Booking["id"],
+    paymentOption?: typeof paymentOptionEnum
   ) {
     try {
       // Load stripe keys
@@ -62,6 +63,7 @@ export class PaymentService implements IAbstractPaymentService {
         currency: this.credentials.default_currency,
         payment_method_types: ["card"],
         application_fee_amount: paymentFee,
+        ...(paymentOptionEnum.parse(paymentOption) === "HOLD" && { capture_method: "manual" }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -92,6 +94,7 @@ export class PaymentService implements IAbstractPaymentService {
           fee: paymentFee,
           refunded: false,
           success: false,
+          paymentOption: paymentOptionEnum.parse(paymentOption),
         },
       });
       if (!paymentData) {
