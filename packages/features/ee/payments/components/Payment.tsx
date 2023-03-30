@@ -1,14 +1,16 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import type stripejs from "@stripe/stripe-js";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
+import { IntlProvider, FormattedNumber } from "react-intl";
 
 import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
+import { Button, Checkbox } from "@calcom/ui";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
@@ -47,11 +49,14 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
+  console.log("🚀 ~ file: Payment.tsx:50 ~ PaymentComponent ~ props:", props.payment);
   const { t, i18n } = useLocale();
   const router = useRouter();
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
+  const paymentOption = props.payment.paymentOption;
+  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption ? false : true);
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
@@ -105,11 +110,33 @@ export default function PaymentComponent(props: Props) {
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
+      {paymentOption === "HOLD" && (
+        <>
+          <Checkbox
+            description={
+              <Trans i18nKey="acknowledge_booking_hold">
+                I acknowledge that{" "}
+                <IntlProvider locale="en">
+                  <FormattedNumber
+                    value={props.payment.data.amount / 100.0}
+                    style="currency"
+                    currency={props.payment.data.currency?.toUpperCase()}
+                  />
+                </IntlProvider>{" "}
+                will be held on my card. If I do not show up the to booking then my card will be charged for
+                the hold amount
+              </Trans>
+            }
+            onChange={(e) => setHoldAcknowledged(e.target.checked)}
+            className="mt-4"
+          />
+        </>
+      )}
       <div className="mt-2 flex justify-center">
         <Button
           color="primary"
           type="submit"
-          disabled={["processing", "error"].includes(state.status)}
+          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}
           id="submit">
           <span id="button-text">

@@ -29,7 +29,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const paymentAppData = getPaymentAppData(props.eventType);
-  console.log("🚀 ~ file: PaymentPage.tsx:32 ~ paymentAppData:", paymentAppData);
   useEffect(() => {
     let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
@@ -109,7 +108,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                           </div>
                         </>
                       )}
-                      <div className="font-medium">{t("price")}</div>
+                      <div className="font-medium">
+                        {props.payment.paymentOption === "HOLD" ? t("hold") : t("price")}
+                      </div>
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
