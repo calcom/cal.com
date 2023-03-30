@@ -76,7 +76,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               />
               <Select<Option>
                 defaultValue={
-                  paymentOptions.find((option) => paymentOption === option.value) || paymentOptions[0]
+                  paymentOptions.find((option) => paymentOption === option.value) || {
+                    ...paymentOptions[0],
+                    label: t(paymentOptions[0].label),
+                  }
                 }
                 options={paymentOptions.map((option) => {
                   return { ...option, label: t(option.label) || option.label };

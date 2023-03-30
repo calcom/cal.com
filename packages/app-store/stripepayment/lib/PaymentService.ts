@@ -94,7 +94,7 @@ export class PaymentService implements IAbstractPaymentService {
           fee: paymentFee,
           refunded: false,
           success: false,
-          paymentOption: paymentOptionEnum.parse(paymentOption),
+          paymentOption: paymentOptionEnum.parse(paymentOption) || "ON_BOOKING",
         },
       });
       if (!paymentData) {

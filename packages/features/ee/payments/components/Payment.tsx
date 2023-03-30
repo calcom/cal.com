@@ -49,14 +49,13 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
-  console.log("🚀 ~ file: Payment.tsx:50 ~ PaymentComponent ~ props:", props.payment);
   const { t, i18n } = useLocale();
   const router = useRouter();
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
-  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption ? false : true);
+  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
 
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
