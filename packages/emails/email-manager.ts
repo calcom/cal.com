@@ -88,8 +88,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      const clonedCalEvent = cloneDeep(calEvent);
-      return sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee));
+      return sendEmail(() => new AttendeeRescheduledEmail(calEvent, attendee));
     })
   );
 
@@ -178,8 +177,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      const clonedCalEvent = cloneDeep(calEvent);
-      return sendEmail(() => new AttendeeCancelledEmail(clonedCalEvent, attendee));
+      return sendEmail(() => new AttendeeCancelledEmail(calEvent, attendee));
     })
   );
 
@@ -256,8 +254,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
-      const clonedCalEvent = cloneDeep(calEvent);
-      return sendEmail(() => new AttendeeLocationChangeEmail(clonedCalEvent, attendee));
+      return sendEmail(() => new AttendeeLocationChangeEmail(calEvent, attendee));
     })
   );
 
