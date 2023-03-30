@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2015",
     "baseUrl": ".",
-    "module": "esnext",
+    "module": "ESNext",
     "declaration": true,
     "outDir": "dist",
     "paths": {

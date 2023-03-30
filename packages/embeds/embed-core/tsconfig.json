@@ -3,11 +3,12 @@
   "compilerOptions": {
     "target": "ES2015",
     "module": "esnext",
-    "paths": {
-      "@lib/*": ["../../../apps/web/lib/*"]
-    },
     "moduleResolution": "Node",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "outDir": "dist",
+    "paths": {
+      "@calcom/*": ["../../packages/*/src"]
+    }
   },
   "include": ["src", "env.d.ts", "index.ts"],
   "exclude": ["dist", "build", "node_modules"]

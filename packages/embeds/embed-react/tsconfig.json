@@ -7,8 +7,9 @@
     "baseUrl": ".",
     "declaration": true,
     "jsx": "preserve",
+    "outDir": "dist",
     "paths": {
-      "@lib/*": ["../../../apps/web/lib/*"]
+      "@calcom/*": ["../../packages/*/src"]
     }
   },
   "include": ["src", "env.d.ts"],
