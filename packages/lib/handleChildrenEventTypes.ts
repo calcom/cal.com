@@ -146,8 +146,6 @@ export default async function handleChildrenEventTypes({
   const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
   const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
 
-  console.log({ previousUserIds, currentUserIds, deletedUserIds, newUserIds, oldUserIds });
-
   // Define hashedLink query input
   const hashedLinkQuery = (userId: number) => {
     return hashedLink
