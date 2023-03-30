@@ -164,7 +164,7 @@ const useGetBrandingColours = ({
       "cal-brand": darkColourMap["500"],
       "cal-brand-emphasis": darkColourMap["600"],
       "cal-brand-subtle": darkColourMap["800"],
-      "cal-brand-text": darkColourMap["100"],
+      "cal-brand-text": darkColourMap["900"],
     },
     // @hariom - are these needed still? Can we move these to tokens?
     root: {

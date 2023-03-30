@@ -14,6 +14,7 @@ const useCalcomTheme = (theme: Record<string, CssVariables>) => {
         return;
       }
 
+      const elements = document.querySelectorAll(`.${key}`);
       const nestedEntries = Object.entries(value);
       nestedEntries.forEach(([nestedKey, nestedValue]) => {
         elements.forEach((element) => {
