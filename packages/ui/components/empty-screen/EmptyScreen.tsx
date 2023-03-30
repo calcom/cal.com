@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import React from "react";
 import type { IconType } from "react-icons";
 
+import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button } from "../../components/button";
@@ -14,6 +15,7 @@ export function EmptyScreen({
   buttonText,
   buttonOnClick,
   buttonRaw,
+  border = true,
 }: {
   Icon?: SVGComponent | IconType;
   avatar?: React.ReactElement;
@@ -22,12 +24,16 @@ export function EmptyScreen({
   buttonText?: string;
   buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   buttonRaw?: ReactNode; // Used incase you want to provide your own button.
+  border?: boolean;
 }) {
   return (
     <>
       <div
         data-testid="empty-screen"
-        className="min-h-80 flex w-full flex-col items-center justify-center rounded-md border border-dashed p-7 lg:p-20">
+        className={classNames(
+          "min-h-80 flex w-full flex-col items-center justify-center rounded-md  p-7 lg:p-20",
+          border && "border border-dashed"
+        )}>
         {!avatar ? null : (
           <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full">{avatar}</div>
         )}

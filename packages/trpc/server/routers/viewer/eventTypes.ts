@@ -1,7 +1,6 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-// REVIEW: From lint error
-import _ from "lodash";
+import { orderBy } from "lodash";
 import type { NextApiResponse } from "next";
 import { z } from "zod";
 
@@ -13,6 +12,7 @@ import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-st
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -284,6 +284,7 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
+      safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
@@ -336,7 +337,7 @@ export const eventTypesRouter = router({
         name: user.name,
         image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
