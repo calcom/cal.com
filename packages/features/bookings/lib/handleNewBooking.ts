@@ -38,7 +38,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { getVideoCallUrlFromEvent } from "@calcom/lib/CalEventParser";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
@@ -1879,12 +1879,7 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromEvent({
-          additionalInformation: evt.additionalInformation,
-          location: evt?.location ?? undefined,
-          // updatedEvent: evt.updatedEvent,
-          videoCallData: evt.videoCallData,
-        }),
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
       }
     : undefined;
   if (isConfirmedByDefault) {

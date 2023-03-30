@@ -120,7 +120,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
     `;
 };
 export const getLocation = (calEvent: CalendarEvent) => {
-  const meetingUrl = getVideoCallUrl(calEvent);
+  const meetingUrl = getVideoCallUrlFromCalEvent(calEvent);
   if (meetingUrl) {
     return meetingUrl;
   }
