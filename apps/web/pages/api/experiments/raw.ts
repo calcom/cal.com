@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import postgres from "postgres";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const cacheKey = "experiment.prisma";
+  const cacheKey = "experiment";
   const memory = cache.get(cacheKey);
   if (!memory) {
     cache.put(cacheKey, new Date());
