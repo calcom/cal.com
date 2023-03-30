@@ -109,6 +109,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
+  if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
+    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+      const reminderBodyTemplate = emailReminderTemplate(
+        true,
+        form.getValues(`steps.${step.stepNumber - 1}.action`)
+      ).emailBody;
+      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
+    }
+    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+      const subjectTemplate = emailReminderTemplate(
+        true,
+        form.getValues(`steps.${step.stepNumber - 1}.action`)
+      ).emailSubject;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    }
+  }
+
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
