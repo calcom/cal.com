@@ -70,7 +70,7 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -78,6 +78,9 @@ const nextConfig = {
   /* We already do linting on GH actions */
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
+  },
+  experimental: {
+    appDir: true,
   },
   transpilePackages: [
     "@calcom/app-store",
@@ -98,6 +101,11 @@ const nextConfig = {
       transform: "@react-icons/all-files/fi/{{member}}",
       skipDefaultConversion: true,
       preventFullImport: true,
+    },
+    lodash: {
+      transform: "lodash/{{member}}",
+      //skipDefaultConversion: true,
+      //preventFullImport: true,
     },
     // TODO: We need to have all components in `@calcom/ui/components` in order to use this
     // "@calcom/ui": {
