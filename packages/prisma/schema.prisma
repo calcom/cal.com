@@ -425,7 +425,7 @@ model Payment {
   refunded      Boolean
   data          Json
   externalId    String         @unique
-  paymentOption PaymentOption?
+  paymentOption PaymentOption? @default(ON_BOOKING)
 }
 
 enum PaymentOption {
