@@ -220,7 +220,7 @@ export const getPublicVideoCallUrl = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/video/" + getUid(calEvent);
 };
 
-export const getVideoCallUrl = (calEvent: CalendarEvent): string => {
+export const getVideoCallUrlFromCalEvent = (calEvent: CalendarEvent): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
       return getPublicVideoCallUrl(calEvent);
