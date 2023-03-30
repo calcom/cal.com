@@ -1010,6 +1010,16 @@ async function handler(
           throw new HttpError({ statusCode: 401 });
         }
 
+        // Moving forward in this block is the owner making changes to the booking. All attendees should be affected
+        evt.attendees = originalRescheduledBooking.attendees.map((attendee) => {
+          return {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+          };
+        });
+
         // If owner reschedules the event we want to update the entire booking
         // Also if owner is rescheduling there should be no bookingSeat
 
