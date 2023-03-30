@@ -34,6 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const remindersToDelete = await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.EMAIL,
+      cancelled: true,
       scheduledDate: {
         lte: dayjs().toISOString(),
       },
