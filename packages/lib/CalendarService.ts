@@ -37,6 +37,13 @@ const DEFAULT_CALENDAR_TYPE = "caldav";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
+type FetchObjectsWithOptionalExpandOptionsType = {
+  selectedCalendars: IntegrationCalendar[];
+  startISOString: string;
+  dateTo: string;
+  headers?: Record<string, string>;
+};
+
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
   const fileName = url.substring(url.lastIndexOf("/") + 1);
@@ -296,34 +303,25 @@ export default abstract class BaseCalendarService implements Calendar {
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
-    const objects = (
-      await Promise.all(
-        selectedCalendars
-          .filter((sc) => ["caldav_calendar", "apple_calendar"].includes(sc.integration ?? ""))
-          .map((sc) =>
-            fetchCalendarObjects({
-              urlFilter: (url: string) => this.isValidFormat(url),
-              calendar: {
-                url: sc.externalId,
-              },
-              headers: this.headers,
-              // using expand definitely breaks fetching events from Zoho Calendar
-              // expand: true,
-              timeRange: {
-                start: startISOString,
-                end: new Date(dateTo).toISOString(),
-              },
-            })
-          )
-      )
-    ).flat();
+
+    const objects = await this.fetchObjectsWithOptionalExpand({
+      selectedCalendars,
+      startISOString,
+      dateTo,
+      headers: this.headers,
+    });
 
     const events: { start: string; end: string }[] = [];
-
+    console.log("objects==> ", objects);
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
+      console.log("object.data", JSON.stringify(object));
+      console.log("selectedCalendars", JSON.stringify(selectedCalendars));
       let vcalendar;
       try {
+        // maybe confirm that this is a valid calendar object by hitting the following URL like so:
+        // https://icalendar.org/validator.html?url=https://example.com/somecalendar_feed&json=1
+        // but we'd need to access the Ical URL and send that for validation
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
         vcalendar = new ICAL.Component(jcalData);
       } catch (e) {
@@ -467,6 +465,71 @@ export default abstract class BaseCalendarService implements Calendar {
       throw reason;
     }
   }
+
+  /**
+   * The fetchObjectsWithOptionalExpand function is responsible for fetching calendar objects
+   * from an array of selectedCalendars. It attempts to fetch objects with the expand option
+   * alone such that it works if a calendar supports it. If any calendar object has an undefined 'data' property
+   * and etag isn't undefined, the function makes a new request without the expand option to retrieve the data.
+   * The result is a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
+   *
+   * @param {Object} options - The options object containing the following properties:
+   *   @param {IntegrationCalendar[]} options.selectedCalendars - An array of IntegrationCalendar objects to fetch data from.
+   *   @param {string} options.startISOString - The start date of the date range to fetch events from, in ISO 8601 format.
+   *   @param {string} options.dateTo - The end date of the date range to fetch events from.
+   *   @param {Object} options.headers - Headers to be included in the API requests.
+   * @returns {Promise<Array>} - A promise that resolves to a flattened array of calendar objects with the structure { url: ..., etag: ..., data: ...}.
+   */
+
+  async fetchObjectsWithOptionalExpand({ selectedCalendars, startISOString, dateTo, headers }) {
+    const filteredCalendars = selectedCalendars.filter((sc) => sc.externalId);
+    const fetchPromises = filteredCalendars.map(async (sc) => {
+      const response = await fetchCalendarObjects({
+        urlFilter: (url) => this.isValidFormat(url),
+        calendar: {
+          url: sc.externalId,
+        },
+        headers,
+        expand: true,
+        timeRange: {
+          start: startISOString,
+          end: new Date(dateTo).toISOString(),
+        },
+      });
+
+      const processedResponse = await Promise.all(
+        response.map(async (calendarObject) => {
+          const calendarObjectHasEtag = calendarObject.etag !== undefined;
+          const calendarObjectDataUndefined = calendarObject.data === undefined;
+          if (calendarObjectDataUndefined && calendarObjectHasEtag) {
+            const responseWithoutExpand = await fetchCalendarObjects({
+              urlFilter: (url) => this.isValidFormat(url),
+              calendar: {
+                url: sc.externalId,
+              },
+              headers,
+              expand: false,
+              timeRange: {
+                start: startISOString,
+                end: new Date(dateTo).toISOString(),
+              },
+            });
+
+            return responseWithoutExpand.find(
+              (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
+            );
+          }
+          return calendarObject;
+        })
+      );
+
+      return processedResponse;
+    });
+
+    return (await Promise.all(fetchPromises)).flat();
+  }
+
+  // The rest of the code remains the same
 
   private async getEvents(
     calId: string,
