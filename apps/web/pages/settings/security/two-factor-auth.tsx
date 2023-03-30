@@ -36,12 +36,7 @@ const TwoFactorAuthView = () => {
   return (
     <>
       <Meta title={t("2fa")} description={t("2fa_description")} />
-      {!isCalProvider && (
-        <Alert
-          severity="neutral"
-          message="Two-Factor authentication can be enabled only for email and password authentication."
-        />
-      )}
+      {!isCalProvider && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           disabled={!isCalProvider}
