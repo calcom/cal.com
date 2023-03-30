@@ -180,7 +180,7 @@ const querySchema = z.object({
   cancel: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
-  isSuccessBookingPage: z.string().optional(),
+  isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
@@ -266,7 +266,11 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
+  // Confirmation can be needed in two cases as of now
+  // - Event Type has require confirmation option enabled always
+  // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
+  // - It's a paid event and payment is pending.
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
@@ -485,7 +489,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -527,7 +531,7 @@ export default function Success(props: SuccessProps) {
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
-                            <div key={attendee.name} className="mb-3 last:mb-0">
+                            <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                               {attendee.name && <p>{attendee.name}</p>}
                               <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
                                 {attendee.email}
@@ -1087,8 +1091,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
-
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
