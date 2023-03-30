@@ -5,7 +5,7 @@ import classNames from "@calcom/lib/classNames";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
-  description: string;
+  description: string | React.ReactNode;
   descriptionAsLabel?: boolean;
   informationIconText?: string;
   error?: boolean;
