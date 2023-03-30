@@ -60,7 +60,7 @@ export default function RequiresConfirmationController({
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
-              isLocked={requiresConfirmationLockedProps.isLocked}
+              LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val);
                 onRequiresConfirmation(val);

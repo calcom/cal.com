@@ -42,7 +42,7 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
 
 type InputFieldProps = {
   label?: ReactNode;
-  isLocked?: React.ReactNode;
+  LockedIcon?: React.ReactNode;
   hint?: ReactNode;
   hintErrors?: string[];
   addOnLeading?: ReactNode;
@@ -89,7 +89,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelProps,
     labelClassName,
     disabled,
-    isLocked,
+    LockedIcon,
     placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
@@ -121,7 +121,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           <>
             {label}
-            {isLocked}
+            {LockedIcon}
           </>
         </Skeleton>
       )}

@@ -29,11 +29,36 @@ const getLocationFromType = (
   locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
 ) => {
   for (const locationOption of locationOptions) {
-    const option = locationOption.options.find((option: { value: string }) => option.value === type);
+    const option = locationOption.options.find((option) => option.value === type);
     if (option) {
       return option;
     }
   }
+};
+
+const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+  const locationAvailable =
+    props.eventType.locations &&
+    props.eventType.locations.length > 0 &&
+    props.locationOptions.some((op) =>
+      op.options.find((opt) => opt.value === props.eventType.locations[0].type)
+    );
+  const locationDetails = props.eventType.locations &&
+    props.eventType.locations.length > 0 &&
+    !locationAvailable && {
+      slug: props.eventType.locations[0].type
+        .replace("integrations:", "")
+        .replace(":", "-")
+        .replace("_video", ""),
+      name: props.eventType.locations[0].type
+        .replace("integrations:", "")
+        .replace(":", " ")
+        .replace("_video", "")
+        .split(" ")
+        .map((word) => word[0].toUpperCase() + word.slice(1))
+        .join(" "),
+    };
+  return { locationAvailable, locationDetails };
 };
 
 export const EventSetupTab = (
@@ -163,26 +188,7 @@ export const EventSetupTab = (
       ? locationOptions.find((op) => op.label === t("default"))?.options[0]
       : undefined;
 
-    const locationAvailable =
-      eventType.locations &&
-      eventType.locations.length > 0 &&
-      locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
-
-    const locationDetails = eventType.locations &&
-      eventType.locations.length > 0 &&
-      !locationAvailable && {
-        slug: eventType.locations[0].type
-          .replace("integrations:", "")
-          .replace(":", "-")
-          .replace("_video", ""),
-        name: eventType.locations[0].type
-          .replace("integrations:", "")
-          .replace(":", " ")
-          .replace("_video", "")
-          .split(" ")
-          .map((word) => word[0].toUpperCase() + word.slice(1))
-          .join(" "),
-      };
+    const { locationDetails, locationAvailable } = getLocationInfo(props);
 
     return (
       <div className="w-full">

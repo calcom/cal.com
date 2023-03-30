@@ -10,7 +10,7 @@ type Props = {
   description?: string;
   checked: boolean;
   disabled?: boolean;
-  isLocked?: React.ReactNode;
+  LockedIcon?: React.ReactNode;
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
   tooltip?: string;
@@ -20,7 +20,7 @@ function SettingsToggle({
   checked,
   onCheckedChange,
   description,
-  isLocked,
+  LockedIcon,
   title,
   children,
   disabled,
@@ -46,7 +46,7 @@ function SettingsToggle({
             <div>
               <Label className="text-sm font-semibold leading-none text-black">
                 {title}
-                {isLocked}
+                {LockedIcon}
               </Label>
               {description && <p className="-mt-1.5 text-sm leading-normal text-gray-600">{description}</p>}
             </div>

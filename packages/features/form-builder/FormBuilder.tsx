@@ -45,14 +45,14 @@ export const FormBuilder = function FormBuilder({
   addFieldLabel,
   formProp,
   disabled,
-  isLocked,
+  LockedIcon,
 }: {
   formProp: string;
   title: string;
   description: string;
   addFieldLabel: string;
   disabled: boolean;
-  isLocked: false | JSX.Element;
+  LockedIcon: false | JSX.Element;
 }) {
   const FieldTypesMap: Record<
     string,
@@ -266,7 +266,7 @@ export const FormBuilder = function FormBuilder({
       <div>
         <div className="text-sm font-semibold text-gray-700 ltr:mr-1 rtl:ml-1">
           {title}
-          {isLocked}
+          {LockedIcon}
         </div>
         <p className="max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">{description}</p>
         <ul className="mt-2 rounded-md border">
