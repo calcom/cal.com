@@ -32,20 +32,6 @@ const userBodySchema = User.pick({
   // avatar: true,
 });
 
-const authedAdminWithUserMiddleware = middleware(async ({ ctx, next, rawInput }) => {
-  const { prisma } = ctx;
-  const parsed = userIdSchema.safeParse(rawInput);
-  if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
-  const { userId: id } = parsed.data;
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-  return next({
-    ctx: { user: ctx.user, requestedUser: user },
-  });
-});
-
-const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(authedAdminWithUserMiddleware);
-
 /** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
 export function getAvatarUrlFromUser(user: {
   avatar: string | null;
@@ -56,6 +42,33 @@ export function getAvatarUrlFromUser(user: {
   return `${WEBAPP_URL}/${user.username}/avatar.png`;
 }
 
+function exclude<UserType, Key extends keyof UserType>(user: UserType, keys: Key[]): Omit<UserType, Key> {
+  for (const key of keys) {
+    delete user[key];
+  }
+  return user;
+}
+
+/** Reusable logic that checks for admin permissions and if the requested user exists */
+const authedAdminWithUserMiddleware = middleware(async ({ ctx, next, rawInput }) => {
+  const { prisma } = ctx;
+  const parsed = userIdSchema.safeParse(rawInput);
+  if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
+  const { userId: id } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+  return next({
+    ctx: {
+      user: ctx.user,
+      requestedUser:
+        /** Don't leak the password */
+        exclude(user, ["password"]),
+    },
+  });
+});
+
+const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(authedAdminWithUserMiddleware);
+
 export const userAdminRouter = router({
   get: authedAdminProcedureWithRequestedUser.input(userIdSchema).query(async ({ ctx }) => {
     const { requestedUser } = ctx;
@@ -65,16 +78,16 @@ export const userAdminRouter = router({
     const { prisma } = ctx;
     // TODO: Add search, pagination, etc.
     const users = await prisma.user.findMany();
-
-    return users.map((user) => {
+    return users.map((user) => ({
+      /** Don't leak the password */
+      ...exclude(user, ["password"]),
       /**
        * FIXME: This should be either a prisma extension or middleware
        * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
        * @see https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions/result
        **/
-      user.avatar = getAvatarUrlFromUser(user);
-      return user;
-    });
+      avatar: getAvatarUrlFromUser(user),
+    }));
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;

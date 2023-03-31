@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { CAL_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, ConfirmationDialogContent, Dialog, DropdownActions, showToast, Table } from "@calcom/ui";
 import { FiEdit, FiTrash } from "@calcom/ui/components/icon";
@@ -50,7 +49,7 @@ function UsersTableBare() {
                 <div className="min-h-10 relative pl-12">
                   <img
                     className="absolute left-0 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full"
-                    src={`${CAL_URL}/${user.username}/avatar.png`}
+                    src={user.avatar}
                     alt={`Avatar of ${user.name}`}
                   />
 
