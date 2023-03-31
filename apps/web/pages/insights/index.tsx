@@ -98,7 +98,7 @@ export default function InsightsPage() {
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
-                <small className="block text-center text-gray-600">
+                <small className="text-default block text-center">
                   {t("looking_for_more_analytics")}
                   <a
                     className="text-blue-500 hover:underline"

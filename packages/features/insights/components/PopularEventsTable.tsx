@@ -24,14 +24,14 @@ export const PopularEventsTable = () => {
 
   return (
     <CardInsights>
-      <Title>{t("popular_events")}</Title>
+      <Title className="text-emphasis">{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
           {data.map((item) => (
             <TableRow key={item.eventTypeId}>
-              <TableCell>{item.eventTypeName}</TableCell>
+              <TableCell className="text-default">{item.eventTypeName}</TableCell>
               <TableCell>
-                <Text>
+                <Text className="text-default">
                   <strong>{item.count}</strong>
                 </Text>
               </TableCell>
