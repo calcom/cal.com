@@ -46,7 +46,7 @@ export default createNextApiHandler({
 
     // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
     defaultHeaders.headers["cache-control"] = `no-cache`; // FIXME
-    
+
     return defaultHeaders;
   },
 });
