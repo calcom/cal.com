@@ -26,8 +26,6 @@ export default createNextApiHandler({
    * @link https://trpc.io/docs/caching#api-response-caching
    */
   responseMeta({ ctx, paths, type, errors }) {
-    // assuming you have all your public routes with the keyword `public` in them
-    const allPublic = paths && paths.every((path) => path.startsWith("viewer.public."));
     // checking that no procedures errored
     const allOk = errors.length === 0;
     // checking we're doing a query request
@@ -44,7 +42,7 @@ export default createNextApiHandler({
     if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
 
     // We need all these conditions to be true to set cache headers
-    if (!(allPublic && allOk && isQuery)) return defaultHeaders;
+    if (!(allOk && isQuery)) return defaultHeaders;
 
     // No cache for slots
     defaultHeaders.headers["cache-control"] = `no-cache`;
