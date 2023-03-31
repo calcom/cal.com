@@ -27,13 +27,13 @@ export const BookingStatusLineChart = () => {
 
   return (
     <CardInsights>
-      <Title>{t("event_trends")}</Title>
+      <Title className="text-emphasis">{t("event_trends")}</Title>
       <LineChart
-        className="mt-4 h-80"
+        className="linechart mt-4 h-80"
         data={eventsTimeLine ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled"]}
         index="Month"
-        colors={["gray", "green", "blue", "red"]}
+        colors={["purple", "green", "blue", "red"]}
         valueFormatter={valueFormatter}
       />
     </CardInsights>

@@ -88,6 +88,8 @@ body  {
   -webkit-font-smoothing: antialiased;
 }
 
+
+
 /*
   Desktop App specific CSS
     https://docs.todesktop.com/
@@ -228,6 +230,12 @@ input[type="text"]:focus {
   .scroll-bar {
     @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
+
+ 
+}
+
+svg .tremor-Card-root .recharts-yAxis text {
+  fill: green !important;
 }
 
 /* TODO: avoid global specific css */

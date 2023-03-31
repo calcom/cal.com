@@ -73,6 +73,18 @@ module.exports = {
         error: "var(--cal-text-error, #752522)",
         brand: "var(--cal-brand-text)",
       },
+      fill: {
+        emphasis: "var(--cal-text-emphasis, #111827)",
+        default: "var(--cal-text, #374151)",
+        subtle: "var(--cal-text-subtle, #6B7280)",
+        muted: "var(--cal-text-muted, #9CA3AF)",
+        inverted: "var(--cal-text-inverted, white)",
+        info: "var(--cal-text-info, #253985)",
+        success: "var(--cal-text-success, #285231)",
+        attention: "var(--cal-text-attention, #73321B)",
+        error: "var(--cal-text-error, #752522)",
+        brand: "var(--cal-brand-text)",
+      },
       screens: {
         pwa: { raw: "(display-mode: standalone)" },
       },

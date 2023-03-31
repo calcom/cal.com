@@ -25,12 +25,12 @@ const Heading = () => {
   } = useFilterContext();
   return (
     <div className="min-w-52">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis hidden truncate text-xl font-semibold tracking-wide md:block xl:max-w-full">
         {t("analytics_for_organisation", {
           organisationName: selectedTeamName,
         })}
       </h3>
-      <p className="hidden text-sm text-gray-500 md:block">{t("subtitle_analytics")}</p>
+      <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
     </div>
   );
 };
