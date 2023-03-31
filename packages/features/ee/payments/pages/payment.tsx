@@ -1,5 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
+import type Stripe from "stripe";
 import { z } from "zod";
 
 import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
@@ -87,7 +88,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { data, booking: _booking, ...restPayment } = rawPayment;
   const payment = {
     ...restPayment,
-    data: data as unknown as StripePaymentData,
+    data: data as unknown as
+      | StripePaymentData
+      | { setupIntent: Stripe.Response<Stripe.SetupIntent>; paymentIntent?: StripePaymentData },
   };
 
   if (!_booking) return { notFound: true };

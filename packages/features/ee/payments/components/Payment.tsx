@@ -49,6 +49,7 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
+  console.log("🚀 ~ file: Payment.tsx:52 ~ PaymentComponent ~ props:", props);
   const { t, i18n } = useLocale();
   const router = useRouter();
   const [state, setState] = useState<States>({ status: "idle" });
@@ -76,22 +77,33 @@ export default function PaymentComponent(props: Props) {
     const card = elements.getElement(CardElement);
     if (!card) return;
     setState({ status: "processing" });
-    const payload = await stripe.confirmCardPayment(props.payment.data.client_secret!, {
-      payment_method: {
-        card,
-      },
-    });
-    if (payload.error) {
+
+    let payload;
+    const params: { [k: string]: any } = {
+      uid: props.bookingUid,
+      email: router.query.email,
+    };
+    const query = stringify(params);
+    const successUrl = `/booking/${props.bookingUid}?${query}`;
+    if (paymentOption === "HOLD") {
+      payload = await stripe.confirmCardSetup(props.payment.data.setupIntent.client_secret!, {
+        payment_method: {
+          card,
+        },
+      });
+    } else if (paymentOption === "ON_BOOKING") {
+      payload = await stripe.confirmCardPayment(props.payment.data.client_secret!, {
+        payment_method: {
+          card,
+        },
+      });
+    }
+    if (payload?.error) {
       setState({
         status: "error",
         error: new Error(`Payment failed: ${payload.error.message}`),
       });
     } else {
-      const params: { [k: string]: any } = {
-        uid: props.bookingUid,
-        email: router.query.email,
-      };
-
       if (props.location) {
         if (props.location.includes("integration")) {
           params.location = t("web_conferencing_details_to_follow");
@@ -99,9 +111,6 @@ export default function PaymentComponent(props: Props) {
           params.location = props.location;
         }
       }
-
-      const query = stringify(params);
-      const successUrl = `/booking/${props.bookingUid}?${query}`;
 
       await router.push(successUrl);
     }

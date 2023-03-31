@@ -1374,12 +1374,14 @@ async function handler(
         if (!eventTypePaymentAppCredential?.appId) {
           throw new HttpError({ statusCode: 400, message: "Missing payment app id" });
         }
+        console.log("🚀 ~ file: handleNewBooking.ts:1393 ~ bookerEmail:", bookerEmail);
 
         const payment = await handlePayment(
           evt,
           eventType,
           eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-          booking
+          booking,
+          bookerEmail
         );
 
         return {
@@ -1848,7 +1850,8 @@ async function handler(
       evt,
       eventType,
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-      booking
+      booking,
+      bookerEmail
     );
 
     req.statusCode = 201;

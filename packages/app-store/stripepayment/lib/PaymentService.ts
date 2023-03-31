@@ -11,6 +11,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
+import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -39,9 +40,18 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    paymentOption?: typeof paymentOptionEnum
+    bookerEmail: string,
+    paymentOption: string
   ) {
     try {
+      const parsePaymentOption = paymentOptionEnum.safeParse(paymentOption);
+
+      if (parsePaymentOption.success) {
+        paymentOption = parsePaymentOption.data;
+      } else {
+        new Error(`Invalid payment option: ${paymentOption}`);
+      }
+
       // Load stripe keys
       const stripeAppKeys = await prisma?.app.findFirst({
         select: {
@@ -58,12 +68,68 @@ export class PaymentService implements IAbstractPaymentService {
       );
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
+      const customer = await retrieveOrCreateStripeCustomerByEmail(
+        bookerEmail,
+        this.credentials.stripe_user_id
+      );
+      console.log("🚀 ~ file: PaymentService.ts:64 ~ PaymentService ~ customer:", customer);
+
+      // If we want to charge the customer for a no show fee then create a setup intent
+      if (paymentOption === "HOLD") {
+        const params = {
+          customer: customer.id,
+          payment_method_types: ["card"],
+          metadata: {
+            bookingId,
+          },
+        };
+
+        const setupIntent = await this.stripe.setupIntents.create(params, {
+          stripeAccount: this.credentials.stripe_user_id,
+        });
+
+        const paymentData = await prisma?.payment.create({
+          data: {
+            uid: uuidv4(),
+            app: {
+              connect: {
+                slug: "stripe",
+              },
+            },
+            booking: {
+              connect: {
+                id: bookingId,
+              },
+            },
+            amount: payment.amount,
+            currency: payment.currency,
+            externalId: setupIntent.id,
+
+            data: Object.assign(
+              {},
+              {
+                setupIntent,
+                stripe_publishable_key: this.credentials.stripe_publishable_key,
+                stripeAccount: this.credentials.stripe_user_id,
+              }
+            ) as unknown as Prisma.InputJsonValue,
+            fee: paymentFee,
+            refunded: false,
+            success: false,
+            paymentOption: paymentOption || "ON_BOOKING",
+          },
+        });
+
+        return paymentData;
+      }
+
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: this.credentials.default_currency,
         payment_method_types: ["card"],
         application_fee_amount: paymentFee,
-        ...(paymentOptionEnum.parse(paymentOption) === "HOLD" && { capture_method: "manual" }),
+        customer: customer.id,
+        // ...(paymentOptionEnum.parse(paymentOption) === "HOLD" && { capture_method: "manual" }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {
@@ -94,7 +160,7 @@ export class PaymentService implements IAbstractPaymentService {
           fee: paymentFee,
           refunded: false,
           success: false,
-          paymentOption: paymentOptionEnum.parse(paymentOption) || "ON_BOOKING",
+          paymentOption: paymentOption || "ON_BOOKING",
         },
       });
       if (!paymentData) {

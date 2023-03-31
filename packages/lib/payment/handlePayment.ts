@@ -21,7 +21,8 @@ const handlePayment = async (
     id: number;
     startTime: { toISOString: () => string };
     uid: string;
-  }
+  },
+  bookerEmail: string
 ) => {
   const paymentApp = appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
@@ -36,7 +37,8 @@ const handlePayment = async (
       currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
     },
     booking.id,
-    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption
+    bookerEmail,
+    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING"
   );
 
   if (!paymentData) {

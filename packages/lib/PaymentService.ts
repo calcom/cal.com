@@ -5,7 +5,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 export interface IAbstractPaymentService {
   create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: Booking["id"]
+    bookingId: Booking["id"],
+    bookerEmail: string,
+    paymentOption: string
   ): Promise<Payment>;
   update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
   refund(paymentId: Payment["id"]): Promise<Payment>;
