@@ -40,7 +40,7 @@ export default trpcNext.createNextApiHandler({
     // Some helpers relevant to this function only
     const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
     // assuming you have all your public routes with the keyword `public` in them
-    const allPublic = paths && paths.every((path) => path.startsWith("viewer.public."));
+    const allPublic = paths && paths.every((path) => path.startsWith("public."));
     // checking that no procedures errored
     const allOk = errors.length === 0;
     // checking we're doing a query request
