@@ -26,7 +26,11 @@ test.describe("Onboarding", () => {
         await page.locator("input[name=username]").fill("new user onboarding");
         await page.locator("input[name=name]").fill("new user 2");
         await page.locator("input[role=combobox]").click();
-        await page.locator("text=Europe/London GMT +0:00").click();
+        await page
+          .locator("*")
+          .filter({ hasText: /^Europe\/London/ })
+          .first()
+          .click();
 
         await page.locator("button[type=submit]").click();
 
