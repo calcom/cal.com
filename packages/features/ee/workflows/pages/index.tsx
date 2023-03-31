@@ -78,9 +78,7 @@ function WorkflowsPage() {
     }
   }, [session.status, query.isLoading, allWorkflowsData]);
 
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
+  const profileOptions = query?.data?.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -91,16 +89,18 @@ function WorkflowsPage() {
       };
     });
 
+  if (!query.data && !isLoading) return null;
   return (
     <Shell
       heading={t("workflows")}
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        query.data.profiles.length === 1 &&
+        query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length > 0 ? (
+        allWorkflowsData?.workflows.length &&
+        profileOptions ? (
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             options={profileOptions}
@@ -119,9 +119,11 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {query.data.profiles.length > 1 &&
+            {query?.data?.profiles &&
+              query?.data?.profiles.length &&
               allWorkflowsData?.workflows &&
-              allWorkflowsData.workflows.length > 0 && (
+              allWorkflowsData.workflows.length &&
+              profileOptions && (
                 <div className="mb-4 flex">
                   <Filter
                     profiles={query.data.profiles}
@@ -139,11 +141,13 @@ function WorkflowsPage() {
                   </div>
                 </div>
               )}
-            <WorkflowList
-              workflows={filteredWorkflows}
-              profileOptions={profileOptions}
-              hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
-            />
+            {profileOptions && profileOptions?.length ? (
+              <WorkflowList
+                workflows={filteredWorkflows}
+                profileOptions={profileOptions}
+                hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
+              />
+            ) : null}
           </>
         )}
       </LicenseRequired>
