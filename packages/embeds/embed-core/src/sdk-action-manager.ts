@@ -1,5 +1,5 @@
 type Namespace = string;
-type CustomEventDetail = Record<string, any>;
+type CustomEventDetail = Record<string, unknown>;
 
 function _fireEvent(fullName: string, detail: CustomEventDetail) {
   const event = new window.CustomEvent(fullName, {
@@ -8,6 +8,53 @@ function _fireEvent(fullName: string, detail: CustomEventDetail) {
 
   window.dispatchEvent(event);
 }
+
+export type EventDataMap = {
+  eventTypeSelected: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    eventType: any;
+  };
+  linkFailed: {
+    code: string;
+    msg: string;
+    data: {
+      url: string;
+    };
+  };
+  linkReady: Record<string, never>;
+  bookingSuccessful: {
+    // TODO: Shouldn't send the entire booking and eventType objects, we should send specific fields from them.
+    booking: unknown;
+    eventType: unknown;
+    date: string;
+    duration: number | undefined;
+    organizer: {
+      name: string;
+      email: string;
+      timeZone: string;
+    };
+    confirmed: boolean;
+  };
+  "*": Record<string, unknown>;
+  __routeChanged: Record<string, never>;
+  __windowLoadComplete: Record<string, never>;
+  __closeIframe: Record<string, never>;
+  __iframeReady: Record<string, never>;
+  __dimensionChanged: {
+    iframeHeight: number;
+    iframeWidth: number;
+    isFirstTime: boolean;
+  };
+};
+
+export type EventData<T extends keyof EventDataMap> = {
+  [K in T]: {
+    type: string;
+    namespace: string;
+    fullType: string;
+    data: EventDataMap[K];
+  };
+}[T];
 
 export class SdkActionManager {
   namespace: Namespace;
@@ -31,7 +78,7 @@ export class SdkActionManager {
     return this.namespace ? `CAL:${this.namespace}:${name}` : `CAL::${name}`;
   }
 
-  fire(name: string, data: CustomEventDetail) {
+  fire<T extends keyof EventDataMap>(name: T, data: EventDataMap[T]) {
     const fullName = this.getFullActionName(name);
     const detail = {
       type: name,
@@ -46,12 +93,12 @@ export class SdkActionManager {
     _fireEvent(this.getFullActionName("*"), detail);
   }
 
-  on(name: string, callback: (arg0: CustomEvent<CustomEventDetail>) => void) {
+  on<T extends keyof EventDataMap>(name: T, callback: (arg0: CustomEvent<EventData<T>>) => void) {
     const fullName = this.getFullActionName(name);
     window.addEventListener(fullName, callback as EventListener);
   }
 
-  off(name: string, callback: (arg0: CustomEvent<CustomEventDetail>) => void) {
+  off<T extends keyof EventDataMap>(name: T, callback: (arg0: CustomEvent<EventData<T>>) => void) {
     const fullName = this.getFullActionName(name);
     window.removeEventListener(fullName, callback as EventListener);
   }
