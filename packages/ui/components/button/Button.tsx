@@ -86,36 +86,35 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "secondary",
-        className: "border border-subtle bg-opacity-30 text-muted dark:border-darkgray-200",
+        className: "border border-subtle bg-opacity-30 text-muted ",
       },
       {
         loading: true,
         color: "secondary",
-        className: "bg-subtle text-emphasis/80 dark:bg-darkgray-100 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/80",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-default dark:border-darkgray-300 bg-default dark:bg-darkgray-100 hover:bg-muted hover:border-emphasis focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis dark:focus-visible:ring-white",
+          "border border-default  bg-default hover:bg-muted hover:border-emphasis focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis ",
       }),
       // Minimal variants
       {
         disabled: true,
         color: "minimal",
-        className:
-          "border:gray-200 bg-opacity-30 text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
+        className: "border-subtle bg-opacity-30 text-emphasis/30 ",
       },
       {
         loading: true,
         color: "minimal",
-        className: "bg-subtle text-emphasis/30 dark:bg-darkgray-100 /30 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/30",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "minimal",
         className:
-          "hover:bg-subtle focus-visible:bg-subtle dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis dark:focus-visible:ring-white",
+          "hover:bg-subtle focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis",
       }),
       // Destructive variants
       {
@@ -133,7 +132,7 @@ const buttonClasses = cva(
         disabled: [false, undefined],
         color: "destructive",
         className:
-          "border text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
+          "border border-default text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
       }),
       // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
