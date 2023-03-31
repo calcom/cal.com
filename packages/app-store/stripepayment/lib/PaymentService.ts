@@ -72,7 +72,6 @@ export class PaymentService implements IAbstractPaymentService {
         bookerEmail,
         this.credentials.stripe_user_id
       );
-      console.log("🚀 ~ file: PaymentService.ts:64 ~ PaymentService ~ customer:", customer);
 
       // If we want to charge the customer for a no show fee then create a setup intent
       if (paymentOption === "HOLD") {
@@ -166,6 +165,67 @@ export class PaymentService implements IAbstractPaymentService {
       if (!paymentData) {
         throw new Error();
       }
+      return paymentData;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Payment could not be created");
+    }
+  }
+
+  async chargeCard(payment: Payment, bookingId: Booking["id"]): Promise<Payment> {
+    try {
+      console.log("🚀 ~ file: PaymentService.ts:179 ~ PaymentService ~ payment:", payment);
+      const stripeAppKeys = await prisma?.app.findFirst({
+        select: {
+          keys: true,
+        },
+        where: {
+          slug: "stripe",
+        },
+      });
+
+      const setupIntent = payment.data?.setupIntent;
+
+      // Parse keys with zod
+      const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
+        stripeAppKeys?.keys
+      );
+
+      const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
+
+      const params = {
+        amount: payment.amount,
+        currency: payment.currency,
+        application_fee_amount: paymentFee,
+        customer: setupIntent.customer,
+        payment_method: setupIntent.payment_method,
+        off_session: true,
+        confirm: true,
+      };
+
+      const paymentIntent = await this.stripe.paymentIntents.create(params, {
+        stripeAccount: this.credentials.stripe_user_id,
+      });
+
+      console.log(typeof payment.data);
+
+      const paymentData = await prisma.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          success: true,
+          data: {
+            ...payment.data,
+            paymentIntent,
+          },
+        },
+      });
+
+      if (!paymentData) {
+        throw new Error();
+      }
+
       return paymentData;
     } catch (error) {
       console.error(error);

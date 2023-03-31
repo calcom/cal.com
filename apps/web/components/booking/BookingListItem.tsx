@@ -280,7 +280,7 @@ function BookingListItem(booking: BookingItemProps) {
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
           setShowLocationModal={setChargeCardDialogIsOpen}
-          bookingUId={booking.uid}
+          bookingId={booking.id}
           paymentAmount={booking?.payment[0].amount}
           paymentCurrency={booking?.payment[0].currency}
         />

@@ -4,13 +4,21 @@ import { IntlProvider, FormattedNumber } from "react-intl";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  showToast,
+} from "@calcom/ui";
 import { FiCreditCard } from "@calcom/ui/components/icon";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUId: string;
+  bookingId: string;
   paymentAmount: number;
   paymentCurrency: string;
 }
@@ -18,7 +26,13 @@ interface IRescheduleDialog {
 export const ChargeCardDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingId } = props;
+  const chargeCardMutation = trpc.viewer.payments.chargeCard.useMutation({
+    onSuccess: () => {
+      utils.viewer.bookings.invalidate();
+      showToast("Charge successful", "success");
+    },
+  });
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -52,9 +66,12 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
               <DialogClose />
               <Button
                 data-testid="send_request"
-                //   disabled={isLoading}
-                //   onClick={() => {}}
-              >
+                disabled={chargeCardMutation.isLoading}
+                onClick={() =>
+                  chargeCardMutation.mutate({
+                    bookingId,
+                  })
+                }>
                 <Trans i18nKey="charge_card_confirm">
                   Charge attendee{" "}
                   <IntlProvider locale="en">
