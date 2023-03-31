@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
+import type { Slot } from "@calcom/trpc/server/routers/slots";
 import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
