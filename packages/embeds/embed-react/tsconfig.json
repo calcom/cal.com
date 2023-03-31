@@ -7,8 +7,10 @@
     "baseUrl": ".",
     "declaration": true,
     "jsx": "preserve",
+    "outDir": "dist",
     "paths": {
-      "@lib/*": ["../../../apps/web/lib/*"]
+      "@calcom/embed-core": ["../embed-core/src"],
+      "@calcom/embed-snippet": ["../embed-snippet/src"]
     }
   },
   "include": ["src", "env.d.ts"],
