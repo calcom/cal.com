@@ -44,8 +44,9 @@ export default createNextApiHandler({
     // We need all these conditions to be true to set cache headers
     if (!(allOk && isQuery)) return defaultHeaders;
 
-    // No cache for slots
-    defaultHeaders.headers["cache-control"] = `no-cache`;
+    // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
+    defaultHeaders.headers["cache-control"] = `no-cache`; // FIXME
+    
     return defaultHeaders;
   },
 });
