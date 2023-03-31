@@ -6,7 +6,12 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { useEmbedNonStylesConfig, useEmbedStyles, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import {
+  sdkActionManager,
+  useEmbedNonStylesConfig,
+  useEmbedStyles,
+  useIsEmbed,
+} from "@calcom/embed-core/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -18,6 +23,7 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";

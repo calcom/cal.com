@@ -10,6 +10,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -44,7 +45,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
 
   if (isUnpublished) {
     return (
-      <div className="flex m-8 items-center justify-center">
+      <div className="m-8 flex items-center justify-center">
         <EmptyScreen
           avatar={<Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />}
           headline={t("team_is_unpublished", { team: teamName })}
@@ -124,17 +125,17 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             {!team.hideBookATeamMember && (
               <div>
                 <div className="relative mt-12">
-                  <div className="flex absolute inset-0 items-center" aria-hidden="true">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
                     <div className="dark:border-darkgray-300 border-subtle w-full border-t" />
                   </div>
-                  <div className="flex relative justify-center">
+                  <div className="relative flex justify-center">
                     <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
                       {t("or")}
                     </span>
                   </div>
                 </div>
 
-                <aside className="dark:text-inverted flex mt-8 justify-center text-center">
+                <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                   <Button
                     color="minimal"
                     EndIcon={FiArrowRight}
