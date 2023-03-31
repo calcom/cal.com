@@ -11,6 +11,7 @@ import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import { getAvatarUrlFromUser } from "@calcom/lib/getAvatarUrlFromUser";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
@@ -225,6 +226,7 @@ export const eventTypesRouter = router({
       select: {
         id: true,
         username: true,
+        email: true,
         name: true,
         startTime: true,
         endTime: true,
@@ -335,7 +337,7 @@ export const eventTypesRouter = router({
       profile: {
         slug: user.username,
         name: user.name,
-        image: user.avatar || undefined,
+        image: getAvatarUrlFromUser(user),
       },
       eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
