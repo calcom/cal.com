@@ -442,6 +442,7 @@ export const getAccessLinkResponseSchema = z.object({
 
 export type GetAccessLinkResponseSchema = z.infer<typeof getAccessLinkResponseSchema>;
 
+/** Facilitates converting values from Select inputs to plain ones before submitting */
 export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
   z
     .object({
