@@ -42,6 +42,7 @@ export function getAvatarUrlFromUser(user: {
   return `${WEBAPP_URL}/${user.username}/avatar.png`;
 }
 
+/** @see https://www.prisma.io/docs/concepts/components/prisma-client/excluding-fields#excluding-the-password-field */
 function exclude<UserType, Key extends keyof UserType>(user: UserType, keys: Key[]): Omit<UserType, Key> {
   for (const key of keys) {
     delete user[key];
