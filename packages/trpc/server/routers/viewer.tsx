@@ -41,7 +41,7 @@ import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -208,7 +208,7 @@ const loggedInViewerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       // Check if input.password is correct
-      const user = await prisma.user.findUnique({
+      const user = await ctx.prisma.user.findUnique({
         where: {
           email: ctx.user.email.toLowerCase(),
         },
@@ -274,7 +274,7 @@ const loggedInViewerRouter = router({
       return;
     }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: {
         email: ctx.user.email.toLowerCase(),
       },
@@ -324,7 +324,7 @@ const loggedInViewerRouter = router({
   connectedCalendars: authedProcedure.query(async ({ ctx }) => {
     const { user, prisma } = ctx;
 
-    const userCredentials = await prisma.credential.findMany({
+    const userCredentials = await ctx.prisma.credential.findMany({
       where: {
         userId: ctx.user.id,
         app: {
@@ -426,7 +426,7 @@ const loggedInViewerRouter = router({
 
       if (eventTypeId) {
         if (
-          !(await prisma.eventType.findFirst({
+          !(await ctx.prisma.eventType.findFirst({
             where: {
               id: eventTypeId,
               userId: user.id,
@@ -562,7 +562,7 @@ const loggedInViewerRouter = router({
       prisma,
     } = ctx;
 
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -617,7 +617,7 @@ const loggedInViewerRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user, prisma } = ctx;
+      const { user } = ctx;
       const data: Prisma.UserUpdateInput = {
         ...input,
         metadata: input.metadata as Prisma.InputJsonValue,
@@ -638,7 +638,7 @@ const loggedInViewerRouter = router({
       if (input.avatar) {
         data.avatar = await resizeBase64Image(input.avatar);
       }
-      const userToUpdate = await prisma.user.findUnique({
+      const userToUpdate = await ctx.prisma.user.findUnique({
         where: {
           id: user.id,
         },
@@ -681,7 +681,7 @@ const loggedInViewerRouter = router({
         }
       }
 
-      const updatedUser = await prisma.user.update({
+      const updatedUser = await ctx.prisma.user.update({
         where: {
           id: user.id,
         },
@@ -713,7 +713,7 @@ const loggedInViewerRouter = router({
       // Revalidate booking pages
       const res = ctx.res as NextApiResponse;
       if (typeof res?.revalidate !== "undefined") {
-        const eventTypes = await prisma.eventType.findMany({
+        const eventTypes = await ctx.prisma.eventType.findMany({
           where: {
             userId: user.id,
             team: null,
@@ -777,7 +777,7 @@ const loggedInViewerRouter = router({
       }
       await Promise.all(
         reverse(input.ids).map((id, position) => {
-          return prisma.eventType.update({
+          return ctx.prisma.eventType.update({
             where: {
               id,
             },
@@ -818,7 +818,7 @@ const loggedInViewerRouter = router({
       if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
     }),
   locationOptions: authedProcedure.query(async ({ ctx }) => {
-    const credentials = await prisma.credential.findMany({
+    const credentials = await ctx.prisma.credential.findMany({
       where: {
         userId: ctx.user.id,
       },
@@ -850,7 +850,7 @@ const loggedInViewerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, externalId } = input;
 
-      const credential = await prisma.credential.findFirst({
+      const credential = await ctx.prisma.credential.findFirst({
         where: {
           id: id,
           userId: ctx.user.id,
@@ -872,7 +872,7 @@ const loggedInViewerRouter = router({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      const eventTypes = await prisma.eventType.findMany({
+      const eventTypes = await ctx.prisma.eventType.findMany({
         where: {
           userId: ctx.user.id,
         },
@@ -914,7 +914,7 @@ const loggedInViewerRouter = router({
               return location;
             });
 
-            await prisma.eventType.update({
+            await ctx.prisma.eventType.update({
               where: {
                 id: eventType.id,
               },
@@ -928,13 +928,13 @@ const loggedInViewerRouter = router({
         // If it's a calendar, remove the destination calendar from the event type
         if (credential.app?.categories.includes(AppCategories.calendar)) {
           if (eventType.destinationCalendar?.credential?.appId === credential.appId) {
-            const destinationCalendar = await prisma.destinationCalendar.findFirst({
+            const destinationCalendar = await ctx.prisma.destinationCalendar.findFirst({
               where: {
                 id: eventType.destinationCalendar?.id,
               },
             });
             if (destinationCalendar) {
-              await prisma.destinationCalendar.delete({
+              await ctx.prisma.destinationCalendar.delete({
                 where: {
                   id: destinationCalendar.id,
                 },
@@ -943,14 +943,14 @@ const loggedInViewerRouter = router({
           }
 
           if (externalId) {
-            const existingSelectedCalendar = await prisma.selectedCalendar.findFirst({
+            const existingSelectedCalendar = await ctx.prisma.selectedCalendar.findFirst({
               where: {
                 externalId: externalId,
               },
             });
             // @TODO: SelectedCalendar doesn't have unique ID so we should only delete one item
             if (existingSelectedCalendar) {
-              await prisma.selectedCalendar.delete({
+              await ctx.prisma.selectedCalendar.delete({
                 where: {
                   userId_integration_externalId: {
                     userId: existingSelectedCalendar.userId,
@@ -970,8 +970,8 @@ const loggedInViewerRouter = router({
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
           if (stripeAppData.price) {
-            await prisma.$transaction(async () => {
-              await prisma.eventType.update({
+            await ctx.prisma.$transaction(async () => {
+              await ctx.prisma.eventType.update({
                 where: {
                   id: eventType.id,
                 },
@@ -991,7 +991,7 @@ const loggedInViewerRouter = router({
               });
 
               // Assuming that all bookings under this eventType need to be paid
-              const unpaidBookings = await prisma.booking.findMany({
+              const unpaidBookings = await ctx.prisma.booking.findMany({
                 where: {
                   userId: ctx.user.id,
                   eventTypeId: eventType.id,
@@ -1043,7 +1043,7 @@ const loggedInViewerRouter = router({
               });
 
               for (const booking of unpaidBookings) {
-                await prisma.booking.update({
+                await ctx.prisma.booking.update({
                   where: {
                     id: booking.id,
                   },
@@ -1059,20 +1059,20 @@ const loggedInViewerRouter = router({
                   } catch (e) {
                     console.error(e);
                   }
-                  await prisma.payment.delete({
+                  await ctx.prisma.payment.delete({
                     where: {
                       id: payment.id,
                     },
                   });
                 }
 
-                await prisma.attendee.deleteMany({
+                await ctx.prisma.attendee.deleteMany({
                   where: {
                     bookingId: booking.id,
                   },
                 });
 
-                await prisma.bookingReference.deleteMany({
+                await ctx.prisma.bookingReference.deleteMany({
                   where: {
                     bookingId: booking.id,
                   },
@@ -1123,19 +1123,19 @@ const loggedInViewerRouter = router({
 
       // if zapier get disconnected, delete zapier apiKey, delete zapier webhooks and cancel all scheduled jobs from zapier
       if (credential.app?.slug === "zapier") {
-        await prisma.apiKey.deleteMany({
+        await ctx.prisma.apiKey.deleteMany({
           where: {
             userId: ctx.user.id,
             appId: "zapier",
           },
         });
-        await prisma.webhook.deleteMany({
+        await ctx.prisma.webhook.deleteMany({
           where: {
             userId: ctx.user.id,
             appId: "zapier",
           },
         });
-        const bookingsWithScheduledJobs = await prisma.booking.findMany({
+        const bookingsWithScheduledJobs = await ctx.prisma.booking.findMany({
           where: {
             userId: ctx.user.id,
             scheduledJobs: {
@@ -1149,7 +1149,7 @@ const loggedInViewerRouter = router({
       }
 
       // Validated that credential is user's above
-      await prisma.credential.delete({
+      await ctx.prisma.credential.delete({
         where: {
           id: id,
         },
@@ -1161,14 +1161,14 @@ const loggedInViewerRouter = router({
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const { prisma, user } = ctx;
-    const count = await prisma.booking.count({
+    const count = await ctx.prisma.booking.count({
       where: {
         status: BookingStatus.PENDING,
         userId: user.id,
         endTime: { gt: new Date() },
       },
     });
-    const recurringGrouping = await prisma.booking.groupBy({
+    const recurringGrouping = await ctx.prisma.booking.groupBy({
       by: ["recurringEventId"],
       _count: {
         recurringEventId: true,

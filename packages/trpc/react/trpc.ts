@@ -16,7 +16,7 @@ import type { AppRouter } from "../server/routers/_app";
  * We deploy our tRPC router on multiple lambdas to keep bundle size as small as possible
  */
 const ENDPOINTS = ["slots", "viewer"] as const;
-export type Endpoint = typeof ENDPOINTS[number];
+export type Endpoint = (typeof ENDPOINTS)[number];
 
 /**
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.

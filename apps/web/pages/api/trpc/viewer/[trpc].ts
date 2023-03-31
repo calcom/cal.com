@@ -66,9 +66,9 @@ export default trpcNext.createNextApiHandler({
     // Our cache can change depending on our current paths value. Since paths is an array,
     // we want to create a map that can match potential paths with their desired cache value
     const cacheRules = {
-      "viewer.public.session": `no-cache`,
-      "viewer.public.i18n": `no-cache`,
-      "viewer.public.cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
+      "public.session": `no-cache`,
+      "public.i18n": `no-cache`,
+      "public.cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
     } as const;
 
     // Find which element above is an exact match for this group of paths

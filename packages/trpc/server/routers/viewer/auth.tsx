@@ -4,7 +4,6 @@ import { z } from "zod";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +20,7 @@ export const authRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { oldPassword, newPassword } = input;
 
-      const { user } = ctx;
+      const { user, prisma } = ctx;
 
       if (user.identityProvider !== IdentityProvider.CAL) {
         throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
@@ -72,7 +71,7 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const user = await prisma.user.findUnique({
+      const user = await ctx.prisma.user.findUnique({
         where: {
           id: ctx.user.id,
         },
