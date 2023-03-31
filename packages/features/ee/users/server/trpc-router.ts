@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
 import { TRPCError } from "@calcom/trpc";
@@ -44,6 +46,16 @@ const authedAdminWithUserMiddleware = middleware(async ({ ctx, next, rawInput })
 
 const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(authedAdminWithUserMiddleware);
 
+/** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
+export function getAvatarUrlFromUser(user: {
+  avatar: string | null;
+  username: string | null;
+  email: string;
+}) {
+  if (!user.avatar || !user.username) return defaultAvatarSrc({ email: user.email });
+  return `${WEBAPP_URL}/${user.username}/avatar.png`;
+}
+
 export const userAdminRouter = router({
   get: authedAdminProcedureWithRequestedUser.input(userIdSchema).query(async ({ ctx }) => {
     const { requestedUser } = ctx;
@@ -52,7 +64,17 @@ export const userAdminRouter = router({
   list: authedAdminProcedure.query(async ({ ctx }) => {
     const { prisma } = ctx;
     // TODO: Add search, pagination, etc.
-    return prisma.user.findMany();
+    const users = await prisma.user.findMany();
+
+    return users.map((user) => {
+      /**
+       * FIXME: This should be either a prisma extension or middleware
+       * @see https://www.prisma.io/docs/concepts/components/prisma-client/middleware
+       * @see https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions/result
+       **/
+      user.avatar = getAvatarUrlFromUser(user);
+      return user;
+    });
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;
