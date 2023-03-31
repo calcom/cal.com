@@ -1695,5 +1695,7 @@
   "hold": "Hold",
   "on_booking_option": "Collect payment on booking",
   "hold_option": "Place hold on card",
+  "card_held": "Card held",
+  "charge_card": "Charge card",
   "insights": "Insights"
 }
