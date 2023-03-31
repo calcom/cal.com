@@ -85,7 +85,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className=" border-default bg-default dark:bg-muted text-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed "
       {...customProps}
       {...remainingProps}
     />
@@ -112,7 +112,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextField
       containerClassName="w-full"
       type={type}
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className="focus:border-brand-default bg-default dark:bg-muted  border-default disabled:bg-emphasis focus:ring-brand block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={textValue}
       labelSrOnly={noLabel}
       placeholder={placeholder}
@@ -130,7 +130,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  border-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
+      className="focus:border-brand-default bg-default dark:bg-muted  border-default disabled:bg-emphasis focus:ring-brand block w-full rounded-md text-sm disabled:hover:cursor-not-allowed"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -162,7 +162,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
-      className="dark:border-darkgray-300 border-default disabled:dark:text-subtle dark:text-inverted mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm dark:bg-transparent dark:selection:bg-green-500 sm:text-sm"
+      classNames="mb-2"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
       }}
@@ -189,7 +189,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
-      className="data-testid-select dark:border-darkgray-300 border-default disabled:dark:text-subtle dark:text-inverted mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm dark:bg-transparent dark:selection:bg-green-500 sm:text-sm"
+      className="data-testid-select mb-2"
       onChange={(item) => {
         if (!item) {
           return;

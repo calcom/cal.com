@@ -129,9 +129,7 @@ export const Components: Record<BookingFieldType, Component> = {
         <>
           {value.length ? (
             <div>
-              <label
-                htmlFor="guests"
-                className="text-default dark:text-inverted mb-1 block text-sm font-medium">
+              <label htmlFor="guests" className="text-default  mb-1 block text-sm font-medium">
                 {label}
               </label>
               <ul>
