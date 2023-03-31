@@ -188,13 +188,13 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="bg-default hover:bg-mutedover:text-emphasis dark:hover:bg-inverted border-default text-default dark:text-inverted mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent">
+            <label className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="pointer-events-none absolute mt-4 opacity-0"
+                className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
               {t("choose_a_file")}
@@ -202,8 +202,10 @@ export default function ImageUploader({
           </div>
         </div>
         <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
-          <DialogClose onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</DialogClose>
-          <DialogClose color="secondary">{t("cancel")}</DialogClose>
+          <DialogClose color="secondary" onClick={() => showCroppedImage(croppedAreaPixels)}>
+            {t("save")}
+          </DialogClose>
+          <DialogClose color="minimal">{t("cancel")}</DialogClose>
         </div>
       </DialogContent>
     </Dialog>

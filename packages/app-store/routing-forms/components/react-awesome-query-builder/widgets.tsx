@@ -162,7 +162,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
-      classNames="mb-2"
+      className="mb-2"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
       }}
