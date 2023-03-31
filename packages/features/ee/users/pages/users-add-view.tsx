@@ -9,7 +9,7 @@ import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import { UserForm } from "../components/UserForm";
 import { userBodySchema } from "../schemas/userBodySchema";
 
-const DeplolymentUsersAddView = () => {
+const UsersAddView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
   const mutation = trpc.viewer.users.add.useMutation({
@@ -37,6 +37,6 @@ const DeplolymentUsersAddView = () => {
   );
 };
 
-DeplolymentUsersAddView.getLayout = getLayout;
+UsersAddView.getLayout = getLayout;
 
-export default DeplolymentUsersAddView;
+export default UsersAddView;

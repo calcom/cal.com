@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import type { ComponentProps } from "react";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
@@ -13,19 +13,20 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, VerticalTabItem, Skeleton, useMeta } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
 import {
-  FiUser,
-  FiKey,
-  FiCreditCard,
-  FiTerminal,
-  FiUsers,
-  FiLock,
   FiArrowLeft,
   FiChevronDown,
   FiChevronRight,
-  FiPlus,
+  FiCreditCard,
+  FiKey,
+  FiLoader,
+  FiLock,
   FiMenu,
+  FiPlus,
+  FiTerminal,
+  FiUser,
+  FiUsers,
 } from "@calcom/ui/components/icon";
 
 const tabs: VerticalTabItemProps[] = [
@@ -414,7 +415,9 @@ export default function SettingsLayout({
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ErrorBoundary>
+            <Suspense fallback={<FiLoader />}>{children}</Suspense>
+          </ErrorBoundary>
         </div>
       </div>
     </Shell>

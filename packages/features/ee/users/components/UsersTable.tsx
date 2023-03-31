@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { CAL_URL } from "@calcom/lib/constants";
@@ -26,7 +25,6 @@ function UsersTableBare() {
       setUserToDelete(null);
     },
   });
-  const router = useRouter();
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (

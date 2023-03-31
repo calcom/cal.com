@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { noop } from "lodash";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
@@ -18,9 +17,9 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
-import type { useDeploymentUsers } from "../hooks";
+import type { UserAdminRouterOutputs } from "../server/trpc-router";
 
-type User = NonNullable<ReturnType<typeof useDeploymentUsers>["data"]>[number];
+type User = UserAdminRouterOutputs["get"]["user"];
 
 type Option<T extends string | number = string> = {
   value: T;
@@ -105,11 +104,6 @@ export const UserForm = ({
     },
   });
 
-  const emailMd5 = crypto
-    .createHash("md5")
-    .update(defaultValues?.email || "example@example.com")
-    .digest("hex");
-
   return (
     <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
       <div className="flex items-center">
@@ -118,7 +112,7 @@ export const UserForm = ({
           name="avatar"
           render={({ field: { value } }) => (
             <>
-              <Avatar alt="" imageSrc={value} size="lg" gravatarFallbackMd5={emailMd5} />
+              <Avatar alt="" imageSrc={value} gravatarFallbackMd5="fallback" size="lg" />
               <div className="ml-4">
                 <ImageUploader
                   target="avatar"
