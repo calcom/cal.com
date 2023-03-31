@@ -115,6 +115,7 @@ async function getBooking(bookingId: number) {
     booking,
     user,
     evt,
+    eventTypeRaw,
   };
 }
 
@@ -268,7 +269,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
-  const { booking, user, evt, eventTypeRaw } = getBooking(payment.bookingId);
+  const { booking, user, evt, eventTypeRaw } = await getBooking(payment.bookingId);
 
   const bookingData: Prisma.BookingUpdateInput = {
     paid: true,
@@ -288,7 +289,10 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       id: payment.id,
     },
     data: {
-      data: { ...(payment.data as Prisma.JsonObject), confirmed: true },
+      data: {
+        ...(payment.data as Prisma.JsonObject),
+        setupIntent: setupIntent as unknown as Prisma.JsonObject,
+      },
       booking: {
         update: {
           ...bookingData,
