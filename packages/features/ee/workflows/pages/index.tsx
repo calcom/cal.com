@@ -89,7 +89,6 @@ function WorkflowsPage() {
       };
     });
 
-  if (!query.data && !isLoading) return null;
   return (
     <Shell
       heading={t("workflows")}
@@ -110,9 +109,7 @@ function WorkflowsPage() {
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
           />
-        ) : (
-          <></>
-        )
+        ) : null
       }>
       <LicenseRequired>
         {isLoading ? (
@@ -120,27 +117,27 @@ function WorkflowsPage() {
         ) : (
           <>
             {query?.data?.profiles &&
-              query?.data?.profiles.length &&
-              allWorkflowsData?.workflows &&
-              allWorkflowsData.workflows.length &&
-              profileOptions && (
-                <div className="mb-4 flex">
-                  <Filter
-                    profiles={query.data.profiles}
-                    checked={checkedFilterItems}
-                    setChecked={setCheckedFilterItems}
+            query?.data?.profiles.length &&
+            allWorkflowsData?.workflows &&
+            allWorkflowsData.workflows.length &&
+            profileOptions ? (
+              <div className="mb-4 flex">
+                <Filter
+                  profiles={query.data.profiles}
+                  checked={checkedFilterItems}
+                  setChecked={setCheckedFilterItems}
+                />
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    options={profileOptions}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
+                    disableMobileButton={true}
                   />
-                  <div className="ml-auto">
-                    <CreateButton
-                      subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={profileOptions}
-                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                      isLoading={createMutation.isLoading}
-                      disableMobileButton={true}
-                    />
-                  </div>
                 </div>
-              )}
+              </div>
+            ) : null}
             {profileOptions && profileOptions?.length ? (
               <WorkflowList
                 workflows={filteredWorkflows}
