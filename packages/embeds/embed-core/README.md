@@ -124,7 +124,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
   - Why do we NOT want to provide completely flexible CSS customization by adding whatever CSS user wants. ?
   - Feature Documentation
     - Inline mode doesn't cause any scroll in iframe by default. It looks like it is part of the website.
-- docs.cal.com
+- cal.com/docs
 
   - A complete document on how to use embed
 

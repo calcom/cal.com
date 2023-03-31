@@ -75,6 +75,13 @@ export default class GoogleCalendarService implements Calendar {
       ...rest,
       responseStatus: "accepted",
     }));
+    // TODO: Check every other CalendarService for team members
+    const teamMembers =
+      calEventRaw.team?.members.map((m) => ({
+        email: m.email,
+        displayName: m.name,
+        responseStatus: "accepted",
+      })) || [];
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
       const payload: calendar_v3.Schema$Event = {
@@ -99,11 +106,12 @@ export default class GoogleCalendarService implements Calendar {
               : calEventRaw.organizer.email,
           },
           ...eventAttendees,
+          ...teamMembers,
         ],
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: calEventRaw.seatsShowAttendees,
+        guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
       };
 
       if (calEventRaw.location) {
@@ -125,6 +133,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           requestBody: payload,
           conferenceDataVersion: 1,
+          sendUpdates: "none",
         },
         function (error, event) {
           if (error || !event?.data) {
@@ -169,6 +178,12 @@ export default class GoogleCalendarService implements Calendar {
         ...rest,
         responseStatus: "accepted",
       }));
+      const teamMembers =
+        event.team?.members.map((m) => ({
+          email: m.email,
+          displayName: m.name,
+          responseStatus: "accepted",
+        })) || [];
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),
@@ -189,11 +204,12 @@ export default class GoogleCalendarService implements Calendar {
           },
           // eslint-disable-next-line
           ...eventAttendees,
+          ...teamMembers,
         ],
         reminders: {
           useDefault: true,
         },
-        guestsCanSeeOtherGuests: event.seatsShowAttendees,
+        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
       };
 
       if (event.location) {
@@ -219,14 +235,13 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: uid,
           sendNotifications: true,
-          sendUpdates: "all",
+          sendUpdates: "none",
           requestBody: payload,
           conferenceDataVersion: 1,
         },
         function (err, evt) {
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
-
             return reject(err);
           }
 
@@ -278,7 +293,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: calendarId ? calendarId : defaultCalendarId,
           eventId: uid,
           sendNotifications: false,
-          sendUpdates: "all",
+          sendUpdates: "none",
         },
         function (err: GoogleCalError | null, event) {
           if (err) {

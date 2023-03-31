@@ -9,6 +9,7 @@ import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
 import { isFreshChatEnabled } from "../lib/freshchat/FreshChatScript";
+import { isInterComEnabled, useIntercom } from "../lib/intercom/useIntercom";
 import ContactMenuItem from "./ContactMenuItem";
 
 interface HelpMenuItemProps {
@@ -17,6 +18,7 @@ interface HelpMenuItemProps {
 
 export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [rating, setRating] = useState<null | string>(null);
+  const { open } = useIntercom();
   const [comment, setComment] = useState("");
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [active, setActive] = useState(false);
@@ -47,24 +49,12 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="w-full py-5">
         <p className="mb-1 px-5 text-gray-500">{t("resources").toUpperCase()}</p>
         <a
-          href="https://docs.cal.com/"
+          onClick={() => onHelpItemSelect()}
+          href="https://cal.com/docs/"
           target="_blank"
           className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           rel="noreferrer">
-          {t("support_documentation")}
-          <FiExternalLink
-            className={classNames(
-              "text-gray-400 group-hover:text-gray-500",
-              "ml-1 mt-px h-4 w-4 flex-shrink-0 ltr:mr-3"
-            )}
-          />
-        </a>
-        <a
-          href="https://developer.cal.com/"
-          target="_blank"
-          className="flex w-full px-5 py-2 pr-4 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-          rel="noreferrer">
-          {t("developer_documentation")}
+          {t("documentation")}
           <FiExternalLink
             className={classNames(
               "text-gray-400 group-hover:text-gray-500",
@@ -77,7 +67,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         </div>
       </div>
 
-      <hr className=" bg-gray-200" />
+      <hr className="bg-gray-200 " />
       <div className="w-full p-5">
         <p className="mb-1 text-gray-500">{t("feedback").toUpperCase()}</p>
         <p className="flex w-full py-2 text-sm font-medium text-gray-700">{t("comments")}</p>
@@ -86,7 +76,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           name="comment"
           rows={3}
           onChange={(event) => setComment(event.target.value)}
-          className="my-1 block  w-full rounded-sm border-gray-300 py-2 pb-2 text-sm"
+          className="my-1 block w-full rounded-sm border-gray-300 py-2 pb-2 text-sm"
         />
 
         <div className="my-3 flex justify-end">
@@ -201,14 +191,17 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       <div className="w-full bg-neutral-50 p-5 text-gray-500">
         <p className="">{t("specific_issue")}</p>
         <button
-          className="font-medium  underline hover:text-gray-700"
+          className="font-medium underline hover:text-gray-700"
           onClick={() => {
             setActive(true);
             if (isFreshChatEnabled) {
               setFreshChat(true);
+            } else if (isInterComEnabled) {
+              open();
             } else {
               loadChat({ open: true });
             }
+
             onHelpItemSelect();
           }}>
           {t("contact_support")}
@@ -216,8 +209,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
-          className="font-medium  underline hover:text-gray-700"
-          href="https://docs.cal.com/"
+          className="font-medium underline hover:text-gray-700"
+          href="https://cal.com/docs/"
           target="_blank"
           rel="noreferrer">
           {t("browse_our_docs")}

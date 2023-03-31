@@ -77,7 +77,7 @@ export default function CancelBooking(props: Props) {
                 {t("nevermind")}
               </Button>
               <Button
-                className="flex justify-center"
+                className="dark:bg-darkmodebrand dark:hover:border-darkmodebrand dark:text-darkmodebrandcontrast bg-brand hover:border-brand text-brandcontrast flex justify-center"
                 data-testid="cancel"
                 onClick={async () => {
                   setLoading(true);
@@ -86,7 +86,7 @@ export default function CancelBooking(props: Props) {
 
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
-                      id: booking?.id,
+                      uid: booking?.uid,
                       cancellationReason: cancellationReason,
                       allRemainingBookings,
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
