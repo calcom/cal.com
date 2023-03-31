@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import * as React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import ReactDom from "react-dom";
 
 import Cal, { getCalApi } from "./src/index";
@@ -46,7 +48,6 @@ function App() {
           theme: "dark",
         }}
       />
-      <button data-cal-link="pro">Popup</button>
     </>
   );
 }
