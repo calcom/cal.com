@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
@@ -18,7 +19,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
-      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 bg-default hover:bg-muted flex group min-h-full flex-col space-y-2 rounded-md p-4 hover:cursor-pointer ">
+      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 bg-default hover:bg-muted group flex min-h-full flex-col space-y-2 rounded-md p-4 hover:cursor-pointer ">
         <Avatar
           size="md"
           alt={member.name || ""}
@@ -50,7 +51,7 @@ const Members = ({ members, teamName }: { members: MemberType[]; teamName: strin
   }
 
   return (
-    <section className="lg:min-w-lg flex mx-auto min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
+    <section className="lg:min-w-lg mx-auto flex min-w-full max-w-5xl flex-wrap justify-center gap-x-6 gap-y-6">
       {members.map((member) => {
         return member.username !== null && <Member key={member.id} member={member} teamName={teamName} />;
       })}
