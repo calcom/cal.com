@@ -1,4 +1,4 @@
-import { LineChart, Title } from "@tremor/react";
+import { Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -6,6 +6,7 @@ import { trpc } from "@calcom/trpc";
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
+import { LineChart } from "./LineChart";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
