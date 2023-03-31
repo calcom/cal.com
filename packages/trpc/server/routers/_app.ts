@@ -3,7 +3,7 @@
  */
 import { router } from "../trpc";
 import { viewerRouter } from "./viewer";
-import { slotsRouter } from "./viewer/slots";
+import { slotsRouter } from "./slots";
 
 import type { Endpoint } from "../../react";
 

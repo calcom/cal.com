@@ -18,7 +18,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, publicProcedure } from "../../trpc";
+import { router, publicProcedure } from "../trpc";
 
 const getScheduleSchema = z
   .object({
