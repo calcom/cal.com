@@ -66,22 +66,21 @@ const buttonClasses = cva(
     // TODO: come back to this and fix before merging. Buttons are all over the shop some use brand colour some use gray.
     compoundVariants: [
       // Primary variants
-      {
+      ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-default hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
-      },
+          "bg-brand-default hover:bg-brand-emphasis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-default text-brand",
+      }),
       {
         disabled: true,
         color: "primary",
-        className: "bg-gray-800 bg-opacity-30 dark:bg-opacity-30 dark:bg-darkgray-800",
+        className: "bg-brand-default bg-opacity-30",
       },
       {
         loading: true,
         color: "primary",
-        className:
-          "bg-gray-800/30 text-inverted/30 dark:bg-opacity-30 dark:bg-darkgray-700 dark:text-emphasis/30",
+        className: "bg-brand-default bg-opacity-30 text-brand-subtle",
       },
       // Secondary variants
       {

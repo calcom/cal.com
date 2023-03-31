@@ -599,8 +599,8 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <div className="mt-9 font-medium">{label}</div>
-                          <div className="col-span-2 mb-2 mt-9">
+                          <div className="texte-default mt-9 font-medium">{label}</div>
+                          <div className="text-default col-span-2 mb-2 mt-9">
                             <p
                               className="break-words"
                               data-testid="field-response"

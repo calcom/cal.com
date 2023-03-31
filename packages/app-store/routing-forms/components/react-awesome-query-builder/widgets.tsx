@@ -85,7 +85,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
       disabled={readOnly}
       onChange={onChange}
       maxLength={maxLength}
-      className=" border-default bg-default dark:bg-muted text-default disabled:bg-emphasis disabled:dark:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed "
+      className=" border-default bg-default dark:bg-muted text-default disabled:bg-emphasis disabled:dark:text-subtle placeholder:text-subtle block w-full rounded-md text-sm focus:ring-black disabled:hover:cursor-not-allowed "
       {...customProps}
       {...remainingProps}
     />

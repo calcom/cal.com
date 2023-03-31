@@ -276,7 +276,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default block w-full rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "hover:border-emphasis border-default focus:border-emphasis placeholder:text-subtle focus:ring-emphasis bg-default block w-full rounded-md border py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-offset-1",
         props.className
       )}
     />

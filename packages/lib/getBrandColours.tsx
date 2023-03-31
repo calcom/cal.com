@@ -130,6 +130,16 @@ export const createColorMap = (brandColor: string) => {
   return response;
 };
 
+function getWCAGContrastColor(background: string): string {
+  // Convert the hex background color to RGB
+  const { r, g, b } = hexToRgb(background);
+  // Calculate the luminance of the background color
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  // If the luminance is less than 0.5, use white as the text color, otherwise use black
+  return luminance < 0.5 ? "#FFFFFF" : "#000000";
+}
+
 /**
  * Given a light and dark brand color value, update the css variables
  * within the document to reflect the new brand colors.
@@ -158,13 +168,13 @@ const useGetBrandingColours = ({
       "cal-brand": lightColourMap["500"],
       "cal-brand-emphasis": lightColourMap["400"],
       "cal-brand-subtle": lightColourMap["200"],
-      "cal-brand-text": lightColourMap["100"], // No need to compute text - always a11y since we use the lightest colour for that shade
+      "cal-brand-text": getWCAGContrastColor(lightColourMap["500"]),
     },
     dark: {
       "cal-brand": darkColourMap["500"],
       "cal-brand-emphasis": darkColourMap["600"],
       "cal-brand-subtle": darkColourMap["800"],
-      "cal-brand-text": darkColourMap["900"],
+      "cal-brand-text": getWCAGContrastColor(darkColourMap["500"]),
     },
     // @hariom - are these needed still? Can we move these to tokens?
     root: {
