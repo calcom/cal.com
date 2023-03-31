@@ -1032,6 +1032,8 @@ const loggedInViewerRouter = router({
                     select: {
                       recurringEvent: true,
                       title: true,
+                      seatsPerTimeSlot: true,
+                      seatsShowAttendees: true,
                     },
                   },
                   uid: true,
@@ -1110,6 +1112,8 @@ const loggedInViewerRouter = router({
                   location: booking.location,
                   destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
                   cancellationReason: "Payment method removed by organizer",
+                  seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                  seatsShowAttendees: booking.eventType?.seatsShowAttendees,
                 });
               }
             });
