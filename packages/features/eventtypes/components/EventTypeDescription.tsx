@@ -27,7 +27,7 @@ export type EventTypeDescriptionProps = {
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
-    seatsPerTimeSlot?: number | null;
+    seatsPerTimeSlot?: number;
   };
   className?: string;
   shortenDescription?: boolean;

@@ -1,9 +1,8 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import type { z } from "zod";
 
-import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import slugify from "@calcom/lib/slugify";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 type BookingSelect = {
   description: true;
@@ -45,11 +44,7 @@ function getResponsesFromOldBooking(
   };
 }
 
-async function getBooking(
-  prisma: PrismaClient,
-  uid: string,
-  bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">
-) {
+async function getBooking(prisma: PrismaClient, uid: string) {
   const rawBooking = await prisma.booking.findFirst({
     where: {
       uid,
@@ -82,9 +77,7 @@ async function getBooking(
     return rawBooking;
   }
 
-  const booking = getBookingWithResponses(rawBooking, {
-    bookingFields,
-  });
+  const booking = getBookingWithResponses(rawBooking);
 
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]
@@ -104,20 +97,11 @@ export const getBookingWithResponses = <
     };
   }>
 >(
-  booking: T,
-  eventType: {
-    bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
-  }
+  booking: T
 ) => {
   return {
     ...booking,
-    responses: getBookingResponsesPartialSchema({
-      eventType: {
-        bookingFields: eventType.bookingFields,
-      },
-      // An existing booking can have data from any number of views, so the schema should consider ALL_VIEWS
-      view: "ALL_VIEWS",
-    }).parse(booking.responses || getResponsesFromOldBooking(booking)),
-  };
+    responses: bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
+  } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
 };
 export default getBooking;
