@@ -1,9 +1,10 @@
-import { Card, Title, Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
+import { Table, TableBody, TableCell, TableRow, Text, Title } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "../context/provider";
+import { CardInsights } from "./Card";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
@@ -19,34 +20,25 @@ export const PopularEventsTable = () => {
     userId: selectedUserId ?? undefined,
   });
 
-  if (!startDate || !endDate || !teamId) return null;
+  if (!isSuccess || !startDate || !endDate || !teamId || data?.length === 0) return null;
 
   return (
-    <Card>
+    <CardInsights>
       <Title>{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
-          {isSuccess ? (
-            data?.map((item) => (
-              <TableRow key={item.eventTypeId}>
-                <TableCell>{item.eventTypeName}</TableCell>
-                <TableCell>
-                  <Text>
-                    <strong>{item.count}</strong>
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell>{t("no_event_types_found")}</TableCell>
+          {data.map((item) => (
+            <TableRow key={item.eventTypeId}>
+              <TableCell>{item.eventTypeName}</TableCell>
               <TableCell>
-                <strong>0</strong>
+                <Text>
+                  <strong>{item.count}</strong>
+                </Text>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
-    </Card>
+    </CardInsights>
   );
 };
