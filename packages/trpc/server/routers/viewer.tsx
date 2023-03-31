@@ -54,7 +54,7 @@ import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { deploymentSetupRouter } from "./viewer/deploymentSetup";
 import { eventTypesRouter } from "./viewer/eventTypes";
-import { slotsRouter } from "./viewer/slots";
+// import { slotsRouter } from "./viewer/slots";
 import { ssoRouter } from "./viewer/sso";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
@@ -157,7 +157,7 @@ const publicViewerRouter = router({
       }
     }),
   // REVIEW: This router is part of both the public and private viewer router?
-  slots: slotsRouter,
+  // slots: slotsRouter,
   cityTimezones: publicProcedure.query(() => cityMapping),
 });
 
@@ -1285,7 +1285,6 @@ const loggedInViewerRouter = router({
 export const viewerRouter = mergeRouters(
   loggedInViewerRouter,
   router({
-    loggedInViewerRouter,
     public: publicViewerRouter,
     auth: authRouter,
     deploymentSetup: deploymentSetupRouter,
@@ -1295,7 +1294,7 @@ export const viewerRouter = mergeRouters(
     teams: viewerTeamsRouter,
     webhook: webhookRouter,
     apiKeys: apiKeysRouter,
-    slots: slotsRouter,
+    // slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,

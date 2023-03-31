@@ -3,6 +3,7 @@
  */
 import { router } from "../trpc";
 import { viewerRouter } from "./viewer";
+import { slotsRouter } from "./viewer/slots";
 
 /**
  * Create your application's root router
@@ -11,6 +12,7 @@ import { viewerRouter } from "./viewer";
  * @link https://trpc.io/docs/router
  */
 export const appRouter = router({
+  slots: slotsRouter,
   viewer: viewerRouter,
 });
 

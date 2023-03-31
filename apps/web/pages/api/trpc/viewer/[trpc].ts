@@ -6,10 +6,10 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-import { appRouter } from "@calcom/trpc/server/routers/_app";
+import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
 
 export default trpcNext.createNextApiHandler({
-  router: appRouter,
+  router: viewerRouter,
   /**
    * @link https://trpc.io/docs/context
    */

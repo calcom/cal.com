@@ -13,6 +13,11 @@ import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
 
 /**
+ * We deploy our tRPC router on multiple lambdas to keep bundle size as small as possible
+ */
+const ENDPOINTS = ["slots", "viewer"] as const;
+
+/**
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
@@ -41,17 +46,31 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
         }),
         splitLink({
           // check for context property `skipBatch`
-          condition: (op) => {
-            return op.context.skipBatch === true;
-          },
+          condition: (op) => !!op.context.skipBatch,
           // when condition is true, use normal request
-          true: httpLink({ url }),
-          // when condition is false, use batching
-          false: httpBatchLink({
-            url,
-            /** @link https://github.com/trpc/trpc/issues/2008 */
-            // maxBatchSize: 7
-          }),
+          true: (runtime) => {
+            const links = Object.fromEntries(
+              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: url + "/" + endpoint })(runtime)])
+            );
+            return (ctx) => {
+              const parts = ctx.op.path.split(".");
+              const endpoint = parts.shift() as keyof typeof links;
+              const path = parts.join(".");
+              return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
+            };
+          },
+          // when condition is false, use batch request
+          false: (runtime) => {
+            const links = Object.fromEntries(
+              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: url + "/" + endpoint })(runtime)])
+            );
+            return (ctx) => {
+              const parts = ctx.op.path.split(".");
+              const endpoint = parts.shift() as keyof typeof links;
+              const path = parts.join(".");
+              return links[endpoint]({ ...ctx, op: { ...ctx.op, path } });
+            };
+          },
         }),
       ],
       /**
