@@ -19,6 +19,7 @@ import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -121,6 +122,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const telemetry = useTelemetry();
   const {
     data: { tabName },
   } = useTypedQuery(querySchema);
@@ -410,6 +412,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           onConfirm={(e: { preventDefault: () => void }) => {
             e.preventDefault();
             handleSubmit(formMethods.getValues());
+            telemetry.event(telemetryEventTypes.slugReplacementAction);
             setSlugExistsChildrenDialogOpen([]);
           }}>
           <p className="mt-5">
