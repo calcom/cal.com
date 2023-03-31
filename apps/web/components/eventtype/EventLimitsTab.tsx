@@ -322,7 +322,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <div
                     className={classNames(
-                      "mb-2 flex flex-wrap items-center text-sm",
+                      "text-default mb-2 flex flex-wrap items-center text-sm",
                       watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
                     )}
                     key={period.type}>
@@ -344,7 +344,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                         <select
                           id=""
-                          className="border-default block h-9 w-full rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
+                          className="border-default bg-default text-default block h-9 w-full rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
                           {...formMethods.register("periodCountCalendarDays")}
                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                           <option value="1">{t("calendar_days")}</option>
