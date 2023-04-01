@@ -282,8 +282,6 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     bookingData.status = BookingStatus.ACCEPTED;
   }
 
-  // bookingData.status = eventTypeRaw?.requiresConfirmation ? BookingStatus.ACCEPTED : BookingStatus.PENDING;
-
   await prisma.payment.update({
     where: {
       id: payment.id,
@@ -300,6 +298,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       },
     },
   });
+
+  // If the card information was already captured in the same customer. Delete the previous payment method
 
   if (!eventTypeRaw?.requiresConfirmation) await sendScheduledEmails({ ...evt });
 };

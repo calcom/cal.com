@@ -68,6 +68,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -198,7 +199,8 @@ function BookingListItem(booking: BookingItemProps) {
   const chargeCardActions: ActionType[] = [
     {
       id: "charge_card",
-      label: t("charge_card"),
+      label: cardCharged ? t("card_charged") : t("charge_card"),
+      disabled: cardCharged,
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
