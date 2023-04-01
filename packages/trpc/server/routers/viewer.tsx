@@ -46,7 +46,7 @@ import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
+import { authedProcedure, getLocale, mergeRouters, publicProcedure, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
@@ -66,7 +66,8 @@ const publicViewerRouter = router({
     return ctx.session;
   }),
   i18n: publicProcedure.query(async ({ ctx }) => {
-    const { locale, i18n } = ctx;
+    const { locale, i18n } = await getLocale(ctx);
+
     return {
       i18n,
       locale,
