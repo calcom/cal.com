@@ -60,6 +60,7 @@ export default function TeamList(props: Props) {
         <>
           {props.teams.map(
             (team, i) =>
+              team.role !== "MEMBER" &&
               i === 0 && (
                 <div className="bg-gray-100 p-6">
                   <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
