@@ -21,6 +21,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const price = getAppData("price");
   const currency = getAppData("currency");
   const paymentOption = getAppData("paymentOption");
+  const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -76,10 +77,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               />
               <Select<Option>
                 defaultValue={
-                  paymentOptions.find((option) => paymentOption === option.value) || {
-                    ...paymentOptions[0],
-                    label: t(paymentOptions[0].label),
-                  }
+                  paymentOptionSelectValue
+                    ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
+                    : { ...paymentOptions[0], label: t(paymentOptions[0].label) }
                 }
                 options={paymentOptions.map((option) => {
                   return { ...option, label: t(option.label) || option.label };
