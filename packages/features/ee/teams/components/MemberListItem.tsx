@@ -93,6 +93,8 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
+  const bookingLink = `${WEBAPP_URL.split("http://")[1]}/${props.member.username}`;
+
   return (
     <li className="divide-y px-5">
       <div className="my-4 flex justify-between">
@@ -112,12 +114,19 @@ export default function MemberListItem(props: Props) {
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
-              <span
-                className="block text-sm text-gray-600"
-                data-testid="member-email"
-                data-email={props.member.email}>
-                {props.member.email}
-              </span>
+              <div className="flex items-center">
+                <span
+                  className="block text-sm text-gray-600"
+                  data-testid="member-email"
+                  data-email={props.member.email}>
+                  {props.member.email}
+                </span>
+                {bookingLink && <>
+                  <span className="mx-2 block text-gray-600">•</span>
+                  <span className="block text-sm text-gray-600">{bookingLink}</span>
+                </>
+                }
+              </div>
             </div>
           </div>
         </div>

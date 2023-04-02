@@ -1,11 +1,20 @@
+/// <reference types="../env" />
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
-import type { methods, UiConfig } from "./embed-iframe";
+import type { InterfaceWithParent, interfaceWithParent, UiConfig } from "./embed-iframe";
 import css from "./embed.css";
+import type { EventData, EventDataMap } from "./sdk-action-manager";
 import { SdkActionManager } from "./sdk-action-manager";
-import allCss from "./tailwind.generated.css";
+import allCss from "./tailwind.generated.css?inline";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Rest<T extends any[]> = T extends [any, ...infer U] ? U : never;
+export type Message = {
+  originator: string;
+  method: keyof InterfaceWithParent;
+  arg: InterfaceWithParent[keyof InterfaceWithParent];
+};
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL =
@@ -18,10 +27,20 @@ customElements.define("cal-inline", Inline);
 declare module "*.css";
 type Namespace = string;
 type Config = {
-  origin: string;
+  calOrigin: string;
   debug?: boolean;
   uiDebug?: boolean;
 };
+type InitArgConfig = Partial<Config> & {
+  origin?: string;
+};
+
+type DoInIframeArg = {
+  [K in keyof typeof interfaceWithParent]: {
+    method: K;
+    arg?: Parameters<(typeof interfaceWithParent)[K]>[0];
+  };
+}[keyof typeof interfaceWithParent];
 
 const globalCal = window.Cal;
 if (!globalCal || !globalCal.q) {
@@ -35,9 +54,22 @@ globalCal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as strin
 globalCal.__css = allCss;
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-function log(...args: any[]) {
+function log(...args: unknown[]) {
   console.log(...args);
 }
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type ValidationSchemaPropType = string | Function;
+
+type ValidationSchema = {
+  required?: boolean;
+  props?: Record<
+    string,
+    ValidationSchema & {
+      type: ValidationSchemaPropType | ValidationSchemaPropType[];
+    }
+  >;
+};
 /**
  * //TODO: Warn about extra properties not part of schema. Helps in fixing wrong expectations
  * A very simple data validator written with intention of keeping payload size low.
@@ -45,8 +77,8 @@ function log(...args: any[]) {
  * @param data
  * @param schema
  */
-function validate(data: any, schema: Record<"props" | "required", any>) {
-  function checkType(value: any, expectedType: any) {
+function validate(data: Record<string, unknown>, schema: ValidationSchema) {
+  function checkType(value: unknown, expectedType: ValidationSchemaPropType) {
     if (typeof expectedType === "string") {
       return typeof value == expectedType;
     } else {
@@ -54,7 +86,7 @@ function validate(data: any, schema: Record<"props" | "required", any>) {
     }
   }
 
-  function isUndefined(data: any) {
+  function isUndefined(data: unknown) {
     return typeof data === "undefined";
   }
 
@@ -62,7 +94,7 @@ function validate(data: any, schema: Record<"props" | "required", any>) {
     throw new Error("Argument is required");
   }
 
-  for (const [prop, propSchema] of Object.entries<Record<"type" | "required", any>>(schema.props)) {
+  for (const [prop, propSchema] of Object.entries(schema.props || {})) {
     if (propSchema.required && isUndefined(data[prop])) {
       throw new Error(`"${prop}" is required`);
     }
@@ -82,8 +114,22 @@ function validate(data: any, schema: Record<"props" | "required", any>) {
   }
 }
 
-export type Instruction = [method: string, argument: any] | [method: string, argument: any][];
+type SingleInstructionMap = {
+  // TODO: This makes api("on", {}) loose it's generic type. Find a way to fix it.
+  // e.g. api("on", { action: "__dimensionChanged", callback: (e) => { /* `e.detail.data` has all possible values for all events/actions */} });
+  [K in keyof CalApi]: CalApi[K] extends (...args: never[]) => void ? [K, ...Parameters<CalApi[K]>] : never;
+};
+
+type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
+
+export type Instruction = SingleInstruction | SingleInstruction[];
 export type InstructionQueue = Instruction[];
+
+type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+};
 
 export class Cal {
   iframe?: HTMLIFrameElement;
@@ -100,35 +146,42 @@ export class Cal {
 
   iframeReady!: boolean;
 
-  iframeDoQueue: { method: keyof typeof methods; arg: any }[] = [];
+  iframeDoQueue: DoInIframeArg[] = [];
+
+  api: CalApi;
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
 
-  static getQueryObject(config: Record<string, string>) {
+  static getQueryObject(config: PrefillAndIframeAttrsConfig) {
     config = config || {};
     return {
       ...config,
       // guests is better for API but Booking Page accepts guest. So do the mapping
       guest: config.guests ?? undefined,
-    };
+    } as PrefillAndIframeAttrsConfig & { guest?: string | string[] };
   }
 
-  processInstruction(instruction: Instruction) {
-    instruction = [].slice.call(instruction, 0);
-    if (instruction[0] instanceof Array) {
+  processInstruction(instructionAsArgs: IArguments | Instruction) {
+    // The instruction is actually an array-like object(arguments). Make it an array.
+    const instruction: Instruction = [].slice.call(instructionAsArgs);
+    // If there are multiple instructions in the array, process them one by one
+    if (typeof instruction[0] !== "string") {
       // It is an instruction
       instruction.forEach((instruction) => {
         this.processInstruction(instruction);
       });
       return;
     }
+
     const [method, ...args] = instruction;
-    if (!this[method]) {
+    if (!this.api[method]) {
       // Instead of throwing error, log and move forward in the queue
       log(`Instruction ${method} not FOUND`);
     }
     try {
-      (this[method] as (...args: any[]) => void)(...args);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore There can be any method which can have any number of arguments.
+      this.api[method](...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
       log(`Instruction couldn't be executed`, e);
@@ -136,7 +189,7 @@ export class Cal {
     return instruction;
   }
 
-  processQueue(queue: InstructionQueue) {
+  processQueue(queue: IArguments[]) {
     queue.forEach((instruction) => {
       this.processInstruction(instruction);
     });
@@ -153,9 +206,11 @@ export class Cal {
   createIframe({
     calLink,
     queryObject = {},
+    calOrigin,
   }: {
     calLink: string;
-    queryObject?: Record<string, string | string[] | Record<string, string>>;
+    queryObject?: PrefillAndIframeAttrsConfig & { guest?: string | string[] };
+    calOrigin?: string;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
@@ -163,7 +218,7 @@ export class Cal {
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 
-    if (iframeAttrs && typeof iframeAttrs !== "string" && !(iframeAttrs instanceof Array)) {
+    if (iframeAttrs && iframeAttrs.id) {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
@@ -180,7 +235,7 @@ export class Cal {
       }
     }
 
-    const urlInstance = new URL(`${config.origin}/${calLink}`);
+    const urlInstance = new URL(`${calOrigin || config.calOrigin}/${calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
       // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
@@ -203,252 +258,34 @@ export class Cal {
     return iframe;
   }
 
-  init(namespaceOrConfig?: string | Config, config: Config = {} as Config) {
-    if (typeof namespaceOrConfig !== "string") {
-      config = (namespaceOrConfig || {}) as Config;
-    }
-    const { origin, ...restConfig } = config;
-    if (origin) {
-      this.__config.origin = origin;
-    }
-    this.__config = { ...this.__config, ...restConfig };
-  }
-
   getConfig() {
     return this.__config;
   }
 
-  // TODO: Maintain exposed methods in a separate namespace, so that unexpected methods don't become instructions
-
-  /**
-   * It is an instruction that adds embed iframe inline as last child of the element
-   */
-  inline({
-    calLink,
-    elementOrSelector,
-    config,
-  }: {
-    calLink: string;
-    elementOrSelector: string | HTMLElement;
-    config: Record<string, string>;
-  }) {
-    // eslint-disable-next-line prefer-rest-params
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          // TODO: Add a special type calLink for it and validate that it doesn't start with / or https?://
-          required: true,
-          type: "string",
-        },
-        elementOrSelector: {
-          required: true,
-          type: ["string", HTMLElement],
-        },
-        config: {
-          required: false,
-          type: Object,
-        },
-      },
-    });
-    config = config || {};
-    // Keeping auto-scroll disabled for two reasons:
-    // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
-    // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
-    // Best solution might be to autoscroll only if the iframe is not fully visible, detection of full visibility might be tough
-
-    // We need to keep in mind that autoscroll is meant to solve the problem when on a certain view(which is availability page right now), the height goes too high and then suddenly it becomes normal
-    (config as unknown as any).__autoScroll = !!(config as unknown as any).__autoScroll;
-    config.embedType = "inline";
-    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
-    iframe.style.height = "100%";
-    iframe.style.width = "100%";
-    const element =
-      elementOrSelector instanceof HTMLElement
-        ? elementOrSelector
-        : document.querySelector(elementOrSelector);
-    if (!element) {
-      throw new Error("Element not found");
-    }
-    element.classList.add("cal-inline-container");
-    const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
-    this.inlineEl = template.content.children[0];
-    (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
-    this.inlineEl.appendChild(iframe);
-    element.appendChild(template.content);
-  }
-
-  floatingButton({
-    calLink,
-    buttonText = "Book my Cal",
-    hideButtonIcon = false,
-    attributes,
-    buttonPosition = "bottom-right",
-    buttonColor = "rgb(0, 0, 0)",
-    buttonTextColor = "rgb(255, 255, 255)",
-  }: {
-    calLink: string;
-    buttonText?: string;
-    attributes?: Record<string, string>;
-    hideButtonIcon?: boolean;
-    buttonPosition?: "bottom-left" | "bottom-right";
-    buttonColor: string;
-    buttonTextColor: string;
-  }) {
-    // validate(arguments[0], {
-    //   required: true,
-    //   props: {
-    //     calLink: {
-    //       required: true,
-    //       type: "string",
-    //     },
-    //   },
-    // });
-    let existingEl: HTMLElement | null = null;
-
-    if (attributes?.id) {
-      existingEl = document.getElementById(attributes.id);
-    }
-    let el: HTMLElement;
-    if (!existingEl) {
-      el = document.createElement("cal-floating-button");
-      el.dataset.calLink = calLink;
-      el.dataset.calNamespace = this.namespace;
-      if (attributes?.id) {
-        el.id = attributes.id;
-      }
-
-      document.body.appendChild(el);
-    } else {
-      el = existingEl;
-    }
-
-    if (buttonText) {
-      el.setAttribute("data-button-text", buttonText);
-    }
-    el.setAttribute("data-hide-button-icon", "" + hideButtonIcon);
-    el.setAttribute("data-button-position", "" + buttonPosition);
-    el.setAttribute("data-button-color", "" + buttonColor);
-    el.setAttribute("data-button-text-color", "" + buttonTextColor);
-  }
-
-  modal({ calLink, config = {}, uid }: { calLink: string; config?: Record<string, string>; uid: number }) {
-    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
-    if (existingModalEl) {
-      existingModalEl.setAttribute("state", "started");
-      return;
-    }
-    config.embedType = "modal";
-    const iframe = this.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
-    iframe.style.borderRadius = "8px";
-
-    iframe.style.height = "100%";
-    iframe.style.width = "100%";
-    const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
-
-    this.modalBox = template.content.children[0];
-    this.modalBox.appendChild(iframe);
-    this.actionManager.on("__closeIframe", () => {
-      this.modalBox.setAttribute("state", "closed");
-    });
-    document.body.appendChild(template.content);
-  }
-
-  on({
-    action,
-    callback,
-  }: {
-    action: Parameters<SdkActionManager["on"]>[0];
-    callback: Parameters<SdkActionManager["on"]>[1];
-  }) {
-    // eslint-disable-next-line prefer-rest-params
-    validate(arguments[0], {
-      required: true,
-      props: {
-        action: {
-          required: true,
-          type: "string",
-        },
-        callback: {
-          required: true,
-          type: Function,
-        },
-      },
-    });
-    this.actionManager.on(action, callback);
-  }
-
-  off({
-    action,
-    callback,
-  }: {
-    action: Parameters<SdkActionManager["on"]>[0];
-    callback: Parameters<SdkActionManager["on"]>[1];
-  }) {
-    this.actionManager.off(action, callback);
-  }
-
-  preload({ calLink }: { calLink: string }) {
-    // eslint-disable-next-line prefer-rest-params
-    validate(arguments[0], {
-      required: true,
-      props: {
-        calLink: {
-          type: "string",
-          required: true,
-        },
-      },
-    });
-    const iframe = document.body.appendChild(document.createElement("iframe"));
-    const config = this.getConfig();
-
-    const urlInstance = new URL(`${config.origin}/${calLink}`);
-    urlInstance.searchParams.set("prerender", "true");
-    iframe.src = urlInstance.toString();
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.display = "none";
-  }
-
-  ui(uiConfig: UiConfig) {
-    validate(uiConfig, {
-      required: true,
-      props: {
-        theme: {
-          required: false,
-          type: "string",
-        },
-        styles: {
-          required: false,
-          type: Object,
-        },
-      },
-    });
-
-    this.doInIframe({ method: "ui", arg: uiConfig });
-  }
-
-  doInIframe({
-    method,
-    arg,
-  }: // TODO: Need some TypeScript magic here to remove hardcoded types
-  | { method: "ui"; arg: Parameters<(typeof methods)["ui"]>[0] }
-    | { method: "parentKnowsIframeReady"; arg: undefined }) {
+  doInIframe(doInIframeArg: DoInIframeArg) {
     if (!this.iframeReady) {
-      this.iframeDoQueue.push({ method, arg });
+      this.iframeDoQueue.push(doInIframeArg);
       return;
     }
-    // TODO: Ensure that origin is as defined by user. Generally it would be cal.com but in case of self hosting it can be anything.
-    this.iframe!.contentWindow!.postMessage({ originator: "CAL", method, arg }, "*");
+    if (!this.iframe) {
+      throw new Error("iframe doesn't exist. `createIframe` must be called before `doInIframe`");
+    }
+    if (this.iframe.contentWindow) {
+      // TODO: Ensure that targetOrigin is as defined by user(and not *). Generally it would be cal.com but in case of self hosting it can be anything.
+      // Maybe we can derive targetOrigin from __config.origin
+      this.iframe.contentWindow.postMessage(
+        { originator: "CAL", method: doInIframeArg.method, arg: doInIframeArg.arg },
+        "*"
+      );
+    }
   }
 
-  constructor(namespace: string, q: InstructionQueue) {
+  constructor(namespace: string, q: IArguments[]) {
     this.__config = {
       // Use WEBAPP_URL till full page reload problem with website URL is solved
-      origin: WEBAPP_URL,
+      calOrigin: WEBAPP_URL,
     };
+    this.api = new CalApi(this);
     this.namespace = namespace;
     this.actionManager = new SdkActionManager(namespace);
 
@@ -462,23 +299,16 @@ export class Cal {
     // 3. Parent window would check what iframe height can be set according to parent Element
     this.actionManager.on("__dimensionChanged", (e) => {
       const { data } = e.detail;
-      const iframe = this.iframe!;
+      const iframe = this.iframe;
 
       if (!iframe) {
         // Iframe might be pre-rendering
         return;
       }
-      let unit = "px";
-      if (data.__unit) {
-        unit = data.__unit;
-      }
+      const unit = "px";
       if (data.iframeHeight) {
         iframe.style.height = data.iframeHeight + unit;
       }
-
-      // if (data.iframeWidth) {
-      //   iframe.style.width = data.iframeWidth + unit;
-      // }
 
       if (this.modalBox) {
         // It ensures that if the iframe is so tall that it can't fit in the parent window without scroll. Then force the scroll by restricting the max-height to innerHeight
@@ -490,9 +320,9 @@ export class Cal {
 
     this.actionManager.on("__iframeReady", () => {
       this.iframeReady = true;
-      this.doInIframe({ method: "parentKnowsIframeReady", arg: undefined });
-      this.iframeDoQueue.forEach(({ method, arg }) => {
-        this.doInIframe({ method, arg });
+      this.doInIframe({ method: "parentKnowsIframeReady" } as const);
+      this.iframeDoQueue.forEach((doInIframeArg) => {
+        this.doInIframe(doInIframeArg);
       });
     });
 
@@ -523,34 +353,276 @@ export class Cal {
   }
 }
 
-export interface GlobalCal {
-  (methodName: string, arg?: any): void;
+class CalApi {
+  cal: Cal;
+
+  constructor(cal: Cal) {
+    this.cal = cal;
+  }
+
+  init(namespaceOrConfig?: string | InitArgConfig, config = {} as InitArgConfig) {
+    if (typeof namespaceOrConfig !== "string") {
+      config = (namespaceOrConfig || {}) as Config;
+    }
+
+    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+
+    this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
+
+    this.cal.__config = { ...this.cal.__config, ...restConfig };
+  }
+  /**
+   * It is an instruction that adds embed iframe inline as last child of the element
+   */
+  inline({
+    calLink,
+    elementOrSelector,
+    config,
+  }: {
+    calLink: string;
+    elementOrSelector: string | HTMLElement;
+    config?: PrefillAndIframeAttrsConfig;
+  }) {
+    // eslint-disable-next-line prefer-rest-params
+    validate(arguments[0], {
+      required: true,
+      props: {
+        calLink: {
+          // TODO: Add a special type calLink for it and validate that it doesn't start with / or https?://
+          required: true,
+          type: "string",
+        },
+        elementOrSelector: {
+          required: true,
+          type: ["string", HTMLElement],
+        },
+        config: {
+          required: false,
+          type: Object,
+        },
+      },
+    });
+
+    config = config || {};
+    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
+      throw new Error("iframeAttrs should be an object");
+    }
+    config.embedType = "inline";
+    const iframe = this.cal.createIframe({ calLink, queryObject: Cal.getQueryObject(config) });
+    iframe.style.height = "100%";
+    iframe.style.width = "100%";
+    const element =
+      elementOrSelector instanceof HTMLElement
+        ? elementOrSelector
+        : document.querySelector(elementOrSelector);
+    if (!element) {
+      throw new Error("Element not found");
+    }
+    element.classList.add("cal-inline-container");
+    const template = document.createElement("template");
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
+    this.cal.inlineEl = template.content.children[0];
+    this.cal.inlineEl.appendChild(iframe);
+    element.appendChild(template.content);
+  }
+
+  floatingButton({
+    calLink,
+    buttonText = "Book my Cal",
+    hideButtonIcon = false,
+    attributes,
+    buttonPosition = "bottom-right",
+    buttonColor = "rgb(0, 0, 0)",
+    buttonTextColor = "rgb(255, 255, 255)",
+    calOrigin,
+  }: {
+    calLink: string;
+    buttonText?: string;
+    attributes?: Record<"id", string> & Record<string | "id", string>;
+    hideButtonIcon?: boolean;
+    buttonPosition?: "bottom-left" | "bottom-right";
+    buttonColor?: string;
+    buttonTextColor?: string;
+    calOrigin?: string;
+  }) {
+    // validate(arguments[0], {
+    //   required: true,
+    //   props: {
+    //     calLink: {
+    //       required: true,
+    //       type: "string",
+    //     },
+    //   },
+    // });
+    let existingEl: HTMLElement | null = null;
+
+    if (attributes?.id) {
+      existingEl = document.getElementById(attributes.id);
+    }
+    let el: FloatingButton;
+    if (!existingEl) {
+      el = document.createElement("cal-floating-button") as FloatingButton;
+      // It makes it a target element that opens up embed modal on click
+      el.dataset.calLink = calLink;
+      el.dataset.calNamespace = this.cal.namespace;
+      el.dataset.calOrigin = calOrigin ?? "";
+      if (attributes?.id) {
+        el.id = attributes.id;
+      }
+
+      document.body.appendChild(el);
+    } else {
+      el = existingEl as FloatingButton;
+    }
+    const dataset = el.dataset;
+    dataset["buttonText"] = buttonText;
+    dataset["hideButtonIcon"] = "" + hideButtonIcon;
+    dataset["buttonPosition"] = "" + buttonPosition;
+    dataset["buttonColor"] = "" + buttonColor;
+    dataset["buttonTextColor"] = "" + buttonTextColor;
+  }
+
+  modal({
+    calLink,
+    calOrigin,
+    config = {},
+    uid,
+  }: {
+    calLink: string;
+    config?: PrefillAndIframeAttrsConfig;
+    uid?: string | number;
+    calOrigin?: string;
+  }) {
+    uid = uid || 0;
+
+    const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
+    if (existingModalEl) {
+      existingModalEl.setAttribute("state", "started");
+      return;
+    }
+    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
+      throw new Error("iframeAttrs should be an object");
+    }
+    config.embedType = "modal";
+    const iframe = this.cal.createIframe({ calLink, calOrigin, queryObject: Cal.getQueryObject(config) });
+    iframe.style.borderRadius = "8px";
+
+    iframe.style.height = "100%";
+    iframe.style.width = "100%";
+    const template = document.createElement("template");
+    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+
+    this.cal.modalBox = template.content.children[0];
+    this.cal.modalBox.appendChild(iframe);
+    this.cal.actionManager.on("__closeIframe", () => {
+      this.cal.modalBox.setAttribute("state", "closed");
+    });
+    document.body.appendChild(template.content);
+  }
+
+  on<T extends keyof EventDataMap>({
+    action,
+    callback,
+  }: {
+    action: T;
+    callback: (arg0: CustomEvent<EventData<T>>) => void;
+  }) {
+    // eslint-disable-next-line prefer-rest-params
+    validate(arguments[0], {
+      required: true,
+      props: {
+        action: {
+          required: true,
+          type: "string",
+        },
+        callback: {
+          required: true,
+          type: Function,
+        },
+      },
+    });
+    this.cal.actionManager.on(action, callback);
+  }
+
+  off({ action, callback }: { action: never; callback: never }) {
+    this.cal.actionManager.off(action, callback);
+  }
+
+  preload({ calLink }: { calLink: string }) {
+    // eslint-disable-next-line prefer-rest-params
+    validate(arguments[0], {
+      required: true,
+      props: {
+        calLink: {
+          type: "string",
+          required: true,
+        },
+      },
+    });
+    const iframe = document.body.appendChild(document.createElement("iframe"));
+    const config = this.cal.getConfig();
+
+    const urlInstance = new URL(`${config.calOrigin}/${calLink}`);
+    urlInstance.searchParams.set("prerender", "true");
+    iframe.src = urlInstance.toString();
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.display = "none";
+  }
+
+  ui(uiConfig: UiConfig) {
+    validate(uiConfig, {
+      required: true,
+      props: {
+        theme: {
+          required: false,
+          type: "string",
+        },
+        styles: {
+          required: false,
+          type: Object,
+        },
+      },
+    });
+
+    this.cal.doInIframe({ method: "ui", arg: uiConfig });
+  }
+}
+
+// This is a full fledged Cal instance but doesn't have ns property because it would be nested inside an ns instance already
+export interface GlobalCalWithoutNs {
+  <T extends keyof SingleInstructionMap>(methodName: T, ...arg: Rest<SingleInstructionMap[T]>): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
-  q?: InstructionQueue;
+  q: IArguments[];
   /** If user registers multiple namespaces, those are available here */
-  ns?: Record<string, GlobalCal>;
   instance?: Cal;
   __css?: string;
   fingerprint?: string;
-  __logQueue?: any[];
+  __logQueue?: unknown[];
 }
+
+// Well Omit removes the Function Signature from a type if used. So, instead construct the types like this.
+type GlobalCalWithNs = GlobalCalWithoutNs & {
+  ns: Record<string, GlobalCalWithoutNs>;
+};
+
+export type GlobalCal = GlobalCalWithNs;
 
 declare global {
   interface Window {
-    Cal?: GlobalCal;
+    Cal: GlobalCal;
   }
 }
 
 export interface CalWindow extends Window {
-  Cal?: GlobalCal;
+  Cal: GlobalCal;
 }
 
-globalCal.instance = new Cal("", globalCal.q!);
-
-for (const [ns, api] of Object.entries(globalCal.ns!)) {
-  api.instance = new Cal(ns, api.q!);
+globalCal.instance = new Cal("", globalCal.q);
+for (const [ns, api] of Object.entries(globalCal.ns)) {
+  api.instance = new Cal(ns, api.q);
 }
 
 /**
@@ -571,38 +643,45 @@ window.addEventListener("message", (e) => {
   if (!actionManager) {
     throw new Error("Unhandled Action" + parsedAction);
   }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   actionManager.fire(parsedAction.type, detail.data);
 });
 
 document.addEventListener("click", (e) => {
-  const htmlElement = e.target;
-  if (!(htmlElement instanceof HTMLElement)) {
+  const targetEl = e.target;
+  if (!(targetEl instanceof HTMLElement)) {
     return;
   }
-  const path = htmlElement.dataset.calLink;
+  const path = targetEl.dataset.calLink;
   if (!path) {
     return;
   }
-  const modalUniqueId = ((htmlElement as unknown as any).uniqueId =
-    (htmlElement as unknown as any).uniqueId || Date.now());
-  const namespace = htmlElement.dataset.calNamespace;
-  const configString = htmlElement.dataset.calConfig || "";
+  const modalUniqueId = (targetEl.dataset.uniqueId = targetEl.dataset.uniqueId || String(Date.now()));
+  const namespace = targetEl.dataset.calNamespace;
+  const configString = targetEl.dataset.calConfig || "";
+  const calOrigin = targetEl.dataset.calOrigin || "";
   let config;
   try {
     config = JSON.parse(configString);
   } catch (e) {
     config = {};
   }
-  let api = globalCal;
+
+  let api: GlobalCalWithoutNs = globalCal;
+
   if (namespace) {
-    api = globalCal.ns![namespace];
+    api = globalCal.ns[namespace];
   }
+
   if (!api) {
     throw new Error(`Namespace ${namespace} isn't defined`);
   }
+
   api("modal", {
     calLink: path,
     config,
     uid: modalUniqueId,
+    calOrigin,
   });
 });
