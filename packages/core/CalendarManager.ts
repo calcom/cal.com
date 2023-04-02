@@ -1,5 +1,5 @@
-import { SelectedCalendar } from "@prisma/client";
-import _ from "lodash";
+import type { SelectedCalendar } from "@prisma/client";
+import { sortBy } from "lodash";
 import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -9,8 +9,13 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type {
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
@@ -31,8 +36,10 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
 
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
-  selectedCalendars: { externalId: string }[]
+  selectedCalendars: { externalId: string }[],
+  destinationCalendarExternalId?: string
 ) => {
+  let destinationCalendar: IntegrationCalendar | undefined;
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
@@ -47,16 +54,19 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendar.listCalendars();
-        const calendars = _(cals)
-          .map((cal) => ({
-            ...cal,
-            readOnly: cal.readOnly || false,
-            primary: cal.primary || null,
-            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-            credentialId,
-          }))
-          .sortBy(["primary"])
-          .value();
+        const calendars = sortBy(
+          cals.map((cal) => {
+            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
+            return {
+              ...cal,
+              readOnly: cal.readOnly || false,
+              primary: cal.primary || null,
+              isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+              credentialId,
+            };
+          }),
+          ["primary"]
+        );
         const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
@@ -66,6 +76,12 @@ export const getConnectedCalendars = async (
               message: "No primary calendar found",
             },
           };
+        }
+        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
+        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
+          destinationCalendar.primaryEmail = primary.email;
+          destinationCalendar.integrationTitle = integration.title;
+          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
@@ -95,7 +111,7 @@ export const getConnectedCalendars = async (
     })
   );
 
-  return connectedCalendars;
+  return { connectedCalendars, destinationCalendar };
 };
 
 /**
@@ -193,9 +209,13 @@ export const getBusyCalendarTimes = async (
     results = await getNextCache(username, dayjs(dateFrom).format("YYYY-MM"));
   } else {
     // if dateFrom and dateTo is from different months get cache by each month
-    const monthsOfDiff = dayjs(dateTo).diff(dayjs(dateFrom), "month");
     const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-    for (let i = 1; i <= monthsOfDiff; i++) {
+    for (
+      let i = 1;
+      dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+      dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+      i++
+    ) {
       months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
     }
     const data: EventBusyDate[][][] = await Promise.all(months.map((month) => getNextCache(username, month)));
@@ -218,7 +238,7 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organiser"; // TODO: i18n this string?
   }
 
-  // TODO: Surfice success/error messages coming from apps to improve end user visibility
+  // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;

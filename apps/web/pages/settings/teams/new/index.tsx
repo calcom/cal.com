@@ -1,12 +1,9 @@
-import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { getLayout } from "@components/layouts/WizardLayout";
-
-import { ssrInit } from "@server/lib/ssr";
+import WizardLayout from "@components/layouts/WizardLayout";
 
 const CreateNewTeamPage = () => {
   const { t } = useLocale();
@@ -20,17 +17,14 @@ const CreateNewTeamPage = () => {
     </>
   );
 };
-
-CreateNewTeamPage.getLayout = getLayout;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
+const LayoutWrapper = (page: React.ReactElement) => {
+  return (
+    <WizardLayout currentStep={1} maxSteps={2}>
+      {page}
+    </WizardLayout>
+  );
 };
+
+CreateNewTeamPage.getLayout = LayoutWrapper;
 
 export default CreateNewTeamPage;

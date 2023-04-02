@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
 import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
 
@@ -9,6 +10,7 @@ import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  pending?: boolean;
 }
 
 export default function TeamList(props: Props) {
@@ -54,10 +56,11 @@ export default function TeamList(props: Props) {
       ))}
 
       {/* only show recommended steps when there is only one team */}
-      {props.teams.length === 1 && (
+      {!props.pending && props.teams.length === 1 && (
         <>
           {props.teams.map(
             (team, i) =>
+              team.role !== "MEMBER" &&
               i === 0 && (
                 <div className="bg-gray-100 p-6">
                   <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
@@ -94,11 +97,7 @@ export default function TeamList(props: Props) {
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
                       actionButton={{
-                        href:
-                          "/event-types?dialog=new-eventtype&eventPage=team%2F" +
-                          team.slug +
-                          "&teamId=" +
-                          team.id,
+                        href: "/event-types?dialog=new&eventPage=team%2F" + team.slug + "&teamId=" + team.id,
                         child: t("create"),
                       }}
                     />

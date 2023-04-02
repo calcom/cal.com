@@ -9,7 +9,7 @@ export const apiHandlers = {
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   closecom: import("./closecom/api"),
-  "routing-forms": import("./ee/routing-forms/api"),
+  cron: import("./cron/api"),
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
   exchangecalendar: import("./exchangecalendar/api"),
@@ -33,6 +33,7 @@ export const apiHandlers = {
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
+  "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
   sendgrid: import("./sendgrid/api"),
   signal: import("./signal/api"),
@@ -56,5 +57,6 @@ export const apiHandlers = {
   wipemycalother: import("./wipemycalother/api"),
   wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
+  zohocrm: import("./zohocrm/api"),
   zoomvideo: import("./zoomvideo/api"),
 };

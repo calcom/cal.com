@@ -3,8 +3,9 @@
  */
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
-import { createContext } from "@calcom/trpc/server/createContext";
+import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 export default trpcNext.createNextApiHandler({
@@ -12,7 +13,11 @@ export default trpcNext.createNextApiHandler({
   /**
    * @link https://trpc.io/docs/context
    */
-  createContext,
+  createContext: ({ req, res }) => {
+    const sessionGetter = () => getServerSession({ req, res });
+
+    return createTrpcContext({ req, res }, sessionGetter);
+  },
   /**
    * @link https://trpc.io/docs/error-handling
    */
@@ -65,6 +70,7 @@ export default trpcNext.createNextApiHandler({
       "viewer.public.i18n": `no-cache`,
       // Revalidation time here should be 1 second, per https://github.com/calcom/cal.com/pull/6823#issuecomment-1423215321
       "viewer.public.slots.getSchedule": `no-cache`, // FIXME
+      "viewer.public.cityTimezones": `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate`,
     } as const;
 
     // Find which element above is an exact match for this group of paths

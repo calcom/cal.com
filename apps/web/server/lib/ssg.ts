@@ -29,7 +29,6 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
     ctx: {
       prisma,
       session: null,
-      user: null,
       locale,
       i18n: _i18n,
     },

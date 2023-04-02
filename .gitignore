@@ -77,9 +77,6 @@ lint-results
 #Storybook
 apps/storybook/build-storybook.log
 
-# Infisical
-.infisical.json
-
 # Snaplet
 .snaplet/snapshots
 .snaplet/structure.d.ts
@@ -90,3 +87,12 @@ apps/api
 apps/website
 apps/console
 apps/auth
+
+# Yarn Modern
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

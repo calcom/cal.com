@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField } from "@calcom/ui";
 import { FiArrowRight } from "@calcom/ui/components/icon";
 
-import { NewTeamFormValues } from "../lib/types";
+import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
   returnTo: z.string(),
@@ -75,6 +75,7 @@ export const CreateANewTeamForm = () => {
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
                       newTeamFormMethods.setValue("slug", slugify(e?.target.value));
                     }
+                    createTeamMutation.reset();
                   }}
                   autoComplete="off"
                 />
@@ -102,6 +103,7 @@ export const CreateANewTeamForm = () => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
                   });
+                  createTeamMutation.reset();
                 }}
               />
             )}
@@ -122,6 +124,7 @@ export const CreateANewTeamForm = () => {
                     buttonMsg={t("update")}
                     handleAvatarChange={(newAvatar: string) => {
                       newTeamFormMethods.setValue("logo", newAvatar);
+                      createTeamMutation.reset();
                     }}
                     imageSrc={value}
                   />
@@ -140,10 +143,14 @@ export const CreateANewTeamForm = () => {
             {t("cancel")}
           </Button>
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={
+              newTeamFormMethods.formState.isSubmitting ||
+              createTeamMutation.isError ||
+              createTeamMutation.isLoading
+            }
             color="primary"
-            type="submit"
             EndIcon={FiArrowRight}
+            type="submit"
             className="w-full justify-center">
             {t("continue")}
           </Button>

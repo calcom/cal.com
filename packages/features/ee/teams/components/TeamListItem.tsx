@@ -5,9 +5,10 @@ import { useState } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
-import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
@@ -55,9 +56,17 @@ export default function TeamListItem(props: Props) {
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setOpenMemberInvitationModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -269,17 +278,15 @@ export default function TeamListItem(props: Props) {
                       <DropdownMenuItem>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              type="button"
+                            <DropdownItem
                               color="destructive"
-                              size="lg"
+                              type="button"
                               StartIcon={FiLogOut}
-                              className="w-full rounded-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
                               {t("leave_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"

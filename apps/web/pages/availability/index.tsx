@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetServerSidePropsContext } from "next";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
@@ -13,8 +12,6 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
@@ -96,7 +93,13 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 key={schedule.id}
                 schedule={schedule}
                 updateDefault={updateMutation.mutate}
-                deleteFunction={deleteMutation.mutate}
+                deleteFunction={() => {
+                  if (schedules.length === 1) {
+                    showToast(t("requires_at_least_one_schedule"), "error");
+                  } else {
+                    deleteMutation.mutate;
+                  }
+                }}
               />
             ))}
           </ul>
@@ -118,13 +121,3 @@ export default function AvailabilityPage() {
     </div>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};

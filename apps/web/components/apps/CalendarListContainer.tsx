@@ -88,7 +88,7 @@ function CalendarSwitch(props: {
     }
   );
   return (
-    <div className="flex py-1">
+    <div className="flex flex-col py-1 sm:flex-row">
       <Switch
         key={props.externalId}
         name="enabled"
@@ -99,7 +99,7 @@ function CalendarSwitch(props: {
         }}
       />
       {!!props.destination && (
-        <span className="ml-4 inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
+        <span className="ml-8 inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800 sm:ml-4">
           <FiArrowLeft className="h-4 w-4" />
           {t("adding_events_to")}
         </span>
@@ -184,8 +184,8 @@ function ConnectedCalendarsList(props: Props) {
                     <div className="border-t border-gray-200">
                       {!fromOnboarding && (
                         <>
-                          <p className="px-4 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-2 p-4">
+                          <p className="px-5 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
+                          <ul className="space-y-2 px-5 py-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
@@ -264,7 +264,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
             {!!data.connectedCalendars.length || !!installedCalendars.data?.items.length ? (
               <>
                 {heading && (
-                  <div className="flex flex-col gap-6 rounded-md border border-gray-200 p-7">
+                  <div className="flex flex-col gap-6 rounded-md border p-7">
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}

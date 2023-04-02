@@ -88,6 +88,7 @@ That's where Cal.com comes in. Self-hosted or hosted by us. White-label by desig
 - [React](https://reactjs.org/?ref=cal.com)
 - [Tailwind](https://tailwindcss.com/?ref=cal.com)
 - [Prisma](https://prisma.io/?ref=cal.com)
+- [Daily.co](https://go.cal.com/daily)
 
 ## Stay Up-to-Date
 
@@ -349,8 +350,15 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
     <source media="(prefers-color-scheme: dark)" srcset="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=dark">
     <img alt="Bounties of cal" src="https://console.algora.io/api/og/cal/bounties.png?p=0&status=open&theme=light">
   </picture>
-</a>  
+</a>
 
+<!-- CONTRIBUTORS -->
+
+### Contributors
+
+<a href="https://github.com/calcom/cal.com/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=calcom/cal.com" />
+</a>
 
 <!-- TRANSLATIONS -->
 
@@ -424,7 +432,7 @@ following
 
 ### Obtaining Daily API Credentials
 
-1. Open [Daily](https://www.daily.co/) and sign into your account.
+1. Visit our [Daily.co Partnership Form](https://go.cal.com/daily) and enter your information
 2. From within your dashboard, go to the [developers](https://dashboard.daily.co/developers) tab.
 3. Copy your API key.
 4. Now paste the API key to your .env file into the `DAILY_API_KEY` field in your .env file.
@@ -442,6 +450,19 @@ following
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
+
+### Obtaining ZohoCRM Client ID and Secret
+
+1. Open [Zoho API Console](https://api-console.zoho.com/) and sign into your account, or create a new one.
+2. From within the API console page, go to "Applications".
+3. Click "ADD CLIENT" button top right and select "Server-based Applications".
+4. Fill in any information you want in the "Client Details" tab
+5. Go to tab "Client Secret" tab.
+6. Now copy the Client ID and Client Secret to your .env file into the `ZOHOCRM_CLIENT_ID` and `ZOHOCRM_CLIENT_SECRET` fields.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/zohocrm/callback` replacing Cal.com URL with the URI at which your application runs.
+8. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
+9. Click the "Save"/ "UPDATE" button at the bottom footer.
+10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
 
 ## Workflows
 

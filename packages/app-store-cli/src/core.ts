@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import seedAppStoreConfig from "@calcom/prisma/seed-app-store.config.json";
+import type seedAppStoreConfig from "@calcom/prisma/seed-app-store.config.json";
 
 import { APP_STORE_PATH, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
@@ -127,6 +127,8 @@ export const BaseAppFork = {
         .replace(/_DESCRIPTION_/g, description)
         .replace(/_APP_DIR_/g, slug)
     );
+    // New monorepo package has been added, so we need to run yarn again
+    await execSync("yarn");
   },
 
   delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {

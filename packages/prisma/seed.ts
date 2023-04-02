@@ -1,11 +1,12 @@
-import { BookingStatus, MembershipRole, Prisma, UserPermissionRole } from "@prisma/client";
+import type { Prisma, UserPermissionRole } from "@prisma/client";
+import { BookingStatus, MembershipRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
-import { hashPassword } from "@calcom/lib/auth";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
 import prisma from ".";
@@ -59,7 +60,7 @@ async function createUserAndEventType(opts: {
   );
 
   for (const eventTypeInput of opts.eventTypes) {
-    const { _bookings: bookingInputs = [], ...eventTypeData } = eventTypeInput;
+    const { _bookings: bookingFields = [], ...eventTypeData } = eventTypeInput;
     eventTypeData.userId = user.id;
     eventTypeData.users = { connect: { id: user.id } };
 
@@ -90,7 +91,7 @@ async function createUserAndEventType(opts: {
     console.log(
       `\t📆 Event type ${eventTypeData.slug} with id ${id}, length ${eventTypeData.length}min - ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}/${eventTypeData.slug}`
     );
-    for (const bookingInput of bookingInputs) {
+    for (const bookingInput of bookingFields) {
       await prisma.booking.create({
         data: {
           ...bookingInput,

@@ -26,7 +26,7 @@
   text-align: left;
   border-color: #D1D5DB;
   border-width: 1px;
-  padding: 1px
+  padding: 1px;
 }
 
 .editor-inner {
@@ -37,6 +37,7 @@
   overflow: scroll;
   resize: vertical;
   height: auto;
+  min-height: 40px;
 }
 
 .editor-input {

@@ -180,6 +180,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           placeholder={placeholder}
           className={className}
           {...passThrough}
+          readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}
         />
@@ -207,7 +208,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
   return (
-    <div className="relative [&_.group:hover_.addon-wrapper]:border-gray-400 [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
+    <div className="relative [&_.group:focus-within_.addon-wrapper]:border-neutral-300 [&_.group:hover_.addon-wrapper]:border-gray-400">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
         placeholder={props.placeholder || "•••••••••••••"}
@@ -337,9 +338,15 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
+
+          if (form.formState?.errors?.apiError) {
+            form.clearErrors("root");
+          }
+
           form
             .handleSubmit(handleSubmit)(event)
             .catch((err) => {
+              // FIXME: Booking Pages don't have toast, so this error is never shown
               showToast(`${getErrorFromUnknown(err).message}`, "error");
             });
         }}

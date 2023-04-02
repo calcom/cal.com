@@ -1,19 +1,15 @@
-import {
-  WorkflowTriggerEvents,
-  TimeUnit,
-  WorkflowTemplates,
-  WorkflowActions,
-  WorkflowMethods,
-} from "@prisma/client";
+import type { TimeUnit } from "@prisma/client";
+import { WorkflowTriggerEvents, WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
-import customTemplate, { VariablesType } from "./templates/customTemplate";
+import type { VariablesType } from "./templates/customTemplate";
+import customTemplate from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -36,7 +32,7 @@ export type BookingInfo = {
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
-  customInputs?: Prisma.JsonValue;
+  responses?: Prisma.JsonValue;
   metadata?: Prisma.JsonValue;
 };
 
@@ -53,7 +49,8 @@ export const scheduleSMSReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates,
   sender: string,
-  userId: number,
+  userId?: number | null,
+  teamId?: number | null,
   isVerificationPending = false
 ) => {
   const { startTime, endTime } = evt;
@@ -69,7 +66,10 @@ export const scheduleSMSReminder = async (
   async function getIsNumberVerified() {
     if (action === WorkflowActions.SMS_ATTENDEE) return true;
     const verifiedNumber = await prisma.verifiedNumber.findFirst({
-      where: { userId, phoneNumber: reminderPhone || "" },
+      where: {
+        OR: [{ userId }, { teamId }],
+        phoneNumber: reminderPhone || "",
+      },
     });
     if (!!verifiedNumber) return true;
     return isVerificationPending;
@@ -107,7 +107,7 @@ export const scheduleSMSReminder = async (
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,
-        customInputs: evt.customInputs,
+        responses: evt.responses,
         meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
       const customMessage = await customTemplate(message, variables, locale);
