@@ -10,14 +10,6 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const meetingID = uuidv4();
-
-      console.log({
-        type: "sylaps_video",
-        id: meetingID,
-        password: "",
-        url: "https://sylaps.com/r/" + meetingID,
-      });
-
       return Promise.resolve({
         type: "sylaps_video",
         id: meetingID,
