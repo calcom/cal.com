@@ -8,8 +8,16 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
     getAvailability: () => {
       return Promise.resolve([]);
     },
-    createMeeting: async (): Promise<VideoCallData> => {
+    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       const meetingID = uuidv4();
+
+      console.log({
+        type: "sylaps_video",
+        id: meetingID,
+        password: "",
+        url: "https://sylaps.com/r/" + meetingID,
+      });
+
       return Promise.resolve({
         type: "sylaps_video",
         id: meetingID,
@@ -17,10 +25,10 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
         url: "https://sylaps.com/r/" + meetingID,
       });
     },
-    deleteMeeting: async (): Promise<void> => {
+    deleteMeeting: async (uid: string): Promise<void> => {
       Promise.resolve();
     },
-    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
+    updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       return Promise.resolve({
         type: "sylaps_video",
         id: bookingRef.meetingId as string,

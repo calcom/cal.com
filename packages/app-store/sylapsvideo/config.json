@@ -15,11 +15,9 @@
   "__createdUsingCli": true,
   "appData": {
     "location": {
-      "linkType": "static",
+      "linkType": "dynamic",
       "type": "integrations:sylaps_video",
-      "label": "Sylaps Video",
-      "organizerInputPlaceholder": "https://www.sylaps.com/cal",
-      "urlRegExp": "^(?:https?://)?(?:(?!.*-\\.)(?:\\w+(-\\w+)*\\.))*sylaps\\.com(/[\\w\\-._~:?#\\[\\]@!$&'()*+,;%=]+)*$"
+      "label": "Sylaps"
     }
   }
 }

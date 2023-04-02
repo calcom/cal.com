@@ -39,7 +39,7 @@ export const apiHandlers = {
   signal: import("./signal/api"),
   sirius_video: import("./sirius_video/api"),
   stripepayment: import("./stripepayment/api"),
-  sylaps: import("./sylaps/api"),
+  sylapsvideo: import("./sylapsvideo/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
   basic: import("./templates/basic/api"),

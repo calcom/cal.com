@@ -39,7 +39,7 @@ import sendgrid_config_json from "./sendgrid/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
-import sylaps_config_json from "./sylaps/config.json";
+import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
 import basic_config_json from "./templates/basic/config.json";
@@ -98,7 +98,7 @@ export const appStoreMetadata = {
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
   stripepayment: stripepayment__metadata_ts,
-  sylaps: sylaps_config_json,
+  sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
   basic: basic_config_json,

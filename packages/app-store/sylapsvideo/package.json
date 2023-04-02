@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "@calcom/sylaps",
+  "name": "@calcom/sylapsvideo",
   "version": "0.0.0",
   "main": "./index.ts",
   "description": "Free Audio and Video Conferencing, Online Collaboration, Screen Sharing on web browser, mobile and desktop.",

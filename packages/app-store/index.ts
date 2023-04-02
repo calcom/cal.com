@@ -20,7 +20,7 @@ import * as plausible from "./plausible";
 import * as salesforce from "./salesforce";
 import * as sendgrid from "./sendgrid";
 import * as stripepayment from "./stripepayment";
-import * as sylaps from "./sylaps";
+import * as sylapsvideo from "./sylapsvideo";
 import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
 import * as wipemycalother from "./wipemycalother";
@@ -39,7 +39,7 @@ const appStore = {
   hubspot,
   huddle01video,
   jitsivideo,
-  sylaps,
+  sylapsvideo,
   larkcalendar,
   office365calendar,
   office365video,
