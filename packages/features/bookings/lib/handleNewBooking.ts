@@ -1803,17 +1803,18 @@ async function handler(
     }
   }
 
-  if (!isConfirmedByDefault && noEmail !== true) {
+  const bookingRequiresPayment =
+    !Number.isNaN(paymentAppData.price) &&
+    paymentAppData.price > 0 &&
+    !originalRescheduledBooking?.paid &&
+    !!booking;
+
+  if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
-  if (
-    !Number.isNaN(paymentAppData.price) &&
-    paymentAppData.price > 0 &&
-    !originalRescheduledBooking?.paid &&
-    !!booking
-  ) {
+  if (bookingRequiresPayment) {
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {

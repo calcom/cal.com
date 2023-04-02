@@ -174,7 +174,6 @@ export class PaymentService implements IAbstractPaymentService {
 
   async chargeCard(payment: Payment, bookingId: Booking["id"]): Promise<Payment> {
     try {
-      console.log("🚀 ~ file: PaymentService.ts:179 ~ PaymentService ~ payment:", payment);
       const stripeAppKeys = await prisma?.app.findFirst({
         select: {
           keys: true,
@@ -295,6 +294,9 @@ export class PaymentService implements IAbstractPaymentService {
           email: booking.user?.email,
           date: booking.startTime.toISOString(),
         }),
+        paymentOption: paymentData.paymentOption || "ON_BOOKING",
+        amount: paymentData.amount,
+        currency: paymentData.currency,
       },
     });
   }
