@@ -1694,9 +1694,14 @@
   "clear_filters": "Clear Filters",
   "hold": "Hold",
   "on_booking_option": "Collect payment on booking",
-  "hold_option": "Place hold on card",
+  "hold_option": "Charge no-show fee",
   "card_held": "Card held",
   "charge_card": "Charge card",
   "card_charged": "Card charged",
+  "no_show_fee_amount": "{{amount, currency}} no-show fee",
+  "no_show_fee": "No-show Fee",
+  "submit_card": "Submit card",
+  "submit_payment_information": "Submit payment information",
+  "meeting_awaiting_payment_method": "Your meeting is awaiting a payment method",
   "insights": "Insights"
 }

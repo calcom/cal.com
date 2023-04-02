@@ -529,7 +529,7 @@ const BookingPage = ({
             {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                  <BookingDescriptionPayment eventType={eventType} />
+                  <BookingDescriptionPayment eventType={eventType} t={t} />
                   {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                     <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                       <FiRefreshCw className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />

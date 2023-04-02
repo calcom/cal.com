@@ -1,3 +1,4 @@
+import type { Payment } from "@prisma/client";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import type stripejs from "@stripe/stripe-js";
@@ -32,8 +33,8 @@ const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
 } as const;
 
 type Props = {
-  payment: {
-    data: StripePaymentData;
+  payment: Payment & {
+    data: StripePaymentData | { setupIntent: StripeSetupData };
   };
   eventType: { id: number };
   user: { username: string | null };
@@ -126,9 +127,9 @@ export default function PaymentComponent(props: Props) {
                 I acknowledge that{" "}
                 <IntlProvider locale="en">
                   <FormattedNumber
-                    value={props.payment.data.amount / 100.0}
+                    value={props.payment.amount / 100.0}
                     style="currency"
-                    currency={props.payment.data.currency?.toUpperCase()}
+                    currency={props.payment.currency?.toUpperCase()}
                   />
                 </IntlProvider>{" "}
                 will be held on my card. If I do not show up the to booking then my card will be charged for
@@ -148,7 +149,13 @@ export default function PaymentComponent(props: Props) {
           loading={state.status === "processing"}
           id="submit">
           <span id="button-text">
-            {state.status === "processing" ? <div className="spinner" id="spinner" /> : t("pay_now")}
+            {state.status === "processing" ? (
+              <div className="spinner" id="spinner" />
+            ) : paymentOption === "HOLD" ? (
+              t("submit_card")
+            ) : (
+              t("pay_now")
+            )}
           </span>
         </Button>
       </div>

@@ -31,6 +31,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       refunded: true,
       bookingId: true,
       appId: true,
+      amount: true,
+      currency: true,
       paymentOption: true,
       booking: {
         select: {
