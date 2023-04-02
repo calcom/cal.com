@@ -121,8 +121,11 @@ export default function MemberListItem(props: Props) {
                   data-email={props.member.email}>
                   {props.member.email}
                 </span>
-                <span className="mx-2 block text-gray-600">•</span>
-                <span className="block text-sm text-gray-600">{bookingLink}</span>
+                {bookingLink && <>
+                  <span className="mx-2 block text-gray-600">•</span>
+                  <span className="block text-sm text-gray-600">{bookingLink}</span>
+                </>
+                }
               </div>
             </div>
           </div>
