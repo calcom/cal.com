@@ -40,7 +40,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     const partstat: ParticipationStatus = "ACCEPTED";
     const role: ParticipationRole = "REQ-PARTICIPANT";
     const icsEvent = createEvent({
-      uid: this.calEvent.iCalUID || this.calEvent.uid,
+      uid: this.calEvent.iCalUID || this.calEvent.uid!,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
