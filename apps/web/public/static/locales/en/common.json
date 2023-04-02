@@ -404,6 +404,7 @@
   "add_time_availability": "Add new time slot",
   "add_an_extra_layer_of_security": "Add an extra layer of security to your account in case your password is stolen.",
   "2fa": "Two-Factor Authentication",
+  "2fa_disabled":"Two-Factor authentication can only be enabled for email and password authentication",
   "enable_2fa": "Enable two-factor authentication",
   "disable_2fa": "Disable two-factor authentication",
   "disable_2fa_recommendation": "If you need to disable 2FA, we recommend re-enabling it as soon as possible.",
