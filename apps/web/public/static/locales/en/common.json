@@ -1703,5 +1703,7 @@
   "submit_card": "Submit card",
   "submit_payment_information": "Submit payment information",
   "meeting_awaiting_payment_method": "Your meeting is awaiting a payment method",
+  "no_show_fee_charged_subject": "No-show fee of {{amount, currency}} charged for {{title}} at {{date}}",
+  "no_show_fee_charged_text_body": "No show fee was charged",
   "insights": "Insights"
 }

@@ -14,7 +14,7 @@ function ManageLink(props: React.ComponentProps<typeof AttendeeScheduledEmail>) 
 }
 
 export const AttendeeAwaitingPaymentEmail = (props: React.ComponentProps<typeof AttendeeScheduledEmail>) => {
-  return props.calEvent.paymentInfo.paymentOption === "HOLD" ? (
+  return props.calEvent.paymentInfo?.paymentOption === "HOLD" ? (
     <AttendeeScheduledEmail
       title="meeting_awaiting_payment_method"
       headerType="calendarCircle"

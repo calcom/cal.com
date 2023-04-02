@@ -285,3 +285,7 @@ export const sendDisabledAppEmail = async ({
 }) => {
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
 };
+
+export const noShowFeeChargedEmail = async ({ email, payment }) => {
+  return;
+};
