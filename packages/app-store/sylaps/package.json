@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "private": true,
   "name": "@calcom/sylaps",
   "version": "0.0.0",
