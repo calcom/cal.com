@@ -56,9 +56,17 @@ export default function TeamListItem(props: Props) {
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setOpenMemberInvitationModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
