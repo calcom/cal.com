@@ -2,7 +2,8 @@ import { useRouter } from "next/router";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import { DateOverrideView, DateOverrideList } from "@calcom/features/schedules";
+import type { DateOverrideDialogProps } from "@calcom/features/schedules/components/DateOverrideDialog";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -11,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
 import {
   Button,
   Form,
@@ -27,7 +28,7 @@ import {
   ConfirmationDialogContent,
   VerticalDivider,
 } from "@calcom/ui";
-import { FiInfo, FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { FiInfo, FiTrash } from "@calcom/ui/components/icon";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -46,10 +47,19 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
-  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+const DateOverride = ({
+  createOrUpdateDialogProps,
+}: {
+  createOrUpdateDialogProps: Omit<DateOverrideDialogProps, "Trigger" | "onChange">;
+}) => {
+  const { append, update, remove, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+
+  createOrUpdateDialogProps.excludedDates = fields.map((field) => yyyymmdd(field.ranges[0].start));
+
+  const indexes = new Map(fields.map(({ id }, index) => [id, index]));
+
   const { t } = useLocale();
   return (
     <div className="p-6">
@@ -63,22 +73,27 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       </h3>
       <p className="mb-4 text-sm text-gray-500">{t("date_overrides_subtitle")}</p>
       <div className="space-y-2">
-        <DateOverrideList
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
-          remove={remove}
-          update={update}
-          items={fields}
-          workingHours={workingHours}
-        />
-        <DateOverrideInputDialog
-          workingHours={workingHours}
-          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
-          onChange={(ranges) => append({ ranges })}
-          Trigger={
-            <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
-              Add an override
-            </Button>
+        <DateOverrideView
+          list={
+            <DateOverrideList
+              items={[...fields]}
+              onDelete={(id) => {
+                const index = indexes.get(id);
+                if (typeof index !== "undefined") remove(index);
+              }}
+              updateDialogProps={{
+                ...createOrUpdateDialogProps,
+                onChange: (ranges, id) => {
+                  const index = id ? indexes.get(id) : undefined;
+                  if (typeof index !== "undefined") update(index, { ranges });
+                },
+              }}
+            />
           }
+          createDialogProps={{
+            ...createOrUpdateDialogProps,
+            onChange: (ranges) => append({ ranges }),
+          }}
         />
       </div>
     </div>
@@ -261,7 +276,13 @@ export default function Availability() {
               </div>
             </div>
             <div className="my-6 rounded-md border">
-              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              {schedule?.workingHours && (
+                <DateOverride
+                  createOrUpdateDialogProps={{
+                    workingHours: schedule.workingHours,
+                  }}
+                />
+              )}
             </div>
           </div>
           <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">

@@ -1,9 +1,9 @@
+import { noop } from "lodash";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogHeader,
-  DialogClose,
+  DialogClose as DialogCancelButton,
   Switch,
   Form,
   Button,
@@ -23,18 +23,17 @@ import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
 const DateOverrideForm = ({
+  index,
   value,
   workingHours,
   excludedDates,
   onChange,
   onClose = noop,
 }: {
+  index?: string;
   workingHours?: WorkingHours[];
-  onChange: (newValue: TimeRange[]) => void;
+  onChange: (newValue: TimeRange[], index?: string) => void;
   excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
@@ -112,12 +111,13 @@ const DateOverrideForm = ({
           ).map((item) => ({
             start: date.hour(item.start.getHours()).minute(item.start.getMinutes()).toDate(),
             end: date.hour(item.end.getHours()).minute(item.end.getMinutes()).toDate(),
-          }))
+          })),
+          index
         );
         onClose();
       }}
-      className="p-6 sm:flex sm:p-0">
-      <div className={classNames(date && "w-full sm:border-r sm:pr-6", "sm:p-4 md:p-8")}>
+      className="p-6 sm:flex">
+      <div className="w-full sm:border-r sm:pr-6">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           includedDates={includedDates}
@@ -132,54 +132,60 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {date && (
-        <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
-          <div className="mb-4 flex-grow space-y-4">
-            <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
-            <div>
-              {datesUnavailable ? (
-                <p className="rounded border p-2 text-sm text-gray-500">{t("date_overrides_unavailable")}</p>
-              ) : (
-                <DayRanges name="range" />
-              )}
-            </div>
-            <Switch
-              label={t("date_overrides_mark_all_day_unavailable_one")}
-              checked={datesUnavailable}
-              onCheckedChange={setDatesUnavailable}
-              data-testid="date-override-mark-unavailable"
-            />
-          </div>
-          <div className="mt-4 flex flex-row-reverse sm:mt-0">
-            <Button
-              className="ml-2"
-              color="primary"
-              type="submit"
-              disabled={!date}
-              data-testid="add-override-submit-btn">
-              {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
-            </Button>
-            <DialogClose onClick={onClose} />
-          </div>
+      <div className="relative mt-8 flex w-full flex-col pl-6 sm:mt-0">
+        <div className="mb-4 flex-grow space-y-4">
+          {date && (
+            <>
+              <p className="text-medium mt-1 text-sm">{t("date_overrides_dialog_which_hours")}</p>
+              <div>
+                {datesUnavailable ? (
+                  <p className="rounded border p-2 text-sm text-gray-500">
+                    {t("date_overrides_unavailable")}
+                  </p>
+                ) : (
+                  <DayRanges name="range" />
+                )}
+              </div>
+              <Switch
+                label={t("date_overrides_mark_all_day_unavailable_one")}
+                checked={datesUnavailable}
+                onCheckedChange={setDatesUnavailable}
+                data-testid="date-override-mark-unavailable"
+              />
+            </>
+          )}
         </div>
-      )}
+        <div className="mt-4 flex flex-row-reverse sm:mt-0">
+          <Button
+            className="ml-2"
+            color="primary"
+            type="submit"
+            disabled={!date}
+            data-testid="add-override-submit-btn">
+            {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
+          </Button>
+          <DialogCancelButton onClick={onClose} />
+        </div>
+      </div>
     </Form>
   );
 };
 
-const DateOverrideInputDialog = ({
-  Trigger,
-  excludedDates = [],
-  ...passThroughProps
-}: {
+export type DateOverrideDialogProps = {
   workingHours: WorkingHours[];
   excludedDates?: string[];
   Trigger: React.ReactNode;
-  onChange: (newValue: TimeRange[]) => void;
+  onChange: (newValue: TimeRange[], id?: string) => void;
+  index?: string;
   value?: TimeRange[];
-}) => {
+};
+
+const DateOverrideDialog = ({
+  Trigger,
+  excludedDates = [],
+  ...passThroughProps
+}: DateOverrideDialogProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [open, setOpen] = useState(false);
   {
     /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
        ref:- https://github.com/calcom/cal.com/pull/6215
@@ -187,18 +193,14 @@ const DateOverrideInputDialog = ({
   }
   const enableOverflow = isMobile;
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
       <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
-        <DateOverrideForm
-          excludedDates={excludedDates}
-          {...passThroughProps}
-          onClose={() => setOpen(false)}
-        />
+        <DateOverrideForm excludedDates={excludedDates} {...passThroughProps} />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default DateOverrideInputDialog;
+export default DateOverrideDialog;
