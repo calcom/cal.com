@@ -124,16 +124,15 @@ export default function PaymentComponent(props: Props) {
           <Checkbox
             description={
               <Trans i18nKey="acknowledge_booking_hold">
-                I acknowledge that{" "}
+                I acknowledge that if I do not show up the to booking then my card will be charged for{" "}
                 <IntlProvider locale="en">
                   <FormattedNumber
                     value={props.payment.amount / 100.0}
                     style="currency"
                     currency={props.payment.currency?.toUpperCase()}
                   />
-                </IntlProvider>{" "}
-                will be held on my card. If I do not show up the to booking then my card will be charged for
-                the hold amount
+                </IntlProvider>
+                .
               </Trans>
             }
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
