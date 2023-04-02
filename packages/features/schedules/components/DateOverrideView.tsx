@@ -20,7 +20,7 @@ export const DateOverrideView = ({
         {...createDialogProps}
         Trigger={
           <Button color="secondary" StartIcon={FiPlus} data-testid="add-override">
-            {t("add_override_btn_text")}
+            {t("date_overrides_add_btn")}
           </Button>
         }
       />
