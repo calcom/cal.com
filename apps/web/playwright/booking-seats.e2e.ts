@@ -205,7 +205,7 @@ test.describe("Booking with Seats", () => {
         },
       });
 
-      expect(oldBooking?.attendees).toBeFalsy();
+      expect(oldBooking?.status).toBe(BookingStatus.CANCELLED);
     });
 
     test("Should cancel with seats and have no attendees and cancelled", async ({
