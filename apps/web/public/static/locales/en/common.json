@@ -1692,5 +1692,6 @@
   "subtitle_analytics": "Learn more about your team's activity",
   "event_trends": "Event Trends",
   "clear_filters": "Clear Filters",
-  "insights": "Insights"
+  "insights": "Insights",
+  "email_invite_team": "{{email}} has been invited"
 }
