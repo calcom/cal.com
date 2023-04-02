@@ -16,20 +16,18 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   attendee: Person;
   showAttendees: boolean | undefined;
   t: TFunction;
-  attendees: Person[];
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
-    this.name = "SEND_BOOKING_CONFIRMATION";
-    this.calEvent = calEvent;
-    this.attendee = attendee;
-    this.showAttendees = showAttendees;
-    this.t = attendee.language.translate;
-    this.attendees = [...this.calEvent.attendees];
-    if (!this.showAttendees && this.calEvent.seatsPerTimeSlot) {
-      this.attendees = [this.attendee];
-      this.calEvent.attendees = [this.attendee];
+    if (!showAttendees && calEvent.seatsPerTimeSlot) {
+      this.calEvent = cloneDeep(calEvent);
+      this.calEvent.attendees = [attendee];
+    } else {
+      this.calEvent = calEvent;
     }
+    this.name = "SEND_BOOKING_CONFIRMATION";
+    this.attendee = attendee;
+    this.t = attendee.language.translate;
   }
 
   protected getiCalEventAsString(): string | undefined {
