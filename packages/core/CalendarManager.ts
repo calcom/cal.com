@@ -77,9 +77,11 @@ export const getConnectedCalendars = async (
             },
           };
         }
-        if (destinationCalendar) {
+        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
+        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
           destinationCalendar.primaryEmail = primary.email;
           destinationCalendar.integrationTitle = integration.title;
+          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
