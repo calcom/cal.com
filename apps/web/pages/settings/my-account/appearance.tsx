@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -83,6 +84,10 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
+        if (!checkWCAGContrastColor("#101010", values.darkBrandColor)) {
+          showToast("Darkmode color does not pass contrast check", "error");
+          return;
+        }
         mutation.mutate({
           ...values,
           // Radio values don't support null as values, therefore we convert an empty string
@@ -153,7 +158,9 @@ const AppearanceView = () => {
               <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
-                onChange={(value) => formMethods.setValue("darkBrandColor", value, { shouldDirty: true })}
+                onChange={(value) => {
+                  formMethods.setValue("darkBrandColor", value, { shouldDirty: true });
+                }}
               />
             </div>
           )}
