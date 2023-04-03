@@ -1501,7 +1501,7 @@
   "date_overrides_update_btn": "Update Override",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
-  "hide_eventtype_details": "Hide EventType Details",
+  "hide_eventtype_details": "Hide event type details",
   "show_navigation": "Show navigation",
   "hide_navigation": "Hide navigation",
   "verification_code_sent": "Verification code sent",
