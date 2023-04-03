@@ -9,7 +9,7 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
     getAvailability: () => {
       return Promise.resolve([]);
     },
-    createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+    createMeeting: async (): Promise<VideoCallData> => {
       const meetingID = uuidv4();
       return Promise.resolve({
         type: "sylaps_video",
