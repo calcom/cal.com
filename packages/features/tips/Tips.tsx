@@ -105,7 +105,7 @@ export default function Tips() {
 
   const [list, setList] = useState<typeof tips>(() => {
     if (typeof window === "undefined") {
-      return tips;
+      return reversedTips;
     }
     try {
       const removedTipsString = localStorage.getItem("removedTipsIds");
@@ -114,10 +114,10 @@ export default function Tips() {
         const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
         return filteredTips;
       } else {
-        return tips;
+        return reversedTips;
       }
     } catch {
-      return tips;
+      return reversedTips;
     }
   });
 
