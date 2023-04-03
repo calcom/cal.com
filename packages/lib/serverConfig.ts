@@ -26,15 +26,6 @@ function detectTransport(): SendmailTransport.Options | SMTPConnection.Options |
     return transport;
   }
 
-  if (process.env.EMAIL_SERVER_PORT) {
-    const port = parseInt(process.env.EMAIL_SERVER_PORT!);
-    const transport = {
-      port,
-    };
-
-    return transport;
-  }
-
   return {
     sendmail: true,
     newline: "unix",
