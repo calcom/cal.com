@@ -254,7 +254,7 @@ export default function CreateEventTypeDialog({
                     {...register("schedulingType")}
                     value={SchedulingType.COLLECTIVE}
                     className={classNames("w-full text-sm", !isAdmin && "w-1/2")}
-                    containerClassName={classNames(isAdmin && "w-full")}>
+                    classNames={{ container: classNames(isAdmin && "w-full") }}>
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
@@ -262,7 +262,7 @@ export default function CreateEventTypeDialog({
                     {...register("schedulingType")}
                     value={SchedulingType.ROUND_ROBIN}
                     className={classNames("text-sm", !isAdmin && "w-1/2")}
-                    containerClassName={classNames(isAdmin && "w-full")}>
+                    classNames={{ container: classNames(isAdmin && "w-full") }}>
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
@@ -272,7 +272,7 @@ export default function CreateEventTypeDialog({
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}
                         className={classNames("text-sm", !isAdmin && "w-1/2")}
-                        containerClassName={classNames(isAdmin && "w-full")}>
+                        classNames={{ container: classNames(isAdmin && "w-full") }}>
                         <strong className="mb-1 block">{t("managed_event")}</strong>
                         <p>{t("managed_event_description")}</p>
                       </RadioArea.Item>
