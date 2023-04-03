@@ -278,17 +278,15 @@ export default function TeamListItem(props: Props) {
                       <DropdownMenuItem>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              type="button"
+                            <DropdownItem
                               color="destructive"
-                              size="lg"
+                              type="button"
                               StartIcon={FiLogOut}
-                              className="w-full rounded-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
                               {t("leave_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"
