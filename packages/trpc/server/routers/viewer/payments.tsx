@@ -18,7 +18,6 @@ export const paymentsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log("🚀 ~ file: payments.tsx:13 ~ .mutation ~ input:", input);
       const { prisma } = ctx;
 
       const booking = await prisma.booking.findFirst({
@@ -35,6 +34,13 @@ export const paymentsRouter = router({
 
       if (!booking) {
         throw new Error("Booking not found");
+      }
+
+      if (booking.paid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Booking ${booking.id} is already paid`,
+        });
       }
 
       const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
