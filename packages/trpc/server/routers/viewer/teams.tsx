@@ -391,6 +391,7 @@ export const viewerTeamsRouter = router({
         }
       }
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+      return input;
     }),
   acceptOrLeave: authedProcedure
     .input(
