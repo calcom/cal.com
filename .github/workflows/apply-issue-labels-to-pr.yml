@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn install @octokit/core
+          yarn add @octokit/core
 
       - name: Apply labels from linked issue to PR
         env:
