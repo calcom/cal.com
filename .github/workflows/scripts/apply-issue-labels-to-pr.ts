@@ -70,12 +70,16 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
   }
 
   for (const issue of linkedIssues) {
-    const labels = issue.labels.nodes.map((label) => label.name);
+    const labels = issue?.labels?.nodes?.map((label) => label.name);
 
-    if (labels.length === 0) {
+    if (!labels || labels.length === 0) {
       console.log(`No labels found on the linked issue #${issue.number}.`);
       continue;
     }
+
+    const labelsData = JSON.stringify({
+      labels: labels,
+    });
 
     const requestOptions = {
       hostname: "api.github.com",
@@ -83,24 +87,24 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Content-Length": labelsData.length,
         "Authorization": "Bearer " + token,
         "User-Agent": "Node.js",
       },
     };
 
-    const postData = JSON.stringify({
-      labels: labels,
-    });
-
-    let labelResult;
-    labelResult = await new Promise((resolve, reject) => {
+    const labelResult = await new Promise((resolve, reject) => {
       const request = https.request(requestOptions, (response) => {
-        response.on("data", () => {});
-        response.on("end", (data) => {
-          console.log("Request ended: ");
+        let responseBody = "";
+        response.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+        response.on("data", (data) => {
+          console.log("Incoming data: ");
           console.log(data);
-          
-          resolve(null);
+        });
+        response.on("end", () => {
+          resolve(JSON.parse(responseBody));
         });
       });
 
@@ -108,14 +112,15 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
         reject(error);
       });
 
-      request.write(postData);
+      request.write(labelsData);
       request.end();
     });
 
+    console.log("Label result: ");
     console.log(labelResult);
     
     console.log(
-      `Applied labels: ${labels.join(", ")} to PR#${
+      `Applied labels: ${labels.join(", ")} to PR #${
         pr.number
       } from linked issue #${issue.number}`
     );
