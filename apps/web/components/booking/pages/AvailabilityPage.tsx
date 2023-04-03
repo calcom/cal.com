@@ -59,8 +59,6 @@ const useSlots = ({
   useSlotsProxy,
   rescheduleUid,
   proxy,
-  minbn,
-  maxbd,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -74,8 +72,6 @@ const useSlots = ({
   useSlotsProxy: boolean;
   rescheduleUid?: string;
   proxy?: Record<string, string>;
-  minbn?: string;
-  maxbd?: string;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -90,8 +86,6 @@ const useSlots = ({
       duration,
       rescheduleUid,
       proxy,
-      minbn,
-      maxbd,
     },
     { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
@@ -137,8 +131,6 @@ const SlotPicker = ({
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const { useSlotsProxy } = useRouterQuery("useSlotsProxy");
   const router = useRouter();
-  const { minbn } = useRouterQuery("minbn");
-  const { maxbd } = useRouterQuery("maxbd");
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -178,8 +170,6 @@ const SlotPicker = ({
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
     proxy,
-    minbn,
-    maxbd,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -197,8 +187,6 @@ const SlotPicker = ({
     useSlotsProxy: useSlotsProxy !== "false",
     rescheduleUid,
     proxy,
-    minbn,
-    maxbd,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
