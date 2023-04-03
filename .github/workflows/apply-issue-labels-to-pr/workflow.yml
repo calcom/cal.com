@@ -1,0 +1,32 @@
+name: Apply labels from linked issue to PR
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  label_on_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: |
+          bun install @octokit/core @octokit/graphql
+
+      - name: Apply labels from linked issue to PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_DATA: ${{ toJson(github.event.pull_request) }}
+        run: node ./.github/workflows/apply-issue-labels-to-pr/index.ts
