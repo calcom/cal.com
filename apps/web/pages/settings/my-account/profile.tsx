@@ -242,7 +242,9 @@ const ProfileView = () => {
           type="creation"
           Icon={FiAlertTriangle}>
           <>
-            <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
+            <p className="text-default mb-7">
+              {t("delete_account_confirmation_message", { appName: APP_NAME })}
+            </p>
             {isCALIdentityProviver && (
               <PasswordField
                 data-testid="password"
