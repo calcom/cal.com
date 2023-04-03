@@ -125,7 +125,7 @@ export default function Bookings() {
                 <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
                 <div className="border-subtle overflow-hidden rounded-md border">
                   <table className="w-full max-w-full table-fixed">
-                    <tbody className="bg-default divide-y divide-gray-200" data-testid="today-bookings">
+                    <tbody className="bg-default divide-y divide-subtle" data-testid="today-bookings">
                       <Fragment>
                         {bookingsToday.map((booking: BookingOutput) => (
                           <BookingListItem

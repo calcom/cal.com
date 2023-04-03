@@ -17,7 +17,7 @@ import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
+export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
@@ -121,7 +121,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <Meta title={t("setup")} description={t("setup_description")} />
-      <main className="flex items-center bg-subtle print:h-full md:h-screen">
+      <main className="bg-subtle flex items-center print:h-full md:h-screen">
         <WizardForm
           href="/auth/setup"
           steps={steps}
@@ -134,6 +134,10 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     </>
   );
 }
+
+Setup.isThemeSupported = false;
+
+export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

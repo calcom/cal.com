@@ -133,7 +133,7 @@ export default function Custom404() {
                   </li>
                 </ul>
 
-                <ul role="list" className="border-subtle divide-y divide-gray-200">
+                <ul role="list" className="border-subtle divide-y divide-subtle">
                   <li className="px-4 py-2">
                     <Link
                       href={`${DEVELOPER_DOCS}/self-hosting/installation`}
@@ -280,7 +280,7 @@ export default function Custom404() {
                     </ul>
                   )}
 
-                  <ul role="list" className="border-subtle mt-4 divide-y divide-gray-200">
+                  <ul role="list" className="border-subtle mt-4 divide-y divide-subtle">
                     {links.map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
                         <Link
