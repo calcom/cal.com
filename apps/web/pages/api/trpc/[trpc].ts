@@ -1,6 +1,7 @@
 /**
  * This file contains tRPC's HTTP response handler
  */
+import cache from "memory-cache";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -56,6 +57,10 @@ export default trpcNext.createNextApiHandler({
 
     const timezone = z.string().safeParse(ctx.req?.headers["x-vercel-ip-timezone"]);
     if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
+
+    const coldStart = cache.get("coldStart");
+    if (!coldStart) cache.put("coldStart", "false");
+    defaultHeaders.headers["x-cold-start"] = coldStart || "true";
 
     // We need all these conditions to be true to set cache headers
     if (!(allPublic && allOk && isQuery)) return defaultHeaders;
