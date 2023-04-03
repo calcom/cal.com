@@ -41,7 +41,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     },
   };
 
-  let linkedIssues: any[] = [];
+  let linkedIssues;
   linkedIssues = await new Promise((resolve, reject) => {
     const request = https.request(requestOptions, (response) => {
       let responseBody = "";
@@ -92,11 +92,11 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       labels: labels,
     });
 
-    await new Promise<void>((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       const request = https.request(requestOptions, (response) => {
         response.on("data", () => {});
         response.on("end", () => {
-          resolve();
+          resolve(null);
         });
       });
 
