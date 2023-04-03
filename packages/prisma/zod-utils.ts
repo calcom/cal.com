@@ -485,7 +485,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   slotInterval: true,
-  scheduleId: true,
+  schedule: true,
   workflows: true,
   bookingFields: true,
   durationLimits: true,
@@ -494,5 +494,5 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
 // All properties that are defined as unlocked based on all managed props
 // Eventually this is going to be just a default and the user can change the config through the UI
 export const unlockedManagedEventTypeProps = {
-  ...pick(allManagedEventTypeProps, ["locations", "scheduleId", "destinationCalendar"]),
+  ...pick(allManagedEventTypeProps, ["locations", "schedule", "destinationCalendar"]),
 };

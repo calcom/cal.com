@@ -261,7 +261,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                 value={value}
                 options={options}
                 onBlur={field.onBlur}
-                isDisabled={shouldLockDisableProps("availability").disabled}
+                isDisabled={shouldLockDisableProps("schedule").disabled}
                 name={field.name}
                 onChange={(selected) => {
                   field.onChange(selected?.value || null);
