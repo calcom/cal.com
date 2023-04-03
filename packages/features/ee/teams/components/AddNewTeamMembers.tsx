@@ -7,7 +7,8 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { FiPlus, FiArrowRight, FiTrash2 } from "@calcom/ui/components/icon";
 
@@ -43,9 +44,17 @@ export const AddNewTeamMembersForm = ({
   const utils = trpc.useContext();
   const router = useRouter();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");

@@ -426,6 +426,7 @@ const IntervalLimitItem = ({
         required
         type="number"
         containerClassName={textFieldSuffix ? "w-44 -mb-1" : "w-16 mb-0"}
+        className="mb-0"
         placeholder={`${value}`}
         min={step}
         step={step}
