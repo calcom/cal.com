@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { defaultHandler, defaultResponder, getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";

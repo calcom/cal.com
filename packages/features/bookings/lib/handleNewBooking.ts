@@ -623,6 +623,7 @@ async function handler(
 
   let locationBodyString = location;
   let defaultLocationUrl = undefined;
+
   if (dynamicUserList.length > 1) {
     users = users.sort((a, b) => {
       const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
@@ -702,6 +703,18 @@ async function handler(
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
+  // use host default
+  if (isTeamEventType && locationBodyString === "conferencing") {
+    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
+    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
+    if (organizerMetadata) {
+      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+      locationBodyString = app?.appData?.location?.type || locationBodyString;
+      defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+    } else {
+      locationBodyString = "";
+    }
+  }
 
   const invitee = [
     {
@@ -999,6 +1012,16 @@ async function handler(
           throw new HttpError({ statusCode: 401 });
         }
 
+        // Moving forward in this block is the owner making changes to the booking. All attendees should be affected
+        evt.attendees = originalRescheduledBooking.attendees.map((attendee) => {
+          return {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+          };
+        });
+
         // If owner reschedules the event we want to update the entire booking
         // Also if owner is rescheduling there should be no bookingSeat
 
@@ -1273,6 +1296,8 @@ async function handler(
         };
       }
 
+      const attendeeUniqueId = uuid();
+
       const bookingUpdated = await prisma.booking.update({
         where: {
           uid: reqBody.bookingUid,
@@ -1287,32 +1312,25 @@ async function handler(
               name: invitee[0].name,
               timeZone: invitee[0].timeZone,
               locale: invitee[0].language.locale,
+              bookingSeat: {
+                create: {
+                  referenceUid: attendeeUniqueId,
+                  data: {
+                    description: additionalNotes,
+                  },
+                  booking: {
+                    connect: {
+                      id: booking.id,
+                    },
+                  },
+                },
+              },
             },
           },
           ...(booking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
         },
       });
 
-      // Add entry to bookingSeat table
-      const attendeeUniqueId = uuid();
-      await prisma.bookingSeat.create({
-        data: {
-          data: {
-            description: additionalNotes,
-          },
-          booking: {
-            connect: {
-              id: booking.id,
-            },
-          },
-          referenceUid: attendeeUniqueId,
-          attendee: {
-            connect: {
-              id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
-            },
-          },
-        },
-      });
       evt.attendeeSeatId = attendeeUniqueId;
 
       const newSeat = booking.attendees.length !== 0;
