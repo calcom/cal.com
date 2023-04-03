@@ -93,7 +93,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
           }}
           className={classNames(
-            selectedCategory === null ? "bg-inverted text-gray-50" : "bg-muted text-emphasis",
+            selectedCategory === null ? "bg-inverted text-inverted" : "bg-muted text-emphasis",
             "hover:bg-inverted rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
           )}>
           {t("all_apps")}
@@ -111,7 +111,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
               }
             }}
             className={classNames(
-              selectedCategory === cat ? "bg-inverted text-gray-50" : "bg-mutedext-gray-900",
+              selectedCategory === cat ? "bg-inverted text-inverted" : "bg-muted text-emphasis",
               "hover:bg-inverted rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:text-gray-50"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
@@ -120,7 +120,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       </ul>
       {rightVisible && (
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
-          <div className="flex h-10 w-5 bg-gradient-to-r from-transparent to-white" />
+          <div className="to-default flex h-10 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-10 w-5 items-center justify-end">
             <FiChevronRight className="text-subtle h-4 w-4" />
           </div>
