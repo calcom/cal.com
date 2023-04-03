@@ -128,7 +128,6 @@ export class PaymentService implements IAbstractPaymentService {
         payment_method_types: ["card"],
         application_fee_amount: paymentFee,
         customer: customer.id,
-        // ...(paymentOptionEnum.parse(paymentOption) === "HOLD" && { capture_method: "manual" }),
       };
 
       const paymentIntent = await this.stripe.paymentIntents.create(params, {

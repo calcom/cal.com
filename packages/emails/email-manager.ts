@@ -288,6 +288,5 @@ export const sendDisabledAppEmail = async ({
 };
 
 export const sendNoShowFeeChargedEmail = async ({ attendee, evt }) => {
-  console.log("🚀 ~ file: email-manager.ts:291 ~ sendNoShowFeeChargedEmail ~ attendee:", attendee);
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };

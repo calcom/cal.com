@@ -84,7 +84,6 @@ export async function deleteStripeCustomer(user: UserType): Promise<string | nul
 }
 
 export async function retrieveOrCreateStripeCustomerByEmail(email: string, stripeAccountId: string) {
-  console.log("🚀 ~ file: customer.ts:87 ~ retrieveOrCreateStripeCustomerByEmail ~ email:", email);
   const customer = await stripe.customers.list(
     {
       email,

@@ -49,11 +49,6 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
           </div>
           <div className="pt-1">
             <DialogHeader title={t("charge_card")} />
-            {/* <p className="text-sm text-gray-500">{t("reschedule_modal_description")}</p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">
-              {t("reason_for_reschedule_request")}
-              <span className="font-normal text-gray-500"> (Optional)</span>
-            </p> */}
             <Trans i18nKey="charge_card_dialog_body">
               <p className="text-sm text-gray-500">
                 You are about to charge the user{" "}

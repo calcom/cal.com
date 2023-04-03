@@ -260,6 +260,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 }
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
+  console.log("🚀 ~ file: webhook.ts:263 ~ handleSetupSuccess ~ event:", event);
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {

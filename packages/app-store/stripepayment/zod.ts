@@ -3,8 +3,6 @@ import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { paymentOptions } from "./lib/constants";
 
-// export const paymentOptionEnum = z.enum(["ON_BOOKING", "HOLD"]);
-
 // Extract the payment options enum from paymentOptions
 // https://stackoverflow.com/a/73825370
 type PaymentOption = (typeof paymentOptions)[number]["value"];

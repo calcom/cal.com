@@ -237,8 +237,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       )}
                       {paymentAppData.price > 0 && (
                         <p className="-ml-2 px-2 text-sm font-medium">
-                          {/* {paymentAppData.paymentOption === "HOLD" &&
-                            t("no_show_fee_amount", { amount: paymentAmount })} */}
                           <FiCreditCard className="ml-[2px] -mt-1 inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
                           {paymentAppData.paymentOption === "HOLD" ? (
                             <>

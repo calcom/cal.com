@@ -50,7 +50,6 @@ type States =
   | { status: "ok" };
 
 export default function PaymentComponent(props: Props) {
-  console.log("🚀 ~ file: Payment.tsx:52 ~ PaymentComponent ~ props:", props);
   const { t, i18n } = useLocale();
   const router = useRouter();
   const [state, setState] = useState<States>({ status: "idle" });
