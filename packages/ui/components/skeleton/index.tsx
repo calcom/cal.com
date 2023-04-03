@@ -69,7 +69,7 @@ const SkeletonText: React.FC<SkeletonBaseProps & { invisible?: boolean }> = ({
   return (
     <span
       className={classNames(
-        `font-size-0 dark:white-300 inline-block animate-pulse rounded-md bg-gray-300 empty:before:inline-block empty:before:content-['']`,
+        `font-size-0  bg-subtle inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-['']`,
         className,
         invisible ? "invisible" : ""
       )}
