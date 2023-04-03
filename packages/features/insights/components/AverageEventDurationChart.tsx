@@ -26,16 +26,16 @@ export const AverageEventDurationChart = () => {
   if (isLoading) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
-
+  const isNoData = (data && data.length === 0) || data.every((item) => item["Average"] === 0);
   return (
     <CardInsights>
       <Title>{t("average_event_duration")}</Title>
-      {data && (data.length === 0 || (data.length === 1 && data[0].Average === 0)) && (
+      {isNoData && (
         <div className="flex h-60 text-center">
           <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
         </div>
       )}
-      {data && data.length > 0 && data[0].Average > 0 && (
+      {data && data.length > 0 && !isNoData && (
         <LineChart
           className="mt-4 h-80"
           data={data}
