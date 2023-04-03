@@ -672,6 +672,8 @@ export const bookingsRouter = router({
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
+          seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+          seatsShowAttendees: booking.eventType?.seatsShowAttendees,
         };
 
         const eventManager = new EventManager(ctx.user);

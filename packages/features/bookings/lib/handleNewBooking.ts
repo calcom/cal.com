@@ -895,9 +895,12 @@ async function handler(
       }
 
       await Promise.all(integrationsToDelete).then(async () => {
-        await prisma.booking.delete({
+        await prisma.booking.update({
           where: {
             id: originalRescheduledBooking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
       });
@@ -1010,6 +1013,16 @@ async function handler(
           throw new HttpError({ statusCode: 401 });
         }
 
+        // Moving forward in this block is the owner making changes to the booking. All attendees should be affected
+        evt.attendees = originalRescheduledBooking.attendees.map((attendee) => {
+          return {
+            name: attendee.name,
+            email: attendee.email,
+            timeZone: attendee.timeZone,
+            language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+          };
+        });
+
         // If owner reschedules the event we want to update the entire booking
         // Also if owner is rescheduling there should be no bookingSeat
 
@@ -1071,7 +1084,7 @@ async function handler(
             await sendRescheduledEmails({
               ...copyEvent,
               additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+              cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
           const resultBooking = await resultBookingQuery(newBooking.id);
@@ -1176,13 +1189,16 @@ async function handler(
         await sendRescheduledEmails({
           ...copyEvent,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        // Delete the old booking
-        await prisma.booking.delete({
+        // Update the old booking with the cancelled status
+        await prisma.booking.update({
           where: {
             id: booking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
 
@@ -1503,6 +1519,9 @@ async function handler(
       };
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
+      if (originalRescheduledBooking.uid) {
+        newBookingData.cancellationReason = rescheduleReason;
+      }
       if (newBookingData.attendees?.createMany?.data) {
         // Reschedule logic with booking with seats
         if (eventType?.seatsPerTimeSlot && bookerEmail) {
@@ -1670,11 +1689,14 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    //delete original rescheduled booking (no seats event)
+    //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.delete({
+      await prisma.booking.update({
         where: {
           id: originalRescheduledBooking.id,
+        },
+        data: {
+          status: BookingStatus.CANCELLED,
         },
       });
     }
@@ -1714,7 +1736,7 @@ async function handler(
           ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
+          cancellationReason: "$RCH$" + (rescheduleReason ? rescheduleReason : ""), // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }

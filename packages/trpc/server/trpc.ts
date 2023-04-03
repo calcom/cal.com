@@ -10,7 +10,7 @@ import prisma from "@calcom/prisma";
 import type { Maybe } from "@trpc/server";
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import type { createContextInner } from "./createContext";
+import type { createContextInner, CreateInnerContextOptions } from "./createContext";
 
 async function getUserFromSession({ session }: { session: Maybe<Session> }) {
   if (!session?.user?.id) {
@@ -104,26 +104,25 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
   return result;
 });
 
-export const isAuthed = t.middleware(async ({ ctx: { session, locale, ...ctx }, next }) => {
-  const user = await getUserFromSession({ session });
+export const getLocale = async (ctx: CreateInnerContextOptions) => {
+  const user = await getUserFromSession({ session: ctx.session });
+
+  const i18n =
+    user?.locale && user?.locale !== ctx.locale
+      ? await serverSideTranslations(user.locale, ["common", "vital"])
+      : ctx.i18n;
+  const locale = user?.locale || ctx.locale;
+  return { user, i18n, session: ctx.session, locale };
+};
+
+export const isAuthed = t.middleware(async ({ ctx, next }) => {
+  const { user, session, locale, i18n } = await getLocale(ctx);
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  const i18n =
-    user.locale && user.locale !== locale
-      ? await serverSideTranslations(user.locale, ["common", "vital"])
-      : ctx.i18n;
-  locale = user.locale || locale;
+
   return next({
-    ctx: {
-      i18n,
-      // infers that `user` and `session` are non-nullable to downstream procedures
-      session,
-      user: {
-        ...user,
-        locale,
-      },
-    },
+    ctx: { locale, i18n, user: { ...user, locale }, session },
   });
 });
 
