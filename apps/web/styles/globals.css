@@ -85,6 +85,10 @@
   --cal-brand-text: black;
 }
 
+dark::selection {
+  background: var(--cal-bg-subtle);
+}
+
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
