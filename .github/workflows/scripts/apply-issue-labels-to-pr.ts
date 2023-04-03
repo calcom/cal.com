@@ -1,8 +1,5 @@
-const { Octokit } = require("@octokit/core");
-
 async function applyLabelFromLinkedIssueToPR(pr, token) {
-  const octokit = new Octokit({ auth: token });
-
+  // Fetch the labels of all issues linked to the PR
   const query = `
     query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -22,19 +19,27 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     }
   `;
 
-  const { data } = await octokit.request('POST /graphql', {
-    query,
-    variables: {
-      owner: pr.base.repo.owner.login,
-      repo: pr.base.repo.name,
-      prNumber: pr.number,
+  const response = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
+    body: JSON.stringify({
+      query,
+      variables: {
+        owner: pr.base.repo.owner.login,
+        repo: pr.base.repo.name,
+        prNumber: pr.number
+      },
+    }),
   });
 
-  const linkedIssues =
-    data.repository.pullRequest.closingIssuesReferences.nodes;
+  const { data } = await response.json();
 
-  if (linkedIssues.length === 0) {
+  const linkedIssues = data?.repository?.pullRequest?.closingIssuesReferences?.nodes;
+
+  if (!linkedIssues || linkedIssues.length === 0) {
     console.log("No issue linked.");
     return;
   }
@@ -47,15 +52,14 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       continue;
     }
 
-    await octokit.request(
-      "POST /repos/{owner}/{repo}/issues/{issue_number}/labels",
-      {
-        owner: pr.base.repo.owner.login,
-        repo: pr.base.repo.name,
-        issue_number: pr.number,
-        labels: labels,
-      }
-    );
+    await fetch(`https://api.github.com/repos/${pr.base.repo.owner.login}/${pr.base.repo.name}/issues/${pr.number}/labels`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ labels }),
+    });
 
     console.log(
       `Applied labels: ${labels.join(", ")} to PR#${
@@ -65,14 +69,15 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
   }
 }
 
+
 (async () => {
   if (!process.env.PR_DATA) {
     console.log("No PR data found.");
     return;
   }
 
-  const token = process.env.GITHUB_TOKEN;
   const prData = JSON.parse(process.env.PR_DATA);
+  const token = process.env.GITHUB_TOKEN;
 
   await applyLabelFromLinkedIssueToPR(prData, token);
 })();

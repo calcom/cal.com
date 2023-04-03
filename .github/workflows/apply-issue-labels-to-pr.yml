@@ -17,10 +17,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install dependencies
-        run: |
-          yarn add @octokit/core
-
       - name: Apply labels from linked issue to PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
