@@ -3,7 +3,7 @@ import { useState } from "react";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText, Alert } from "@calcom/ui";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
@@ -32,11 +32,14 @@ const TwoFactorAuthView = () => {
 
   if (isLoading) return <SkeletonLoader />;
 
+  const isCalProvider = user?.identityProvider === "CAL";
   return (
     <>
       <Meta title={t("2fa")} description={t("2fa_description")} />
+      {!isCalProvider && <Alert severity="neutral" message={t("2fa_disabled")} />}
       <div className="mt-6 flex items-start space-x-4">
         <Switch
+          disabled={!isCalProvider}
           checked={user?.twoFactorEnabled}
           onCheckedChange={() =>
             user?.twoFactorEnabled ? setDisableModalOpen(true) : setEnableModalOpen(true)
