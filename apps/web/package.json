@@ -88,7 +88,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^13.2.1",
+    "next": "^13.2.4",
     "next-auth": "^4.20.1",
     "next-axiom": "^0.16.0",
     "next-collect": "^0.2.1",
