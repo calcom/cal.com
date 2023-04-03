@@ -1,44 +1,17 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
-import { cityMapping } from "city-timezones";
 import _ from "lodash";
-import { authenticator } from "otplib";
 import z from "zod";
 
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
-import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
-import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { DailyLocationType } from "@calcom/core/location";
-import {
-  getDownloadLinkOfCalVideoByRecordingId,
-  getRecordingsOfCalVideoByRoomName,
-} from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { deletePayment } from "@calcom/lib/payment/deletePayment";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
-import {
-  deleteWebUser as syncServicesDeleteWebUser,
-  updateWebUser as syncServicesUpdateWebUser,
-} from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -84,7 +57,7 @@ const publicViewerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
       const { email } = input;
-
+      const { samlTenantProduct } = await import("@calcom/features/ee/sso/lib/saml");
       return await samlTenantProduct(prisma, email);
     }),
   stripeCheckoutSession: publicProcedure
@@ -105,6 +78,7 @@ const publicViewerRouter = router({
       if (checkoutSessionId && stripeCustomerId) {
         throw new Error("Both checkoutSessionId and stripeCustomerId provided");
       }
+      const stripe = (await import("@calcom/app-store/stripepayment/lib/server")).default;
       let customerId: string;
       let isPremiumUsername = false;
       let hasPaymentFailed = false;
@@ -155,7 +129,10 @@ const publicViewerRouter = router({
     }),
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
-  cityTimezones: publicProcedure.query(() => cityMapping),
+  cityTimezones: publicProcedure.query(async () => {
+    const { cityMapping } = await import("city-timezones");
+    return cityMapping;
+  }),
 });
 
 // routes only available to authenticated users
@@ -204,6 +181,7 @@ const loggedInViewerRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { prisma } = ctx;
       // Check if input.password is correct
       const user = await prisma.user.findUnique({
         where: {
@@ -221,7 +199,7 @@ const loggedInViewerRouter = router({
       if (!user.password) {
         throw new Error(ErrorCode.UserMissingPassword);
       }
-
+      const { verifyPassword } = await import("@calcom/features/auth/lib/verifyPassword");
       const isCorrectPassword = await verifyPassword(input.password, user.password);
       if (!isCorrectPassword) {
         throw new Error(ErrorCode.IncorrectPassword);
@@ -241,7 +219,7 @@ const loggedInViewerRouter = router({
           console.error(`"Missing encryption key; cannot proceed with two factor login."`);
           throw new Error(ErrorCode.InternalServerError);
         }
-
+        const { symmetricDecrypt } = await import("@calcom/lib/crypto");
         const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
         if (secret.length !== 32) {
           console.error(
@@ -251,6 +229,7 @@ const loggedInViewerRouter = router({
         }
 
         // If user has 2fa enabled, check if input.totpCode is correct
+        const { authenticator } = await import("otplib");
         const isValidToken = authenticator.check(input.totpCode, secret);
         if (!isValidToken) {
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
@@ -258,6 +237,7 @@ const loggedInViewerRouter = router({
       }
 
       // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
+      const { deleteStripeCustomer } = await import("@calcom/app-store/stripepayment/lib/customer");
       await deleteStripeCustomer(user).catch(console.warn);
       // Remove my account
       const deletedUser = await ctx.prisma.user.delete({
@@ -267,11 +247,14 @@ const loggedInViewerRouter = router({
       });
 
       // Sync Services
+      const { deleteWebUser: syncServicesDeleteWebUser } = await import(
+        "@calcom/lib/sync/SyncServiceManager"
+      );
       syncServicesDeleteWebUser(deletedUser);
       return;
     }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
-    const user = await prisma.user.findUnique({
+    const user = await ctx.prisma.user.findUnique({
       where: {
         email: ctx.user.email.toLowerCase(),
       },
@@ -289,6 +272,7 @@ const loggedInViewerRouter = router({
     }
 
     // Remove me from Stripe
+    const { deleteStripeCustomer } = await import("@calcom/app-store/stripepayment/lib/customer");
     await deleteStripeCustomer(user).catch(console.warn);
 
     // Remove my account
@@ -298,6 +282,7 @@ const loggedInViewerRouter = router({
       },
     });
     // Sync Services
+    const { deleteWebUser: syncServicesDeleteWebUser } = await import("@calcom/lib/sync/SyncServiceManager");
     syncServicesDeleteWebUser(deletedUser);
 
     return;
@@ -331,6 +316,7 @@ const loggedInViewerRouter = router({
       },
     });
 
+    const { getCalendarCredentials, getConnectedCalendars } = await import("@calcom/core/CalendarManager");
     // get user's credentials + their connected integrations
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
@@ -354,7 +340,7 @@ const loggedInViewerRouter = router({
         There are connected calendars, but no destination calendar
         So create a default destination calendar with the first primary connected calendar
         */
-      const { integration = "", externalId = "", credentialId, email } = connectedCalendars[0].primary ?? {};
+      const { integration = "", externalId = "", credentialId } = connectedCalendars[0].primary ?? {};
       user.destinationCalendar = await ctx.prisma.destinationCalendar.create({
         data: {
           userId: user.id,
@@ -405,8 +391,9 @@ const loggedInViewerRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      const { user, prisma } = ctx;
       const { integration, externalId, eventTypeId } = input;
+      const { getCalendarCredentials, getConnectedCalendars } = await import("@calcom/core/CalendarManager");
       const calendarCredentials = getCalendarCredentials(user.credentials);
       const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
@@ -466,7 +453,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-
+      const getEnabledApps = (await import("@calcom/lib/apps/getEnabledApps")).default;
       const enabledApps = await getEnabledApps(credentials);
       //TODO: Refactor this to pick up only needed fields and prevent more leaking
       let apps = enabledApps.map(
@@ -512,6 +499,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const appId = input.appId;
       const { credentials } = user;
+      const getApps = (await import("@calcom/app-store/utils")).default;
       const apps = getApps(credentials);
       const appFromDb = apps.find((app) => app.slug === appId);
       if (!appFromDb) {
@@ -534,7 +522,7 @@ const loggedInViewerRouter = router({
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
       const { credentials } = user;
-
+      const getEnabledApps = (await import("@calcom/lib/apps/getEnabledApps")).default;
       const apps = await getEnabledApps(credentials);
       return apps
         .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
@@ -579,6 +567,7 @@ const loggedInViewerRouter = router({
     }
     // Fetch stripe customer
     const stripeCustomerId = metadata?.stripeCustomerId;
+    const stripe = (await import("@calcom/app-store/stripepayment/lib/server")).default;
     const customer = await stripe.customers.retrieve(stripeCustomerId);
     if (customer.deleted) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer found" });
@@ -625,6 +614,7 @@ const loggedInViewerRouter = router({
         // Only validate if we're changing usernames
         if (username !== user.username) {
           data.username = username;
+          const { checkUsername } = await import("@calcom/lib/server/checkUsername");
           const response = await checkUsername(username);
           isPremiumUsername = response.premium;
           if (!response.available) {
@@ -633,6 +623,7 @@ const loggedInViewerRouter = router({
         }
       }
       if (input.avatar) {
+        const { resizeBase64Image } = await import("@calcom/lib/server/resizeBase64Image");
         data.avatar = await resizeBase64Image(input.avatar);
       }
       const userToUpdate = await prisma.user.findUnique({
@@ -647,6 +638,7 @@ const loggedInViewerRouter = router({
       const metadata = userMetadata.parse(userToUpdate.metadata);
 
       const isPremium = metadata?.isPremium;
+      const stripe = (await import("@calcom/app-store/stripepayment/lib/server")).default;
       if (isPremiumUsername) {
         const stripeCustomerId = metadata?.stripeCustomerId;
         if (!isPremium || !stripeCustomerId) {
@@ -694,6 +686,9 @@ const loggedInViewerRouter = router({
       });
 
       // Sync Services
+      const { updateWebUser: syncServicesUpdateWebUser } = await import(
+        "@calcom/lib/sync/SyncServiceManager"
+      );
       await syncServicesUpdateWebUser(updatedUser);
 
       // Notify stripe about the change
@@ -793,10 +788,11 @@ const loggedInViewerRouter = router({
         },
       });
 
+      const { sendFeedbackEmail } = await import("@calcom/emails");
       if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
     }),
   locationOptions: authedProcedure.query(async ({ ctx }) => {
-    const credentials = await prisma.credential.findMany({
+    const credentials = await ctx.prisma.credential.findMany({
       where: {
         userId: ctx.user.id,
       },
@@ -809,11 +805,18 @@ const loggedInViewerRouter = router({
         invalid: true,
       },
     });
-
+    const [getEnabledAppsMod, i18nMod, utilsMod] = await Promise.all([
+      import("@calcom/lib/apps/getEnabledApps"),
+      import("@calcom/lib/server/i18n"),
+      import("@calcom/app-store/utils"),
+    ]);
+    const getEnabledApps = getEnabledAppsMod.default;
     const integrations = await getEnabledApps(credentials);
 
+    const { getTranslation } = i18nMod;
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
+    const { getLocationGroupedOptions } = utilsMod;
     const locationOptions = getLocationGroupedOptions(integrations, t);
 
     return locationOptions;
@@ -827,6 +830,7 @@ const loggedInViewerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, externalId } = input;
+      const { prisma } = ctx;
 
       const credential = await prisma.credential.findFirst({
         where: {
@@ -867,6 +871,22 @@ const loggedInViewerRouter = router({
           metadata: true,
         },
       });
+
+      const [getPaymentAppDataMod, i18nMod, emailsMod, prismaMod, deletePaymentMod, locationMod] =
+        await Promise.all([
+          import("@calcom/lib/getPaymentAppData"),
+          import("@calcom/lib/server/i18n"),
+          import("@calcom/emails"),
+          import("@calcom/prisma"),
+          import("@calcom/lib/payment/deletePayment"),
+          import("@calcom/core/location"),
+        ]);
+      const { bookingMinimalSelect } = prismaMod;
+      const getPaymentAppData = getPaymentAppDataMod.default;
+      const { getTranslation } = i18nMod;
+      const { sendCancelledEmails } = emailsMod;
+      const { deletePayment } = deletePaymentMod;
+      const { DailyLocationType } = locationMod;
 
       // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
       for (const eventType of eventTypes) {
@@ -942,7 +962,6 @@ const loggedInViewerRouter = router({
         }
 
         const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-
         const stripeAppData = getPaymentAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
@@ -1053,7 +1072,6 @@ const loggedInViewerRouter = router({
                     bookingId: booking.id,
                   },
                 });
-
                 const attendeesListPromises = booking.attendees.map(async (attendee) => {
                   return {
                     name: attendee.name,
@@ -1068,7 +1086,6 @@ const loggedInViewerRouter = router({
 
                 const attendeesList = await Promise.all(attendeesListPromises);
                 const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
                   title: booking.title,
@@ -1117,6 +1134,8 @@ const loggedInViewerRouter = router({
             },
           },
         });
+
+        const { cancelScheduledJobs } = await import("@calcom/app-store/zapier/lib/nodeScheduler");
         for (const booking of bookingsWithScheduledJobs) {
           cancelScheduledJobs(booking, credential.appId);
         }
@@ -1170,6 +1189,7 @@ const loggedInViewerRouter = router({
       const { roomName } = input;
 
       try {
+        const { getRecordingsOfCalVideoByRoomName } = await import("@calcom/core/videoClient");
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
         return res;
       } catch (err) {
@@ -1188,7 +1208,7 @@ const loggedInViewerRouter = router({
       const { recordingId } = input;
       const { session } = ctx;
 
-      const isDownloadAllowed = IS_SELF_HOSTED || session.user.belongsToActiveTeam;
+      const isDownloadAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
 
       if (!isDownloadAllowed) {
         throw new TRPCError({
@@ -1197,6 +1217,7 @@ const loggedInViewerRouter = router({
       }
 
       try {
+        const { getDownloadLinkOfCalVideoByRecordingId } = await import("@calcom/core/videoClient");
         const res = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
         return res;
       } catch (err) {
@@ -1218,6 +1239,7 @@ const loggedInViewerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const currentMetadata = userMetadata.parse(ctx.user.metadata);
       const credentials = ctx.user.credentials;
+      const getApps = (await import("@calcom/app-store/utils")).default;
       const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
       const appLocation = foundApp?.appData?.location;
 
