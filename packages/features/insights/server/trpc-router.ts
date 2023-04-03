@@ -105,8 +105,9 @@ export const insightsRouter = router({
         whereConditional["userId"] = memberUserId;
       }
       if (userId) {
-        // This delete removes teamId filter
-        delete whereConditional["eventType"];
+        whereConditional["eventType"] = {
+          teamId: null,
+        };
         whereConditional["userId"] = userId;
       }
 
@@ -215,6 +216,10 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
+      if (!teamId && !selfUserId) {
+        return [];
+      }
+
       const timeView = inputTimeView;
 
       let whereConditional: Prisma.BookingWhereInput = {};
@@ -242,8 +247,9 @@ export const insightsRouter = router({
 
       if (selfUserId && !!whereConditional) {
         // In this delete we are deleting the teamId filter
-        whereConditional = {
-          userId: selfUserId,
+        whereConditional["userId"] = selfUserId;
+        whereConditional["eventType"] = {
+          teamId: null,
         };
       }
 
@@ -329,32 +335,35 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (!input.teamId) {
+      if (!teamId && !userId) {
         return [];
       }
 
-      const eventTypeWhere: Prisma.EventTypeWhereInput = {
-        teamId: teamId,
-      };
-
-      if (userId) {
-        delete eventTypeWhere.teamId;
-        eventTypeWhere.userId = userId;
-      }
-
       const bookingWhere: Prisma.BookingWhereInput = {
-        eventType: eventTypeWhere,
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
+      if (teamId) {
+        bookingWhere.eventType = {
+          teamId,
+        };
+      }
+
+      if (userId) {
+        bookingWhere.userId = userId;
+        // Don't take bookings from any team
+        bookingWhere.eventType = {
+          teamId: null,
+        };
+      }
 
       if (memberUserId) {
         bookingWhere.userId = memberUserId;
       }
 
-      const bookingsFromTeam = await ctx.prisma.booking.groupBy({
+      const bookingsFromSelected = await ctx.prisma.booking.groupBy({
         by: ["eventTypeId"],
         where: bookingWhere,
         _count: {
@@ -367,12 +376,13 @@ export const insightsRouter = router({
         },
         take: 10,
       });
-      const eventTypeIds = bookingsFromTeam
+
+      const eventTypeIds = bookingsFromSelected
         .filter((booking) => typeof booking.eventTypeId === "number")
         .map((booking) => booking.eventTypeId);
-      const eventTypesFromTeam = await ctx.prisma.eventType.findMany({
+      const eventTypesFrom = await ctx.prisma.eventType.findMany({
         where: {
-          teamId: teamId,
+          teamId: userId !== null ? null : teamId ?? null,
           id: {
             in: eventTypeIds as number[],
           },
@@ -380,18 +390,18 @@ export const insightsRouter = router({
       });
 
       const eventTypeHashMap = new Map();
-      eventTypesFromTeam.forEach((eventType) => {
+      eventTypesFrom.forEach((eventType) => {
         eventTypeHashMap.set(eventType.id, eventType.title);
       });
 
-      const result = bookingsFromTeam.map((booking) => {
+      const result = bookingsFromSelected.map((booking) => {
         return {
           eventTypeId: booking.eventTypeId,
           eventTypeName: eventTypeHashMap.get(booking.eventTypeId),
           count: booking._count.id,
         };
       });
-      console.log({ result });
+
       return result;
     }),
   averageEventDuration: userBelongsToTeamProcedure
@@ -401,12 +411,17 @@ export const insightsRouter = router({
         teamId: z.coerce.number().optional().nullable(),
         startDate: z.string(),
         endDate: z.string(),
+        userId: z.coerce.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate: startDateString, endDate: endDateString, memberUserId } = input;
+      const { teamId, startDate: startDateString, endDate: endDateString, memberUserId, userId } = input;
 
-      if (!teamId) {
+      if (userId && ctx.user?.id !== userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (!teamId && !userId) {
         return [];
       }
 
@@ -422,6 +437,10 @@ export const insightsRouter = router({
           lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
+      if (userId) {
+        delete whereConditional.eventType;
+        whereConditional["userId"] = userId;
+      }
 
       if (memberUserId) {
         whereConditional["userId"] = memberUserId;

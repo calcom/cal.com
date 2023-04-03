@@ -8,7 +8,6 @@ import {
   PopularEventsTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -20,15 +19,11 @@ import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
 
 const Heading = () => {
   const { t } = useLocale();
-  const {
-    filter: { selectedTeamName },
-  } = useFilterContext();
+
   return (
     <div className="min-w-52 hidden md:block">
       <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 truncate text-xl font-semibold tracking-wide text-black xl:max-w-full">
-        {t("analytics_for_organisation", {
-          organisationName: selectedTeamName,
-        })}
+        {t("analytics_for_organisation")}
       </h3>
       <p className="hidden text-sm text-gray-500 md:block">{t("subtitle_analytics")}</p>
     </div>

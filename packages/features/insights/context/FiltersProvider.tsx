@@ -127,12 +127,11 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         setSelectedTeamId: (selectedTeamId) => {
           setSelectedTeamId(selectedTeamId);
           setSelectedUserId(null);
-          router.push({
+          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          router.replace({
             query: {
-              ...router.query,
+              ...rest,
               teamId: selectedTeamId,
-              userId: null,
-              eventTypeId: null,
             },
           });
         },
@@ -140,14 +139,11 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           setSelectedUserId(selectedUserId);
           setSelectedTeamId(null);
           setSelectedTeamName(null);
-
-          router.push({
+          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          router.replace({
             query: {
-              ...router.query,
+              ...rest,
               userId: selectedUserId,
-              teamId: null,
-              eventTypeId: null,
-              memberUserId: null,
             },
           });
         },

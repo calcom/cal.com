@@ -6,6 +6,7 @@ import { trpc } from "@calcom/trpc";
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
+import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
@@ -21,7 +22,11 @@ export const BookingStatusLineChart = () => {
 
   if (!startDate || !endDate) return null;
 
-  const { data: eventsTimeLine, isSuccess } = trpc.viewer.insights.eventsTimeline.useQuery({
+  const {
+    data: eventsTimeLine,
+    isSuccess,
+    isLoading,
+  } = trpc.viewer.insights.eventsTimeline.useQuery({
     timeView: selectedTimeView,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
@@ -29,6 +34,8 @@ export const BookingStatusLineChart = () => {
     eventTypeId: selectedEventTypeId ?? undefined,
     userId: selectedUserId ?? undefined,
   });
+
+  if (isLoading) return <LoadingInsight />;
 
   if (!isSuccess) return null;
 

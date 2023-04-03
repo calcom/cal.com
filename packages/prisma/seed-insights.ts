@@ -11,6 +11,7 @@ const shuffle = (
   eventTypesToPick: Prisma.EventTypeGetPayload<{
     select: {
       id: true;
+      userId: true;
       length: true;
     };
   }>[],
@@ -22,6 +23,7 @@ const shuffle = (
     .add(Math.floor(Math.random() * 60), "minute")
     .set("y", year);
   const randomEvent = eventTypesToPick[Math.floor(Math.random() * eventTypesToPick.length)];
+
   const endTime = dayjs(startTime).add(Math.floor(Math.random() * randomEvent.length), "minute");
 
   booking.startTime = startTime.toISOString();
@@ -46,6 +48,8 @@ const shuffle = (
 
   if (usersIdsToPick && usersIdsToPick.length > 0) {
     booking.userId = Math.random() > 0.5 ? usersIdsToPick[0] : usersIdsToPick[1];
+  } else {
+    booking.userId = randomEvent.userId;
   }
 
   return booking;
@@ -64,25 +68,30 @@ async function main() {
     insightsAdmin = await prisma.user.create({
       data: {
         email: "insights@example.com",
-        password: await hashPassword("insights"),
+        password: await hashPassword("insightsinsightsinsights...!"),
         name: "Insights Admin",
         role: "ADMIN",
-        username: "insights",
+        username: "insights-admin",
         completedOnboarding: true,
       },
     });
+
+    if (!insightsAdmin) {
+      // Throw error
+      throw new Error("Insights Admin not created");
+    }
   }
 
   let insightsUser = await prisma.user.findFirst({
     where: {
-      email: "insightuser@example.com",
+      email: "insightsuser@example.com",
     },
   });
 
   if (!insightsUser) {
     insightsUser = await prisma.user.create({
       data: {
-        email: "insightuser@example.com",
+        email: "insightsuser@example.com",
         password: await hashPassword("insightsuser"),
         name: "Insights User",
         role: "USER",
@@ -90,6 +99,10 @@ async function main() {
         completedOnboarding: true,
       },
     });
+    if (!insightsUser) {
+      // Throw error
+      throw new Error("Insights Admin not created");
+    }
   }
 
   let insightsTeam = await prisma.team.findFirst({
@@ -149,7 +162,7 @@ async function main() {
     }
   }
 
-  const teamEvents = await prisma.eventType.findMany({
+  let teamEvents = await prisma.eventType.findMany({
     where: {
       teamId: insightsTeam.id,
     },
@@ -168,27 +181,38 @@ async function main() {
   });
 
   if (userSingleEventsAdmin.length === 0 && userSingleEvents.length === 0) {
-    await prisma.eventType.createMany({
-      data: [
-        {
-          title: "Single Event Admin",
-          slug: "single-event-admin",
-          description: "Single Event Admin",
-          length: 60,
-          userId: insightsAdmin.id,
+    await prisma.eventType.create({
+      data: {
+        title: "Single Event Admin",
+        slug: "single-event-admin",
+        description: "Single Event Admin",
+        length: 60,
+        userId: insightsAdmin.id,
+        users: {
+          connect: {
+            id: insightsAdmin.id,
+          },
         },
-        {
-          title: "Single Event",
-          slug: "single-event",
-          description: "Single Event",
-          length: 60,
-          userId: insightsUser.id,
+      },
+    });
+    await prisma.eventType.create({
+      data: {
+        title: "Single Event",
+        slug: "single-event",
+        description: "Single Event",
+        length: 60,
+        userId: insightsUser.id,
+        users: {
+          connect: {
+            id: insightsUser.id,
+          },
         },
-      ],
+      },
     });
     const singleEventTypesAdmin = await prisma.eventType.findFirst({
       select: {
         id: true,
+        userId: true,
         length: true,
       },
       where: {
@@ -199,6 +223,7 @@ async function main() {
     const singleEventTypes = await prisma.eventType.findFirst({
       select: {
         id: true,
+        userId: true,
         length: true,
       },
       where: {
@@ -232,12 +257,7 @@ async function main() {
       data: [
         ...new Array(100)
           .fill(0)
-          .map(() =>
-            shuffle({ ...baseBookingSingle }, dayjs().get("y") - 1, singleEvents, [
-              insightsAdmin?.id ?? 0,
-              insightsUser?.id ?? 0,
-            ])
-          ),
+          .map(() => shuffle({ ...baseBookingSingle }, dayjs().get("y") - 1, singleEvents)),
       ],
     });
 
@@ -245,12 +265,7 @@ async function main() {
       data: [
         ...new Array(100)
           .fill(0)
-          .map(() =>
-            shuffle({ ...baseBookingSingle }, dayjs().get("y") - 0, singleEvents, [
-              insightsUser?.id ?? 0,
-              insightsAdmin?.id ?? 0,
-            ])
-          ),
+          .map(() => shuffle({ ...baseBookingSingle }, dayjs().get("y") - 0, singleEvents)),
       ],
     });
   }
@@ -283,6 +298,11 @@ async function main() {
           schedulingType: "COLLECTIVE",
         },
       ],
+    });
+    teamEvents = await prisma.eventType.findMany({
+      where: {
+        teamId: insightsTeam.id,
+      },
     });
   }
 

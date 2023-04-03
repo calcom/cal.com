@@ -22,8 +22,14 @@ export const TeamAndSelfList = () => {
 
   useEffect(() => {
     if (data && data?.length > 0) {
-      setSelectedTeamId(data[0].id);
-      setSelectedTeamName(data[0].name);
+      // We have a team?
+      if (data[0].id) {
+        setSelectedTeamId(data[0].id);
+        setSelectedTeamName(data[0].name);
+      } else if (data[0].userId) {
+        // default to user
+        setSelectedUserId(data[0].userId);
+      }
     }
   }, [data]);
 
@@ -50,7 +56,7 @@ export const TeamAndSelfList = () => {
         onChange={(input) => {
           if (!!input?.userId) {
             setSelectedUserId(input.userId);
-          } else if (input) {
+          } else if (input && input.value) {
             setSelectedTeamId(input.value);
             setSelectedTeamName(input.label);
           }

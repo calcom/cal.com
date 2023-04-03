@@ -5,6 +5,7 @@ import { trpc } from "@calcom/trpc";
 
 import { useFilterContext } from "../context/provider";
 import { CardInsights } from "./Card";
+import { LoadingInsight } from "./LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
@@ -13,7 +14,7 @@ export const PopularEventsTable = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess } = trpc.viewer.insights.popularEventTypes.useQuery({
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery({
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
     teamId: teamId ?? undefined,
@@ -21,7 +22,9 @@ export const PopularEventsTable = () => {
     memberUserId: selectedMemberUserId ?? undefined,
   });
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId) || data?.length === 0) return null;
+  if (isLoading) return <LoadingInsight />;
+
+  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
 
   return (
     <CardInsights>
@@ -40,6 +43,11 @@ export const PopularEventsTable = () => {
           ))}
         </TableBody>
       </Table>
+      {data.length === 0 && (
+        <div className="flex h-60 text-center">
+          <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
+        </div>
+      )}
     </CardInsights>
   );
 };
