@@ -63,7 +63,7 @@ export default function InsightsPage() {
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
-          background="/banners/insights.jpg"
+          background="/tips/insights.jpg"
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>

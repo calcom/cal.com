@@ -1,8 +1,7 @@
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
-import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 
 interface ICreateEventsOnCalendarSelectProps {
   calendar?: RouterInputs["viewer"]["setDestinationCalendar"] | null;

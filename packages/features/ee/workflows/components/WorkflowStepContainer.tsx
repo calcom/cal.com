@@ -409,9 +409,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange={(val) => {
                             const isAlreadyVerified = !!verifiedNumbers
                               ?.concat([])
-                              .find(
-                                (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-                              );
+                              .find((number) => number.replace(/\s/g, "") === val?.replace(/\s/g, ""));
                             setNumberVerified(isAlreadyVerified);
                             onChange(val);
                           }}

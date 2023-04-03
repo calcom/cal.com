@@ -584,7 +584,8 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-
+                  </div>
+                  <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                     {Object.entries(bookingInfo.responses).map(([name, response]) => {
                       const field = eventType.bookingFields.find((field) => field.name === name);
                       // We show location in the "where" section
@@ -599,15 +600,13 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <div className="texte-default mt-9 font-medium">{label}</div>
-                          <div className="text-default col-span-2 mb-2 mt-9">
-                            <p
-                              className="break-words"
-                              data-testid="field-response"
-                              data-fob-field={field.name}>
-                              {response.toString()}
-                            </p>
-                          </div>
+                          <div className="text-emphasis mt-4 font-medium">{label}</div>
+                          <p
+                            className="text-default break-words"
+                            data-testid="field-response"
+                            data-fob-field={field.name}>
+                            {response.toString()}
+                          </p>
                         </>
                       );
                     })}

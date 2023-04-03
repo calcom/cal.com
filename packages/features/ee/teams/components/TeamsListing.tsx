@@ -71,7 +71,7 @@ export function TeamsListing() {
         emptyTitle="no_teams"
         emptyDescription="no_teams_description"
         features={features}
-        background="/banners/teams.jpg"
+        background="/tips/teams.jpg"
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>

@@ -14,7 +14,7 @@ import { FiSearch } from "@calcom/ui/components/icon";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
-import { ssgInit } from "@server/lib/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 const tabs: HorizontalTabItemProps[] = [
   {
@@ -88,7 +88,7 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 
-  const ssg = await ssgInit(context);
+  const ssr = await ssrInit(context);
 
   const session = await getServerSession({ req, res });
 
@@ -119,7 +119,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           return b.count - a.count;
         }),
       appStore,
-      trpcState: ssg.dehydrate(),
+      trpcState: ssr.dehydrate(),
     },
   };
 };

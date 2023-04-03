@@ -44,9 +44,17 @@ export const AddNewTeamMembersForm = ({
   const utils = trpc.useContext();
   const router = useRouter();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
