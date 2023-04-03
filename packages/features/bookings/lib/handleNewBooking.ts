@@ -895,9 +895,12 @@ async function handler(
       }
 
       await Promise.all(integrationsToDelete).then(async () => {
-        await prisma.booking.delete({
+        await prisma.booking.update({
           where: {
             id: originalRescheduledBooking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
       });
@@ -1189,10 +1192,13 @@ async function handler(
           cancellationReason: "$RCH$" + rescheduleReason ? rescheduleReason : "", // Removable code prefix to differentiate cancellation from rescheduling for email
         });
 
-        // Delete the old booking
-        await prisma.booking.delete({
+        // Update the old booking with the cancelled status
+        await prisma.booking.update({
           where: {
             id: booking.id,
+          },
+          data: {
+            status: BookingStatus.CANCELLED,
           },
         });
 
@@ -1680,11 +1686,14 @@ async function handler(
     addVideoCallDataToEvt(originalRescheduledBooking.references);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
-    //delete original rescheduled booking (no seats event)
+    //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.delete({
+      await prisma.booking.update({
         where: {
           id: originalRescheduledBooking.id,
+        },
+        data: {
+          status: BookingStatus.CANCELLED,
         },
       });
     }
