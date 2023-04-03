@@ -92,10 +92,14 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       labels: labels,
     });
 
-    await new Promise((resolve, reject) => {
+    let labelResult;
+    labelResult = await new Promise((resolve, reject) => {
       const request = https.request(requestOptions, (response) => {
         response.on("data", () => {});
-        response.on("end", () => {
+        response.on("end", (data) => {
+          console.log("Request ended: ");
+          console.log(data);
+          
           resolve(null);
         });
       });
@@ -108,6 +112,8 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       request.end();
     });
 
+    console.log(labelResult);
+    
     console.log(
       `Applied labels: ${labels.join(", ")} to PR#${
         pr.number
