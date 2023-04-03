@@ -64,7 +64,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                 select: {
                   id: true,
                   name: true,
-                  avatar: true,
                   username: true,
                   timeZone: true,
                   hideBranding: true,

@@ -1,3 +1,4 @@
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -39,17 +40,17 @@ export default function InsightsPage() {
   const { data: user } = trpc.viewer.me.useQuery();
   const features = [
     {
-      icon: <FiUsers className="h-5 w-5 text-red-500" />,
+      icon: <FiUsers className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <FiRefreshCcw className="h-5 w-5 text-blue-500" />,
+      icon: <FiRefreshCcw className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <FiUserPlus className="h-5 w-5 text-green-500" />,
+      icon: <FiUserPlus className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
@@ -62,7 +63,7 @@ export default function InsightsPage() {
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
-          background="/banners/insights.jpg"
+          background="/tips/insights.jpg"
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
@@ -114,3 +115,19 @@ export default function InsightsPage() {
     </div>
   );
 }
+
+// If feature flag is disabled, return not found on getServerSideProps
+export const getServerSideProps = async () => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (flags.insights === false) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {},
+  };
+};

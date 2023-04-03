@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.7.5",
+  "version": "2.7.6",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -11,6 +11,7 @@
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ignore-path .gitignore",
