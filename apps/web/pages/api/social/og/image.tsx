@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest) {
         ogConfig
       ) as { body: Buffer };
 
-      return new Response(img.body, { status: 200 });
+      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }
     case "app": {
       const { name, description, slug } = appSchema.parse({
@@ -101,7 +101,7 @@ export default async function handler(req: NextApiRequest) {
         body: Buffer;
       };
 
-      return new Response(img.body, { status: 200 });
+      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }
 
     case "generic": {
@@ -115,7 +115,7 @@ export default async function handler(req: NextApiRequest) {
         body: Buffer;
       };
 
-      return new Response(img.body, { status: 200 });
+      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }
 
     default:
