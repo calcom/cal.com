@@ -199,7 +199,7 @@ function BookingListItem(booking: BookingItemProps) {
   const chargeCardActions: ActionType[] = [
     {
       id: "charge_card",
-      label: cardCharged ? t("card_charged") : t("charge_card"),
+      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
       disabled: cardCharged,
       onClick: () => {
         setChargeCardDialogIsOpen(true);
@@ -281,7 +281,7 @@ function BookingListItem(booking: BookingItemProps) {
       {booking.paid && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
-          setShowLocationModal={setChargeCardDialogIsOpen}
+          setIsOpenDialog={setChargeCardDialogIsOpen}
           bookingId={booking.id}
           paymentAmount={booking?.payment[0].amount}
           paymentCurrency={booking?.payment[0].currency}

@@ -1,4 +1,5 @@
 import { Trans } from "next-i18next";
+import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { IntlProvider, FormattedNumber } from "react-intl";
 
@@ -13,7 +14,7 @@ import {
   DialogHeader,
   showToast,
 } from "@calcom/ui";
-import { FiCreditCard } from "@calcom/ui/components/icon";
+import { FiCreditCard, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -27,10 +28,15 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
+  const [chargeError, setChargeError] = useState(false);
   const chargeCardMutation = trpc.viewer.payments.chargeCard.useMutation({
     onSuccess: () => {
       utils.viewer.bookings.invalidate();
+      setIsOpenDialog(false);
       showToast("Charge successful", "success");
+    },
+    onError: () => {
+      setChargeError(true);
     },
   });
 
@@ -62,11 +68,18 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
               </p>
             </Trans>
 
+            {chargeError && (
+              <div className="mt-4 flex text-red-500">
+                <FiAlertTriangle className="mr-2 h-5 w-5 " aria-hidden="true" />
+                <p className="text-sm">{t("error_charging_card")}</p>
+              </div>
+            )}
+
             <DialogFooter>
               <DialogClose />
               <Button
                 data-testid="send_request"
-                disabled={chargeCardMutation.isLoading}
+                disabled={chargeCardMutation.isLoading || chargeError}
                 onClick={() =>
                   chargeCardMutation.mutate({
                     bookingId,
