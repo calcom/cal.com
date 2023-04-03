@@ -68,7 +68,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     request.end();
   });
 
-  if (linkedIssues.length === 0) {
+  if (!linkedIssues || linkedIssues.length === 0) {
     console.log("No issue linked.");
     return;
   }
@@ -97,7 +97,8 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       },
     };
 
-    const labelResult = await new Promise((resolve, reject) => {
+    let labelResult;
+    labelResult = await new Promise((resolve, reject) => {
       const request = https.request(requestOptions, (response) => {
         let responseBody = "";
         response.on("data", (chunk) => {
@@ -117,8 +118,10 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       request.end();
     });
 
-    console.log("Label result: ");
-    console.log(labelResult);
+    if (labelResult.message) {
+      console.log(`Error labelling PR: ${labelResult.message}`);
+      continue;
+    }
     
     console.log(
       `Applied labels: ${labels.join(", ")} to PR #${
