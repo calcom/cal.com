@@ -1703,5 +1703,5 @@
   "clear_filters": "Clear Filters",
   "insights": "Insights",
   "email_invite_team": "{{email}} has been invited",
-  "testing_workflow_info_message": "When testing this workflow, be aware that emails and SMS can only be scheduled at least 1 hour in advance"
+  "testing_workflow_info_message": "When testing this workflow, be aware that Emails and SMS can only be scheduled at least 1 hour in advance"
 }
