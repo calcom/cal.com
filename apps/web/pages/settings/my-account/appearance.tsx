@@ -85,7 +85,10 @@ const AppearanceView = () => {
       form={formMethods}
       handleSubmit={(values) => {
         if (!checkWCAGContrastColor("#101010", values.darkBrandColor)) {
-          showToast("Darkmode color does not pass contrast check", "error");
+          showToast(
+            "Darkmode color doesnt pass contrast checks with our background colour. Please try again.",
+            "error"
+          );
           return;
         }
         mutation.mutate({
