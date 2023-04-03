@@ -37,7 +37,7 @@ export const ErrorToast = ({ message, toastVisible }: IToast) => (
 export const WarningToast = ({ message, toastVisible }: IToast) => (
   <div
     className={classNames(
-      "animate-fade-in-up bg-brand-default text-inverted mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto items-center space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up"
     )}>
     <span>

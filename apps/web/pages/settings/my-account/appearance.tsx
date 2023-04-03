@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
@@ -8,6 +9,7 @@ import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Alert,
   Button,
   ColorPicker,
   Form,
@@ -47,6 +49,7 @@ const AppearanceView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const [darkModeError, setDarkModeError] = useState(false);
 
   const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
@@ -84,13 +87,6 @@ const AppearanceView = () => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        if (!checkWCAGContrastColor("#101010", values.darkBrandColor)) {
-          showToast(
-            "Darkmode color doesnt pass contrast checks with our background colour. Please try again.",
-            "error"
-          );
-          return;
-        }
         mutation.mutate({
           ...values,
           // Radio values don't support null as values, therefore we convert an empty string
@@ -162,6 +158,11 @@ const AppearanceView = () => {
               <ColorPicker
                 defaultValue={user.darkBrandColor}
                 onChange={(value) => {
+                  if (!checkWCAGContrastColor("#101010", value)) {
+                    setDarkModeError(true);
+                  } else {
+                    setDarkModeError(false);
+                  }
                   formMethods.setValue("darkBrandColor", value, { shouldDirty: true });
                 }}
               />
@@ -169,6 +170,14 @@ const AppearanceView = () => {
           )}
         />
       </div>
+      {darkModeError ? (
+        <div className="mt-4">
+          <Alert
+            severity="warning"
+            message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
+          />
+        </div>
+      ) : null}
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"

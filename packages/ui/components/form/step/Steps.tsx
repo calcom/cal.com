@@ -29,7 +29,7 @@ const Steps = (props: ISteps) => {
               )}
             />
           ) : (
-            <div key={`step-${index}`} className="bg-emphasis h-1 w-full rounded-[1px] bg-opacity-25" />
+            <div key={`step-${index}`} className="bg-emphasis h-1 w-full rounded-[1px] opacity-25" />
           );
         })}
       </div>
