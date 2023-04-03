@@ -8,12 +8,24 @@ export const NoShowFeeChargedEmail = (
     attendee: Person;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
+  const { calEvent } = props;
   const t = props.attendee.language.translate;
+
+  if (!calEvent.paymentInfo) throw new Error("No payment info");
+
   return (
     <BaseScheduledEmail
       title={t("no_show_fee_charged_text_body")}
       headerType="calendarCircle"
-      subject={<></>}
+      subtitle={
+        <>
+          {t("no_show_fee_charged_subtitle", {
+            amount: calEvent.paymentInfo.amount / 100,
+            formatParams: { amount: { currency: calEvent.paymentInfo?.currency } },
+          })}
+        </>
+      }
+      timeZone={props.attendee.timeZone}
       {...props}
       t={t}
     />

@@ -21,6 +21,7 @@ import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
 import type { PasswordReset } from "./templates/forgot-password-email";
 import ForgotPasswordEmail from "./templates/forgot-password-email";
+import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizerAttendeeCancelledSeatEmail from "./templates/organizer-attendee-cancelled-seat-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
 import OrganizerLocationChangeEmail from "./templates/organizer-location-change-email";
@@ -286,6 +287,7 @@ export const sendDisabledAppEmail = async ({
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
 };
 
-export const noShowFeeChargedEmail = async ({ email, payment }) => {
-  return;
+export const sendNoShowFeeChargedEmail = async ({ attendee, evt }) => {
+  console.log("🚀 ~ file: email-manager.ts:291 ~ sendNoShowFeeChargedEmail ~ attendee:", attendee);
+  await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };

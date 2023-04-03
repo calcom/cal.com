@@ -85,7 +85,7 @@ export const BaseScheduledEmail = (
           label={props.calEvent.paymentInfo?.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
           description={new Intl.NumberFormat(props.attendee.language.locale, {
             style: "currency",
-            currency: props.calEvent.paymentInfo?.currency,
+            currency: props.calEvent.paymentInfo?.currency || "USD",
           }).format(props.calEvent.paymentInfo?.amount / 100.0)}
           withSpacer
         />
