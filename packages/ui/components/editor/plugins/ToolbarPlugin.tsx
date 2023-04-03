@@ -390,16 +390,16 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>
             <Dropdown>
-              <DropdownMenuTrigger className="toolbar-item text-subtle w-36">
+              <DropdownMenuTrigger className="text-subtle">
                 <>
-                  <span className={"icon block-type " + blockType} />
+                  <span className={"icon" + blockType} />
                   <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
                   <FiChevronDown className="text-default ml-2 h-4 w-4" />
                 </>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent align="start">
                 {Object.keys(blockTypeToBlockName).map((key) => {
                   return (
                     <DropdownMenuItem key={key} className="outline-none hover:ring-0 focus:ring-0">
@@ -408,8 +408,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "toolbar-item  w-full rounded-none focus:ring-0",
-                          blockType === key ? "bg-subtle  w-full" : ""
+                          "w-full rounded-none focus:ring-0",
+                          blockType === key ? "bg-subtle w-full" : ""
                         )}>
                         <>
                           <span className={"icon block-type " + key} />
@@ -426,42 +426,53 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
         <>
           {!props.excludedToolbarItems?.includes("bold") && (
-            <button
+            <Button
+              color="minimal"
+              variant="icon"
               type="button"
+              StartIcon={FiBold}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
                 if (isItalic) {
                   editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
                 }
               }}
-              className={"toolbar-item spaced rounded-md " + (isBold ? "active" : "")}
-              aria-label="Format Bold">
-              <FiBold />
-            </button>
+              className={isBold ? "bg-subtle" : ""}
+            />
+            // <button
+            //   type="button"
+            //   onClick={() => {
+
+            //   }}
+            //   className={"toolbar-item spaced rounded-md " + (isBold ? "active" : "")}
+            //   aria-label="Format Bold">
+            // </button>
           )}
           {!props.excludedToolbarItems?.includes("italic") && (
-            <button
+            <Button
+              color="minimal"
+              variant="icon"
               type="button"
+              StartIcon={FiItalic}
               onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-                if (isBold) {
+                if (isItalic) {
                   editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
                 }
               }}
-              className={"toolbar-item spaced rounded-md " + (isItalic ? "active" : "")}
-              aria-label="Format Italics">
-              <FiItalic />
-            </button>
+              className={isItalic ? "bg-subtle" : ""}
+            />
           )}
           {!props.excludedToolbarItems?.includes("link") && (
             <>
-              <button
+              <Button
+                color="minimal"
+                variant="icon"
                 type="button"
+                StartIcon={FiLink}
                 onClick={insertLink}
-                className={"toolbar-item spaced rounded-md " + (isLink ? "active" : "")}
-                aria-label="Insert Link">
-                <FiLink />
-              </button>
+                className={isLink ? "bg-subtle" : ""}
+              />
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}

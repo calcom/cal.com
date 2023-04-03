@@ -133,7 +133,7 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
-          <div className="my-7 border-transparent md:border-t md:border-subtle" />
+          <div className="md:border-subtle my-7 border-transparent md:border-t" />
           <Button
             type="button"
             StartIcon={FiTrash2}
@@ -142,11 +142,11 @@ export default function WorkflowDetailsPage(props: Props) {
             onClick={() => setDeleteDialogOpen(true)}>
             {t("delete_workflow")}
           </Button>
-          <div className="my-7 border-t border-subtle md:border-none" />
+          <div className="border-subtle my-7 border-t md:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="bg-muted w-full rounded-md border border-subtle p-3 py-5 md:ml-3 md:p-8">
+        <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
               <WorkflowStepContainer form={form} teamId={teamId} />

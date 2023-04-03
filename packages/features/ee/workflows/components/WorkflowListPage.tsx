@@ -61,11 +61,11 @@ export default function WorkflowListPage({ workflows, profileOptions, hasNoWorkf
   return (
     <>
       {workflows && workflows.length > 0 ? (
-        <div className="bg-default overflow-hidden rounded-md border border-subtle sm:mx-0">
-          <ul className="divide-y divide-subtle">
+        <div className="bg-default border-subtle overflow-hidden rounded-md border sm:mx-0">
+          <ul className="divide-subtle divide-y">
             {workflows.map((workflow) => (
               <li key={workflow.id}>
-                <div className="first-line:group flex w-full items-center justify-between p-4 hover:bg-neutral-50 sm:px-6">
+                <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
                   <Link href={"/workflows/" + workflow.id} className="flex-grow cursor-pointer">
                     <div className="rtl:space-x-reverse">
                       <div className="flex">
