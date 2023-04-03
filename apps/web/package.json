@@ -65,7 +65,7 @@
     "@types/turndown": "^5.0.1",
     "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
-    "@vercel/og": "^0.0.21",
+    "@vercel/og": "^0.5.0",
     "accept-language-parser": "^1.5.0",
     "async": "^3.2.4",
     "bcryptjs": "^2.4.3",
