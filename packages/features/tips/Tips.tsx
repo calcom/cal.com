@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -96,12 +96,30 @@ export const tips = [
   },
 ];
 
+const reversedTips = tips.slice(0).reverse();
+
 export default function Tips() {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const { t } = useLocale();
 
-  const [list, setList] = useState<typeof tips>([]);
+  const [list, setList] = useState<typeof tips>(() => {
+    if (typeof window === "undefined") {
+      return reversedTips;
+    }
+    try {
+      const removedTipsString = localStorage.getItem("removedTipsIds");
+      if (removedTipsString !== null) {
+        const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
+        const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
+        return filteredTips;
+      } else {
+        return reversedTips;
+      }
+    } catch {
+      return reversedTips;
+    }
+  });
 
   const handleRemoveItem = (id: number) => {
     setList((currentItems) => {
@@ -117,13 +135,6 @@ export default function Tips() {
     });
   };
 
-  useEffect(() => {
-    const reversedTips = tips.slice(0).reverse();
-    const removedTipsString = localStorage.getItem("removedTipsIds") || "";
-    const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
-    const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
-    setList(() => [...filteredTips]);
-  }, []);
   const baseOriginalList = list.slice(0).reverse();
   return (
     <div
