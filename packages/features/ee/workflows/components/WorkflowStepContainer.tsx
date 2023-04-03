@@ -35,7 +35,7 @@ import {
   AddVariablesDropdown,
   Input,
 } from "@calcom/ui";
-import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle } from "@calcom/ui/components/icon";
+import { FiArrowDown, FiMoreHorizontal, FiTrash2, FiHelpCircle, FiInfo } from "@calcom/ui/components/icon";
 
 import { isAttendeeAction, isSMSAction } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
@@ -275,6 +275,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
+                <div className="mt-1 flex text-gray-500">
+                  <FiInfo className="mr-1 mt-0.5" />
+                  <p className="text-sm">{t("testing_workflow_info_message")}</p>
+                </div>
               </div>
             )}
           </div>
