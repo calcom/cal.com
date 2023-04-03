@@ -144,7 +144,7 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="border-default bg-default hover:bg-mutedover:text-emphasis dark:hover:bg-inverted text-default dark:text-inverted mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-empthasis focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent">
+            <label className="border-default bg-default hover:bg-mutedover:text-emphasis dark:hover:bg-inverted text-default dark:text-inverted focus:ring-empthasis mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent">
               <input
                 onInput={onInputFile}
                 type="file"
