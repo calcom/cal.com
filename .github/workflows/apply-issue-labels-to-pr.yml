@@ -1,4 +1,4 @@
-name: Apply labels from linked issue to PR
+name: "Apply issue labels to PR"
 
 on:
   pull_request:
@@ -29,4 +29,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_DATA: ${{ toJson(github.event.pull_request) }}
-        run: node ./.github/workflows/apply-issue-labels-to-pr/index.ts
+        run: node ./.github/workflows/scripts/apply-issue-labels-to-pr.ts
