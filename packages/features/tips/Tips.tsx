@@ -86,6 +86,14 @@ export const tips = [
     description: "Free video conferencing with recording",
     href: "https://go.cal.com/video",
   },
+  {
+    id: 11,
+    thumbnailUrl: "https://img.youtube.com/vi/KTg_qzA9NEc/0.jpg",
+    mediaLink: "https://go.cal.com/insights",
+    title: "Insights",
+    description: "Get a better understanding of your business",
+    href: "https://go.cal.com/insights",
+  },
 ];
 
 export default function Tips() {

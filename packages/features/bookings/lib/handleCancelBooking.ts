@@ -67,6 +67,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           currency: true,
           length: true,
           seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           hosts: {
             select: {
               user: true,
@@ -190,6 +191,8 @@ async function handler(req: CustomRequest) {
     destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
     cancellationReason: cancellationReason,
     ...(teamMembers && { team: { name: "", members: teamMembers } }),
+    seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
   };
 
   // If it's just an attendee of a booking then just remove them from that booking
