@@ -4,6 +4,8 @@ import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-b
 //@ts-ignore
 import BasicConfig from "react-awesome-query-builder/lib/config/basic";
 
+import { EmailField } from "@calcom/ui";
+
 import widgetsComponents from "../widgets";
 
 const {
@@ -92,8 +94,7 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      // TODO: Use EmailField component for Routing Form Email field
-      return <TextWidget type="email" {...props} />;
+      return <EmailField type="email" {...props} />;
     },
   },
 };
