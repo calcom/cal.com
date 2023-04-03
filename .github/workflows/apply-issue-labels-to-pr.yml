@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          bun install @octokit/core @octokit/graphql
+          bun add @octokit/core @octokit/graphql
 
       - name: Apply labels from linked issue to PR
         env:
