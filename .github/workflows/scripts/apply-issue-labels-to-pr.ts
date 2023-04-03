@@ -1,6 +1,8 @@
 const https = require("https");
 
 async function applyLabelFromLinkedIssueToPR(pr, token) {
+  
+  // Get the labels from issues linked to the PR
   const query = `
     query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -41,6 +43,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     },
   };
 
+  // Use the native Node.js request library to make the request
   let linkedIssues;
   linkedIssues = await new Promise((resolve, reject) => {
     const request = https.request(requestOptions, (response) => {
@@ -73,6 +76,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     return;
   }
 
+  // Iterate over linked issues and apply labels to PR
   for (const issue of linkedIssues) {
     const labels = issue?.labels?.nodes?.map((label) => label.name);
 
@@ -131,8 +135,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
   }
 }
 
-
-
+// Pass the PR data and GitHub token to the script
 (async () => {
   if (!process.env.PR_DATA) {
     console.log("No PR data found.");
