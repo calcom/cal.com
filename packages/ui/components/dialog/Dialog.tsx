@@ -73,7 +73,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
   ({ children, title, Icon, enableOverflow, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fadeIn bg-muted fixed inset-0 z-50 bg-opacity-20 transition-opacity" />
+        <DialogPrimitive.Overlay className="fadeIn bg-darkgray-100 fixed inset-0 z-50 bg-opacity-70 transition-opacity dark:bg-opacity-90 " />
         <DialogPrimitive.Content
           {...props}
           className={classNames(
