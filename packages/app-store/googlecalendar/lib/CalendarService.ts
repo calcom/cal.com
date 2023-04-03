@@ -206,7 +206,6 @@ export default class GoogleCalendarService implements Calendar {
               ? event.destinationCalendar.externalId
               : event.organizer.email,
           },
-          // TODO check if calendar has this same issue
           // eslint-disable-next-line
           ...eventAttendees,
           ...teamMembers,
