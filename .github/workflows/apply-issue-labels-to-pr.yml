@@ -2,7 +2,7 @@ name: "Apply issue labels to PR"
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, edited]
 
 jobs:
   label_on_pr:

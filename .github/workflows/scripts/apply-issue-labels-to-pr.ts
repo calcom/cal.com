@@ -41,7 +41,8 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     },
   };
 
-  const linkedIssues: any[] = await new Promise((resolve, reject) => {
+  let linkedIssues: any[] = [];
+  linkedIssues = await new Promise((resolve, reject) => {
     const request = https.request(requestOptions, (response) => {
       let responseBody = "";
       response.on("data", (chunk) => {
