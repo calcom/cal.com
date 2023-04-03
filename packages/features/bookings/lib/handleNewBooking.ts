@@ -1050,16 +1050,16 @@ async function handler(
 
           const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
-          const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-          evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
-
           // @NOTE: This code is duplicated and should be moved to a function
           // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
           // to the default description when we are sending the emails.
           evt.description = eventType.description;
 
           const results = updateManager.results;
+
+          const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+          evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
 
           if (results.length > 0 && results.some((res) => !res.success)) {
             const error = {
@@ -1191,7 +1191,9 @@ async function handler(
 
         const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-        evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+        evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult?.updatedEvent[0]?.iCalUID
+          : calendarResult?.updatedEvent?.iCalUID || undefined;
 
         // TODO send reschedule emails to attendees of the old booking
         await sendRescheduledEmails({
@@ -1278,7 +1280,9 @@ async function handler(
 
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-      evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
 
       await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
       const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
@@ -1584,7 +1588,7 @@ async function handler(
     return prisma.booking.create(createBookingObj);
   }
 
-  let results: EventResult<AdditionalInformation & { url?: string }>[] = [];
+  let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -1727,7 +1731,9 @@ async function handler(
       const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-      evt.iCalUID = calendarResult.updatedEvent.iCalUID || undefined;
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
 
       if (results.length) {
         // TODO: Handle created event metadata more elegantly

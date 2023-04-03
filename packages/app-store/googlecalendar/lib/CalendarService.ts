@@ -202,7 +202,11 @@ export default class GoogleCalendarService implements Calendar {
             id: String(event.organizer.id),
             organizer: true,
             responseStatus: "accepted",
+            email: event.destinationCalendar?.externalId
+              ? event.destinationCalendar.externalId
+              : event.organizer.email,
           },
+          // TODO check if calendar has this same issue
           // eslint-disable-next-line
           ...eventAttendees,
           ...teamMembers,
@@ -241,6 +245,11 @@ export default class GoogleCalendarService implements Calendar {
           conferenceDataVersion: 1,
         },
         function (err, evt) {
+          console.log(
+            "🚀 ~ file: CalendarService.ts:279 ~ GoogleCalendarService ~ returnnewPromise ~ evt:",
+            evt
+          );
+
           if (err) {
             console.error("There was an error contacting google calendar service: ", err);
             return reject(err);
