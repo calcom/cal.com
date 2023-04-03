@@ -1187,7 +1187,9 @@ async function handler(
 
         const copyEvent = cloneDeep(evt);
 
-        await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+        const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+        const results = updateManager.results;
 
         const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
@@ -1276,7 +1278,9 @@ async function handler(
 
       const copyEvent = cloneDeep(evt);
 
-      await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+      const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+
+      const results = updateManager.results;
 
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
