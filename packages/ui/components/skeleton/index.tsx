@@ -52,10 +52,7 @@ const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
     <Component
       className={classNames(
         loading
-          ? classNames(
-              "font-size-0 dark:white-300 animate-pulse rounded-md bg-gray-300 text-transparent",
-              loadingClassName
-            )
+          ? classNames("font-size-0 bg-subtle animate-pulse rounded-md text-transparent", loadingClassName)
           : "",
         className
       )}

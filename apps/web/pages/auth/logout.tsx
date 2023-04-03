@@ -16,7 +16,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
-export default function Logout(props: Props) {
+export function Logout(props: Props) {
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
@@ -49,6 +49,10 @@ export default function Logout(props: Props) {
     </AuthContainer>
   );
 }
+
+Logout.isThemeSupported = false;
+
+export default Logout;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);

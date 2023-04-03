@@ -36,7 +36,7 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-subtle flex items-center justify-between py-5 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+      <div className="hover:bg-muted flex items-center justify-between py-5 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
         <div className="hover:bg-subtle group flex w-full items-center justify-between sm:px-6">
           <Link
             href={"/availability/" + schedule.id}

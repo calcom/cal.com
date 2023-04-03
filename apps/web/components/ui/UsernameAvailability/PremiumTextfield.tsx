@@ -14,7 +14,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Input, Label } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, Input, Label } from "@calcom/ui";
 import { FiCheck, FiEdit2, FiExternalLink } from "@calcom/ui/components/icon";
 
 export enum UsernameChangeStatusEnum {
@@ -250,21 +250,22 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent>
-          <div className="flex flex-row">
-            <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-              <FiEdit2 className="m-auto h-6 w-6" />
-            </div>
-            <div className="mb-4 w-full px-4 pt-1">
-              <DialogHeader title={t("confirm_username_change_dialog_title")} />
+        <DialogContent
+          Icon={FiEdit2}
+          title={t("confirm_username_change_dialog_title")}
+          description={
+            <>
               {usernameChangeCondition && usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
                 <p className="text-default mb-4 text-sm">{t("change_username_standard_to_premium")}</p>
               )}
-
+            </>
+          }>
+          <div className="flex flex-row">
+            <div className="mb-4 w-full px-4 pt-1">
               <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
                 <div className="flex-1 px-2">
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="mt-1" data-testid="current-username">
+                  <p className="text-emphasis mt-1" data-testid="current-username">
                     {currentUsername}
                   </p>
                 </div>
@@ -272,7 +273,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p>{inputUsernameValue}</p>
+                  <p className="text-emphasis">{inputUsernameValue}</p>
                 </div>
               </div>
             </div>

@@ -6,7 +6,7 @@ export function Divider({ className, ...props }: JSX.IntrinsicElements["hr"]) {
 }
 
 export function VerticalDivider({ className, ...props }: JSX.IntrinsicElements["svg"]) {
-  className = classNames("mx-3", className);
+  className = classNames("mx-3 text-subtle", className);
   return (
     <svg
       className={className}
@@ -17,7 +17,7 @@ export function VerticalDivider({ className, ...props }: JSX.IntrinsicElements["
       ry="6"
       fill="none"
       xmlns="http://www.w3.org/2000/svg">
-      <rect width="2" height="16" rx="1" fill="#D1D5DB" />
+      <rect width="2" height="16" rx="1" fill="currentColor" />
     </svg>
   );
 }

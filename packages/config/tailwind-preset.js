@@ -26,9 +26,9 @@ module.exports = {
         error: "var(--cal-bg-error)",
         black: "#111111",
         brand: {
-          default: "var(--cal-brand)",
-          emphasis: "var(--cal-brand-emphasis)",
-          subtle: "var(--cal-brand-subtle)",
+          default: "var(--cal-brand,'#111827')",
+          emphasis: "var(--cal-brand-emphasis,'#101010')",
+          subtle: "var(--cal-brand-subtle,'#9CA3AF')",
         },
         gray: {
           50: "#F9FAFB",
@@ -71,7 +71,7 @@ module.exports = {
         success: "var(--cal-text-success, #285231)",
         attention: "var(--cal-text-attention, #73321B)",
         error: "var(--cal-text-error, #752522)",
-        brand: "var(--cal-brand-text)",
+        brand: "var(--cal-brand-text,'white')",
       },
       fill: {
         emphasis: "var(--cal-text-emphasis, #111827)",
