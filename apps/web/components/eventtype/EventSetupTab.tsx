@@ -16,7 +16,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Button, Label, Select, SettingsToggle, Skeleton, TextField, Editor } from "@calcom/ui";
+import {
+  Button,
+  Label,
+  Select,
+  SettingsToggle,
+  Skeleton,
+  TextField,
+  Editor,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -55,7 +65,11 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
     />
-  ) : null;
+  ) : (
+    <SkeletonContainer>
+      <SkeletonText className="block h-24 w-full" />
+    </SkeletonContainer>
+  );
 };
 
 export const EventSetupTab = (
