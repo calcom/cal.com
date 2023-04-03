@@ -79,9 +79,7 @@ function WorkflowsPage() {
     }
   }, [session.status, query.isLoading, allWorkflowsData]);
 
-  if (!query.data) return null;
-
-  const profileOptions = query.data.profiles
+  const profileOptions = query?.data?.profiles
     .filter((profile) => !profile.readOnly)
     .map((profile) => {
       return {
@@ -98,10 +96,11 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
       CTA={
-        query.data.profiles.length === 1 &&
+        query?.data?.profiles.length === 1 &&
         session.data?.hasValidLicense &&
         allWorkflowsData?.workflows &&
-        allWorkflowsData?.workflows.length > 0 ? (
+        allWorkflowsData?.workflows.length &&
+        profileOptions ? (
           <CreateButton
             subtitle={t("new_workflow_subtitle").toUpperCase()}
             options={profileOptions}
@@ -111,40 +110,42 @@ function WorkflowsPage() {
             isLoading={createMutation.isLoading}
             disableMobileButton={true}
           />
-        ) : (
-          <></>
-        )
+        ) : null
       }>
       <LicenseRequired>
         {isLoading ? (
           <SkeletonLoader />
         ) : (
           <>
-            {query.data.profiles.length > 1 &&
-              allWorkflowsData?.workflows &&
-              allWorkflowsData.workflows.length > 0 && (
-                <div className="mb-4 flex">
-                  <Filter
-                    profiles={query.data.profiles}
-                    checked={checkedFilterItems}
-                    setChecked={setCheckedFilterItems}
+            {query?.data?.profiles &&
+            query?.data?.profiles.length &&
+            allWorkflowsData?.workflows &&
+            allWorkflowsData.workflows.length &&
+            profileOptions ? (
+              <div className="mb-4 flex">
+                <Filter
+                  profiles={query.data.profiles}
+                  checked={checkedFilterItems}
+                  setChecked={setCheckedFilterItems}
+                />
+                <div className="ml-auto">
+                  <CreateButton
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    options={profileOptions}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isLoading={createMutation.isLoading}
+                    disableMobileButton={true}
                   />
-                  <div className="ml-auto">
-                    <CreateButton
-                      subtitle={t("new_workflow_subtitle").toUpperCase()}
-                      options={profileOptions}
-                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                      isLoading={createMutation.isLoading}
-                      disableMobileButton={true}
-                    />
-                  </div>
                 </div>
-              )}
-            <WorkflowList
-              workflows={filteredWorkflows}
-              profileOptions={profileOptions}
-              hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
-            />
+              </div>
+            ) : null}
+            {profileOptions && profileOptions?.length ? (
+              <WorkflowList
+                workflows={filteredWorkflows}
+                profileOptions={profileOptions}
+                hasNoWorkflows={!allWorkflowsData?.workflows || allWorkflowsData?.workflows.length === 0}
+              />
+            ) : null}
           </>
         )}
       </LicenseRequired>
