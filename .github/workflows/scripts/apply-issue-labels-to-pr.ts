@@ -1,5 +1,6 @@
+const https = require("https");
+
 async function applyLabelFromLinkedIssueToPR(pr, token) {
-  // Fetch the labels of all issues linked to the PR
   const query = `
     query GetLinkedIssues($owner: String!, $repo: String!, $prNumber: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -19,27 +20,50 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     }
   `;
 
-  const response = await fetch('https://api.github.com/graphql', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+  const graphqlData = JSON.stringify({
+    query,
+    variables: {
+      owner: pr.base.repo.owner.login,
+      repo: pr.base.repo.name,
+      prNumber: pr.number,
     },
-    body: JSON.stringify({
-      query,
-      variables: {
-        owner: pr.base.repo.owner.login,
-        repo: pr.base.repo.name,
-        prNumber: pr.number
-      },
-    }),
   });
 
-  const { data } = await response.json();
+  const requestOptions = {
+    hostname: "api.github.com",
+    path: "/graphql",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": graphqlData.length,
+      "Authorization": "Bearer " + token,
+      "User-Agent": "Node.js",
+    },
+  };
 
-  const linkedIssues = data?.repository?.pullRequest?.closingIssuesReferences?.nodes;
+  const linkedIssues: any[] = await new Promise((resolve, reject) => {
+    const request = https.request(requestOptions, (response) => {
+      let responseBody = "";
+      response.on("data", (chunk) => {
+        responseBody += chunk;
+      });
+      response.on("end", () => {
+        resolve(
+          JSON.parse(responseBody).data.repository.pullRequest
+            .closingIssuesReferences.nodes
+        );
+      });
+    });
 
-  if (!linkedIssues || linkedIssues.length === 0) {
+    request.on("error", (error) => {
+      reject(error);
+    });
+
+    request.write(graphqlData);
+    request.end();
+  });
+
+  if (linkedIssues.length === 0) {
     console.log("No issue linked.");
     return;
   }
@@ -52,13 +76,35 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       continue;
     }
 
-    await fetch(`https://api.github.com/repos/${pr.base.repo.owner.login}/${pr.base.repo.name}/issues/${pr.number}/labels`, {
-      method: 'POST',
+    const requestOptions = {
+      hostname: "api.github.com",
+      path: `/repos/${pr.base.repo.owner.login}/${pr.base.repo.name}/issues/${pr.number}/labels`,
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+        "User-Agent": "Node.js",
       },
-      body: JSON.stringify({ labels }),
+    };
+
+    const postData = JSON.stringify({
+      labels: labels,
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const request = https.request(requestOptions, (response) => {
+        response.on("data", () => {});
+        response.on("end", () => {
+          resolve();
+        });
+      });
+
+      request.on("error", (error) => {
+        reject(error);
+      });
+
+      request.write(postData);
+      request.end();
     });
 
     console.log(
@@ -68,6 +114,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
     );
   }
 }
+
 
 
 (async () => {
