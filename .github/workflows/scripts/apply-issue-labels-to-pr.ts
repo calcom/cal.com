@@ -50,8 +50,12 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
       });
       response.on("end", () => {
         resolve(
-          JSON.parse(responseBody).data.repository.pullRequest
-            .closingIssuesReferences.nodes
+          JSON.parse(responseBody)
+            ?.data
+            ?.repository
+            ?.pullRequest
+            ?.closingIssuesReferences
+            ?.nodes
         );
       });
     });
@@ -99,10 +103,7 @@ async function applyLabelFromLinkedIssueToPR(pr, token) {
         response.on("data", (chunk) => {
           responseBody += chunk;
         });
-        response.on("data", (data) => {
-          console.log("Incoming data: ");
-          console.log(data);
-        });
+        response.on("data", () => {});
         response.on("end", () => {
           resolve(JSON.parse(responseBody));
         });
