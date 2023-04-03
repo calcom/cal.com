@@ -21,7 +21,7 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
     deleteMeeting: async (uid: string): Promise<void> => {
       Promise.resolve();
     },
-    updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
       return Promise.resolve({
         type: "sylaps_video",
         id: bookingRef.meetingId as string,
