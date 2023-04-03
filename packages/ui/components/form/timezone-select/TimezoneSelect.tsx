@@ -57,19 +57,13 @@ export function TimezoneSelect({
             state.isSelected && "bg-emphasis text-default",
             props.classNames?.option
           ),
-        placeholder: (state) =>
-          classNames("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
+        placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-default",
         control: (state) =>
           classNames(
-            "bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border ",
-            state.isMulti
-              ? variant === "checkbox"
-                ? "px-3 py-2"
-                : state.hasValue
-                ? "p-1"
-                : "px-3 py-2"
-              : "py-2 px-3",
+            variant === "default"
+              ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border "
+              : "text-sm",
             props.classNames?.control
           ),
         singleValue: () => classNames("text-emphasis placeholder:text-muted", props.classNames?.singleValue),
