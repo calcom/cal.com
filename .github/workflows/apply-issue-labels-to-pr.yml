@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install @octokit/core @octokit/graphql
+          npm install @octokit/core
 
       - name: Apply labels from linked issue to PR
         env:
