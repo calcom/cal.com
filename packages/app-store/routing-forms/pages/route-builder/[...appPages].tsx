@@ -16,6 +16,7 @@ import {
   TextArea,
   TextField,
   Badge,
+  Divider,
 } from "@calcom/ui";
 
 import SingleForm, {
@@ -244,7 +245,7 @@ const Route = ({
 
             {((route.isFallback && hasRules(route)) || !route.isFallback) && (
               <>
-                <hr className="my-6 text-gray-200" />
+                <Divider className="mt-3 mb-6" />
                 <Query
                   {...config}
                   value={route.state.tree}

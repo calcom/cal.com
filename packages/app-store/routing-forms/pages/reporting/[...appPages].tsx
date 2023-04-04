@@ -64,8 +64,10 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     <div className="w-full max-w-[2000px] overflow-x-scroll">
       <table
         data-testid="reporting-table"
-        className="border-default bg-subtle table-fixed border-separate border-spacing-0 rounded-md border">
-        <tr data-testid="reporting-header" className="border-default bg-emphasis border-b">
+        className="border-default bg-subtle mx-3 mb-4 table-fixed border-separate border-spacing-0 overflow-hidden rounded-md border">
+        <tr
+          data-testid="reporting-header"
+          className="border-default text-default bg-emphasis rounded-md border-b">
           {headers.current?.map((header, index) => (
             <th
               className={classNames(
@@ -109,16 +111,18 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
             });
           })}
       </table>
-      {isLoading ? <div className="p-2">Report is loading</div> : ""}
-      <Button
-        type="button"
-        color="minimal"
-        ref={buttonInView.ref}
-        loading={isFetchingNextPage}
-        disabled={!hasNextPage}
-        onClick={() => fetchNextPage()}>
-        {hasNextPage ? t("load_more_results") : t("no_more_results")}
-      </Button>
+      {isLoading ? <div className="text-default p-2">{t("loading")}</div> : ""}
+      {hasNextPage && (
+        <Button
+          type="button"
+          color="minimal"
+          ref={buttonInView.ref}
+          loading={isFetchingNextPage}
+          disabled={!hasNextPage}
+          onClick={() => fetchNextPage()}>
+          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      )}
     </div>
   );
 };
