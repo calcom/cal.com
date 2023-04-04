@@ -15,7 +15,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null };
+  user: EventManagerUser & { username: string | null; hideBranding?: boolean };
   evt: CalendarEvent;
   recurringEventId?: string;
   prisma: PrismaClient;
@@ -186,7 +186,8 @@ export async function handleConfirmation(args: {
           { ...evtOfBooking, ...{ eventType: { slug: eventTypeSlug } } },
           false,
           false,
-          isFirstBooking
+          isFirstBooking,
+          user.hideBranding
         );
       }
     }

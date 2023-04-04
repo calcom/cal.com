@@ -228,6 +228,11 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       bookingLimits: true,
       durationLimits: true,
+      owner: {
+        select: {
+          hideBranding: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
@@ -2030,7 +2035,8 @@ async function handler(
       { ...evt, ...{ responses, metadata, eventType: { slug: eventType.slug } } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
-      true
+      true,
+      !!eventType.owner?.hideBranding
     );
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);

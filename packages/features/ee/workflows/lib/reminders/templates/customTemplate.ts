@@ -1,6 +1,6 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { Prisma } from "@calcom/prisma/client";
 
 export type VariablesType = {
@@ -20,7 +20,12 @@ export type VariablesType = {
   rescheduleLink?: string;
 };
 
-const customTemplate = (text: string, variables: VariablesType, locale: string) => {
+const customTemplate = (
+  text: string,
+  variables: VariablesType,
+  locale: string,
+  isBrandingDisabled?: boolean
+) => {
   const translatedDate = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     month: "long",
@@ -97,7 +102,9 @@ const customTemplate = (text: string, variables: VariablesType, locale: string) 
     }
   });
 
-  const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;
+  const branding = !isBrandingDisabled ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
+
+  const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}${branding}</body>`;
   return { text: dynamicText, html: textHtml };
 };
 

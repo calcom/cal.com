@@ -17,7 +17,8 @@ export const scheduleWorkflowReminders = async (
   evt: CalendarEvent & { metadata?: { videoCallUrl: string }; eventType: { slug?: string } },
   needsConfirmation: boolean,
   isRescheduleEvent: boolean,
-  isFirstRecurringEvent: boolean
+  isFirstRecurringEvent: boolean,
+  hideBranding?: boolean
 ) => {
   if (workflows.length > 0 && !needsConfirmation) {
     workflows.forEach((workflowReference) => {
@@ -80,7 +81,8 @@ export const scheduleWorkflowReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_NAME
+              step.sender || SENDER_NAME,
+              hideBranding
             );
           }
         });
@@ -96,7 +98,8 @@ export const sendCancelledReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent
+  evt: CalendarEvent & { metadata?: { videoCallUrl: string }; eventType: { slug?: string } },
+  hideBranding?: boolean
 ) => {
   if (workflows.length > 0) {
     workflows
@@ -150,7 +153,8 @@ export const sendCancelledReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_NAME
+              step.sender || SENDER_NAME,
+              hideBranding
             );
           }
         });

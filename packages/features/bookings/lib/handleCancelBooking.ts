@@ -58,6 +58,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       paid: true,
       eventType: {
         select: {
+          slug: true,
           owner: true,
           teamId: true,
           recurringEvent: true,
@@ -334,7 +335,14 @@ async function handler(req: CustomRequest) {
     await sendCancelledReminders(
       bookingToDelete.eventType?.workflows,
       bookingToDelete.smsReminderNumber,
-      evt
+      {
+        ...evt,
+        ...{
+          responses: null,
+          eventType: { slug: bookingToDelete.eventType.slug },
+        },
+      },
+      bookingToDelete.eventType.owner?.hideBranding
     );
   }
 

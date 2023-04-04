@@ -36,7 +36,8 @@ export const scheduleEmailReminder = async (
   emailBody: string,
   workflowStepId: number,
   template: WorkflowTemplates,
-  sender: string
+  sender: string,
+  hideBranding?: boolean
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -105,9 +106,9 @@ export const scheduleEmailReminder = async (
         ? evt.attendees[0].language?.locale
         : evt.organizer.language.locale;
 
-    const emailSubjectTemplate = await customTemplate(emailSubject, variables, locale);
+    const emailSubjectTemplate = customTemplate(emailSubject, variables, locale);
     emailContent.emailSubject = emailSubjectTemplate.text;
-    emailContent.emailBody = await customTemplate(emailBody, variables, locale).html;
+    emailContent.emailBody = customTemplate(emailBody, variables, locale).html;
   } else if (template === WorkflowTemplates.REMINDER) {
     emailContent = emailReminderTemplate(
       false,

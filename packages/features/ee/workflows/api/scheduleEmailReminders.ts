@@ -189,13 +189,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const emailSubject = customTemplate(
           reminder.workflowStep.emailSubject || "",
           variables,
-          locale || ""
+          locale || "",
+          !!reminder.booking.user?.hideBranding
         ).text;
         emailContent.emailSubject = emailSubject;
         emailContent.emailBody = customTemplate(
           reminder.workflowStep.reminderBody || "",
           variables,
-          locale || ""
+          locale || "",
+          !!reminder.booking.user?.hideBranding
         ).html;
 
         emailBodyEmpty =
