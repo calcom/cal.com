@@ -634,17 +634,17 @@ const ChooseEmbedTypesDialogContent = () => {
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
+        <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
           <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
-      <div className="flex items-start">
+      <div className="items-start space-y-2 md:flex md:space-y-0">
         {embeds.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted  w-1/3 rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
+            className="hover:bg-subtle bg-muted w-full rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -652,10 +652,10 @@ const ChooseEmbedTypesDialogContent = () => {
                 embedType: embed.type,
               });
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid">
+            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
-            <div className="text-emphasis mt-4 font-semibold leading-none">{embed.title}</div>
+            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
             <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
           </button>
         ))}
