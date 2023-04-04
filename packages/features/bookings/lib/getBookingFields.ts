@@ -343,18 +343,5 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = bookingFields.concat(missingSystemAfterFields);
 
-  bookingFields = bookingFields.map((field) => {
-    const foundEditable = field.editable;
-
-    if (!foundEditable) {
-      return field;
-    }
-    // Ensure that system fields editability, even if modified to something else in DB(accidentally), get's reset to what's in the code.
-    return {
-      ...field,
-      editable: foundEditable,
-    };
-  });
-
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(bookingFields);
 };
