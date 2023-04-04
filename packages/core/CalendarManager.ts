@@ -28,6 +28,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialPayload>) =>
         const calendar = getCalendar(credential);
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
+
       return credentials.length ? credentials : [];
     });
 
@@ -43,8 +44,8 @@ export const getConnectedCalendars = async (
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
-        const { calendar, integration, credential } = item;
-
+        const { integration, credential } = item;
+        const calendar = await item.calendar;
         // Don't leak credentials to the client
         const credentialId = credential.id;
         if (!calendar) {
@@ -136,7 +137,7 @@ export const getCachedResults = async (
   selectedCalendars: SelectedCalendar[]
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
-  const calendars = calendarCredentials.map((credential) => getCalendar(credential));
+  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
@@ -227,7 +228,7 @@ export const createEvent = async (
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
-  const calendar = getCalendar(credential);
+  const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
 
@@ -277,7 +278,7 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
-  const calendar = getCalendar(credential);
+  const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -323,12 +324,12 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = (
+export const deleteEvent = async (
   credential: CredentialPayload,
   uid: string,
   event: CalendarEvent
 ): Promise<unknown> => {
-  const calendar = getCalendar(credential);
+  const calendar = await getCalendar(credential);
   if (calendar) {
     return calendar.deleteEvent(uid, event);
   }
