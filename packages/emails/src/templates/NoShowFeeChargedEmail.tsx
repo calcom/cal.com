@@ -11,7 +11,7 @@ export const NoShowFeeChargedEmail = (
   const { calEvent } = props;
   const t = props.attendee.language.translate;
 
-  if (!calEvent.paymentInfo) throw new Error("No payment info");
+  if (!calEvent.paymentInfo?.amount) throw new Error("No payment info");
 
   return (
     <BaseScheduledEmail

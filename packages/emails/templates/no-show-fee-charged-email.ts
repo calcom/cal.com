@@ -3,7 +3,7 @@ import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class NoShowFeeChargedEmail extends AttendeeScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
-    if (!this.calEvent.paymentInfo) throw new Error("No payment into");
+    if (!this.calEvent.paymentInfo?.amount) throw new Error("No payment into");
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
