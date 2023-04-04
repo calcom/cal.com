@@ -4,6 +4,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
@@ -124,7 +125,14 @@ export default function Login({
   };
 
   return (
-    <>
+    <div
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+        } as CSSProperties
+      }>
       <AuthContainer
         title={t("login")}
         description={t("login")}
@@ -215,7 +223,7 @@ export default function Login({
         </FormProvider>
       </AuthContainer>
       <AddToHomescreen />
-    </>
+    </div>
   );
 }
 
