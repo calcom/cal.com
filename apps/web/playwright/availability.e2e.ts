@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
@@ -6,13 +5,6 @@ import dayjs from "@calcom/dayjs";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
-
-async function createAvailability(name: string, page: Page) {
-  await page.locator('[data-testid="new-schedule"]').click();
-  await page.locator('[id="name"]').fill(name);
-  page.locator('[type="submit"]').click();
-  await expect(page.locator("[data-testid=availablity-title]")).toHaveValue(name);
-}
 
 test.describe("Availablity tests", () => {
   test.beforeEach(async ({ page, users }) => {
