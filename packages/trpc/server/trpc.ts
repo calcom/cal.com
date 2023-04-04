@@ -1,10 +1,12 @@
 import superjson from "superjson";
+import type z from "zod";
+import type { ZodType } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
-import type { createContextInner } from "./createContext";
+import type { createContextInner, TRPCContext } from "./createContext";
 
 const t = initTRPC.context<typeof createContextInner>().create({
   transformer: superjson,
@@ -78,3 +80,8 @@ export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOp
     .use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
+
+export type TRPCEndpointOptions<I extends ZodType> = {
+  ctx: Omit<TRPCContext, "req" | "res"> & Partial<Pick<TRPCContext, "req" | "res">>;
+  input: z.infer<I>;
+};

@@ -155,3 +155,5 @@ export const createContext = async (
     res,
   };
 };
+
+export type TRPCContext = Awaited<ReturnType<typeof createContext>>;

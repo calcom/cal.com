@@ -17,7 +17,7 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { GetScheduleInput } from "../../../getScheduleSchema";
+import type { GetScheduleInput } from "./schemas/getScheduleSchema";
 
 export type Slot = {
   time: string;
