@@ -49,11 +49,11 @@ export const EventTypeDescription = ({
 
   return (
     <>
-      <div className={classNames(" text-subtle", className)}>
+      <div className={classNames("text-subtle", className)}>
         {eventType.description && (
           <div
             className={classNames(
-              " text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+              "text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
               shortenDescription ? "line-clamp-4" : ""
             )}
             dangerouslySetInnerHTML={{
