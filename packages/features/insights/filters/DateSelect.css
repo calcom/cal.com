@@ -27,9 +27,13 @@
   @apply -mx-4
 }
 .tremor-Card-root > p {
-  @apply text-base font-semibold text-black mb-2
+  @apply text-base font-semibold mb-2
 }
 
 .tremor-Legend-legendItem{
   @apply ml-2
+}
+
+.tremor-TableBody-root{
+  @apply divide-subtle
 }
