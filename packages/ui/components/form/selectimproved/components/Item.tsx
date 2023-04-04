@@ -1,5 +1,5 @@
+import { Check } from "lucide-react";
 import React from "react";
-import { Check } from "react-icons/fi";
 
 import { classNames as cn } from "@calcom/lib";
 
