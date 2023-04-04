@@ -51,8 +51,7 @@ export default function WorkflowDetailsPage(props: Props) {
           ...group.eventTypes
             .filter(
               (evType) =>
-                evType.metadata?.managedEventConfig === null &&
-                evType.schedulingType !== SchedulingType.MANAGED
+                !evType.metadata?.managedEventConfig && evType.schedulingType !== SchedulingType.MANAGED
             )
             .map((eventType) => ({
               value: String(eventType.id),
