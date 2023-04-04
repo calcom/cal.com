@@ -118,7 +118,7 @@ function WorkflowsPage() {
         ) : (
           <>
             {query?.data?.profiles &&
-            query?.data?.profiles.length &&
+            query?.data?.profiles.length > 1 &&
             allWorkflowsData?.workflows &&
             allWorkflowsData.workflows.length &&
             profileOptions ? (

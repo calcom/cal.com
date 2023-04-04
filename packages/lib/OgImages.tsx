@@ -28,6 +28,10 @@ export interface GenericImageProps {
 
 export interface ScreenshotImageProps {
   image: string;
+  /**
+   * Fallback image to use if the image prop fails to load.
+   */
+  fallbackImage: string;
 }
 
 interface WrapperProps {
@@ -242,17 +246,19 @@ export const Generic = ({ title, description }: GenericImageProps) => (
   </Wrapper>
 );
 
-export const ScreenShot = ({ image }: ScreenshotImageProps) => (
+export const ScreenShot = ({ image, fallbackImage }: ScreenshotImageProps) => (
   <Wrapper rotateBackground>
-    <div tw="h-full w-full flex flex-col justify-center items-center">
-      <img
-        src={image}
-        width="1024"
-        height="576"
-        alt="screenshot"
-        tw="rounded-2xl mt-[140px] object-cover"
-        style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}
-      />
+    <div tw="relative h-full w-full flex flex-col justify-center items-center">
+      <div tw="relative mt-[140px] flex rounded-2xl" style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}>
+        <img
+          src={fallbackImage}
+          tw="absolute inset-0 rounded-2xl"
+          width="1024"
+          height="576"
+          alt="screenshot"
+        />
+        <img src={image} width="1024" height="576" tw="rounded-2xl" alt="screenshot" />
+      </div>
     </div>
   </Wrapper>
 );

@@ -120,8 +120,8 @@ export default function MemberListItem(props: Props) {
                 </span>
                 {bookingLink && (
                   <>
-                    <span className="mx-2 block ">•</span>
-                    <span className="block text-sm ">{bookingLink}</span>
+                    <span className="text-default mx-2 block ">•</span>
+                    <span className="text-default block text-sm">{bookingLink}</span>
                   </>
                 )}
               </div>
