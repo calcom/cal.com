@@ -1,11 +1,8 @@
-import { ethers } from "ethers";
-import { configureChains, createClient } from "wagmi";
 import { z } from "zod";
 
 import { router, publicProcedure } from "@calcom/trpc/server/trpc";
 
 import abi from "../utils/abi.json";
-import { checkBalance, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const ethRouter = router({
   // Fetch contract `name` and `symbol` or error
@@ -29,6 +26,15 @@ const ethRouter = router({
     )
     .query(async ({ input }) => {
       const { address, chainId } = input;
+      const [ethersMod, wagmiMod, utilsEthereumMod] = await Promise.all([
+        import("ethers"),
+        import("wagmi"),
+        import("../utils/ethereum"),
+      ]);
+      const { ethers } = ethersMod;
+      const { configureChains, createClient } = wagmiMod;
+      const { getProviders, SUPPORTED_CHAINS } = utilsEthereumMod;
+
       const { provider } = configureChains(
         SUPPORTED_CHAINS.filter((chain) => chain.id === chainId),
         getProviders()
@@ -80,6 +86,7 @@ const ethRouter = router({
     )
     .query(async ({ input }) => {
       const { address, tokenAddress, chainId } = input;
+      const { checkBalance } = await import("../utils/ethereum");
       try {
         const hasBalance = await checkBalance(address, tokenAddress, chainId);
 
