@@ -10,17 +10,24 @@ import { FilterProvider } from "./provider";
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // useRouter to get initial values from query params
   const router = useRouter();
-  const { startTime, endTime, teamId, userId, eventTypeId, filter } = router.query;
+  const { startTime, endTime, teamId, userId, eventTypeId, filter, memberUserId } = router.query;
   const querySchema = z.object({
     startTime: z.string().optional(),
     endTime: z.string().optional(),
     teamId: z.coerce.number().optional(),
     userId: z.coerce.number().optional(),
+    memberUserId: z.coerce.number().optional(),
     eventTypeId: z.coerce.number().optional(),
     filter: z.enum(["event-type", "user"]).optional(),
   });
 
-  let startTimeParsed, endTimeParsed, teamIdParsed, userIdParsed, eventTypeIdParsed, filterParsed;
+  let startTimeParsed,
+    endTimeParsed,
+    teamIdParsed: number | undefined,
+    userIdParsed,
+    eventTypeIdParsed,
+    filterParsed,
+    memberUserIdParsed;
 
   const safe = querySchema.safeParse({
     startTime,
@@ -29,6 +36,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     userId,
     eventTypeId,
     filter,
+    memberUserId,
   });
 
   if (!safe.success) {
@@ -40,6 +48,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     userIdParsed = safe.data.userId;
     eventTypeIdParsed = safe.data.eventTypeId;
     filterParsed = safe.data.filter;
+    memberUserIdParsed = safe.data.memberUserId;
   }
 
   // TODO: Sync insight filters with URL parameters
@@ -48,6 +57,9 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
   const [selectedUserId, setSelectedUserId] = useState<FilterContextType["filter"]["selectedUserId"]>(
     userIdParsed || null
   );
+  const [selectedMemberUserId, setSelectedMemberUserId] = useState<
+    FilterContextType["filter"]["selectedMemberUserId"]
+  >(memberUserIdParsed || null);
   const [selectedTeamId, setSelectedTeamId] = useState<FilterContextType["filter"]["selectedTeamId"]>(
     teamIdParsed || null
   );
@@ -64,21 +76,24 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     endTimeParsed ? dayjs(endTimeParsed) : dayjs(),
     "t",
   ]);
+
   return (
     <FilterProvider
       value={{
         filter: {
           dateRange,
           selectedTimeView,
-          selectedUserId,
+          selectedMemberUserId,
           selectedTeamId,
+          selectedUserId,
           selectedTeamName,
           selectedEventTypeId,
           selectedFilter,
         },
         setSelectedFilter: (filter) => {
           setSelectedFilter(filter);
-          const userId = filter?.[0] === "user" ? selectedUserId : undefined;
+          const userId =
+            filter?.[0] === "user" ? selectedMemberUserId : selectedUserId ? selectedUserId : undefined;
           const eventTypeId = filter?.[0] === "event-type" ? selectedEventTypeId : undefined;
           router.push({
             query: {
@@ -100,21 +115,35 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           });
         },
         setSelectedTimeView: (selectedTimeView) => setSelectedTimeView(selectedTimeView),
-        setSelectedUserId: (selectedUserId) => {
-          setSelectedUserId(selectedUserId);
+        setSelectedMemberUserId: (selectedMemberUserId) => {
+          setSelectedMemberUserId(selectedMemberUserId);
           router.push({
             query: {
               ...router.query,
-              userId: selectedUserId,
+              memberUserId: selectedMemberUserId,
             },
           });
         },
         setSelectedTeamId: (selectedTeamId) => {
           setSelectedTeamId(selectedTeamId);
-          router.push({
+          setSelectedUserId(null);
+          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          router.replace({
             query: {
-              ...router.query,
+              ...rest,
               teamId: selectedTeamId,
+            },
+          });
+        },
+        setSelectedUserId: (selectedUserId) => {
+          setSelectedUserId(selectedUserId);
+          setSelectedTeamId(null);
+          setSelectedTeamName(null);
+          const { teamId, eventTypeId, memberUserId, ...rest } = router.query;
+          router.replace({
+            query: {
+              ...rest,
+              userId: selectedUserId,
             },
           });
         },
@@ -126,6 +155,30 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
               ...router.query,
               eventTypeId: selectedEventTypeId,
             },
+          });
+        },
+        clearFilters: () => {
+          setSelectedTeamName(null);
+          setSelectedEventTypeId(null);
+          setSelectedMemberUserId(null);
+          setSelectedFilter(null);
+          const { teamId, userId, ...rest } = router.query;
+          const query: { teamId?: number; userId?: number } = {};
+          const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
+          const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
+
+          if ((teamId && !userId) || (userId && teamId)) {
+            query.teamId = parsedTeamId;
+            setSelectedTeamId(parsedTeamId);
+            setSelectedUserId(null);
+          } else if (userId && !teamId) {
+            query.userId = parsedUserId;
+            setSelectedUserId(parsedUserId);
+            setSelectedTeamId(null);
+          }
+
+          router.push({
+            query,
           });
         },
       }}>

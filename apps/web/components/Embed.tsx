@@ -893,7 +893,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2 text-sm">Button Text</div>
                     {/* Default Values should come from preview iframe */}
@@ -917,7 +917,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 flex items-center justify-start",
-                      embedType === "floating-popup" ? "space-x-2 rtl:space-x-reverse" : "hidden"
+                      embedType === "floating-popup"
+                        ? "text-emphasis space-x-2 rtl:space-x-reverse"
+                        : "hidden"
                     )}>
                     <Switch
                       defaultChecked={true}
@@ -938,7 +940,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2">Position of Button</div>
                     <Select
@@ -957,7 +959,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       options={FloatingPopupPositionOptions}
                     />
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Button Color</div>
                     <div className="w-full">
                       <ColorPicker
@@ -978,7 +984,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     </div>
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Text Color</div>
                     <div className="w-full">
                       <ColorPicker

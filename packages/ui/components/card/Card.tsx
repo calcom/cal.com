@@ -65,6 +65,7 @@ export function Card({
   thumbnailUrl,
   learnMore,
 }: BaseCardProps) {
+  const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
@@ -142,7 +143,7 @@ export function Card({
       {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <Link
+            <LinkComponent
               href={learnMore.href}
               onClick={actionButton?.onClick}
               target="_blank"
@@ -150,7 +151,7 @@ export function Card({
               prefetch={!learnMore.href.startsWith("https://cal.com/blog")}
               className="text-default text-xs font-medium">
               {learnMore.text}
-            </Link>
+            </LinkComponent>
           )}
           <button
             className="text-default hover:text-emphasis p-0 text-xs font-normal"

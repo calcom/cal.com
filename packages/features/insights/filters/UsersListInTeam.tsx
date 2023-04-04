@@ -15,8 +15,8 @@ const mapUserToOption = (user: User): Option => ({
 
 export const UserListInTeam = () => {
   const { t } = useLocale();
-  const { filter, setSelectedUserId } = useFilterContext();
-  const { selectedFilter, selectedTeamId, selectedUserId } = filter;
+  const { filter, setSelectedMemberUserId } = useFilterContext();
+  const { selectedFilter, selectedTeamId, selectedMemberUserId } = filter;
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
     teamId: selectedTeamId,
   });
@@ -25,20 +25,21 @@ export const UserListInTeam = () => {
   if (!selectedTeamId) return null;
 
   const userListOptions = data?.map(mapUserToOption) ?? ([] as { value: number; label: string }[]);
-  const selectedUser = data?.find((item) => item.id === selectedUserId);
-  const userValue = selectedUser ? mapUserToOption(selectedUser) : null;
+  const selectedTeamUser = data?.find((item) => item.id === selectedMemberUserId);
+  const userValue = selectedTeamUser ? mapUserToOption(selectedTeamUser) : null;
 
   if (!isSuccess || data?.length === 0) return null;
 
   return (
     <Select<Option>
-      isSearchable={false}
-      className="mb-0 ml-2 h-[38px] w-40 min-w-[140px] capitalize md:min-w-[150px] md:max-w-[200px]"
+      isSearchable={true}
+      className="mb-0 h-[38px] w-40 min-w-[140px] capitalize md:min-w-[150px] md:max-w-[200px]"
       defaultValue={userValue}
+      value={userValue}
       options={userListOptions}
       onChange={(input) => {
         if (input) {
-          setSelectedUserId(input.value);
+          setSelectedMemberUserId(input.value);
         }
       }}
       placeholder={

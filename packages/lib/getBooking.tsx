@@ -14,7 +14,6 @@ type BookingSelect = {
     };
   };
   location: true;
-  smsReminderNumber: true;
 };
 
 // Backward Compatibility for booking created before we had managed booking questions
@@ -104,4 +103,5 @@ export const getBookingWithResponses = <
     responses: bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
   } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
 };
+
 export default getBooking;

@@ -265,6 +265,7 @@ export const createEvent = async (
     type: credential.type,
     success,
     uid,
+    iCalUID: creationResult?.iCalUID || undefined,
     createdEvent: creationResult,
     originalEvent: calEvent,
     calError,

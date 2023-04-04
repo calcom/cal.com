@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -74,6 +75,13 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     <LicenseRequired>
       <div
         className="bg-muted flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8"
+        style={
+          {
+            "--cal-brand": "#111827",
+            "--cal-brand-emphasis": "#101010",
+            "--cal-brand-text": "white",
+          } as CSSProperties
+        }
         aria-labelledby="modal-title"
         role="dialog"
         aria-modal="true">
