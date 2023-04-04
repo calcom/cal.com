@@ -1,4 +1,4 @@
-import type { Payment, Prisma, Booking } from "@prisma/client";
+import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -7,7 +7,7 @@ export interface IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
     bookerEmail: string,
-    paymentOption: string
+    paymentOption: PaymentOption
   ): Promise<Payment>;
   chargeCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,

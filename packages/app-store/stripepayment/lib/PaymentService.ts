@@ -1,4 +1,4 @@
-import type { Booking, Payment, Prisma } from "@prisma/client";
+import type { Booking, Payment, Prisma, PaymentOption } from "@prisma/client";
 import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
@@ -12,6 +12,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
+import type { StripeSetupIntentData, StripePaymentData } from "./server";
 
 const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
@@ -41,16 +42,11 @@ export class PaymentService implements IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
     bookerEmail: string,
-    paymentOption: string
+    paymentOption: PaymentOption
   ) {
     try {
-      const parsePaymentOption = paymentOptionEnum.safeParse(paymentOption);
-
-      if (parsePaymentOption.success) {
-        paymentOption = parsePaymentOption.data;
-      } else {
-        new Error(`Invalid payment option: ${paymentOption}`);
-      }
+      // Ensure that the payment service can support the passed payment option
+      paymentOptionEnum.parse(paymentOption);
 
       // Load stripe keys
       const stripeAppKeys = await prisma?.app.findFirst({
@@ -182,7 +178,9 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
 
-      const setupIntent = payment.data?.setupIntent;
+      const paymentObject = payment.data as unknown as StripeSetupIntentData;
+
+      const setupIntent = paymentObject.setupIntent;
 
       // Parse keys with zod
       const { client_id, payment_fee_fixed, payment_fee_percentage } = stripeAppKeysSchema.parse(
@@ -191,12 +189,24 @@ export class PaymentService implements IAbstractPaymentService {
 
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
+      // Ensure that the stripe customer & payment method still exists
+      const customer = await this.stripe.customers.retrieve(setupIntent.customer as string);
+      const paymentMethod = await this.stripe.paymentMethods.retrieve(setupIntent.payment_method as string);
+
+      if (!customer) {
+        throw new Error(`Stripe customer does not exist for setupIntent ${setupIntent.id}`);
+      }
+
+      if (!paymentMethod) {
+        throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
+      }
+
       const params = {
         amount: payment.amount,
         currency: payment.currency,
         application_fee_amount: paymentFee,
-        customer: setupIntent.customer,
-        payment_method: setupIntent.payment_method,
+        customer: setupIntent.customer as string,
+        payment_method: setupIntent.payment_method as string,
         off_session: true,
         confirm: true,
       };
@@ -214,9 +224,9 @@ export class PaymentService implements IAbstractPaymentService {
         data: {
           success: true,
           data: {
-            ...payment.data,
+            ...paymentObject,
             paymentIntent,
-          },
+          } as unknown as Prisma.InputJsonValue,
         },
       });
 
