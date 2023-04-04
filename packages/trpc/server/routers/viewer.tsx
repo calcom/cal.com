@@ -23,6 +23,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
@@ -46,7 +47,7 @@ import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils"
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
+import { authedProcedure, getLocale, mergeRouters, publicProcedure, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
@@ -66,7 +67,8 @@ const publicViewerRouter = router({
     return ctx.session;
   }),
   i18n: publicProcedure.query(async ({ ctx }) => {
-    const { locale, i18n } = ctx;
+    const { locale, i18n } = await getLocale(ctx);
+
     return {
       i18n,
       locale,
@@ -1007,6 +1009,7 @@ const loggedInViewerRouter = router({
                   ...bookingMinimalSelect,
                   recurringEventId: true,
                   userId: true,
+                  responses: true,
                   user: {
                     select: {
                       id: true,
@@ -1032,6 +1035,9 @@ const loggedInViewerRouter = router({
                     select: {
                       recurringEvent: true,
                       title: true,
+                      bookingFields: true,
+                      seatsPerTimeSlot: true,
+                      seatsShowAttendees: true,
                     },
                   },
                   uid: true,
@@ -1090,12 +1096,15 @@ const loggedInViewerRouter = router({
 
                 const attendeesList = await Promise.all(attendeesListPromises);
                 const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-
                 await sendCancelledEmails({
                   type: booking?.eventType?.title as string,
                   title: booking.title,
                   description: booking.description,
                   customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  ...getCalEventResponses({
+                    bookingFields: booking.eventType?.bookingFields ?? null,
+                    booking,
+                  }),
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {
@@ -1110,6 +1119,8 @@ const loggedInViewerRouter = router({
                   location: booking.location,
                   destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
                   cancellationReason: "Payment method removed by organizer",
+                  seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                  seatsShowAttendees: booking.eventType?.seatsShowAttendees,
                 });
               }
             });
