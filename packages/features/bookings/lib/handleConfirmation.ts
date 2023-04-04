@@ -41,13 +41,13 @@ export async function handleConfirmation(args: {
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
 
-  if (results.length > 0 && results.every((res) => !res.success)) {
+  if (results.length > 0 && results.some((res) => !res.success)) {
     const error = {
-      errorCode: "BookingCreatingMeetingFailed",
-      message: "Booking failed",
+      errorCode: "BookingCreationIntegrationFailure",
+      message: `Booking ${user.username} successful but failed to notify some video/calendar integrations`,
     };
 
-    log.error(`Booking ${user.username} failed`, error, results);
+    log.error(error, results);
   } else {
     const metadata: AdditionalInformation = {};
 

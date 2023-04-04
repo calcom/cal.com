@@ -1731,11 +1731,11 @@ async function handler(
     referencesToCreate = updateManager.referencesToCreate;
     if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {
-        errorCode: "BookingReschedulingMeetingFailed",
-        message: "Booking Rescheduling failed",
+        errorCode: "BookingReschedulingIntegrationFailure",
+        message: `Booking reschedule ${organizerUser.username} successful but failed to notify some video/calendar integrations`,
       };
 
-      log.error(`Booking ${organizerUser.name} failed`, error, results);
+      log.error(error, results);
     } else {
       const metadata: AdditionalInformation = {};
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
@@ -1782,13 +1782,13 @@ async function handler(
 
     videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
-    if (results.length > 0 && results.every((res) => !res.success)) {
+    if (results.length > 0 && results.some((res) => !res.success)) {
       const error = {
-        errorCode: "BookingCreatingMeetingFailed",
-        message: "Booking failed",
+        errorCode: "BookingCreationIntegrationFailure",
+        message: `Booking ${organizerUser.username} successful but failed to notify some video/calendar integrations`,
       };
 
-      log.error(`Booking ${organizerUser.username} failed`, error, results);
+      log.error(error, results);
     } else {
       const metadata: AdditionalInformation = {};
 
