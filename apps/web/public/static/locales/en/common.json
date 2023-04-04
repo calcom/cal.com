@@ -1689,6 +1689,7 @@
   "events_rescheduled": "Events Rescheduled",
   "from_last_period": "from last period",
   "from_to_date_period": "From: {{startDate}} To: {{endDate}}",
+  "redirect_url_warning": "Adding a redirect will disable the success page. Make sure to mention \"Booking Confirmed\" on your custom success page.",
   "analytics_for_organisation": "Insights for {{organisationName}}",
   "subtitle_analytics": "Learn more about your team's activity",
   "event_trends": "Event Trends",

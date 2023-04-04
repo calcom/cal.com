@@ -10,6 +10,7 @@ import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler"
 import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -67,6 +68,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           currency: true,
           length: true,
           seatsPerTimeSlot: true,
+          bookingFields: true,
           seatsShowAttendees: true,
           hosts: {
             select: {
@@ -91,6 +93,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       workflowReminders: true,
       scheduledJobs: true,
       seatsReferences: true,
+      responses: true,
     },
   });
 }
@@ -173,6 +176,10 @@ async function handler(req: CustomRequest) {
     type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    ...getCalEventResponses({
+      bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      booking: bookingToDelete,
+    }),
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
@@ -509,6 +516,10 @@ async function handler(req: CustomRequest) {
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
       customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+      ...getCalEventResponses({
+        booking: bookingToDelete,
+        bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
+      }),
       startTime: bookingToDelete.startTime.toISOString(),
       endTime: bookingToDelete.endTime.toISOString(),
       organizer: {

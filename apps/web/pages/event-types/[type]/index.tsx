@@ -13,11 +13,9 @@ import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -366,9 +364,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
-  if (isLoading || !data) return null;
-  return <EventTypePage {...data} />;
+  const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+
+  return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -394,26 +392,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  try {
-    const res = await getEventTypeById({ eventTypeId: typeParam, userId: session.user.id, prisma });
-
-    return {
-      props: {
-        // session,
-        type: typeParam,
-        trpcState: ssr.dehydrate(),
-        initialData: {
-          eventType: res.eventType,
-          locationOptions: res.locationOptions,
-          team: res.team,
-          teamMembers: res.teamMembers,
-          currentUserMembership: res.currentUserMembership,
-        },
-      },
-    };
-  } catch (err) {
-    throw err;
-  }
+  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
+  return {
+    props: {
+      type: typeParam,
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
 
 export default EventTypePageWrapper;
