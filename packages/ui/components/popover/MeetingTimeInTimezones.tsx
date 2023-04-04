@@ -69,7 +69,7 @@ const MeetingTimeInTimezones = ({
         <Popover.Content
           onClick={preventBubbling}
           side="top"
-          className="popover-content slideInBottom border-5 bg-brand-default text-inverted rounded-md border-subtle p-3 text-sm shadow-sm">
+          className="popover-content slideInBottom border-5 bg-brand-default text-inverted border-subtle rounded-md p-3 text-sm shadow-sm">
           {times.map((time) => (
             <span className="mt-2 block first:mt-0" key={time.timezone}>
               <span className="inline-flex align-baseline">

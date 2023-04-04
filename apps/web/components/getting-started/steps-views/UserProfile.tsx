@@ -117,7 +117,7 @@ const UserProfile = (props: IUserProfileProps) => {
           name="avatar"
           id="avatar"
           placeholder="URL"
-          className="border-default mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none focus:ring-empthasis"
+          className="border-default focus:ring-empthasis mt-1 block w-full rounded-sm border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
           defaultValue={imageSrc}
         />
         <div className="flex items-center px-4">

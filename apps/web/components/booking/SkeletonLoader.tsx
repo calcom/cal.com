@@ -4,7 +4,7 @@ import { SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-subtle rounded-md border border-subtle bg-default sm:overflow-hidden">
+    <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y rounded-md border sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />

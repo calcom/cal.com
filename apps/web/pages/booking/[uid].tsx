@@ -59,10 +59,6 @@ import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
 
-function redirectToExternalUrl(url: string) {
-  window.parent.location.href = url;
-}
-
 const useBrandColors = ({
   brandColor,
   darkBrandColor,
@@ -76,110 +72,6 @@ const useBrandColors = ({
   });
   useCalcomTheme(brandTheme);
 };
-
-/**
- * Redirects to external URL with query params from current URL.
- * Query Params and Hash Fragment if present in external URL are kept intact.
- */
-function RedirectionToast({ url }: { url: string }) {
-  const [timeRemaining, setTimeRemaining] = useState(10);
-  const [isToastVisible, setIsToastVisible] = useState(true);
-
-  const { t } = useLocale();
-  const timerRef = useRef<number | null>(null);
-  const router = useRouter();
-  const { cancel: isCancellationMode } = querySchema.parse(router.query);
-  const urlWithSuccessParamsRef = useRef<string | null>();
-  if (isCancellationMode && timerRef.current) {
-    setIsToastVisible(false);
-  }
-
-  useEffect(() => {
-    if (!isToastVisible && timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-  }, [isToastVisible]);
-
-  useEffect(() => {
-    const parsedExternalUrl = new URL(url);
-
-    const parsedSuccessUrl = new URL(document.URL);
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-    for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
-      parsedSuccessUrl.searchParams.set(name, value);
-    }
-
-    const urlWithSuccessParams =
-      parsedExternalUrl.origin +
-      parsedExternalUrl.pathname +
-      "?" +
-      parsedSuccessUrl.searchParams.toString() +
-      parsedExternalUrl.hash;
-    urlWithSuccessParamsRef.current = urlWithSuccessParams;
-
-    timerRef.current = window.setInterval(() => {
-      if (timeRemaining > 0) {
-        setTimeRemaining((timeRemaining) => {
-          return timeRemaining - 1;
-        });
-      } else {
-        redirectToExternalUrl(urlWithSuccessParams);
-        window.clearInterval(timerRef.current as number);
-      }
-    }, 1000);
-    return () => {
-      window.clearInterval(timerRef.current as number);
-    };
-  }, [timeRemaining, url]);
-
-  if (!isToastVisible) {
-    return null;
-  }
-
-  return (
-    <>
-      <div className="relative z-[60] pb-2 sm:pb-5">
-        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
-          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
-            <div className="flex flex-wrap items-center justify-between">
-              <div className="flex w-0 flex-1 items-center">
-                <p className="text-inverted truncate font-medium sm:mx-3">
-                  <span className="md:hidden">Redirecting to {url} ...</span>
-                  <span className="hidden md:inline">
-                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
-                  </span>
-                </p>
-              </div>
-              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
-                <button
-                  onClick={() => {
-                    if (urlWithSuccessParamsRef.current) {
-                      redirectToExternalUrl(urlWithSuccessParamsRef.current);
-                    }
-                  }}
-                  className="bg-default flex w-full items-center justify-center rounded-sm border border-transparent px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
-                  {t("continue")}
-                </button>
-              </div>
-              <div className="flex-shrink-0 border-2 sm:order-3 sm:ml-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsToastVisible(false);
-                  }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <FiX className="text-inverted h-6 w-6" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 

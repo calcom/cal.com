@@ -84,8 +84,8 @@ const CalendarsView = () => {
         success={({ data }) => {
           return data.connectedCalendars.length ? (
             <div>
-              <div className="bg-muted mt-4 flex space-x-4 rounded-md border-subtle p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
-                <div className=" bg-default flex h-9 w-9 items-center justify-center rounded-md border-2 border-subtle p-[6px]">
+              <div className="bg-muted border-subtle mt-4 flex space-x-4 rounded-md p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+                <div className=" bg-default border-subtle flex h-9 w-9 items-center justify-center rounded-md border-2 p-[6px]">
                   <FiCalendar className="h-6 w-6" />
                 </div>
 
@@ -171,7 +171,7 @@ const CalendarsView = () => {
                             />
                           </div>
                         </div>
-                        <div className="w-full border-t border-subtle">
+                        <div className="border-subtle w-full border-t">
                           <p className="text-subtle px-2 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
