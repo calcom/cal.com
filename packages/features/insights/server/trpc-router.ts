@@ -93,11 +93,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const whereConditional: Prisma.BookingWhereInput = {
-        eventType: {
-          teamId: teamId,
-        },
-      };
+      let whereConditional: Prisma.BookingWhereInput = {};
 
       if (eventTypeId) {
         whereConditional["eventTypeId"] = eventTypeId;
@@ -109,6 +105,32 @@ export const insightsRouter = router({
           teamId: null,
         };
         whereConditional["userId"] = userId;
+      }
+
+      if (teamId) {
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
+            teamId: teamId,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+        whereConditional = {
+          OR: [
+            {
+              eventType: {
+                teamId: teamId,
+              },
+            },
+            {
+              userId: {
+                in: userIdsFromTeam,
+              },
+            },
+          ],
+        };
       }
 
       // Migrate to use prisma views
@@ -225,10 +247,29 @@ export const insightsRouter = router({
       let whereConditional: Prisma.BookingWhereInput = {};
 
       if (teamId) {
-        whereConditional = {
-          eventType: {
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
             teamId,
           },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+
+        whereConditional = {
+          OR: [
+            {
+              eventType: {
+                teamId,
+              },
+            },
+            {
+              userId: {
+                in: userIdsFromTeams,
+              },
+            },
+          ],
         };
       }
 
@@ -339,15 +380,37 @@ export const insightsRouter = router({
         return [];
       }
 
-      const bookingWhere: Prisma.BookingWhereInput = {
+      let bookingWhere: Prisma.BookingWhereInput = {
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
         },
       };
       if (teamId) {
-        bookingWhere.eventType = {
-          teamId,
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
+            teamId,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+
+        bookingWhere = {
+          ...bookingWhere,
+          OR: [
+            {
+              eventType: {
+                teamId,
+              },
+            },
+            {
+              userId: {
+                in: userIdsFromTeams,
+              },
+            },
+          ],
         };
       }
 
@@ -380,24 +443,76 @@ export const insightsRouter = router({
       const eventTypeIds = bookingsFromSelected
         .filter((booking) => typeof booking.eventTypeId === "number")
         .map((booking) => booking.eventTypeId);
+
+      const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {
+        id: {
+          in: eventTypeIds as number[],
+        },
+      };
+
       const eventTypesFrom = await ctx.prisma.eventType.findMany({
-        where: {
-          teamId: userId !== null ? null : teamId ?? null,
-          id: {
-            in: eventTypeIds as number[],
+        select: {
+          id: true,
+          title: true,
+          teamId: true,
+          userId: true,
+          slug: true,
+          users: {
+            select: {
+              username: true,
+            },
+          },
+          team: {
+            select: {
+              slug: true,
+            },
           },
         },
+        where: eventTypeWhereConditional,
       });
 
-      const eventTypeHashMap = new Map();
+      const eventTypeHashMap: Map<
+        number,
+        Prisma.EventTypeGetPayload<{
+          select: {
+            id: true;
+            title: true;
+            teamId: true;
+            userId: true;
+            slug: true;
+            users: {
+              select: {
+                username: true;
+              };
+            };
+            team: {
+              select: {
+                slug: true;
+              };
+            };
+          };
+        }>
+      > = new Map();
       eventTypesFrom.forEach((eventType) => {
-        eventTypeHashMap.set(eventType.id, eventType.title);
+        eventTypeHashMap.set(eventType.id, eventType);
       });
 
       const result = bookingsFromSelected.map((booking) => {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId ?? 0);
+        if (!eventTypeSelected) {
+          return {};
+        }
+
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.slug}/${eventTypeSelected?.users[0]?.username}`;
+        }
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
+        }
         return {
           eventTypeId: booking.eventTypeId,
-          eventTypeName: eventTypeHashMap.get(booking.eventTypeId),
+          eventTypeName: eventSlug,
           count: booking._count.id,
         };
       });
@@ -428,10 +543,7 @@ export const insightsRouter = router({
       const startDate = dayjs(startDateString);
       const endDate = dayjs(endDateString);
 
-      const whereConditional: Prisma.BookingWhereInput = {
-        eventType: {
-          teamId: teamId,
-        },
+      let whereConditional: Prisma.BookingWhereInput = {
         createdAt: {
           gte: dayjs(startDate).startOf("day").toDate(),
           lte: dayjs(endDate).endOf("day").toDate(),
@@ -442,8 +554,41 @@ export const insightsRouter = router({
         whereConditional["userId"] = userId;
       }
 
+      if (teamId) {
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
+            teamId,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+
+        whereConditional = {
+          ...whereConditional,
+          OR: [
+            {
+              eventType: {
+                teamId,
+              },
+            },
+            {
+              userId: {
+                in: userIdsFromTeams,
+              },
+            },
+          ],
+        };
+      }
+
       if (memberUserId) {
-        whereConditional["userId"] = memberUserId;
+        whereConditional = {
+          userId: memberUserId,
+          eventType: {
+            teamId,
+          },
+        };
       }
 
       const timeView = EventsInsights.getTimeView("week", startDate, endDate);
@@ -514,15 +659,42 @@ export const insightsRouter = router({
         eventTypeWhere["id"] = eventTypeId;
       }
 
+      const bookingWhere: Prisma.BookingWhereInput = {
+        eventType: eventTypeWhere,
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+      };
+
+      if (teamId) {
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
+            teamId,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+        delete bookingWhere.eventType;
+        bookingWhere["OR"] = [
+          {
+            eventType: {
+              teamId,
+            },
+          },
+          {
+            userId: {
+              in: userIdsFromTeams,
+            },
+          },
+        ];
+      }
+
       const bookingsFromTeam = await ctx.prisma.booking.groupBy({
         by: ["userId"],
-        where: {
-          eventType: eventTypeWhere,
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-        },
+        where: bookingWhere,
         _count: {
           id: true,
         },
@@ -533,9 +705,13 @@ export const insightsRouter = router({
         },
         take: 10,
       });
+
       const userIds = bookingsFromTeam
         .filter((booking) => typeof booking.userId === "number")
         .map((booking) => booking.userId);
+      if (userIds.length === 0) {
+        return [];
+      }
       const usersFromTeam = await ctx.prisma.user.findMany({
         where: {
           id: {
@@ -553,10 +729,11 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user: userHashMap.get(booking.userId),
-          emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
           count: booking._count.id,
         };
       });
+
       return result;
     }),
   membersWithLeastBookings: userBelongsToTeamProcedure
@@ -570,10 +747,10 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate, eventTypeId } = input;
+
       if (!teamId) {
         return [];
       }
-
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
         teamId: teamId,
       };
@@ -588,6 +765,9 @@ export const insightsRouter = router({
           createdAt: {
             gte: dayjs(startDate).startOf("day").toDate(),
             lte: dayjs(endDate).endOf("day").toDate(),
+          },
+          userId: {
+            not: null,
           },
         },
         _count: {
@@ -605,6 +785,10 @@ export const insightsRouter = router({
       const userIds = bookingsFromTeam
         .filter((booking) => typeof booking.userId === "number")
         .map((booking) => booking.userId);
+
+      if (userIds.length === 0) {
+        return [];
+      }
 
       const usersWithNoBookings = await ctx.prisma.user.findMany({
         select: UserSelect,
@@ -645,7 +829,7 @@ export const insightsRouter = router({
         return {
           userId: booking.userId,
           user,
-          emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
+          emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
           count: booking._count.id,
           Username: user.name || "No Username found",
         };
@@ -775,14 +959,21 @@ export const insightsRouter = router({
       const membershipWhereConditional: Prisma.MembershipWhereInput = {};
       if (teamId) {
         membershipWhereConditional["teamId"] = teamId;
+        membershipWhereConditional["userId"] = user.id;
       }
       if (userId) {
         membershipWhereConditional["userId"] = userId;
       }
 
+      // I'm not using unique here since when userId comes from input we should look for every
+      // event type that user owns
       const membership = await prisma.membership.findFirst({
         where: membershipWhereConditional,
       });
+
+      if (!membership) {
+        throw new Error("User is not part of a team");
+      }
 
       const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
       if (teamId) {

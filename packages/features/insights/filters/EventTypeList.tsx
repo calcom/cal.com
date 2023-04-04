@@ -47,6 +47,7 @@ export const EventTypeList = () => {
         }
       }}
       defaultValue={eventTypeValue}
+      value={eventTypeValue}
       className="w-52 min-w-[180px]"
       placeholder={
         <div className="flex flex-row">

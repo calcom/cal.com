@@ -29,7 +29,7 @@ export const FilterType = () => {
 
   const filterValue = selectedFilter
     ? filterOptions.find((option) => option.value === selectedFilter[0])
-    : undefined;
+    : null;
 
   return (
     <Select<Option>

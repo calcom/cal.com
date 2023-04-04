@@ -23,7 +23,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
 
   let startTimeParsed,
     endTimeParsed,
-    teamIdParsed,
+    teamIdParsed: number | undefined,
     userIdParsed,
     eventTypeIdParsed,
     filterParsed,
@@ -156,6 +156,18 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
               eventTypeId: selectedEventTypeId,
             },
           });
+        },
+        clearFilters: () => {
+          setSelectedUserId(null);
+          setSelectedTeamName(null);
+          setSelectedEventTypeId(null);
+          setSelectedFilter(null);
+          if (!!teamIdParsed) {
+            setSelectedTeamId(teamIdParsed);
+            router.replace({
+              query: {},
+            });
+          }
         },
       }}>
       {children}

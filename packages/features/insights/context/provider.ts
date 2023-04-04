@@ -21,6 +21,7 @@ export type FilterContextType = {
   setSelectedMemberUserId: (userId: number | null) => void;
   setSelectedEventTypeId: (eventTypeId: number | null) => void;
   setSelectedTimeView: (timeView: "year" | "week" | "month") => void;
+  clearFilters: () => void;
 };
 
 export const FilterContext = React.createContext<FilterContextType | null>(null);

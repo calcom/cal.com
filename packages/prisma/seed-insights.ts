@@ -12,7 +12,9 @@ const shuffle = (
     select: {
       id: true;
       userId: true;
+      title: true;
       length: true;
+      description: true;
     };
   }>[],
   usersIdsToPick?: number[]
@@ -26,6 +28,8 @@ const shuffle = (
 
   const endTime = dayjs(startTime).add(Math.floor(Math.random() * randomEvent.length), "minute");
 
+  booking.title = randomEvent.title;
+  booking.description = randomEvent.description;
   booking.startTime = startTime.toISOString();
   booking.endTime = endTime.toISOString();
   booking.createdAt = startTime.subtract(1, "day").toISOString();
@@ -50,6 +54,11 @@ const shuffle = (
     booking.userId = Math.random() > 0.5 ? usersIdsToPick[0] : usersIdsToPick[1];
   } else {
     booking.userId = randomEvent.userId;
+  }
+
+  if (booking.userId === undefined || booking.userId === null) {
+    console.log({ randomEvent, usersIdsToPick });
+    console.log("This should not happen");
   }
 
   return booking;
@@ -213,7 +222,9 @@ async function main() {
       select: {
         id: true,
         userId: true,
+        title: true,
         length: true,
+        description: true,
       },
       where: {
         userId: insightsAdmin.id,
@@ -225,6 +236,8 @@ async function main() {
         id: true,
         userId: true,
         length: true,
+        title: true,
+        description: true,
       },
       where: {
         userId: insightsUser.id,
@@ -308,15 +321,15 @@ async function main() {
 
   const baseBooking: Prisma.BookingCreateManyInput = {
     uid: "demoUID",
-    title: "Team Meeting",
-    description: "Team Meeting",
+    title: "Team Meeting should be changed in shuffle",
+    description: "Team Meeting Should be changed in shuffle",
     startTime: dayjs().toISOString(),
     endTime: dayjs().toISOString(),
     userId: insightsUser.id,
     eventTypeId: teamEvents[0].id,
   };
 
-  // Create past bookings
+  // Create past bookings -2y, -1y, -0y
   await prisma.booking.createMany({
     data: [
       ...new Array(100)
@@ -332,12 +345,28 @@ async function main() {
 
   await prisma.booking.createMany({
     data: [
-      ...new Array(100).fill(0).map(() => shuffle({ ...baseBooking }, dayjs().get("y") - 1, teamEvents)),
+      ...new Array(100)
+        .fill(0)
+        .map(() =>
+          shuffle({ ...baseBooking }, dayjs().get("y") - 1, teamEvents, [
+            insightsAdmin?.id ?? 0,
+            insightsUser?.id ?? 0,
+          ])
+        ),
     ],
   });
 
   await prisma.booking.createMany({
-    data: [...new Array(100).fill(0).map(() => shuffle({ ...baseBooking }, dayjs().get("y"), teamEvents))],
+    data: [
+      ...new Array(100)
+        .fill(0)
+        .map(() =>
+          shuffle({ ...baseBooking }, dayjs().get("y"), teamEvents, [
+            insightsAdmin?.id ?? 0,
+            insightsUser?.id ?? 0,
+          ])
+        ),
+    ],
   });
 }
 main()

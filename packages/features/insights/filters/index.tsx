@@ -10,7 +10,7 @@ import { UserListInTeam } from "./UsersListInTeam";
 
 const ClearFilters = () => {
   const { t } = useLocale();
-  const { filter, setSelectedMemberUserId, setSelectedFilter, setSelectedEventTypeId } = useFilterContext();
+  const { filter, clearFilters } = useFilterContext();
   const { selectedFilter } = filter;
 
   if (!selectedFilter || selectedFilter?.length < 1) return null;
@@ -24,9 +24,7 @@ const ClearFilters = () => {
         rel="noreferrer"
         className="h-[38px]"
         onClick={() => {
-          setSelectedFilter(null);
-          setSelectedMemberUserId(null);
-          setSelectedEventTypeId(null);
+          clearFilters();
         }}>
         {t("clear_filters")}
       </Button>
