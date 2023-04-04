@@ -158,16 +158,19 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
           });
         },
         clearFilters: () => {
-          setSelectedUserId(null);
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
           setSelectedFilter(null);
-          if (!!teamIdParsed) {
-            setSelectedTeamId(teamIdParsed);
-            router.replace({
-              query: {},
-            });
+          const { teamId, userId, ...rest } = router.query;
+          const query: { teamId?: string | string[]; userId?: string | string[] } = {};
+          if (teamId) {
+            query.teamId = teamId;
+          } else if (userId) {
+            query.userId = userId;
           }
+          router.replace({
+            query,
+          });
         },
       }}>
       {children}

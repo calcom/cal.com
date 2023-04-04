@@ -97,7 +97,8 @@ export const insightsRouter = router({
 
       if (eventTypeId) {
         whereConditional["eventTypeId"] = eventTypeId;
-      } else if (memberUserId) {
+      }
+      if (memberUserId) {
         whereConditional["userId"] = memberUserId;
       }
       if (userId) {
@@ -118,6 +119,7 @@ export const insightsRouter = router({
         });
         const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
         whereConditional = {
+          ...whereConditional,
           OR: [
             {
               eventType: {
@@ -747,10 +749,10 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { teamId, startDate, endDate, eventTypeId } = input;
-
       if (!teamId) {
         return [];
       }
+      const user = ctx.user;
       const eventTypeWhere: Prisma.EventTypeWhereInput = {
         teamId: teamId,
       };
@@ -758,18 +760,42 @@ export const insightsRouter = router({
         eventTypeWhere["id"] = eventTypeId;
       }
 
+      const bookingWhere: Prisma.BookingWhereInput = {
+        eventType: eventTypeWhere,
+        createdAt: {
+          gte: dayjs(startDate).startOf("day").toDate(),
+          lte: dayjs(endDate).endOf("day").toDate(),
+        },
+      };
+
+      if (teamId) {
+        const usersFromTeam = await ctx.prisma.membership.findMany({
+          where: {
+            teamId,
+          },
+          select: {
+            userId: true,
+          },
+        });
+        const userIdsFromTeams = usersFromTeam.map((u) => u.userId);
+        delete bookingWhere.eventType;
+        bookingWhere["OR"] = [
+          {
+            eventType: {
+              teamId,
+            },
+          },
+          {
+            userId: {
+              in: userIdsFromTeams,
+            },
+          },
+        ];
+      }
+
       const bookingsFromTeam = await ctx.prisma.booking.groupBy({
         by: ["userId"],
-        where: {
-          eventType: eventTypeWhere,
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-          userId: {
-            not: null,
-          },
-        },
+        where: bookingWhere,
         _count: {
           id: true,
         },
@@ -781,57 +807,31 @@ export const insightsRouter = router({
         take: 10,
       });
 
-      // Users are obtained from bookings so if a user has 0 they won't be in the list
       const userIds = bookingsFromTeam
         .filter((booking) => typeof booking.userId === "number")
         .map((booking) => booking.userId);
-
       if (userIds.length === 0) {
         return [];
       }
-
-      const usersWithNoBookings = await ctx.prisma.user.findMany({
-        select: UserSelect,
+      const usersFromTeam = await ctx.prisma.user.findMany({
         where: {
           id: {
-            notIn: userIds as number[],
-          },
-          teams: {
-            some: {
-              teamId: teamId,
-            },
+            in: userIds as number[],
           },
         },
       });
 
-      let usersFromTeam: Prisma.UserGetPayload<{
-        select: typeof UserSelect;
-      }>[] = [];
-      if (usersWithNoBookings.length < 10) {
-        usersFromTeam = await ctx.prisma.user.findMany({
-          where: {
-            id: {
-              in: userIds as number[],
-            },
-          },
-          select: UserSelect,
-          take: 10 - usersWithNoBookings.length,
-        });
-      }
-
       const userHashMap = new Map();
-      [...usersWithNoBookings, ...usersFromTeam].forEach((user) => {
+      usersFromTeam.forEach((user) => {
         userHashMap.set(user.id, user);
       });
 
       const result = bookingsFromTeam.map((booking) => {
-        const user = userHashMap.get(booking.userId);
         return {
           userId: booking.userId,
-          user,
+          user: userHashMap.get(booking.userId),
           emailMd5: crypto.createHash("md5").update(user?.email).digest("hex"),
           count: booking._count.id,
-          Username: user.name || "No Username found",
         };
       });
 
