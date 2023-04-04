@@ -13,6 +13,7 @@ import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { FULL_NAME_LENGTH_MAX_LIMIT, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
