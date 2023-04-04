@@ -384,7 +384,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
     }
   }, [editor, isLink]);
-  return props.editable ? (
+
+  if (!props.editable) return <></>;
+  return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
         {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
@@ -477,7 +479,5 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         )}
       </>
     </div>
-  ) : (
-    <></>
   );
 }
