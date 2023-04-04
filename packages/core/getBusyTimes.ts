@@ -62,7 +62,7 @@ export async function getBusyTimes(params: {
    *  logic within getSchedule.test.ts:addBookings
    */
   performance.mark("prismaBookingGetStart");
-  console.log({ rescheduleBookingId });
+
   const sharedQuery = {
     startTime: { gte: new Date(startTime) },
     endTime: { lte: new Date(endTime) },
