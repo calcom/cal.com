@@ -1,6 +1,6 @@
+import { Webhook as TbWebhook } from "lucide-react";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
-import { TbWebhook } from "react-icons/tb";
 
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";

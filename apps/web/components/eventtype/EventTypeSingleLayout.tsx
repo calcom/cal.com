@@ -1,9 +1,9 @@
+import { Webhook as TbWebhook } from "lucide-react";
 import type { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { TbWebhook } from "react-icons/tb";
 
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
