@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
@@ -16,7 +17,6 @@ import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
@@ -68,6 +68,11 @@ import {
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
 import { TeamInviteBadge } from "./TeamInviteBadge";
+
+// need to import without ssr to prevent hydration errors
+const Tips = dynamic(() => import("@calcom/features/tips").then((mod) => mod.Tips), {
+  ssr: false,
+});
 
 /* TODO: Migate this */
 
