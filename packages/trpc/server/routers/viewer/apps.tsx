@@ -3,10 +3,6 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata, getAppFromSlug } from "@calcom/app-store/utils";
-import { sendDisabledAppEmail } from "@calcom/emails";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
-import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -34,6 +30,7 @@ export const appsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const category = input.category === "conferencing" ? "video" : input.category;
+      const { getLocalAppMetadata } = await import("@calcom/app-store/utils");
       const localApps = getLocalAppMetadata().filter(
         (app) => app.categories?.some((appCategory) => appCategory === category) || app.category === category
       );
@@ -114,6 +111,7 @@ export const appsRouter = router({
       const { prisma } = ctx;
 
       // Get app name from metadata
+      const { getLocalAppMetadata } = await import("@calcom/app-store/utils");
       const localApps = getLocalAppMetadata();
       const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
 
@@ -140,6 +138,8 @@ export const appsRouter = router({
 
       // If disabling an app then we need to alert users basesd on the app type
       if (input.enabled) {
+        const { sendDisabledAppEmail } = await import("@calcom/emails");
+        const { getTranslation } = await import("@calcom/lib/server/i18n");
         if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
@@ -243,10 +243,11 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { deriveAppDictKeyFromType } = await import("@calcom/lib/deriveAppDictKeyFromType");
       const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
-
+      const { getLocalAppMetadata } = await import("@calcom/app-store/utils");
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
       const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
@@ -333,7 +334,7 @@ export const appsRouter = router({
             userId: ctx.user.id,
           },
         });
-
+        const { getAppFromSlug } = await import("@calcom/app-store/utils");
         const app = await getAppFromSlug(dependency);
 
         dependencyData.push({ name: app?.name || dependency, slug: dependency, installed: !!appInstalled });
