@@ -260,7 +260,6 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 }
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
-  console.log("🚀 ~ file: webhook.ts:263 ~ handleSetupSuccess ~ event:", event);
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -318,6 +317,7 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
  * to prevent circular dependencies on App Store migration
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log("This triggered");
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });

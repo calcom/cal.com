@@ -128,16 +128,21 @@ function BookingListItem(booking: BookingItemProps) {
       icon: FiSlash,
       disabled: mutation.isLoading,
     },
-    {
-      id: "confirm",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      onClick: () => {
-        bookingConfirm(true);
-      },
-      icon: FiCheck,
-      disabled: mutation.isLoading,
-      color: "primary",
-    },
+    // For bookings with payment, only confirm if the booking is paid for
+    ...((isPending && !booking?.eventType?.price) || (!!booking?.eventType?.price && booking.paid)
+      ? [
+          {
+            id: "confirm",
+            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+            onClick: () => {
+              bookingConfirm(true);
+            },
+            icon: FiCheck,
+            disabled: mutation.isLoading,
+            // color: "primary",
+          },
+        ]
+      : []),
   ];
 
   const showRecordingActions: ActionType[] = [
