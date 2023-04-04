@@ -35,7 +35,7 @@ export const PopularEventsTable = () => {
             <TableRow key={item.eventTypeId}>
               <TableCell className="text-default">{item.eventTypeName}</TableCell>
               <TableCell>
-                <Text className="text-default">
+                <Text className="text-default text-right">
                   <strong>{item.count}</strong>
                 </Text>
               </TableCell>

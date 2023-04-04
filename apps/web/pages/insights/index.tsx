@@ -94,7 +94,7 @@ export default function InsightsPage() {
                   <LeastBookedTeamMembersTable />
                 </div>
                 <small className="text-default block text-center">
-                  {t("looking_for_more_insights")}
+                  {t("looking_for_more_insights")}{" "}
                   <a
                     className="text-blue-500 hover:underline"
                     href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
