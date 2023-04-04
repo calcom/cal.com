@@ -19,7 +19,7 @@ import { FiCreditCard, FiAlertTriangle } from "@calcom/ui/components/icon";
 interface IRescheduleDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingId: string;
+  bookingId: number;
   paymentAmount: number;
   paymentCurrency: string;
 }

@@ -9,7 +9,7 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 import { IntlProvider, FormattedNumber } from "react-intl";
 
-import type { StripePaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Checkbox } from "@calcom/ui";
 
@@ -33,8 +33,8 @@ const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
 } as const;
 
 type Props = {
-  payment: Payment & {
-    data: StripePaymentData | { setupIntent: StripeSetupData };
+  payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
+    data: StripePaymentData | StripeSetupIntentData;
   };
   eventType: { id: number };
   user: { username: string | null };
@@ -85,14 +85,16 @@ export default function PaymentComponent(props: Props) {
     };
     const query = stringify(params);
     const successUrl = `/booking/${props.bookingUid}?${query}`;
-    if (paymentOption === "HOLD") {
-      payload = await stripe.confirmCardSetup(props.payment.data.setupIntent.client_secret!, {
+    if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
+      const setupIntentData = props.payment.data as unknown as StripeSetupIntentData;
+      payload = await stripe.confirmCardSetup(setupIntentData.setupIntent.client_secret!, {
         payment_method: {
           card,
         },
       });
     } else if (paymentOption === "ON_BOOKING") {
-      payload = await stripe.confirmCardPayment(props.payment.data.client_secret!, {
+      const paymentData = props.payment.data as unknown as StripePaymentData;
+      payload = await stripe.confirmCardPayment(paymentData.client_secret!, {
         payment_method: {
           card,
         },
