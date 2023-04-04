@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
@@ -132,6 +133,8 @@ export default function CreateEventTypeDialog({
     },
   });
 
+  const flags = useFlagMap();
+
   return (
     <Dialog
       name="new"
@@ -249,7 +252,11 @@ export default function CreateEventTypeDialog({
                     message={form.formState.errors.schedulingType.message}
                   />
                 )}
-                <RadioArea.Group className={classNames("mt-1 flex gap-4", isAdmin && "flex-col")}>
+                <RadioArea.Group
+                  className={classNames(
+                    "mt-1 flex gap-4",
+                    isAdmin && flags["managed-event-types"] && "flex-col"
+                  )}>
                   <RadioArea.Item
                     {...register("schedulingType")}
                     value={SchedulingType.COLLECTIVE}
@@ -267,7 +274,7 @@ export default function CreateEventTypeDialog({
                     <p>{t("round_robin_description")}</p>
                   </RadioArea.Item>
                   <>
-                    {isAdmin && (
+                    {isAdmin && flags["managed-event-types"] && (
                       <RadioArea.Item
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}

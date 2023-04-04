@@ -7,12 +7,12 @@ import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { classNames } from "@calcom/lib";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import type { PeriodType } from "@calcom/prisma/client";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import {

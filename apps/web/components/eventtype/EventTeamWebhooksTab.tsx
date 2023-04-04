@@ -3,12 +3,12 @@ import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { TbWebhook } from "react-icons/tb";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
 import { FiPlus, FiLock } from "@calcom/ui/components/icon";

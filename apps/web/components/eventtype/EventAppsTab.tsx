@@ -5,8 +5,8 @@ import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppConte
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
 import { FiGrid, FiLock } from "@calcom/ui/components/icon";

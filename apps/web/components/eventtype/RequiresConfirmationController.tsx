@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useLockedFieldsManager from "@calcom/lib/hooks/useLockedFieldsManager";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, Label, SettingsToggle } from "@calcom/ui";
 

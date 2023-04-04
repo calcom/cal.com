@@ -4,10 +4,9 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
-
-import { getTranslation } from "./server/i18n";
 
 const generateHashedLink = (id: number) => {
   const translator = short();
