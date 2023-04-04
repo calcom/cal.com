@@ -27,7 +27,7 @@ export function Alert(props: AlertProps) {
         severity === "warning" && "border-yellow-700 bg-yellow-50 text-yellow-700",
         severity === "info" && "border-sky-700 bg-sky-50 text-sky-700",
         severity === "success" && "bg-inverted text-inverted",
-        severity === "neutral" && "bg-subtle border-none"
+        severity === "neutral" && "bg-subtle text-default border-none"
       )}>
       <div className="relative flex flex-col md:flex-row">
         <div className="flex-shrink-0">

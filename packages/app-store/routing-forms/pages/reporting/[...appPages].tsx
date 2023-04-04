@@ -193,6 +193,8 @@ export default function ReporterWrapper({
   );
 }
 
+ReporterWrapper.isThemeSupported = true;
+
 ReporterWrapper.getLayout = (page: React.ReactElement) => {
   return (
     <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>

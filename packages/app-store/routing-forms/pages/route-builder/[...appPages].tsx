@@ -522,6 +522,7 @@ export default function RouteBuilder({
     />
   );
 }
+RouteBuilder.isThemeSupported = true;
 
 RouteBuilder.getLayout = (page: React.ReactElement) => {
   return (

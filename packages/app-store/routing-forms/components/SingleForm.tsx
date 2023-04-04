@@ -370,7 +370,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </>
                   )}
                 </div>
-                <div className="w-full rounded-md border border-subtle p-8">
+                <div className="border-subtle w-full rounded-md border p-8">
                   <RoutingNavBar appUrl={appUrl} form={form} />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
@@ -393,7 +393,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
               </div>
               <div>
                 {decidedAction && (
-                  <div className="bg-subtle mt-5 rounded-md p-3">
+                  <div className="bg-subtle text-default mt-5 rounded-md p-3">
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
