@@ -209,12 +209,12 @@ const nextConfig = {
       {
         // Excludes the new-booker pages from the rewrite,
         // because otherwise this would case an infinite loop.
-        source: `/:user((?!${pages.join("|")}).*)/:type(!new-booker)`,
+        source: `/:user((?!${pages.join("|")}).*)/:type((?!new-booker).*)`,
         destination: "/:user/new-booker/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
       {
-        source: "/team/:slug/:type",
+        source: "/team/:slug/:type((?!new-booker).*)",
         destination: "/team/:slug/new-booker/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
