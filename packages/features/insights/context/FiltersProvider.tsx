@@ -160,15 +160,24 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
         clearFilters: () => {
           setSelectedTeamName(null);
           setSelectedEventTypeId(null);
+          setSelectedMemberUserId(null);
           setSelectedFilter(null);
           const { teamId, userId, ...rest } = router.query;
-          const query: { teamId?: string | string[]; userId?: string | string[] } = {};
-          if (teamId) {
-            query.teamId = teamId;
-          } else if (userId) {
-            query.userId = userId;
+          const query: { teamId?: number; userId?: number } = {};
+          const parsedTeamId = Number(Array.isArray(teamId) ? teamId[0] : teamId);
+          const parsedUserId = Number(Array.isArray(userId) ? userId[0] : userId);
+
+          if ((teamId && !userId) || (userId && teamId)) {
+            query.teamId = parsedTeamId;
+            setSelectedTeamId(parsedTeamId);
+            setSelectedUserId(null);
+          } else if (userId && !teamId) {
+            query.userId = parsedUserId;
+            setSelectedUserId(parsedUserId);
+            setSelectedTeamId(null);
           }
-          router.replace({
+
+          router.push({
             query,
           });
         },
