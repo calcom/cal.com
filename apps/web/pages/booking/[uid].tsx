@@ -36,6 +36,7 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -51,7 +52,6 @@ import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -569,7 +569,8 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-
+                  </div>
+                  <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                     {Object.entries(bookingInfo.responses).map(([name, response]) => {
                       const field = eventType.bookingFields.find((field) => field.name === name);
                       // We show location in the "where" section
@@ -584,15 +585,10 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <div className="mt-9 font-medium">{label}</div>
-                          <div className="col-span-2 mb-2 mt-9">
-                            <p
-                              className="break-words"
-                              data-testid="field-response"
-                              data-fob-field={field.name}>
-                              {response.toString()}
-                            </p>
-                          </div>
+                          <div className="mt-4 font-medium">{label}</div>
+                          <p className="break-words" data-testid="field-response" data-fob-field={field.name}>
+                            {response.toString()}
+                          </p>
                         </>
                       );
                     })}

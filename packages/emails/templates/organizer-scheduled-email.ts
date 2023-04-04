@@ -35,13 +35,14 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
+      uid: this.calEvent.iCalUID || this.calEvent.uid!,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
         .slice(0, 6)
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
-      productId: "calendso/ics",
+      productId: "calcom/ics",
       title: this.calEvent.title,
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
