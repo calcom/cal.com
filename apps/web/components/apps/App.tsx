@@ -247,9 +247,11 @@ const Component = ({
           </span>
         )}
 
-        <div className="prose-sm prose text-default mt-8">{body}</div>
+        <div className="prose-sm prose prose-headings:text-emphasis prose-code:text-default text-default mt-8">
+          {body}
+        </div>
         <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
-        <span>
+        <span className="text-default">
           {price === 0 ? (
             t("free_to_use_apps")
           ) : (
