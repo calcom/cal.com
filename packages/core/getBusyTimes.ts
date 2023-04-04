@@ -70,7 +70,7 @@ export async function getBusyTimes(params: {
       in: [BookingStatus.ACCEPTED],
     },
     uid: {
-      not: rescheduleBookingId, // We dont want to fetch the booking that is being rescheduled - this prevents rescheduling at the same time for a differnt duration
+      not: rescheduleBookingId, // We dont want to fetch the booking that is being rescheduled - This allows us to reschedule for the timeslot that the existing booking takes up
     },
   };
   // Find bookings that block this user from hosting further bookings.
