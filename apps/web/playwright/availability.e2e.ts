@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
@@ -5,6 +6,13 @@ import dayjs from "@calcom/dayjs";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
+
+async function createAvailability(name: string, page: Page) {
+  await page.locator('[data-testid="new-schedule"]').click();
+  await page.locator('[id="name"]').fill(name);
+  page.locator('[type="submit"]').click();
+  await expect(page.locator("[data-testid=availablity-title]")).toHaveValue(name);
+}
 
 test.describe("Availablity tests", () => {
   test.beforeEach(async ({ page, users }) => {
@@ -49,6 +57,15 @@ test.describe("Availablity tests", () => {
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
       await expect(page.locator("[data-testid=availablity-title]")).toHaveValue("More working hours");
+    });
+    await test.step("Can delete a schedule", async () => {
+      await page.getByRole("button", { name: /Go Back/i }).click();
+      await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
+      await page.locator('[data-testid="delete-schedule"]').click();
+      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      expect(toast).toBeTruthy();
+
+      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
     });
   });
 });
