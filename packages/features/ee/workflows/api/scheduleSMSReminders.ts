@@ -90,6 +90,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       switch (reminder.workflowStep.template) {
         case WorkflowTemplates.REMINDER:
           message = smsReminderTemplate(
+            false,
+            reminder.workflowStep.action,
             reminder.booking?.startTime.toISOString() || "",
             reminder.booking?.eventType?.title || "",
             timeZone || "",

@@ -20,14 +20,8 @@ const emailReminderTemplate = (
     endTime = "{EVENT_END_TIME}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
-    attendee =
-      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-        ? "{ORGANIZER}"
-        : "{ATTENDEE}";
-    name =
-      action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.SMS_ATTENDEE
-        ? "{ATTENDEE}"
-        : "{ORGANIZER}";
+    attendee = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
+    name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
     eventDateSMS = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
   } else {

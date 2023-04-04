@@ -41,6 +41,7 @@ import { isAttendeeAction, isSMSAction } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -375,7 +376,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                               // email action changes to sms action
                               if (!isSMSAction(oldValue)) {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
 
@@ -384,21 +384,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
-
-                              const emailReminderBody = emailReminderTemplate(
-                                true,
-                                form.getValues(`steps.${step.stepNumber - 1}.action`)
-                              );
-
-                              // sms action changes to email action
-                              if (isSMSAction(oldValue)) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderBody.emailBody
-                                );
-                                form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
-                              }
-
                               setIsEmailSubjectNeeded(true);
                             }
 
@@ -406,43 +391,52 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
                             ) {
-                              if (
-                                isAttendeeAction(oldValue) !== isAttendeeAction(val.value) ||
-                                isSMSAction(val.value) !== isSMSAction(oldValue)
-                              ) {
-                                const currentReminderBody =
-                                  form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                              if (isSMSAction(val.value) === isSMSAction(oldValue)) {
+                                if (isAttendeeAction(oldValue) !== isAttendeeAction(val.value)) {
+                                  const currentReminderBody =
+                                    form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                                  const newReminderBody = currentReminderBody
+                                    .replaceAll("{ORGANIZER}", "{PLACEHOLDER}")
+                                    .replaceAll("{ATTENDEE}", "{ORGANIZER}")
+                                    .replaceAll("{PLACEHOLDER}", "{ATTENDEE}");
+                                  form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, newReminderBody);
 
-                                const newReminderBody = currentReminderBody
-                                  .replaceAll("{ORGANIZER}", "{PLACEHOLDER}")
-                                  .replaceAll("{ATTENDEE}", "{ORGANIZER}")
-                                  .replaceAll("{PLACEHOLDER}", "{ATTENDEE}");
+                                  if (!isSMSAction(val.value)) {
+                                    const currentEmailSubject =
+                                      form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
+                                    const newEmailSubject = isAttendeeAction(val.value)
+                                      ? currentEmailSubject.replace("{ORGANIZER}", "{ATTENDEE}")
+                                      : currentEmailSubject.replace("{ATTENDEE}", "{ORGANIZER}");
 
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  newReminderBody || ""
-                                );
-
-                                if (!isSMSAction(val.value)) {
-                                  const currentEmailSubject =
-                                    form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
-                                  const newEmailSubject = isAttendeeAction(val.value)
-                                    ? currentEmailSubject.replace("{ORGANIZER}", "{ATTENDEE}")
-                                    : currentEmailSubject.replace("{ATTENDEE}", "{ORGANIZER}");
-
+                                    form.setValue(
+                                      `steps.${step.stepNumber - 1}.emailSubject`,
+                                      newEmailSubject || ""
+                                    );
+                                  }
+                                }
+                              } else {
+                                if (isSMSAction(val.value)) {
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    smsReminderTemplate(true, val.value)
+                                  );
+                                } else {
+                                  const emailReminderBody = emailReminderTemplate(true, val.value);
+                                  form.setValue(
+                                    `steps.${step.stepNumber - 1}.reminderBody`,
+                                    emailReminderBody.emailBody
+                                  );
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.emailSubject`,
-                                    newEmailSubject || ""
+                                    emailReminderBody.emailSubject
                                   );
                                 }
-
-                                setUpdateTemplate(!updateTemplate);
                               }
                             }
-
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
+                            setUpdateTemplate(!updateTemplate);
                           }
                         }}
                         defaultValue={selectedAction}
@@ -613,20 +607,30 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             if (val.value === WorkflowTemplates.REMINDER) {
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailReminderTemplate(
-                                  true,
-                                  form.getValues(`steps.${step.stepNumber - 1}.action`)
-                                ).emailBody
-                              );
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailReminderTemplate(
-                                  true,
-                                  form.getValues(`steps.${step.stepNumber - 1}.action`)
-                                ).emailSubject
-                              );
+                              if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  smsReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  )
+                                );
+                              } else {
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.reminderBody`,
+                                  emailReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  ).emailBody
+                                );
+                                form.setValue(
+                                  `steps.${step.stepNumber - 1}.emailSubject`,
+                                  emailReminderTemplate(
+                                    true,
+                                    form.getValues(`steps.${step.stepNumber - 1}.action`)
+                                  ).emailSubject
+                                );
+                              }
                             } else {
                               form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                               form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");

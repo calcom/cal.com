@@ -98,7 +98,8 @@ export const scheduleSMSReminder = async (
 
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      message = smsReminderTemplate(evt.startTime, evt.title, timeZone, attendeeName, name) || message;
+      message =
+        smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
       break;
     case WorkflowTemplates.CUSTOM:
       const variables: VariablesType = {
