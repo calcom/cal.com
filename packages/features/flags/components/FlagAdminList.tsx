@@ -12,7 +12,7 @@ export const FlagAdminList = () => {
             <ListItemTitle component="h3">
               {flag.slug}
               &nbsp;&nbsp;
-              <Badge variant="green">{flag.type.replace("_", " ")}</Badge>
+              <Badge variant="green">{flag.type?.replace("_", " ")}</Badge>
             </ListItemTitle>
             <ListItemText component="p">{flag.description}</ListItemText>
           </div>
