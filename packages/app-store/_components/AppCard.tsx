@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 
+import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
 
@@ -33,7 +34,11 @@ export default function AppCard({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
-            <img className="w-full" src={app?.logo} alt={app?.name} />
+            <img
+              className={classNames(app?.logo.includes("-dark") && "dark:invert", "w-full min-w-[40px]")}
+              src={app?.logo}
+              alt={app?.name}
+            />
           </Link>
           <div className="flex flex-col">
             <span className="text-emphasis text-base font-semibold leading-4">{app?.name}</span>

@@ -127,7 +127,11 @@ const Component = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
-              <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
+              <img
+                className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
+                src={logo}
+                alt={name}
+              />
               <h1 className="font-cal text-emphasis ml-4 text-3xl">{name}</h1>
             </div>
             <h2 className="text-default text-sm font-medium">
