@@ -6,7 +6,7 @@ import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -35,6 +35,7 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -51,7 +52,6 @@ import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -163,7 +163,7 @@ function RedirectionToast({ url }: { url: string }) {
                   {t("continue")}
                 </button>
               </div>
-              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+              <div className="flex-shrink-0 border-2 sm:order-3 sm:ml-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -190,13 +190,14 @@ const stringToBoolean = z
 
 const querySchema = z.object({
   uid: z.string(),
-  allRemainingBookings: stringToBoolean,
+  email: z.string().optional(),
+  eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
-  email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -421,9 +422,6 @@ export default function Success(props: SuccessProps) {
       <BookingPageTagManager eventType={eventType} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl} />
-          ) : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -995,13 +993,6 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const schema = z.object({
-  uid: z.string(),
-  email: z.string().optional(),
-  eventTypeSlug: z.string().optional(),
-  cancel: stringToBoolean,
-});
-
 const handleSeatsEventTypeOnBooking = (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -1031,9 +1022,9 @@ const handleSeatsEventTypeOnBooking = (
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const parsedQuery = schema.safeParse(context.query);
+  const parsedQuery = querySchema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1130,7 +1121,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
+  if (eventType.successRedirectUrl && isSuccessBookingPage && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,

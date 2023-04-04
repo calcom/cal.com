@@ -5,12 +5,12 @@ import type { LocationObject } from "@calcom/core/location";
 import { privacyFilteredLocations } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import type { GetBookingType } from "@calcom/lib/getBooking";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import type { GetBookingType } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 

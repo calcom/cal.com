@@ -8,10 +8,10 @@ type Option = { value: "event-type" | "user"; label: string };
 
 export const FilterType = () => {
   const { t } = useLocale();
-  const { setSelectedFilter, setSelectedUserId, setSelectedEventTypeId, filter } = useFilterContext();
-  const { selectedFilter } = filter;
+  const { setSelectedFilter, filter } = useFilterContext();
+  const { selectedFilter, selectedUserId } = filter;
 
-  const filterOptions: Option[] = [
+  let filterOptions: Option[] = [
     {
       label: t("event_type"),
       value: "event-type",
@@ -22,9 +22,14 @@ export const FilterType = () => {
     },
   ];
 
+  if (selectedUserId) {
+    // remove user option from filterOptions
+    filterOptions = filterOptions.filter((option) => option.value !== "user");
+  }
+
   const filterValue = selectedFilter
     ? filterOptions.find((option) => option.value === selectedFilter[0])
-    : undefined;
+    : null;
 
   return (
     <Select<Option>

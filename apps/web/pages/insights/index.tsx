@@ -8,7 +8,6 @@ import {
   PopularEventsTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { Filters } from "@calcom/features/insights/filters";
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
@@ -20,15 +19,11 @@ import { FiRefreshCcw, FiUserPlus, FiUsers } from "@calcom/ui/components/icon";
 
 const Heading = () => {
   const { t } = useLocale();
-  const {
-    filter: { selectedTeamName },
-  } = useFilterContext();
+
   return (
-    <div className="min-w-52">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis hidden truncate text-xl font-semibold tracking-wide md:block xl:max-w-full">
-        {t("analytics_for_organisation", {
-          organisationName: selectedTeamName,
-        })}
+    <div className="min-w-52 hidden md:block">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
+        {t("analytics_for_organisation")}
       </h3>
       <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
     </div>
@@ -80,7 +75,7 @@ export default function InsightsPage() {
             <></>
           ) : (
             <FiltersProvider>
-              <div className="mb-4 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
+              <div className="mb-8 mt-0 ml-auto flex w-full flex-wrap justify-between md:-mt-8">
                 <Heading />
                 <Filters />
               </div>

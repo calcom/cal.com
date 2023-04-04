@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
 import { FiBookOpen, FiCheck, FiChevronRight, FiFileText } from "@calcom/ui/components/icon";
@@ -99,7 +99,7 @@ export default function Custom404() {
                 <h1 className="font-cal text-emphasis mt-2 text-3xl font-extrabold">
                   {t("signup_requires")}
                 </h1>
-                <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
+                <p className="mt-4">{t("signup_requires_description", { companyName: "Cal.com" })}</p>
               </div>
               <div className="mt-12">
                 <h2 className="text-subtle text-sm font-semibold uppercase tracking-wide">
@@ -133,10 +133,10 @@ export default function Custom404() {
                   </li>
                 </ul>
 
-                <ul role="list" className="border-subtle divide-y divide-subtle">
+                <ul role="list" className="border-subtle divide-subtle divide-y">
                   <li className="px-4 py-2">
                     <Link
-                      href={`${DEVELOPER_DOCS}/self-hosting/installation`}
+                      href="https://cal.com/self-hosting/installation"
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="bg-muted flex h-12 w-12 items-center justify-center rounded-lg">
@@ -280,7 +280,7 @@ export default function Custom404() {
                     </ul>
                   )}
 
-                  <ul role="list" className="border-subtle mt-4 divide-y divide-subtle">
+                  <ul role="list" className="border-subtle divide-subtle mt-4 divide-y">
                     {links.map((link, linkIdx) => (
                       <li key={linkIdx} className="px-4 py-2">
                         <Link

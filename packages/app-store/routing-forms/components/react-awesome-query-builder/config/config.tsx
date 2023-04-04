@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import type { Settings, Widgets, SelectWidgetProps } from "react-awesome-query-builder";
 // Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -94,7 +95,18 @@ const widgets: Widgets & { [key in keyof Widgets]: Widgets[key] & { type: string
       if (!props) {
         return <div />;
       }
-      return <EmailField type="email" {...props} />;
+
+      return (
+        <EmailField
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            const val = e.target.value;
+            props.setValue(val);
+          }}
+          containerClassName="w-full"
+          className="dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+          {...props}
+        />
+      );
     },
   },
 };
