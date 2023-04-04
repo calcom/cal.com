@@ -278,7 +278,7 @@ const ProfileView = () => {
           )}
           <hr className="border-subtle my-8 border" />
 
-          <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
+          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {team?.membership.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>

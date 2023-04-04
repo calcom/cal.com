@@ -16,7 +16,7 @@ function WorkflowExample(props: WorkflowExampleType) {
   const { Icon, text } = props;
 
   return (
-    <div className="mx-2 my-2 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
+    <div className="border-subtle mx-2 my-2 max-h-24 max-w-[600px] rounded-md border border-solid p-6">
       <div className="flex ">
         <div className="flex items-center justify-center">
           <div className="bg-emphasis dark:bg-default mr-4 flex h-10 w-10 items-center justify-center rounded-full">
@@ -79,8 +79,8 @@ export default function EmptyScreen(props: {
   return (
     <>
       <div className="min-h-80 flex w-full flex-col items-center justify-center rounded-md ">
-        <div className="bg-emphasis dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full">
-          <FiZap className="dark:bg-inverted dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
+        <div className="bg-emphasis flex h-[72px] w-[72px] items-center justify-center rounded-full">
+          <FiZap className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
