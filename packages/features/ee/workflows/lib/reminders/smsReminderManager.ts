@@ -118,7 +118,7 @@ export const scheduleSMSReminder = async (
         cancelLink: `/booking/${evt.uid}?cancel=true`,
         rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
       };
-      const customMessage = await customTemplate(message, variables, locale);
+      const customMessage = customTemplate(message, variables, locale);
       message = customMessage.text;
       break;
   }

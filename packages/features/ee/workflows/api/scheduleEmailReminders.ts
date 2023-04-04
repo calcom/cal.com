@@ -210,7 +210,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.eventType?.title || "",
           timeZone || "",
           attendeeName || "",
-          name || ""
+          name || "",
+          !!reminder.booking.user?.hideBranding
         );
       }
 

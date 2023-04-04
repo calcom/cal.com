@@ -116,7 +116,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
             rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
           };
-          const customMessage = await customTemplate(
+          const customMessage = customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
             locale || ""

@@ -1,6 +1,7 @@
 import { WorkflowActions } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { APP_NAME } from "@calcom/lib/constants";
 
 const emailReminderTemplate = (
   isEditingMode: boolean,
@@ -10,7 +11,8 @@ const emailReminderTemplate = (
   eventName?: string,
   timeZone?: string,
   attendee?: string,
-  name?: string
+  name?: string,
+  isBrandingDisabled?: boolean
 ) => {
   let eventDate = "";
   let eventDateSMS = "";
@@ -40,7 +42,9 @@ const emailReminderTemplate = (
 
   const attendeeHtml = `<div><strong class="editor-text-bold">Attendees:</strong></div>You & ${attendee}<br><br>`;
 
-  const endingHtml = `This reminder was triggered by a Workflow in Cal.</body>`;
+  const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
+
+  const endingHtml = `This reminder was triggered by a Workflow in Cal.${branding}</body>`;
 
   const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
 
