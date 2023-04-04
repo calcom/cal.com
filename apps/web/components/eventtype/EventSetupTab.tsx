@@ -4,7 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
 import { z } from "zod";
@@ -16,7 +16,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import {
+  Button,
+  Label,
+  Select,
+  SettingsToggle,
+  Skeleton,
+  TextField,
+  Editor,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -33,6 +43,33 @@ const getLocationFromType = (
       return option;
     }
   }
+};
+
+interface DescriptionEditorProps {
+  description?: string | null;
+}
+
+const DescriptionEditor = (props: DescriptionEditorProps) => {
+  const formMethods = useFormContext<FormValues>();
+  const [mounted, setIsMounted] = useState(false);
+  const { t } = useLocale();
+  const { description } = props;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  return mounted ? (
+    <Editor
+      getText={() => md.render(formMethods.getValues("description") || description || "")}
+      setText={(value: string) => formMethods.setValue("description", turndown(value))}
+      excludedToolbarItems={["blockType"]}
+      placeholder={t("quick_video_meeting")}
+    />
+  ) : (
+    <SkeletonContainer>
+      <SkeletonText className="block h-24 w-full" />
+    </SkeletonContainer>
+  );
 };
 
 export const EventSetupTab = (
@@ -281,12 +318,7 @@ export const EventSetupTab = (
         />
         <div>
           <Label>{t("description")}</Label>
-          <Editor
-            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
-            setText={(value: string) => formMethods.setValue("description", turndown(value))}
-            excludedToolbarItems={["blockType"]}
-            placeholder={t("quick_video_meeting")}
-          />
+          <DescriptionEditor description={eventType?.description} />
         </div>
         <TextField
           required

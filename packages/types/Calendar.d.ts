@@ -64,6 +64,7 @@ export type NewCalendarEventType = {
   password: string;
   url: string;
   additionalInfo: AdditionalInfo;
+  iCalUID?: string | null;
 };
 
 export type CalendarEventType = {
@@ -175,6 +176,7 @@ export interface CalendarEvent {
   seatsShowAttendees?: boolean | null;
   attendeeSeatId?: string;
   seatsPerTimeSlot?: number | null;
+  iCalUID?: string | null;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
