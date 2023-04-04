@@ -135,7 +135,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...rest}
       className={classNames(
-        "hover:text-emphasis text-default inline-flex w-full items-center px-3 py-2 disabled:cursor-not-allowed",
+        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
         color === "destructive" ? "hover:bg-error hover:text-red-700" : "hover:bg-subtle"
       )}>
       <>

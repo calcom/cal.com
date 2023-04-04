@@ -200,7 +200,7 @@ const SettingsSidebarContainer = ({
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
               </div>
-              <div className="my-3">
+              <div className="my-3 space-y-0.5">
                 {tab.children?.map((child, index) => (
                   <VerticalTabItem
                     key={child.href}
@@ -270,7 +270,7 @@ const SettingsSidebarContainer = ({
                               )}
                             </div>
                           </CollapsibleTrigger>
-                          <CollapsibleContent>
+                          <CollapsibleContent className="space-y-0.5">
                             {team.accepted && (
                               <VerticalTabItem
                                 name={t("profile")}

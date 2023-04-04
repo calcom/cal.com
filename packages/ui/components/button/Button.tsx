@@ -120,13 +120,13 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "destructive",
-        className: "text-red-700/30 dark:text-red/30 bg-error/40 dark:bg-error/80 border border-red-200",
+        className: "text-red-700/30 hover:text-red-700/30 border border-default text-emphasis",
       },
       {
         loading: true,
         color: "destructive",
         className:
-          "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30 bg-error border border-red-200",
+          "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30  border border-default text-emphasis",
       },
       ...applyStyleToMultipleVariants({
         disabled: [false, undefined],

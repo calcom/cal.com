@@ -135,7 +135,7 @@ const DateOverrideForm = ({
       {date && (
         <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
           <div className="mb-4 flex-grow space-y-4">
-            <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
+            <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
               {datesUnavailable ? (
                 <p className="text-subtle rounded border p-2 text-sm">{t("date_overrides_unavailable")}</p>
