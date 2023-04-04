@@ -95,7 +95,7 @@ describe("handleChildrenEventTypes", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -118,8 +118,6 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          webhooks: undefined,
-          workflows: undefined,
           userId: 4,
         },
       });
@@ -216,7 +214,7 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const { schedulingType, id, teamId, timeZone, users, ...evType } = mockFindFirstEventType({
+      const { schedulingType, id, teamId, timeZone, scheduleId, users, ...evType } = mockFindFirstEventType({
         id: 123,
         metadata: { managedEventConfig: {} },
         locations: [],
@@ -240,8 +238,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          webhooks: undefined,
-          workflows: undefined,
+          hashedLink: undefined,
           userId: 4,
         },
       });
