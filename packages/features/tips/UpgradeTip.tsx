@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { classNames } from "@calcom/lib";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 
 export function UpgradeTip({
   dark,
@@ -32,11 +33,14 @@ export function UpgradeTip({
 }) {
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const { data, isLoading: upgradeAbleLoading } = trpc.viewer.teams.getUpgradeable.useQuery();
 
-  if (hasTeamPlan) return children;
+  const loading = isParentLoading || isLoading || upgradeAbleLoading;
+  const shouldRenderChildren = hasTeamPlan && data && !data.length;
 
-  if (isParentLoading || isLoading) return <>{isParentLoading}</>;
+  if (loading && !shouldRenderChildren) return <>{isParentLoading}</>;
 
+  if (!loading && shouldRenderChildren) return children;
   return (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
