@@ -113,7 +113,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="font-medium">
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
-                      <div className="col-span-2 mb-6">
+                      <div className="col-span-2 mb-6 font-semibold">
                         <IntlProvider locale="en">
                           <FormattedNumber
                             value={paymentAppData.price / 100.0}

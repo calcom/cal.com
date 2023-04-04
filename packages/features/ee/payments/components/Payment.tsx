@@ -2,12 +2,10 @@ import type { Payment } from "@prisma/client";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import type stripejs from "@stripe/stripe-js";
-import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
-import { IntlProvider, FormattedNumber } from "react-intl";
 
 import type { StripePaymentData, StripeSetupIntentData } from "@calcom/app-store/stripepayment/lib/server";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -118,28 +116,25 @@ export default function PaymentComponent(props: Props) {
     }
   };
   return (
-    <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
-      <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
+    <form id="payment-form" className="mt-4 rounded-md bg-gray-100 p-6" onSubmit={handleSubmit}>
+      <p className="font-semibold">{t("card_details")}</p>
+      <CardElement
+        className="my-5 bg-white p-2"
+        id="card-element"
+        options={CARD_OPTIONS}
+        onChange={handleChange}
+      />
       {paymentOption === "HOLD" && (
-        <>
+        <div className="mt-2 rounded-md bg-blue-100 p-3 text-blue-900">
           <Checkbox
-            description={
-              <Trans i18nKey="acknowledge_booking_hold">
-                I acknowledge that if I do not show up the to booking then my card will be charged for{" "}
-                <IntlProvider locale="en">
-                  <FormattedNumber
-                    value={props.payment.amount / 100.0}
-                    style="currency"
-                    currency={props.payment.currency?.toUpperCase()}
-                  />
-                </IntlProvider>
-                .
-              </Trans>
-            }
+            description={t("acknowledge_booking_no_show_fee", {
+              amount: props.payment.amount / 100,
+              formatParams: { amount: { currency: props.payment.currency } },
+            })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
-            className="mt-4"
+            descriptionClassName="text-blue-900 font-semibold"
           />
-        </>
+        </div>
       )}
       <div className="mt-2 flex justify-center">
         <Button

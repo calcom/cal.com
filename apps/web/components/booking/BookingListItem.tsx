@@ -139,7 +139,6 @@ function BookingListItem(booking: BookingItemProps) {
             },
             icon: FiCheck,
             disabled: mutation.isLoading,
-            // color: "primary",
           },
         ]
       : []),
