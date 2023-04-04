@@ -46,8 +46,10 @@ const fieldSchema = z.object({
   type: fieldTypeEnum,
 
   options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
-  // This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
-  // This allows keeping a single source of truth in DB.
+  /**
+   * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
+   * This allows keeping a single source of truth in DB.
+   */
   getOptionsAt: z.string().optional(),
 
   optionsInputs: z
