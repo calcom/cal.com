@@ -607,6 +607,7 @@ export const viewerTeamsRouter = router({
 
       // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
+        const { purchaseTeamSubscription } = await import("@calcom/features/ee/teams/lib/payments");
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
           seats: prevTeam.members.length,
