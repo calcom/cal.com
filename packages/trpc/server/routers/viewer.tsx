@@ -1,6 +1,5 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
-import { AppCategories, BookingStatus, IdentityProvider } from "@prisma/client";
-import _ from "lodash";
+import { reverse } from "lodash";
 import z from "zod";
 
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
@@ -182,6 +181,7 @@ const loggedInViewerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
+      const { IdentityProvider } = await import("@prisma/client");
       // Check if input.password is correct
       const user = await prisma.user.findUnique({
         where: {
@@ -262,7 +262,7 @@ const loggedInViewerRouter = router({
     if (!user) {
       throw new Error(ErrorCode.UserNotFound);
     }
-
+    const { IdentityProvider } = await import("@prisma/client");
     if (user.identityProvider === IdentityProvider.CAL) {
       throw new Error(ErrorCode.SocialIdentityProviderRequired);
     }
@@ -305,7 +305,7 @@ const loggedInViewerRouter = router({
     }),
   connectedCalendars: authedProcedure.query(async ({ ctx }) => {
     const { user, prisma } = ctx;
-
+    const { AppCategories } = await import("@prisma/client");
     const userCredentials = await prisma.credential.findMany({
       where: {
         userId: ctx.user.id,
@@ -749,7 +749,7 @@ const loggedInViewerRouter = router({
         });
       }
       await Promise.all(
-        _.reverse(input.ids).map((id, position) => {
+        reverse(input.ids).map((id, position) => {
           return prisma.eventType.update({
             where: {
               id,
@@ -778,7 +778,6 @@ const loggedInViewerRouter = router({
         rating: rating,
         comment: comment,
       };
-
       await ctx.prisma.feedback.create({
         data: {
           date: dayjs().toISOString(),
@@ -872,15 +871,24 @@ const loggedInViewerRouter = router({
         },
       });
 
-      const [getPaymentAppDataMod, i18nMod, emailsMod, prismaMod, deletePaymentMod, locationMod] =
-        await Promise.all([
-          import("@calcom/lib/getPaymentAppData"),
-          import("@calcom/lib/server/i18n"),
-          import("@calcom/emails"),
-          import("@calcom/prisma"),
-          import("@calcom/lib/payment/deletePayment"),
-          import("@calcom/core/location"),
-        ]);
+      const [
+        getPaymentAppDataMod,
+        i18nMod,
+        emailsMod,
+        prismaMod,
+        deletePaymentMod,
+        locationMod,
+        prismaClientMod,
+      ] = await Promise.all([
+        import("@calcom/lib/getPaymentAppData"),
+        import("@calcom/lib/server/i18n"),
+        import("@calcom/emails"),
+        import("@calcom/prisma"),
+        import("@calcom/lib/payment/deletePayment"),
+        import("@calcom/core/location"),
+        import("@prisma/client"),
+      ]);
+      const { AppCategories, BookingStatus } = prismaClientMod;
       const { bookingMinimalSelect } = prismaMod;
       const getPaymentAppData = getPaymentAppDataMod.default;
       const { getTranslation } = i18nMod;
@@ -1154,6 +1162,7 @@ const loggedInViewerRouter = router({
     }),
   bookingUnconfirmedCount: authedProcedure.query(async ({ ctx }) => {
     const { prisma, user } = ctx;
+    const { BookingStatus } = await import("@prisma/client");
     const count = await prisma.booking.count({
       where: {
         status: BookingStatus.PENDING,

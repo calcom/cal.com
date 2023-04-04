@@ -3,9 +3,7 @@ import { v4 } from "uuid";
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -228,6 +226,7 @@ export const webhookRouter = router({
     )
     .mutation(async ({ input }) => {
       const { url, type, payloadTemplate = null } = input;
+      const { getTranslation } = await import("@calcom/lib/server/i18n");
       const translation = await getTranslation("en", "common");
       const language = {
         locale: "en",
@@ -258,6 +257,7 @@ export const webhookRouter = router({
 
       try {
         const webhook = { subscriberUrl: url, payloadTemplate, appId: null, secret: null };
+        const sendPayload = (await import("@calcom/features/webhooks/lib/sendPayload")).default;
         return await sendPayload(null, type, new Date().toISOString(), webhook, data);
       } catch (_err) {
         const error = getErrorFromUnknown(_err);

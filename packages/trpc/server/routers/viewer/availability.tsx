@@ -6,7 +6,6 @@ import type {
 } from "@prisma/client";
 import { z } from "zod";
 
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
@@ -56,7 +55,8 @@ export const availabilityRouter = router({
         withSource: z.boolean().optional(),
       })
     )
-    .query(({ input }) => {
+    .query(async ({ input }) => {
+      const { getUserAvailability } = await import("@calcom/core/getUserAvailability");
       return getUserAvailability(input);
     }),
   schedule: router({

@@ -23,26 +23,12 @@ import {
   WORKFLOW_ACTIONS,
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
-import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
 import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
-import {
-  deleteScheduledEmailReminder,
-  scheduleEmailReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import {
-  deleteScheduledSMSReminder,
-  scheduleSMSReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import {
-  verifyPhoneNumber,
-  sendVerificationCode,
-} from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { upsertBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import type PrismaType from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 
@@ -408,6 +394,12 @@ export const workflowsRouter = router({
       });
 
       //cancel workflow reminders of deleted workflow
+      const { deleteScheduledEmailReminder } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/emailReminderManager"
+      );
+      const { deleteScheduledSMSReminder } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/smsReminderManager"
+      );
       scheduledReminders.forEach((reminder) => {
         if (reminder.method === WorkflowMethods.EMAIL) {
           deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
@@ -459,6 +451,12 @@ export const workflowsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
       const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
+      const { scheduleEmailReminder, deleteScheduledEmailReminder } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/emailReminderManager"
+      );
+      const { scheduleSMSReminder, deleteScheduledSMSReminder } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/smsReminderManager"
+      );
 
       const userWorkflow = await ctx.prisma.workflow.findUnique({
         where: {
@@ -1374,6 +1372,9 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     )
     .mutation(async ({ input }) => {
       const { phoneNumber } = input;
+      const { sendVerificationCode } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber"
+      );
       return sendVerificationCode(phoneNumber);
     }),
   verifyPhoneNumber: authedProcedure
@@ -1387,6 +1388,10 @@ action === WorkflowActions.EMAIL_ADDRESS*/
     .mutation(async ({ ctx, input }) => {
       const { phoneNumber, code, teamId } = input;
       const { user } = ctx;
+
+      const { verifyPhoneNumber } = await import(
+        "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber"
+      );
       const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id, teamId);
       return verifyStatus;
     }),
@@ -1416,7 +1421,9 @@ action === WorkflowActions.EMAIL_ADDRESS*/
       const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
       isTeamsPlan = !!hasTeamPlan;
     }
+    const { getTranslation } = await import("@calcom/lib/server/i18n");
     const t = await getTranslation(ctx.user.locale, "common");
+    const { getWorkflowActionOptions } = await import("@calcom/features/ee/workflows/lib/getOptions");
     return getWorkflowActionOptions(t, IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan);
   }),
   getByViewer: authedProcedure.query(async ({ ctx }) => {

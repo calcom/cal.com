@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import prisma from "@calcom/prisma";
-
 import { router, authedAdminProcedure } from "../../trpc";
 
 export const deploymentSetupRouter = router({
@@ -11,13 +9,13 @@ export const deploymentSetupRouter = router({
         licenseKey: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const data = {
         agreedLicenseAt: new Date(),
         licenseKey: input.licenseKey,
       };
 
-      await prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
+      await ctx.prisma.deployment.upsert({ where: { id: 1 }, create: data, update: data });
 
       return;
     }),

@@ -1,27 +1,16 @@
-import type { BookingReference, EventType, User, WebhookTriggerEvents } from "@prisma/client";
-import { BookingStatus, MembershipRole, Prisma, SchedulingType, WorkflowMethods } from "@prisma/client";
+import type { BookingReference, EventType, User, WebhookTriggerEvents, Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
 
-import appStore from "@calcom/app-store";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
-import EventManager from "@calcom/core/EventManager";
 import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendRequestRescheduleEmail } from "@calcom/emails";
-import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
-import { bookingMinimalSelect } from "@calcom/prisma";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -42,6 +31,7 @@ const commonBookingSchema = z.object({
 const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async ({ ctx, input, next }) => {
   // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
   const { bookingId } = input;
+  const { SchedulingType } = await import("@prisma/client");
   const booking = await ctx.prisma.booking.findFirst({
     where: {
       id: bookingId,
@@ -104,6 +94,7 @@ export const bookingsRouter = router({
       const take = input.limit ?? 10;
       const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
+      const { BookingStatus } = await import("@prisma/client");
       const bookingListingByStatus = input.filters.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
         upcoming: {
@@ -206,7 +197,7 @@ export const bookingsRouter = router({
 
       const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
-
+      const { bookingMinimalSelect } = await import("@calcom/prisma");
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -339,14 +330,14 @@ export const bookingsRouter = router({
         } => {
           const bookings = recurringInfoExtended
             .filter((ext) => ext.recurringEventId === info.recurringEventId)
-            .reduce(
+            .reduce<{
+              [key in (typeof BookingStatus)[keyof typeof BookingStatus]]: Date[];
+            }>(
               (prev, curr) => {
                 prev[curr.status].push(curr.startTime);
                 return prev;
               },
-              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
-                [key in BookingStatus]: Date[];
-              }
+              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] }
             );
           return {
             recurringEventId: info.recurringEventId,
@@ -393,7 +384,7 @@ export const bookingsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const { bookingId, rescheduleReason: cancellationReason } = input;
-
+      const { BookingStatus, WorkflowMethods } = await import("@prisma/client");
       const bookingToReschedule = await prisma.booking.findFirstOrThrow({
         select: {
           id: true,
@@ -481,11 +472,17 @@ export const bookingsRouter = router({
             updatedAt: dayjs().toISOString(),
           },
         });
-
+        const { cancelScheduledJobs } = await import("@calcom/app-store/zapier/lib/nodeScheduler");
         // delete scheduled jobs of previous booking
         cancelScheduledJobs(bookingToReschedule);
 
         //cancel workflow reminders of previous booking
+        const { deleteScheduledEmailReminder } = await import(
+          "@calcom/ee/workflows/lib/reminders/emailReminderManager"
+        );
+        const { deleteScheduledSMSReminder } = await import(
+          "@calcom/ee/workflows/lib/reminders/smsReminderManager"
+        );
         bookingToReschedule.workflowReminders.forEach((reminder) => {
           if (reminder.method === WorkflowMethods.EMAIL) {
             deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
@@ -495,6 +492,7 @@ export const bookingsRouter = router({
         });
 
         const [mainAttendee] = bookingToReschedule.attendees;
+        const { getTranslation } = await import("@calcom/lib/server");
         // @NOTE: Should we assume attendees language?
         const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
         const usersToPeopleType = (
@@ -597,7 +595,9 @@ export const bookingsRouter = router({
           eventTypeId: (bookingToReschedule.eventTypeId as number) || 0,
           triggerEvent: eventTrigger,
         };
+        const getWebhooks = (await import("@calcom/features/webhooks/lib/getWebhooks")).default;
         const webhooks = await getWebhooks(subscriberOptions);
+        const sendPayload = (await import("@calcom/features/webhooks/lib/sendPayload")).default;
         const promises = webhooks.map((webhook) =>
           sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
             ...evt,
@@ -635,7 +635,7 @@ export const bookingsRouter = router({
             locale: true,
           },
         });
-
+        const { getTranslation } = await import("@calcom/lib/server");
         const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
         const attendeesListPromises = booking.attendees.map(async (attendee) => {
@@ -670,7 +670,7 @@ export const bookingsRouter = router({
           location,
           destinationCalendar: booking?.destinationCalendar || booking?.user?.destinationCalendar,
         };
-
+        const EventManager = (await import("@calcom/core/EventManager")).default;
         const eventManager = new EventManager(ctx.user);
 
         const updatedResult = await eventManager.updateLocation(evt, booking);
@@ -714,7 +714,8 @@ export const bookingsRouter = router({
   confirm: bookingsProcedure.input(bookingConfirmPatchBodySchema).mutation(async ({ ctx, input }) => {
     const { user, prisma } = ctx;
     const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
-
+    const { BookingStatus, MembershipRole, Prisma, SchedulingType } = await import("@prisma/client");
+    const { getTranslation } = await import("@calcom/lib/server");
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
     const booking = await prisma.booking.findUniqueOrThrow({
@@ -876,6 +877,7 @@ export const bookingsRouter = router({
     }
 
     if (confirmed) {
+      const { handleConfirmation } = await import("@calcom/features/bookings/lib/handleConfirmation");
       await handleConfirmation({ user, evt, recurringEventId, prisma, bookingId, booking });
     } else {
       evt.rejectionReason = rejectionReason;
@@ -943,7 +945,7 @@ export const bookingsRouter = router({
             if (!paymentAppCredential) {
               throw new Error("Payment app credentials not found");
             }
-
+            const appStore = (await import("@calcom/app-store")).default;
             // Posible to refactor TODO:
             const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
             if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
@@ -960,7 +962,6 @@ export const bookingsRouter = router({
           }
         }
         // end handle refunds.
-
         await prisma.booking.update({
           where: {
             id: bookingId,

@@ -1,26 +1,10 @@
 import { MembershipRole, Prisma } from "@prisma/client";
-import { randomBytes } from "crypto";
 import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import { sendTeamInviteEmail } from "@calcom/emails";
-import {
-  cancelTeamSubscriptionFromStripe,
-  purchaseTeamSubscription,
-  updateQuantitySubscriptionFromStripe,
-} from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
-import {
-  closeComDeleteTeam,
-  closeComDeleteTeamMembership,
-  closeComUpdateTeam,
-  closeComUpsertTeamUser,
-} from "@calcom/lib/sync/SyncServiceManager";
-import { availabilityUserSelect } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -128,7 +112,7 @@ export const viewerTeamsRouter = router({
           ...(!IS_TEAM_BILLING_ENABLED && { slug }),
         },
       });
-
+      const { closeComUpsertTeamUser } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services: Close.com
       closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
 
@@ -208,7 +192,7 @@ export const viewerTeamsRouter = router({
         where: { id: input.id },
         data,
       });
-
+      const { closeComUpdateTeam } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services: Close.com
       if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
     }),
@@ -220,7 +204,7 @@ export const viewerTeamsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      const { cancelTeamSubscriptionFromStripe } = await import("@calcom/features/ee/teams/lib/payments");
       if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
       // delete all memberships
@@ -235,7 +219,7 @@ export const viewerTeamsRouter = router({
           id: input.teamId,
         },
       });
-
+      const { closeComDeleteTeam } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services: Close.cm
       closeComDeleteTeam(deletedTeam);
     }),
@@ -269,7 +253,8 @@ export const viewerTeamsRouter = router({
           user: true,
         },
       });
-
+      const { updateQuantitySubscriptionFromStripe } = await import("@calcom/features/ee/teams/lib/payments");
+      const { closeComDeleteTeamMembership } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services
       closeComDeleteTeamMembership(membership.user);
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
@@ -288,7 +273,7 @@ export const viewerTeamsRouter = router({
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
         throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      const { getTranslation } = await import("@calcom/lib/server/i18n");
       const translation = await getTranslation(input.language ?? "en", "common");
 
       const team = await ctx.prisma.team.findFirst({
@@ -304,7 +289,7 @@ export const viewerTeamsRouter = router({
           OR: [{ username: input.usernameOrEmail }, { email: input.usernameOrEmail }],
         },
       });
-
+      const { sendTeamInviteEmail } = await import("@calcom/emails");
       if (!invitee) {
         // liberal email match
 
@@ -327,7 +312,7 @@ export const viewerTeamsRouter = router({
             },
           },
         });
-
+        const { randomBytes } = await import("crypto");
         const token: string = randomBytes(32).toString("hex");
 
         await ctx.prisma.verificationToken.create({
@@ -384,6 +369,7 @@ export const viewerTeamsRouter = router({
           });
         }
       }
+      const { updateQuantitySubscriptionFromStripe } = await import("@calcom/features/ee/teams/lib/payments");
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
     }),
   acceptOrLeave: authedProcedure
@@ -394,6 +380,7 @@ export const viewerTeamsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { closeComUpsertTeamUser } = await import("@calcom/lib/sync/SyncServiceManager");
       if (input.accept) {
         const membership = await ctx.prisma.membership.update({
           where: {
@@ -489,7 +476,7 @@ export const viewerTeamsRouter = router({
           user: true,
         },
       });
-
+      const { closeComUpsertTeamUser } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services: Close.com
       closeComUpsertTeamUser(membership.team, membership.user, membership.role);
     }),
@@ -506,7 +493,7 @@ export const viewerTeamsRouter = router({
     .query(async ({ ctx, input }) => {
       const team = await isTeamMember(ctx.user?.id, input.teamId);
       if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+      const { availabilityUserSelect } = await import("@calcom/prisma");
       // verify member is in team
       const members = await ctx.prisma.membership.findMany({
         where: { teamId: input.teamId },
@@ -522,7 +509,7 @@ export const viewerTeamsRouter = router({
       if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
       if (!member.user.username)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Member doesn't have a username" });
-
+      const { getUserAvailability } = await import("@calcom/core/getUserAvailability");
       // get availability for this member
       return await getUserAvailability(
         {
@@ -652,7 +639,7 @@ export const viewerTeamsRouter = router({
         const { message } = getRequestedSlugError(error, requestedSlug);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
       }
-
+      const { closeComUpdateTeam } = await import("@calcom/lib/sync/SyncServiceManager");
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
