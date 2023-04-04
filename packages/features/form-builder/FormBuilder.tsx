@@ -50,7 +50,9 @@ export const FormBuilder = function FormBuilder({
   title: string;
   description: string;
   addFieldLabel: string;
-  // A readonly dataStore that is used to lookup the options for the fields.
+  /**
+   * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
+   */
   dataStore: {
     options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
   };

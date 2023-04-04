@@ -135,7 +135,7 @@ const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
-          // TODO: Replace this manual get with dataStore[getOptionsAt]
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
           const options = getLocationOptionsForSelect(locations, t);
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
