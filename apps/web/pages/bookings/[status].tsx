@@ -165,7 +165,7 @@ export default function Bookings() {
                   </tbody>
                 </table>
               </div>
-              <div className="p-4 text-center" ref={buttonInView.ref}>
+              <div className="text-default p-4 text-center" ref={buttonInView.ref}>
                 <Button
                   color="minimal"
                   loading={query.isFetchingNextPage}
