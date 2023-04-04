@@ -207,7 +207,9 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
       {
-        source: `/:user((?!${pages.join("|")}).*)/:type`,
+        // Excludes the new-booker pages from the rewrite,
+        // because otherwise this would case an infinite loop.
+        source: `/:user((?!${pages.join("|")}).*)/:type(!new-booker)`,
         destination: "/:user/new-booker/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
