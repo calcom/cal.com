@@ -404,10 +404,11 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
-      bookingFields: eventType.bookingFields,
-      responses,
-    });
+    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+      getCalEventResponses({
+        bookingFields: eventType.bookingFields,
+        responses,
+      });
     return {
       ...reqBody,
       name: responses.name,
@@ -742,6 +743,7 @@ async function handler(
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
