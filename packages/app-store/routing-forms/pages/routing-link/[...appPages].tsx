@@ -125,13 +125,11 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis dark:text-inverted mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis  mb-1 text-xl font-bold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
-                        <p className="min-h-10 text-subtle dark:text-inverted text-sm ltr:mr-4 rtl:ml-4">
-                          {form.description}
-                        </p>
+                        <p className="min-h-10 text-subtle text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
                       ) : null}
                     </div>
                     <FormInputFields form={form} response={response} setResponse={setResponse} />
