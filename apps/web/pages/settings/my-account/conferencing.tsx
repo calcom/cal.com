@@ -32,7 +32,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="divide-subtle mt-6 mb-8 space-y-6 divide-y">
+      <div className="divide-subtle mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
