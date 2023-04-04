@@ -7,6 +7,7 @@ import type Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -65,6 +66,7 @@ async function handlePaymentSuccess(event: Stripe.Event) {
       paid: true,
       destinationCalendar: true,
       status: true,
+      responses: true,
       user: {
         select: {
           id: true,
@@ -114,6 +116,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
+    ...getCalEventResponses({
+      booking: booking,
+      bookingFields: booking.eventType?.bookingFields || null,
+    }),
     organizer: {
       email: user.email,
       name: user.name!,
