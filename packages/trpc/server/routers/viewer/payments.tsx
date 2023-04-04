@@ -92,7 +92,15 @@ export const paymentsRouter = router({
         },
       });
 
+      if (!paymentCredential?.app) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
+      }
+
       const paymentApp = appStore[paymentCredential?.app?.dirName as keyof typeof appStore];
+
+      if (!("lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
+      }
       const PaymentService = paymentApp.lib.PaymentService;
       const paymentInstance = new PaymentService(paymentCredential);
 
@@ -103,7 +111,7 @@ export const paymentsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
         }
 
-        await sendNoShowFeeChargedEmail({ attendee: attendeesListPromises[0], evt });
+        await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
 
         return paymentData;
       } catch (err) {

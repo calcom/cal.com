@@ -287,6 +287,6 @@ export const sendDisabledAppEmail = async ({
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
 };
 
-export const sendNoShowFeeChargedEmail = async ({ attendee, evt }) => {
+export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };

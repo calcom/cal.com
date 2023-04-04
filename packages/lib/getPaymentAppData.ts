@@ -40,5 +40,7 @@ export default function getPaymentAppData(
   }
   // This is the current expectation of system to have price and currency set always(using DB Level defaults).
   // Newly added apps code should assume that their app data might not be set.
-  return paymentAppData || { enabled: false, price: 0, currency: "usd", appId: null };
+  return (
+    paymentAppData || { enabled: false, price: 0, currency: "usd", appId: null, paymentOption: "ON_BOOKING" }
+  );
 }
