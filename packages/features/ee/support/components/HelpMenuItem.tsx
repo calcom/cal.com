@@ -4,7 +4,7 @@ import { useChat } from "react-live-chat-loader";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast } from "@calcom/ui";
+import { Button, showToast, TextArea } from "@calcom/ui";
 import { FiExternalLink, FiAlertTriangle } from "@calcom/ui/components/icon";
 
 import { useFreshChat } from "../lib/freshchat/FreshChatProvider";
@@ -67,19 +67,14 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         </div>
       </div>
 
-      <hr className=" bg-emphasis" />
+      <hr className="border-muted" />
       <div className="w-full p-5">
         <p className="text-subtle mb-1">{t("feedback").toUpperCase()}</p>
         <p className="text-default flex w-full py-2 text-sm font-medium">{t("comments")}</p>
-        <textarea
-          id="comment"
-          name="comment"
-          rows={3}
-          onChange={(event) => setComment(event.target.value)}
-          className="border-default my-1  block w-full rounded-sm py-2 pb-2 text-sm"
-        />
 
-        <div className="flex my-3 justify-end">
+        <TextArea id="comment" name="comment" rows={3} onChange={(event) => setComment(event.target.value)} />
+
+        <div className="my-3 flex justify-end">
           <button
             className={classNames(
               "m-1 items-center justify-center p-1.5 grayscale hover:opacity-100 hover:grayscale-0",
@@ -164,7 +159,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
             </svg>
           </button>
         </div>
-        <div className="flex my-2 justify-end">
+        <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
             loading={mutation.isLoading}
@@ -177,7 +172,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </Button>
         </div>
         {mutation.isError && (
-          <div className="bg-error flex mb-4 p-4 text-sm text-red-700">
+          <div className="bg-error mb-4 flex p-4 text-sm text-red-700">
             <div className="flex-shrink-0">
               <FiAlertTriangle className="h-5 w-5" />
             </div>
@@ -188,7 +183,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
           </div>
         )}
       </div>
-      <div className="text-subtle w-full bg-neutral-50 p-5">
+      <div className="text-subtle bg-muted w-full p-5">
         <p className="">{t("specific_issue")}</p>
         <button
           className="hover:text-emphasis text-defualt font-medium underline"
