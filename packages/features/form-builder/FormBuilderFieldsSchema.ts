@@ -63,7 +63,9 @@ const fieldSchema = z.object({
       })
     )
     .optional(),
-  // used to hide fields such as location when there are less than two options
+  /**
+   * It is used to hide fields such as location when there are less than two options
+   */
   hideWhenJustOneOption: z.boolean().default(false).optional(),
 
   required: z.boolean().default(false).optional(),

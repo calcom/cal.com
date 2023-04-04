@@ -286,15 +286,7 @@ export const Components: Record<BookingFieldType, Component> = {
   },
   radioInput: {
     propsType: "objectiveWithInput",
-    factory: function RadioInputWithLabel({
-      name,
-      options,
-      optionsInputs,
-      value,
-      setValue,
-      readOnly,
-      required,
-    }) {
+    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -335,10 +327,12 @@ export const Components: Record<BookingFieldType, Component> = {
               ) : (
                 // Show option itself as label because there is just one option
                 <>
-                  <Label>{options[0].label}</Label>
-                  <span className="ml-1 mb-1 text-sm font-medium leading-none dark:text-white">
-                    {!readOnly && required ? "*" : ""}
-                  </span>
+                  <Label>
+                    {options[0].label}
+                    {!readOnly && optionsInputs[options[0].value].required ? (
+                      <span className="ml-1 mb-1 text-sm font-medium leading-none dark:text-white">*</span>
+                    ) : null}
+                  </Label>
                 </>
               )}
             </div>
