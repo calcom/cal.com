@@ -17,6 +17,7 @@ export async function getBusyTimes(params: {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   endTime: string;
+  rescheduleBookingId?: string;
 }) {
   const {
     credentials,
@@ -27,6 +28,7 @@ export async function getBusyTimes(params: {
     endTime,
     beforeEventBuffer,
     afterEventBuffer,
+    rescheduleBookingId,
   } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
@@ -60,12 +62,15 @@ export async function getBusyTimes(params: {
    *  logic within getSchedule.test.ts:addBookings
    */
   performance.mark("prismaBookingGetStart");
-
+  console.log({ rescheduleBookingId });
   const sharedQuery = {
     startTime: { gte: new Date(startTime) },
     endTime: { lte: new Date(endTime) },
     status: {
       in: [BookingStatus.ACCEPTED],
+    },
+    uid: {
+      not: rescheduleBookingId, // We dont want to fetch the booking that is being rescheduled - this prevents rescheduling at the same time for a differnt duration
     },
   };
   // Find bookings that block this user from hosting further bookings.

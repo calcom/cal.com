@@ -40,6 +40,7 @@ const getScheduleSchema = z
       .string()
       .optional()
       .transform((val) => val && parseInt(val)),
+    rescheduleBookingId: z.string().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -265,6 +266,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
+          rescheduleBookingId: input.rescheduleBookingId,
         },
         { user: currentUser, eventType, currentSeats }
       );

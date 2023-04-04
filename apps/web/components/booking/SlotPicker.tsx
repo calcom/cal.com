@@ -31,6 +31,7 @@ const useSlots = ({
   timeZone,
   duration,
   enabled = true,
+  rescheduleBookingId,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -40,6 +41,7 @@ const useSlots = ({
   timeZone?: string;
   duration?: string;
   enabled?: boolean;
+  rescheduleBookingId?: string;
 }) => {
   const [refetchCount, setRefetchCount] = useState(0);
   const refetchInterval = getRefetchInterval(refetchCount);
@@ -52,6 +54,7 @@ const useSlots = ({
       endTime: endTime?.toISOString() || "",
       timeZone,
       duration,
+      rescheduleBookingId,
     },
     {
       enabled: !!startTime && !!endTime && enabled,
@@ -81,6 +84,7 @@ export const SlotPicker = ({
   bookingAttendees,
   weekStart = 0,
   ethSignature,
+  rescheduleBookingId,
 }: {
   eventType: Pick<
     EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
@@ -95,6 +99,7 @@ export const SlotPicker = ({
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   ethSignature?: string;
+  rescheduleBookingId?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
@@ -137,6 +142,7 @@ export const SlotPicker = ({
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
+    rescheduleBookingId,
   });
   const { slots: selectedDateSlots, isLoading: _isLoadingSelectedDateSlots } = useSlots({
     eventTypeId: eventType.id,
@@ -148,6 +154,7 @@ export const SlotPicker = ({
     duration,
     /** Prevent refetching is we already have this data from month slots */
     enabled: !!selectedDate,
+    rescheduleBookingId,
   });
 
   /** Hide skeleton if we have the slot loaded in the month query */

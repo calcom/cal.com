@@ -196,7 +196,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
                               "mt-[2px]"
                             )}
-                          />{" "}
+                          />
                           {t("event_type_seats", { numberOfSeats: bookingAttendees })}
                         </div>
                       )}
@@ -278,6 +278,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   bookingAttendees={bookingAttendees || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
+                  rescheduleBookingId={rescheduleUid}
                 />
               </div>
             </div>
