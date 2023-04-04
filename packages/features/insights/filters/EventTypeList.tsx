@@ -15,17 +15,18 @@ const mapEventTypeToOption = (eventType: EventType): Option => ({
   label: eventType.title,
 });
 
-export const EventTypeListInTeam = () => {
+export const EventTypeList = () => {
   const { t } = useLocale();
   const { filter, setSelectedEventTypeId } = useFilterContext();
-  const { selectedTeamId, selectedEventTypeId } = filter;
+  const { selectedTeamId, selectedEventTypeId, selectedUserId } = filter;
   const { selectedFilter } = filter;
   const { data, isSuccess } = trpc.viewer.insights.eventTypeList.useQuery({
-    teamId: selectedTeamId,
+    teamId: selectedTeamId ?? undefined,
+    userId: selectedUserId ?? undefined,
   });
 
   if (!selectedFilter?.includes("event-type")) return null;
-  if (!selectedTeamId) return null;
+  if (!selectedTeamId && !selectedUserId) return null;
 
   const filterOptions =
     data?.map(mapEventTypeToOption) ?? ([{ label: "No event types found", value: "" }] as Option[]);
@@ -46,6 +47,7 @@ export const EventTypeListInTeam = () => {
         }
       }}
       defaultValue={eventTypeValue}
+      value={eventTypeValue}
       className="w-52 min-w-[180px]"
       placeholder={
         <div className="flex flex-row">
