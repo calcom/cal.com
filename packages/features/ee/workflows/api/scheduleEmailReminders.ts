@@ -168,7 +168,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       let emailBodyEmpty = false;
 
-      //todo are there old steps that have a body from custom and are reminder?? yes there are
       if (reminder.workflowStep.reminderBody) {
         const variables: VariablesType = {
           eventName: reminder.booking.eventType?.title || "",

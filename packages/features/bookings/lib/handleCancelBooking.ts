@@ -337,10 +337,7 @@ async function handler(req: CustomRequest) {
       bookingToDelete.smsReminderNumber,
       {
         ...evt,
-        ...{
-          responses: null,
-          eventType: { slug: bookingToDelete.eventType.slug },
-        },
+        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
       bookingToDelete.eventType.owner?.hideBranding
     );

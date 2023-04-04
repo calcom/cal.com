@@ -15,7 +15,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
-  user: EventManagerUser & { username: string | null; hideBranding?: boolean };
+  user: EventManagerUser & { username: string | null };
   evt: CalendarEvent;
   recurringEventId?: string;
   prisma: PrismaClient;
@@ -72,6 +72,9 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     eventType: {
       slug: string;
+      owner: {
+        hideBranding?: boolean | null;
+      };
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
           steps: WorkflowStep[];
@@ -106,6 +109,11 @@ export async function handleConfirmation(args: {
           eventType: {
             select: {
               slug: true,
+              owner: {
+                select: {
+                  hideBranding: true,
+                },
+              },
               workflows: {
                 include: {
                   workflow: {
@@ -145,6 +153,11 @@ export async function handleConfirmation(args: {
         eventType: {
           select: {
             slug: true,
+            owner: {
+              select: {
+                hideBranding: true,
+              },
+            },
             workflows: {
               include: {
                 workflow: {
@@ -187,7 +200,7 @@ export async function handleConfirmation(args: {
           false,
           false,
           isFirstBooking,
-          user.hideBranding
+          updatedBookings[index].eventType?.owner.hideBranding
         );
       }
     }
