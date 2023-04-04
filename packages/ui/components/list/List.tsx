@@ -88,7 +88,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
           "flex-grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+        <h1 className="text-default text-sm font-semibold leading-none">{heading}</h1>
         <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
