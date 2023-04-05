@@ -128,6 +128,8 @@ export const BaseAppFork = {
         .replace(/_DESCRIPTION_/g, description)
         .replace(/_APP_DIR_/g, slug)
     );
+    // New monorepo package has been added, so we need to run yarn again
+    await execSync("yarn");
   },
 
   delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {

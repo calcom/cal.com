@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
-import { FiFileText, FiCheck, FiBookOpen, FiChevronRight } from "@calcom/ui/components/icon";
+import { FiBookOpen, FiCheck, FiChevronRight, FiFileText } from "@calcom/ui/components/icon";
 
 import { ssgInit } from "@server/lib/ssg";
 
@@ -40,6 +40,43 @@ export default function Custom404() {
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
+  /**
+   * If we're on 404 and the route is insights it means it is disabled
+   * TODO: Abstract this for all disabled features
+   **/
+  const isInsights = router.asPath.startsWith("/insights");
+  if (isInsights) {
+    return (
+      <>
+        <HeadSeo
+          title="Feature is currently disabled"
+          description={t("404_page_not_found")}
+          nextSeoProps={{
+            nofollow: true,
+            noindex: true,
+          }}
+        />
+        <div className="min-h-screen bg-white px-4" data-testid="404-page">
+          <main className="mx-auto max-w-xl pt-16 pb-6 sm:pt-24">
+            <div className="text-center">
+              <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
+              <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
+                Feature is currently disabled
+              </h1>
+            </div>
+            <div className="mt-12">
+              <div className="mt-8">
+                <Link href="/" className="text-base font-medium text-black hover:text-gray-500">
+                  {t("or_go_back_home")}
+                  <span aria-hidden="true"> &rarr;</span>
+                </Link>
+              </div>
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -62,7 +99,7 @@ export default function Custom404() {
                 <h1 className="font-cal mt-2 text-3xl font-extrabold text-gray-900">
                   {t("signup_requires")}
                 </h1>
-                <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
+                <p className="mt-4">{t("signup_requires_description", { companyName: "Cal.com" })}</p>
               </div>
               <div className="mt-12">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -99,7 +136,7 @@ export default function Custom404() {
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
                     <Link
-                      href={`${DEVELOPER_DOCS}/self-hosting/installation`}
+                      href="https://cal.com/self-hosting/installation"
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
@@ -168,7 +205,7 @@ export default function Custom404() {
                 </ul>
                 <div className="mt-8">
                   <Link
-                    href={`${WEBSITE_URL}/enterprise`}
+                    href="https://cal.com/sales"
                     className="text-base font-medium text-black hover:text-gray-500">
                     {t("contact_sales")}
                     <span aria-hidden="true"> &rarr;</span>

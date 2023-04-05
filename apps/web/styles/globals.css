@@ -148,8 +148,6 @@ select:focus {
   --tw-ring-color: var(--brand-color);
   border-color: var(--brand-color);
 }
-/*  https://stackoverflow.com/a/69308190 */
-input[type='text']:focus { box-shadow: none; }
 
 
 @layer components {
@@ -497,3 +495,5 @@ hr {
 ::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
+
+

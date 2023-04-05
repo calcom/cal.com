@@ -10,11 +10,12 @@ import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
+import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Badge, Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
+import { Button, Checkbox, Label, SettingsToggle, showToast, TextField, Tooltip } from "@calcom/ui";
 import { FiEdit, FiCopy } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -183,9 +184,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
               }}>
-              {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
-              <div className="lg:-ml-2">
+              {/* Textfield has some margin by default we remove that so we can keep consistent alignment */}
+              <div className="lg:-ml-2 lg:-mb-2">
                 <TextField
+                  className="w-full"
                   label={t("redirect_success_booking")}
                   labelSrOnly
                   placeholder={t("external_redirect_url")}
@@ -194,21 +196,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
-                <div className="mt-2 flex">
-                  <Checkbox
-                    description={t("disable_success_page")}
-                    // Disable if it's not Self Hosted or if the redirect url is not set
-                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
-                    {...formMethods.register("metadata.disableSuccessPage")}
-                  />
-                  {/*TODO: Extract it out into a component when used more than once*/}
-                  {!IS_SELF_HOSTED && (
-                    <Link href="https://cal.com/pricing" target="_blank">
-                      <Badge variant="orange" className="ml-2">
-                        Platform Only
-                      </Badge>
-                    </Link>
-                  )}
+                <div
+                  className={classNames(
+                    "p-1 text-sm text-orange-600",
+                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+                  )}>
+                  {t("redirect_url_warning")}
                 </div>
               </div>
             </SettingsToggle>

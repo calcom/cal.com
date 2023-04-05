@@ -235,6 +235,7 @@ export const createdEventSchema = z
     id: z.string(),
     password: z.union([z.string(), z.undefined()]),
     onlineMeetingUrl: z.string().nullable(),
+    iCalUID: z.string().optional(),
   })
   .passthrough();
 

@@ -6,7 +6,7 @@ import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -36,6 +36,7 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -51,121 +52,12 @@ import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
-
-function redirectToExternalUrl(url: string) {
-  window.parent.location.href = url;
-}
-
-/**
- * Redirects to external URL with query params from current URL.
- * Query Params and Hash Fragment if present in external URL are kept intact.
- */
-function RedirectionToast({ url }: { url: string }) {
-  const [timeRemaining, setTimeRemaining] = useState(10);
-  const [isToastVisible, setIsToastVisible] = useState(true);
-
-  const { t } = useLocale();
-  const timerRef = useRef<number | null>(null);
-  const router = useRouter();
-  const { cancel: isCancellationMode } = querySchema.parse(router.query);
-  const urlWithSuccessParamsRef = useRef<string | null>();
-  if (isCancellationMode && timerRef.current) {
-    setIsToastVisible(false);
-  }
-
-  useEffect(() => {
-    if (!isToastVisible && timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-  }, [isToastVisible]);
-
-  useEffect(() => {
-    const parsedExternalUrl = new URL(url);
-
-    const parsedSuccessUrl = new URL(document.URL);
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-    for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
-      parsedSuccessUrl.searchParams.set(name, value);
-    }
-
-    const urlWithSuccessParams =
-      parsedExternalUrl.origin +
-      parsedExternalUrl.pathname +
-      "?" +
-      parsedSuccessUrl.searchParams.toString() +
-      parsedExternalUrl.hash;
-    urlWithSuccessParamsRef.current = urlWithSuccessParams;
-
-    timerRef.current = window.setInterval(() => {
-      if (timeRemaining > 0) {
-        setTimeRemaining((timeRemaining) => {
-          return timeRemaining - 1;
-        });
-      } else {
-        redirectToExternalUrl(urlWithSuccessParams);
-        window.clearInterval(timerRef.current as number);
-      }
-    }, 1000);
-    return () => {
-      window.clearInterval(timerRef.current as number);
-    };
-  }, [timeRemaining, url]);
-
-  if (!isToastVisible) {
-    return null;
-  }
-
-  return (
-    <>
-      <div className="relative z-[60] pb-2 sm:pb-5">
-        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
-          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
-            <div className="flex flex-wrap items-center justify-between">
-              <div className="flex w-0 flex-1 items-center">
-                <p className="truncate font-medium text-white sm:mx-3">
-                  <span className="md:hidden">Redirecting to {url} ...</span>
-                  <span className="hidden md:inline">
-                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
-                  </span>
-                </p>
-              </div>
-              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
-                <button
-                  onClick={() => {
-                    if (urlWithSuccessParamsRef.current) {
-                      redirectToExternalUrl(urlWithSuccessParamsRef.current);
-                    }
-                  }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
-                  {t("continue")}
-                </button>
-              </div>
-              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsToastVisible(false);
-                  }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <FiX className="h-6 w-6 text-white" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -176,13 +68,14 @@ const stringToBoolean = z
 
 const querySchema = z.object({
   uid: z.string(),
-  allRemainingBookings: stringToBoolean,
+  email: z.string().optional(),
+  eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
-  email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -266,7 +159,11 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
+  // Confirmation can be needed in two cases as of now
+  // - Event Type has require confirmation option enabled always
+  // - EventType has conditionally enabled confirmation option based on how far the booking is scheduled.
+  // - It's a paid event and payment is pending.
+  const needsConfirmation = bookingInfo.status === BookingStatus.PENDING;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
 
   const isCancelled =
@@ -400,9 +297,6 @@ export default function Success(props: SuccessProps) {
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl} />
-          ) : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -485,7 +379,7 @@ export default function Success(props: SuccessProps) {
                       </>
                     )}
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
+                    <div className="col-span-2 mb-6 last:mb-0">{props.bookingInfo.title}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
                       {reschedule && !!formerTime && (
@@ -527,7 +421,7 @@ export default function Success(props: SuccessProps) {
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
-                            <div key={attendee.name} className="mb-3 last:mb-0">
+                            <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                               {attendee.name && <p>{attendee.name}</p>}
                               <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
                                 {attendee.email}
@@ -565,7 +459,8 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-
+                  </div>
+                  <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                     {Object.entries(bookingInfo.responses).map(([name, response]) => {
                       const field = eventType.bookingFields.find((field) => field.name === name);
                       // We show location in the "where" section
@@ -580,15 +475,10 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <div className="mt-9 font-medium">{label}</div>
-                          <div className="col-span-2 mb-2 mt-9">
-                            <p
-                              className="break-words"
-                              data-testid="field-response"
-                              data-fob-field={field.name}>
-                              {response.toString()}
-                            </p>
-                          </div>
+                          <div className="mt-4 font-medium">{label}</div>
+                          <p className="break-words" data-testid="field-response" data-fob-field={field.name}>
+                            {response.toString()}
+                          </p>
                         </>
                       );
                     })}
@@ -981,13 +871,6 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const schema = z.object({
-  uid: z.string(),
-  email: z.string().optional(),
-  eventTypeSlug: z.string().optional(),
-  cancel: stringToBoolean,
-});
-
 const handleSeatsEventTypeOnBooking = (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -1017,9 +900,9 @@ const handleSeatsEventTypeOnBooking = (
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const parsedQuery = schema.safeParse(context.query);
+  const parsedQuery = querySchema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1087,8 +970,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw, eventTypeRaw);
-
+  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
@@ -1117,7 +999,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
+  if (eventType.successRedirectUrl && isSuccessBookingPage && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,
