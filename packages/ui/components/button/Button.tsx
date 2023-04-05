@@ -62,8 +62,6 @@ const buttonClasses = cva(
         true: "cursor-not-allowed",
       },
     },
-    // FIXME
-    // TODO: come back to this and fix before merging. Buttons are all over the shop some use brand colour some use gray.
     compoundVariants: [
       // Primary variants
       ...applyStyleToMultipleVariants({
