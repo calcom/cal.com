@@ -7,7 +7,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
@@ -31,7 +30,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  //delete all scheduled email reminders where scheduled is past current date
+  //delete batch_ids with already past scheduled date from scheduled_sends
+  const remindersToDelete = await prisma.workflowReminder.findMany({
+    where: {
+      method: WorkflowMethods.EMAIL,
+      cancelled: true,
+      scheduledDate: {
+        lte: dayjs().toISOString(),
+      },
+    },
+  });
+
+  for (const reminder of remindersToDelete) {
+    try {
+      await client.request({
+        url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.log(`Error deleting batch id from scheduled_sends: ${error}`);
+    }
+  }
+
   await prisma.workflowReminder.deleteMany({
     where: {
       method: WorkflowMethods.EMAIL,
@@ -45,16 +65,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const remindersToCancel = await prisma.workflowReminder.findMany({
     where: {
       cancelled: true,
+      scheduled: true, //if it is false then they are already cancelled
       scheduledDate: {
         lte: dayjs().add(1, "hour").toISOString(),
       },
     },
   });
 
-  try {
-    const workflowRemindersToDelete: Prisma.Prisma__WorkflowReminderClient<WorkflowReminder, never>[] = [];
-
-    for (const reminder of remindersToCancel) {
+  for (const reminder of remindersToCancel) {
+    try {
       await client.request({
         url: "/v3/user/scheduled_sends",
         method: "POST",
@@ -64,17 +83,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      const workflowReminderToDelete = prisma.workflowReminder.delete({
+      await prisma.workflowReminder.update({
         where: {
           id: reminder.id,
         },
+        data: {
+          scheduled: false, // to know which reminder already got cancelled (to avoid error from cancelling the same reminders again)
+        },
       });
-
-      workflowRemindersToDelete.push(workflowReminderToDelete);
+    } catch (error) {
+      console.log(`Error cancelling scheduled Emails: ${error}`);
     }
-    await Promise.all(workflowRemindersToDelete);
-  } catch (error) {
-    console.log(`Error cancelling scheduled Emails: ${error}`);
   }
 
   //find all unscheduled Email reminders

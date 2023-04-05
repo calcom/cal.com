@@ -13,7 +13,7 @@ const deletePayment = async (
     } | null;
   }
 ): Promise<boolean> => {
-  const paymentApp = appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
+  const paymentApp = await appStore[paymentAppCredentials?.app?.dirName as keyof typeof appStore];
   if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
     console.warn(`payment App service of type ${paymentApp} is not implemented`);
     return false;
