@@ -218,5 +218,12 @@
     "slug": "cron",
     "type": "cron_other",
     "isTemplate": false
+  },
+  {
+    "dirName": "google-tag-manager",
+    "categories": ["analytics"],
+    "slug": "google-tag-manager",
+    "type": "google-tag-manager_analytics",
+    "isTemplate": false
   }
 ]
