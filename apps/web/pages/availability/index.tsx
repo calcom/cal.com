@@ -92,14 +92,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 }}
                 key={schedule.id}
                 schedule={schedule}
+                isDeletable={schedules.length !== 1}
                 updateDefault={updateMutation.mutate}
-                deleteFunction={() => {
-                  if (schedules.length === 1) {
-                    showToast(t("requires_at_least_one_schedule"), "error");
-                  } else {
-                    deleteMutation.mutate;
-                  }
-                }}
+                deleteFunction={deleteMutation.mutate}
               />
             ))}
           </ul>
