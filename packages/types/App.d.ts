@@ -135,7 +135,11 @@ export interface App {
   licenseRequired?: boolean;
   isProOnly?: boolean;
   appData?: AppData;
-  dirName: string;
+  /**
+   * @deprecated
+   * Used only by legacy apps which had slug different from their directory name.
+   */
+  dirName?: string;
   isTemplate?: boolean;
   __template?: string;
   /** Slug of an app needed to be installed before the current app can be added */

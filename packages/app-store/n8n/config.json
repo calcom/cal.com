@@ -11,6 +11,5 @@
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
   "description": "Automate without limits. The workflow automation platform that doesn't box you in, that you never outgrow",
-  "__createdUsingCli": true,
-  "dirName": "n8n"
+  "__createdUsingCli": true
 }

@@ -24,6 +24,5 @@
     }
   },
   "description": "Simple, privacy-friendly Google Analytics alternative.",
-  "__createdUsingCli": true,
-  "dirName": "plausible"
+  "__createdUsingCli": true
 }

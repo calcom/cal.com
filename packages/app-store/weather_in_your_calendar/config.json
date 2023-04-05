@@ -11,6 +11,5 @@
   "publisher": "vejnoe",
   "email": "info@vejnoe.dk",
   "description": "Get the local weather forecast with icons in your calendar\r\r",
-  "__createdUsingCli": true,
-  "dirName": "weather_in_your_calendar"
+  "__createdUsingCli": true
 }

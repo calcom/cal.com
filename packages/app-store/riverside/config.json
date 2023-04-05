@@ -19,6 +19,5 @@
       "type": "integrations:riverside_video",
       "linkType": "static"
     }
-  },
-  "dirName": "riverside"
+  }
 }

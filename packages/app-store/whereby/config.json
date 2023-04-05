@@ -21,6 +21,5 @@
       "organizerInputPlaceholder": "https://www.whereby.com/cal",
       "urlRegExp": "^(?:https?://)?(?:(?!.*-\\.)(?:\\w+(-\\w+)*\\.))*whereby\\.com(/[\\w\\-._~:?#\\[\\]@!$&'()*+,;%=]+)*$"
     }
-  },
-  "dirName": "whereby"
+  }
 }

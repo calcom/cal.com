@@ -24,6 +24,5 @@
     }
   },
   "description": "Fathom Analytics provides simple, privacy-focused website analytics. We're a GDPR-compliant, Google Analytics alternative.",
-  "__createdUsingCli": true,
-  "dirName": "fathom"
+  "__createdUsingCli": true
 }
