@@ -50,7 +50,7 @@ const Switch = (
           <Label.Root
             htmlFor={id}
             className={classNames(
-              "text-emphasis dark:text-inverted align-text-top text-sm font-medium ltr:ml-2 rtl:mr-2",
+              "text-emphasis align-text-top text-sm font-medium ltr:ml-2 rtl:mr-2",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
             )}>
             {label}
