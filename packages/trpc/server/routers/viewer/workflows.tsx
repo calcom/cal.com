@@ -655,6 +655,9 @@ export const workflowsRouter = router({
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
+                  eventType: {
+                    slug: booking.eventType?.slug,
+                  },
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
@@ -849,6 +852,9 @@ export const workflowsRouter = router({
                 endTime: booking.endTime.toISOString(),
                 title: booking.title,
                 language: { locale: booking?.user?.locale || "" },
+                eventType: {
+                  slug: booking.eventType?.slug,
+                },
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
@@ -976,6 +982,9 @@ export const workflowsRouter = router({
                   endTime: booking.endTime.toISOString(),
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
+                  eventType: {
+                    slug: booking.eventType.slug,
+                  },
                 };
 
                 if (
