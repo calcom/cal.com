@@ -207,15 +207,13 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
       {
-        // Excludes the new-booker pages from the rewrite,
-        // because otherwise this would case an infinite loop.
-        source: `/:user((?!${pages.join("|")}).*)/:type((?!new-booker).*)`,
-        destination: "/:user/new-booker/:type",
+        source: `/:user((?!${pages.join("|")}).*)/:type`,
+        destination: "/new-booker/:user/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
       {
-        source: "/team/:slug/:type((?!new-booker).*)",
-        destination: "/team/:slug/new-booker/:type",
+        source: "/team/:slug/:type",
+        destination: "/new-booker/team/:slug/:type",
         has: [{ type: "cookie", key: "new-booker-enabled" }],
       },
     ];

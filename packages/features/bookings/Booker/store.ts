@@ -123,7 +123,19 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().rescheduleBooking?.responses.email === rescheduleBooking?.responses.email
     )
       return;
-    set({ username, eventSlug, eventId, rescheduleUid, rescheduleBooking });
+    set({
+      username,
+      eventSlug,
+      eventId,
+      rescheduleUid,
+      rescheduleBooking,
+      // Also resets other values to null, to prevent old values
+      // from sticking around. Mainly occurs if you book a meeting and
+      // immediately reschedule it, since store then keeps 'old' date.
+      // By resetting them we prevent them from sticking around.
+      selectedTimeslot: null,
+      selectedDuration: null,
+    });
     if (month) set({ month });
   },
   selectedDuration: Number(getQueryParam("duration")) || null,
