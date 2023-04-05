@@ -11,17 +11,25 @@ sgMail.setApiKey(sendgridAPIKey);
 
 const requestQuerySchema = z.object({
   sendTo: z.string(),
-  fullName: z.string(),
+  fullName: z.string().nullable(),
   videoUrl: z.string(),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("RE", req);
-  const { sendTo, fullName, videoUrl } = requestQuerySchema.parse(req.body);
+  console.log("REQ", req.body);
+  const reqBody = requestQuerySchema.safeParse(req.body);
+
+  if (!reqBody.success) {
+    return res.status(400).json({ error: reqBody.error });
+  }
+
+  const { sendTo, fullName, videoUrl } = reqBody.data;
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
+
+  // User a template here
   try {
     await sgMail.send({
       to: sendTo,
@@ -30,7 +38,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       subject: "Check this out",
       text: `Hey ${fullName} Check this video ${videoUrl}`,
-      //  batchId: batchIdResponse[1].batch_id,
     });
   } catch (err) {
     console.log("err", err);
