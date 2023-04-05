@@ -51,7 +51,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
             <DialogHeader title={t("charge_card")} />
             <Trans i18nKey="charge_card_dialog_body">
               <p className="text-sm text-gray-500">
-                You are about to charge the user{" "}
+                You are about to charge the attendee{" "}
                 <IntlProvider locale="en">
                   <FormattedNumber
                     value={props.paymentAmount / 100.0}
