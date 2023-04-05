@@ -1,17 +1,16 @@
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Tooltip } from "@calcom/ui";
-import { FiX } from "@calcom/ui/components/icon";
 
 import { DateSelect } from "./DateSelect";
-import { EventTypeListInTeam } from "./EventTypeListInTeam";
+import { EventTypeList } from "./EventTypeList";
 import { FilterType } from "./FilterType";
-import { TeamList } from "./TeamList";
+import { TeamAndSelfList } from "./TeamAndSelfList";
 import { UserListInTeam } from "./UsersListInTeam";
 
 const ClearFilters = () => {
   const { t } = useLocale();
-  const { filter, setSelectedUserId, setSelectedFilter, setSelectedEventTypeId } = useFilterContext();
+  const { filter, clearFilters } = useFilterContext();
   const { selectedFilter } = filter;
 
   if (!selectedFilter || selectedFilter?.length < 1) return null;
@@ -23,14 +22,12 @@ const ClearFilters = () => {
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        StartIcon={FiX}
         className="h-[38px]"
         onClick={() => {
-          setSelectedFilter(null);
-          setSelectedUserId(null);
-          setSelectedEventTypeId(null);
-        }}
-      />
+          clearFilters();
+        }}>
+        {t("clear_filters")}
+      </Button>
     </Tooltip>
   );
 };
@@ -38,13 +35,13 @@ const ClearFilters = () => {
 export const Filters = () => {
   return (
     <div className="mt-2 flex flex-col flex-wrap gap-2 md:flex-row lg:flex-nowrap">
-      <TeamList />
+      <TeamAndSelfList />
 
       <FilterType />
 
       <UserListInTeam />
 
-      <EventTypeListInTeam />
+      <EventTypeList />
 
       <DateSelect />
 

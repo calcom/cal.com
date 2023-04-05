@@ -122,10 +122,10 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       (ref) => !!credentialsMap.get(ref.type)
     );
     try {
-      bookingRefsFiltered.forEach((bookingRef) => {
+      bookingRefsFiltered.forEach(async (bookingRef) => {
         if (bookingRef.uid) {
           if (bookingRef.type.endsWith("_calendar")) {
-            const calendar = getCalendar(credentialsMap.get(bookingRef.type));
+            const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
             return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
           } else if (bookingRef.type.endsWith("_video")) {
             return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
