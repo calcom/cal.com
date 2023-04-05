@@ -190,16 +190,6 @@ const useGetBrandingColours = ({
       "cal-brand-subtle": darkColourMap["800"],
       "cal-brand-text": getWCAGContrastColor(darkColourMap["500"]),
     },
-    // @hariom - are these needed still? Can we move these to tokens?
-    root: {
-      "booking-highlight-color": embedBrandingColors.highlightColor || "#10B981",
-      "booking-lightest-color": embedBrandingColors.lightestColor || "#E1E1E1",
-      "booking-lighter-color": embedBrandingColors.lighterColor || "#ACACAC",
-      "booking-light-color": embedBrandingColors.lightColor || "#888888",
-      "booking-median-color": embedBrandingColors.medianColor || "#494949",
-      "booking-dark-color": embedBrandingColors.darkColor || "#313131",
-      "booking-darker-color": embedBrandingColors.darkerColor || "#292929",
-    },
   };
   return theme;
 };
