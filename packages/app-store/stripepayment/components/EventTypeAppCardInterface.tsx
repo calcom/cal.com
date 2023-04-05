@@ -60,7 +60,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
         ) : (
           requirePayment && (
-            <div className="mt-2 block items-center space-x-2 sm:flex">
+            <div className="mt-2 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
                 label=""
                 addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
@@ -87,6 +87,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 onChange={(input) => {
                   if (input) setAppData("paymentOption", input.value);
                 }}
+                className="mb-1 w-full"
               />
             </div>
           )
