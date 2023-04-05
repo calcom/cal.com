@@ -1,7 +1,28 @@
 .custom-date > .tremor-DateRangePicker-root > .tremor-DateRangePicker-button {
   box-shadow: none;
+  max-width: 288px;
 }
 
 .tremor-DateRangePicker-calendarButton, .tremor-DateRangePicker-dropdownButton {
   @apply dark:bg-darkgray-100 dark:border-darkgray-300 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900
+}
+
+
+.tremor-Card-root{
+  @apply p-5
+}
+
+.tremor-TableCell-root{
+  @apply pl-0
+}
+
+.recharts-responsive-container{
+  @apply -mx-4
+}
+.tremor-Card-root > p {
+  @apply text-base font-semibold text-black mb-2
+}
+
+.tremor-Legend-legendItem{
+  @apply ml-2
 }

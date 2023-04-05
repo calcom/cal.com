@@ -6,22 +6,36 @@ import { trpc } from "@calcom/trpc";
 import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
+import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { selectedTeamId, selectedTimeView = "week", dateRange, selectedEventTypeId } = filter;
+  const {
+    selectedTeamId,
+    selectedUserId,
+    selectedTimeView = "week",
+    dateRange,
+    selectedEventTypeId,
+  } = filter;
   const [startDate, endDate] = dateRange;
 
   if (!startDate || !endDate) return null;
 
-  const { data: eventsTimeLine, isSuccess } = trpc.viewer.insights.eventsTimeline.useQuery({
+  const {
+    data: eventsTimeLine,
+    isSuccess,
+    isLoading,
+  } = trpc.viewer.insights.eventsTimeline.useQuery({
     timeView: selectedTimeView,
     startDate: startDate.toISOString(),
     endDate: endDate.toISOString(),
-    teamId: selectedTeamId || -1,
+    teamId: selectedTeamId ?? undefined,
     eventTypeId: selectedEventTypeId ?? undefined,
+    userId: selectedUserId ?? undefined,
   });
+
+  if (isLoading) return <LoadingInsight />;
 
   if (!isSuccess) return null;
 

@@ -30,7 +30,7 @@ export const TotalBookingUsersTable = ({
                     <strong>{item.user.name}</strong>
                   </p>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <Text>
                     <strong>{item.count}</strong>
                   </Text>
