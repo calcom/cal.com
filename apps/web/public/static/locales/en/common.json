@@ -1708,7 +1708,7 @@
   "no_show_fee_charged_email_subject": "No-show fee of {{amount, currency}} charged for {{title}} at {{date}}",
   "no_show_fee_charged_text_body": "No-show fee was charged",
   "no_show_fee_charged_subtitle": "No-show fee of {{amount, currency}} was charged for the following event",
-  "error_charging_card": "Error charging no-show fee. Please try again later.",
+  "error_charging_card": "Something went wrong charging the no-show fee. Please try again later.",
   "collect_no_show_fee": "Collect no-show fee",
   "no_show_fee_charged": "No-show fee charged",
   "insights": "Insights",
