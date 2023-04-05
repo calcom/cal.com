@@ -169,7 +169,7 @@ const BookerComponent = ({ username, eventSlug, month, rescheduleBooking }: Book
             </BookerSection>
           </AnimatePresence>
         </m.div>
-        <span className="mt-auto mb-6">
+        <span className="mt-auto mb-6 dark:[&_img]:invert">
           <Logo small />
         </span>
       </div>
