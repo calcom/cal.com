@@ -67,7 +67,7 @@ export async function handleConfirmation(args: {
   let updatedBookings: {
     scheduledJobs: string[];
     id: number;
-    description: string;
+    description: string | null;
     location: string | null;
     attendees: {
       name: string;
@@ -77,15 +77,15 @@ export async function handleConfirmation(args: {
     endTime: Date;
     uid: string;
     smsReminderNumber: string | null;
-    metadata: Prisma.JsonObject | null;
-    customInputs: Prisma.JsonObject;
-    responses: Prisma.JsonObject;
+    metadata: Prisma.JsonValue | null;
+    customInputs: Prisma.JsonValue;
+    responses: Prisma.JsonValue;
     eventType: {
-      bookingFields: Prisma.JsonObject | null;
+      bookingFields: Prisma.JsonValue | null;
       slug: string;
       owner: {
         hideBranding?: boolean | null;
-      };
+      } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
           steps: WorkflowStep[];
@@ -152,6 +152,7 @@ export async function handleConfirmation(args: {
         },
       })
     );
+
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
   } else {
@@ -228,7 +229,7 @@ export async function handleConfirmation(args: {
           false,
           false,
           isFirstBooking,
-          !!updatedBookings[index].eventType?.owner.hideBranding
+          !!updatedBookings[index].eventType?.owner?.hideBranding
         );
       }
     }

@@ -14,7 +14,7 @@ export type VariablesType = {
   timeZone?: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: CalEventResponses;
+  responses?: CalEventResponses | null;
   meetingUrl?: string;
   cancelLink?: string;
   rescheduleLink?: string;
@@ -64,7 +64,7 @@ const customTemplate = (
     return variable.replace("{", "").replace("}", "");
   });
 
-  //and event date/time with formatting
+  // event date/time with formatting
   customInputvariables?.forEach((variable) => {
     if (variable.startsWith("EVENT_DATE_")) {
       const dateFormat = variable.substring(11, text.length);

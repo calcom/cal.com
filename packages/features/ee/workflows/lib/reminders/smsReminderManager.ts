@@ -37,7 +37,7 @@ export type BookingInfo = {
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: CalEventResponses;
+  responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
 };
 
@@ -97,6 +97,7 @@ export const scheduleSMSReminder = async (
       ? evt.attendees[0].language?.locale
       : evt.organizer.language.locale;
 
+  // todo always use custom template
   switch (template) {
     case WorkflowTemplates.REMINDER:
       message =
