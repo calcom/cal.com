@@ -112,11 +112,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-      const reminderBodyTemplate = emailReminderTemplate(
-        true,
-        form.getValues(`steps.${step.stepNumber - 1}.action`)
-      ).emailBody;
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
+      if (isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) {
+        const smsBody = smsReminderTemplate(true, form.getValues(`steps.${step.stepNumber - 1}.action`));
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, smsBody);
+      } else {
+        const reminderBodyTemplate = emailReminderTemplate(
+          true,
+          form.getValues(`steps.${step.stepNumber - 1}.action`)
+        ).emailBody;
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
+      }
     }
     if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
       const subjectTemplate = emailReminderTemplate(
