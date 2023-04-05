@@ -6,6 +6,7 @@ import { Fragment } from "react";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -86,7 +87,7 @@ const CalendarsView = () => {
             <div>
               <div className="bg-muted border-subtle mt-4 flex space-x-4 rounded-md p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
                 <div className=" bg-default border-subtle flex h-9 w-9 items-center justify-center rounded-md border-2 p-[6px]">
-                  <FiCalendar className="h-6 w-6" />
+                  <FiCalendar className="text-default h-6 w-6" />
                 </div>
 
                 <div className="flex w-full flex-col space-y-3">
@@ -146,7 +147,10 @@ const CalendarsView = () => {
                             // eslint-disable-next-line @next/next/no-img-element
                             item.integration.logo && (
                               <img
-                                className="h-10 w-10"
+                                className={classNames(
+                                  "h-10 w-10",
+                                  item.integration.logo.includes("-dark") && "dark:invert"
+                                )}
                                 src={item.integration.logo}
                                 alt={item.integration.title}
                               />

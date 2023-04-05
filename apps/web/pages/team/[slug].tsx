@@ -10,7 +10,6 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -112,7 +111,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
             <>
               <div
                 className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
           )}

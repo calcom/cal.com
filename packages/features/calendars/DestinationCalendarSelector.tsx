@@ -128,7 +128,7 @@ const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
           ) : (
-            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap">
+            <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               {t("default_calendar_selected")}{" "}
               {queryDestinationCalendar.name &&
                 `| ${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}

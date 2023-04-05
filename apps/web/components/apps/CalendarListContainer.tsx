@@ -282,15 +282,15 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <div className="bg-muted border-subtle flex justify-between rounded-md border p-4">
                       <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
                         <div className="bg-default border-subtle relative rounded-md border p-1.5">
-                          <FiCalendar className="h-8 w-8" strokeWidth="1" />
+                          <FiCalendar className="text-default h-8 w-8" strokeWidth="1" />
                           <FiPlus
                             className="text-emphasis absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2"
                             strokeWidth="4"
                           />
                         </div>
                         <div className="md:w-6/12">
-                          <h1 className="text-sm font-semibold">{t("create_events_on")}</h1>
-                          <p className="text-sm font-normal">{t("set_calendar")}</p>
+                          <h1 className="text-emphasis text-sm font-semibold">{t("create_events_on")}</h1>
+                          <p className="text-default text-sm font-normal">{t("set_calendar")}</p>
                         </div>
                         <div className="justify-end md:w-6/12">
                           <DestinationCalendarSelector

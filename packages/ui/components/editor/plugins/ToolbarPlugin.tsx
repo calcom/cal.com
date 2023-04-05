@@ -439,14 +439,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               }}
               className={isBold ? "bg-subtle" : ""}
             />
-            // <button
-            //   type="button"
-            //   onClick={() => {
-
-            //   }}
-            //   className={"toolbar-item spaced rounded-md " + (isBold ? "active" : "")}
-            //   aria-label="Format Bold">
-            // </button>
           )}
           {!props.excludedToolbarItems?.includes("italic") && (
             <Button

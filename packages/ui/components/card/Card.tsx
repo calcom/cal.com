@@ -71,7 +71,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "bg-default border-subtle flex flex-col justify-between rounded-md border"
+        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
       )}
       {...containerProps}>
       <div>
@@ -148,7 +148,6 @@ export function Card({
               onClick={actionButton?.onClick}
               target="_blank"
               rel="noreferrer"
-              prefetch={!learnMore.href.startsWith("https://cal.com/blog")}
               className="text-default text-xs font-medium">
               {learnMore.text}
             </LinkComponent>

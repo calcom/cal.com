@@ -23,7 +23,6 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -137,7 +136,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                 <>
                   <div
                     className="  text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: md.render(user.bio || "") }}
+                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
                 </>
               )}

@@ -205,7 +205,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <a
           onClick={() => onHelpItemSelect()}
           className="hover:text-emphasis text-defualt font-medium underline"
-          href="https://docs.cal.com/"
+          href="https://cal.com/docs"
           target="_blank"
           rel="noreferrer">
           {t("browse_our_docs")}
