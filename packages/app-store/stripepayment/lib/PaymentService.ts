@@ -215,8 +215,6 @@ export class PaymentService implements IAbstractPaymentService {
         stripeAccount: this.credentials.stripe_user_id,
       });
 
-      console.log(typeof payment.data);
-
       const paymentData = await prisma.payment.update({
         where: {
           id: payment.id,

@@ -126,41 +126,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
-  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
-    onSuccess: async () => {
-      showToast(
-        t("event_type_updated_successfully", {
-          eventTypeTitle: eventType.title,
-        }),
-        "success"
-      );
-    },
-    async onSettled() {
-      await utils.viewer.eventTypes.get.invalidate();
-    },
-    onError: (err) => {
-      let message = "";
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        message = `${err.data.code}: You are not able to update this event`;
-      }
-
-      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
-        message = `${err.data.code}: ${err.message}`;
-      }
-
-      if (message) {
-        showToast(message, "error");
-      } else {
-        showToast(err.message, "error");
-      }
-    },
-  });
-
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
     endDate: new Date(eventType.periodEndDate || Date.now()),
@@ -233,6 +198,48 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         // TODO: Add schema for other fields later.
         .passthrough()
     ),
+  });
+
+  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
+    onSuccess: async () => {
+      showToast(
+        t("event_type_updated_successfully", {
+          eventTypeTitle: eventType.title,
+        }),
+        "success"
+      );
+    },
+    async onSettled() {
+      await utils.viewer.eventTypes.get.invalidate();
+    },
+    onError: (err) => {
+      let message = "";
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: You are not able to update this event`;
+      }
+
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+        message = `${err.data.code}: ${err.message}`;
+      }
+
+      if (message) {
+        showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
+      }
+
+      console.log(formMethods.formState.isSubmitting);
+
+      // formMethods.setFormState((prevState) => ({
+      //   ...prevState,
+      //   isSubmitting: false,
+      // }));
+    },
   });
 
   useEffect(() => {
@@ -335,6 +342,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 throw new Error(t("event_setup_multiple_duration_default_error"));
               }
             }
+          }
+
+          if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
+            throw new Error(t("seats_and_no_show_fee_error"));
           }
 
           updateMutation.mutate({

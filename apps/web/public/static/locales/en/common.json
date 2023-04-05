@@ -1715,5 +1715,6 @@
   "insights_no_data_found_for_filter": "No data found for the selected filter or selected dates.",
   "acknowledge_booking_no_show_fee": "I acknowledge that if I do not attend this event that a {{amount, currency}} no show fee will be applied to my card.",
   "card_details": "Card details",
+  "seats_and_no_show_fee_error": "Currently cannot enable seats and charge a no-show fee",
   "email_invite_team": "{{email}} has been invited"
 }

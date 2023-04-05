@@ -60,36 +60,41 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
         ) : (
           requirePayment && (
-            <div className="mt-2 block items-center justify-start sm:flex sm:space-x-2">
-              <TextField
-                label=""
-                addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
-                step="0.01"
-                min="0.5"
-                type="number"
-                required
-                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                placeholder="Price"
-                onChange={(e) => {
-                  setAppData("price", Number(e.target.value) * 100);
-                }}
-                value={price > 0 ? price / 100 : undefined}
-              />
-              <Select<Option>
-                defaultValue={
-                  paymentOptionSelectValue
-                    ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
-                    : { ...paymentOptions[0], label: t(paymentOptions[0].label) }
-                }
-                options={paymentOptions.map((option) => {
-                  return { ...option, label: t(option.label) || option.label };
-                })}
-                onChange={(input) => {
-                  if (input) setAppData("paymentOption", input.value);
-                }}
-                className="mb-1 w-full"
-              />
-            </div>
+            <>
+              <div className="mt-2 block items-center justify-start sm:flex sm:space-x-2">
+                <TextField
+                  label=""
+                  addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
+                  step="0.01"
+                  min="0.5"
+                  type="number"
+                  required
+                  className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
+                  placeholder="Price"
+                  onChange={(e) => {
+                    setAppData("price", Number(e.target.value) * 100);
+                  }}
+                  value={price > 0 ? price / 100 : undefined}
+                />
+                <Select<Option>
+                  defaultValue={
+                    paymentOptionSelectValue
+                      ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
+                      : { ...paymentOptions[0], label: t(paymentOptions[0].label) }
+                  }
+                  options={paymentOptions.map((option) => {
+                    return { ...option, label: t(option.label) || option.label };
+                  })}
+                  onChange={(input) => {
+                    if (input) setAppData("paymentOption", input.value);
+                  }}
+                  className="mb-1 w-full"
+                />
+              </div>
+              {eventType.seatsPerTimeSlot && (
+                <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
+              )}
+            </>
           )
         )}
       </>
