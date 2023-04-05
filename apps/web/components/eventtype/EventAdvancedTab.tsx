@@ -151,7 +151,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         formProp="bookingFields"
         dataStore={{
           options: {
-            locations: getLocationsOptionsForSelect(eventType.locations, t),
+            locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
           },
         }}
       />
