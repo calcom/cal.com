@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -36,7 +37,7 @@ export type BookingInfo = {
   title: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: Prisma.JsonValue;
+  responses?: CalEventResponses;
   metadata?: Prisma.JsonValue;
 };
 

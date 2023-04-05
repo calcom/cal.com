@@ -15,7 +15,6 @@ const emailReminderTemplate = (
   isBrandingDisabled?: boolean
 ) => {
   let eventDate = "";
-  let eventDateSMS = "";
 
   if (isEditingMode) {
     endTime = "{EVENT_END_TIME}";
@@ -24,7 +23,6 @@ const emailReminderTemplate = (
     attendee = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
-    eventDateSMS = "{EVENT_DATE_ddd, MMM D, YYYY H:mmA}";
   } else {
     eventDate = dayjs(startTime).tz(timeZone).format("ddd, MMM D, YYYY H:mmA");
 

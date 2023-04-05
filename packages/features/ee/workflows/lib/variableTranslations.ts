@@ -42,7 +42,6 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
   return translatedText;
 }
 
-//now we also need to do the same thing here
 export function translateVariablesToEnglish(text: string, language: { locale: string; t: TFunction }) {
   let newText = text;
 
@@ -64,6 +63,13 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
             language.t(originalVariable, { lng: "en" }).replace(/ /g, "_").toUpperCase()
           );
           return;
+        }
+      });
+
+      FORMATTED_DYNAMIC_TEXT_VARIABLES.forEach((formattedVar) => {
+        const translatedVariable = language.t(`${formattedVar}variable`).replace(/ /g, "_").toUpperCase();
+        if (variable.startsWith(translatedVariable)) {
+          newText = newText.replace(translatedVariable, formattedVar.slice(0, -1).toUpperCase());
         }
       });
     });
