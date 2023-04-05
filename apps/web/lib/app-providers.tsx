@@ -28,6 +28,7 @@ export type AppProps = Omit<NextAppProps<WithNonceProps & Record<string, unknown
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
+    isBookingPage?: boolean;
     getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
 
@@ -61,36 +62,58 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   return <I18nextAdapter {...passedProps} />;
 };
 
+const enum ThemeSupport {
+  None = "none",
+  App = "systemOnly",
+  Booking = "userConfigured",
+}
+
 const CalcomThemeProvider = (
   props: PropsWithChildren<
-    WithNonceProps & { isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean) }
+    WithNonceProps & {
+      isBookingPage?: boolean | ((arg: { router: NextRouter }) => boolean);
+      isThemeSupported?: boolean;
+    }
   >
 ) => {
   // We now support the inverse of how we handled it in the past. Setting this to false will disable theme.
   // undefined or true means we use system theme
   const router = useRouter();
-  const isThemeSupported = (() => {
-    if (typeof props.isThemeSupported === "function") {
-      return props.isThemeSupported({ router: router });
+  const isBookingPage = (() => {
+    if (typeof props.isBookingPage === "function") {
+      return props.isBookingPage({ router: router });
     }
-    if (typeof props.isThemeSupported === "undefined") {
-      return true;
-    }
-    return props.isThemeSupported;
+
+    return props.isBookingPage;
   })();
 
-  const forcedTheme = !isThemeSupported ? "light" : undefined;
+  const themeSupport = isBookingPage
+    ? ThemeSupport.Booking
+    : props.isThemeSupported === false
+    ? ThemeSupport.None
+    : ThemeSupport.App;
+
+  const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   // Use namespace of embed to ensure same namespaced embed are displayed with same theme. This allows different embeds on the same website to be themed differently
   // One such example is our Embeds Demo and Testing page at http://localhost:3100
   // Having `getEmbedNamespace` defined on window before react initializes the app, ensures that embedNamespace is available on the first mount and can be used as part of storageKey
   const embedNamespace = typeof window !== "undefined" ? window.getEmbedNamespace() : null;
-  const storageKey = typeof embedNamespace === "string" ? `embed-theme-${embedNamespace}` : "theme";
+  const storageKey =
+    typeof embedNamespace === "string"
+      ? `embed-theme-${embedNamespace}`
+      : themeSupport === ThemeSupport.App
+      ? "app-theme"
+      : themeSupport === ThemeSupport.Booking
+      ? "booking-theme"
+      : undefined;
+
+  console.log("storageKey", storageKey);
 
   return (
     <ThemeProvider
       nonce={props.nonce}
       enableColorScheme={false}
-      enableSystem={isThemeSupported}
+      enableSystem={themeSupport !== ThemeSupport.None}
       forcedTheme={forcedTheme}
       storageKey={storageKey}
       attribute="class">
@@ -117,7 +140,8 @@ const AppProviders = (props: AppPropsWithChildren) => {
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
               nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}>
+              isThemeSupported={props.Component.isThemeSupported}
+              isBookingPage={props.Component.isBookingPage}>
               <FeatureFlagsProvider>
                 <MetaProvider>{props.children}</MetaProvider>
               </FeatureFlagsProvider>
