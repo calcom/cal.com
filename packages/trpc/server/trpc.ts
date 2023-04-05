@@ -3,6 +3,7 @@ import type z from "zod";
 import type { ZodType } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
+import type { Optional } from "@calcom/types/utils";
 
 import { initTRPC, TRPCError } from "@trpc/server";
 
@@ -80,8 +81,7 @@ export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOp
     .use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));
 
 export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
-
 export type TRPCEndpointOptions<I extends ZodType> = {
-  ctx: Omit<TRPCContext, "req" | "res"> & Partial<Pick<TRPCContext, "req" | "res">>;
+  ctx: Optional<TRPCContext, "req" | "res"> & { user: NonNullable<TRPCContext["user"]> };
   input: z.infer<I>;
 };
