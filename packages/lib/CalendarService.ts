@@ -312,11 +312,8 @@ export default abstract class BaseCalendarService implements Calendar {
     });
 
     const events: { start: string; end: string }[] = [];
-    console.log("objects==> ", objects);
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
-      console.log("object.data", JSON.stringify(object));
-      console.log("selectedCalendars", JSON.stringify(selectedCalendars));
       let vcalendar;
       try {
         // maybe confirm that this is a valid calendar object by hitting the following URL like so:
@@ -328,105 +325,107 @@ export default abstract class BaseCalendarService implements Calendar {
         console.error("Error parsing calendar object: ", e);
         return;
       }
-      const vevent = vcalendar.getFirstSubcomponent("vevent");
+      // const vevent = vcalendar.getFirstSubcomponent("vevent");
+      const vevents = vcalendar.getAllSubcomponents("vevent");
+      vevents.forEach((vevent) => {
+        // if event status is free or transparent, return
+        if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
-      // if event status is free or transparent, return
-      if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+        const event = new ICAL.Event(vevent);
+        const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+        const timezone = dtstart ? dtstart["timezone"] : undefined;
+        // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
+        const isUTC = timezone === "Z";
+        const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
+        // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
+        if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
+          const timezoneComp = new ICAL.Component("vtimezone");
+          timezoneComp.addPropertyWithValue("tzid", tzid);
+          const standard = new ICAL.Component("standard");
+          // get timezone offset
+          const tzoffsetfrom = buildUtcOffset(dayjs(event.startDate.toJSDate()).tz(tzid, true).utcOffset());
+          const tzoffsetto = buildUtcOffset(dayjs(event.endDate.toJSDate()).tz(tzid, true).utcOffset());
 
-      const event = new ICAL.Event(vevent);
-      const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
-      const timezone = dtstart ? dtstart["timezone"] : undefined;
-      // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
-      const isUTC = timezone === "Z";
-      const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
-      // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
-      if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
-        const timezoneComp = new ICAL.Component("vtimezone");
-        timezoneComp.addPropertyWithValue("tzid", tzid);
-        const standard = new ICAL.Component("standard");
-        // get timezone offset
-        const tzoffsetfrom = buildUtcOffset(dayjs(event.startDate.toJSDate()).tz(tzid, true).utcOffset());
-        const tzoffsetto = buildUtcOffset(dayjs(event.endDate.toJSDate()).tz(tzid, true).utcOffset());
-        // set timezone offset
-        standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-        standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-        // provide a standard dtstart
-        standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-        timezoneComp.addSubcomponent(standard);
-        vcalendar.addSubcomponent(timezoneComp);
-      }
-      const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+          // set timezone offset
+          standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
+          standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
+          // provide a standard dtstart
+          standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
+          timezoneComp.addSubcomponent(standard);
+          vcalendar.addSubcomponent(timezoneComp);
+        }
+        const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
 
-      if (event.isRecurring()) {
-        let maxIterations = 365;
-        if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-          console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+        if (event.isRecurring()) {
+          let maxIterations = 365;
+          if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
+            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+            return;
+          }
+
+          const start = dayjs(dateFrom);
+          const end = dayjs(dateTo);
+          const startDate = ICAL.Time.fromDateTimeString(startISOString);
+          startDate.hour = event.startDate.hour;
+          startDate.minute = event.startDate.minute;
+          startDate.second = event.startDate.second;
+          const iterator = event.iterator(startDate);
+          let current: ICAL.Time;
+          let currentEvent;
+          let currentStart = null;
+          let currentError;
+
+          while (
+            maxIterations > 0 &&
+            (currentStart === null || currentStart.isAfter(end) === false) &&
+            // this iterator was poorly implemented, normally done is expected to be
+            // returned
+            (current = iterator.next())
+          ) {
+            maxIterations -= 1;
+
+            try {
+              // @see https://github.com/mozilla-comm/ical.js/issues/514
+              currentEvent = event.getOccurrenceDetails(current);
+            } catch (error) {
+              if (error instanceof Error && error.message !== currentError) {
+                currentError = error.message;
+                this.log.error("error", error);
+              }
+            }
+            if (!currentEvent) return;
+            // do not mix up caldav and icalendar! For the recurring events here, the timezone
+            // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
+            // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
+            if (vtimezone) {
+              const zone = new ICAL.Timezone(vtimezone);
+              currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
+              currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
+            }
+            currentStart = dayjs(currentEvent.startDate.toJSDate());
+
+            if (currentStart.isBetween(start, end) === true) {
+              events.push({
+                start: currentStart.toISOString(),
+                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+              });
+            }
+          }
+          if (maxIterations <= 0) {
+            console.warn("could not find any occurrence for recurring event in 365 iterations");
+          }
           return;
         }
 
-        const start = dayjs(dateFrom);
-        const end = dayjs(dateTo);
-        const startDate = ICAL.Time.fromDateTimeString(startISOString);
-        startDate.hour = event.startDate.hour;
-        startDate.minute = event.startDate.minute;
-        startDate.second = event.startDate.second;
-        const iterator = event.iterator(startDate);
-        let current: ICAL.Time;
-        let currentEvent;
-        let currentStart = null;
-        let currentError;
-
-        while (
-          maxIterations > 0 &&
-          (currentStart === null || currentStart.isAfter(end) === false) &&
-          // this iterator was poorly implemented, normally done is expected to be
-          // returned
-          (current = iterator.next())
-        ) {
-          maxIterations -= 1;
-
-          try {
-            // @see https://github.com/mozilla-comm/ical.js/issues/514
-            currentEvent = event.getOccurrenceDetails(current);
-          } catch (error) {
-            if (error instanceof Error && error.message !== currentError) {
-              currentError = error.message;
-              this.log.error("error", error);
-            }
-          }
-          if (!currentEvent) return;
-          // do not mix up caldav and icalendar! For the recurring events here, the timezone
-          // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
-          // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
-          if (vtimezone) {
-            const zone = new ICAL.Timezone(vtimezone);
-            currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
-            currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
-          }
-          currentStart = dayjs(currentEvent.startDate.toJSDate());
-
-          if (currentStart.isBetween(start, end) === true) {
-            events.push({
-              start: currentStart.toISOString(),
-              end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
-            });
-          }
+        if (vtimezone) {
+          const zone = new ICAL.Timezone(vtimezone);
+          event.startDate = event.startDate.convertToZone(zone);
+          event.endDate = event.endDate.convertToZone(zone);
         }
-        if (maxIterations <= 0) {
-          console.warn("could not find any occurrence for recurring event in 365 iterations");
-        }
-        return;
-      }
-
-      if (vtimezone) {
-        const zone = new ICAL.Timezone(vtimezone);
-        event.startDate = event.startDate.convertToZone(zone);
-        event.endDate = event.endDate.convertToZone(zone);
-      }
-
-      return events.push({
-        start: dayjs(event.startDate.toJSDate()).toISOString(),
-        end: dayjs(event.endDate.toJSDate()).toISOString(),
+        return events.push({
+          start: dayjs(event.startDate.toJSDate()).toISOString(),
+          end: dayjs(event.endDate.toJSDate()).toISOString(),
+        });
       });
     });
 
@@ -603,7 +602,6 @@ export default abstract class BaseCalendarService implements Calendar {
             timezone: calendarTimezone,
           };
         });
-
       return events;
     } catch (reason) {
       console.error(reason);
