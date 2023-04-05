@@ -18,9 +18,9 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import getBrandColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
@@ -42,6 +42,7 @@ import {
   Logo,
   SkeletonText,
   showToast,
+  useCalcomTheme,
 } from "@calcom/ui";
 import {
   FiArrowLeft,
@@ -198,9 +199,13 @@ type LayoutProps = {
   smallHeading?: boolean;
 };
 
-const CustomBrandingContainer = () => {
+const useBrandColors = () => {
   const { data: user } = useMeQuery();
-  return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
+  const brandTheme = getBrandColours({
+    lightVal: user?.brandColor,
+    darkVal: user?.darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -217,7 +222,6 @@ const PublicShell = (props: LayoutProps) => {
   const { status } = useSession();
   return (
     <KBarWrapper withKBar={status === "authenticated"}>
-      <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
   );
@@ -227,11 +231,11 @@ export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  useTheme("light");
+  useTheme();
+  useBrandColors();
 
   return !props.isPublic ? (
     <KBarWrapper withKBar>
-      <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
   ) : (
@@ -279,7 +283,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     <Dropdown open={menuOpen}>
       <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
         <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-          <button className="radix-state-open:bg-gray-200 group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+          <button className="radix-state-open:bg-emphasis hover:bg-emphasis group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
                 small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
@@ -303,10 +307,10 @@ function UserDropdown({ small }: { small?: boolean }) {
             {!small && (
               <span className="flex flex-grow items-center truncate">
                 <span className="flex-grow truncate text-sm">
-                  <span className="mb-1 block truncate font-medium leading-none text-gray-900">
+                  <span className="text-emphasis mb-1 block truncate font-medium leading-none">
                     {user.name || "Nameless User"}
                   </span>
-                  <span className="block truncate font-normal leading-none text-gray-600">
+                  <span className="text-default block truncate font-normal leading-none">
                     {user.username
                       ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                         ? `cal.com/${user.username}`
@@ -315,7 +319,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </span>
                 </span>
                 <FiMoreVertical
-                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 ltr:mr-2 rtl:ml-2 rtl:mr-4"
+                  className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 rtl:mr-4"
                   aria-hidden="true"
                 />
               </span>
@@ -331,7 +335,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               setMenuOpen(false);
               setHelpOpen(false);
             }}
-            className="overflow-hidden rounded-md">
+            className="group overflow-hidden rounded-md">
             {helpOpen ? (
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
@@ -340,15 +344,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => (
-                      <FiMoon
-                        className={classNames(
-                          user.away
-                            ? "text-purple-500 group-hover:text-purple-700"
-                            : "text-gray-500 group-hover:text-gray-700",
-                          props.className
-                        )}
-                        aria-hidden="true"
-                      />
+                      <FiMoon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
                       mutation.mutate({ away: !user?.away });
@@ -575,7 +571,7 @@ const Navigation = () => {
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <div className="mt-0.5 text-gray-500 lg:hidden">
+      <div className="text-subtle mt-0.5 lg:hidden">
         <KBarTrigger />
       </div>
     </nav>
@@ -620,17 +616,17 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-gray-900",
+          "hover:bg-emphasis [&[aria-current='page']]:bg-emphasis hover:text-emphasis text-default group flex items-center rounded-md py-2 px-3 text-sm font-medium",
           isChild
-            ? `[&[aria-current='page']]:text-brand-900 hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+            ? `[&[aria-current='page']]:text-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                 props.index === 0 ? "mt-0" : "mt-px"
               }`
-            : "[&[aria-current='page']]:text-brand-900 mt-0.5 text-sm"
+            : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
         )}
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+            className="h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
@@ -664,7 +660,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -693,12 +689,12 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
-      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium text-gray-400 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
         <item.icon
-          className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
+          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit"
           aria-hidden="true"
           aria-current={current ? "page" : undefined}
         />
@@ -720,12 +716,12 @@ const MobileNavigationMoreItem: React.FC<{
 
   return (
     <li className="border-b last:border-b-0" key={item.name}>
-      <Link href={item.href} className="flex items-center justify-between p-5 hover:bg-gray-100">
-        <span className="flex items-center font-semibold text-gray-700 ">
+      <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5">
+        <span className="text-default flex items-center font-semibold ">
           {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
           {isLocaleReady ? t(item.name) : <SkeletonText />}
         </span>
-        <FiArrowRight className="h-5 w-5 text-gray-500" />
+        <FiArrowRight className="text-subtle h-5 w-5" />
       </Link>
     </li>
   );
@@ -746,7 +742,7 @@ function SideBarContainer() {
 function SideBar() {
   return (
     <div className="relative">
-      <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
+      <aside className="desktop-transparent bg-muted border-muted top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types" className="px-2">
@@ -756,20 +752,20 @@ function SideBar() {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
-                <FiArrowLeft className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
+                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                <FiArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
-                <FiArrowRight className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
+                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                <FiArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <KBarTrigger />
             </div>
           </header>
 
-          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+          <hr className="desktop-only border-subtle absolute -left-3 -right-3 mt-4 block w-full" />
 
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
@@ -827,14 +823,14 @@ export function ShellMain(props: LayoutProps) {
               {props.heading && (
                 <h3
                   className={classNames(
-                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-xl font-semibold tracking-wide text-black md:block xl:max-w-full",
+                    "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis hidden truncate text-xl font-semibold tracking-wide md:block xl:max-w-full",
                     props.smallHeading ? "text-base" : "text-xl"
                   )}>
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h3>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-gray-500 md:block">
+                <p className="text-default hidden text-sm md:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -867,7 +863,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="relative z-0 flex-1 bg-white focus:outline-none">
+    <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full py-4 px-4 md:py-8 lg:px-12">
@@ -894,18 +890,18 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
+        className="bg-muted border-subtle sticky top-0 z-40 flex w-full items-center justify-between border-b bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 lg:hidden">
+          <span className="hover:bg-muted hover:text-emphasis text-default group flex items-center rounded-full text-sm font-medium lg:hidden">
             <KBarTrigger />
           </span>
-          <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
+          <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
-              <FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
+              <FiSettings className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
           <UserDropdown small />

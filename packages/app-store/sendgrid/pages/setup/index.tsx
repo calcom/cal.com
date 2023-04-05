@@ -35,14 +35,14 @@ export default function SendgridSetup() {
   }, [testPassed]);
 
   return (
-    <div className="flex h-screen bg-gray-200">
-      <div className="m-auto rounded bg-white p-5 md:w-[520px] md:p-10">
+    <div className="bg-emphasis flex h-screen">
+      <div className="bg-default m-auto rounded p-5 md:w-[520px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
           <div>
             <img src="/api/app-store/sendgrid/logo.png" alt="Sendgrid" className="h-12 w-12 max-w-2xl" />
           </div>
           <div>
-            <h1 className="text-gray-600">{t("provide_api_key")}</h1>
+            <h1 className="text-default">{t("provide_api_key")}</h1>
 
             <div className="mt-1 text-sm">
               {t("generate_api_key_description", { appName: "Sendgrid" })}{" "}
@@ -106,8 +106,8 @@ export default function SendgridSetup() {
                     className={
                       testPassed !== undefined
                         ? testPassed
-                          ? " !bg-green-100 !text-green-700 hover:bg-green-100"
-                          : "!border-red-700 bg-red-100 !text-red-700 hover:bg-red-100"
+                          ? " !bg-success hover:bg-success !text-green-700"
+                          : "bg-error hover:bg-error !border-red-700 !text-red-700"
                         : "secondary"
                     }
                     color={testPassed === true ? "minimal" : "secondary"}

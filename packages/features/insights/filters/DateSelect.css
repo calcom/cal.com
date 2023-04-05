@@ -4,9 +4,16 @@
 }
 
 .tremor-DateRangePicker-calendarButton, .tremor-DateRangePicker-dropdownButton {
-  @apply dark:bg-darkgray-100 dark:border-darkgray-300 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0 focus-within:ring-gray-800 hover:border-gray-400 dark:focus-within:ring-darkgray-900
+  @apply  border-subtle bg-default text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0 focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle
 }
 
+.tremor-DateRangePicker-calendarButtonText,.tremor-DateRangePicker-dropdownButtonText {
+  @apply text-default
+}
+
+.tremor-DateRangePicker-calendarModal,.tremor-DateRangePicker-dropdownModal{
+  @apply dark:invert
+}
 
 .tremor-Card-root{
   @apply p-5
@@ -20,9 +27,13 @@
   @apply -mx-4
 }
 .tremor-Card-root > p {
-  @apply text-base font-semibold text-black mb-2
+  @apply text-base font-semibold mb-2
 }
 
 .tremor-Legend-legendItem{
   @apply ml-2
+}
+
+.tremor-TableBody-root{
+  @apply divide-subtle
 }

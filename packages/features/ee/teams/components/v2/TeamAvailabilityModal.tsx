@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
 import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 
@@ -42,7 +43,7 @@ export default function TeamAvailabilityModal(props: Props) {
                 alt={props.member?.name || ""}
               />
               <div className="flex items-center justify-center ">
-                <span className="ml-2 text-base font-semibold leading-4 text-gray-500">
+                <span className="text-subtle ml-2 text-base font-semibold leading-4">
                   {props.member?.name}
                 </span>
               </div>

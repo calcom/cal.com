@@ -19,11 +19,11 @@ export const DatePicker = ({ minDate, disabled, date, onDatesChange, className }
   return (
     <PrimitiveDatePicker
       className={classNames(
-        "focus:ring-primary-500 focus:border-primary-500 rounded-sm border border-gray-300 p-1 pl-2 text-sm",
+        "focus:ring-primary-500 focus:border-primary-500 border-default rounded-sm border p-1 pl-2 text-sm",
         className
       )}
       clearIcon={null}
-      calendarIcon={<FiCalendar className="h-5 w-5 text-gray-500" />}
+      calendarIcon={<FiCalendar className="text-subtle h-5 w-5" />}
       value={date}
       minDate={minDate}
       disabled={disabled}
