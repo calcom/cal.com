@@ -125,7 +125,7 @@ export default function PaymentComponent(props: Props) {
         onChange={handleChange}
       />
       {paymentOption === "HOLD" && (
-        <div className="mt-2 rounded-md bg-blue-100 p-3 text-blue-900">
+        <div className="mt-2 mb-5 rounded-md bg-blue-100 p-3">
           <Checkbox
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
@@ -136,7 +136,13 @@ export default function PaymentComponent(props: Props) {
           />
         </div>
       )}
-      <div className="mt-2 flex justify-center">
+      <div className="mt-2 flex justify-end space-x-2">
+        <Button
+          color="minimal"
+          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          id="cancel">
+          <span id="button-text">{t("cancel")}</span>
+        </Button>
         <Button
           color="primary"
           type="submit"
@@ -155,7 +161,7 @@ export default function PaymentComponent(props: Props) {
         </Button>
       </div>
       {state.status === "error" && (
-        <div className="mt-4 text-center text-gray-700 dark:text-gray-300" role="alert">
+        <div className="mt-4 text-center text-red-900 dark:text-gray-300" role="alert">
           {state.error.message}
         </div>
       )}
