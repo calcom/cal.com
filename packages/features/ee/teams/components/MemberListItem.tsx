@@ -93,7 +93,8 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
-  const bookingLink = `${WEBAPP_URL.split("http://")[1]}/${props.member.username}`;
+  const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
 
   return (
     <li className="divide-y px-5">
@@ -120,8 +121,13 @@ export default function MemberListItem(props: Props) {
                 </span>
                 {bookingLink && (
                   <>
-                    <span className="text-default mx-2 block ">•</span>
-                    <span className="text-default block text-sm">{bookingLink}</span>
+                    <span className="mx-2 block text-default">•</span>
+                    <a
+                      target="_blank"
+                      href={`${WEBAPP_URL}/${props.member.username}`}
+                      className="block text-sm text-default">
+                      {bookingLink}
+                    </a>
                   </>
                 )}
               </div>
