@@ -73,7 +73,7 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "primary",
-        className: "bg-brand-default bg-opacity-30",
+        className: "bg-brand-subtle bg-opacity-30",
       },
       {
         loading: true,
