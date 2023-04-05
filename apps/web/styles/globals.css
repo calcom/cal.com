@@ -44,6 +44,8 @@
   --cal-brand-text: white;
 }
 .dark {
+  color-scheme: dark;
+
   /* background */
 
   --cal-bg-emphasis: #2b2b2b;
@@ -237,7 +239,7 @@ input[type="text"]:focus {
     @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
 
- 
+
 }
 
 /* TODO: avoid global specific css */
