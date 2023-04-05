@@ -85,6 +85,12 @@ export const validateCustomEventName = (
     "{Organiser}",
     "{Scheduler}",
     "{Location}",
+    //allowed for fallback reasons
+    "{LOCATION}",
+    "{HOST/ATTENDEE}",
+    "{HOST}",
+    "{ATTENDEE}",
+    "{USER}",
   ]);
   const matches = value.match(/\{([^}]+)\}/g);
   if (matches?.length) {
