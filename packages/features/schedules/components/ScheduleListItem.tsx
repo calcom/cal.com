@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
+  showToast,
 } from "@calcom/ui";
 import { FiGlobe, FiMoreHorizontal, FiTrash, FiClock } from "@calcom/ui/components/icon";
 
@@ -21,6 +22,7 @@ export function ScheduleListItem({
   deleteFunction,
   displayOptions,
   updateDefault,
+  isDeletable,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -28,6 +30,7 @@ export function ScheduleListItem({
     timeZone?: string;
     hour12?: boolean;
   };
+  isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
 }) {
   const { t, i18n } = useLocale();
@@ -74,6 +77,7 @@ export function ScheduleListItem({
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
+              data-testid="schedule-more"
               className="mx-5"
               type="button"
               variant="icon"
@@ -103,10 +107,15 @@ export function ScheduleListItem({
                   type="button"
                   color="destructive"
                   StartIcon={FiTrash}
+                  data-testid="delete-schedule"
                   onClick={() => {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
+                    if (!isDeletable) {
+                      showToast(t("requires_at_least_one_schedule"), "error");
+                    } else {
+                      deleteFunction({
+                        scheduleId: schedule.id,
+                      });
+                    }
                   }}>
                   {t("delete")}
                 </DropdownItem>

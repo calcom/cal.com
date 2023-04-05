@@ -17,7 +17,7 @@ export const SuccessToast = ({ message, toastVisible }: IToast) => (
     <span>
       <FiCheck className="h-4 w-4" />
     </span>
-    <p>{message}</p>
+    <p data-testid="toast-success">{message}</p>
   </div>
 );
 
@@ -30,7 +30,7 @@ export const ErrorToast = ({ message, toastVisible }: IToast) => (
     <span>
       <FiInfo className="h-4 w-4" />
     </span>
-    <p>{message}</p>
+    <p data-testid="toast-error">{message}</p>
   </div>
 );
 
@@ -43,7 +43,7 @@ export const WarningToast = ({ message, toastVisible }: IToast) => (
     <span>
       <FiInfo className="h-4 w-4" />
     </span>
-    <p>{message}</p>
+    <p data-testid="toast-warning">{message}</p>
   </div>
 );
 

@@ -240,7 +240,7 @@ async function handler(req: CustomRequest) {
               integrationsToDelete.push(deleteMeeting(credential, reference.uid));
             }
             if (reference.type.includes("_calendar")) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.deleteEvent(reference.uid, evt, reference.externalCalendarId)
@@ -262,7 +262,7 @@ async function handler(req: CustomRequest) {
               );
             }
             if (reference.type.includes("_calendar")) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)
@@ -449,7 +449,7 @@ async function handler(req: CustomRequest) {
         (credential) => credential.id === credentialId
       );
       if (calendarCredential) {
-        const calendar = getCalendar(calendarCredential);
+        const calendar = await getCalendar(calendarCredential);
         if (
           bookingToDelete.eventType?.recurringEvent &&
           bookingToDelete.recurringEventId &&
@@ -458,7 +458,7 @@ async function handler(req: CustomRequest) {
           bookingToDelete.user.credentials
             .filter((credential) => credential.type.endsWith("_calendar"))
             .forEach(async (credential) => {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               for (const updBooking of updatedBookings) {
                 const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
                 if (bookingRef) {
@@ -474,12 +474,13 @@ async function handler(req: CustomRequest) {
       }
     } else {
       // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      bookingToDelete.user.credentials
-        .filter((credential) => credential.type.endsWith("_calendar"))
-        .forEach((credential) => {
-          const calendar = getCalendar(credential);
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
-        });
+      const calendarCredentials = bookingToDelete.user.credentials.filter((credential) =>
+        credential.type.endsWith("_calendar")
+      );
+      for (const credential of calendarCredentials) {
+        const calendar = await getCalendar(credential);
+        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+      }
     }
   }
 
@@ -585,7 +586,7 @@ async function handler(req: CustomRequest) {
     }
 
     // Posible to refactor TODO:
-    const paymentApp = appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
+    const paymentApp = await appStore[paymentAppCredential?.app?.dirName as keyof typeof appStore];
     if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
