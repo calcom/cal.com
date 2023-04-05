@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +37,15 @@ export function AppStoreCategories({
             data-testid={`app-store-category-${category.name}`}
             className="relative flex rounded-md"
             style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>
-            <div className="w-full self-center bg-[url('/noise.svg')] bg-cover bg-center bg-no-repeat px-6 py-4">
+            <div className="w-full self-center bg-[url('/noise.svg')] bg-cover bg-center bg-no-repeat px-6 pt-2 pb-4">
+              <Image
+                src={"/app-categories/" + category.name + ".svg"}
+                width={100}
+                height={100}
+                alt={category.name}
+                className="dark:invert"
+              />
+
               {isLocaleReady ? (
                 <h3 className="text-sm font-semibold capitalize">{category.name}</h3>
               ) : (
