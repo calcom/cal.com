@@ -132,7 +132,7 @@ export type AppsStatus = {
   warnings?: string[];
 };
 
-type CalEventResponses = Record<
+export type CalEventResponses = Record<
   string,
   {
     label: string;

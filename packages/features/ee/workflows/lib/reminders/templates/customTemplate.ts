@@ -1,7 +1,7 @@
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import type { Dayjs } from "@calcom/dayjs";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import type { Prisma } from "@calcom/prisma/client";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 export type VariablesType = {
   eventName?: string;
@@ -14,7 +14,7 @@ export type VariablesType = {
   timeZone?: string;
   location?: string | null;
   additionalNotes?: string | null;
-  responses?: Prisma.JsonValue;
+  responses?: CalEventResponses;
   meetingUrl?: string;
   cancelLink?: string;
   rescheduleLink?: string;
@@ -95,7 +95,7 @@ const customTemplate = (
         if (variable === formatedToVariable && variables.responses) {
           dynamicText = dynamicText.replace(
             `{${variable}}`,
-            variables.responses[customInput as keyof typeof variables.responses]
+            variables.responses[customInput as keyof typeof variables.responses].value.toString()
           );
         }
       });

@@ -1,4 +1,4 @@
-import type { PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma, PrismaClient, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@prisma/client";
 
 import { scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -10,6 +10,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -66,11 +67,21 @@ export async function handleConfirmation(args: {
   let updatedBookings: {
     scheduledJobs: string[];
     id: number;
+    description: string;
+    location: string | null;
+    attendees: {
+      name: string;
+      email: string;
+    }[];
     startTime: Date;
     endTime: Date;
     uid: string;
     smsReminderNumber: string | null;
+    metadata: Prisma.JsonObject | null;
+    customInputs: Prisma.JsonObject;
+    responses: Prisma.JsonObject;
     eventType: {
+      bookingFields: Prisma.JsonObject | null;
       slug: string;
       owner: {
         hideBranding?: boolean | null;
@@ -109,6 +120,7 @@ export async function handleConfirmation(args: {
           eventType: {
             select: {
               slug: true,
+              bookingFields: true,
               owner: {
                 select: {
                   hideBranding: true,
@@ -125,10 +137,16 @@ export async function handleConfirmation(args: {
               },
             },
           },
+          description: true,
+          attendees: true,
+          location: true,
           uid: true,
           startTime: true,
+          metadata: true,
           endTime: true,
           smsReminderNumber: true,
+          customInputs: true,
+          responses: true,
           id: true,
           scheduledJobs: true,
         },
@@ -153,6 +171,7 @@ export async function handleConfirmation(args: {
         eventType: {
           select: {
             slug: true,
+            bookingFields: true,
             owner: {
               select: {
                 hideBranding: true,
@@ -171,8 +190,14 @@ export async function handleConfirmation(args: {
         },
         uid: true,
         startTime: true,
+        metadata: true,
         endTime: true,
         smsReminderNumber: true,
+        description: true,
+        attendees: true,
+        location: true,
+        customInputs: true,
+        responses: true,
         id: true,
         scheduledJobs: true,
       },
@@ -192,15 +217,18 @@ export async function handleConfirmation(args: {
 
         const isFirstBooking = index === 0;
 
+        const videoCallUrl =
+          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
+
         //todo responses are missing here and metadata too
         await scheduleWorkflowReminders(
           updatedBookings[index]?.eventType?.workflows || [],
           updatedBookings[index].smsReminderNumber,
-          { ...evtOfBooking, ...{ eventType: { slug: eventTypeSlug } } },
+          { ...evtOfBooking, ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } } },
           false,
           false,
           isFirstBooking,
-          updatedBookings[index].eventType?.owner.hideBranding
+          !!updatedBookings[index].eventType?.owner.hideBranding
         );
       }
     }
