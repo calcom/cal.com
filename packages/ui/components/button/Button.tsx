@@ -220,7 +220,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <svg
             className={classNames(
               "mx-4 h-5 w-5 animate-spin",
-              color === "primary" ? "text-inverted dark:text-emphasis" : "dark:text-inverted text-emphasis"
+              color === "primary" ? "text-inverted" : "text-emphasis"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

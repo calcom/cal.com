@@ -71,7 +71,7 @@ export function Card({
       className={classNames(
         containerProps?.className,
         cardTypeByVariant[variant].card,
-        "bg-default border-subtle flex flex-col justify-between rounded-md border"
+        "bg-default border-subtle text-default flex flex-col justify-between rounded-md border"
       )}
       {...containerProps}>
       <div>
