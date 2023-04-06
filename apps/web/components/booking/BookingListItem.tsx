@@ -460,7 +460,7 @@ function BookingListItem(booking: BookingItemProps) {
               <RequestSentMessage />
             </div>
           )}
-          {booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
+          {booking.status === "ACCEPTED" && booking.paid && booking?.payment[0]?.paymentOption === "HOLD" && (
             <div className="ml-2">
               <TableActions actions={chargeCardActions} />
             </div>

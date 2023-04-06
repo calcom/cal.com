@@ -46,16 +46,17 @@ const handlePayment = async (
       bookerEmail,
       paymentOption
     );
+  } else {
+    paymentData = await paymentInstance.create(
+      {
+        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+      },
+      booking.id,
+      bookerEmail,
+      paymentOption
+    );
   }
-  paymentData = await paymentInstance.create(
-    {
-      amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-      currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
-    },
-    booking.id,
-    bookerEmail,
-    paymentOption
-  );
 
   if (!paymentData) {
     console.error("Payment data is null");
