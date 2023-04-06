@@ -297,6 +297,16 @@ export default abstract class BaseCalendarService implements Calendar {
     return true;
   };
 
+  // registerTimezone = (tzid: string): void => {
+  //   if (!ICAL.TimezoneService.has(tzid) && tzid.startsWith("/freeassociation.sourceforge.net/Tzfile/")) {
+  //     const unprefixedTzid = tzid.replace("/freeassociation.sourceforge.net/Tzfile/", "");
+  //     const timezone = ICAL.TimezoneService.get(unprefixedTzid);
+  //     if (timezone) {
+  //       ICAL.TimezoneService.register(tzid, timezone);
+  //     }
+  //   }
+  // };
+
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -310,11 +320,10 @@ export default abstract class BaseCalendarService implements Calendar {
       dateTo,
       headers: this.headers,
     });
-
     const events: { start: string; end: string }[] = [];
     objects.forEach((object) => {
       if (object.data == null || JSON.stringify(object.data) == "{}") return;
-      let vcalendar;
+      let vcalendar: ICAL.Component;
       try {
         // maybe confirm that this is a valid calendar object by hitting the following URL like so:
         // https://icalendar.org/validator.html?url=https://example.com/somecalendar_feed&json=1
@@ -339,6 +348,8 @@ export default abstract class BaseCalendarService implements Calendar {
         const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
         if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
+          // this.registerTimezone(tzid);
+
           const timezoneComp = new ICAL.Component("vtimezone");
           timezoneComp.addPropertyWithValue("tzid", tzid);
           const standard = new ICAL.Component("standard");
@@ -526,11 +537,19 @@ export default abstract class BaseCalendarService implements Calendar {
           return calendarObject;
         })
       );
-
       return processedResponse;
     });
-
-    return (await Promise.all(fetchPromises)).flat().filter((obj) => obj !== undefined) as DAVObject[];
+    const resolvedPromises = await Promise.allSettled(fetchPromises);
+    const fulfilledPromises = resolvedPromises.filter(
+      (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
+        promise.status === "fulfilled"
+    );
+    const flatResult = fulfilledPromises
+      .map((promise) => promise.value)
+      .flat()
+      .filter((obj) => obj !== null);
+    console.log("Flat result:", flatResult);
+    return flatResult as DAVObject[];
   }
 
   // The rest of the code remains the same
