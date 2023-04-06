@@ -404,10 +404,11 @@ function getBookingData({
   const reqBody = bookingDataSchema.parse(req.body);
   if ("responses" in reqBody) {
     const responses = reqBody.responses;
-    const { calEventUserFieldsResponses, calEventResponses } = getCalEventResponses({
-      bookingFields: eventType.bookingFields,
-      responses,
-    });
+    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+      getCalEventResponses({
+        bookingFields: eventType.bookingFields,
+        responses,
+      });
     return {
       ...reqBody,
       name: responses.name,
@@ -742,6 +743,7 @@ async function handler(
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(locationBodyString, eventType.locations);
+
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const teamMemberPromises =
     users.length > 1
@@ -883,7 +885,7 @@ async function handler(
               integrationsToDelete.push(deleteMeeting(credential, reference.uid));
             }
             if (reference.type.includes("_calendar") && originalBookingEvt) {
-              const calendar = getCalendar(credential);
+              const calendar = await getCalendar(credential);
               if (calendar) {
                 integrationsToDelete.push(
                   calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)

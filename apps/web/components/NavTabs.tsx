@@ -69,8 +69,8 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   onClick={onClick}
                   className={classNames(
                     isCurrent
-                      ? "border-gray-900 text-gray-900"
-                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                      ? "text-emphasis border-gray-900"
+                      : "hover:border-default hover:text-default text-subtle border-transparent",
                     "group inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium",
                     className
                   )}
@@ -78,7 +78,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
                   {tab.icon && (
                     <tab.icon
                       className={classNames(
-                        isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+                        isCurrent ? "text-emphasis" : "group-hover:text-subtle text-muted",
                         "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
                       )}
                       aria-hidden="true"
@@ -91,7 +91,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           );
         })}
       </nav>
-      <hr />
+      <hr className="border-subtle" />
     </>
   );
 };

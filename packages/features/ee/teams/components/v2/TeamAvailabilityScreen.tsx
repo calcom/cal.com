@@ -1,10 +1,12 @@
-import { CSSProperties, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
 import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
 import { Avatar, DatePickerField as DatePicker, Select, TimezoneSelect } from "@calcom/ui";
 
@@ -32,7 +34,7 @@ export default function TeamAvailabilityScreen(props: Props) {
     if (!member) return <></>;
 
     return (
-      <div key={member.id} style={style} className="flex border-r border-gray-200 pl-4 ">
+      <div key={member.id} style={style} className="flex border-r border-subtle pl-4 ">
         <TeamAvailabilityTimes
           teamId={props.team?.id as number}
           memberId={member.id}
@@ -48,8 +50,8 @@ export default function TeamAvailabilityScreen(props: Props) {
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
               <div className="inline-block overflow-hidden pt-1 ltr:ml-3 rtl:mr-3">
-                <span className="truncate text-lg font-bold text-gray-700">{member?.name}</span>
-                <span className="-mt-1 block truncate text-sm text-gray-400">{member?.email}</span>
+                <span className="text-default truncate text-lg font-bold">{member?.name}</span>
+                <span className="text-muted -mt-1 block truncate text-sm">{member?.email}</span>
               </div>
             </div>
           }
@@ -59,10 +61,10 @@ export default function TeamAvailabilityScreen(props: Props) {
   };
 
   return (
-    <div className="flex flex-1 flex-col rounded-sm border border-neutral-200 bg-white">
-      <div className="flex w-full space-x-5 border-b border-gray-200 p-4 rtl:space-x-reverse">
+    <div className="bg-default flex flex-1 flex-col rounded-sm border border-neutral-200">
+      <div className="flex w-full space-x-5 border-b border-subtle p-4 rtl:space-x-reverse">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-gray-700">Date</span>
+          <span className="text-default text-sm font-medium">Date</span>
           <DatePicker
             date={selectedDate.toDate()}
             className="p-1.5"
@@ -72,17 +74,17 @@ export default function TeamAvailabilityScreen(props: Props) {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-gray-700">Timezone</span>
+          <span className="text-default text-sm font-medium">Timezone</span>
           <TimezoneSelect
             id="timeZone"
             value={selectedTimeZone}
             onChange={(timezone) => setSelectedTimeZone(timezone.value)}
             classNamePrefix="react-select"
-            className="react-select-container w-full rounded-sm border border-gray-300 text-sm"
+            className="react-select-container border-default w-full rounded-sm border text-sm"
           />
         </div>
         <div className="hidden sm:block">
-          <span className="text-sm font-medium text-gray-700">Slot Length</span>
+          <span className="text-default text-sm font-medium">Slot Length</span>
           <Select
             options={[
               { value: 15, label: "15 minutes" },
@@ -90,7 +92,7 @@ export default function TeamAvailabilityScreen(props: Props) {
               { value: 60, label: "60 minutes" },
             ]}
             isSearchable={false}
-            className="block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
+            className="border-default block w-full min-w-0 flex-1 rounded-sm border text-sm"
             value={{ value: frequency, label: `${frequency} minutes` }}
             onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
           />

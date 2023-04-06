@@ -259,7 +259,7 @@ const IntegrationsContainer = ({
           );
         }
         return (
-          <div className="rounded-md border border-gray-200 p-7">
+          <div className="border-subtle rounded-md border p-7">
             <ShellSubHeading
               title={t(variant || "other")}
               subtitle={t(`installed_app_${variant || "other"}_description`)}

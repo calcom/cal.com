@@ -89,11 +89,11 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+          <h3 className="text-emphasis text-lg font-bold leading-6" id="modal-title">
             {t("add_new_form")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("form_description")}</p>
+            <p className="text-subtle text-sm">{t("form_description")}</p>
           </div>
         </div>
         <Form
@@ -414,7 +414,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           return <></>;
         }
         return (
-          <div {...restProps} className="self-center rounded-md p-2 hover:bg-gray-200">
+          <div {...restProps} className="hover:bg-emphasis self-center rounded-md p-2">
             <Switch
               checked={!routingForm.disabled}
               label={label}

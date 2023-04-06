@@ -22,9 +22,9 @@ export const KPICard = ({
   const { t } = useLocale();
   return (
     <CardInsights key={title}>
-      <Text>{title}</Text>
+      <Text className="text-default">{title}</Text>
       <Flex className="items-baseline justify-start space-x-3 truncate">
-        <Metric>{valueFormatter(previousMetricData.count)}</Metric>
+        <Metric className="text-emphasis">{valueFormatter(previousMetricData.count)}</Metric>
       </Flex>
       <Flex className="mt-4 justify-start space-x-2">
         <BadgeDelta
@@ -41,7 +41,7 @@ export const KPICard = ({
               startDate: previousDateRange.startDate,
               endDate: previousDateRange.endDate,
             })}>
-            <small className="relative top-px cursor-pointer text-xs text-gray-600">
+            <small className="text-default relative top-px cursor-pointer text-xs">
               {t("from_last_period")}
             </small>
           </Tooltip>

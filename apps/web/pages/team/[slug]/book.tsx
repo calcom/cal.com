@@ -5,13 +5,13 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import type { GetBookingType } from "@calcom/lib/getBooking";
+import getBooking from "@calcom/lib/getBooking";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
-import type { GetBookingType } from "@lib/getBooking";
-import getBooking from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
@@ -23,8 +23,6 @@ export type TeamBookingPageProps = inferSSRProps<typeof getServerSideProps>;
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
-
-TeamBookingPage.isThemeSupported = true;
 
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),

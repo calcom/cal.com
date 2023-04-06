@@ -6,7 +6,7 @@ import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -28,7 +28,6 @@ import {
   getBookingFieldsWithSystemFields,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
@@ -36,6 +35,8 @@ import {
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookingWithResponses } from "@calcom/lib/getBooking";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -47,11 +48,10 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, HeadSeo, Badge } from "@calcom/ui";
+import { Button, EmailInput, HeadSeo, Badge, useCalcomTheme } from "@calcom/ui";
 import { FiX, FiExternalLink, FiChevronLeft, FiCheck, FiCalendar } from "@calcom/ui/components/icon";
 
 import { timeZone } from "@lib/clock";
-import { getBookingWithResponses } from "@lib/getBooking";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -59,113 +59,19 @@ import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import { ssrInit } from "@server/lib/ssr";
 
-function redirectToExternalUrl(url: string) {
-  window.parent.location.href = url;
-}
-
-/**
- * Redirects to external URL with query params from current URL.
- * Query Params and Hash Fragment if present in external URL are kept intact.
- */
-function RedirectionToast({ url }: { url: string }) {
-  const [timeRemaining, setTimeRemaining] = useState(10);
-  const [isToastVisible, setIsToastVisible] = useState(true);
-
-  const { t } = useLocale();
-  const timerRef = useRef<number | null>(null);
-  const router = useRouter();
-  const { cancel: isCancellationMode } = querySchema.parse(router.query);
-  const urlWithSuccessParamsRef = useRef<string | null>();
-  if (isCancellationMode && timerRef.current) {
-    setIsToastVisible(false);
-  }
-
-  useEffect(() => {
-    if (!isToastVisible && timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-  }, [isToastVisible]);
-
-  useEffect(() => {
-    const parsedExternalUrl = new URL(url);
-
-    const parsedSuccessUrl = new URL(document.URL);
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-    for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
-      parsedSuccessUrl.searchParams.set(name, value);
-    }
-
-    const urlWithSuccessParams =
-      parsedExternalUrl.origin +
-      parsedExternalUrl.pathname +
-      "?" +
-      parsedSuccessUrl.searchParams.toString() +
-      parsedExternalUrl.hash;
-    urlWithSuccessParamsRef.current = urlWithSuccessParams;
-
-    timerRef.current = window.setInterval(() => {
-      if (timeRemaining > 0) {
-        setTimeRemaining((timeRemaining) => {
-          return timeRemaining - 1;
-        });
-      } else {
-        redirectToExternalUrl(urlWithSuccessParams);
-        window.clearInterval(timerRef.current as number);
-      }
-    }, 1000);
-    return () => {
-      window.clearInterval(timerRef.current as number);
-    };
-  }, [timeRemaining, url]);
-
-  if (!isToastVisible) {
-    return null;
-  }
-
-  return (
-    <>
-      <div className="relative z-[60] pb-2 sm:pb-5">
-        <div className="mx-auto w-full sm:max-w-7xl sm:px-2 lg:px-8">
-          <div className="border border-green-600 bg-green-500 p-2 sm:p-3">
-            <div className="flex flex-wrap items-center justify-between">
-              <div className="flex w-0 flex-1 items-center">
-                <p className="truncate font-medium text-white sm:mx-3">
-                  <span className="md:hidden">Redirecting to {url} ...</span>
-                  <span className="hidden md:inline">
-                    {t("you_are_being_redirected", { url, seconds: timeRemaining })}
-                  </span>
-                </p>
-              </div>
-              <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
-                <button
-                  onClick={() => {
-                    if (urlWithSuccessParamsRef.current) {
-                      redirectToExternalUrl(urlWithSuccessParamsRef.current);
-                    }
-                  }}
-                  className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
-                  {t("continue")}
-                </button>
-              </div>
-              <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsToastVisible(false);
-                  }}
-                  className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
-                  <FiX className="h-6 w-6 text-white" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+const useBrandColors = ({
+  brandColor,
+  darkBrandColor,
+}: {
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+}) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -176,13 +82,14 @@ const stringToBoolean = z
 
 const querySchema = z.object({
   uid: z.string(),
-  allRemainingBookings: stringToBoolean,
+  email: z.string().optional(),
+  eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
-  email: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
 
@@ -363,6 +270,10 @@ export default function Success(props: SuccessProps) {
   }
 
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
+  useBrandColors({
+    brandColor: props.profile.brandColor,
+    darkBrandColor: props.profile.darkBrandColor,
+  });
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
   );
@@ -394,19 +305,15 @@ export default function Success(props: SuccessProps) {
         <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
-            className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
+            className="hover:bg-subtle text-subtle dark:hover:text-inverted hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
       <HeadSeo title={title} description={title} />
       <BookingPageTagManager eventType={eventType} />
-      <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl} />
-          ) : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -418,7 +325,7 @@ export default function Success(props: SuccessProps) {
               <div
                 className={classNames(
                   "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  isBackgroundTransparent ? "" : "dark:bg-darkgray-100 dark:border-darkgray-200 bg-white",
+                  isBackgroundTransparent ? "" : " bg-default dark:bg-muted border-subtle",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -428,12 +335,12 @@ export default function Success(props: SuccessProps) {
                   className={classNames(
                     "mx-auto flex items-center justify-center",
                     !giphyImage && !isCancelled && !needsConfirmation
-                      ? "h-12 w-12 rounded-full bg-green-100"
+                      ? "bg-success h-12 w-12 rounded-full"
                       : "",
                     !giphyImage && !isCancelled && needsConfirmation
-                      ? "h-12 w-12 rounded-full bg-gray-100"
+                      ? "bg-subtle h-12 w-12 rounded-full"
                       : "",
-                    isCancelled ? "h-12 w-12 rounded-full bg-red-100" : ""
+                    isCancelled ? "bg-error h-12 w-12 rounded-full" : ""
                   )}>
                   {giphyImage && !needsConfirmation && !isCancelled && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -442,12 +349,12 @@ export default function Success(props: SuccessProps) {
                   {!giphyImage && !needsConfirmation && !isCancelled && (
                     <FiCheck className="h-5 w-5 text-green-600" />
                   )}
-                  {needsConfirmation && !isCancelled && <FiCalendar className="h-5 w-5 text-gray-900" />}
+                  {needsConfirmation && !isCancelled && <FiCalendar className="text-emphasis h-5 w-5" />}
                   {isCancelled && <FiX className="h-5 w-5 text-red-600" />}
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
+                    className="text-emphasis text-2xl font-semibold leading-6"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -463,7 +370,7 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-default">{getTitle()}</p>
                   </div>
                   {props.paymentStatus &&
                     (bookingInfo.status === BookingStatus.CANCELLED ||
@@ -479,7 +386,7 @@ export default function Success(props: SuccessProps) {
                       </h4>
                     )}
 
-                  <div className="border-bookinglightest text-bookingdark dark:border-darkgray-200 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
+                  <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left">
                     {(isCancelled || reschedule) && cancellationReason && (
                       <>
                         <div className="font-medium">
@@ -527,15 +434,13 @@ export default function Success(props: SuccessProps) {
                                 <span className="mr-2">{bookingInfo.user.name}</span>
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
-                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              <p className="text-default">{bookingInfo.user.email}</p>
                             </div>
                           )}
                           {bookingInfo?.attendees.map((attendee) => (
                             <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                               {attendee.name && <p>{attendee.name}</p>}
-                              <p data-testid={`attendee-${attendee.email}`} className="text-bookinglight">
-                                {attendee.email}
-                              </p>
+                              <p data-testid={`attendee-${attendee.email}`}>{attendee.email}</p>
                             </div>
                           ))}
                         </div>
@@ -550,10 +455,10 @@ export default function Success(props: SuccessProps) {
                               href={locationToDisplay}
                               target="_blank"
                               title={locationToDisplay}
-                              className="flex items-center gap-2 text-gray-700 underline dark:text-gray-50"
+                              className="text-default flex items-center gap-2 underline"
                               rel="noreferrer">
                               {providerName || "Link"}
-                              <FiExternalLink className="inline h-4 w-4 text-gray-700 dark:text-white" />
+                              <FiExternalLink className="text-default inline h-4 w-4" />
                             </a>
                           ) : (
                             locationToDisplay
@@ -585,8 +490,11 @@ export default function Success(props: SuccessProps) {
 
                       return (
                         <>
-                          <div className="mt-4 font-medium">{label}</div>
-                          <p className="break-words" data-testid="field-response" data-fob-field={field.name}>
+                          <div className="text-emphasis mt-4 font-medium">{label}</div>
+                          <p
+                            className="text-default break-words"
+                            data-testid="field-response"
+                            data-fob-field={field.name}>
                             {response.toString()}
                           </p>
                         </>
@@ -598,14 +506,12 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
+                      <hr className="border-subtle mb-8" />
                       <div className="text-center last:pb-0">
-                        <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
-                          {t("need_to_make_a_change")}
-                        </span>
+                        <span className="text-emphasis ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
 
                         {!props.recurringBookings && (
-                          <span className="text-bookinglight inline text-gray-700">
+                          <span className="text-default inline">
                             <span className="underline" data-testid="reschedule-link">
                               <Link
                                 href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
@@ -620,7 +526,7 @@ export default function Success(props: SuccessProps) {
                         <button
                           data-testid="cancel"
                           className={classNames(
-                            "text-bookinglight text-gray-700 underline",
+                            "text-default underline",
                             props.recurringBookings && "ltr:mr-2 rtl:ml-2"
                           )}
                           onClick={() => setIsCancellationMode(true)}>
@@ -630,7 +536,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-200" />
+                      <hr className="border-subtle" />
                       <CancelBooking
                         booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
@@ -649,9 +555,9 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   !!calculatedDuration && (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
-                      <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
-                        <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                      <hr className="border-subtle mt-8" />
+                      <div className="text-default align-center flex flex-row justify-center pt-8">
+                        <span className="text-default flex self-center font-medium ltr:mr-2 rtl:ml-2 ">
                           {t("add_to_calendar")}
                         </span>
                         <div className="justify-left mt-1 flex text-left sm:mt-0">
@@ -673,7 +579,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }
-                            className="h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-gray-700 dark:text-white">
+                            className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
                               fill="currentColor"
@@ -699,7 +605,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -726,7 +632,7 @@ export default function Success(props: SuccessProps) {
                                 ? "&location=" + encodeURIComponent(locationVideoCallUrl)
                                 : "")
                             }
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="text-default border-subtle mx-2 h-10 w-10 rounded-sm border px-3 py-2"
                             target="_blank">
                             <svg
                               className="mr-1 -mt-1.5 inline-block h-4 w-4"
@@ -739,7 +645,7 @@ export default function Success(props: SuccessProps) {
                           </Link>
                           <Link
                             href={"data:text/calendar," + eventLink()}
-                            className="mx-2 h-10 w-10 rounded-sm border border-gray-200 px-3 py-2 dark:border-gray-700 dark:text-white"
+                            className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
                             download={props.eventType.title + ".ics"}>
                             <svg
                               version="1.1"
@@ -758,8 +664,8 @@ export default function Success(props: SuccessProps) {
 
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
-                    <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
+                    <hr className="border-subtle mt-8" />
+                    <div className="text-default pt-8 text-center text-xs">
                       <a href="https://cal.com/signup">
                         {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                       </a>
@@ -777,7 +683,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
+                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black  sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button
@@ -799,8 +705,6 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
-
-Success.isThemeSupported = true;
 
 type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
@@ -981,13 +885,6 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const schema = z.object({
-  uid: z.string(),
-  email: z.string().optional(),
-  eventTypeSlug: z.string().optional(),
-  cancel: stringToBoolean,
-});
-
 const handleSeatsEventTypeOnBooking = (
   eventType: {
     seatsPerTimeSlot?: number | null;
@@ -1017,9 +914,9 @@ const handleSeatsEventTypeOnBooking = (
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  const parsedQuery = schema.safeParse(context.query);
+  const parsedQuery = querySchema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel, isSuccessBookingPage } = parsedQuery.data;
 
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
@@ -1116,7 +1013,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
+  if (eventType.successRedirectUrl && isSuccessBookingPage && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,

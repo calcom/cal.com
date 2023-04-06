@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { Avatar } from "@calcom/ui";
 
@@ -18,20 +19,20 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
-      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full flex-col space-y-2 rounded-md bg-white p-4 hover:cursor-pointer hover:bg-gray-50 ">
+      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 bg-default hover:bg-muted group flex min-h-full flex-col space-y-2 rounded-md p-4 hover:cursor-pointer ">
         <Avatar
           size="md"
           alt={member.name || ""}
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
         <section className="line-clamp-4 mt-2 w-full space-y-1">
-          <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
-          <div className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
+          <p className="text-emphasis dark:text-inverted font-medium">{member.name}</p>
+          <div className="line-clamp-3 text-subtle dark:text-inverted overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
-                  className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: member.safeBio || "" }}
+                  className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
                 />
               </>
             ) : (
