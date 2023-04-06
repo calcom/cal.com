@@ -3,7 +3,7 @@ import { FiBell, FiLink } from "@calcom/ui/components/icon";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border  border-gray-200 bg-white sm:overflow-hidden">
+    <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y  rounded-md border sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />

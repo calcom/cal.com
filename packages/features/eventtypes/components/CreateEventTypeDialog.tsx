@@ -191,7 +191,7 @@ export default function CreateEventTypeDialog() {
 
             {teamId && (
               <div className="mb-4">
-                <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
+                <label htmlFor="schedulingType" className="text-default block text-sm font-bold">
                   {t("scheduling_type")}
                 </label>
                 {form.formState.errors.schedulingType && (

@@ -18,6 +18,10 @@ export default function useTheme(theme?: Maybe<string>) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- we do not want activeTheme to re-render this effect
   }, [currentTheme, setTheme]);
 
+  useEffect(() => {
+    if (forcedTheme) setTheme(forcedTheme);
+  }, [forcedTheme, setTheme]);
+
   return {
     resolvedTheme,
     setTheme,

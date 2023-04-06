@@ -24,8 +24,6 @@ export default function TeamBookingPage(props: TeamBookingPageProps) {
   return <BookingPage {...props} />;
 }
 
-TeamBookingPage.isThemeSupported = true;
-
 const querySchema = z.object({
   rescheduleUid: z.string().optional(),
   bookingUid: z.string().optional(),
