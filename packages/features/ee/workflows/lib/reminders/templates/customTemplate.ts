@@ -9,7 +9,6 @@ export type VariablesType = {
   attendeeName?: string;
   attendeeEmail?: string;
   eventDate?: Dayjs;
-  eventTime?: Dayjs;
   eventEndTime?: Dayjs;
   timeZone?: string;
   location?: string | null;
@@ -49,7 +48,7 @@ const customTemplate = (
     .replaceAll("{ORGANIZER_NAME}", variables.organizerName || "") //old variable names
     .replaceAll("{ATTENDEE_NAME}", variables.attendeeName || "") //old variable names
     .replaceAll("{EVENT_DATE}", translatedDate)
-    .replaceAll("{EVENT_TIME}", variables.eventTime?.format("H:mmA") || "")
+    .replaceAll("{EVENT_TIME}", variables.eventDate?.format("H:mmA") || "")
     .replaceAll("{EVENT_END_TIME}", variables.eventEndTime?.format("H:mmA") || "")
     .replaceAll("{TIMEZONE_TIME}", variables.timeZone || "")
     .replaceAll("{LOCATION}", locationString)
@@ -66,25 +65,20 @@ const customTemplate = (
 
   // event date/time with formatting
   customInputvariables?.forEach((variable) => {
-    if (variable.startsWith("EVENT_DATE_")) {
+    if (variable.startsWith("EVENT_DATE_") || variable.startsWith("EVENT_TIME_")) {
       const dateFormat = variable.substring(11, text.length);
       const formattedDate = variables.eventDate?.format(dateFormat);
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
       return;
     }
 
-    if (variable.startsWith("EVENT_TIME_")) {
-      const dateFormat = variable.substring(11, text.length);
-      const formattedDate = variables.eventTime?.format(dateFormat);
-      dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
-      return;
-    }
     if (variable.startsWith("EVENT_END_TIME_")) {
       const dateFormat = variable.substring(15, text.length);
       const formattedDate = variables.eventEndTime?.format(dateFormat);
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
       return;
     }
+
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
         const formatedToVariable = customInput

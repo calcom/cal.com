@@ -339,7 +339,7 @@ async function handler(req: CustomRequest) {
         ...evt,
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
-      bookingToDelete.eventType.owner?.hideBranding
+      !!bookingToDelete.eventType.owner?.hideBranding
     );
   }
 

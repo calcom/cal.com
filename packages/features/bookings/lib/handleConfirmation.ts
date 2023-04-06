@@ -221,7 +221,6 @@ export async function handleConfirmation(args: {
         const videoCallUrl =
           bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
-        //todo responses are missing here and metadata too
         await scheduleWorkflowReminders(
           updatedBookings[index]?.eventType?.workflows || [],
           updatedBookings[index].smsReminderNumber,

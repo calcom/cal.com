@@ -806,7 +806,7 @@ async function handler(
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
-      username: organizerUser.username,
+      username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: organizerUser.timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR,
