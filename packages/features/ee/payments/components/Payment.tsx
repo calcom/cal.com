@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
+  hidePostalCode: true,
   iconStyle: "solid" as const,
   classes: {
     base: "block p-2 w-full border-solid border-2 border-default rounded-md dark:bg-black dark:text-inverted dark:border-black focus-within:ring-black focus-within:border-black text-sm",
@@ -104,7 +105,7 @@ export default function PaymentComponent(props: Props) {
   };
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
-      <CardElement id="card-element" hidePostalCode={true} options={CARD_OPTIONS} onChange={handleChange} />
+      <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
       <div className="mt-2 flex justify-center">
         <Button
           color="primary"
