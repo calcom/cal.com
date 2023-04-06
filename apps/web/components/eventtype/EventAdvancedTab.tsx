@@ -8,6 +8,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
+import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { classNames } from "@calcom/lib";
@@ -148,6 +149,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
+        dataStore={{
+          options: {
+            locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
+          },
+        }}
       />
       <hr className="border-subtle" />
       <RequiresConfirmationController

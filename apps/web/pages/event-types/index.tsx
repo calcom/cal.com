@@ -36,6 +36,7 @@ import {
   Tooltip,
   CreateButton,
   HorizontalTabs,
+  HeadSeo,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -660,7 +661,15 @@ const EventTypesPage = () => {
 
   return (
     <div>
-      <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
+      <HeadSeo
+        title="Event Types"
+        description="Create events to share for people to book on your calendar."
+      />
+      <Shell
+        withoutSeo
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (

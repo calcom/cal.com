@@ -11,7 +11,6 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
@@ -29,6 +28,7 @@ import {
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilder";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -143,26 +143,14 @@ const BookingFields = ({
           }
           const optionsInputs = field.optionsInputs;
 
-          const options = locations.map((location) => {
-            const eventLocation = getEventLocationType(location.type);
-            const locationString = locationKeyToString(location);
-
-            if (typeof locationString !== "string" || !eventLocation) {
-              // It's possible that location app got uninstalled
-              return null;
-            }
-            const type = eventLocation.type;
-            const optionInput = optionsInputs[type as keyof typeof optionsInputs];
+          // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
+          const options = getLocationOptionsForSelect(locations, t);
+          options.forEach((option) => {
+            const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {
-              optionInput.placeholder = t(eventLocation?.attendeeInputPlaceholder || "");
+              optionInput.placeholder = option.inputPlaceholder;
             }
-
-            return {
-              label: t(locationString),
-              value: type,
-            };
           });
-
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
