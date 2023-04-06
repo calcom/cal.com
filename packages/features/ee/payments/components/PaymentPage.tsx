@@ -73,7 +73,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
               </span>
               <div
                 className={classNames(
-                  "main bg-default inline-block transform overflow-hidden rounded-lg border border-neutral-200 px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
+                  "main bg-default border-subtle inline-block transform overflow-hidden rounded-lg border px-8 pt-5 pb-4 text-left align-bottom transition-all  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
                   isEmbed ? "" : "sm:my-8"
                 )}
                 role="dialog"
@@ -85,9 +85,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3
-                      className="text-emphasis dark:text-inverted text-2xl font-semibold leading-6"
-                      id="modal-headline">
+                    <h3 className="text-emphasis text-2xl font-semibold leading-6" id="modal-headline">
                       {paymentAppData.paymentOption === "HOLD"
                         ? t("submit_payment_information")
                         : t("payment")}

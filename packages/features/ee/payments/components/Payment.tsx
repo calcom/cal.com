@@ -116,7 +116,7 @@ export default function PaymentComponent(props: Props) {
     }
   };
   return (
-    <form id="payment-form" className="mt-4 rounded-md bg-gray-100 p-6" onSubmit={handleSubmit}>
+    <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
       <p className="font-semibold">{t("card_details")}</p>
       <CardElement
         className="my-5 bg-white p-2"
@@ -125,7 +125,7 @@ export default function PaymentComponent(props: Props) {
         onChange={handleChange}
       />
       {paymentOption === "HOLD" && (
-        <div className="mt-2 mb-5 rounded-md bg-blue-100 p-3">
+        <div className="bg-info mt-2 mb-5 rounded-md p-3">
           <Checkbox
             description={t("acknowledge_booking_no_show_fee", {
               amount: props.payment.amount / 100,
@@ -148,7 +148,8 @@ export default function PaymentComponent(props: Props) {
           type="submit"
           disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}
-          id="submit">
+          id="submit"
+          className="border-subtle border">
           <span id="button-text">
             {state.status === "processing" ? (
               <div className="spinner" id="spinner" />
