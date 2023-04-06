@@ -6,7 +6,7 @@ import type Stripe from "stripe";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledEmails } from "@calcom/emails";
+import { sendScheduledEmails, sendOrganizerRequestEmail, sendAttendeeRequestEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
@@ -105,6 +105,7 @@ async function getBooking(bookingId: number) {
       name: user.name!,
       timeZone: user.timeZone,
       language: { translate: t, locale: user.locale ?? "en" },
+      id: user.id,
     },
     attendees: attendeesList,
     uid: booking.uid,
@@ -307,7 +308,12 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
 
   // If the card information was already captured in the same customer. Delete the previous payment method
 
-  if (!eventTypeRaw?.requiresConfirmation) await sendScheduledEmails({ ...evt });
+  if (!eventTypeRaw?.requiresConfirmation) {
+    await sendScheduledEmails({ ...evt });
+  } else {
+    await sendOrganizerRequestEmail({ ...evt });
+    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+  }
 };
 
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
