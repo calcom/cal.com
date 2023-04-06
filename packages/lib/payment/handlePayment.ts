@@ -31,14 +31,30 @@ const handlePayment = async (
   }
   const PaymentService = paymentApp.lib.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials);
-  const paymentData = await paymentInstance.create(
+
+  const paymentOption =
+    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+
+  let paymentData;
+  if (paymentOption === "HOLD") {
+    paymentData = await paymentInstance.collectCard(
+      {
+        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
+        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+      },
+      booking.id,
+      bookerEmail,
+      paymentOption
+    );
+  }
+  paymentData = await paymentInstance.create(
     {
       amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
       currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
     },
     booking.id,
     bookerEmail,
-    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING"
+    paymentOption
   );
 
   if (!paymentData) {
