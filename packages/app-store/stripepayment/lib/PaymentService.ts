@@ -127,6 +127,11 @@ export class PaymentService implements IAbstractPaymentService {
     bookerEmail: string,
     paymentOption: PaymentOption
   ): Promise<Payment> {
+    // Ensure that the payment service can support the passed payment option
+    if (paymentOptionEnum.parse(paymentOption) !== "HOLD") {
+      throw new Error("Payment option is not compatible with create method");
+    }
+
     // Load stripe keys
     const stripeAppKeys = await prisma?.app.findFirst({
       select: {
