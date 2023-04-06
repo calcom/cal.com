@@ -39,7 +39,7 @@ const Switch = (
           className={cx(
             props.checked || props.defaultChecked ? "bg-inverted" : "bg-emphasis",
             primitiveProps.disabled && "cursor-not-allowed",
-            "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none ",
+            "focus:ring-brand-default h-5 w-[34px] rounded-full shadow-none",
             props.className
           )}
           {...primitiveProps}>
