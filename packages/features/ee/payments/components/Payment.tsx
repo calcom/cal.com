@@ -104,7 +104,7 @@ export default function PaymentComponent(props: Props) {
   };
   return (
     <form id="payment-form" className="mt-4" onSubmit={handleSubmit}>
-      <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
+      <CardElement id="card-element" hidePostalCode={true} options={CARD_OPTIONS} onChange={handleChange} />
       <div className="mt-2 flex justify-center">
         <Button
           color="primary"
