@@ -191,9 +191,9 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "radioInput",
       name: "location",
       editable: "system",
+      hideWhenJustOneOption: true,
       required: false,
-      // Populated on the fly from locations. I don't want to duplicate storing locations and instead would like to be able to refer to locations in eventType.
-      // options: `eventType.locations`
+      getOptionsAt: "locations",
       optionsInputs: {
         attendeeInPerson: {
           type: "address",

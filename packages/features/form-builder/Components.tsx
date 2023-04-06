@@ -48,6 +48,7 @@ type Component =
           value: { value: string; optionValue: string };
         } & {
           name?: string;
+          required?: boolean;
         }
       >(
         props: TProps
@@ -323,8 +324,14 @@ export const Components: Record<BookingFieldType, Component> = {
                 })
               ) : (
                 // Show option itself as label because there is just one option
-                // TODO: Support asterisk for required fields
-                <Label>{options[0].label}</Label>
+                <>
+                  <Label>
+                    {options[0].label}
+                    {!readOnly && optionsInputs[options[0].value]?.required ? (
+                      <span className="ml-1 mb-1 text-sm font-medium leading-none dark:text-white">*</span>
+                    ) : null}
+                  </Label>
+                </>
               )}
             </div>
           </div>
@@ -342,10 +349,10 @@ export const Components: Record<BookingFieldType, Component> = {
                     name: "optionField",
                   }}
                   value={value?.optionValue}
-                  setValue={(val: string) => {
+                  setValue={(val: string | undefined) => {
                     setValue({
                       value: value?.value,
-                      optionValue: val,
+                      optionValue: val || "",
                     });
                   }}
                 />
