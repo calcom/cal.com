@@ -983,7 +983,7 @@ export const workflowsRouter = router({
                   title: booking.title,
                   language: { locale: booking?.user?.locale || "" },
                   eventType: {
-                    slug: booking.eventType.slug,
+                    slug: booking.eventType?.slug,
                   },
                 };
 
