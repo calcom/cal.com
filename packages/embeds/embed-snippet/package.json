@@ -29,6 +29,6 @@
     "vite": "^4.1.2"
   },
   "dependencies": {
-    "@calcom/embed-core": "workspace:*"
+    "@calcom/embed-core": "^1.1.3"
   }
 }

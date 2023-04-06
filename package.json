@@ -93,6 +93,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@changesets/cli": "^2.26.1",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "turbo": "^1.8.3"
