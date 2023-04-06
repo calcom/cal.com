@@ -550,7 +550,7 @@ const WithLabel = ({
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0">
-            {field.label}
+            <span>{field.label}</span>
             <span className="ml-1 -mb-1 text-sm font-medium leading-none dark:text-white">
               {!readOnly && field.required ? "*" : ""}
             </span>
