@@ -1,6 +1,7 @@
 {
   "name": "@calcom/features",
   "sideEffects": false,
+  "private": true,
   "description": "Cal.com's main collocation of features",
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",

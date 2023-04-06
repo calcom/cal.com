@@ -1,5 +1,6 @@
 {
   "name": "@calcom/app-store-cli",
+  "private": true,
   "sideEffects": false,
   "version": "0.0.0",
   "bin": "dist/cli.js",

@@ -1,6 +1,7 @@
 {
   "name": "@calcom/trpc",
   "sideEffects": false,
+  "private": true,
   "description": "Shared tRPC library for Cal.com",
   "authors": "zomars",
   "version": "1.0.0",
