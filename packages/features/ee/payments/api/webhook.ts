@@ -323,7 +323,6 @@ const webhookHandlers: Record<string, WebhookHandler | undefined> = {
  * to prevent circular dependencies on App Store migration
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("This triggered");
   try {
     if (req.method !== "POST") {
       throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
