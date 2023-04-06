@@ -52,16 +52,16 @@ export default function TeamAvailabilityTimes(props: Props) {
       {isLoading && slots.length === 0 && <SkeletonLoader />}
       {!isLoading && slots.length === 0 ? (
         <div className="flex flex-col items-center justify-center pt-4">
-          <span className="text-sm text-gray-500">{t("no_available_slots")}</span>
+          <span className="text-subtle text-sm">{t("no_available_slots")}</span>
         </div>
       ) : (
-        <>{!isLoading && <p className="mb-3 text-sm text-gray-600">{t("time_available")}</p>}</>
+        <>{!isLoading && <p className="text-default mb-3 text-sm">{t("time_available")}</p>}</>
       )}
       <div className="max-h-[390px] overflow-scroll">
         {slots.map((slot) => (
           <div key={slot.time.format()} className="flex flex-row items-center ">
             <a
-              className="min-w-48 border-brand text-bookingdarker dark:text-darkgray-800 mb-2 mr-3 block flex-grow rounded-md border bg-white py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 "
+              className="min-w-48 border-brand-default text-bookingdarker  bg-default mb-2 mr-3 block flex-grow rounded-md border py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 "
               data-testid="time">
               {slot.time.tz(props.selectedTimeZone.toString()).format("HH:mm")}
             </a>

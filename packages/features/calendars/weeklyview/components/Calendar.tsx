@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
-import { CalendarComponentProps } from "../types/state";
+import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
 import { BlockedList } from "./blocking/BlockedList";
@@ -44,7 +44,7 @@ export function Calendar(props: CalendarComponentProps) {
           { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
         }>
         <SchedulerHeading />
-        <div ref={container} className="relative isolate flex flex-auto  flex-col bg-white">
+        <div ref={container} className="bg-default relative isolate flex  flex-auto flex-col">
           <div
             style={{ width: "165%" }}
             className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
@@ -56,7 +56,7 @@ export function Calendar(props: CalendarComponentProps) {
             containerRef={container}
           /> */}
             <div className="flex flex-auto">
-              <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
+              <div className="bg-default sticky left-0 z-10 w-14 flex-none ring-1 ring-muted" />
               <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
                 <HorizontalLines
                   hours={hours}
@@ -125,7 +125,7 @@ const MobileNotSupported = ({ children }: { children: React.ReactNode }) => {
     <>
       <div className="flex h-full flex-col items-center justify-center sm:hidden">
         <h1 className="text-2xl font-bold">Mobile not supported yet </h1>
-        <p className="text-gray-500">Please use a desktop browser to view this page</p>
+        <p className="text-subtle">Please use a desktop browser to view this page</p>
       </div>
       <div className="hidden sm:block">{children}</div>
     </>

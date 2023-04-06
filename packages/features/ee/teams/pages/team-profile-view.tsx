@@ -10,7 +10,6 @@ import { z } from "zod";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownAndSanitize } from "@calcom/lib/markdownAndSanitizeClientSide";
 import { md } from "@calcom/lib/markdownIt";
 import objectKeys from "@calcom/lib/objectKeys";
 import turndown from "@calcom/lib/turndownService";
@@ -182,7 +181,7 @@ const ProfileView = () => {
                 />
               </div>
 
-              <hr className="my-8 border-gray-200" />
+              <hr className="border-subtle my-8" />
 
               <Controller
                 control={form.control}
@@ -227,7 +226,7 @@ const ProfileView = () => {
                   disableLists
                 />
               </div>
-              <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
+              <p className="text-default mt-2 text-sm">{t("team_description")}</p>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
@@ -249,15 +248,15 @@ const ProfileView = () => {
             <div className="flex">
               <div className="flex-grow">
                 <div>
-                  <Label className="text-black">{t("team_name")}</Label>
-                  <p className="text-sm text-gray-800">{team?.name}</p>
+                  <Label className="text-emphasis">{t("team_name")}</Label>
+                  <p className="text-default text-sm">{team?.name}</p>
                 </div>
                 {team && !isBioEmpty && (
                   <>
-                    <Label className="mt-5 text-black">{t("about")}</Label>
+                    <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
-                      className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: markdownAndSanitize(team.bio) }}
+                      className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
                     />
                   </>
                 )}
@@ -277,9 +276,9 @@ const ProfileView = () => {
               </div>
             </div>
           )}
-          <hr className="my-8 border border-gray-200" />
+          <hr className="border-subtle my-8 border" />
 
-          <div className="mb-3 text-base font-semibold">{t("danger_zone")}</div>
+          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
           {team?.membership.role === "OWNER" ? (
             <Dialog>
               <DialogTrigger asChild>

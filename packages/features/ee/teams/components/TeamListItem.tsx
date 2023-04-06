@@ -56,9 +56,17 @@ export default function TeamListItem(props: Props) {
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(false);
   const teamQuery = trpc.viewer.teams.get.useQuery({ teamId: team?.id });
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    async onSuccess() {
+    async onSuccess(data) {
       await utils.viewer.teams.get.invalidate();
       setOpenMemberInvitationModal(false);
+      if (data.sendEmailInvitation) {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
+      }
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -98,8 +106,8 @@ export default function TeamListItem(props: Props) {
         className="inline-flex justify-center"
       />
       <div className="inline-block ltr:ml-3 rtl:mr-3">
-        <span className="text-sm font-bold text-gray-700">{team.name}</span>
-        <span className="block text-xs text-gray-400">
+        <span className="text-default text-sm font-bold">{team.name}</span>
+        <span className="text-muted block text-xs">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>
       </div>
@@ -124,11 +132,7 @@ export default function TeamListItem(props: Props) {
         }}
         members={teamQuery?.data?.members || []}
       />
-      <div
-        className={classNames(
-          "flex items-center  justify-between",
-          !isInvitee && "group hover:bg-neutral-50"
-        )}>
+      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link
             href={"/settings/teams/" + team.id + "/profile"}
@@ -270,17 +274,15 @@ export default function TeamListItem(props: Props) {
                       <DropdownMenuItem>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              type="button"
+                            <DropdownItem
                               color="destructive"
-                              size="lg"
+                              type="button"
                               StartIcon={FiLogOut}
-                              className="w-full rounded-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>
                               {t("leave_team")}
-                            </Button>
+                            </DropdownItem>
                           </DialogTrigger>
                           <ConfirmationDialogContent
                             variety="danger"

@@ -28,7 +28,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className={
           classNames && classNames.searchIcon
             ? classNames.searchIcon
-            : "dark:text-darkgray-500 absolute mt-2.5 ml-2 h-5 w-5 pb-0.5 text-gray-500"
+            : " text-subtle absolute mt-2.5 ml-2 h-5 w-5 pb-0.5"
         }
       />
       <input
@@ -36,7 +36,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className={
           classNames && classNames.searchBox
             ? classNames.searchBox
-            : "dark:border-darkgray-300 dark:bg-darkgray-100  dark:text-darkgray-900 focus:border-darkgray-900 w-full rounded-[6px] border border-gray-200 py-2 pl-8 text-sm text-gray-500 focus:border-gray-900 focus:outline-none focus:ring-0"
+            : "dark:border-darkgray-300 dark:bg-darkgray-100   focus:border-darkgray-900 text-subtle border-subtle w-full rounded-[6px] border py-2 pl-8 text-sm focus:border-gray-900 focus:outline-none focus:ring-0"
         }
         autoFocus
         type="text"

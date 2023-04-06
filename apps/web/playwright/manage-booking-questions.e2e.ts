@@ -1,4 +1,4 @@
-import type { Page, PlaywrightTestArgs } from "@playwright/test";
+import type { Locator, Page, PlaywrightTestArgs } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { WebhookTriggerEvents } from "@prisma/client";
 import type { createUsersFixture } from "playwright/fixtures/users";
@@ -8,6 +8,10 @@ import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+
+async function getLabelText(field: Locator) {
+  return await field.locator("label").first().locator("span").first().innerText();
+}
 
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
@@ -91,7 +95,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
 
       await expect(userFieldLocator.locator('[name="how_are_you"]')).toBeVisible();
       // There are 2 labels right now. Will be one in future. The second one is hidden
-      expect(await userFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
+      expect(await getLabelText(userFieldLocator)).toBe("How are you?");
       await expect(userFieldLocator.locator("input[type=text]")).toBeVisible();
     });
   });
@@ -140,7 +144,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
           expect(
             await formBuilderFieldLocator.locator('[name="how_are_you"]').getAttribute("placeholder")
           ).toBe("I'm fine, thanks");
-          expect(await formBuilderFieldLocator.locator("label").nth(0).innerText()).toBe("How are you?");
+          expect(await getLabelText(formBuilderFieldLocator)).toBe("How are you?");
           await formBuilderFieldLocator.locator('[name="how_are_you"]').fill("I am great!");
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();

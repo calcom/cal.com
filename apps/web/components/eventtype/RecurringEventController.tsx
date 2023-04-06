@@ -57,12 +57,12 @@ export default function RecurringEventController({
               {recurringEventState && (
                 <div data-testid="recurring-event-collapsible" className="text-sm">
                   <div className="flex items-center">
-                    <p className="text-gray-900 ltr:mr-2 rtl:ml-2">{t("repeats_every")}</p>
+                    <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("repeats_every")}</p>
                     <input
                       type="number"
                       min="1"
                       max="20"
-                      className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      className="border-default bg-default text-default block h-[36px] w-16 rounded-md text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                       defaultValue={recurringEventState.interval}
                       onChange={(event) => {
                         const newVal = {
@@ -89,12 +89,12 @@ export default function RecurringEventController({
                     />
                   </div>
                   <div className="mt-4 flex items-center">
-                    <p className="text-gray-900 ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
+                    <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
                     <input
                       type="number"
                       min="1"
                       max="20"
-                      className="block h-[36px] w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      className="border-default bg-default text-default block h-[36px] w-16 rounded-md text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                       defaultValue={recurringEventState.count}
                       onChange={(event) => {
                         const newVal = {
@@ -105,7 +105,7 @@ export default function RecurringEventController({
                         setRecurringEventState(newVal);
                       }}
                     />
-                    <p className="text-gray-900 ltr:mr-2 rtl:ml-2">
+                    <p className="text-emphasis ltr:mr-2 rtl:ml-2">
                       {t("events", {
                         count: recurringEventState.count,
                       })}

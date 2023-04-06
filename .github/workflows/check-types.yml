@@ -10,8 +10,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
-
       - name: Show info
         run: node -e "console.log(require('v8').getHeapStatistics())"
-
-      - run: yarn type-check
+      - name: Configure TSC problem matcher
+        run: |
+          echo "::remove-matcher owner=tsc::"
+          echo "::add-matcher::.github/matchers/tsc-absolute.json"
+      - run: yarn type-check:ci

@@ -1614,8 +1614,6 @@
   "booking_confirmation_failed": "Не удалось подтвердить бронирование",
   "form_builder_field_already_exists": "Поле с таким именем уже существует",
   "form_builder_field_add_subtitle": "Настроить вопросы, задаваемые на странице бронирования",
-  "form_builder_system_field_cant_delete": "Это системное поле нельзя удалить.",
-  "form_builder_system_field_cant_toggle": "Это системное поле нельзя переключить.",
   "get_started_zapier_templates": "Начать работу с шаблонами Zapier",
   "team_member": "Участник команды",
   "a_routing_form": "Форма маршрутизации",

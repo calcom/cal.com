@@ -1,4 +1,4 @@
-import merge from "lodash/merge";
+import { merge } from "lodash";
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
 import { useRouter } from "next/router";

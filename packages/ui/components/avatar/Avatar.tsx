@@ -37,7 +37,7 @@ export function Avatar(props: AvatarProps) {
   let avatar = (
     <AvatarPrimitive.Root
       className={classNames(
-        "dark:bg-darkgray-300 item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
+        "bg-emphasis item-center relative inline-flex aspect-square justify-center overflow-hidden rounded-full",
         props.className,
         sizesPropsBySize[size]
       )}>
@@ -58,7 +58,7 @@ export function Avatar(props: AvatarProps) {
         {props.accepted && (
           <div
             className={classNames(
-              "absolute bottom-0 right-0 block rounded-full bg-green-400 text-white ring-2 ring-white",
+              "text-inverted absolute bottom-0 right-0 block rounded-full bg-green-400 ring-2 ring-white",
               size === "lg" ? "h-5 w-5" : "h-2 w-2"
             )}>
             <div className="flex h-full items-center justify-center p-[2px]">
@@ -78,7 +78,7 @@ export function Avatar(props: AvatarProps) {
     <Tooltip.Provider>
       <Tooltip.Tooltip delayDuration={300}>
         <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
-        <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white shadow-sm">
+        <Tooltip.Content className="text-inverted rounded-sm bg-black p-2 text-sm shadow-sm">
           <Tooltip.Arrow />
           {title}
         </Tooltip.Content>
