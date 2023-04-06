@@ -1,0 +1,23 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Sylaps",
+  "title": "Sylaps",
+  "slug": "sylaps",
+  "type": "sylaps_video",
+  "imageSrc": "/api/app-store/sylaps/icon.svg",
+  "logo": "/api/app-store/sylaps/icon.svg",
+  "url": "https://cal.com/apps/sylaps",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "publisher": "Sylaps Inc",
+  "email": "support@sylaps.com",
+  "description": "Free Audio and Video Conferencing, Online Collaboration, Screen Sharing on web browser, mobile and desktop.",
+  "__createdUsingCli": true,
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:sylaps_video",
+      "label": "Sylaps"
+    }
+  }
+}

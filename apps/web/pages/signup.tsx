@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -73,20 +74,27 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   return (
     <LicenseRequired>
       <div
-        className="flex min-h-screen flex-col justify-center bg-gray-50 py-12 sm:px-6 lg:px-8"
+        className="bg-muted flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8"
+        style={
+          {
+            "--cal-brand": "#111827",
+            "--cal-brand-emphasis": "#101010",
+            "--cal-brand-text": "white",
+          } as CSSProperties
+        }
         aria-labelledby="modal-title"
         role="dialog"
         aria-modal="true">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
             {t("create_your_account")}
           </h2>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="mx-2 bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-default mx-2 px-4 py-8 shadow sm:rounded-lg sm:px-10">
             <FormProvider {...methods}>
-              <form onSubmit={methods.handleSubmit(signUp)} className="space-y-6 bg-white">
+              <form onSubmit={methods.handleSubmit(signUp)} className="bg-default space-y-6">
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-2">
                   <TextField
@@ -97,14 +105,14 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                   <EmailField
                     {...register("email")}
                     disabled={prepopulateFormValues?.email}
-                    className="disabled:bg-gray-200 disabled:hover:cursor-not-allowed"
+                    className="disabled:bg-emphasis disabled:hover:cursor-not-allowed"
                   />
                   <PasswordField
                     labelProps={{
-                      className: "block text-sm font-medium text-gray-700",
+                      className: "block text-sm font-medium text-default",
                     }}
                     {...register("password")}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+                    className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                   <PasswordField
                     label={t("confirm_password")}
@@ -209,3 +217,5 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   };
 };
+
+Signup.isThemeSupported = false;

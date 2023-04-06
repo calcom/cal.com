@@ -16,7 +16,7 @@ export default function Credits() {
   }, []);
 
   return (
-    <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
+    <small className="text-default mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
       &copy; {new Date().getFullYear()}{" "}
       <Link href="https://go.cal.com/credits" target="_blank" className="hover:underline">
         {COMPANY_NAME}

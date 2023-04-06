@@ -132,12 +132,15 @@ class EventsInsights {
     return resultTimeView;
   };
 
-  static getWeekTimeline(startDate: Dayjs, endDate: Dayjs) {
+  static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
+    const now = dayjs();
+    const endOfDay = now.endOf("day");
     let pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate = pivotDate.add(7, "day");
+    const dates: string[] = [];
+    while (pivotDate.isBefore(endDate) && pivotDate.isBefore(endOfDay)) {
+      const weekEndDate = pivotDate.add(7, "day").isBefore(endOfDay) ? pivotDate.add(7, "day") : endOfDay;
       dates.push(pivotDate.format("YYYY-MM-DD"));
+      pivotDate = weekEndDate.add(1, "day");
     }
     return dates;
   }

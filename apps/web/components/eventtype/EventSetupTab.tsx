@@ -4,7 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
 import { z } from "zod";
@@ -16,7 +16,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Button, Editor, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
+import {
+  Button,
+  Label,
+  Select,
+  SettingsToggle,
+  Skeleton,
+  TextField,
+  Editor,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -33,6 +43,33 @@ const getLocationFromType = (
       return option;
     }
   }
+};
+
+interface DescriptionEditorProps {
+  description?: string | null;
+}
+
+const DescriptionEditor = (props: DescriptionEditorProps) => {
+  const formMethods = useFormContext<FormValues>();
+  const [mounted, setIsMounted] = useState(false);
+  const { t } = useLocale();
+  const { description } = props;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  return mounted ? (
+    <Editor
+      getText={() => md.render(formMethods.getValues("description") || description || "")}
+      setText={(value: string) => formMethods.setValue("description", turndown(value))}
+      excludedToolbarItems={["blockType"]}
+      placeholder={t("quick_video_meeting")}
+    />
+  ) : (
+    <SkeletonContainer>
+      <SkeletonText className="block h-24 w-full" />
+    </SkeletonContainer>
+  );
 };
 
 export const EventSetupTab = (
@@ -192,16 +229,8 @@ export const EventSetupTab = (
 
               return (
                 <li
-                  onClick={() => {
-                    locationFormMethods.setValue("locationType", location.type);
-                    locationFormMethods.unregister("locationLink");
-                    locationFormMethods.unregister("locationAddress");
-                    locationFormMethods.unregister("locationPhoneNumber");
-                    setEditingLocationType(location.type);
-                    openLocationModal(location.type);
-                  }}
                   key={`${location.type}${index}`}
-                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 rounded-md border py-1.5 px-2 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
@@ -223,11 +252,11 @@ export const EventSetupTab = (
                           openLocationModal(location.type);
                         }}
                         aria-label={t("edit")}
-                        className="mr-1 p-1 text-gray-500 hover:text-gray-900">
+                        className="hover:text-emphasis text-subtle mr-1 p-1">
                         <FiEdit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                        <FiX className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
                       </button>
                     </div>
                   </div>
@@ -238,7 +267,7 @@ export const EventSetupTab = (
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
-              <div className="flex text-sm text-gray-600">
+              <div className="text-default flex text-sm">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
@@ -281,12 +310,7 @@ export const EventSetupTab = (
         />
         <div>
           <Label>{t("description")}</Label>
-          <Editor
-            getText={() => md.render(formMethods.getValues("description") || eventType.description || "")}
-            setText={(value: string) => formMethods.setValue("description", turndown(value))}
-            excludedToolbarItems={["blockType"]}
-            placeholder={t("quick_video_meeting")}
-          />
+          <DescriptionEditor description={eventType?.description} />
         </div>
         <TextField
           required

@@ -25,11 +25,11 @@ function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps
       defaultCountry={defaultCountry}
       name={name}
       onChange={onChange}
-      countrySelectProps={{ className: "text-black" }}
+      countrySelectProps={{ className: "text-emphasis" }}
       numberInputProps={{
-        className: "border-0 text-sm focus:ring-0 dark:bg-darkgray-100 dark:placeholder:text-darkgray-600",
+        className: "border-0 text-sm focus:ring-0 dark:bg-muted text-default",
       }}
-      className={`${className} focus-within:border-brand dark:bg-darkgray-100 dark:border-darkgray-300 block w-full rounded-md rounded-sm border border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500`}
+      className={`${className} focus-within:border-brand-default border-default disabled:text-subtle disabled:dark:text-subtle  ring-emphasis block w-full rounded-md rounded-sm border border py-px pl-3 focus-within:ring-1 disabled:opacity-50 `}
     />
   );
 }

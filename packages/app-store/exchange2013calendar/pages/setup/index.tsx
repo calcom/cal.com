@@ -20,8 +20,8 @@ export default function Exchange2013CalendarSetup() {
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
-    <div className="flex h-screen bg-gray-200">
-      <div className="m-auto rounded bg-white p-5 md:w-[560px] md:p-10">
+    <div className="bg-emphasis flex h-screen">
+      <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
         <div>
           <img
             src="/api/app-store/exchange2013calendar/icon.svg"
@@ -30,7 +30,7 @@ export default function Exchange2013CalendarSetup() {
           />
         </div>
         <div className="flex w-10/12 flex-col">
-          <h1 className="text-gray-600">{t("add_exchange2013")}</h1>
+          <h1 className="text-default">{t("add_exchange2013")}</h1>
           <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
           <div className="my-2 mt-3">
             <Form

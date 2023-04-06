@@ -10,7 +10,7 @@ export default function UpgradeRecordingBanner() {
   const router = useRouter();
 
   return (
-    <div className="flex items-start gap-2 rounded-md bg-gray-100 p-4">
+    <div className="bg-subtle flex items-start gap-2 rounded-md p-4">
       <FiUsers className="dark:bg-gray-90 inline-block h-5 w-5" />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
