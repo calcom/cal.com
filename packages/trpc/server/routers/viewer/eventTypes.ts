@@ -1,17 +1,10 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 // REVIEW: From lint error
-import _ from "lodash";
+import { orderBy } from "lodash";
 import { z } from "zod";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import type { LocationObject } from "@calcom/app-store/locations";
-import { DailyLocationType } from "@calcom/app-store/locations";
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getAppFromLocationValue, getAppFromSlug } from "@calcom/app-store/utils";
-import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
-import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -335,7 +328,7 @@ export const eventTypesRouter = router({
         name: user.name,
         image: user.avatar || undefined,
       },
-      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      eventTypes: orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
         membershipCount: 1,
         readOnly: false,
@@ -418,6 +411,9 @@ export const eventTypesRouter = router({
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
+    const { DailyLocationType } = await import("@calcom/app-store/locations");
+    const { default: getApps } = await import("@calcom/app-store/utils");
+    const getAppKeysFromSlug = (await import("@calcom/app-store/_utils/getAppKeysFromSlug")).default;
 
     const userId = ctx.user.id;
     // Get Users default conferncing app
@@ -426,7 +422,6 @@ export const eventTypesRouter = router({
     const appKeys = await getAppKeysFromSlug("daily-video");
 
     let locations: { type: string; link?: string }[] = [];
-
     // If no locations are passed in and the user has a daily api key then default to daily
     if (
       (typeof rest?.locations === "undefined" || rest.locations?.length === 0) &&
@@ -480,6 +475,7 @@ export const eventTypesRouter = router({
       const eventType = await ctx.prisma.eventType.create({ data });
       return { eventType };
     } catch (e) {
+      const { PrismaClientKnownRequestError } = await import("@prisma/client/runtime/library");
       if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
@@ -495,6 +491,7 @@ export const eventTypesRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
+      const getEventTypeById = (await import("@calcom/lib/getEventTypeById")).default;
       const user = await ctx.prisma.user.findUnique({
         where: {
           id: ctx.user.id,
@@ -581,7 +578,7 @@ export const eventTypesRouter = router({
     if (customInputs) {
       data.customInputs = handleCustomInputs(customInputs, id);
     }
-
+    const { validateIntervalLimitOrder } = await import("@calcom/lib");
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);
       if (!isValid)
@@ -652,6 +649,7 @@ export const eventTypesRouter = router({
       });
 
       if (paymentCredential?.type === "stripe_payment") {
+        const { stripeDataSchema } = await import("@calcom/app-store/stripepayment/lib/server");
         const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
         data.currency = default_currency;
       }
@@ -843,6 +841,7 @@ export const eventTypesRouter = router({
     }
   }),
   bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
+    const { getAppFromLocationValue } = await import("@calcom/app-store/utils");
     const eventTypes = await ctx.prisma.eventType.findMany({
       where: {
         userId: ctx.user.id,
@@ -882,6 +881,7 @@ export const eventTypesRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { getAppFromSlug } = await import("@calcom/app-store/utils");
       const { eventTypeIds } = input;
       const defaultApp = userMetadataSchema.parse(ctx.user.metadata)?.defaultConferencingApp;
 

@@ -16,7 +16,6 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
-// import dayjs from "@calcom/dayjs";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -25,10 +24,8 @@ import {
 } from "@calcom/features/ee/workflows/lib/constants";
 import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import { upsertBookingField, removeBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
-import { IS_SELF_HOSTED, SENDER_ID, CAL_URL } from "@calcom/lib/constants";
-import { SENDER_NAME } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, SENDER_ID, CAL_URL, SENDER_NAME } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-// import { getErrorFromUnknown } from "@calcom/lib/errors";
 import type PrismaType from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
 

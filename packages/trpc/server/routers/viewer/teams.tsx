@@ -1,7 +1,6 @@
 import { MembershipRole, Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
@@ -637,6 +636,7 @@ export const viewerTeamsRouter = router({
           },
         });
       } catch (error) {
+        const { getRequestedSlugError } = await import("@calcom/app-store/stripepayment/lib/team-billing");
         const { message } = getRequestedSlugError(error, requestedSlug);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
       }
