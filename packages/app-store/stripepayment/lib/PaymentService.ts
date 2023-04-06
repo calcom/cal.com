@@ -190,8 +190,12 @@ export class PaymentService implements IAbstractPaymentService {
       const paymentFee = Math.round(payment.amount * payment_fee_percentage + payment_fee_fixed);
 
       // Ensure that the stripe customer & payment method still exists
-      const customer = await this.stripe.customers.retrieve(setupIntent.customer as string);
-      const paymentMethod = await this.stripe.paymentMethods.retrieve(setupIntent.payment_method as string);
+      const customer = await this.stripe.customers.retrieve(setupIntent.customer as string, {
+        stripeAccount: this.credentials.stripe_user_id,
+      });
+      const paymentMethod = await this.stripe.paymentMethods.retrieve(setupIntent.payment_method as string, {
+        stripeAccount: this.credentials.stripe_user_id,
+      });
 
       if (!customer) {
         throw new Error(`Stripe customer does not exist for setupIntent ${setupIntent.id}`);

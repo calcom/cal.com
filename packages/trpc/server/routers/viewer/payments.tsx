@@ -36,7 +36,7 @@ export const paymentsRouter = router({
         throw new Error("Booking not found");
       }
 
-      if (booking.paid) {
+      if (booking.payment[0].success) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: `The no show fee for ${booking.id} has already been charged.`,
