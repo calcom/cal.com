@@ -230,7 +230,7 @@ export const EventSetupTab = (
               return (
                 <li
                   key={`${location.type}${index}`}
-                  className="mb-2 rounded-md border border-gray-300 py-1.5 px-2 hover:cursor-pointer">
+                  className="border-default text-default mb-2 rounded-md border py-1.5 px-2 hover:cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <img
@@ -252,11 +252,11 @@ export const EventSetupTab = (
                           openLocationModal(location.type);
                         }}
                         aria-label={t("edit")}
-                        className="mr-1 p-1 text-gray-500 hover:text-gray-900">
+                        className="hover:text-emphasis text-subtle mr-1 p-1">
                         <FiEdit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <FiX className="border-l-1 h-6 w-6 pl-1 text-gray-500 hover:text-gray-900 " />
+                        <FiX className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
                       </button>
                     </div>
                   </div>
@@ -267,7 +267,7 @@ export const EventSetupTab = (
               (location) =>
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
-              <div className="flex text-sm text-gray-600">
+              <div className="text-default flex text-sm">
                 <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>

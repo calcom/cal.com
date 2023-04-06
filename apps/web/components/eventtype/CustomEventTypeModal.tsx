@@ -58,35 +58,35 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         className="mb-0"
       />
       <div className="pt-6 text-sm">
-        <div className="mb-6 rounded-md bg-gray-100 p-2">
-          <h1 className="mb-2 ml-1 font-medium text-gray-900">{t("available_variables")}</h1>
+        <div className="bg-subtle mb-6 rounded-md p-2">
+          <h1 className="text-emphasis mb-2 ml-1 font-medium">{t("available_variables")}</h1>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Event type title}`}</p>
-            <p className="text-gray-900">{t("event_name_info")}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Event type title}`}</p>
+            <p className="text-emphasis">{t("event_name_info")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Organiser}`}</p>
-            <p className="text-gray-900">{t("your_full_name")}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Organiser}`}</p>
+            <p className="text-emphasis">{t("your_full_name")}</p>
           </div>
           <div className="mb-2.5 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Scheduler}`}</p>
-            <p className="text-gray-900">{t("scheduler_full_name")}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Scheduler}`}</p>
+            <p className="text-emphasis">{t("scheduler_full_name")}</p>
           </div>
           <div className="mb-1 flex font-normal">
-            <p className="ml-1 mr-5 w-28 text-gray-400">{`{Location}`}</p>
-            <p className="text-gray-900">{t("location_info")}</p>
+            <p className="text-subtle ml-1 mr-5 w-28">{`{Location}`}</p>
+            <p className="text-emphasis">{t("location_info")}</p>
           </div>
         </div>
         <h1 className="mb-2 text-[14px] font-medium leading-4">{t("preview")}</h1>
         <div
-          className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center"
+          className="flex h-[212px] w-full rounded-md border-y bg-cover bg-center dark:invert"
           style={{
             backgroundImage: "url(/calendar-preview.svg)",
           }}>
           <div className="m-auto flex items-center justify-center self-stretch">
-            <div className="mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black bg-gray-100 text-[12px] leading-3">
-              <p className="overflow-hidden text-ellipsis p-1.5 font-medium text-gray-900">{previewText}</p>
-              <p className="ml-1.5 text-[10px] font-normal text-gray-600">8 - 10 AM</p>
+            <div className="bg-subtle mt-3 ml-11 box-border h-[110px] w-[120px] flex-col items-start gap-1 rounded-md border border-solid border-black text-[12px] leading-3">
+              <p className="text-emphasis overflow-hidden text-ellipsis p-1.5 font-medium">{previewText}</p>
+              <p className="text-default ml-1.5 text-[10px] font-normal">8 - 10 AM</p>
             </div>
           </div>
         </div>

@@ -42,8 +42,8 @@ function SettingsToggle({
             />
 
             <div>
-              <Label className="text-sm font-semibold leading-none text-black">{title}</Label>
-              {description && <p className="-mt-1.5 text-sm leading-normal text-gray-600">{description}</p>}
+              <Label className="text-emphasis text-sm font-semibold leading-none">{title}</Label>
+              {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
             </div>
           </div>
           {children && (

@@ -167,7 +167,7 @@ export default function ImageUploader({
       <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
-            <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
+            <h3 className="font-cal text-emphasis text-lg leading-6" id="modal-title">
               {t("upload_target", { target })}
             </h3>
           </div>
@@ -175,9 +175,9 @@ export default function ImageUploader({
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="flex h-20 max-h-20 w-20 items-center justify-start rounded-full bg-gray-50">
+              <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
                 {!imageSrc && (
-                  <p className="w-full text-center text-sm text-white sm:text-xs">
+                  <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {t("no_target", { target })}
                   </p>
                 )}
@@ -188,13 +188,13 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="mt-8 rounded-sm border border-gray-300 bg-white px-3 py-1 text-xs font-medium leading-4 text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1 dark:border-gray-800 dark:bg-transparent dark:text-white dark:hover:bg-gray-900">
+            <label className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="pointer-events-none absolute mt-4 opacity-0"
+                className="text-default pointer-events-none absolute mt-4 opacity-0 "
                 accept="image/*"
               />
               {t("choose_a_file")}
@@ -202,8 +202,10 @@ export default function ImageUploader({
           </div>
         </div>
         <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
-          <DialogClose onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</DialogClose>
-          <DialogClose color="secondary">{t("cancel")}</DialogClose>
+          <DialogClose color="secondary" onClick={() => showCroppedImage(croppedAreaPixels)}>
+            {t("save")}
+          </DialogClose>
+          <DialogClose color="minimal">{t("cancel")}</DialogClose>
         </div>
       </DialogContent>
     </Dialog>

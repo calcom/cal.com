@@ -1614,8 +1614,6 @@
   "booking_confirmation_failed": "אישור ההזמנה נכשל",
   "form_builder_field_already_exists": "שדה עם שם זה כבר קיים",
   "form_builder_field_add_subtitle": "התאמת השאלות שנשאלות בדף התזמון",
-  "form_builder_system_field_cant_delete": "שדה מערכת זה לא ניתן להסרה.",
-  "form_builder_system_field_cant_toggle": "שדה מערכת זה לא ניתן לשינוי.",
   "get_started_zapier_templates": "התחל עם תבניות Zapier",
   "team_is_unpublished": "צוות {{team}} אינו מפורסם",
   "team_is_unpublished_description": "קישור הצוות הזה אינו זמין כעת. אנא צור קשר עם הבעלים של הצוות או בקש מהם לפרסם אותו.",

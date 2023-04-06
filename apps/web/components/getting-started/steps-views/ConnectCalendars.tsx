@@ -33,7 +33,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         firstCalendar.integration.title &&
         firstCalendar.integration.imageSrc && (
           <>
-            <List className="rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+            <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black">
               <ConnectedCalendarItem
                 key={firstCalendar.integration.title}
                 name={firstCalendar.integration.title}
@@ -49,13 +49,13 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             </List>
             {/* Create event on selected calendar */}
             <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
-            <p className="mt-4 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
+            <p className="text-subtle mt-4 text-sm">{t("connect_calendars_from_app_store")}</p>
           </>
         )}
 
       {/* Connect calendars list */}
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
-        <List className="mx-1 divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black sm:mx-0">
+        <List className="bg-default divide-subtle border-subtle mx-1 divide-y rounded-md border p-0 dark:bg-black sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
               <li key={item.title}>
@@ -73,7 +73,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       )}
 
       {queryIntegrations.isLoading && (
-        <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
+        <ul className="bg-default divide-subtle border-subtle divide-y rounded-md border p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (
               <li className="flex w-full flex-row justify-center border-b-0 py-6" key={index}>
@@ -89,7 +89,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         type="button"
         data-testid="save-calendar-button"
         className={classNames(
-          "mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm text-white",
+          "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         onClick={() => nextStep()}

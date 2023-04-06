@@ -18,14 +18,14 @@ interface CtaRowProps {
 const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
   return (
     <>
-      <section className={classNames("flex flex-col sm:flex-row", className)}>
+      <section className={classNames("text-default flex flex-col sm:flex-row", className)}>
         <div>
           <h2 className="font-medium">{title}</h2>
           <p>{description}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">{children}</div>
       </section>
-      <hr className="border-gray-200" />
+      <hr className="border-subtle" />
     </>
   );
 };
