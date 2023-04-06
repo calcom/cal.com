@@ -308,7 +308,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="group relative flex items-center justify-between  p-4 hover:bg-gray-50">
+                className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
                 {index >= 1 && (
                   <button
                     type="button"
