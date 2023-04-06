@@ -122,7 +122,7 @@ const EventTypeScheduleDetails = ({
     schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
   return (
-    <div className="space-y-4 rounded border px-6 pb-4">
+    <div className="border-default space-y-4 rounded border px-6 pb-4">
       <ol className="table border-collapse text-sm">
         {weekdayNames(i18n.language, 1, "long").map((day, index) => {
           const isAvailable = !!filterDays(index).length;
@@ -130,8 +130,8 @@ const EventTypeScheduleDetails = ({
             <li key={day} className="my-6 flex border-transparent last:mb-2">
               <span
                 className={classNames(
-                  "w-20 font-medium sm:w-32",
-                  !isAvailable && "text-gray-500 opacity-50"
+                  "w-20 font-medium sm:w-32 ",
+                  !isAvailable ? "text-subtle line-through" : "text-default"
                 )}>
                 {day}
               </span>
@@ -140,7 +140,7 @@ const EventTypeScheduleDetails = ({
               ) : isAvailable ? (
                 <div className="space-y-3 text-right">
                   {filterDays(index).map((dayRange, i) => (
-                    <div key={i} className="flex items-center leading-4">
+                    <div key={i} className="text-default flex items-center leading-4">
                       <span className="w-16 sm:w-28 sm:text-left">
                         {format(dayRange.startTime, timeFormat === 12)}
                       </span>
@@ -150,15 +150,15 @@ const EventTypeScheduleDetails = ({
                   ))}
                 </div>
               ) : (
-                <span className="ml-6 text-gray-500 opacity-50 sm:ml-0">{t("unavailable")}</span>
+                <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
               )}
             </li>
           );
         })}
       </ol>
-      <hr />
+      <hr className="border-subtle" />
       <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
-        <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
+        <span className="text-default flex items-center justify-center text-sm sm:justify-start">
           <FiGlobe className="ltr:mr-2 rtl:ml-2" />
           {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
         </span>
@@ -247,11 +247,9 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="availability" className="mb-2 block text-sm font-medium leading-none text-gray-700">
-          <>
-            {t("availability")}
-            {shouldLockIndicator("availability")}
-          </>
+        <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
+          {t("availability")}
+          {shouldLockIndicator("availability")}
         </label>
         <Controller
           name="schedule"

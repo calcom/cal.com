@@ -111,9 +111,9 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
   return (
     <main className="mx-auto max-w-3xl py-24 px-4">
       <div className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600">
-        <div className="hover:border-brand dark:bg-darkgray-100 flex min-h-[120px] grow flex-col border-b border-neutral-200 bg-white p-6 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-white dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left">
+        <div className="hover:border-brand-default dark:bg-darkgray-100 bg-default hover:bg-default flex min-h-[120px] grow flex-col border-b border-neutral-200 p-6 text-center first:rounded-t-md last:rounded-b-md last:border-b-0 dark:border-neutral-700 dark:hover:border-neutral-600 md:flex-row md:text-left">
           <span className="mb-4 grow md:mb-0">
-            <h2 className="mb-2 grow font-semibold text-gray-900 dark:text-white">Token Gate</h2>
+            <h2 className="text-emphasis dark:text-inverted mb-2 grow font-semibold">Token Gate</h2>
             {isLoading && (
               <>
                 <SkeletonText className="mb-3 h-1 w-full" />
@@ -122,7 +122,7 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
             )}
             {!isLoading && contractData && contractData.data && (
               <>
-                <p className="text-gray-300 dark:text-white">
+                <p className="dark:text-inverted text-gray-300">
                   <Trans i18nKey="rainbow_connect_wallet_gate" t={t}>
                     Connect your wallet if you own {contractData.data.name} ({contractData.data.symbol}) .
                   </Trans>

@@ -232,7 +232,7 @@ function EventTypeSingleLayout({
         <div className="flex items-center justify-end">
           {!eventType.metadata.managedEventConfig && (
             <>
-              <div className="hidden items-center rounded-md px-2 sm:hover:bg-gray-100 lg:flex">
+              <div className="sm:hover:bg-subtle hidden items-center rounded-md px-2 lg:flex">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -252,7 +252,7 @@ function EventTypeSingleLayout({
           )}
 
           {/* TODO: Figure out why combined isnt working - works in storybook */}
-          <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden lg:flex" }}>
+          <ButtonGroup combined containerProps={{ className: "border-default hidden lg:flex" }}>
             {!isManagedEventType && (
               <>
                 {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
@@ -306,7 +306,7 @@ function EventTypeSingleLayout({
               <Button className="lg:hidden" StartIcon={FiMoreHorizontal} variant="icon" color="secondary" />
             </DropdownMenuTrigger>
             <DropdownMenuContent style={{ minWidth: "200px" }}>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   target="_blank"
                   type="button"
@@ -316,7 +316,7 @@ function EventTypeSingleLayout({
                   {t("preview")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
                   StartIcon={FiLink}
@@ -327,7 +327,7 @@ function EventTypeSingleLayout({
                   {t("copy_link")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-gray-100">
+              <DropdownMenuItem className="focus:ring-muted">
                 <DropdownItem
                   type="button"
                   color="destructive"
@@ -338,7 +338,7 @@ function EventTypeSingleLayout({
                 </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="flex h-9 flex-row items-center justify-between py-2 px-4 sm:hover:bg-gray-100">
+              <div className="sm:hover:bg-subtle flex h-9 flex-row items-center justify-between py-2 px-4">
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
@@ -355,7 +355,7 @@ function EventTypeSingleLayout({
               </div>
             </DropdownMenuContent>
           </Dropdown>
-          <div className="border-l-2 border-gray-300" />
+          <div className="border-default border-l-2" />
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
@@ -382,7 +382,7 @@ function EventTypeSingleLayout({
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
               className={classNames(
-                "mt-4 rounded-md  border-gray-200 bg-white sm:mx-0 xl:mt-0",
+                "bg-default border-subtle  mt-4 rounded-md sm:mx-0 xl:mt-0",
                 disableBorder ? "border-0 " : "p-2 md:border md:p-6"
               )}>
               {children}

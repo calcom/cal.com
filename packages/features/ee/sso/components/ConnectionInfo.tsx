@@ -88,7 +88,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
           <Label>ACS URL</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {acsUrl}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -110,7 +110,7 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
           <Label>Entity ID</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {entityId}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -146,7 +146,7 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
           <Label>Callback URL</Label>
         </div>
         <div className="flex">
-          <code className="flex w-full items-center truncate rounded rounded-r-none bg-gray-100 pl-2 font-mono text-gray-800">
+          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
             {callbackUrl}
           </code>
           <Tooltip side="top" content={t("copy_to_clipboard")}>

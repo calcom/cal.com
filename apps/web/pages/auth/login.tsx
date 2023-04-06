@@ -4,6 +4,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
@@ -124,7 +125,14 @@ export default function Login({
   };
 
   return (
-    <>
+    <div
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+        } as CSSProperties
+      }>
       <AuthContainer
         title={t("login")}
         description={t("login")}
@@ -159,7 +167,7 @@ export default function Login({
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-sm font-medium text-gray-600">
+                      className="text-default text-sm font-medium">
                       {t("forgot")}
                     </Link>
                   </div>
@@ -187,7 +195,7 @@ export default function Login({
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
+              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="border-subtle my-8" />}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -215,7 +223,7 @@ export default function Login({
         </FormProvider>
       </AuthContainer>
       <AddToHomescreen />
-    </>
+    </div>
   );
 }
 
@@ -291,5 +299,7 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
     },
   };
 };
+
+Login.isThemeSupported = false;
 
 export const getServerSideProps = withNonce(_getServerSideProps);

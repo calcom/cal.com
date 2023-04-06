@@ -285,7 +285,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </div>
         </div>
       </div>
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="bookingLimits"
         control={formMethods.control}
@@ -313,7 +313,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="durationLimits"
         control={formMethods.control}
@@ -342,7 +342,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="periodType"
         control={formMethods.control}
@@ -364,7 +364,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                 return (
                   <div
                     className={classNames(
-                      "mb-2 flex flex-wrap items-center text-sm",
+                      "text-default mb-2 flex flex-wrap items-center text-sm",
                       watchPeriodType === "UNLIMITED" && "pointer-events-none opacity-30"
                     )}
                     key={period.type}>
@@ -372,7 +372,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       <RadioGroup.Item
                         id={period.type}
                         value={period.type}
-                        className="min-w-4 flex h-4 w-4 cursor-pointer items-center rounded-full border border-black bg-white focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+                        className="min-w-4 bg-default flex h-4 w-4 cursor-pointer items-center rounded-full border border-black focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                         <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
                       </RadioGroup.Item>
                     )}
@@ -381,7 +381,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       <div className="flex h-9">
                         <Input
                           type="number"
-                          className="block w-16 rounded-md border-gray-300 py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                          className="border-default block w-16 rounded-md py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                           placeholder="30"
                           disabled={periodTypeLocked.disabled}
                           {...formMethods.register("periodDays", { valueAsNumber: true })}
@@ -390,7 +390,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         <select
                           id=""
                           disabled={periodTypeLocked.disabled}
-                          className="block h-9 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:hover:border-gray-300"
+                          className="border-default bg-default text-default block h-9 w-full rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
                           {...formMethods.register("periodCountCalendarDays")}
                           defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                           <option value="1">{t("calendar_days")}</option>

@@ -73,7 +73,7 @@ const UserSettings = (props: IUserSettingsProps) => {
 
         {/* Full name textfield */}
         <div className="w-full">
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="text-default mb-2 block text-sm font-medium">
             {t("full_name")}
           </label>
           <input
@@ -85,7 +85,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             type="text"
             autoComplete="off"
             autoCorrect="off"
-            className="w-full rounded-md border border-gray-300 text-sm"
+            className="border-default w-full rounded-md border text-sm"
           />
           {errors.name && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
@@ -95,7 +95,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         </div>
         {/* Timezone select field */}
         <div className="w-full">
-          <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="timeZone" className="text-default block text-sm font-medium">
             {t("timezone")}
           </label>
 
@@ -106,7 +106,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md text-sm"
           />
 
-          <p className="mt-3 flex flex-row font-sans text-xs leading-tight text-gray-500 dark:text-white">
+          <p className="text-subtle dark:text-inverted mt-3 flex flex-row font-sans text-xs leading-tight">
             {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
           </p>
         </div>

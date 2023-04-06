@@ -26,13 +26,13 @@ export const TotalBookingUsersTable = ({
                     className="m-2"
                     gravatarFallbackMd5={item.emailMd5}
                   />
-                  <p className="my-auto mx-0">
+                  <p className="text-default my-auto mx-0">
                     <strong>{item.user.name}</strong>
                   </p>
                 </TableCell>
                 <TableCell className="text-right">
                   <Text>
-                    <strong>{item.count}</strong>
+                    <strong className="text-default">{item.count}</strong>
                   </Text>
                 </TableCell>
               </TableRow>

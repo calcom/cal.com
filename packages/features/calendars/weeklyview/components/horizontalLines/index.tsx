@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-import dayjs from "@calcom/dayjs";
+import type dayjs from "@calcom/dayjs";
 
 export const HorizontalLines = ({
   hours,
@@ -23,14 +23,14 @@ export const HorizontalLines = ({
       {hours.map((hour) => (
         <>
           <div key={`${id}-${hour.get("hour")}`}>
-            <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+            <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
               {hour.format("h A")}
             </div>
           </div>
         </>
       ))}
       <div key={`${id}-${finalHour}`}>
-        <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+        <div className="text-muted sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5">
           {finalHour}
         </div>
       </div>

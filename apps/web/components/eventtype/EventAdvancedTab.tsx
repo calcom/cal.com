@@ -8,6 +8,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
+import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
@@ -109,7 +110,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Link
               href="/apps/categories/calendar"
               target="_blank"
-              className="text-sm text-gray-600 hover:text-gray-900">
+              className="hover:text-emphasis text-default text-sm">
               {t("add_another_calendar")}
             </Link>
           </div>
@@ -128,7 +129,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               )}
             />
           </div>
-          <p className="text-sm text-gray-600">{t("select_which_cal")}</p>
+          <p className="text-default text-sm">{t("select_which_cal")}</p>
         </div>
       )}
       <div className="w-full">
@@ -142,8 +143,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           addOnSuffix={
             <Button
               color="minimal"
-              size="sm"
-              type="button"
               aria-label="edit custom name"
               className="hover:stroke-3 min-w-fit px-0 !py-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}>
@@ -152,15 +151,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }
         />
       </div>
-      <hr />
+      <hr className="border-subtle" />
       <FormBuilder
         title={t("booking_questions_title")}
         description={t("booking_questions_description")}
         addFieldLabel={t("add_a_booking_question")}
         formProp="bookingFields"
         {...shouldLockDisableProps("bookingFields")}
+        dataStore={{
+          options: {
+            locations: getLocationsOptionsForSelect(eventType?.locations ?? [], t),
+          },
+        }}
       />
-      <hr />
+      <hr className="border-subtle" />
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
@@ -168,7 +172,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -183,7 +187,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -223,7 +227,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
@@ -250,8 +254,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <Button
                   color="minimal"
                   size="sm"
-                  type="button"
-                  className="hover:stroke-3 min-w-fit px-0 !py-0 hover:bg-transparent hover:text-black"
                   aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);
@@ -260,7 +262,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     } else {
                       showToast(t("enabled_after_update_description"), "warning");
                     }
-                  }}>
+                  }}
+                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
+                  type="button">
                   <FiCopy />
                 </Button>
               </Tooltip>
@@ -268,7 +272,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </SettingsToggle>
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}

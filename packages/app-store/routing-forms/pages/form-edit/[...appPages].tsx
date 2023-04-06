@@ -332,6 +332,7 @@ export default function FormEditPage({
     />
   );
 }
+FormEditPage.isThemeSupported = true;
 
 FormEditPage.getLayout = (page: React.ReactElement) => {
   return (

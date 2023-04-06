@@ -69,9 +69,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         title={t("invite_new_member")}
         description={
           IS_TEAM_BILLING_ENABLED ? (
-            <span className="text-sm leading-tight text-gray-500">
+            <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
-                Note: This will <span className="font-medium text-gray-900">cost an extra seat ($15/m)</span>{" "}
+                Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
                 on your subscription.
               </Trans>
             </span>
@@ -108,7 +108,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               defaultValue={options[0].value}
               render={({ field: { onChange } }) => (
                 <div>
-                  <Label className="font-medium text-gray-900" htmlFor="role">
+                  <Label className="text-emphasis font-medium" htmlFor="role">
                     {t("role")}
                   </Label>
                   <ToggleGroup

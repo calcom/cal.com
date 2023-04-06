@@ -39,6 +39,7 @@ import {
   Tooltip,
   CreateButton,
   HorizontalTabs,
+  HeadSeo,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -156,7 +157,25 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
       title={type.title}>
-      {content()}
+      <div>
+        <span
+          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+          data-testid={"event-type-title-" + type.id}>
+          {type.title}
+        </span>
+        {group.profile.slug ? (
+          <small
+            className="text-subtle hidden font-normal leading-4 sm:inline"
+            data-testid={"event-type-slug-" + type.id}>
+            {`/${group.profile.slug}/${type.slug}`}
+          </small>
+        ) : null}
+        {readOnly && (
+          <Badge variant="gray" className="ml-2">
+            {t("readonly")}
+          </Badge>
+        )}
+      </div>
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
@@ -332,19 +351,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   return (
-    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
+    <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
+      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           return (
             <li key={type.id}>
-              <div className="flex w-full items-center justify-between hover:bg-gray-50">
+              <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <FiArrowUp className="h-5 w-5" />
                     </button>
@@ -352,7 +371,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md  border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <FiArrowDown className="h-5 w-5" />
                     </button>
@@ -391,10 +410,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           <>
                             {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                             <Tooltip content={t("show_eventtype_on_profile")}>
-                              <div className="self-center rounded-md p-2 hover:bg-gray-200">
+                              <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
-                                  disabled={!!type.metadata?.managedEventConfig}
                                   checked={!type.hidden}
                                   onCheckedChange={() => {
                                     setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
@@ -662,11 +680,11 @@ const EventTypeListHeading = ({
       <div>
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-          className="font-bold">
+          className="text-emphasis font-bold">
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="relative -top-px text-xs text-gray-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="text-subtle relative -top-px text-xs ltr:ml-2 ltr:mr-2 rtl:ml-2">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
                 <FiUsers className="mr-1 -mt-px inline h-3 w-3" />
@@ -676,7 +694,7 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="block text-xs text-gray-500">
+          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
             {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
@@ -742,7 +760,15 @@ const EventTypesPage = () => {
 
   return (
     <div>
-      <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
+      <HeadSeo
+        title="Event Types"
+        description="Create events to share for people to book on your calendar."
+      />
+      <Shell
+        withoutSeo
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
