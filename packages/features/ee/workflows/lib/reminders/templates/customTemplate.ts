@@ -55,8 +55,8 @@ const customTemplate = (
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
     .replaceAll("{TIMEZONE}", variables.timeZone || "")
-    .replaceAll("{CANCEL_LINK}", cancelLink)
-    .replaceAll("{RESCHEDULE_LINK}", rescheduleLink)
+    .replaceAll("{CANCEL_URL}", cancelLink)
+    .replaceAll("{RESCHEDULE_URL}", rescheduleLink)
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
