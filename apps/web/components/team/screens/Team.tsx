@@ -8,7 +8,9 @@ import { Avatar } from "@calcom/ui";
 
 type TeamType = NonNullable<TeamWithMembers>;
 type MembersType = TeamType["members"];
-type MemberType = MembersType[number];
+type MemberType = MembersType[number] & { safeBio: string | null };
+
+type TeamTypeWithSafeHtml = Omit<TeamType, "members"> & { members: MemberType[] };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
@@ -17,19 +19,19 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
-      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 group flex min-h-full flex-col space-y-2 rounded-md bg-white p-4 hover:cursor-pointer hover:bg-gray-50 ">
+      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 bg-default hover:bg-muted group flex min-h-full flex-col space-y-2 rounded-md p-4 hover:cursor-pointer ">
         <Avatar
           size="md"
           alt={member.name || ""}
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
-        <section className="line-clamp-4 mt-2 w-full space-y-1">
-          <p className="font-medium text-gray-900 dark:text-white">{member.name}</p>
-          <div className="line-clamp-3 overflow-ellipsis text-sm font-normal text-gray-500 dark:text-white">
+        <section className="mt-2 line-clamp-4 w-full space-y-1">
+          <p className="text-emphasis dark:text-inverted font-medium">{member.name}</p>
+          <div className="text-subtle dark:text-inverted line-clamp-3 overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
-                  className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: md.render(member.bio || "") }}
                 />
               </>
@@ -43,7 +45,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   );
 };
 
-const Members = ({ members, teamName }: { members: MembersType; teamName: string | null }) => {
+const Members = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   if (!members || members.length === 0) {
     return null;
   }
@@ -57,7 +59,7 @@ const Members = ({ members, teamName }: { members: MembersType; teamName: string
   );
 };
 
-const Team = ({ team }: { team: TeamType }) => {
+const Team = ({ team }: { team: TeamTypeWithSafeHtml }) => {
   return (
     <div>
       <Members members={team.members} teamName={team.name} />

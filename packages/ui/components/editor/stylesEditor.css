@@ -24,13 +24,13 @@
   line-height: 20px;
   font-weight: 400;
   text-align: left;
-  border-color: #D1D5DB;
+  border-color: var(--cal-border);
   border-width: 1px;
   padding: 1px;
 }
 
 .editor-inner {
-  background: #fff;
+  background: var(--cal-bg);
   position: relative;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
@@ -70,6 +70,7 @@
 .editor-paragraph {
   margin: 0;
   position: relative;
+  color: var(--cal-text)
 }
 
 .editor-paragraph:last-child {
@@ -119,7 +120,7 @@ pre::-webkit-scrollbar-thumb {
 .toolbar {
   display: flex;
   margin-bottom: 1px;
-  background: #fff;
+  background: var(--cal-bg);
   padding: 2px;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
@@ -127,28 +128,15 @@ pre::-webkit-scrollbar-thumb {
 }
 
 .toolbar button.toolbar-item {
-  border: 0;
   display: flex;
+  border: 0;
   padding: 8px;
   cursor: pointer;
-  vertical-align: middle;
-  height: 36px;
+  justify-self: center;
 }
 
 .toolbar button.toolbar-item.spaced {
   margin-right: 2px;
-}
-
-.toolbar button.toolbar-item i.format {
-  background-size: contain;
-  display: inline-block;
-  height: 18px;
-  width: 18px;
-  margin-top: 1px;
-  margin-left: 1px;
-  vertical-align: -0.25em;
-  display: flex;
-  opacity: 0.6;
 }
 
 .icon.paragraph {
@@ -156,15 +144,22 @@ pre::-webkit-scrollbar-thumb {
 }
 
 .toolbar button.toolbar-item.active {
-  background-color: rgba(223, 232, 250, 0.3);
+  background-color: var(--cal-bg-inverted);
+  color: var(--cal-text-inverted)
 }
 
 .toolbar button.toolbar-item.active i {
   opacity: 1;
 }
 
-.toolbar .toolbar-item:hover:not([disabled]) {
-  background-color: #eee;
+.toolbar button.toolbar-item:not(.active):not([disabled]) {
+  background-color: var(--cal-bg);
+  color: var(--cal-text);
+}
+
+.toolbar button.toolbar-item:not(.active):hover {
+  color: var(--cal-text-default);
+  background-color: var(--cal-bg-inverted);
 }
 
 .toolbar select.toolbar-item {
@@ -174,6 +169,7 @@ pre::-webkit-scrollbar-thumb {
   border-radius: 10px;
   padding: 8px;
   vertical-align: middle;
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   width: 70px;
@@ -187,7 +183,6 @@ pre::-webkit-scrollbar-thumb {
   width: 200px;
   vertical-align: middle;
   font-size: 14px;
-  color: #777;
   text-overflow: ellipsis;
   width: 70px;
   overflow: hidden;
@@ -197,12 +192,7 @@ pre::-webkit-scrollbar-thumb {
 
 .toolbar .toolbar-item .icon {
   display: flex;
-  width: 20px;
-  height: 20px;
-  user-select: none;
-  margin-right: 8px;
-  line-height: 16px;
-  background-size: contain;
+  color: var(--cal-text);
 }
 
 #block-controls button:hover {
@@ -362,6 +352,10 @@ pre::-webkit-scrollbar-thumb {
   height: 20px;
   width: 20px;
   vertical-align: -0.25em;
+}
+
+i, .icon {
+  fill: currentColor;
 }
 
 .icon.paragraph {

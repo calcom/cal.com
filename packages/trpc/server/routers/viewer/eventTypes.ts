@@ -1,6 +1,7 @@
 import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 // REVIEW: From lint error
 import { orderBy } from "lodash";
+import type { NextApiResponse } from "next";
 import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -273,9 +274,10 @@ export const eventTypesRouter = router({
     if (!user) {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
-
+    const { markdownToSafeHTML } = await import("@calcom/lib/markdownToSafeHTML");
     const mapEventType = (eventType: (typeof user.eventTypes)[number]) => ({
       ...eventType,
+      safeDescription: markdownToSafeHTML(eventType.description),
       users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
@@ -698,7 +700,10 @@ export const eventTypesRouter = router({
       where: { id },
       data,
     });
-
+    const res = ctx.res as NextApiResponse;
+    if (typeof res?.revalidate !== "undefined") {
+      await res?.revalidate(`/${ctx.user.username}/${eventType.slug}`);
+    }
     return { eventType };
   }),
   delete: eventOwnerProcedure

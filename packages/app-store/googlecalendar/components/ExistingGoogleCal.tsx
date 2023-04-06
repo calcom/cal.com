@@ -8,11 +8,11 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
   const { t } = useLocale();
 
   return gCalInstalled ? (
-    <div className="rounded-md bg-gray-100 py-3 px-4">
+    <div className="bg-subtle rounded-md px-4 py-3">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <FiCheck className="mt-1 mr-2 font-semibold" />
+            <FiCheck className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("google_calendar_is_connected")}</span>
@@ -26,11 +26,11 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
       </div>
     </div>
   ) : (
-    <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
+    <div className="bg-info text-info rounded-md px-4 py-3">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
-            <FiAlertCircle className="mt-1 mr-2 font-semibold" />
+            <FiAlertCircle className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
             <span className="font-semibold">{t("this_app_requires_google_calendar", { appName })}</span>
@@ -39,7 +39,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
                 <>
                   <Link
                     href={`${CAL_URL}/apps/google-calendar`}
-                    className="flex items-center text-blue-900 underline">
+                    className="text-info flex items-center underline">
                     <span className="mr-1">{t("connect_google_calendar")}</span>
                     <FiArrowRight />
                   </Link>

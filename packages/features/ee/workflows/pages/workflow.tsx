@@ -270,11 +270,11 @@ function WorkflowPage() {
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
             <div className="flex">
-              <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+              <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
                 {workflow && workflow.name ? workflow.name : "untitled"}
               </div>
               {workflow && workflow.team && (
-                <Badge className="mt-1 ml-4" variant="gray">
+                <Badge className="ml-4 mt-1" variant="gray">
                   {workflow.team.slug}
                 </Badge>
               )}

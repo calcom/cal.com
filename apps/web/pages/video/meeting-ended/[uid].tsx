@@ -17,31 +17,31 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
       <HeadSeo title="Meeting Unavailable" description="Meeting Unavailable" />
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
             <div className="fixed inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
                 &#8203;
               </span>
               <div
-                className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
+                className="bg-default inline-block transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                  <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
+                    <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-headline">
                       This meeting is in the past.
                     </h3>
                   </div>
-                  <div className="mt-4 border-t border-b py-4">
-                    <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
+                  <div className="mt-4 border-b border-t py-4">
+                    <h2 className="font-cal text-default mb-2 text-center text-lg font-medium">
                       {props.booking.title}
                     </h2>
-                    <p className="text-center text-gray-500">
-                      <FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
+                    <p className="text-subtle text-center">
+                      <FiCalendar className="-mt-1 mr-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
                     </p>
                   </div>

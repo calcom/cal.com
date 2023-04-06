@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Props } from "react-select";
+import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -46,9 +46,9 @@ export const CheckedTeamSelect = ({
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul className={classNames("mt-3 rounded-md", value.length >= 1 && "border")} ref={animationRef}>
         {value.map((option, index) => (
-          <li key={option.value} className={`flex py-2 px-3 ${index === value.length - 1 ? "" : "border-b"}`}>
+          <li key={option.value} className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-b"}`}>
             <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
-            <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
+            <p className="text-emphasis my-auto ml-3 text-sm">{option.label}</p>
             <FiX
               onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
               className="my-auto ml-auto"

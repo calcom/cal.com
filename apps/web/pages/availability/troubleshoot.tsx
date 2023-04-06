@@ -46,7 +46,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
     }, [] as IBusySlot[]) || [];
 
   return (
-    <div className="max-w-xl overflow-hidden rounded-md bg-white shadow">
+    <div className="bg-default max-w-xl overflow-hidden rounded-md shadow">
       <div className="px-4 py-5 sm:p-6">
         {t("overview_of_day")}{" "}
         <input
@@ -57,7 +57,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
             if (e.target.value) setSelectedDate(e.target.value);
           }}
         />
-        <small className="block text-gray-400">{t("hover_over_bold_times_tip")}</small>
+        <small className="text-muted block">{t("hover_over_bold_times_tip")}</small>
         <div className="mt-4 space-y-4">
           <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-md">
             <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">
@@ -79,15 +79,15 @@ const AvailabilityView = ({ user }: { user: User }) => {
                 .map((slot: IBusySlot) => (
                   <div
                     key={dayjs(slot.start).format("HH:mm")}
-                    className="overflow-hidden rounded-md bg-gray-100"
+                    className="bg-subtle overflow-hidden rounded-md"
                     data-testid="troubleshooter-busy-time">
-                    <div className="px-4 py-5 text-black sm:p-6">
+                    <div className="text-emphasis px-4 py-5 sm:p-6">
                       {t("calendar_shows_busy_between")}{" "}
-                      <span className="font-medium text-gray-800" title={dayjs(slot.start).format("HH:mm")}>
+                      <span className="text-default font-medium" title={dayjs(slot.start).format("HH:mm")}>
                         {dayjs(slot.start).format("HH:mm")}
                       </span>{" "}
                       {t("and")}{" "}
-                      <span className="font-medium text-gray-800" title={dayjs(slot.end).format("HH:mm")}>
+                      <span className="text-default font-medium" title={dayjs(slot.end).format("HH:mm")}>
                         {dayjs(slot.end).format("HH:mm")}
                       </span>{" "}
                       {t("on")} {dayjs(slot.start).format("D")}{" "}
@@ -98,8 +98,8 @@ const AvailabilityView = ({ user }: { user: User }) => {
                   </div>
                 ));
             return (
-              <div className="overflow-hidden rounded-md bg-gray-100">
-                <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
+              <div className="bg-subtle overflow-hidden rounded-md">
+                <div className="text-emphasis px-4 py-5 sm:p-6">{t("calendar_no_busy_slots")}</div>
               </div>
             );
           })()}

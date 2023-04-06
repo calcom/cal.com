@@ -1,5 +1,6 @@
 import type { DestinationCalendar, Prisma } from "@prisma/client";
 import { reverse } from "lodash";
+import type { NextApiResponse } from "next";
 import z from "zod";
 
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
@@ -7,15 +8,18 @@ import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { featureFlagRouter } from "@calcom/features/flags/server/router";
+import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT, WEBAPP_URL } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import slugify from "@calcom/lib/slugify";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
+import { authedProcedure, getLocale, mergeRouters, publicProcedure, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
@@ -35,7 +39,8 @@ const publicViewerRouter = router({
     return ctx.session;
   }),
   i18n: publicProcedure.query(async ({ ctx }) => {
-    const { locale, i18n } = ctx;
+    const { locale, i18n } = await getLocale(ctx);
+
     return {
       i18n,
       locale,
@@ -403,7 +408,10 @@ const loggedInViewerRouter = router({
       )?.credentialId;
 
       if (!credentialId) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Could not find calendar ${input.externalId}`,
+        });
       }
 
       let where;
@@ -424,7 +432,9 @@ const loggedInViewerRouter = router({
         }
 
         where = { eventTypeId };
-      } else where = { userId: user.id };
+      } else {
+        where = { userId: user.id };
+      }
 
       await ctx.prisma.destinationCalendar.upsert({
         where,
@@ -584,7 +594,7 @@ const loggedInViewerRouter = router({
     .input(
       z.object({
         username: z.string().optional(),
-        name: z.string().optional(),
+        name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
         email: z.string().optional(),
         bio: z.string().optional(),
         avatar: z.string().optional(),
@@ -701,6 +711,25 @@ const loggedInViewerRouter = router({
             userId: updatedUser.id,
           },
         });
+      }
+      // Revalidate booking pages
+      const res = ctx.res as NextApiResponse;
+      if (typeof res?.revalidate !== "undefined") {
+        const eventTypes = await prisma.eventType.findMany({
+          where: {
+            userId: user.id,
+            team: null,
+            hidden: false,
+          },
+          select: {
+            id: true,
+            slug: true,
+          },
+        });
+        // waiting for this isn't needed
+        Promise.all(eventTypes.map((eventType) => res?.revalidate(`/${ctx.user.username}/${eventType.slug}`)))
+          .then(() => console.info("Booking pages revalidated"))
+          .catch((e) => console.error(e));
       }
     }),
   eventTypeOrder: authedProcedure
@@ -1012,6 +1041,7 @@ const loggedInViewerRouter = router({
                   ...bookingMinimalSelect,
                   recurringEventId: true,
                   userId: true,
+                  responses: true,
                   user: {
                     select: {
                       id: true,
@@ -1037,6 +1067,9 @@ const loggedInViewerRouter = router({
                     select: {
                       recurringEvent: true,
                       title: true,
+                      bookingFields: true,
+                      seatsPerTimeSlot: true,
+                      seatsShowAttendees: true,
                     },
                   },
                   uid: true,
@@ -1099,6 +1132,10 @@ const loggedInViewerRouter = router({
                   title: booking.title,
                   description: booking.description,
                   customInputs: isPrismaObjOrUndefined(booking.customInputs),
+                  ...getCalEventResponses({
+                    bookingFields: booking.eventType?.bookingFields ?? null,
+                    booking,
+                  }),
                   startTime: booking.startTime.toISOString(),
                   endTime: booking.endTime.toISOString(),
                   organizer: {
@@ -1113,6 +1150,8 @@ const loggedInViewerRouter = router({
                   location: booking.location,
                   destinationCalendar: booking.destinationCalendar || booking.user?.destinationCalendar,
                   cancellationReason: "Payment method removed by organizer",
+                  seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+                  seatsShowAttendees: booking.eventType?.seatsShowAttendees,
                 });
               }
             });
@@ -1252,8 +1291,9 @@ const loggedInViewerRouter = router({
       const foundApp = getApps(credentials).filter((app) => app.slug === input.appSlug)[0];
       const appLocation = foundApp?.appData?.location;
 
-      if (!foundApp || !appLocation)
+      if (!foundApp || !appLocation) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "App not installed" });
+      }
 
       if (appLocation.linkType === "static" && !input.appLink) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "App link is required" });
@@ -1303,10 +1343,12 @@ export const viewerRouter = mergeRouters(
     slots: slotsRouter,
     workflows: workflowsRouter,
     saml: ssoRouter,
+    insights: insightsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    features: featureFlagRouter,
     appsRouter,
   })
 );

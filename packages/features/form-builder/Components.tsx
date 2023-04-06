@@ -124,14 +124,12 @@ export const Components: Record<BookingFieldType, Component> = {
       const { t } = useLocale();
       value = value || [];
       const inputClassName =
-        "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
+        "dark:placeholder:text-darkgray-600 focus:border-brand-default dark:border-darkgray-300  block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-subtle";
       return (
         <>
           {value.length ? (
             <div>
-              <label
-                htmlFor="guests"
-                className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+              <label htmlFor="guests" className="text-default  mb-1 block text-sm font-medium">
                 {label}
               </label>
               <ul>
@@ -146,7 +144,7 @@ export const Components: Record<BookingFieldType, Component> = {
                       }}
                       className={classNames(inputClassName, "border-r-0")}
                       addOnClassname={classNames(
-                        "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 "
+                        "border-default border block border-l-0 disabled:bg-emphasis disabled:hover:cursor-not-allowed bg-transparent disabled:text-subtle dark:border-darkgray-300 "
                       )}
                       placeholder={placeholder}
                       label={<></>}
@@ -161,7 +159,7 @@ export const Components: Record<BookingFieldType, Component> = {
                                 value.splice(index, 1);
                                 setValue(value);
                               }}>
-                              <FiX className="text-gray-600" />
+                              <FiX className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -246,11 +244,11 @@ export const Components: Record<BookingFieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 rounded border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                  className="dark:bg-darkgray-300 dark:border-darkgray-300 border-default text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
+                <span className="dark:text-inverted text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2">
                   {option.label ?? ""}
                 </span>
               </label>
@@ -307,7 +305,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                        className="dark:bg-darkgray-300 dark:border-darkgray-300 border-default text-emphasis h-4 w-4 focus:ring-black ltr:mr-2 rtl:ml-2"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -317,7 +315,7 @@ export const Components: Record<BookingFieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2 dark:text-white">
+                      <span className="dark:text-inverted text-sm ltr:ml-2 ltr:mr-2 rtl:ml-2">
                         {option.label ?? ""}
                       </span>
                     </label>
@@ -372,12 +370,12 @@ export const Components: Record<BookingFieldType, Component> = {
                 setValue(false);
               }
             }}
-            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+            className="border-default disabled:bg-emphasis disabled:dark:text-subtle text-emphasis h-4 w-4 rounded focus:ring-black ltr:mr-2 rtl:ml-2"
             placeholder=""
             checked={value}
             disabled={readOnly}
           />
-          <Label className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">{label}</Label>
+          <Label className="text-default dark:text-inverted -mt-px block text-sm font-medium">{label}</Label>
         </div>
       );
     },

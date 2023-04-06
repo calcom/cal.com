@@ -73,7 +73,9 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(event)),
       });
 
-      return handleErrorsJson(response);
+      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
       this.log.error(error);
 
@@ -88,7 +90,9 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(event)),
       });
 
-      return handleErrorsRaw(response);
+      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+
+      return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
       this.log.error(error);
 
@@ -219,7 +223,7 @@ export default class Office365CalendarService implements Calendar {
     };
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 
-    const refreshAccessToken = async (refreshToken: string) => {
+    const refreshAccessToken = async (o365AuthCredentials: O365AuthCredentials) => {
       const { client_id, client_secret } = await getOfficeAppKeys();
       const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
         method: "POST",
@@ -227,12 +231,22 @@ export default class Office365CalendarService implements Calendar {
         body: new URLSearchParams({
           scope: "User.Read Calendars.Read Calendars.ReadWrite",
           client_id,
-          refresh_token: refreshToken,
+          refresh_token: o365AuthCredentials.refresh_token,
           grant_type: "refresh_token",
           client_secret,
         }),
       });
-      const o365AuthCredentials = refreshTokenResponseSchema.parse(await handleErrorsJson(response));
+      const responseJson = await handleErrorsJson(response);
+      const tokenResponse = refreshTokenResponseSchema.safeParse(responseJson);
+      o365AuthCredentials = { ...o365AuthCredentials, ...(tokenResponse.success && tokenResponse.data) };
+      if (!tokenResponse.success) {
+        console.error(
+          "Outlook error grabbing new tokens ~ zodError:",
+          tokenResponse.error,
+          "MS response:",
+          responseJson
+        );
+      }
       await prisma.credential.update({
         where: {
           id: credential.id,
@@ -246,14 +260,14 @@ export default class Office365CalendarService implements Calendar {
 
     return {
       getToken: () =>
+        refreshTokenResponseSchema.safeParse(o365AuthCredentials).success &&
         !isExpired(o365AuthCredentials.expires_in)
           ? Promise.resolve(o365AuthCredentials.access_token)
-          : refreshAccessToken(o365AuthCredentials.refresh_token),
+          : refreshAccessToken(o365AuthCredentials),
     };
   };
 
   private translateEvent = (event: CalendarEvent) => {
-    const utcOffset = dayjs(event.startTime).tz(event.organizer.timeZone).utcOffset() / 60;
     return {
       subject: event.title,
       body: {
@@ -261,20 +275,31 @@ export default class Office365CalendarService implements Calendar {
         content: getRichDescription(event),
       },
       start: {
-        dateTime: dayjs(event.startTime).utcOffset(utcOffset).format(),
+        dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: dayjs(event.endTime).utcOffset(utcOffset).format(),
+        dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map((attendee) => ({
-        emailAddress: {
-          address: attendee.email,
-          name: attendee.name,
-        },
-        type: "required",
-      })),
+      attendees: [
+        ...event.attendees.map((attendee) => ({
+          emailAddress: {
+            address: attendee.email,
+            name: attendee.name,
+          },
+          type: "required",
+        })),
+        ...(event.team?.members
+          ? event.team?.members.map((member) => ({
+              emailAddress: {
+                address: member.email,
+                name: member.name,
+              },
+              type: "required",
+            }))
+          : []),
+      ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
   };

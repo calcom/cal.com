@@ -2,7 +2,7 @@ import { SkeletonAvatar, SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-neutral-200 bg-white sm:overflow-hidden">
+    <ul className="bg-default animate-pulse divide-neutral-200 sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
     </ul>
@@ -13,12 +13,12 @@ export default SkeletonLoader;
 
 function SkeletonItem() {
   return (
-    <li className="group mb-4 flex h-[90px] w-full items-center justify-between rounded-md border border-gray-200 px-4 py-4 sm:px-6">
+    <li className="border-subtle group mb-4 flex h-[90px] w-full items-center justify-between rounded-md border px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <SkeletonAvatar className="h-10 w-10" />
 
-          <div className="mt-1 ml-4 flex flex-col space-y-1">
+          <div className="ml-4 mt-1 flex flex-col space-y-1">
             <SkeletonText className="h-5 w-20 sm:w-24" />
             <div className="flex">
               <SkeletonText className="h-4 w-16 ltr:mr-2 rtl:ml-2 sm:w-28" />

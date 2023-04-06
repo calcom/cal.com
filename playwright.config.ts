@@ -108,7 +108,7 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/embed-react",
       testDir: "./packages/embeds/embed-react/",
       testMatch: /.*\.(e2e|test)\.tsx?/,
-      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/"  },
+      use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101/" },
     },
     {
       name: "@calcom/embed-core--firefox",

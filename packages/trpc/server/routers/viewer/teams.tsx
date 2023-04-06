@@ -24,10 +24,11 @@ export const viewerTeamsRouter = router({
       if (!team) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
       }
+      const { markdownToSafeHTML } = await import("@calcom/lib/markdownToSafeHTML");
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-
       return {
         ...team,
+        safeBio: markdownToSafeHTML(team.bio),
         membership: {
           role: membership?.role as MembershipRole,
           accepted: membership?.accepted,
@@ -67,13 +68,13 @@ export const viewerTeamsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { slug, name, logo } = input;
 
-      const nameCollisions = await ctx.prisma.team.findFirst({
+      const slugCollisions = await ctx.prisma.team.findFirst({
         where: {
           slug: slug,
         },
       });
 
-      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
       // Ensure that the user is not duplicating a requested team
       const duplicatedRequest = await ctx.prisma.team.findFirst({
@@ -370,6 +371,7 @@ export const viewerTeamsRouter = router({
       }
       const { updateQuantitySubscriptionFromStripe } = await import("@calcom/features/ee/teams/lib/payments");
       if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+      return input;
     }),
   acceptOrLeave: authedProcedure
     .input(
@@ -570,21 +572,6 @@ export const viewerTeamsRouter = router({
           disableImpersonation: input.disableImpersonation,
         },
       });
-    }),
-  validateTeamSlug: authedProcedure
-    .input(
-      z.object({
-        slug: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          slug: input.slug,
-        },
-      });
-
-      return !team;
     }),
   publish: authedProcedure
     .input(

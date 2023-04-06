@@ -9,15 +9,15 @@ import type { SVGComponent } from "@calcom/types/SVGComponent";
 const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
     variant: {
-      default: "bg-orange-100 text-orange-800",
-      warning: "bg-orange-100 text-orange-800",
-      orange: "bg-orange-100 text-orange-800",
-      success: "bg-green-100 text-green-800",
-      green: "bg-green-100 text-green-800",
-      gray: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800 group-hover:bg-gray-200 dark:group-hover:bg-darkgray-300",
-      blue: "bg-blue-100 text-blue-800",
-      red: "bg-red-100 text-red-800",
-      error: "bg-red-100 text-red-800",
+      default: "bg-attention text-attention",
+      warning: "bg-attention text-attention",
+      orange: "bg-attention text-attention",
+      success: "bg-success text-success",
+      green: "bg-success text-success",
+      gray: "bg-subtle text-emphasis",
+      blue: "bg-info text-info",
+      red: "bg-error text-error",
+      error: "bg-error text-error",
     },
     size: {
       sm: "px-1 py-0.5 text-xs leading-3",

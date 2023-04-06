@@ -70,7 +70,7 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -102,10 +102,13 @@ const nextConfig = {
       skipDefaultConversion: true,
       preventFullImport: true,
     },
+    "@calcom/features/insights/components": {
+      transform: "@calcom/features/insights/components/{{member}}",
+      skipDefaultConversion: true,
+      preventFullImport: true,
+    },
     lodash: {
       transform: "lodash/{{member}}",
-      //skipDefaultConversion: true,
-      //preventFullImport: true,
     },
     // TODO: We need to have all components in `@calcom/ui/components` in order to use this
     // "@calcom/ui": {

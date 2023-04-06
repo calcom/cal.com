@@ -4,7 +4,7 @@ import { SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-gray-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
+    <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y rounded-md border sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -25,7 +25,7 @@ function SkeletonItem() {
           </div>
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
+      <div className="mt-4 hidden flex-shrink-0 sm:ml-5 sm:mt-0 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-6 w-16" />
           <SkeletonText className="h-6 w-32" />

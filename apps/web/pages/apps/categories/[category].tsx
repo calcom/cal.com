@@ -24,11 +24,11 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
           <>
             <Link
               href="/apps"
-              className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+              className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
               {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
             </Link>
             {category && (
-              <span className="gap-1 text-gray-600">
+              <span className="text-default gap-1">
                 <span>&nbsp;/&nbsp;</span>
                 {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
               </span>

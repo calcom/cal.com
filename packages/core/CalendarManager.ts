@@ -1,5 +1,5 @@
 import type { SelectedCalendar } from "@prisma/client";
-import _ from "lodash";
+import { sortBy } from "lodash";
 import * as process from "process";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -55,8 +55,8 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendar.listCalendars();
-        const calendars = _(cals)
-          .map((cal) => {
+        const calendars = sortBy(
+          cals.map((cal) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
@@ -65,9 +65,9 @@ export const getConnectedCalendars = async (
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
             };
-          })
-          .sortBy(["primary"])
-          .value();
+          }),
+          ["primary"]
+        );
         const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
           return {
@@ -78,9 +78,11 @@ export const getConnectedCalendars = async (
             },
           };
         }
-        if (destinationCalendar) {
+        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
+        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
           destinationCalendar.primaryEmail = primary.email;
           destinationCalendar.integrationTitle = integration.title;
+          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
@@ -264,6 +266,7 @@ export const createEvent = async (
     type: credential.type,
     success,
     uid,
+    iCalUID: creationResult?.iCalUID || undefined,
     createdEvent: creationResult,
     originalEvent: calEvent,
     calError,

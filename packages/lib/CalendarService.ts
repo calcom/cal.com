@@ -118,7 +118,10 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: getAttendees(event.attendees),
+        attendees: [
+          ...getAttendees(event.attendees),
+          ...(event.team?.members ? getAttendees(event.team.members) : []),
+        ],
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
          * `attendees: this.getAttendees(event.attendees),`
@@ -189,7 +192,10 @@ export default abstract class BaseCalendarService implements Calendar {
         description: getRichDescription(event),
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
-        attendees: getAttendees(event.attendees),
+        attendees: [
+          ...getAttendees(event.attendees),
+          ...(event.team?.members ? getAttendees(event.team.members) : []),
+        ],
       });
 
       if (error) {

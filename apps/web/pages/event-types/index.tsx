@@ -122,13 +122,13 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       title={type.title}>
       <div>
         <span
-          className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
+          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
           data-testid={"event-type-title-" + type.id}>
           {type.title}
         </span>
         {group.profile.slug ? (
           <small
-            className="hidden font-normal leading-4 text-gray-600 sm:inline"
+            className="text-subtle hidden font-normal leading-4 sm:inline"
             data-testid={"event-type-slug-" + type.id}>
             {`/${group.profile.slug}/${type.slug}`}
           </small>
@@ -141,7 +141,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
       </div>
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={type}
+        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
         shortenDescription
       />
     </Link>
@@ -311,18 +311,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   return (
-    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
+    <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
+      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
-              <div className="flex w-full items-center justify-between hover:bg-gray-50">
+              <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <FiArrowUp className="h-5 w-5" />
                     </button>
@@ -330,7 +330,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md  border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] -ml-4 mt-8 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <FiArrowDown className="h-5 w-5" />
                     </button>
@@ -340,7 +340,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && (
                         <AvatarGroup
-                          className="relative top-1 right-3"
+                          className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
                           items={type.users.map((organizer) => ({
@@ -353,7 +353,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
                         {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                         <Tooltip content={t("show_eventtype_on_profile")}>
-                          <div className="self-center rounded-md p-2 hover:bg-gray-200">
+                          <div className="self-center rounded-md p-2">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}
@@ -581,28 +581,28 @@ const EventTypeListHeading = ({
       <div>
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-          className="font-bold">
+          className="text-emphasis font-bold">
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="relative -top-px text-xs text-gray-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="text-subtle relative -top-px text-xs ltr:ml-2 ltr:mr-2 rtl:ml-2">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <FiUsers className="mr-1 -mt-px inline h-3 w-3" />
+                <FiUsers className="-mt-px mr-1 inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="block text-xs text-gray-500">
+          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
             {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
       {!profile?.slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-          <Badge variant="gray" className="mb-1 -ml-2">
+          <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}
           </Badge>
         </button>

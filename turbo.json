@@ -65,7 +65,10 @@
         "STRIPE_FREE_PLAN_PRODUCT_ID",
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_PRO_PLAN_PRODUCT_ID",
-        "STRIPE_SUPPORT_TABLE"
+        "STRIPE_SUPPORT_TABLE",
+        "MOTIFLAND_REST_ENDPOINT",
+        "MOTIFLAND_DOCS_API_KEY",
+        "MOTIFLAND_DOCS_PROJECT_ID"
       ]
     },
     "build": {
@@ -124,6 +127,9 @@
       "outputs": ["dist/**", "build/**"]
     },
     "type-check": {
+      "cache": false
+    },
+    "type-check:ci": {
       "cache": false
     },
     "@calcom/prisma#db-reset": {
@@ -221,6 +227,7 @@
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_SWAGGER_DOCS_URL",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
+    "NEXT_PUBLIC_VERCEL_URL",
     "NEXTAUTH_COOKIE_DOMAIN",
     "NEXTAUTH_SECRET",
     "NEXTAUTH_URL",

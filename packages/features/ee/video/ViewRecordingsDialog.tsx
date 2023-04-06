@@ -127,9 +127,7 @@ const ViewRecordingsList = ({ roomName, hasPaidPlan }: { roomName: string; hasPa
                   <h1 className="text-sm font-semibold">
                     {t("recording")} {index + 1}
                   </h1>
-                  <p className="text-sm font-normal text-gray-500">
-                    {convertSecondsToMs(recording.duration)}
-                  </p>
+                  <p className="text-subtle text-sm font-normal">{convertSecondsToMs(recording.duration)}</p>
                 </div>
                 {hasPaidPlan ? (
                   <Button

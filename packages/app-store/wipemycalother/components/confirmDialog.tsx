@@ -86,13 +86,13 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           </div>
           <div className="pt-1">
             <DialogHeader title="Wipe My Calendar" />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-subtle mt-2 text-sm">
               This will cancel all upcoming meetings from: <br />{" "}
-              <strong className="text-black">
+              <strong className="text-emphasis">
                 {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
               </strong>
             </p>
-            <p className="mt-6 mb-2 text-sm">Are you sure? This can&apos;t be undone</p>
+            <p className="mb-2 mt-6 text-sm">Are you sure? This can&apos;t be undone</p>
           </div>
         </div>
 
