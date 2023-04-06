@@ -97,32 +97,28 @@ export const scheduleSMSReminder = async (
       ? evt.attendees[0].language?.locale
       : evt.organizer.language.locale;
 
-  // todo always use custom template
-  switch (template) {
-    case WorkflowTemplates.REMINDER:
-      message =
-        smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
-      break;
-    case WorkflowTemplates.CUSTOM:
-      const variables: VariablesType = {
-        eventName: evt.title,
-        organizerName: evt.organizer.name,
-        attendeeName: evt.attendees[0].name,
-        attendeeEmail: evt.attendees[0].email,
-        eventDate: dayjs(evt.startTime).tz(timeZone),
-        eventTime: dayjs(evt.startTime).tz(timeZone),
-        eventEndTime: dayjs(evt.endTime).tz(timeZone),
-        timeZone: timeZone,
-        location: evt.location,
-        additionalNotes: evt.additionalNotes,
-        responses: evt.responses,
-        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-        cancelLink: `/booking/${evt.uid}?cancel=true`,
-        rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
-      };
-      const customMessage = customTemplate(message, variables, locale);
-      message = customMessage.text;
-      break;
+  if (message) {
+    const variables: VariablesType = {
+      eventName: evt.title,
+      organizerName: evt.organizer.name,
+      attendeeName: evt.attendees[0].name,
+      attendeeEmail: evt.attendees[0].email,
+      eventDate: dayjs(evt.startTime).tz(timeZone),
+      eventTime: dayjs(evt.startTime).tz(timeZone),
+      eventEndTime: dayjs(evt.endTime).tz(timeZone),
+      timeZone: timeZone,
+      location: evt.location,
+      additionalNotes: evt.additionalNotes,
+      responses: evt.responses,
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
+      cancelLink: `/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+    };
+    const customMessage = customTemplate(message, variables, locale);
+    message = customMessage.text;
+  } else if (template === WorkflowTemplates.REMINDER) {
+    message =
+      smsReminderTemplate(false, action, evt.startTime, evt.title, timeZone, attendeeName, name) || message;
   }
 
   if (message.length > 0 && reminderPhone && isNumberVerified) {
