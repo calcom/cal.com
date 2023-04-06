@@ -5,6 +5,7 @@ import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -169,6 +170,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       let emailBodyEmpty = false;
 
       if (reminder.workflowStep.reminderBody) {
+        const { responses } = getCalEventResponses({
+          bookingFields: reminder.booking.eventType?.bookingFields ?? null,
+          booking: reminder.booking,
+        });
+
         const variables: VariablesType = {
           eventName: reminder.booking.eventType?.title || "",
           organizerName: reminder.booking.user?.name || "",
@@ -180,7 +186,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           timeZone: timeZone,
           location: reminder.booking.location || "",
           additionalNotes: reminder.booking.description,
-          responses: reminder.booking.responses,
+          responses: responses,
           meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
           cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
           rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
