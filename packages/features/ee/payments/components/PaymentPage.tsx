@@ -73,26 +73,26 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
               </span>
               <div
                 className={classNames(
-                  "main inline-block transform overflow-hidden rounded-lg border border-neutral-200 bg-white px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
+                  "main bg-default inline-block transform overflow-hidden rounded-lg border border-neutral-200 px-8 pt-5 pb-4 text-left align-bottom transition-all dark:border-neutral-700 dark:bg-gray-800  sm:w-full sm:max-w-lg sm:py-6 sm:align-middle",
                   isEmbed ? "" : "sm:my-8"
                 )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="modal-headline">
                 <div>
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                     <FiCreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
                     <h3
-                      className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
+                      className="text-emphasis dark:text-inverted text-2xl font-semibold leading-6"
                       id="modal-headline">
                       {paymentAppData.paymentOption === "HOLD"
                         ? t("submit_payment_information")
                         : t("payment")}
                     </h3>
-                    <div className="mt-4 grid grid-cols-3 border-t border-b py-4 text-left text-gray-700 dark:border-gray-900 dark:text-gray-300">
+                    <div className="text-default mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
@@ -100,7 +100,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-gray-500">({timezone})</span>
+                        <span className="text-subtle">({timezone})</span>
                       </div>
                       {props.booking.location && (
                         <>
@@ -127,7 +127,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 <div>
                   {props.payment.success && !props.payment.refunded && (
-                    <div className="mt-4 text-center text-gray-700 dark:text-gray-300">{t("paid")}</div>
+                    <div className="text-default mt-4 text-center dark:text-gray-300">{t("paid")}</div>
                   )}
                   {props.payment.appId === "stripe" && !props.payment.success && (
                     <Elements
@@ -143,11 +143,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                     </Elements>
                   )}
                   {props.payment.refunded && (
-                    <div className="mt-4 text-center text-gray-700 dark:text-gray-300">{t("refunded")}</div>
+                    <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
                   )}
                 </div>
                 {!props.profile.hideBranding && (
-                  <div className="mt-4 border-t pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
+                  <div className="text-muted dark:text-inverted mt-4 border-t pt-4 text-center text-xs dark:border-gray-900">
                     <a href={`${WEBSITE_URL}/signup`}>
                       {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                     </a>

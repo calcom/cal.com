@@ -19,7 +19,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <Tooltip content={eventTypeURL}>
         <a download href={QR_URL} target="_blank" rel="noreferrer">
           <img
-            className="border hover:bg-gray-50 hover:shadow-sm"
+            className="hover:bg-muted border hover:shadow-sm"
             style={{ padding: size / 16, borderRadius: size / 20 }}
             width={size}
             src={QR_URL}

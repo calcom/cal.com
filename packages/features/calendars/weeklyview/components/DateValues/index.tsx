@@ -12,8 +12,8 @@ export function DateValues({ days, containerNavRef }: Props) {
   return (
     <div
       ref={containerNavRef}
-      className="sticky top-0 z-30 flex-none border-b border-b-gray-300 bg-white sm:pr-8">
-      <div className="flex text-sm leading-6 text-gray-500 sm:hidden" data-dayslength={days.length}>
+      className="bg-default sticky top-0 z-30 flex-none border-b border-b-gray-300 sm:pr-8">
+      <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
@@ -24,8 +24,8 @@ export function DateValues({ days, containerNavRef }: Props) {
               {day.format("dd")}{" "}
               <span
                 className={classNames(
-                  "mt-1 flex h-8 w-8 items-center justify-center font-semibold text-gray-900",
-                  isToday && "rounded-full bg-gray-900 text-white"
+                  "text-emphasis mt-1 flex h-8 w-8 items-center justify-center font-semibold",
+                  isToday && "bg-inverted text-inverted rounded-full"
                 )}>
                 {day.format("D")}
               </span>
@@ -33,7 +33,7 @@ export function DateValues({ days, containerNavRef }: Props) {
           );
         })}
       </div>
-      <div className="-mr-px hidden auto-cols-fr  text-sm leading-6 text-gray-500 sm:flex ">
+      <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
         <div className="col-end-1 w-14" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
@@ -46,7 +46,7 @@ export function DateValues({ days, containerNavRef }: Props) {
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
-                    isToday && "rounded-full bg-gray-900 text-white"
+                    isToday && "bg-inverted text-inverted rounded-full"
                   )}>
                   {day.format("DD")}
                 </span>

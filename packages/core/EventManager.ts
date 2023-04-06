@@ -485,8 +485,7 @@ export default class EventManager {
               id: oldCalendarEvent.credentialId,
             },
           });
-          const calendar = getCalendar(calendarCredential);
-
+          const calendar = await getCalendar(calendarCredential);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }

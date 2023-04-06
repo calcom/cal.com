@@ -193,3 +193,88 @@
 .docs-story {
   padding: 24px !important;
 }
+
+@layer {
+  :root {
+    /* background */
+
+    --cal-bg-emphasis: #E5E7EB;
+    --cal-bg: white;
+    --cal-bg-subtle: #F3F4F6;
+    --cal-bg-muted: #F9FAFB;
+    --cal-bg-inverted: #111827;
+
+    /* background -> components*/
+    --cal-bg-info: #DEE9FC;
+    --cal-bg-success: #E2FBE8;
+    --cal-bg-attention: #FCEED8;
+    --cal-bg-error: #F9E3E2;
+
+
+    /* Borders */
+    --cal-border-emphasis:#9CA3AF;
+    --cal-border: #D1D5DB;
+    --cal-border-subtle:#E5E7EB;
+    --cal-border-muted:#F3F4F6;
+
+    /* Content/Text */
+    --cal-text-emphasis: #111827;
+    --cal-text:#374151;
+    --cal-text-subtle:#6B7280;
+    --cal-text-muted:#9CA3AF;
+    --cal-text-inverted:white;
+
+    /* Content/Text -> components */
+    --cal-text-info:#253985;
+    --cal-text-success:#285231;
+    --cal-text-attention:#73321B;
+    --cal-text-error:#752522;
+
+    /* Brand shinanigans
+      -> These will be computed for the users theme at runtime.
+    */
+    --cal-brand:#111827;
+    --cal-brand-emphasis:#101010;
+  }
+  .dark {
+    /* background */
+
+    --cal-bg-emphasis: #2B2B2B;
+    --cal-bg: #101010;
+    --cal-bg-subtle: #2B2B2B;
+    --cal-bg-muted: #1C1C1C;
+    --cal-bg-inverted: #F3F4F6;
+
+    /* background -> components*/
+    --cal-bg-info: #DEE9FC;
+    --cal-bg-success: #E2FBE8;
+    --cal-bg-attention: #FCEED8;
+    --cal-bg-error: #F9E3E2;
+
+
+    /* Borders */
+    --cal-border-emphasis: #575757;
+    --cal-border: #444444;
+    --cal-border-subtle: #2B2B2B;
+    --cal-border-muted: #1C1C1C;
+
+    /* Content/Text */
+    --cal-text-emphasis: #F3F4F6;
+    --cal-text: #D6D6D6;
+    --cal-text-subtle: #757575;
+    --cal-text-muted: #575757;
+    --cal-text-inverted: #101010;
+
+    /* Content/Text -> components */
+    --cal-text-info: #253985;
+    --cal-text-success: #285231;
+    --cal-text-attention: #73321B;
+    --cal-text-error: #752522;
+
+    /* Brand shenanigans
+      -> These will be computed for the users theme at runtime.
+    */
+    --cal-brand: #111827;
+    --cal-brand-emphasis: #101010;
+  }
+}
