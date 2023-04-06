@@ -101,6 +101,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     where: {
       method: WorkflowMethods.EMAIL,
       scheduled: false,
+      cancelled: false,
       scheduledDate: {
         lte: dayjs().add(72, "hour").toISOString(),
       },
