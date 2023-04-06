@@ -101,7 +101,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Link
               href="/apps/categories/calendar"
               target="_blank"
-              className="text-sm text-gray-600 hover:text-gray-900">
+              className="hover:text-emphasis text-default text-sm">
               {t("add_another_calendar")}
             </Link>
           </div>
@@ -120,7 +120,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               )}
             />
           </div>
-          <p className="text-sm text-gray-600">{t("select_which_cal")}</p>
+          <p className="text-default text-sm">{t("select_which_cal")}</p>
         </div>
       )}
       <div className="w-full">
@@ -136,14 +136,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               StartIcon={FiEdit}
               variant="icon"
               color="minimal"
-              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}
               aria-label="edit custom name"
             />
           }
         />
       </div>
-      <hr />
+      <hr className="border-subtle" />
       <FormBuilder
         title={t("booking_questions_title")}
         description={t("booking_questions_description")}
@@ -155,14 +155,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           },
         }}
       />
-      <hr />
+      <hr className="border-subtle" />
       <RequiresConfirmationController
         seatsEnabled={seatsEnabled}
         metadata={eventType.metadata}
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -176,7 +176,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -214,7 +214,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <hr />
+      <hr className="border-subtle" />
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
@@ -247,7 +247,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       showToast(t("enabled_after_update_description"), "warning");
                     }
                   }}
-                  className="hover:stroke-3 hover:bg-transparent hover:text-black"
+                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
                   type="button">
                   <FiCopy />
                 </Button>
@@ -256,7 +256,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </SettingsToggle>
-      <hr />
+      <hr className="border-subtle" />
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}

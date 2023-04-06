@@ -41,7 +41,7 @@ const SAMLSSO = () => {
   }
 
   return (
-    <div className="w-full bg-white sm:mx-0 xl:mt-0">
+    <div className="w-full bg-default sm:mx-0 xl:mt-0">
       <Meta title={t("sso_configuration")} description={t("sso_configuration_description")} />
       <SSOConfiguration teamId={teamId} />
     </div>

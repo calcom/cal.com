@@ -45,9 +45,9 @@ const buttonClasses = cva(
         fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
-        primary: "text-white dark:text-black",
-        secondary: "text-gray-900 dark:text-darkgray-900",
-        minimal: "text-gray-900 dark:text-darkgray-900",
+        primary: "text-inverted",
+        secondary: "text-emphasis",
+        minimal: "text-emphasis",
         destructive: "",
       },
       size: {
@@ -64,78 +64,73 @@ const buttonClasses = cva(
     },
     compoundVariants: [
       // Primary variants
-      {
-        disabled: true,
-        color: "primary",
-        className: "bg-gray-800 bg-opacity-30 dark:bg-opacity-30 dark:bg-darkgray-800",
-      },
-      {
-        loading: true,
-        color: "primary",
-        className: "bg-gray-800/30 text-white/30 dark:bg-opacity-30 dark:bg-darkgray-700 dark:text-black/30",
-      },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-500 hover:bg-brand-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+          "bg-brand-default hover:bg-brand-emphasis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-default text-brand",
       }),
+      {
+        disabled: true,
+        color: "primary",
+        className: "bg-brand-subtle bg-opacity-30",
+      },
+      {
+        loading: true,
+        color: "primary",
+        className: "bg-brand-default bg-opacity-30 text-brand-subtle",
+      },
       // Secondary variants
       {
         disabled: true,
         color: "secondary",
-        className:
-          "border border-gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "border border-subtle bg-opacity-30 text-muted ",
       },
       {
         loading: true,
         color: "secondary",
-        className:
-          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/80",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
+          "border border-default  bg-default hover:bg-muted hover:border-emphasis focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis ",
       }),
       // Minimal variants
       {
         disabled: true,
         color: "minimal",
-        className:
-          "border:gray-200 bg-opacity-30 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "border-subtle bg-opacity-30 text-emphasis/30 ",
       },
       {
         loading: true,
         color: "minimal",
-        className:
-          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+        className: "bg-subtle text-emphasis/30",
       },
       ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "minimal",
         className:
-          "hover:bg-gray-100 focus-visible:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus-visible:bg-darkgray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-gray-900 dark:focus-visible:ring-white",
+          "hover:bg-subtle focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis",
       }),
       // Destructive variants
       {
         disabled: true,
         color: "destructive",
-        className:
-          "text-red-700/30 dark:text-red-700/30 bg-red-100/40 dark:bg-red-100/80 border border-red-200",
+        className: "text-red-700/30 hover:text-red-700/30 border border-default text-emphasis",
       },
       {
         loading: true,
         color: "destructive",
         className:
-          "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30 bg-red-100 border border-red-200",
+          "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30  border border-default text-emphasis",
       },
       ...applyStyleToMultipleVariants({
         disabled: [false, undefined],
         color: "destructive",
         className:
-          "border border-gray-300 dark:text-white text-gray-900 hover:text-red-700 focus-visible:text-red-700 dark:hover:text-red-700 dark:focus-visible:text-red-700 focus-visible:border-red-100 hover:bg-red-100  focus-visible:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset hover:border-red-100 focus-visible:ring-red-700",
+          "border border-default text-emphasis hover:text-red-700 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700",
       }),
       // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
@@ -225,7 +220,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <svg
             className={classNames(
               "mx-4 h-5 w-5 animate-spin",
-              color === "primary" ? "text-white dark:text-black" : "text-black dark:text-white"
+              color === "primary" ? "text-inverted" : "text-emphasis"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"

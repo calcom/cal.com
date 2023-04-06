@@ -72,6 +72,7 @@ export const CreateANewTeamForm = () => {
               <>
                 <TextField
                   className="mt-2"
+                  placeholder="Acme Inc."
                   name="name"
                   label={t("team_name")}
                   defaultValue={value}
@@ -97,6 +98,7 @@ export const CreateANewTeamForm = () => {
               <TextField
                 className="mt-2"
                 name="slug"
+                placeholder="acme"
                 label={t("team_url")}
                 addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
                   "http://",

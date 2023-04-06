@@ -25,7 +25,7 @@ export default function SAMLConnection({
       <div className="flex flex-col sm:flex-row">
         <div>
           <h2 className="font-medium">{t("sso_saml_heading")}</h2>
-          <p className="text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+          <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
             {t("sso_saml_description")}
           </p>
         </div>
@@ -83,10 +83,10 @@ const CreateConnectionDialog = ({
             });
           }}>
           <div className="mb-10 mt-1">
-            <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">
+            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {t("sso_saml_configuration_title")}
             </h2>
-            <p className="mt-1 mb-5 text-sm text-gray-500">{t("sso_saml_configuration_description")}</p>
+            <p className="text-subtle mt-1 mb-5 text-sm">{t("sso_saml_configuration_description")}</p>
           </div>
           <Controller
             control={form.control}

@@ -7,7 +7,7 @@ export default function MorePage() {
     <Shell>
       <div className="max-w-screen-lg">
         <MobileNavigationMoreItems />
-        <p className="mt-6 text-xs leading-tight text-gray-500 md:hidden">{t("more_page_footer")}</p>
+        <p className="text-subtle mt-6 text-xs leading-tight md:hidden">{t("more_page_footer")}</p>
       </div>
     </Shell>
   );

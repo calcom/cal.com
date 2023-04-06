@@ -22,10 +22,10 @@ const Heading = () => {
 
   return (
     <div className="min-w-52 hidden md:block">
-      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 truncate text-xl font-semibold tracking-wide text-black xl:max-w-full">
+      <h3 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis truncate text-xl font-semibold tracking-wide xl:max-w-full">
         {t("analytics_for_organisation")}
       </h3>
-      <p className="hidden text-sm text-gray-500 md:block">{t("subtitle_analytics")}</p>
+      <p className="text-default hidden text-sm md:block">{t("subtitle_analytics")}</p>
     </div>
   );
 };
@@ -93,8 +93,8 @@ export default function InsightsPage() {
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
-                <small className="block text-center text-gray-600">
-                  {t("looking_for_more_insights")}
+                <small className="text-default block text-center">
+                  {t("looking_for_more_insights")}{" "}
                   <a
                     className="text-blue-500 hover:underline"
                     href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">

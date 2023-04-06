@@ -127,7 +127,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
       <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
@@ -173,7 +173,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -186,7 +186,7 @@ const SettingsSidebarContainer = ({
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-9 w-64 flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                   {tab && tab.icon && (
                     <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                   )}
@@ -200,14 +200,14 @@ const SettingsSidebarContainer = ({
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
               </div>
-              <div className="my-3">
+              <div className="my-3 space-y-0.5">
                 {tab.children?.map((child, index) => (
                   <VerticalTabItem
                     key={child.href}
                     name={t(child.name)}
                     isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
-                    textClassNames="px-3 text-gray-900 font-medium text-sm"
+                    textClassNames="px-3 text-emphasis font-medium text-sm"
                     className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
                     disableChevron
                   />
@@ -218,7 +218,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                 <Link href={tab.href}>
-                  <div className="group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                  <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-64 flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
                     {tab && tab.icon && (
                       <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                     )}
@@ -244,7 +244,7 @@ const SettingsSidebarContainer = ({
                           }>
                           <CollapsibleTrigger>
                             <div
-                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-left text-sm font-medium leading-none  hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+                              className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px]  text-left text-sm font-medium leading-none"
                               onClick={() =>
                                 setTeamMenuState([
                                   ...teamMenuState,
@@ -270,19 +270,19 @@ const SettingsSidebarContainer = ({
                               )}
                             </div>
                           </CollapsibleTrigger>
-                          <CollapsibleContent>
+                          <CollapsibleContent className="space-y-0.5">
                             {team.accepted && (
                               <VerticalTabItem
                                 name={t("profile")}
                                 href={`/settings/teams/${team.id}/profile`}
-                                textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                textClassNames="px-3 text-emphasis font-medium text-sm"
                                 disableChevron
                               />
                             )}
                             <VerticalTabItem
                               name={t("members")}
                               href={`/settings/teams/${team.id}/members`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
+                              textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             />
                             {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
@@ -291,26 +291,26 @@ const SettingsSidebarContainer = ({
                                 {/* <VerticalTabItem
                               name={t("general")}
                               href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
+                              textClassNames="px-3 text-emphasis font-medium text-sm"
                               disableChevron
                             /> */}
                                 <VerticalTabItem
                                   name={t("appearance")}
                                   href={`/settings/teams/${team.id}/appearance`}
-                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("billing")}
                                   href={`/settings/teams/${team.id}/billing`}
-                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
                                 {HOSTED_CAL_FEATURES && (
                                   <VerticalTabItem
                                     name={t("saml_config")}
                                     href={`/settings/teams/${team.id}/sso`}
-                                    textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                    textClassNames="px-3 text-emphasis font-medium text-sm"
                                     disableChevron
                                   />
                                 )}
@@ -323,7 +323,7 @@ const SettingsSidebarContainer = ({
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-gray-900 font-medium text-sm"
+                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
                   icon={FiPlus}
                   disableChevron
                 />
@@ -342,17 +342,17 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="sticky top-0 z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
+      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button StartIcon={FiMenu} color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
-            className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200 rtl:space-x-reverse"
+            className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <FiArrowLeft className="text-gray-700" />
-            <p className="font-semibold text-black">{t("settings")}</p>
+            <FiArrowLeft className="text-default" />
+            <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
       </nav>
@@ -428,7 +428,7 @@ function ShellHeader() {
   const { t, isLocaleReady } = useLocale();
   return (
     <header className="mx-auto block justify-between pt-8 sm:flex">
-      <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-6">
+      <div className="border-subtle mb-8 flex w-full items-center border-b pb-6">
         {meta.backButton && (
           <a href="javascript:history.back()">
             <FiArrowLeft className="mr-7" />
@@ -436,16 +436,16 @@ function ShellHeader() {
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold leading-5 tracking-wide text-black">
+            <h1 className="font-cal text-emphasis mb-1 text-xl font-bold leading-5 tracking-wide">
               {t(meta.title)}
             </h1>
           ) : (
-            <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis mb-1 h-6 w-24 animate-pulse rounded-md" />
           )}
           {meta.description && isLocaleReady ? (
-            <p className="text-sm text-gray-600 ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+            <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
           ) : (
-            <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
+            <div className="bg-emphasis mb-1 h-6 w-32 animate-pulse rounded-md" />
           )}
         </div>
         <div className="flex-shrink-0 ltr:ml-auto rtl:mr-auto">{meta.CTA}</div>
