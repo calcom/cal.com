@@ -7,8 +7,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Select } from "@calcom/ui";
-import { Alert, TextField } from "@calcom/ui";
+import { Alert, TextField, Select } from "@calcom/ui";
 
 import { paymentOptions } from "../lib/constants";
 import type { appDataSchema } from "../zod";
@@ -25,6 +24,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+  const seatsEnabled = eventType.seatsPerTimeSlot;
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
       .toLocaleString(locale, {
@@ -89,9 +89,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     if (input) setAppData("paymentOption", input.value);
                   }}
                   className="mb-1 w-full"
+                  isDisabled={seatsEnabled}
                 />
               </div>
-              {eventType.seatsPerTimeSlot && (
+              {seatsEnabled && (
                 <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
               )}
             </>
