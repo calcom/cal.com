@@ -193,4 +193,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
+OnboardingPage.isThemeSupported = false;
+
 export default OnboardingPage;
