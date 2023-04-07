@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -82,6 +83,13 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
     <div
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
       data-testid="onboarding"
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+        } as CSSProperties
+      }
       key={router.asPath}>
       <Head>
         <title>
