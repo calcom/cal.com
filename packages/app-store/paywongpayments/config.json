@@ -1,0 +1,19 @@
+{
+  "name": "Paywong Payments",
+  "slug": "paywongpayments",
+  "type": "paywongpayments_payment",
+  "imageSrc": "icon.svg",
+  "logo": "icon.svg",
+  "url": "https://paywong.com",
+  "variant": "payment",
+  "categories": [
+    "payment"
+  ],
+  "publisher": "Paywong",
+  "email": "service@paywong.com",
+  "description": "Accept crypto payments to book you time",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card"
+}

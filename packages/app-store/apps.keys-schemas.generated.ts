@@ -12,6 +12,7 @@ import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appKeysSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appKeysSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
+import { appKeysSchema as paywongpayments_zod_ts } from "./paywongpayments/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
 import { appKeysSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appKeysSchema as rainbow_zod_ts } from "./rainbow/zod";
@@ -21,6 +22,7 @@ import { appKeysSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appKeysSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appKeysSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appKeysSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
+import { appKeysSchema as test_payment_zod_ts } from "./test-payment/zod";
 import { appKeysSchema as vital_zod_ts } from "./vital/zod";
 import { appKeysSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appKeysSchema as zapier_zod_ts } from "./zapier/zod";
@@ -37,6 +39,7 @@ export const appKeysSchemas = {
   larkcalendar: larkcalendar_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
+  paywongpayments: paywongpayments_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
   rainbow: rainbow_zod_ts,
@@ -46,6 +49,7 @@ export const appKeysSchemas = {
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
+  "test-payment": test_payment_zod_ts,
   vital: vital_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,

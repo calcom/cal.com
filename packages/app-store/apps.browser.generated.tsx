@@ -41,6 +41,7 @@ export const EventTypeAddonMap = {
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
   "google-tag-manager": dynamic(() => import("./google-tag-manager/components/EventTypeAppCardInterface")),
+  paywongpayments: dynamic(() => import("./paywongpayments/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
@@ -51,4 +52,5 @@ export const EventTypeAddonMap = {
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
+  "test-payment": dynamic(() => import("./test-payment/components/EventTypeAppCardInterface")),
 };

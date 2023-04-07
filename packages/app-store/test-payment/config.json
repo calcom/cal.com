@@ -1,0 +1,19 @@
+{
+  "name": "test payment",
+  "slug": "test-payment",
+  "type": "test-payment_payment",
+  "imageSrc": "icon.svg",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "payment",
+  "categories": [
+    "payment"
+  ],
+  "publisher": "test",
+  "email": "test",
+  "description": "test",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card"
+}

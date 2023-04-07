@@ -28,6 +28,7 @@ import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata"
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
+import paywongpayments_config_json from "./paywongpayments/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -50,6 +51,7 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
+import test_payment_config_json from "./test-payment/config.json";
 import typeform_config_json from "./typeform/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
@@ -89,6 +91,7 @@ export const appStoreMetadata = {
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
+  paywongpayments: paywongpayments_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
   plausible: plausible_config_json,
@@ -111,6 +114,7 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
+  "test-payment": test_payment_config_json,
   typeform: typeform_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
