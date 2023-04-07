@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
+import { APP_NAME } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -116,7 +117,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
         {!customPageMessage ? (
           <>
             <Head>
-              <title>{`${form.name} | Cal.com Forms`}</title>
+              <title>{`${form.name} | ${APP_NAME} Forms`}</title>
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
