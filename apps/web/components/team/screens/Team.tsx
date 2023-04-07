@@ -19,15 +19,15 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
 
   return (
     <Link key={member.id} href={`/${member.username}`}>
-      <div className="sm:min-w-80 sm:max-w-80 dark:bg-darkgray-200 dark:hover:bg-darkgray-300 bg-default hover:bg-muted group flex min-h-full flex-col space-y-2 rounded-md p-4 hover:cursor-pointer ">
+      <div className="sm:min-w-80 sm:max-w-80  bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
         <Avatar
           size="md"
           alt={member.name || ""}
           imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
         />
-        <section className="mt-2 line-clamp-4 w-full space-y-1">
-          <p className="text-emphasis dark:text-inverted font-medium">{member.name}</p>
-          <div className="text-subtle dark:text-inverted line-clamp-3 overflow-ellipsis text-sm font-normal">
+        <section className="line-clamp-4 mt-2 w-full space-y-1">
+          <p className="text-default font-medium">{member.name}</p>
+          <div className="line-clamp-3 text-subtle overflow-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
