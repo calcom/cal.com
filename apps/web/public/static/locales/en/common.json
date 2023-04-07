@@ -1695,5 +1695,6 @@
   "clear_filters": "Clear Filters",
   "insights": "Insights",
   "insights_no_data_found_for_filter": "No data found for the selected filter or selected dates.",
-  "email_invite_team": "{{email}} has been invited"
+  "email_invite_team": "{{email}} has been invited",
+  "image_size_limit_exceed": "Uploaded image shouldn't exceed 5mb size limit"
 }
