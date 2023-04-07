@@ -3,6 +3,7 @@ import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
@@ -11,7 +12,9 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { COMMAND_PRIORITY_LOW, KEY_TAB_COMMAND } from "lexical";
 import type { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 
@@ -62,6 +65,25 @@ const editorConfig = {
   ],
 };
 
+const KeyListener = () => {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    const removeRemoveListener = editor.registerCommand(
+      KEY_TAB_COMMAND,
+      (event: KeyboardEvent) => {
+        return true;
+      },
+      COMMAND_PRIORITY_LOW
+    );
+
+    return () => {
+      removeRemoveListener();
+    };
+  }, [editor]);
+  return null;
+};
+
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
@@ -98,6 +120,7 @@ export const Editor = (props: TextEditorProps) => {
                   : TRANSFORMERS
               }
             />
+            <KeyListener />
           </div>
         </div>
       </LexicalComposer>
