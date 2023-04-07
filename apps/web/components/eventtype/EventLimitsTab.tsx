@@ -15,16 +15,7 @@ import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PeriodType } from "@calcom/prisma/client";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import {
-  Button,
-  DateRangePicker,
-  Input,
-  InputField,
-  Label,
-  Select,
-  SettingsToggle,
-  TextField,
-} from "@calcom/ui";
+import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
 
 const MinimumBookingNoticeInput = React.forwardRef<
@@ -158,6 +149,11 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const periodTypeLocked = shouldLockDisableProps("periodType");
+
+  const optionsPeriod = [
+    { value: 1, label: t("calendar_days") },
+    { value: 0, label: t("business_days") },
+  ];
 
   return (
     <div className="space-y-8">
@@ -378,24 +374,32 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     )}
                     {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                     {period.type === "ROLLING" && (
-                      <div className="flex h-9">
-                        <Input
+                      <div className="flex items-center">
+                        <TextField
+                          labelSrOnly
                           type="number"
-                          className="border-default block w-16 rounded-md py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                          className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                           placeholder="30"
                           disabled={periodTypeLocked.disabled}
                           {...formMethods.register("periodDays", { valueAsNumber: true })}
                           defaultValue={eventType.periodDays || 30}
                         />
-                        <select
-                          id=""
-                          disabled={periodTypeLocked.disabled}
-                          className="border-default bg-default text-default block h-9 w-full rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
-                          {...formMethods.register("periodCountCalendarDays")}
-                          defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
-                          <option value="1">{t("calendar_days")}</option>
-                          <option value="0">{t("business_days")}</option>
-                        </select>
+                        <Select
+                          options={optionsPeriod}
+                          isSearchable={false}
+                          isDisabled={periodTypeLocked.disabled}
+                          onChange={(opt) => {
+                            formMethods.setValue(
+                              "periodCountCalendarDays",
+                              opt?.value.toString() as "0" | "1"
+                            );
+                          }}
+                          defaultValue={
+                            optionsPeriod.find(
+                              (opt) => opt.value === (eventType.periodCountCalendarDays ? 1 : 0)
+                            ) ?? optionsPeriod[0]
+                          }
+                        />
                       </div>
                     )}
                     {period.type === "RANGE" && (

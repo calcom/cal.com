@@ -143,8 +143,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           addOnSuffix={
             <Button
               color="minimal"
+              size="sm"
               aria-label="edit custom name"
-              className="hover:stroke-3 min-w-fit px-0 !py-0 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
               onClick={() => setShowEventNameTip((old) => !old)}>
               <FiEdit />
             </Button>
@@ -254,6 +255,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 <Button
                   color="minimal"
                   size="sm"
+                  type="button"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit px-0 !py-0 hover:bg-transparent"
                   aria-label="copy link"
                   onClick={() => {
                     navigator.clipboard.writeText(placeholderHashedLink);
@@ -262,9 +265,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     } else {
                       showToast(t("enabled_after_update_description"), "warning");
                     }
-                  }}
-                  className="hover:stroke-3 hover:text-emphasis hover:bg-transparent"
-                  type="button">
+                  }}>
                   <FiCopy />
                 </Button>
               </Tooltip>
@@ -312,6 +313,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     type="number"
                     defaultValue={value || 2}
                     min={1}
+                    containerClassName="w-36"
                     addOnSuffix={<>{t("seats")}</>}
                     onChange={(e) => {
                       onChange(Math.abs(Number(e.target.value)));

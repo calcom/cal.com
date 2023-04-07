@@ -10,7 +10,7 @@ import type z from "zod";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Input, Label, SettingsToggle, RadioField } from "@calcom/ui";
+import { Input, SettingsToggle, RadioField, Select } from "@calcom/ui";
 
 type RequiresConfirmationControllerProps = {
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
@@ -46,6 +46,17 @@ export default function RequiresConfirmationController({
     t("locked_fields_member_description")
   );
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
+
+  const options = [
+    { label: t("minute_timeUnit"), value: "minutes" },
+    { label: t("hour_timeUnit"), value: "hours" },
+  ];
+
+  const defaultValue = options.find(
+    (opt) =>
+      opt.value === metadata?.requiresConfirmationThreshold?.unit ??
+      opt.value === defaultRequiresConfirmationSetup.unit
+  );
 
   return (
     <div className="block items-start sm:flex">
@@ -88,7 +99,7 @@ export default function RequiresConfirmationController({
                     );
                   }
                 }}>
-                <div className="flex flex-col flex-wrap justify-start gap-y-2 space-y-2">
+                <div className="flex flex-col flex-wrap justify-start gap-y-2">
                   {(requiresConfirmationSetup === undefined || !requiresConfirmationLockedProps.disabled) && (
                     <RadioField
                       label={t("always_requires_confirmation")}
@@ -100,6 +111,7 @@ export default function RequiresConfirmationController({
                   {(requiresConfirmationSetup !== undefined || !requiresConfirmationLockedProps.disabled) && (
                     <RadioField
                       disabled={requiresConfirmationLockedProps.disabled}
+                      className="items-center"
                       label={
                         <>
                           <Trans
@@ -107,7 +119,7 @@ export default function RequiresConfirmationController({
                             defaults="When booked with less than <time></time> notice"
                             components={{
                               time: (
-                                <div className="mx-2 flex">
+                                <div className="mx-2 inline-flex">
                                   <Input
                                     type="number"
                                     min={1}
@@ -127,28 +139,27 @@ export default function RequiresConfirmationController({
                                     className="border-default !m-0 block w-16 rounded-md text-sm [appearance:textfield]"
                                     defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                   />
-                                  <select
-                                    onChange={(evt) => {
-                                      const val = evt.target.value as UnitTypeLongPlural;
-                                      setRequiresConfirmationSetup({
-                                        time:
-                                          requiresConfirmationSetup?.time ??
-                                          defaultRequiresConfirmationSetup.time,
-                                        unit: val,
-                                      });
-                                      formMethods.setValue(
-                                        "metadata.requiresConfirmationThreshold.unit",
-                                        val
-                                      );
-                                    }}
-                                    className="border-default text-default bg-default ml-2 block h-9 rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none"
-                                    defaultValue={
-                                      metadata?.requiresConfirmationThreshold?.unit ||
-                                      defaultRequiresConfirmationSetup.unit
-                                    }>
-                                    <option value="minutes">{t("minute_timeUnit")}</option>
-                                    <option value="hours">{t("hour_timeUnit")}</option>
-                                  </select>
+                                  <label>
+                                    <Select
+                                      inputId="notice"
+                                      options={options}
+                                      isSearchable={false}
+                                      className="ml-2"
+                                      onChange={(opt) => {
+                                        setRequiresConfirmationSetup({
+                                          time:
+                                            requiresConfirmationSetup?.time ??
+                                            defaultRequiresConfirmationSetup.time,
+                                          unit: opt?.value as UnitTypeLongPlural,
+                                        });
+                                        formMethods.setValue(
+                                          "metadata.requiresConfirmationThreshold.unit",
+                                          opt?.value as UnitTypeLongPlural
+                                        );
+                                      }}
+                                      defaultValue={defaultValue}
+                                    />
+                                  </label>
                                 </div>
                               ),
                             }}
@@ -159,15 +170,6 @@ export default function RequiresConfirmationController({
                       value="notice"
                     />
                   )}
-                  <div className="flex items-center">
-                    <RadioGroup.Item
-                      id="notice"
-                      value="notice"
-                      className="min-w-4 bg-default flex h-4 w-4 cursor-pointer items-center rounded-full border border-black focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-                      <RadioGroup.Indicator className="relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full after:bg-black" />
-                    </RadioGroup.Item>
-                    <Label htmlFor="notice" className="!m-0 flex items-center" />
-                  </div>
                 </div>
               </RadioGroup.Root>
             </SettingsToggle>

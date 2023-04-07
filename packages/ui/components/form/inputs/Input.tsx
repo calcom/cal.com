@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default mb-2 block h-9 rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default min-h-9 mb-2 block rounded-md border py-2 px-3 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -68,7 +68,7 @@ type AddonProps = {
 const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
     className={classNames(
-      "addon-wrapper border-default h-9 border px-3",
+      "addon-wrapper border-default min-h-9 border px-3",
       isFilled && "bg-subtle",
       className
     )}>
@@ -77,7 +77,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
         "flex h-full flex-col justify-center text-sm",
         error ? "text-error" : "text-default"
       )}>
-      <span className="whitespace-nowrap py-2.5">{children}</span>
+      <span className="whitespace-nowrap py-2">{children}</span>
     </div>
   </div>
 );

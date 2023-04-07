@@ -120,7 +120,7 @@ export default function RecurringEventController({
                         setRecurringEventState(newVal);
                       }}
                     />
-                    <p className="text-emphasis ltr:mr-2 rtl:ml-2">
+                    <p className="text-emphasis ltr:ml-2 rtl:mr-2">
                       {t("events", {
                         count: recurringEventState.count,
                       })}

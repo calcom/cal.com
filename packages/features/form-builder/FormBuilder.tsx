@@ -280,7 +280,7 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <p className="text-subtle max-w-[280px] break-words py-1 text-sm sm:max-w-[500px]">{description}</p>
-        <ul className="border-default divide-subtle mt-2 divide-y-2 rounded-md border ">
+        <ul className="border-default divide-subtle mt-2 divide-y rounded-md border">
           {fields.map((field, index) => {
             const options = field.options
               ? field.options
