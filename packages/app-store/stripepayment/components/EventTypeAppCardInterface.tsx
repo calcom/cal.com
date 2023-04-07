@@ -24,7 +24,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
-  const seatsEnabled = eventType.seatsPerTimeSlot;
+  const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
       .toLocaleString(locale, {
