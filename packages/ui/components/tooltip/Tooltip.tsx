@@ -31,7 +31,7 @@ export function Tooltip({
           className={classNames(
             side === "top" && "-mt-7",
             side === "right" && "ml-2",
-            "relative rounded-md bg-gray-900 px-2 py-1 text-xs font-semibold text-white shadow-lg dark:bg-white dark:text-gray-600"
+            "bg-inverted text-inverted relative rounded-md px-2 py-1 text-xs font-semibold shadow-lg"
           )}
           side={side}
           align="center"

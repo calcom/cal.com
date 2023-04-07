@@ -6,7 +6,7 @@ export default function InfoBadge({ content }: { content: string }) {
     <>
       <Tooltip side="top" content={content}>
         <span title={content}>
-          <FiInfo className="relative top-px left-1 right-1 mt-px h-4 w-4 text-gray-500" />
+          <FiInfo className="text-subtle relative top-px left-1 right-1 mt-px h-4 w-4" />
         </span>
       </Tooltip>
     </>

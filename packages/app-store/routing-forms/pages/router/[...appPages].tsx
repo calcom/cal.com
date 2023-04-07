@@ -17,7 +17,7 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
       </Head>
       <div className="mx-auto my-0 max-w-3xl md:my-24">
         <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-          <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+          <div className="bg-default -mx-4 rounded-sm border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
             <div>{message}</div>
           </div>
         </div>
@@ -25,6 +25,8 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
     </>
   );
 }
+
+Router.isThemeSupported = true;
 
 const querySchema = z
   .object({

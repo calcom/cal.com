@@ -13,9 +13,9 @@ export function SchedulerHeading() {
 
   return (
     <header className="flex flex-none flex-col justify-between py-4 sm:flex-row sm:items-center">
-      <h1 className="text-xl font-semibold text-gray-900">
+      <h1 className="text-emphasis text-xl font-semibold">
         {startDate.format("MMM DD")}-{endDate.format("DD")}
-        <span className="text-gray-500">,{startDate.format("YYYY")}</span>
+        <span className="text-subtle">,{startDate.format("YYYY")}</span>
       </h1>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         {/* TODO: Renable when we have daily/mobile support */}

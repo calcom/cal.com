@@ -11,7 +11,7 @@ export const CardInsights = (props: ICardProps) => {
   const { children, className = "", ...rest } = props;
 
   return (
-    <Card className={classNames("shadow-none ring-gray-200", className)} {...rest}>
+    <Card className={classNames(`ring-subtle bg-muted shadow-none `, className)} {...rest}>
       {children}
     </Card>
   );

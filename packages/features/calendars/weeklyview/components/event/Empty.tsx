@@ -1,7 +1,8 @@
 import shallow from "zustand/shallow";
 
 import { useCalendarStore } from "../../state/store";
-import { gridCellToDateTime, GridCellToDateProps } from "../../utils";
+import type { GridCellToDateProps } from "../../utils";
+import { gridCellToDateTime } from "../../utils";
 
 export function EmptyCell(props: GridCellToDateProps) {
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
@@ -27,9 +28,9 @@ export function EmptyCell(props: GridCellToDateProps) {
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
       {hoverEventDuration !== 0 && (
         <div
-          className="opacity-4 absolute inset-x-1  hidden rounded-[4px] border-[1px] border-gray-900  bg-gray-100
-          py-1
-          px-[6px] text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
+          className="opacity-4 bg-subtle hover:bg-emphasis  text-emphasis absolute inset-x-1 hidden  rounded-[4px]
+          border-[1px]
+          border-gray-900 py-1 px-[6px] text-xs font-semibold leading-5 group-hover:block group-hover:cursor-pointer"
           style={{
             height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
             zIndex: 49,

@@ -270,7 +270,7 @@ function WorkflowPage() {
           session.data?.hasValidLicense &&
           isAllDataLoaded && (
             <div className="flex">
-              <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+              <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
                 {workflow && workflow.name ? workflow.name : "untitled"}
               </div>
               {workflow && workflow.team && (

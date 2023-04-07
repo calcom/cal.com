@@ -164,7 +164,7 @@ export const SlotPicker = ({
         isLoading={isLoading}
         className={classNames(
           "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-4 lg:min-w-[455px]",
-          selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
+          selectedDate ? " border-subtle sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
         includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}

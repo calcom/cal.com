@@ -114,13 +114,13 @@ const PasswordView = () => {
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
-            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
+            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
               {t("account_managed_by_identity_provider", {
                 provider: identityProviderNameMap[user.identityProvider],
               })}
             </h2>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-subtle mt-1 text-sm">
             {t("account_managed_by_identity_provider_description", {
               provider: identityProviderNameMap[user.identityProvider],
             })}
@@ -154,10 +154,10 @@ const PasswordView = () => {
               />
             </div>
           </div>
-          <p className="mt-4 max-w-[38rem] text-sm text-gray-600">
+          <p className="text-default mt-4 max-w-[38rem] text-sm">
             {t("invalid_password_hint", { passwordLength: passwordMinLength })}
           </p>
-          <div className="mt-8 border-t border-gray-200 py-8">
+          <div className="border-subtle mt-8 border-t py-8">
             <SettingsToggle
               title={t("session_timeout")}
               description={t("session_timeout_description")}
@@ -174,7 +174,7 @@ const PasswordView = () => {
             {sessionTimeoutWatch && (
               <div className="mt-4 text-sm">
                 <div className="flex items-center">
-                  <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
+                  <p className="text-default ltr:mr-2 rtl:ml-2">{t("session_timeout_after")}</p>
                   <Select
                     options={timeoutOptions}
                     defaultValue={
