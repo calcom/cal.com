@@ -11,7 +11,6 @@ export function EmptyScreen({
   Icon,
   avatar,
   headline,
-  isLocked,
   description,
   buttonText,
   buttonOnClick,
@@ -20,7 +19,6 @@ export function EmptyScreen({
 }: {
   Icon?: SVGComponent | IconType;
   avatar?: React.ReactElement;
-  isLocked?: React.ReactNode;
   headline: string | React.ReactElement;
   description: string | React.ReactElement;
   buttonText?: string;
@@ -45,10 +43,7 @@ export function EmptyScreen({
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
-          <h2 className="text-semibold font-cal text-emphasis mt-6 text-center text-xl">
-            {headline}
-            {isLocked}
-          </h2>
+          <h2 className="text-semibold font-cal text-emphasis mt-6 text-center text-xl">{headline}</h2>
           <div className="text-default mt-3 mb-8 text-center text-sm font-normal leading-6">
             {description}
           </div>
