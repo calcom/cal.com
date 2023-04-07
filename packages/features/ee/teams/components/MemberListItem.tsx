@@ -93,7 +93,8 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
-  const bookingLink = `${WEBAPP_URL.split("http://")[1]}/${props.member.username}`;
+  const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
 
   return (
     <li className="divide-y px-5">
@@ -109,22 +110,24 @@ export default function MemberListItem(props: Props) {
 
             <div className="inline-block ltr:ml-3 rtl:mr-3">
               <div className="mb-1 flex">
-                <span className="mr-1 text-sm font-bold leading-4">{name}</span>
+                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
-              <div className="flex items-center">
-                <span
-                  className="block text-sm text-gray-600"
-                  data-testid="member-email"
-                  data-email={props.member.email}>
+              <div className="text-default flex items-center">
+                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
                   {props.member.email}
                 </span>
                 {bookingLink && (
                   <>
-                    <span className="mx-2 block text-gray-600">•</span>
-                    <span className="block text-sm text-gray-600">{bookingLink}</span>
+                    <span className="mx-2 block text-default">•</span>
+                    <a
+                      target="_blank"
+                      href={`${WEBAPP_URL}/${props.member.username}`}
+                      className="block text-sm text-default">
+                      {bookingLink}
+                    </a>
                   </>
                 )}
               </div>
@@ -133,7 +136,7 @@ export default function MemberListItem(props: Props) {
         </div>
         {props.team.membership.accepted && (
           <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
+            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
               {/* TODO: bring availability back. right now its ugly and broken
                <Tooltip
                 content={

@@ -1,5 +1,6 @@
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import type { ReactNode } from "react";
+import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -10,7 +11,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border border-gray-300 hover:bg-gray-100 focus:ring-2 focus:ring-gray-900",
+      "hover:bg-subtle border-default focus:ring-emphasis mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border focus:ring-2",
       props.disabled && "opacity-60"
     )}>
     {props.children}
@@ -19,8 +20,8 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
 export const Indicator = ({ disabled }: { disabled?: boolean }) => (
   <RadioGroupPrimitive.Indicator
     className={classNames(
-      "relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:bg-white after:content-['']",
-      disabled ? "after:bg-gray-500" : "bg-black"
+      "after:bg-default dark:after:bg-inverted relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:content-['']",
+      disabled ? "after:bg-muted" : "bg-black"
     )}
   />
 );
@@ -29,8 +30,8 @@ export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boole
   <label
     {...props}
     className={classNames(
-      "text-sm font-medium leading-5 text-gray-900 ltr:ml-2 rtl:mr-2 dark:text-white",
-      props.disabled && "text-gray-500"
+      "text-emphasis w-full text-sm font-medium leading-5 ltr:ml-2 rtl:mr-2",
+      props.disabled && "text-subtle"
     )}
   />
 );
@@ -40,13 +41,15 @@ export const RadioField = ({
   disabled,
   id,
   value,
+  className,
 }: {
-  label: string;
+  label: string | ReactNode;
   disabled?: boolean;
   id: string;
   value: string;
+  className?: string;
 }) => (
-  <div className="flex items-start">
+  <div className={classNames("flex items-start", className)}>
     <Radio value={value} disabled={disabled} id={id}>
       <Indicator disabled={disabled} />
     </Radio>

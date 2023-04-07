@@ -23,7 +23,6 @@ export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSidePro
 export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
 }
-Type.isThemeSupported = true;
 
 const querySchema = z.object({
   link: z.string().optional().default(""),
