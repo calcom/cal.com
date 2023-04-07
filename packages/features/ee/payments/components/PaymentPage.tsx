@@ -86,9 +86,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-emphasis text-2xl font-semibold leading-6" id="modal-headline">
-                      {paymentAppData.paymentOption === "HOLD"
-                        ? t("submit_payment_information")
-                        : t("payment")}
+                      {paymentAppData.paymentOption === "HOLD" ? t("complete_your_booking") : t("payment")}
                     </h3>
                     <div className="text-default mt-4 grid grid-cols-3 border-t border-b py-4 text-left dark:border-gray-900 dark:text-gray-300">
                       <div className="font-medium">{t("what")}</div>
