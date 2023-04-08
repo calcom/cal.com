@@ -16954,6 +16954,7 @@ __metadata:
     jest-watch-typeahead: ^2.0.0
     lint-staged: ^12.5.0
     next: canary
+    next-seo: ^6.0.0
     prettier: ^2.8.6
     ts-jest: ^28.0.8
     tsc-absolute: ^1.0.0
@@ -29667,6 +29668,17 @@ __metadata:
     react: ">=16.0.0"
     react-dom: ">=16.0.0"
   checksum: c725138f2b0a17a4b09afddeeb6d4e1b291220bbd083e8855f7c7646dfb14a742c8dd5a9fd8d5abea4e5a7b978675746b9ce54b119b7d6ceb060a880aace5db8
+  languageName: node
+  linkType: hard
+
+"next-seo@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "next-seo@npm:6.0.0"
+  peerDependencies:
+    next: ^8.1.1-canary.54 || >=9.0.0
+    react: ">=16.0.0"
+    react-dom: ">=16.0.0"
+  checksum: aa986b3731386bc91408df6bca09a9edc0cdd8a7730bcdc331f283ab50803a6d60047b685eeec4b11bde1660dbb792e3737e81ef05a65682323d0d07fa9edd85
   languageName: node
   linkType: hard
 
