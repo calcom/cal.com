@@ -73,12 +73,12 @@ const buttonClasses = cva(
       {
         disabled: true,
         color: "primary",
-        className: "bg-brand-subtle bg-opacity-30",
+        className: "bg-brand-subtle text-brand-subtle opacity-40",
       },
       {
         loading: true,
         color: "primary",
-        className: "bg-brand-default bg-opacity-30 text-brand-subtle",
+        className: "bg-brand-subtle text-brand-subtle",
       },
       // Secondary variants
       {
