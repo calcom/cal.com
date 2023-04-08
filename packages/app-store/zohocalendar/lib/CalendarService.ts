@@ -215,7 +215,7 @@ export default class ZohoCalendarService implements Calendar {
 
     try {
       let queryIds = selectedCalendarIds;
-      this.log.debug('queryIds', {queryIds});
+
       if (queryIds.length === 0) {
         queryIds = (await this.listCalendars()).map((e) => e.status).filter(Boolean) || [];
         if (queryIds.length === 0) {
@@ -231,7 +231,7 @@ export default class ZohoCalendarService implements Calendar {
         ftype: "eventbased",
         uemail: email,
       });
-      this.log.debug('query', {query});
+
       const response = await this.fetcher(`/calendars/freebusy?${query}`, {
         method: "GET",
       });
