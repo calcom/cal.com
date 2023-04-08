@@ -5,12 +5,12 @@ import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { 
+import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
-  NewCalendarEventType
+  NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
