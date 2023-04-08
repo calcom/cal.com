@@ -1,5 +1,4 @@
 import type { Session } from "next-auth";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 import type z from "zod";
 import type { ZodType } from "zod";
@@ -7,7 +6,6 @@ import type { ZodType } from "zod";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
 import rateLimit from "@calcom/lib/rateLimit";
-import prisma from "@calcom/prisma";
 import type { Optional } from "@calcom/types/utils";
 
 import type { Maybe } from "@trpc/server";
@@ -19,7 +17,7 @@ async function getUserFromSession({ session }: { session: Maybe<Session> }) {
   if (!session?.user?.id) {
     return null;
   }
-
+  const prisma = (await import("@calcom/prisma")).default;
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
@@ -109,6 +107,7 @@ const perfMiddleware = t.middleware(async ({ path, type, next }) => {
 
 export const getLocale = async (ctx: CreateInnerContextOptions) => {
   const user = await getUserFromSession({ session: ctx.session });
+  const { serverSideTranslations } = await import("next-i18next/serverSideTranslations");
 
   const i18n =
     user?.locale && user?.locale !== ctx.locale
@@ -142,6 +141,7 @@ interface IRateLimitOptions {
   intervalInMs: number;
   limit: number;
 }
+
 const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOptions) =>
   t.middleware(({ ctx, next }) => {
     // validate user exists

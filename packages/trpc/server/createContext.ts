@@ -1,10 +1,7 @@
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
-import prisma from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser, Credential } from "@calcom/prisma/client";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
@@ -29,7 +26,7 @@ export type CreateInnerContextOptions = {
     credentials?: Credential[];
     selectedCalendars?: Partial<SelectedCalendar>[];
   };
-  i18n: Awaited<ReturnType<typeof serverSideTranslations>>;
+  i18n: Awaited<ReturnType<typeof import("next-i18next/serverSideTranslations").serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 
 export type GetSessionFn =
@@ -39,7 +36,10 @@ export type GetSessionFn =
     }) => Promise<Session | null>)
   | (() => Promise<Session | null>);
 
-const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession({ req, res });
+const DEFAULT_SESSION_GETTER: GetSessionFn = async ({ req, res }) => {
+  const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
+  return getServerSession({ req, res });
+};
 
 /**
  * Inner context. Will always be available in your procedures, in contrast to the outer context.
@@ -51,6 +51,7 @@ const DEFAULT_SESSION_GETTER: GetSessionFn = ({ req, res }) => getServerSession(
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
 export async function createContextInner(opts: CreateInnerContextOptions) {
+  const prisma = (await import("@calcom/prisma")).default;
   return {
     prisma,
     ...opts,
@@ -69,6 +70,7 @@ export const createContext = async (
   const session = await sessionGetter({ req, res });
 
   const locale = getLocaleFromHeaders(req);
+  const { serverSideTranslations } = await import("next-i18next/serverSideTranslations");
   const i18n = await serverSideTranslations(getLocaleFromHeaders(req), ["common", "vital"]);
   const contextInner = await createContextInner({ session, i18n, locale });
   return {
