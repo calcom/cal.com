@@ -5,7 +5,13 @@ import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar, NewCalendarEventType } from "@calcom/types/Calendar";
+import type { 
+  Calendar,
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+  NewCalendarEventType
+} from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -216,7 +222,7 @@ export default class ZohoCalendarService implements Calendar {
         }
       }
 
-      const email = selectedCalendarIds[0].email;
+      const email = selectedCalendars[0].email;
 
       const query = stringify({
         sdate: dayjs(dateFrom).format("YYYYMMDD[T]HHmmss[Z]"),
@@ -250,7 +256,7 @@ export default class ZohoCalendarService implements Calendar {
   listCalendars = async (): Promise<IntegrationCalendar[]> => {
     try {
       const resp = await this.fetcher(`/calendars`);
-      const data = await this.handleData(resp, this.log) as ZohoCalendarListResp;
+      const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
       const result = data.calendars
         .filter((cal) => {
           if (cal.privilege === "owner") {
@@ -275,8 +281,8 @@ export default class ZohoCalendarService implements Calendar {
 
       // No primary calendar found, get primary calendar directly
       const respPrimary = await this.fetcher(`/calendars?category=own`);
-      const dataPrimary = await this.handleData(respPrimary, this.log) as ZohoCalendarListResp;
-      return dataPrimary.map((cal) => {
+      const dataPrimary = (await this.handleData(respPrimary, this.log)) as ZohoCalendarListResp;
+      return dataPrimary.calendars.map((cal) => {
         const calendar: IntegrationCalendar = {
           externalId: cal.uid ?? "No Id",
           integration: this.integrationName,
