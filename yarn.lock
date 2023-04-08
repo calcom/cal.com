@@ -4887,7 +4887,7 @@ __metadata:
     mockdate: ^3.0.5
     module-alias: ^2.2.2
     msw: ^0.42.3
-    next: ^13.2.1
+    next: canary
     next-auth: ^4.20.1
     next-axiom: ^0.16.0
     next-collect: ^0.2.1
