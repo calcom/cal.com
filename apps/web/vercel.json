@@ -2,11 +2,11 @@
   "public": true,
   "functions": {
     "pages/api/experiments/raw": {
-      "memory": 3008,
+      "memory": 3006,
       "maxDuration": 60
     },
     "pages/api/experiments/simple": {
-      "memory": 3008,
+      "memory": 3007,
       "maxDuration": 60
     },
     "pages/api/experiments/prisma": {
