@@ -1,7 +1,15 @@
 {
   "public": true,
   "functions": {
-    "pages/api/experiments/*": {
+    "pages/api/experiments/raw": {
+      "memory": 3008,
+      "maxDuration": 60
+    },
+    "pages/api/experiments/simple": {
+      "memory": 3008,
+      "maxDuration": 60
+    },
+    "pages/api/experiments/prisma": {
       "memory": 3008,
       "maxDuration": 60
     }
