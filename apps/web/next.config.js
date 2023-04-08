@@ -70,7 +70,7 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   experimental: {
-    appDocumentPreloading: false,
+    appDocumentPreloading: true,
   },
   i18n,
   productionBrowserSourceMaps: true,
