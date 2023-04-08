@@ -23,6 +23,7 @@ import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
 import * as wipemycalother from "./wipemycalother";
 import * as zapier from "./zapier";
+import * as zohocalendar from "./zohocalendar";
 import * as zoomvideo from "./zoomvideo";
 
 const appStore = {
@@ -52,6 +53,7 @@ const appStore = {
   exchange2013calendar,
   exchange2016calendar,
   exchangecalendar,
+  zohocalendar,
 };
 
 export default appStore;

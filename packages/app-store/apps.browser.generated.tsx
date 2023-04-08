@@ -26,6 +26,7 @@ export const InstallAppButtonMap = {
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
+  zohocalendar: dynamic(() => import("./zohocalendar/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {

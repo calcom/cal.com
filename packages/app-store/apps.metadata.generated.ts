@@ -54,6 +54,7 @@ import whereby_config_json from "./whereby/config.json";
 import { metadata as wipemycalother__metadata_ts } from "./wipemycalother/_metadata";
 import wordpress_config_json from "./wordpress/config.json";
 import { metadata as zapier__metadata_ts } from "./zapier/_metadata";
+import { metadata as zohocalendar__metadata_ts } from "./zohocalendar/_metadata";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
 export const appStoreMetadata = {
@@ -109,5 +110,6 @@ export const appStoreMetadata = {
   wipemycalother: wipemycalother__metadata_ts,
   wordpress: wordpress_config_json,
   zapier: zapier__metadata_ts,
+  zohocalendar: zohocalendar__metadata_ts,
   zoomvideo: zoomvideo__metadata_ts,
 };

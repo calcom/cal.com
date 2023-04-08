@@ -23,6 +23,7 @@ import { appKeysSchema as event_type_app_card_zod_ts } from "./templates/event-t
 import { appKeysSchema as vital_zod_ts } from "./vital/zod";
 import { appKeysSchema as wordpress_zod_ts } from "./wordpress/zod";
 import { appKeysSchema as zapier_zod_ts } from "./zapier/zod";
+import { appKeysSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 
 export const appKeysSchemas = {
@@ -47,5 +48,6 @@ export const appKeysSchemas = {
   vital: vital_zod_ts,
   wordpress: wordpress_zod_ts,
   zapier: zapier_zod_ts,
+  zohocalendar: zohocalendar_zod_ts,
   zoomvideo: zoomvideo_zod_ts,
 };
