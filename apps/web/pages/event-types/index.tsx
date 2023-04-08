@@ -47,7 +47,7 @@ import {
   Edit,
   Edit2,
   ExternalLink,
-  LinkIcon,
+  Link as LinkIcon,
   MoreHorizontal,
   Trash,
   Upload,
