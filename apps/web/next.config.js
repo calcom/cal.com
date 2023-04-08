@@ -69,6 +69,9 @@ if (process.env.ANALYZE === "true") {
 plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  experimental: {
+    appDocumentPreloading: true,
+  },
   i18n,
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
