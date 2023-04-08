@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { FiPlus } from "@calcom/ui/components/icon";
+import { Plus } from "@calcom/ui/components/icon";
 
 export const EventTeamWebhooksTab = ({
   eventType,
@@ -85,7 +85,7 @@ export const EventTeamWebhooksTab = ({
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={FiPlus}
+        StartIcon={Plus}
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>

@@ -17,7 +17,7 @@ import {
   Button,
   DialogClose,
 } from "@calcom/ui";
-import { FiAlertCircle } from "@calcom/ui/components/icon";
+import { AlertCircle } from "@calcom/ui/components/icon";
 
 type LocationTypeSetLinkDialogFormProps = {
   link?: string;
@@ -57,7 +57,7 @@ export function AppSetDefaultLinkDialog({
         title={t("default_app_link_title")}
         description={t("default_app_link_description")}
         type="creation"
-        Icon={FiAlertCircle}>
+        Icon={AlertCircle}>
         <Form
           form={form}
           handleSubmit={(values) => {

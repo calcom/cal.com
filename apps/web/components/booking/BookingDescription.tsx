@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
-import { FiCheckSquare, FiClock } from "@calcom/ui/components/icon";
+import { CheckSquare, Clock } from "@calcom/ui/components/icon";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -103,7 +103,7 @@ const BookingDescription: FC<Props> = (props) => {
         {requiresConfirmation && (
           <div className={classNames("items-top flex", isBookingPage && "text-default text-sm font-medium")}>
             <div>
-              <FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
+              <CheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
             {requiresConfirmationText}
           </div>
@@ -117,7 +117,7 @@ const BookingDescription: FC<Props> = (props) => {
             isBookingPage && "text-default",
             !eventType.metadata?.multipleDuration && "items-center"
           )}>
-          <FiClock
+          <Clock
             className={classNames(
               "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"

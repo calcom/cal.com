@@ -94,11 +94,11 @@ const nextConfig = {
     "@calcom/ui",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "@react-icons/all-files/fi/{{member}}",
-      skipDefaultConversion: true,
-      preventFullImport: true,
-    },
+    // "@calcom/ui/components/icon": {
+    //   transform: "@react-icons/all-files/fi/{{member}}",
+    //   skipDefaultConversion: true,
+    //   preventFullImport: true,
+    // },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,

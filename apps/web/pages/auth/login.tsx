@@ -19,7 +19,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
-import { FiArrowLeft } from "@calcom/ui/components/icon";
+import { ArrowLeft } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -91,7 +91,7 @@ export default function Login({
         setTwoFactorRequired(false);
         methods.setValue("totpCode", "");
       }}
-      StartIcon={FiArrowLeft}
+      StartIcon={ArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>

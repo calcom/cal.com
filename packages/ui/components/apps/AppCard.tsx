@@ -9,7 +9,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button } from "../button";
-import { FiPlus } from "../icon";
+import { Plus } from "../icon";
 import { showToast } from "../toast";
 
 interface AppCardProps {
@@ -112,7 +112,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                     <Button
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-                      StartIcon={FiPlus}
+                      StartIcon={Plus}
                       {...props}>
                       {t("install")}
                     </Button>
@@ -139,7 +139,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
                   }
                   return (
                     <Button
-                      StartIcon={FiPlus}
+                      StartIcon={Plus}
                       color="secondary"
                       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"

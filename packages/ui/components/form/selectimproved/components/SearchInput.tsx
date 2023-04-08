@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 
-import { FiSearch } from "../../../icon";
+import { Search } from "../../../icon";
 import { SelectContext } from "./SelectProvider";
 
 interface SearchInputProps {
@@ -24,7 +24,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
       className={
         classNames && classNames.searchContainer ? classNames.searchContainer : "relative py-1 px-2.5"
       }>
-      <FiSearch
+      <Search
         className={
           classNames && classNames.searchIcon
             ? classNames.searchIcon

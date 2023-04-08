@@ -1,4 +1,4 @@
-import { FiMapPin } from "../components/icon";
+import { MapPin } from "../components/icon";
 
 export type AddressInputProps = {
   value: string;
@@ -12,7 +12,7 @@ export type AddressInputProps = {
 function AddressInput({ className = "", value, onChange, ...rest }: AddressInputProps) {
   return (
     <div className="relative ">
-      <FiMapPin color="#D2D2D2" className="absolute top-1/2 left-0.5 ml-3 h-6 -translate-y-1/2" />
+      <MapPin color="#D2D2D2" className="absolute top-1/2 left-0.5 ml-3 h-6 -translate-y-1/2" />
       <input
         {...rest}
         value={value}

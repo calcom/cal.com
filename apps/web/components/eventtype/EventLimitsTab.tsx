@@ -24,7 +24,7 @@ import {
   SettingsToggle,
   TextField,
 } from "@calcom/ui";
-import { FiPlus, FiTrash } from "@calcom/ui/components/icon";
+import { Plus, Trash } from "@calcom/ui/components/icon";
 
 const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
@@ -441,7 +441,7 @@ const IntervalLimitItem = ({
         onChange={onIntervalSelect}
       />
       {hasDeleteButton && (
-        <Button variant="icon" StartIcon={FiTrash} color="destructive" onClick={() => onDelete(limitKey)} />
+        <Button variant="icon" StartIcon={Trash} color="destructive" onClick={() => onDelete(limitKey)} />
       )}
     </div>
   );
@@ -539,7 +539,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                   );
                 })}
             {currentIntervalLimits && Object.keys(currentIntervalLimits).length <= 3 && (
-              <Button color="minimal" StartIcon={FiPlus} onClick={addLimit}>
+              <Button color="minimal" StartIcon={Plus} onClick={addLimit}>
                 {t("add_limit")}
               </Button>
             )}

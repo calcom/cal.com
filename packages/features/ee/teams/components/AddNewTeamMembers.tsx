@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Badge, Button, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { FiPlus, FiArrowRight, FiTrash2 } from "@calcom/ui/components/icon";
+import { Plus, ArrowRight, Trash2 } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -80,7 +80,7 @@ export const AddNewTeamMembersForm = ({
         <Button
           color="secondary"
           data-testid="new-member-button"
-          StartIcon={FiPlus}
+          StartIcon={Plus}
           onClick={() => setMemberInviteModal(true)}
           className="mt-6 w-full justify-center">
           {t("add_team_member")}
@@ -102,7 +102,7 @@ export const AddNewTeamMembersForm = ({
       />
       <hr className="border-subtle my-6" />
       <Button
-        EndIcon={FiArrowRight}
+        EndIcon={ArrowRight}
         className="mt-6 w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
@@ -179,7 +179,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       {member.role !== "OWNER" && (
         <Button
           data-testid="remove-member-button"
-          StartIcon={FiTrash2}
+          StartIcon={Trash2}
           variant="icon"
           color="secondary"
           className="h-[36px] w-[36px]"

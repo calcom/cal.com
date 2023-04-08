@@ -45,26 +45,26 @@ import {
   useCalcomTheme,
 } from "@calcom/ui";
 import {
-  FiArrowLeft,
-  FiArrowRight,
-  FiBarChart,
-  FiCalendar,
-  FiClock,
-  FiDownload,
-  FiExternalLink,
-  FiFileText,
-  FiGrid,
-  FiHelpCircle,
-  FiLink,
-  FiLogOut,
-  FiMap,
-  FiMoon,
-  FiMoreHorizontal,
-  FiMoreVertical,
-  FiSettings,
-  FiSlack,
-  FiUsers,
-  FiZap,
+  ArrowLeft,
+  ArrowRight,
+  BarChart,
+  Calendar,
+  Clock,
+  Download,
+  ExternalLink,
+  FileText,
+  Grid,
+  HelpCircle,
+  Link as LinkIcon,
+  LogOut,
+  Map,
+  Moon,
+  MoreHorizontal,
+  MoreVertical,
+  Settings,
+  Slack,
+  Users,
+  Zap,
 } from "@calcom/ui/components/icon";
 
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -318,7 +318,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                       : "No public page"}
                   </span>
                 </span>
-                <FiMoreVertical
+                <MoreVertical
                   className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2 rtl:mr-4"
                   aria-hidden="true"
                 />
@@ -344,7 +344,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <DropdownItem
                     type="button"
                     StartIcon={(props) => (
-                      <FiMoon className={classNames("text-default", props.className)} aria-hidden="true" />
+                      <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
                     onClick={() => {
                       mutation.mutate({ away: !user?.away });
@@ -361,14 +361,14 @@ function UserDropdown({ small }: { small?: boolean }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                        StartIcon={FiExternalLink}>
+                        StartIcon={ExternalLink}>
                         {t("view_public_page")}
                       </DropdownItem>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
-                        StartIcon={FiLink}
+                        StartIcon={LinkIcon}
                         onClick={(e) => {
                           e.preventDefault();
                           navigator.clipboard.writeText(
@@ -384,7 +384,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <DropdownItem
-                    StartIcon={(props) => <FiSlack strokeWidth={1.5} {...props} />}
+                    StartIcon={(props) => <Slack strokeWidth={1.5} {...props} />}
                     target="_blank"
                     rel="noreferrer"
                     href={JOIN_SLACK}>
@@ -392,24 +392,20 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon={FiMap} target="_blank" href={ROADMAP}>
+                  <DropdownItem StartIcon={Map} target="_blank" href={ROADMAP}>
                     {t("visit_roadmap")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <FiHelpCircle aria-hidden="true" {...props} />}
+                    StartIcon={(props) => <HelpCircle aria-hidden="true" {...props} />}
                     onClick={() => setHelpOpen(true)}>
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="desktop-hidden hidden lg:flex">
-                  <DropdownItem
-                    StartIcon={FiDownload}
-                    target="_blank"
-                    rel="noreferrer"
-                    href={DESKTOP_APP_LINK}>
+                  <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -418,7 +414,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
-                    StartIcon={(props) => <FiLogOut aria-hidden="true" {...props} />}
+                    StartIcon={(props) => <LogOut aria-hidden="true" {...props} />}
                     onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
                     {t("sign_out")}
                   </DropdownItem>
@@ -459,12 +455,12 @@ const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
     href: "/event-types",
-    icon: FiLink,
+    icon: LinkIcon,
   },
   {
     name: "bookings",
     href: "/bookings/upcoming",
-    icon: FiCalendar,
+    icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ router }) => {
       const path = router.asPath.split("?")[0];
@@ -474,19 +470,19 @@ const navigation: NavigationItemType[] = [
   {
     name: "availability",
     href: "/availability",
-    icon: FiClock,
+    icon: Clock,
   },
   {
     name: "teams",
     href: "/teams",
-    icon: FiUsers,
+    icon: Users,
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
   },
   {
     name: "apps",
     href: "/apps",
-    icon: FiGrid,
+    icon: Grid,
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
@@ -521,12 +517,12 @@ const navigation: NavigationItemType[] = [
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
-    icon: FiMoreHorizontal,
+    icon: MoreHorizontal,
   },
   {
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
-    icon: FiFileText,
+    icon: FileText,
     isCurrent: ({ router }) => {
       return router.asPath.startsWith("/apps/routing-forms/");
     },
@@ -534,17 +530,17 @@ const navigation: NavigationItemType[] = [
   {
     name: "workflows",
     href: "/workflows",
-    icon: FiZap,
+    icon: Zap,
   },
   {
     name: "insights",
     href: "/insights",
-    icon: FiBarChart,
+    icon: BarChart,
   },
   {
     name: "settings",
     href: "/settings/my-account/profile",
-    icon: FiSettings,
+    icon: Settings,
   },
 ];
 
@@ -721,7 +717,7 @@ const MobileNavigationMoreItem: React.FC<{
           {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
           {isLocaleReady ? t(item.name) : <SkeletonText />}
         </span>
-        <FiArrowRight className="text-subtle h-5 w-5" />
+        <ArrowRight className="text-subtle h-5 w-5" />
       </Link>
     </li>
   );
@@ -753,13 +749,13 @@ function SideBar() {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
-                <FiArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
+                <ArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
-                <FiArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
+                <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <KBarTrigger />
             </div>
@@ -811,7 +807,7 @@ export function ShellMain(props: LayoutProps) {
             onClick={() =>
               typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
             }
-            StartIcon={FiArrowLeft}
+            StartIcon={ArrowLeft}
             aria-label="Go Back"
             className="rounded-md ltr:mr-2 rtl:ml-2"
           />
@@ -901,7 +897,7 @@ function TopNav() {
           <button className="hover:bg-muted hover:text-subtle text-muted rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/my-account/profile">
-              <FiSettings className="text-default h-4 w-4" aria-hidden="true" />
+              <Settings className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
           <UserDropdown small />

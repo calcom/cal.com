@@ -27,7 +27,7 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { FiEdit2, FiCheck, FiX, FiPlus } from "@calcom/ui/components/icon";
+import { Edit2, Check, X, Plus } from "@calcom/ui/components/icon";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import type { SingleValueLocationOption, LocationOption } from "@components/ui/form/LocationSelect";
@@ -253,10 +253,10 @@ export const EventSetupTab = (
                         }}
                         aria-label={t("edit")}
                         className="hover:text-emphasis text-subtle mr-1 p-1">
-                        <FiEdit2 className="h-4 w-4" />
+                        <Edit2 className="h-4 w-4" />
                       </button>
                       <button type="button" onClick={() => removeLocation(location)} aria-label={t("remove")}>
-                        <FiX className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
+                        <X className="border-l-1 hover:text-emphasis text-subtle h-6 w-6 pl-1 " />
                       </button>
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export const EventSetupTab = (
                 location.type === MeetLocationType && destinationCalendar?.integration !== "google_calendar"
             ) && (
               <div className="text-default flex text-sm">
-                <FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Check className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
                   <p>
                     The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
@@ -286,7 +286,7 @@ export const EventSetupTab = (
               <li>
                 <Button
                   data-testid="add-location"
-                  StartIcon={FiPlus}
+                  StartIcon={Plus}
                   color="minimal"
                   onClick={() => setShowLocationModal(true)}>
                   {t("add_location")}
