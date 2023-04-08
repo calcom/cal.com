@@ -12,7 +12,6 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 
-
 const log = logger.getChildLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
 const zohoKeysSchema = z.object({
@@ -40,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     client_secret,
     redirect_uri: WEBAPP_URL + "/api/integrations/zohocalendar/callback",
-    code
+    code,
   };
 
   const query = stringify(params);
@@ -60,11 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
   }
 
-  
   const key: ZohoAuthCredentials = {
     access_token: responseBody.access_token,
     refresh_token: responseBody.refresh_token,
-    expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in)
+    expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
   await prisma.credential.create({
@@ -77,7 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: "calendar", slug: "zoho-calendar" })
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "zoho-calendar" })
   );
 }

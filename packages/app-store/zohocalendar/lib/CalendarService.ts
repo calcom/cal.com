@@ -6,7 +6,7 @@ import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
@@ -216,7 +216,7 @@ export default class ZohoCalendarService implements Calendar {
         }
       }
 
-      let email = selectedCalendarIds[0].email;
+      const email = selectedCalendarIds[0].email;
 
       const query = stringify({
         sdate: dayjs(dateFrom).format("YYYYMMDD[T]HHmmss[Z]"),
