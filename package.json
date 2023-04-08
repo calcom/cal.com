@@ -96,6 +96,7 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "next": "canary",
+    "next-collect": "^0.2.1",
     "next-seo": "^6.0.0",
     "turbo": "^1.8.3"
   },
