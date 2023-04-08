@@ -5,17 +5,11 @@ import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-} from "@calcom/types/Calendar";
+import type { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar, NewCalendarEventType } from "@calcom/types/Calendar";
 import { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
+import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 
 const zohoKeysSchema = z.object({
   client_id: z.string(),
@@ -206,8 +200,7 @@ export default class ZohoCalendarService implements Calendar {
   ): Promise<EventBusyDate[]> {
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.status)
-      .filter(Boolean);
+      .map((e) => e.externalId);
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
       // Only calendars of other integrations selected
       return Promise.resolve([]);
@@ -217,7 +210,7 @@ export default class ZohoCalendarService implements Calendar {
       let queryIds = selectedCalendarIds;
 
       if (queryIds.length === 0) {
-        queryIds = (await this.listCalendars()).map((e) => e.status).filter(Boolean) || [];
+        queryIds = (await this.listCalendars()).map((e) => e.externalId) || [];
         if (queryIds.length === 0) {
           return Promise.resolve([]);
         }
@@ -242,8 +235,8 @@ export default class ZohoCalendarService implements Calendar {
 
       const busyData =
         data.freebusy
-          .filter((freebusy) => freebusy.fbtype === "busy")
-          .map((freebusy) => ({
+          .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
+          .map((freebusy: FreeBusy) => ({
             start: dayjs(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
             end: dayjs(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
           })) || [];
@@ -257,7 +250,7 @@ export default class ZohoCalendarService implements Calendar {
   listCalendars = async (): Promise<IntegrationCalendar[]> => {
     try {
       const resp = await this.fetcher(`/calendars`);
-      const data = await this.handleData(resp, this.log);
+      const data = await this.handleData(resp, this.log) as ZohoCalendarListResp;
       const result = data.calendars
         .filter((cal) => {
           if (cal.privilege === "owner") {
@@ -282,7 +275,7 @@ export default class ZohoCalendarService implements Calendar {
 
       // No primary calendar found, get primary calendar directly
       const respPrimary = await this.fetcher(`/calendars?category=own`);
-      const dataPrimary = await this.handleData(respPrimary, this.log);
+      const dataPrimary = await this.handleData(respPrimary, this.log) as ZohoCalendarListResp;
       return dataPrimary.map((cal) => {
         const calendar: IntegrationCalendar = {
           externalId: cal.uid ?? "No Id",
@@ -326,12 +319,8 @@ export default class ZohoCalendarService implements Calendar {
           action: "popup",
         },
       ],
-      location: undefined,
+      location: event.location ? getLocation(event) : undefined,
     };
-
-    if (event.location) {
-      zohoEvent.location = getLocation(event);
-    }
 
     return zohoEvent;
   };
