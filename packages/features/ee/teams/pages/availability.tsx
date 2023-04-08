@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 
-import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Avatar, Loader, Shell } from "@calcom/ui";
 

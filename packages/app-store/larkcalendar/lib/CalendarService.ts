@@ -9,7 +9,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
@@ -377,16 +377,25 @@ export default class LarkCalendarService implements Calendar {
   };
 
   private translateAttendees = (event: CalendarEvent): LarkEventAttendee[] => {
-    const attendees: LarkEventAttendee[] = event.attendees
+    const attendeeArray: LarkEventAttendee[] = [];
+    event.attendees
       .filter((att) => att.email)
-      .map((att) => {
+      .forEach((att) => {
         const attendee: LarkEventAttendee = {
           type: "third_party",
           is_optional: false,
           third_party_email: att.email,
         };
-        return attendee;
+        attendeeArray.push(attendee);
       });
-    return attendees;
+    event.team?.members.forEach((member) => {
+      const attendee: LarkEventAttendee = {
+        type: "third_party",
+        is_optional: false,
+        third_party_email: member.email,
+      };
+      attendeeArray.push(attendee);
+    });
+    return attendeeArray;
   };
 }

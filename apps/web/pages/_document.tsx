@@ -1,4 +1,5 @@
-import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps } from "next/document";
+import type { DocumentContext, DocumentProps } from "next/document";
+import Document, { Head, Html, Main, NextScript } from "next/document";
 import Script from "next/script";
 import { z } from "zod";
 
@@ -17,7 +18,10 @@ class MyDocument extends Document<Props> {
       // If x-csp not set by gSSP, then it's initialPropsOnly
       ctx.res?.setHeader("x-csp", "initialPropsOnly");
     }
-    const isEmbed = ctx.asPath?.includes("/embed") || ctx.asPath?.includes("embedType=");
+    const asPath = ctx.asPath || "";
+    // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
+    const parsedUrl = new URL(asPath, "https://dummyurl");
+    const isEmbed = parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null;
     const initialProps = await Document.getInitialProps(ctx);
     return { isEmbed, nonce, ...initialProps };
   }
@@ -37,20 +41,12 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" content="#ffffff" />
-          <link
-            rel="preload"
-            href="/fonts/Inter-roman.var.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-          <link rel="preload" href="/fonts/cal.ttf" as="font" type="font/ttf" crossOrigin="anonymous" />
+          <meta name="theme-color" content="var(--cal-bg)" />
           <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 desktop-transparent bg-gray-100 antialiased"
+          className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"
           style={
             isEmbed
               ? {

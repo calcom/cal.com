@@ -5,7 +5,6 @@ module.exports = {
   plugins: ["unused-imports"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./tsconfig.json"],
     project: ["./apps/*/tsconfig.json", "./packages/*/tsconfig.json"],
   },
   settings: {
@@ -19,12 +18,17 @@ module.exports = {
     "jsx-a11y/role-supports-aria-props": "off", // @see https://github.com/vercel/next.js/issues/27989#issuecomment-897638654
     "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
     "react/self-closing-comp": ["error", { component: true, html: true }],
-    "@typescript-eslint/no-unused-vars": "off",
-    "unused-imports/no-unused-imports": "error",
-    "unused-imports/no-unused-vars": [
+    "@typescript-eslint/no-unused-vars": [
       "warn",
-      { vars: "all", varsIgnorePattern: "^_", args: "after-used", argsIgnorePattern: "^_" },
+      {
+        vars: "all",
+        varsIgnorePattern: "^_",
+        args: "after-used",
+        argsIgnorePattern: "^_",
+        destructuredArrayIgnorePattern: "^_",
+      },
     ],
+    "unused-imports/no-unused-imports": "error",
   },
   overrides: [
     {
@@ -32,18 +36,32 @@ module.exports = {
       extends: ["plugin:@typescript-eslint/recommended", "plugin:@calcom/eslint/recommended"],
       plugins: ["@typescript-eslint", "@calcom/eslint"],
       parser: "@typescript-eslint/parser",
+      rules: {
+        "@typescript-eslint/consistent-type-imports": [
+          "error",
+          {
+            prefer: "type-imports",
+            // TODO: enable this once prettier supports it
+            // fixStyle: "inline-type-imports",
+            fixStyle: "separate-type-imports",
+            disallowTypeAnnotations: false,
+          },
+        ],
+      },
       overrides: [
         {
-          files: ["playwright/**/*.{tsx,ts}"],
+          files: ["**/playwright/**/*.{tsx,ts}"],
           rules: {
+            "@typescript-eslint/no-unused-vars": "off",
             "no-undef": "off",
           },
         },
       ],
     },
     {
-      files: ["playwright/**/*.{js,jsx}"],
+      files: ["**/playwright/**/*.{js,jsx}"],
       rules: {
+        "@typescript-eslint/no-unused-vars": "off",
         "no-undef": "off",
       },
     },

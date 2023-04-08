@@ -5,7 +5,7 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { Tooltip } from "@calcom/ui";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
@@ -19,7 +19,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       <Tooltip content={eventTypeURL}>
         <a download href={QR_URL} target="_blank" rel="noreferrer">
           <img
-            className="border hover:bg-gray-50 hover:shadow-sm"
+            className="hover:bg-muted border hover:shadow-sm"
             style={{ padding: size / 16, borderRadius: size / 20 }}
             width={size}
             src={QR_URL}

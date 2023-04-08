@@ -1,20 +1,20 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, useEffect, useState, memo } from "react";
+import type { FC } from "react";
+import { useEffect, useState, memo } from "react";
 import { z } from "zod";
 
-import {
-  CreateEventTypeButton,
-  EventTypeDescriptionLazy as EventTypeDescription,
-} from "@calcom/features/eventtypes/components";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
+import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Avatar,
   AvatarGroup,
@@ -34,7 +34,9 @@ import {
   showToast,
   Switch,
   Tooltip,
+  CreateButton,
   HorizontalTabs,
+  HeadSeo,
 } from "@calcom/ui";
 import {
   FiArrowDown,
@@ -58,8 +60,6 @@ import { HttpError } from "@lib/core/http/error";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
-import { ssrInit } from "@server/lib/ssr";
-
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
@@ -71,6 +71,7 @@ interface EventTypeListHeadingProps {
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
+
 interface EventTypeListProps {
   group: EventTypeGroup;
   groupIndex: number;
@@ -119,25 +120,30 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
       className="flex-1 overflow-hidden pr-4 text-sm"
-      title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
+      title={type.title}>
       <div>
         <span
-          className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
+          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
           data-testid={"event-type-title-" + type.id}>
           {type.title}
         </span>
-        <small
-          className="hidden font-normal leading-4 text-gray-600 sm:inline"
-          data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
+        {group.profile.slug ? (
+          <small
+            className="text-subtle hidden font-normal leading-4 sm:inline"
+            data-testid={"event-type-slug-" + type.id}>
+            {`/${group.profile.slug}/${type.slug}`}
+          </small>
+        ) : null}
         {readOnly && (
-          <span className="rtl:ml-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2">
+          <Badge variant="gray" className="ml-2">
             {t("readonly")}
-          </span>
+          </Badge>
         )}
       </div>
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={type}
+        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
+        shortenDescription
       />
     </Link>
   );
@@ -236,7 +242,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const query = {
       ...router.query,
-      dialog: "duplicate-event-type",
+      dialog: "duplicate",
       title: eventType.title,
       description: eventType.description,
       slug: eventType.slug,
@@ -306,18 +312,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
   return (
-    <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul ref={parent} className="!static w-full divide-y divide-gray-200" data-testid="event-types">
+    <div className="bg-default border-subtle mb-16 flex overflow-hidden rounded-md border">
+      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
-              <div className="flex w-full items-center justify-between hover:bg-gray-50">
+              <div className="hover:bg-muted flex w-full items-center justify-between">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted hover:text-emphasis border-default hover:border-emphasis invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, -1)}>
                       <FiArrowUp className="h-5 w-5" />
                     </button>
@@ -325,7 +331,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
                   {!(lastItem && lastItem.id === type.id) && (
                     <button
-                      className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md  border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                      className="bg-default text-muted border-default hover:text-emphasis hover:border-emphasis invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6  scale-0 items-center justify-center rounded-md border p-1 transition-all  group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
                       onClick={() => moveEventType(index, 1)}>
                       <FiArrowDown className="h-5 w-5" />
                     </button>
@@ -333,7 +339,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-                      {type.users?.length > 1 && (
+                      {type.team && (
                         <AvatarGroup
                           className="relative top-1 right-3"
                           size="sm"
@@ -346,13 +352,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                        {type.hidden && (
-                          <Badge variant="gray" size="lg">
-                            {t("hidden")}
-                          </Badge>
-                        )}
+                        {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
                         <Tooltip content={t("show_eventtype_on_profile")}>
-                          <div className="self-center rounded-md p-2 hover:bg-gray-200">
+                          <div className="self-center rounded-md p-2">
                             <Switch
                               name="Hidden"
                               checked={!type.hidden}
@@ -366,6 +368,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <ButtonGroup combined>
                           <Tooltip content={t("preview")}>
                             <Button
+                              data-testid="preview-link-button"
                               color="secondary"
                               target="_blank"
                               variant="icon"
@@ -555,6 +558,18 @@ const EventTypeListHeading = ({
   membershipCount,
   teamId,
 }: EventTypeListHeadingProps): JSX.Element => {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
@@ -567,11 +582,11 @@ const EventTypeListHeading = ({
       <div>
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-          className="font-bold">
+          className="text-emphasis font-bold">
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="relative -top-px text-xs text-gray-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="text-subtle relative -top-px text-xs ltr:ml-2 ltr:mr-2 rtl:ml-2">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
                 <FiUsers className="mr-1 -mt-px inline h-3 w-3" />
@@ -581,11 +596,18 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="block text-xs text-gray-500">
+          <Link href={`${CAL_URL}/${profile.slug}`} className="text-subtle block text-xs">
             {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
+      {!profile?.slug && !!teamId && (
+        <button onClick={() => publishTeamMutation.mutate({ teamId })}>
+          <Badge variant="gray" className="mb-1 -ml-2">
+            {t("upgrade")}
+          </Badge>
+        </button>
+      )}
     </div>
   );
 };
@@ -603,23 +625,51 @@ const CreateFirstEventTypeView = () => {
 };
 
 const CTA = () => {
+  const { t } = useLocale();
+
   const query = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   if (!query.data) return null;
 
-  return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
+  const profileOptions = query.data.profiles
+    .filter((profile) => !profile.readOnly)
+    .map((profile) => {
+      return {
+        teamId: profile.teamId,
+        label: profile.name || profile.slug,
+        image: profile.image,
+        slug: profile.slug,
+      };
+    });
+
+  return (
+    <CreateButton
+      subtitle={t("create_event_on").toUpperCase()}
+      options={profileOptions}
+      createDialog={CreateEventTypeDialog}
+    />
+  );
 };
 
 const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   return (
     <div>
-      <Shell heading={t("event_types_page_title")} subtitle={t("event_types_page_subtitle")} CTA={<CTA />}>
+      <HeadSeo
+        title="Event Types"
+        description="Create events to share for people to book on your calendar."
+      />
+      <Shell
+        withoutSeo
+        heading={t("event_types_page_title")}
+        subtitle={t("event_types_page_subtitle")}
+        CTA={<CTA />}>
         <WithQuery
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
@@ -659,22 +709,13 @@ const EventTypesPage = () => {
               )}
 
               <EmbedDialog />
+              {router.query.dialog === "duplicate" && <DuplicateDialog />}
             </>
           )}
         />
       </Shell>
     </div>
   );
-};
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-    },
-  };
 };
 
 export default EventTypesPage;

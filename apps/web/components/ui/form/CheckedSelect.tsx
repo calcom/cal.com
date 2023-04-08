@@ -1,5 +1,5 @@
 import React from "react";
-import { Props } from "react-select";
+import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui";
@@ -51,7 +51,7 @@ export const CheckedSelect = ({
           {option.label}
           <FiX
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-gray-500"
+            className="text-subtle float-right mt-0.5 h-5 w-5 cursor-pointer"
           />
         </div>
       ))}

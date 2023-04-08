@@ -1,8 +1,11 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { NextRouter, useRouter } from "next/router";
-import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
-import { components, ControlProps } from "react-select";
+import type { NextRouter } from "next/router";
+import { useRouter } from "next/router";
+import type { MutableRefObject, RefObject } from "react";
+import { createRef, forwardRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
 
 import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,10 +20,10 @@ import {
   Switch,
   TextArea,
   TextField,
+  ColorPicker,
 } from "@calcom/ui";
-import { FiCode, FiTrello, FiSun, FiArrowLeft, FiChevronRight } from "@calcom/ui/components/icon";
+import { FiCode, FiTrello, FiSun, FiArrowLeft } from "@calcom/ui/components/icon";
 
-import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
@@ -164,7 +167,7 @@ const Codes: Record<string, Record<string, (...args: any[]) => string>> = {
       const height = getDimension(previewState.inline.height);
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {
@@ -184,12 +187,12 @@ function MyComponent() {
     }) => {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {
       const cal = await getCalApi();
-      Cal("floatingButton", ${floatingButtonArg});
+      cal("floatingButton", ${floatingButtonArg});
       ${uiInstructionCode}
     })();
   }, [])
@@ -198,7 +201,7 @@ function MyComponent() {
     "element-click": ({ calLink, uiInstructionCode }: { calLink: string; uiInstructionCode: string }) => {
       return code`
 import Cal, { getCalApi } from "@calcom/embed-react";
-
+import { useEffect } from "react";
 function MyComponent() {
   useEffect(()=>{
     (async function () {
@@ -310,7 +313,7 @@ const embeds: {
 }[] = [
   {
     title: "Inline Embed",
-    subtitle: "Loads your Cal scheduling page directly inline with your other website content",
+    subtitle: "Loads your event type directly inline with your other website content.",
     type: "inline",
     illustration: (
       <svg
@@ -324,10 +327,10 @@ const embeds: {
           d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
           fill="white"
         />
-        <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+        <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
         <rect x="24.5" y="51" width="139" height="163" rx="1.5" fill="#F8F8F8" />
-        <rect opacity="0.8" x="48" y="74.5" width="80" height="8" rx="2" fill="#E1E1E1" />
-        <rect x="48" y="86.5" width="48" height="4" rx="1" fill="#E1E1E1" />
+        <rect opacity="0.8" x="48" y="74.5" width="80" height="8" rx="6" fill="#F3F4F6" />
+        <rect x="48" y="86.5" width="48" height="4" rx="6" fill="#F3F4F6" />
         <rect x="49" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
         <rect x="61" y="99.5" width="6" height="6" rx="1" fill="#3E3E3E" />
         <rect x="73" y="99.5" width="6" height="6" rx="1" fill="#C6C6C6" />
@@ -375,9 +378,9 @@ const embeds: {
         <rect x="85" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
         <rect x="97" y="161.5" width="6" height="6" rx="1" fill="#3E3E3E" />
         <rect x="109" y="161.5" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="24.5" y="51" width="139" height="163" rx="1.5" stroke="#292929" />
-        <rect x="176" y="50.5" width="108" height="164" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
+        <rect x="24.5" y="51" width="139" height="163" rx="6" stroke="#292929" />
+        <rect x="176" y="50.5" width="108" height="164" rx="6" fill="#F3F4F6" />
+        <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
       </svg>
     ),
   },
@@ -397,12 +400,12 @@ const embeds: {
           d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
           fill="white"
         />
-        <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-        <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        <rect x="226" y="223.5" width="66" height="26" rx="2" fill="#292929" />
+        <rect x="24" width="260" height="38.5" rx="6" fill="#F3F4F6" />
+        <rect x="24" y="50.5" width="120" height="76" rx="6" fill="#F3F4F6" />
+        <rect x="24" y="138.5" width="120" height="76" rx="6" fill="#F3F4F6" />
+        <rect x="156" y="50.5" width="128" height="164" rx="6" fill="#F3F4F6" />
+        <rect x="24" y="226.5" width="260" height="38.5" rx="6" fill="#F3F4F6" />
+        <rect x="226" y="223.5" width="66" height="26" rx="6" fill="#292929" />
         <rect x="242" y="235.5" width="34" height="2" rx="1" fill="white" />
       </svg>
     ),
@@ -423,62 +426,65 @@ const embeds: {
           d="M0 1.99999C0 0.895423 0.895431 0 2 0H306C307.105 0 308 0.895431 308 2V263C308 264.105 307.105 265 306 265H2C0.895431 265 0 264.105 0 263V1.99999Z"
           fill="white"
         />
-        <rect x="24" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="50.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="138.5" width="120" height="76" rx="2" fill="#E1E1E1" />
-        <rect x="156" y="50.5" width="128" height="164" rx="2" fill="#E1E1E1" />
-        <rect x="24" y="226.5" width="260" height="38.5" rx="2" fill="#E1E1E1" />
-        <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" fill="#F8F8F8" />
-        <rect opacity="0.8" x="108" y="85" width="80" height="8" rx="2" fill="#E1E1E1" />
-        <rect x="108" y="97" width="48" height="4" rx="1" fill="#E1E1E1" />
-        <rect x="109" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="121" y="110" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="133" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="169" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="181" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="193" y="110" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="169" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="181" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="193" y="124" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="109" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="121" y="136" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <path
-          d="M121 135H127V133H121V135ZM128 136V142H130V136H128ZM127 143H121V145H127V143ZM120 142V136H118V142H120ZM121 143C120.448 143 120 142.552 120 142H118C118 143.657 119.343 145 121 145V143ZM128 142C128 142.552 127.552 143 127 143V145C128.657 145 130 143.657 130 142H128ZM127 135C127.552 135 128 135.448 128 136H130C130 134.343 128.657 133 127 133V135ZM121 133C119.343 133 118 134.343 118 136H120C120 135.448 120.448 135 121 135V133Z"
-          fill="#3E3E3E"
-        />
-        <rect x="133" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="169" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="181" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="193" y="136" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="109" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="121" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="133" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="169" y="148" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="181" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="193" y="148" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="109" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="121" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="133" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="169" y="160" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="181" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="193" y="160" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="109" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="121" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="133" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="145" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="157" y="172" width="6" height="6" rx="1" fill="#3E3E3E" />
-        <rect x="169" y="172" width="6" height="6" rx="1" fill="#C6C6C6" />
-        <rect x="84.5" y="61.5" width="139" height="141" rx="1.5" stroke="#292929" />
+        <rect x="24" y="0.50293" width="260" height="24" rx="6" fill="#F3F4F6" />
+        <rect x="24" y="35" width="259" height="192" rx="5.5" fill="#F9FAFB" />
+        <g filter="url(#filter0_i_3223_14162)">
+          <rect opacity="0.8" x="40" y="99" width="24" height="24" rx="2" fill="#E5E7EB" />
+          <rect x="40" y="127" width="48" height="8" rx="1" fill="#E5E7EB" />
+          <rect x="40" y="139" width="82" height="8" rx="1" fill="#E5E7EB" />
+          <rect x="40" y="151" width="34" height="4" rx="1" fill="#E5E7EB" />
+          <rect x="40" y="159" width="34" height="4" rx="1" fill="#E5E7EB" />
+        </g>
+        <rect x="152" y="48" width="2" height="169" rx="2" fill="#E5E7EB" />
+
+        <rect opacity="0.8" x="176" y="84" width="80" height="8" rx="2" fill="#E5E7EB" />
+        <rect x="176" y="96" width="48" height="4" rx="1" fill="#E5E7EB" />
+        <rect x="177" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="189" y="109" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="201" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="237" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="249" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="261" y="109" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="237" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="249" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="261" y="123" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="177" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="189" y="135" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="187.3" y="133.4" width="9" height="9" rx="1.5" stroke="#0D121D" />
+        <rect x="201" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="237" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="249" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="261" y="135" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="177" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="189" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="201" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="147" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="237" y="147" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="249" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="261" y="147" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="177" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="189" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="201" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="159" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="237" y="159" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="249" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="261" y="159" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="177" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="189" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="201" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="213" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="225" y="171" width="6" height="6" rx="1" fill="#0D121D" />
+        <rect x="237" y="171" width="6" height="6" rx="1" fill="#E5E7EB" />
+        <rect x="24" y="35" width="259" height="192" rx="5.5" stroke="#101010" />
+        <rect x="24" y="241.503" width="260" height="24" rx="6" fill="#F3F4F6" />
       </svg>
     ),
   },
@@ -503,7 +509,7 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-gray-500">
+            <small className="text-subtle flex py-4">
               {t("place_where_cal_widget_appear", { appName: APP_NAME })}
             </small>
           </div>
@@ -511,7 +517,7 @@ const tabs = [
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={
@@ -528,7 +534,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
 <!-- Cal ${embedType} embed code ends -->`
             }
           />
-          <p className="hidden text-sm text-gray-500">
+          <p className="text-subtle hidden text-sm">
             {t(
               "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options."
             )}
@@ -555,12 +561,12 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
       }
       return (
         <>
-          <small className="flex py-4 text-gray-500">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
@@ -616,7 +622,7 @@ Cal("init", {origin:"${WEBAPP_URL}"});
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <FiSun className="ml-2 h-4 w-4 text-gray-500" />
+      <FiSun className="text-subtle ml-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -626,19 +632,19 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent type="creation" size="lg">
-      <div className="mb-4">
-        <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+    <DialogContent className="rounded-lg p-10" type="creation" size="lg">
+      <div className="mb-2">
+        <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+          <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
-      <div className="flex items-start">
+      <div className="items-start space-y-2 md:flex md:space-y-0">
         {embeds.map((embed, index) => (
           <button
-            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-gray-100 ltr:mr-2 rtl:ml-2"
+            className="hover:bg-subtle bg-muted w-full rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -646,11 +652,11 @@ const ChooseEmbedTypesDialogContent = () => {
                 embedType: embed.type,
               });
             }}>
-            <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
+            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
-            <div className="mt-2 font-medium text-gray-900">{embed.title}</div>
-            <p className="text-sm text-gray-500">{embed.subtitle}</p>
+            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
+            <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
           </button>
         ))}
       </div>
@@ -666,8 +672,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedUrl: string;
 }) => {
   const { t } = useLocale();
+
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const dialogContentRef = useRef<HTMLDivElement>(null);
+
   const s = (href: string) => {
     const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
     const [a, b] = href.split("=");
@@ -675,7 +684,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
-  const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -719,7 +728,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const calLink = decodeURIComponent(embedUrl);
 
-  const addToPalette = (update: typeof previewState["palette"]) => {
+  const addToPalette = (update: (typeof previewState)["palette"]) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -789,7 +798,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   }
 
   const ThemeOptions = [
-    { value: Theme.auto, label: "Auto Theme" },
+    { value: Theme.auto, label: "Auto" },
     { value: Theme.dark, label: "Dark Theme" },
     { value: Theme.light, label: "Light Theme" },
   ];
@@ -806,11 +815,18 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl" className="p-0.5" type="creation">
+    <DialogContent
+      ref={dialogContentRef}
+      className="rounded-lg p-0.5 sm:max-w-[80rem]"
+      enableOverflow
+      type="creation">
       <div className="flex">
-        <div className="flex w-1/3 flex-col bg-gray-50 p-8">
-          <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
+        <div className="bg-muted flex w-1/3 flex-col p-8">
+          <h3
+            className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
+            id="modal-title">
             <button
+              className="h-6 w-6"
               onClick={() => {
                 removeQueryParams(router, ["embedType", "embedTabName"]);
               }}>
@@ -818,55 +834,43 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </button>
             {embed.title}
           </h3>
-          <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
-          <div className="flex flex-col overflow-y-auto">
-            <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
+          <h4 className="text-emphasis mb-6 text-sm font-normal">{embed.subtitle}</h4>
+          <div className="flex flex-col">
+            <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
               <Collapsible
                 open={isEmbedCustomizationOpen}
                 onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
-                <CollapsibleTrigger
-                  type="button"
-                  className="flex w-full items-center text-base font-medium text-gray-900">
-                  <div>
-                    {embedType === "inline"
-                      ? "Inline Embed Customization"
-                      : embedType === "floating-popup"
-                      ? "Floating Popup Customization"
-                      : "Element Click Customization"}
-                  </div>
-                  <FiChevronRight
-                    className={`${
-                      isEmbedCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-gray-500`}
-                  />
-                </CollapsibleTrigger>
                 <CollapsibleContent className="text-sm">
-                  <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
+                  <div className={classNames(embedType === "inline" ? "block" : "hidden")}>
                     {/*TODO: Add Auto/Fixed toggle from Figma */}
-                    <div className="text-sm">Embed Window Sizing</div>
-                    <div className="justify-left flex items-center">
-                      <TextField
-                        labelProps={{ className: "hidden" }}
-                        required
-                        value={previewState.inline.width}
-                        onChange={(e) => {
-                          setPreviewState((previewState) => {
-                            const width = e.target.value || "100%";
+                    <div className="text-default mb-[9px] text-sm">Window sizing</div>
+                    <div className="justify-left flex items-center !font-normal">
+                      <div className="mr-[9px]">
+                        <TextField
+                          labelProps={{ className: "hidden" }}
+                          className="focus:ring-offset-0"
+                          required
+                          value={previewState.inline.width}
+                          onChange={(e) => {
+                            setPreviewState((previewState) => {
+                              const width = e.target.value || "100%";
 
-                            return {
-                              ...previewState,
-                              inline: {
-                                ...previewState.inline,
-                                width,
-                              },
-                            };
-                          });
-                        }}
-                        addOnLeading={<>W</>}
-                      />
-                      <span className="p-2">×</span>
+                              return {
+                                ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  width,
+                                },
+                              };
+                            });
+                          }}
+                          addOnLeading={<>W</>}
+                        />
+                      </div>
+
                       <TextField
                         labelProps={{ className: "hidden" }}
+                        className="focus:ring-offset-0"
                         value={previewState.inline.height}
                         required
                         onChange={(e) => {
@@ -889,7 +893,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2 text-sm">Button Text</div>
                     {/* Default Values should come from preview iframe */}
@@ -913,7 +917,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 flex items-center justify-start",
-                      embedType === "floating-popup" ? "space-x-2 rtl:space-x-reverse" : "hidden"
+                      embedType === "floating-popup"
+                        ? "text-emphasis space-x-2 rtl:space-x-reverse"
+                        : "hidden"
                     )}>
                     <Switch
                       defaultChecked={true}
@@ -929,12 +935,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         });
                       }}
                     />
-                    <div className="text-sm">Display Calendar Icon Button</div>
+                    <div className="text-default text-sm">Display Calendar Icon Button</div>
                   </div>
                   <div
                     className={classNames(
                       "mt-4 items-center justify-between",
-                      embedType === "floating-popup" ? "" : "hidden"
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
                     )}>
                     <div className="mb-2">Position of Button</div>
                     <Select
@@ -953,10 +959,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       options={FloatingPopupPositionOptions}
                     />
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Button Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -972,10 +984,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     </div>
                   </div>
-                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      embedType === "floating-popup" ? "text-emphasis" : "hidden"
+                    )}>
                     <div>Text Color</div>
                     <div className="w-full">
                       <ColorPicker
+                        popoverAlign="start"
+                        container={dialogContentRef?.current ?? undefined}
                         defaultValue="#000000"
                         onChange={(color) => {
                           setPreviewState((previewState) => {
@@ -994,22 +1012,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleContent>
               </Collapsible>
             </div>
-            <hr className="mt-4" />
-            <div className="mt-4 font-medium">
+            <div className="font-medium">
               <Collapsible
                 open={isBookingCustomizationOpen}
                 onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
-                <CollapsibleTrigger className="flex w-full" type="button">
-                  <div className="text-base  font-medium text-gray-900">Cal Booking Customization</div>
-                  <FiChevronRight
-                    className={`${
-                      isBookingCustomizationOpen ? "rotate-90 transform" : ""
-                    } ml-auto h-5 w-5 text-gray-500`}
-                  />
-                </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-6 text-sm">
-                    <div className="mb-4 flex items-center justify-start space-x-2 rtl:space-x-reverse">
+                    <div className="mb-6 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                       <Switch
                         checked={previewState.hideEventTypeDetails}
                         onCheckedChange={(checked) => {
@@ -1021,15 +1030,40 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           });
                         }}
                       />
-                      <div className="text-sm">{t("hide_eventtype_details")}</div>
+                      <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
                     </div>
-                    <Label className="">
+                    {[
+                      { name: "brandColor", title: "Brand Color" },
+                      // { name: "lightColor", title: "Light Color" },
+                      // { name: "lighterColor", title: "Lighter Color" },
+                      // { name: "lightestColor", title: "Lightest Color" },
+                      // { name: "highlightColor", title: "Highlight Color" },
+                      // { name: "medianColor", title: "Median Color" },
+                    ].map((palette) => (
+                      <Label key={palette.name} className="mb-6">
+                        <div className="mb-2">{palette.title}</div>
+                        <div className="w-full">
+                          <ColorPicker
+                            popoverAlign="start"
+                            container={dialogContentRef?.current ?? undefined}
+                            defaultValue="#000000"
+                            onChange={(color) => {
+                              addToPalette({
+                                [palette.name as keyof (typeof previewState)["palette"]]: color,
+                              });
+                            }}
+                          />
+                        </div>
+                      </Label>
+                    ))}
+                    <Label>
                       <div className="mb-2">Theme</div>
                       <Select
                         className="w-full"
                         defaultValue={ThemeOptions[0]}
                         components={{
                           Control: ThemeSelectControl,
+                          IndicatorSeparator: () => null,
                         }}
                         onChange={(option) => {
                           if (!option) {
@@ -1045,28 +1079,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         options={ThemeOptions}
                       />
                     </Label>
-                    {[
-                      { name: "brandColor", title: "Brand Color" },
-                      // { name: "lightColor", title: "Light Color" },
-                      // { name: "lighterColor", title: "Lighter Color" },
-                      // { name: "lightestColor", title: "Lightest Color" },
-                      // { name: "highlightColor", title: "Highlight Color" },
-                      // { name: "medianColor", title: "Median Color" },
-                    ].map((palette) => (
-                      <Label key={palette.name} className="pb-4">
-                        <div className="mb-2 pt-2">{palette.title}</div>
-                        <div className="w-full">
-                          <ColorPicker
-                            defaultValue="#000000"
-                            onChange={(color) => {
-                              addToPalette({
-                                [palette.name as keyof typeof previewState["palette"]]: color,
-                              });
-                            }}
-                          />
-                        </div>
-                      </Label>
-                    ))}
                   </div>
                 </CollapsibleContent>
               </Collapsible>

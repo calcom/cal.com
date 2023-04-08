@@ -1,14 +1,16 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { FiUserPlus, FiUsers, FiUnlock, FiEdit } from "@calcom/ui/components/icon";
+import { FiUserPlus, FiUsers, FiEdit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  pending?: boolean;
 }
 
 export default function TeamList(props: Props) {
@@ -41,7 +43,7 @@ export default function TeamList(props: Props) {
   }
 
   return (
-    <ul className="mb-2 divide-y divide-neutral-200 rounded border bg-white">
+    <ul className="bg-default divide-subtle border-subtle mb-2 divide-y rounded border">
       {props.teams.map((team) => (
         <TeamListItem
           key={team?.id as number}
@@ -54,13 +56,14 @@ export default function TeamList(props: Props) {
       ))}
 
       {/* only show recommended steps when there is only one team */}
-      {props.teams.length === 1 && (
+      {!props.pending && props.teams.length === 1 && (
         <>
           {props.teams.map(
             (team, i) =>
+              team.role !== "MEMBER" &&
               i === 0 && (
-                <div className="bg-gray-100 p-6">
-                  <h3 className="mb-4 text-sm font-semibold text-gray-900">{t("recommended_next_steps")}</h3>
+                <div className="bg-subtle p-6">
+                  <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
                       icon={<FiUserPlus className="h-5 w-5 text-green-700" />}
@@ -72,7 +75,7 @@ export default function TeamList(props: Props) {
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live 
+                    {/* @TODO: uncomment once managed event types is live
                     <Card
                       icon={<FiUnlock className="h-5 w-5 text-blue-700" />}
                       variant="basic"
@@ -94,11 +97,7 @@ export default function TeamList(props: Props) {
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
                       actionButton={{
-                        href:
-                          "/event-types?dialog=new-eventtype&eventPage=team%2F" +
-                          team.slug +
-                          "&teamId=" +
-                          team.id,
+                        href: "/event-types?dialog=new&eventPage=team%2F" + team.slug + "&teamId=" + team.id,
                         child: t("create"),
                       }}
                     />

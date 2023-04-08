@@ -3,9 +3,11 @@
  * All new changes should be made to the V2 file in
  * `/packages/ui/v2/core/form/MultiSelectCheckboxes.tsx`
  */
-import React, { Dispatch, SetStateAction } from "react";
-import { components, GroupBase, OptionProps } from "react-select";
-import { Props } from "react-select";
+import type { Dispatch, SetStateAction } from "react";
+import React from "react";
+import type { GroupBase, OptionProps } from "react-select";
+import { components } from "react-select";
+import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -45,7 +47,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
       innerProps={props}>
       <input
         type="checkbox"
-        className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
+        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
         checked={isSelected}
         readOnly
       />

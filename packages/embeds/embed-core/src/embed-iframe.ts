@@ -1,18 +1,41 @@
 import { useRouter } from "next/router";
-import { useState, useEffect, CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { useState, useEffect } from "react";
 
+import type { Message } from "./embed";
 import { sdkActionManager } from "./sdk-event";
 
-export interface UiConfig {
+export type UiConfig = {
   hideEventTypeDetails?: boolean;
   theme?: "dark" | "light" | "auto";
-  styles?: EmbedStyles;
-}
+  styles?: EmbedStyles & EmbedNonStylesConfig;
+};
+
+type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
+type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+
+const embedStore = {
+  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
+  styles: {} as EmbedStyles | undefined,
+  nonStyles: {} as EmbedNonStylesConfig | undefined,
+  namespace: null as string | null,
+  embedType: undefined as undefined | null | string,
+  // Store all React State setters here.
+  reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
+  reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
+  parentInformedAboutContentHeight: false,
+  windowLoadEventFired: false,
+  setTheme: undefined as ((arg0: string) => void) | undefined,
+  theme: undefined as UiConfig["theme"],
+  uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
+  setUiConfig: undefined as ((arg0: UiConfig) => void) | undefined,
+};
+
 declare global {
   interface Window {
     CalEmbed: {
-      __logQueue?: any[];
-      embedStore: any;
+      __logQueue?: unknown[];
+      embedStore: typeof embedStore;
     };
     CalComPageStatus: string;
     isEmbed: () => boolean;
@@ -21,28 +44,6 @@ declare global {
     getEmbedTheme: () => "dark" | "light" | null;
   }
 }
-
-const embedStore = {
-  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {},
-  namespace: null,
-  embedType: undefined,
-  // Store all React State setters here.
-  reactStylesStateSetters: {},
-  parentInformedAboutContentHeight: false,
-  windowLoadEventFired: false,
-} as {
-  styles: UiConfig["styles"];
-  namespace: string | null;
-  embedType: undefined | null | string;
-  reactStylesStateSetters: any;
-  parentInformedAboutContentHeight: boolean;
-  windowLoadEventFired: boolean;
-  theme?: UiConfig["theme"];
-  uiConfig?: Omit<UiConfig, "styles" | "theme">;
-  setTheme?: (arg0: string) => void;
-  setUiConfig?: (arg0: UiConfig) => void;
-};
 
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
@@ -57,7 +58,7 @@ if (isBrowser) {
   }
 }
 
-function runAsap(fn: (...arg: any) => void) {
+function runAsap(fn: (...arg: unknown[]) => void) {
   if (isSafariBrowser) {
     // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
     return setTimeout(fn, 50);
@@ -65,7 +66,7 @@ function runAsap(fn: (...arg: any) => void) {
   return requestAnimationFrame(fn);
 }
 
-function log(...args: any[]) {
+function log(...args: unknown[]) {
   if (isBrowser) {
     const namespace = getNamespace();
 
@@ -94,23 +95,16 @@ interface EmbedStyles {
 }
 interface EmbedNonStylesConfig {
   /** Default would be center */
-  align: "left";
+  align?: "left";
   branding?: {
     brandColor?: string;
-    lightColor?: string;
-    lighterColor?: string;
-    lightestColor?: string;
-    highlightColor?: string;
-    darkColor?: string;
-    darkerColor?: string;
-    medianColor?: string;
   };
 }
 
-const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
+const setEmbedStyles = (stylesConfig: EmbedStyles) => {
   embedStore.styles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
-    (setEmbedStyle as any)((styles: any) => {
+    setEmbedStyle((styles) => {
       return {
         ...styles,
         ...stylesConfig,
@@ -119,15 +113,48 @@ const setEmbedStyles = (stylesConfig: UiConfig["styles"]) => {
   }
 };
 
-const registerNewSetter = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig, setStyles: any) => {
-  embedStore.reactStylesStateSetters[elementName] = setStyles;
-  // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
-  // So, we should call the setter immediately with available embedStyles
-  setStyles(embedStore.styles);
+const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
+  embedStore.nonStyles = stylesConfig;
+  for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
+    setEmbedStyle((styles) => {
+      return {
+        ...styles,
+        ...stylesConfig,
+      };
+    });
+  }
 };
 
-const removeFromEmbedStylesSetterMap = (elementName: keyof EmbedStyles | keyof EmbedNonStylesConfig) => {
-  delete embedStore.reactStylesStateSetters[elementName];
+const registerNewSetter = (
+  registration:
+    | {
+        elementName: keyof EmbedStyles;
+        setState: SetStyles;
+        styles: true;
+      }
+    | {
+        elementName: keyof EmbedNonStylesConfig;
+        setState: setNonStylesConfig;
+        styles: false;
+      }
+) => {
+  // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
+  // So, we should call the setter immediately with available embedStyles
+  if (registration.styles) {
+    embedStore.reactStylesStateSetters[registration.elementName as keyof EmbedStyles] = registration.setState;
+    registration.setState(embedStore.styles || {});
+    return () => {
+      delete embedStore.reactStylesStateSetters[registration.elementName];
+    };
+  } else {
+    embedStore.reactNonStylesStateSetters[registration.elementName as keyof EmbedNonStylesConfig] =
+      registration.setState;
+    registration.setState(embedStore.nonStyles || {});
+
+    return () => {
+      delete embedStore.reactNonStylesStateSetters[registration.elementName];
+    };
+  }
 };
 
 function isValidNamespace(ns: string | null | undefined) {
@@ -154,33 +181,28 @@ export const useEmbedUiConfig = () => {
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
 export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
-  const [styles, setStyles] = useState({} as EmbedStyles);
+  const [, setStyles] = useState<EmbedStyles>({});
 
   useEffect(() => {
-    registerNewSetter(elementName, setStyles);
-    // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
-    return () => {
-      // Once the component is unmounted, we can remove that state setter.
-      removeFromEmbedStylesSetterMap(elementName);
-    };
+    return registerNewSetter({ elementName, setState: setStyles, styles: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+  const styles = embedStore.styles || {};
+  // Always read the data from global embedStore so that even across components, the same data is used.
   return styles[elementName] || {};
 };
 
 export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
-  const [styles, setStyles] = useState({} as EmbedNonStylesConfig);
+  const [, setNonStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
-    registerNewSetter(elementName, setStyles);
-    // It's important to have an element's embed style be required in only one component. If due to any reason it is required in multiple components, we would override state setter.
-    return () => {
-      // Once the component is unmounted, we can remove that state setter.
-      removeFromEmbedStylesSetterMap(elementName);
-    };
+    return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return styles[elementName] || {};
+  // Always read the data from global embedStore so that even across components, the same data is used.
+  const nonStyles = embedStore.nonStyles || {};
+  return nonStyles[elementName] || {};
 };
 
 export const useIsBackgroundTransparent = () => {
@@ -250,8 +272,8 @@ function unhideBody() {
   document.body.style.visibility = "visible";
 }
 
-// If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it
-export const methods = {
+// It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
+const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
@@ -276,8 +298,10 @@ export const methods = {
     }
 
     setEmbedStyles(stylesConfig || {});
+    setEmbedNonStyles(stylesConfig || {});
   },
-  parentKnowsIframeReady: () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
     runAsap(function tryInformingLinkReady() {
       // TODO: Do it by attaching a listener for change in parentInformedAboutContentHeight
@@ -292,7 +316,14 @@ export const methods = {
   },
 };
 
-const messageParent = (data: any) => {
+export type InterfaceWithParent = {
+  // Ensure that only one argument is read by the method
+  [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
+};
+
+export const interfaceWithParent: InterfaceWithParent = methods;
+
+const messageParent = (data: CustomEvent["detail"]) => {
   parent.postMessage(
     {
       originator: "CAL",
@@ -329,14 +360,28 @@ function keepParentInformedAboutDimensionChanges() {
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
     // It avoids the unwanted padding outside main tag.
     const mainElement =
-      (document.getElementsByClassName("main")[0] as HTMLElement) ||
+      document.getElementsByClassName("main")[0] ||
       document.getElementsByTagName("main")[0] ||
       document.documentElement;
     const documentScrollHeight = document.documentElement.scrollHeight;
     const documentScrollWidth = document.documentElement.scrollWidth;
 
-    const contentHeight = mainElement.offsetHeight;
-    const contentWidth = mainElement.offsetWidth;
+    if (!(mainElement instanceof HTMLElement)) {
+      throw new Error("Main element should be an HTMLElement");
+    }
+
+    const mainElementStyles = getComputedStyle(mainElement);
+    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
+    const contentHeight = Math.ceil(
+      parseFloat(mainElementStyles.height) +
+        parseFloat(mainElementStyles.marginTop) +
+        parseFloat(mainElementStyles.marginBottom)
+    );
+    const contentWidth = Math.ceil(
+      parseFloat(mainElementStyles.width) +
+        parseFloat(mainElementStyles.marginLeft) +
+        parseFloat(mainElementStyles.marginRight)
+    );
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
     // Parent would set the same value as the height of iframe which would prevent scroll.
@@ -381,47 +426,30 @@ if (isBrowser) {
 
     sdkActionManager?.on("*", (e) => {
       const detail = e.detail;
-      //console.log(detail.fullType, detail.type, detail.data);
       log(detail);
       messageParent(detail);
     });
 
-    // This event should be fired whenever you want to let the content take automatic width which is available.
-    // Because on cal-iframe we set explicty width to make it look inline and part of page, there is never space available for content to automatically expand
-    // This is a HACK to quickly tell iframe to go full width and let iframe content adapt to that and set new width.
-    sdkActionManager?.on("__refreshWidth", () => {
-      // sdkActionManager?.fire("__dimensionChanged", {
-      //   iframeWidth: 100,
-      //   __unit: "%",
-      // });
-      // runAsap(() => {
-      //   sdkActionManager?.fire("__dimensionChanged", {
-      //     iframeWidth: 100,
-      //     __unit: "%",
-      //   });
-      // });
-    });
-
     window.addEventListener("message", (e) => {
-      const data: Record<string, any> = e.data;
+      const data: Message = e.data;
       if (!data) {
         return;
       }
-      const method: keyof typeof methods = data.method;
+      const method: keyof typeof interfaceWithParent = data.method;
       if (data.originator === "CAL" && typeof method === "string") {
-        methods[method]?.(data.arg);
+        interfaceWithParent[method]?.(data.arg as never);
       }
     });
 
     document.addEventListener("click", (e) => {
-      if (!e.target) {
+      if (!e.target || !(e.target instanceof Node)) {
         return;
       }
       const mainElement =
-        (document.getElementsByClassName("main")[0] as HTMLElement) ||
+        document.getElementsByClassName("main")[0] ||
         document.getElementsByTagName("main")[0] ||
         document.documentElement;
-      if ((e.target as HTMLElement).contains(mainElement)) {
+      if (e.target.contains(mainElement)) {
         sdkActionManager?.fire("__closeIframe", {});
       }
     });

@@ -1,6 +1,8 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import type { ReactElement, ReactNode, Ref } from "react";
+import React, { forwardRef } from "react";
+import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
+import { FormProvider, useFormContext } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -16,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mt-1 block w-full rounded-sm border border-gray-300 py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
+        "border-default mt-1 block w-full rounded-sm border py-2 px-3 shadow-sm focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800 sm:text-sm",
         props.className
       )}
     />
@@ -25,7 +27,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 
 export function Label(props: JSX.IntrinsicElements["label"]) {
   return (
-    <label {...props} className={classNames("block text-sm font-medium text-gray-700", props.className)}>
+    <label {...props} className={classNames("text-default block text-sm font-medium", props.className)}>
       {props.children}
     </label>
   );
@@ -33,7 +35,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 px-3 sm:text-sm">
       {props.children}
     </span>
   );
@@ -144,7 +146,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-sm border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
+        "border-default block w-full rounded-sm shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm",
         props.className
       )}
     />
@@ -244,7 +246,7 @@ export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
-    <legend {...props} className={classNames("text-sm font-medium text-gray-700", props.className)}>
+    <legend {...props} className={classNames("text-default text-sm font-medium", props.className)}>
       {props.children}
     </legend>
   );
@@ -254,7 +256,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   return (
     <div
       {...props}
-      className={classNames("space-y-2 rounded-sm border border-gray-300 bg-white p-2", props.className)}>
+      className={classNames("bg-default border-default space-y-2 rounded-sm border p-2", props.className)}>
       {props.children}
     </div>
   );

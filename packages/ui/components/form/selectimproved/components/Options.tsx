@@ -6,7 +6,7 @@ import { useKeyPress } from "@calcom/lib/hooks/useKeyPress";
 import { Label } from "../../inputs/Label";
 import Item from "./Item";
 import { SelectContext } from "./SelectProvider";
-import { Option } from "./type";
+import type { Option } from "./type";
 
 interface OptionsProps<T extends Option> {
   list: T[];
@@ -56,7 +56,7 @@ function FilteredItem<T extends Option>({
           {index !== 0 && <hr className="mt-2" />}
           <Label
             className={classNames(
-              "dark:text-darkgray-700 mb-2 pl-3 text-xs font-normal uppercase leading-none text-gray-600",
+              " text-default mb-2 pl-3 text-xs font-normal uppercase leading-none",
               index !== 0 ? "mt-5" : "mt-4" // rest, first
             )}>
             {list[item.groupedIndex].label}

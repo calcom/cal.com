@@ -1,15 +1,12 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { EventType } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import dayjs, { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
@@ -17,9 +14,8 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import DatePicker from "@calcom/features/calendars/DatePicker";
-import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -27,229 +23,48 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc/react";
-import { HeadSeo } from "@calcom/ui";
-import { FiCreditCard, FiGlobe, FiRefreshCcw } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc";
+import { HeadSeo, useCalcomTheme } from "@calcom/ui";
+import { FiCreditCard, FiUser, FiRefreshCcw } from "@calcom/ui/components/icon";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
-import useRouterQuery from "@lib/hooks/useRouterQuery";
 
-import Gates, { Gate, GateState } from "@components/Gates";
+import type { Gate, GateState } from "@components/Gates";
+import Gates from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import TimeOptions from "@components/booking/TimeOptions";
+import { SlotPicker } from "@components/booking/SlotPicker";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 const PoweredByCal = dynamic(() => import("@components/ui/PoweredByCal"));
-const AvailableTimes = dynamic(() => import("@components/booking/AvailableTimes"));
 
-const useSlots = ({
-  eventTypeId,
-  eventTypeSlug,
-  startTime,
-  endTime,
-  usernameList,
-  timeZone,
-  duration,
-  enabled = true,
-}: {
-  eventTypeId: number;
-  eventTypeSlug: string;
-  startTime?: Dayjs;
-  endTime?: Dayjs;
-  usernameList: string[];
-  timeZone?: string;
-  duration?: string;
-  enabled?: boolean;
-}) => {
-  const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
-    {
-      eventTypeId,
-      eventTypeSlug,
-      usernameList,
-      startTime: startTime?.toISOString() || "",
-      endTime: endTime?.toISOString() || "",
-      timeZone,
-      duration,
-    },
-    {
-      enabled: !!startTime && !!endTime && enabled,
-      refetchInterval: 3000,
-      trpc: { context: { skipBatch: true } },
-    }
-  );
-
-  // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
-  return { slots: data?.slots || {}, isLoading: isLoading || isPaused };
-};
-
-const SlotPicker = ({
-  eventType,
-  timeFormat,
-  onTimeFormatChange,
-  timeZone,
-  recurringEventCount,
-  users,
-  seatsPerTimeSlot,
-  weekStart = 0,
-  ethSignature,
-}: {
-  eventType: Pick<
-    EventType & { metadata: z.infer<typeof EventTypeMetaDataSchema> },
-    "id" | "schedulingType" | "slug" | "length" | "metadata"
-  >;
-  timeFormat: TimeFormat;
-  onTimeFormatChange: (is24Hour: boolean) => void;
-  timeZone?: string;
-  seatsPerTimeSlot?: number;
-  recurringEventCount?: number;
-  users: string[];
-  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  ethSignature?: string;
-}) => {
-  const [selectedDate, setSelectedDate] = useState<Dayjs>();
-  const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  let { duration = eventType.length.toString() } = useRouterQuery("duration");
-  const { date, setQuery: setDate } = useRouterQuery("date");
-  const { month, setQuery: setMonth } = useRouterQuery("month");
-  const router = useRouter();
-
-  if (!eventType.metadata?.multipleDuration) {
-    duration = eventType.length.toString();
-  }
-
-  const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
-
-  useEffect(() => {
-    if (!router.isReady) return;
-
-    // Etc/GMT is not actually a timeZone, so handle this select option explicitly to prevent a hard crash.
-    if (timeZone === "Etc/GMT") {
-      setBrowsingDate(dayjs.utc(month).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0));
-      if (date) {
-        setSelectedDate(dayjs.utc(date));
-      }
-    } else {
-      // Set the start of the month without shifting time like startOf() may do.
-      setBrowsingDate(
-        dayjs.tz(month, timeZone).set("date", 1).set("hour", 0).set("minute", 0).set("second", 0)
-      );
-      if (date) {
-        // It's important to set the date immediately to the timeZone, dayjs(date) will convert to browsertime.
-        setSelectedDate(dayjs.tz(date, timeZone));
-      }
-    }
-  }, [router.isReady, month, date, duration, timeZone]);
-
-  const { i18n, isLocaleReady } = useLocale();
-  const { slots: monthSlots, isLoading } = useSlots({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime:
-      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
-        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
-        : browsingDate?.startOf("month"),
-    endTime: browsingDate?.endOf("month"),
-    timeZone,
-    duration,
-  });
-  const { slots: selectedDateSlots, isLoading: _isLoadingSelectedDateSlots } = useSlots({
-    eventTypeId: eventType.id,
-    eventTypeSlug: eventType.slug,
-    usernameList: users,
-    startTime: selectedDate?.startOf("day"),
-    endTime: selectedDate?.endOf("day"),
-    timeZone,
-    duration,
-    /** Prevent refetching is we already have this data from month slots */
-    enabled: !!selectedDate,
-  });
-
-  /** Hide skeleton if we have the slot loaded in the month query */
-  const isLoadingSelectedDateSlots = (() => {
-    if (!selectedDate) return _isLoadingSelectedDateSlots;
-    if (!!selectedDateSlots[selectedDate.format("YYYY-MM-DD")]) return false;
-    if (!!monthSlots[selectedDate.format("YYYY-MM-DD")]) return false;
-    return false;
-  })();
-
-  return (
-    <>
-      <DatePicker
-        isLoading={isLoading}
-        className={classNames(
-          "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
-          selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
-        )}
-        includedDates={Object.keys(monthSlots).filter((k) => monthSlots[k].length > 0)}
-        locale={isLocaleReady ? i18n.language : "en"}
-        selected={selectedDate}
-        onChange={(newDate) => {
-          setDate(newDate.format("YYYY-MM-DD"));
-        }}
-        onMonthChange={(newMonth) => {
-          setMonth(newMonth.format("YYYY-MM"));
-        }}
-        browsingDate={browsingDate}
-        weekStart={weekStart}
-      />
-
-      <div ref={slotPickerRef}>
-        {selectedDate ? (
-          <AvailableTimes
-            isLoading={isLoadingSelectedDateSlots}
-            slots={
-              selectedDate &&
-              (selectedDateSlots[selectedDate.format("YYYY-MM-DD")] ||
-                monthSlots[selectedDate.format("YYYY-MM-DD")])
-            }
-            date={selectedDate}
-            timeFormat={timeFormat}
-            onTimeFormatChange={onTimeFormatChange}
-            eventTypeId={eventType.id}
-            eventTypeSlug={eventType.slug}
-            seatsPerTimeSlot={seatsPerTimeSlot}
-            recurringCount={recurringEventCount}
-            ethSignature={ethSignature}
-          />
-        ) : null}
-      </div>
-    </>
-  );
-};
-
-function TimezoneDropdown({
-  onChangeTimeZone,
-}: {
-  onChangeTimeZone: (newTimeZone: string) => void;
-  timeZone?: string;
-}) {
-  const handleSelectTimeZone = (newTimeZone: string) => {
-    onChangeTimeZone(newTimeZone);
-    localStorageTimeZone(newTimeZone);
-  };
-
-  return (
-    <>
-      <div className="dark:focus-within:bg-darkgray-200 dark:bg-darkgray-100 dark:hover:bg-darkgray-200 -mx-[2px] !mt-3 flex w-fit items-center rounded-[4px] px-1 py-[2px] text-sm font-medium focus-within:bg-gray-200 hover:bg-gray-100 [&_svg]:focus-within:text-gray-900 dark:[&_svg]:focus-within:text-white [&_p]:focus-within:text-gray-900 dark:[&_p]:focus-within:text-white">
-        <FiGlobe className="dark:text-darkgray-600 flex h-4 w-4 text-gray-600 ltr:mr-[2px] rtl:ml-[2px]" />
-        <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
-      </div>
-    </>
-  );
-}
+const Toaster = dynamic(() => import("react-hot-toast").then((mod) => mod.Toaster), { ssr: false });
+/*const SlotPicker = dynamic(() => import("../SlotPicker").then((mod) => mod.SlotPicker), {
+  ssr: false,
+  loading: () => <div className="mt-8 px-4 pb-4 sm:mt-0 sm:p-4 md:min-w-[300px] md:px-5 lg:min-w-[455px]" />,
+});*/
+const TimezoneDropdown = dynamic(() => import("../TimezoneDropdown").then((mod) => mod.TimezoneDropdown), {
+  ssr: false,
+});
 
 const dateQuerySchema = z.object({
   rescheduleUid: z.string().optional().default(""),
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
+  seatReferenceUid: z.string().optional(),
 });
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+
+const useBrandColors = ({ brandColor, darkBrandColor }: { brandColor: string; darkBrandColor: string }) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
 
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
@@ -257,6 +72,10 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
   useTheme(profile.theme);
+  useBrandColors({
+    brandColor: profile.brandColor,
+    darkBrandColor: profile.darkBrandColor,
+  });
   const { t } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   //TODO: Plan to remove shouldAlignCentrallyInEmbed config
@@ -319,6 +138,15 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       : undefined,
   ];
 
+  const { data: bookingAttendees } = trpc.viewer.bookings.getBookingAttendees.useQuery(
+    {
+      seatReferenceUid: rescheduleUid,
+    },
+    {
+      enabled: !!(rescheduleUid && eventType.seatsPerTimeSlot),
+    }
+  );
+
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
@@ -338,35 +166,49 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
         }}
+        isBrandingHidden={restProps.isBrandingHidden}
       />
       <BookingPageTagManager eventType={eventType} />
-      <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
           className={classNames(
             "flex flex-col md:mx-4",
             shouldAlignCentrally ? "items-center" : "items-start",
-            !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
+            !isEmbed && classNames("bg-subtle dark:bg-default mx-auto my-0 ease-in-out md:my-24")
           )}>
           <div>
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
-                isBackgroundTransparent
-                  ? ""
-                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
-                "border-bookinglightest md:rounded-md md:border",
+                isBackgroundTransparent ? "" : "bg-default dark:bg-muted pb-4 md:pb-0",
+                "border-subtle md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
               <div className="md:flex">
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
-                      "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
+                      " border-subtle flex flex-col p-5 sm:border-r",
                       "min-w-full md:w-[230px] md:min-w-[230px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
+                      {rescheduleUid && eventType.seatsPerTimeSlot && bookingAttendees && (
+                        <div
+                          className={classNames(
+                            "flex flex-nowrap items-center text-sm font-medium",
+                            " text-default",
+                            "ltr:mr-[10px] rtl:ml-[10px]"
+                          )}>
+                          <FiUser
+                            className={classNames(
+                              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
+                              "mt-[2px]"
+                            )}
+                          />{" "}
+                          {t("event_type_seats", { numberOfSeats: bookingAttendees })}
+                        </div>
+                      )}
                       {!rescheduleUid && eventType.recurringEvent && (
                         <div className="flex items-start text-sm font-medium">
                           <FiRefreshCcw className="float-left mt-[7px] ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
@@ -378,7 +220,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                               type="number"
                               min="1"
                               max={eventType.recurringEvent.count}
-                              className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                              className="w-15 border-default bg-default dark:border-empthasis h-7 rounded-sm text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2"
                               defaultValue={eventType.recurringEvent.count}
                               onChange={(event) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
@@ -410,12 +252,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
-                        className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
+                        className="mt-4 mb-3 text-default"
                         data-testid="former_time_p_desktop">
                         {t("former_time")}
                       </p>
-                      <p className="text-gray-500 line-through dark:text-darkgray-600">
-                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
+                      <p className="text-subtle line-through ">
+                        <CalendarIcon className="ltr:mr-[10px] rtl:ml-[10px] -mt-1 inline-block h-4 w-4 text-subtle" />
                         {typeof booking.startTime === "string" && parseDate(dayjs(booking.startTime), i18n)}
                       </p>
                     </div>
@@ -442,6 +284,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   timeZone={timeZone}
                   users={userList}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                  bookingAttendees={bookingAttendees || undefined}
                   recurringEventCount={recurringEventCount}
                   ethSignature={gateState.rainbowToken}
                 />

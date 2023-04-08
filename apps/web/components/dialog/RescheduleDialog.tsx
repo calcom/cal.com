@@ -1,4 +1,5 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -47,10 +48,10 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
-            <p className="text-sm text-gray-500">{t("reschedule_modal_description")}</p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">
+            <p className="text-subtle text-sm">{t("reschedule_modal_description")}</p>
+            <p className="text-emphasis mt-6 mb-2 text-sm font-bold">
               {t("reason_for_reschedule_request")}
-              <span className="font-normal text-gray-500"> (Optional)</span>
+              <span className="text-subtle font-normal"> (Optional)</span>
             </p>
             <TextArea
               data-testid="reschedule_reason"

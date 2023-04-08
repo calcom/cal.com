@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import React, { forwardRef, InputHTMLAttributes, ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import React, { forwardRef } from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: ReactNode;
@@ -10,7 +11,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
     <div className="block sm:flex">
       {!!label && (
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor={rest.id} className="flex h-full items-center text-sm font-medium text-gray-700">
+          <label htmlFor={rest.id} className="text-default flex h-full items-center text-sm font-medium">
             {label}
           </label>
         </div>
@@ -22,12 +23,12 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
             ref={ref}
             type="number"
             className={classNames(
-              "block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm",
+              "border-default block w-full rounded-sm pl-2 pr-12 text-sm",
               rest.className
             )}
           />
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            <span className="text-sm text-gray-500" id="duration">
+            <span className="text-subtle text-sm" id="duration">
               mins
             </span>
           </div>

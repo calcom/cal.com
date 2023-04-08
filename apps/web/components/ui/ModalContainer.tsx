@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import React, { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
+import React from "react";
 
 import { Dialog, DialogContent } from "@calcom/ui";
 
@@ -18,7 +19,7 @@ export default function ModalContainer(
         <DialogContent>
           <div
             className={classNames(
-              "inline-block w-full transform bg-white text-left align-bottom transition-all sm:align-middle",
+              "bg-default inline-block w-full transform text-left align-bottom transition-all sm:align-middle",
               {
                 "sm:w-full sm:max-w-lg ": !props.wide,
                 "sm:w-4xl sm:max-w-4xl": props.wide,

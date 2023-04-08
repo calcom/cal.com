@@ -1,4 +1,4 @@
-import { GetStaticPaths, InferGetStaticPropsType } from "next";
+import type { GetStaticPaths, InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
@@ -11,7 +11,7 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
   const { status } = useSession();
 
   if (status === "loading") {
-    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
+    return <div className="bg-emphasis absolute z-50 flex h-screen w-full items-center" />;
   }
 
   if (status === "unauthenticated") {

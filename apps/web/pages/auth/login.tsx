@@ -1,15 +1,18 @@
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
+import { jwtVerify } from "jose";
+import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
+import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
-import { ErrorCode, getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,8 +21,9 @@ import prisma from "@calcom/prisma";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { FiArrowLeft } from "@calcom/ui/components/icon";
 
-import { inferSSRProps } from "@lib/types/inferSSRProps";
-import withNonce, { WithNonceProps } from "@lib/withNonce";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { WithNonceProps } from "@lib/withNonce";
+import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -41,14 +45,14 @@ export default function Login({
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
+  totpEmail,
 }: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
   const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<LoginValues>();
 
   const { register, formState } = methods;
-
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
@@ -93,6 +97,16 @@ export default function Login({
     </Button>
   );
 
+  const ExternalTotpFooter = (
+    <Button
+      onClick={() => {
+        window.location.replace("/");
+      }}
+      color="minimal">
+      {t("cancel")}
+    </Button>
+  );
+
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
@@ -111,7 +125,14 @@ export default function Login({
   };
 
   return (
-    <>
+    <div
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+        } as CSSProperties
+      }>
       <AuthContainer
         title={t("login")}
         description={t("login")}
@@ -119,7 +140,9 @@ export default function Login({
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
         footerText={
           twoFactorRequired
-            ? TwoFactorFooter
+            ? !totpEmail
+              ? TwoFactorFooter
+              : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true"
             ? LoginFooter
             : null
@@ -134,7 +157,7 @@ export default function Login({
                 <EmailField
                   id="email"
                   label={t("email_address")}
-                  defaultValue={router.query.email as string}
+                  defaultValue={totpEmail || (router.query.email as string)}
                   placeholder="john.doe@example.com"
                   required
                   {...register("email")}
@@ -144,14 +167,14 @@ export default function Login({
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-sm font-medium text-gray-600">
+                      className="text-default text-sm font-medium">
                       {t("forgot")}
                     </Link>
                   </div>
                   <PasswordField
                     id="password"
                     autoComplete="off"
-                    required
+                    required={!totpEmail}
                     className="mb-0"
                     {...register("password")}
                   />
@@ -172,7 +195,7 @@ export default function Login({
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
+              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="border-subtle my-8" />}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -200,15 +223,50 @@ export default function Login({
         </FormProvider>
       </AuthContainer>
       <AddToHomescreen />
-    </>
+    </div>
   );
 }
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req } = context;
-  const session = await getSession({ req });
+  const { req, res } = context;
+
+  const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
+
+  const verifyJwt = (jwt: string) => {
+    const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
+
+    return jwtVerify(jwt, secret, {
+      issuer: WEBSITE_URL,
+      audience: `${WEBSITE_URL}/auth/login`,
+      algorithms: ["HS256"],
+    });
+  };
+
+  let totpEmail = null;
+  if (context.query.totp) {
+    try {
+      const decryptedJwt = await verifyJwt(context.query.totp as string);
+      if (decryptedJwt.payload) {
+        totpEmail = decryptedJwt.payload.email as string;
+      } else {
+        return {
+          redirect: {
+            destination: "/auth/error?error=JWT%20Invalid%20Payload",
+            permanent: false,
+          },
+        };
+      }
+    } catch (e) {
+      return {
+        redirect: {
+          destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",
+          permanent: false,
+        },
+      };
+    }
+  }
 
   if (session) {
     return {
@@ -237,8 +295,11 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
       isSAMLLoginEnabled,
       samlTenantID,
       samlProductID,
+      totpEmail,
     },
   };
 };
+
+Login.isThemeSupported = false;
 
 export const getServerSideProps = withNonce(_getServerSideProps);

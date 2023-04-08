@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Label } from "..";
 import Switch from "./Switch";
@@ -12,6 +12,7 @@ type Props = {
   disabled?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   "data-testid"?: string;
+  tooltip?: string;
 };
 
 function SettingsToggle({
@@ -21,6 +22,7 @@ function SettingsToggle({
   title,
   children,
   disabled,
+  tooltip,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
@@ -36,11 +38,12 @@ function SettingsToggle({
               checked={checked}
               onCheckedChange={onCheckedChange}
               disabled={disabled}
+              tooltip={tooltip}
             />
 
-            <div className="">
-              <Label className="text-sm font-semibold leading-none text-black">{title}</Label>
-              {description && <p className="-mt-1.5 text-sm leading-normal text-gray-600">{description}</p>}
+            <div>
+              <Label className="text-emphasis text-sm font-semibold leading-none">{title}</Label>
+              {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}
             </div>
           </div>
           {children && (

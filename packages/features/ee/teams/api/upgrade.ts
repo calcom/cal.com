@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -37,33 +37,34 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!team) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
     const metadata = teamMetadataSchema.parse(prevTeam.metadata);
+    /** We save the metadata first to prevent duplicate payments */
+    team = await prisma.team.update({
+      where: { id },
+      data: {
+        metadata: {
+          paymentId: checkoutSession.id,
+          subscriptionId: subscription.id || null,
+          subscriptionItemId: subscription.items.data[0].id || null,
+        },
+      },
+    });
     /** Legacy teams already have a slug, this will allow them to upgrade as well */
     const slug = prevTeam.slug || metadata?.requestedSlug;
-    if (!slug) throw new HttpError({ statusCode: 400, message: "Missing team slug" });
-    try {
-      /** We save the metadata first to prevent duplicate payments */
-      await prisma.team.update({
-        where: { id },
-        data: {
-          metadata: {
-            paymentId: checkoutSession.id,
-            subscriptionId: subscription.id || null,
-            subscriptionItemId: subscription.items.data[0].id || null,
-          },
-        },
-      });
-      /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
-      team = await prisma.team.update({ where: { id }, data: { slug } });
-    } catch (error) {
-      const { message, statusCode } = getRequestedSlugError(error, slug);
-      return res.status(statusCode).json({ message });
+    if (slug) {
+      try {
+        /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
+        team = await prisma.team.update({ where: { id }, data: { slug } });
+      } catch (error) {
+        const { message, statusCode } = getRequestedSlugError(error, slug);
+        return res.status(statusCode).json({ message });
+      }
     }
 
     // Sync Services: Close.com
     closeComUpdateTeam(prevTeam, team);
   }
 
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res });
 
   if (!session) return { message: "Team upgraded successfully" };
 

@@ -1,7 +1,7 @@
-import { MembershipRole } from "@prisma/client";
+import type { MembershipRole } from "@prisma/client";
 
 import classNames from "@calcom/lib/classNames";
-import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -68,8 +68,8 @@ export default function TeamInviteListItem(props: Props) {
         className=""
       />
       <div className="inline-block ltr:ml-3 rtl:mr-3">
-        <span className="text-sm font-semibold text-black">{team.name}</span>
-        <span className="block text-sm leading-5 text-gray-700">
+        <span className="text-emphasis text-sm font-semibold">{team.name}</span>
+        <span className="text-default block text-sm leading-5">
           {t("invited_by_team", { teamName: team.name, role: t(team.role.toLocaleLowerCase()) })}
         </span>
       </div>
@@ -77,7 +77,7 @@ export default function TeamInviteListItem(props: Props) {
   );
 
   return (
-    <li className="divide-y rounded-md border border-gray-400 bg-gray-100 px-5 py-4">
+    <li className="bg-subtle border-emphasis divide-y rounded-md border px-5 py-4">
       <div
         className={classNames(
           "flex items-center  justify-between",
@@ -89,7 +89,7 @@ export default function TeamInviteListItem(props: Props) {
             <div className="hidden sm:flex">
               <Button
                 type="button"
-                className="mr-3 border-gray-700"
+                className="mr-3 border-empthasis"
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
@@ -97,7 +97,7 @@ export default function TeamInviteListItem(props: Props) {
               />
               <Button
                 type="button"
-                className="border-gray-700"
+                className="border-empthasis"
                 variant="icon"
                 color="secondary"
                 onClick={acceptInvite}

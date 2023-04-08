@@ -1,4 +1,5 @@
-import { FieldValues, useFormContext } from "react-hook-form";
+import type { FieldValues } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { FiCheck, FiCircle, FiInfo, FiX } from "../../icon";
 
@@ -20,7 +21,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
     // no hints passed, field errors exist and they are custom ones
     return (
-      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+      <div className="text-gray text-default mt-2 flex items-center text-sm">
         <ul className="ml-2">
           {Object.keys(fieldErrors).map((key: string) => {
             return (
@@ -37,7 +38,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   if (hintErrors && fieldErrors) {
     // hints passed, field errors exist
     return (
-      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+      <div className="text-gray text-default mt-2 flex items-center text-sm">
         <ul className="ml-2">
           {hintErrors.map((key: string) => {
             const submitted = formState.isSubmitted;
@@ -80,7 +81,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
 
   // hints passed, no errors exist, proceed to just show hints
   return (
-    <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+    <div className="text-gray text-default mt-2 flex items-center text-sm">
       <ul className="ml-2">
         {hintErrors.map((key: string) => {
           // if field was changed, as no error exist, show checked status and color

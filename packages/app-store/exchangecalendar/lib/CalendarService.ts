@@ -1,4 +1,5 @@
 import { XhrApi } from "@ewsjs/xhr";
+import type { FindFoldersResults, FindItemsResults } from "ews-javascript-api";
 import {
   Appointment,
   Attendee,
@@ -8,8 +9,6 @@ import {
   DateTime,
   DeleteMode,
   ExchangeService,
-  FindFoldersResults,
-  FindItemsResults,
   Folder,
   FolderId,
   FolderSchema,
@@ -30,7 +29,7 @@ import {
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import {
+import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
@@ -38,7 +37,7 @@ import {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 
@@ -65,6 +64,11 @@ export default class ExchangeCalendarService implements Calendar {
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+    if (event.team?.members) {
+      event.team.members.forEach((member: Person) => {
+        appointment.RequiredAttendees.Add(new Attendee(member.email));
+      });
+    }
     return appointment
       .Save(SendInvitationsMode.SendToAllAndSaveCopy)
       .then(() => {
@@ -96,6 +100,11 @@ export default class ExchangeCalendarService implements Calendar {
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
+    if (event.team?.members) {
+      event.team.members.forEach((member) => {
+        appointment.RequiredAttendees.Add(new Attendee(member.email));
+      });
+    }
     return appointment
       .Update(
         ConflictResolutionMode.AlwaysOverwrite,

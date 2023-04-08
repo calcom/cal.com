@@ -1,6 +1,7 @@
 import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
@@ -43,8 +44,8 @@ function WizardForm<T extends DefaultStep>(props: {
     <div className="mx-auto mt-4 print:w-full">
       <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
         <div className="px-6 py-5 sm:px-14">
-          <h1 className="font-cal text-2xl text-gray-900">{currentStep.title}</h1>
-          <p className="text-sm text-gray-500">{currentStep.description}</p>
+          <h1 className="font-cal text-emphasis text-2xl">{currentStep.title}</h1>
+          <p className="text-subtle text-sm">{currentStep.description}</p>
           {!props.disableNavigation && (
             <Steps maxSteps={steps.length} currentStep={step} navigateToStep={noop} stepLabel={stepLabel} />
           )}

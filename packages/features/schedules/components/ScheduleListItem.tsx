@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
@@ -13,14 +13,16 @@ import {
   DropdownMenuItem,
   DropdownItem,
   DropdownMenuTrigger,
+  showToast,
 } from "@calcom/ui";
-import { FiGlobe, FiMoreHorizontal, FiTrash } from "@calcom/ui/components/icon";
+import { FiGlobe, FiMoreHorizontal, FiTrash, FiClock } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
   deleteFunction,
   displayOptions,
   updateDefault,
+  isDeletable,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -28,6 +30,7 @@ export function ScheduleListItem({
     timeZone?: string;
     hour12?: boolean;
   };
+  isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
 }) {
   const { t, i18n } = useLocale();
@@ -36,21 +39,21 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="flex items-center justify-between py-5 hover:bg-neutral-50 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
-        <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
+      <div className="hover:bg-muted flex items-center justify-between py-5 ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+        <div className="group flex w-full items-center justify-between sm:px-6">
           <Link
             href={"/availability/" + schedule.id}
             className="flex-grow truncate text-sm"
             title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
-              <span className="truncate font-medium text-gray-900">{schedule.name}</span>
+              <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
                 <Badge variant="success" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-subtle mt-1">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
                 .map((availability) => (
@@ -62,10 +65,10 @@ export function ScheduleListItem({
                     <br />
                   </Fragment>
                 ))}
-              {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
+              {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
                   <FiGlobe />
-                  &nbsp;{schedule.timeZone}
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
                 </p>
               )}
             </p>
@@ -74,6 +77,7 @@ export function ScheduleListItem({
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
+              data-testid="schedule-more"
               className="mx-5"
               type="button"
               variant="icon"
@@ -83,10 +87,11 @@ export function ScheduleListItem({
           </DropdownMenuTrigger>
           {!isLoading && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
+              <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
+                    StartIcon={FiClock}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -97,15 +102,20 @@ export function ScheduleListItem({
                   </DropdownItem>
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
+              <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
                   type="button"
                   color="destructive"
                   StartIcon={FiTrash}
+                  data-testid="delete-schedule"
                   onClick={() => {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
+                    if (!isDeletable) {
+                      showToast(t("requires_at_least_one_schedule"), "error");
+                    } else {
+                      deleteFunction({
+                        scheduleId: schedule.id,
+                      });
+                    }
                   }}>
                   {t("delete")}
                 </DropdownItem>

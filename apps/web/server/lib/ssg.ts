@@ -1,4 +1,4 @@
-import { GetStaticPropsContext } from "next";
+import type { GetStaticPropsContext } from "next";
 import { i18n } from "next-i18next.config";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
@@ -29,7 +29,6 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
     ctx: {
       prisma,
       session: null,
-      user: null,
       locale,
       i18n: _i18n,
     },

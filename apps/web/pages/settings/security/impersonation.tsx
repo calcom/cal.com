@@ -1,4 +1,4 @@
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -68,10 +68,10 @@ const ProfileImpersonationView = () => {
             fitToHeight={true}
           />
           <div className="flex flex-col">
-            <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+            <Skeleton as={Label} className="text-emphasis text-sm font-semibold leading-none">
               {t("user_impersonation_heading")}
             </Skeleton>
-            <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+            <Skeleton as="p" className="text-default -mt-2 text-sm leading-normal">
               {t("user_impersonation_description")}
             </Skeleton>
           </div>

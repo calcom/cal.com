@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
   Avatar,
@@ -25,14 +26,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import {
-  FiClock,
-  FiExternalLink,
-  FiMoreHorizontal,
-  FiEdit2,
-  FiLock,
-  FiTrash,
-} from "@calcom/ui/components/icon";
+import { FiExternalLink, FiMoreHorizontal, FiEdit2, FiLock, FiTrash } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
@@ -99,6 +93,9 @@ export default function MemberListItem(props: Props) {
     props.member.accepted &&
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
+  const urlWithoutProtocol = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const bookingLink = `${urlWithoutProtocol}/${props.member.username}`;
+
   return (
     <li className="divide-y px-5">
       <div className="my-4 flex justify-between">
@@ -113,24 +110,35 @@ export default function MemberListItem(props: Props) {
 
             <div className="inline-block ltr:ml-3 rtl:mr-3">
               <div className="mb-1 flex">
-                <span className="mr-1 text-sm font-bold leading-4">{name}</span>
+                <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
-              <span
-                className="block text-sm text-gray-600"
-                data-testid="member-email"
-                data-email={props.member.email}>
-                {props.member.email}
-              </span>
+              <div className="text-default flex items-center">
+                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
+                  {props.member.email}
+                </span>
+                {bookingLink && (
+                  <>
+                    <span className="mx-2 block text-default">•</span>
+                    <a
+                      target="_blank"
+                      href={`${WEBAPP_URL}/${props.member.username}`}
+                      className="block text-sm text-default">
+                      {bookingLink}
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
         {props.team.membership.accepted && (
           <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-gray-300 hidden md:flex" }}>
-              <Tooltip
+            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+              {/* TODO: bring availability back. right now its ugly and broken
+               <Tooltip
                 content={
                   props.member.accepted
                     ? t("team_view_user_availability")
@@ -143,7 +151,7 @@ export default function MemberListItem(props: Props) {
                   variant="icon"
                   StartIcon={FiClock}
                 />
-              </Tooltip>
+              </Tooltip> */}
               <Tooltip content={t("view_public_page")}>
                 <Button
                   target="_blank"
@@ -205,13 +213,6 @@ export default function MemberListItem(props: Props) {
                   <Button type="button" variant="icon" color="minimal" StartIcon={FiMoreHorizontal} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {props.member.accepted && (
-                    <DropdownMenuItem className="outline-none">
-                      <DropdownItem type="button" StartIcon={FiClock}>
-                        {t("team_view_user_availability")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem type="button" StartIcon={FiExternalLink}>
                       {t("view_public_page")}
@@ -264,7 +265,7 @@ export default function MemberListItem(props: Props) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 await signIn("impersonation-auth", {
-                  username: props.member.username,
+                  username: props.member.username || props.member.email,
                   teamId: props.team.id,
                 });
                 setShowImpersonateModal(false);

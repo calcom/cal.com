@@ -24,14 +24,14 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
 import logger from "@calcom/lib/logger";
-import {
+import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -74,6 +74,12 @@ export default class ExchangeCalendarService implements Calendar {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
 
+      if (event.team?.members) {
+        event.team.members.forEach((member) => {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
+      }
+
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);
 
       return {
@@ -105,6 +111,11 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
       for (let i = 0; i < event.attendees.length; i++) {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
+      }
+      if (event.team?.members) {
+        event.team.members.forEach((member) => {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
       }
       appointment.Update(
         ConflictResolutionMode.AlwaysOverwrite,

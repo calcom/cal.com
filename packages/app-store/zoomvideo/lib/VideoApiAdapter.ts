@@ -2,10 +2,10 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Credential } from "@calcom/prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -200,7 +200,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     return {
       topic: event.title,
       type: 2, // Means that this is a scheduled meeting
-      start_time: event.startTime,
+      start_time: dayjs(event.startTime).utc().format(),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,

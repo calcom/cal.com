@@ -1,6 +1,8 @@
-import React, { Dispatch, SetStateAction } from "react";
-import { components, GroupBase, OptionProps } from "react-select";
-import { Props } from "react-select";
+import type { Dispatch, SetStateAction } from "react";
+import React from "react";
+import type { GroupBase, OptionProps } from "react-select";
+import { components } from "react-select";
+import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,12 +29,6 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
 
   return (
     <components.Option
-      className={classNames(
-        className,
-        "dark:bg-darkgray-100 !flex !cursor-pointer !py-3 text-[inherit]",
-        isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
-        isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
-      )}
       {...rest}
       isDisabled={isDisabled}
       isFocused={isFocused}
@@ -40,7 +36,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
       innerProps={props}>
       <input
         type="checkbox"
-        className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
+        className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2"
         checked={isSelected}
         readOnly
       />
@@ -79,6 +75,7 @@ export default function MultiSelectCheckboxes({
         setSelected(s);
         setValue(s);
       }}
+      variant="checkbox"
       options={options}
       isMulti
       className={classNames(className ? className : "w-64 text-sm")}

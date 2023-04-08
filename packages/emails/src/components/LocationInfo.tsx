@@ -5,8 +5,8 @@ import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { CallToActionIcon } from "./CallToActionIcon";
 import { Info } from "./Info";
-import { LinkIcon } from "./LinkIcon";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
@@ -40,7 +40,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
             title={t("meeting_url")}
             style={{ color: "#101010" }}
             rel="noreferrer">
-            {providerName || "Link"} <LinkIcon />
+            {providerName || "Link"} <CallToActionIcon iconName="linkIcon" />
           </a>
         }
         extraInfo={

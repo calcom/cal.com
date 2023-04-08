@@ -1,5 +1,5 @@
 import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
@@ -13,6 +13,7 @@ export const samlProductID = "Cal.com";
 export const samlAudience = "https://saml.cal.com";
 export const samlPath = "/api/auth/saml/callback";
 export const oidcPath = "/api/auth/oidc";
+export const clientSecretVerifier = process.env.SAML_CLIENT_SECRET_VERIFIER || "dummy";
 
 export const hostedCal = Boolean(HOSTED_CAL_FEATURES);
 export const tenantPrefix = "team-";

@@ -1,4 +1,5 @@
-import { expect, Page, Route } from "@playwright/test";
+import type { Page, Route } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";
@@ -158,6 +159,7 @@ test.afterEach(() => requestInterceptor.resetHandlers());
 
 // Disable API mocking after the tests are done.
 test.afterAll(() => requestInterceptor.close());
+test.afterEach(({ users }) => users.deleteAll());
 
 // TODO: Fix MSW mocking
 test.fixme("Integrations", () => {
@@ -209,17 +211,6 @@ test.fixme("Integrations", () => {
     });
   };
   test.describe("Zoom App", () => {
-    test.afterEach(async () => {
-      await prisma?.credential.deleteMany({
-        where: {
-          user: {
-            email: "pro@example.com",
-          },
-          type: "zoom_video",
-        },
-      });
-    });
-
     test("Can add integration", async ({ page, users }) => {
       const user = await users.create();
       await user.login();

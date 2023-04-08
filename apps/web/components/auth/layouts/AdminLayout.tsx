@@ -1,12 +1,12 @@
+import { UserPermissionRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import React, { ComponentProps, useEffect } from "react";
+import type { ComponentProps } from "react";
+import React, { useEffect } from "react";
 
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
-import Shell from "@calcom/features/shell/Shell";
+import type Shell from "@calcom/features/shell/Shell";
 import { ErrorBoundary } from "@calcom/ui";
-
-import { UserPermissionRole } from ".prisma/client";
 
 export default function AdminLayout({
   children,
@@ -26,7 +26,7 @@ export default function AdminLayout({
   const isAppsPage = router.asPath.startsWith("/settings/admin/apps");
   return (
     <SettingsLayout {...rest}>
-      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200">
+      <div className="divide-subtle mx-auto flex max-w-4xl flex-row divide-y">
         <div className={isAppsPage ? "min-w-0" : "flex flex-1 [&>*]:flex-1"}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>

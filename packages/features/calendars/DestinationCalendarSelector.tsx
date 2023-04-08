@@ -1,9 +1,10 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import { components, OptionProps, SingleValueProps } from "react-select";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DestinationCalendar } from "@calcom/prisma/client";
+import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui";
 
@@ -27,7 +28,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-gray-500">{subtitle}</p>
+      <p>{label}</p> <p className=" text-subtle">{subtitle}</p>
     </components.SingleValue>
   );
 };
@@ -117,10 +118,6 @@ const DestinationCalendarSelector = ({
         })),
     })) ?? [];
 
-  // Get primary calendar, which is shown in the placeholder since this is the calendar that will
-  // be used when no destination calendar is selected.
-  const primaryCalendar = query.data.destinationCalendarEmail;
-
   const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
@@ -131,10 +128,10 @@ const DestinationCalendarSelector = ({
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
           ) : (
-            <span className="min-w-0 overflow-hidden truncate whitespace-nowrap">
+            <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               {t("default_calendar_selected")}{" "}
               {queryDestinationCalendar.name &&
-                `(${queryDestinationCalendar?.integration} - ${queryDestinationCalendar.name})`}
+                `| ${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
             </span>
           )
         }
@@ -142,16 +139,6 @@ const DestinationCalendarSelector = ({
         styles={{
           placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
           singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          option: (defaultStyles, state) => ({
-            ...defaultStyles,
-            backgroundColor: state.isSelected
-              ? state.isFocused
-                ? "var(--brand-color)"
-                : "var(--brand-color)"
-              : state.isFocused
-              ? "var(--brand-color-dark-mode)"
-              : "var(--brand-text-color)",
-          }),
           control: (defaultStyles) => {
             return {
               ...defaultStyles,
@@ -164,7 +151,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
+          "border-default mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);

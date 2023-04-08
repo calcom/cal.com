@@ -5,8 +5,9 @@ import { useForm } from "react-hook-form";
 import { Schedule } from "@calcom/features/schedules";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, TRPCClientErrorLike } from "@calcom/trpc/react";
-import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { TRPCClientErrorLike } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Form } from "@calcom/ui";
 
 interface ISetupAvailabilityProps {
@@ -49,7 +50,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
   return (
     <Form
-      className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"
+      className="bg-default dark:text-inverted text-emphasis w-full dark:bg-opacity-5"
       form={availabilityForm}
       handleSubmit={async (values) => {
         try {

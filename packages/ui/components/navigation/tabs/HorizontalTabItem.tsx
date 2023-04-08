@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SVGComponent } from "@calcom/types/SVGComponent";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Avatar } from "../../avatar";
 import { SkeletonText } from "../../skeleton";
@@ -31,8 +31,8 @@ const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }:
       href={href}
       {...linkProps}
       className={classNames(
-        isCurrent ? "bg-gray-100 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] py-[10px] px-2 text-sm font-medium leading-4 md:mb-0",
+        isCurrent ? "bg-subtle text-emphasis" : "  hover:bg-subtle hover:text-emphasis text-default ",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] p-2 text-sm font-medium leading-4 md:mb-0",
         props.disabled && "pointer-events-none !opacity-30",
         props.className
       )}
@@ -42,7 +42,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, avatar, ...props }:
         //@ts-ignore
         <props.icon
           className={classNames(
-            isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
+            isCurrent ? "text-emphasis" : "group-hover:text-subtle text-muted",
             "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
           )}
           aria-hidden="true"

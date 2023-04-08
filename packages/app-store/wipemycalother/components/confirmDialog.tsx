@@ -1,6 +1,7 @@
 import { ClockIcon } from "@heroicons/react/outline";
 import { useMutation } from "@tanstack/react-query";
-import { Dispatch, SetStateAction, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -85,9 +86,9 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           </div>
           <div className="pt-1">
             <DialogHeader title="Wipe My Calendar" />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-subtle mt-2 text-sm">
               This will cancel all upcoming meetings from: <br />{" "}
-              <strong className="text-black">
+              <strong className="text-emphasis">
                 {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
               </strong>
             </p>

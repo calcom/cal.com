@@ -9,7 +9,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, TextField } from "@calcom/ui";
 
-import { appDataSchema } from "../zod";
+import type { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { asPath } = useRouter();
@@ -62,7 +62,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 min="0.5"
                 type="number"
                 required
-                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
+                className="border-default block w-full rounded-sm pl-2 pr-12 text-sm"
                 placeholder="Price"
                 onChange={(e) => {
                   setAppData("price", Number(e.target.value) * 100);
