@@ -12,7 +12,7 @@ export const getCalendar = async (credential: CredentialPayload | null): Promise
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
   }
-  const calendarApp = await appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const calendarApp = await appStore[calendarType.split("_").join("") as keyof typeof appStore]();
   if (!(calendarApp && "lib" in calendarApp && "CalendarService" in calendarApp.lib)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
