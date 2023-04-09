@@ -71,7 +71,7 @@ export function TeamsListing() {
         emptyTitle="no_teams"
         emptyDescription="no_teams_description"
         features={features}
-        background="/banners/teams.jpg"
+        background="/tips/teams.jpg"
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
             <ButtonGroup>
@@ -86,10 +86,8 @@ export function TeamsListing() {
         }>
         <>
           {invites.length > 0 && (
-            <div className="mb-6 rounded-md bg-gray-100 p-5">
-              <Label className="dark:text-darkgray-900 pb-2 font-semibold text-gray-900">
-                {t("pending_invites")}
-              </Label>
+            <div className="bg-subtle mb-6 rounded-md p-5">
+              <Label className=" text-emphasis pb-2 font-semibold">{t("pending_invites")}</Label>
               <TeamList teams={invites} pending />
             </div>
           )}

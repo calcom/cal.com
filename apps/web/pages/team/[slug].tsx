@@ -10,7 +10,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -55,13 +55,13 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
   }
 
   const EventTypes = () => (
-    <ul className="dark:border-darkgray-300 rounded-md border border-gray-200">
+    <ul className="dark:border-darkgray-300 border-subtle rounded-md border">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-300 group relative border-b border-gray-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50",
-            !isEmbed && "bg-white"
+            "dark:bg-darkgray-100 dark:border-darkgray-300 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
+            !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
             <Link
@@ -70,7 +70,7 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               className="flex justify-between">
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
@@ -103,17 +103,15 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
           profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
         }}
       />
-      <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
+      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
-          <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
-            {teamName}
-          </p>
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider">{teamName}</p>
           {!isBioEmpty && (
             <>
               <div
-                className="dark:text-darkgray-600 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                dangerouslySetInnerHTML={{ __html: md.render(team.bio || "") }}
+                className=" text-subtle text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
           )}
@@ -127,15 +125,16 @@ function TeamPage({ team, isUnpublished }: TeamPageProps) {
               <div>
                 <div className="relative mt-12">
                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
+                    <div className="dark:border-darkgray-300 border-subtle w-full border-t" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
+                    <span className="dark:bg-darkgray-50 bg-subtle text-subtle dark:text-inverted px-2 text-sm">
                       {t("or")}
                     </span>
                   </div>
                 </div>
-                <aside className="mt-8 flex justify-center text-center dark:text-white">
+
+                <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                   <Button
                     color="minimal"
                     EndIcon={FiArrowRight}
@@ -187,15 +186,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       ...user,
       avatar: CAL_URL + "/" + user.username + "/avatar.png",
     })),
+    descriptionAsSafeHTML: markdownToSafeHTML(type.description),
   }));
+
+  const safeBio = markdownToSafeHTML(team.bio) || "";
+
+  const members = team.members.map((member) => {
+    return { ...member, safeBio: markdownToSafeHTML(member.bio || "") };
+  });
 
   return {
     props: {
-      team,
+      team: { ...team, safeBio, members },
       trpcState: ssr.dehydrate(),
     },
   } as const;
 };
 
 export default TeamPage;
-TeamPage.isThemeSupported = true;

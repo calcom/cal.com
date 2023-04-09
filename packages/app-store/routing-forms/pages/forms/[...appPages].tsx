@@ -102,7 +102,7 @@ export default function RoutingForms({
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
         features={features}
-        background="/banners/routing-forms.jpg"
+        background="/tips/routing-forms.jpg"
         isParentLoading={isLoading && <SkeletonLoaderTeamList />}
         buttons={
           <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
@@ -110,7 +110,11 @@ export default function RoutingForms({
               <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                 {t("upgrade")}
               </Button>
-              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+              <Button
+                color="minimal"
+                className="text-inverted !bg-transparent opacity-50 hover:opacity-100"
+                href="https://go.cal.com/teams-video"
+                target="_blank">
                 {t("learn_more")}
               </Button>
             </ButtonGroup>
@@ -128,7 +132,7 @@ export default function RoutingForms({
                 />
               ) : null}
               {forms?.length ? (
-                <div className="mb-16 overflow-hidden bg-white">
+                <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list">
                     {forms.map((form, index) => {
                       if (!form) {
@@ -251,6 +255,8 @@ export default function RoutingForms({
     </ShellMain>
   );
 }
+
+RoutingForms.isThemeSupported = true;
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
   return <Shell withoutMain={true}>{page}</Shell>;

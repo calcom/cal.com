@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import React from "react";
-import { ITimezone } from "react-timezone-select";
+import type { ITimezone } from "react-timezone-select";
 
-import { Dayjs } from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import getSlots from "@calcom/lib/slots";
 import { trpc } from "@calcom/trpc/react";
 import { Loader } from "@calcom/ui";
@@ -47,13 +47,13 @@ export default function TeamAvailabilityTimes(props: Props) {
       {isLoading && slots.length === 0 && <Loader />}
       {!isLoading && slots.length === 0 && (
         <div className="flex flex-col items-center justify-center pt-4">
-          <span className="text-sm text-gray-500">No Available Slots</span>
+          <span className="text-subtle text-sm">No Available Slots</span>
         </div>
       )}
       {slots.map((slot) => (
         <div key={slot.time.format()} className="flex flex-row items-center">
           <a
-            className="min-w-48 border-brand text-bookingdarker hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast dark:text-darkgray-800 mb-2 mr-3 block flex-grow rounded-sm border bg-white py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 dark:hover:border-black dark:hover:bg-black dark:hover:text-white"
+            className="min-w-48 border-brand-default text-bookingdarker hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand dark:hover:text-darkmodebrandcontrast  bg-default dark:hover:text-inverted mb-2 mr-3 block flex-grow rounded-sm border py-2 text-center font-medium dark:border-transparent dark:bg-gray-600 dark:hover:border-black dark:hover:bg-black"
             data-testid="time">
             {slot.time.format("HH:mm")}
           </a>

@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import type { CSSProperties } from "react";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -80,8 +81,16 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
       data-testid="onboarding"
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+          "--cal-brand-subtle": "#9CA3AF",
+        } as CSSProperties
+      }
       key={router.asPath}>
       <Head>
         <title>
@@ -100,7 +109,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                 </p>
 
                 {headers[currentStepIndex]?.subtitle.map((subtitle, index) => (
-                  <p className="font-sans text-sm font-normal text-gray-500" key={index}>
+                  <p className="text-subtle font-sans text-sm font-normal" key={index}>
                     {subtitle}
                   </p>
                 ))}
@@ -192,5 +201,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
+
+OnboardingPage.isThemeSupported = false;
 
 export default OnboardingPage;

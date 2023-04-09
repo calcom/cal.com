@@ -15,7 +15,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"
-          className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+          className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
           <FiArrowLeft className="h-4 w-4" />
           {isLocaleReady ? t("app_store") : <SkeletonText className="h-6 w-24" />}{" "}
         </Link>
@@ -27,10 +27,10 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
               key={category.name}
               href={"/apps/categories/" + category.name}
               data-testid={`app-store-category-${category.name}`}
-              className="relative flex rounded-sm bg-gray-100 px-6 py-4 sm:block">
+              className="bg-subtle relative flex rounded-sm px-6 py-4 sm:block">
               <div className="self-center">
                 <h3 className="font-medium capitalize">{category.name}</h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-subtle text-sm">
                   {t("number_apps", { count: category.count })}{" "}
                   <FiArrowRight className="inline-block h-4 w-4" />
                 </p>

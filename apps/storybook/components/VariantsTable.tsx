@@ -1,4 +1,5 @@
-import React, { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
+import React from "react";
 
 import { classNames } from "@calcom/lib";
 
@@ -42,7 +43,7 @@ export function VariantsTable({
         </table>
       </div>
       {!isDark && (
-        <div data-mode="dark">
+        <div data-mode="dark" className="dark">
           <VariantsTable titles={titles} isDark columnMinWidth={columnMinWidth}>
             {children}
           </VariantsTable>

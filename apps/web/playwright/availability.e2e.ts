@@ -43,12 +43,29 @@ test.describe("Availablity tests", () => {
     });
   });
 
-  test("Availablity pages", async ({ page }) => {
+  test("Availability pages", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
       await page.locator('[data-testid="new-schedule"]').click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
       await expect(page.locator("[data-testid=availablity-title]")).toHaveValue("More working hours");
+    });
+    await test.step("Can delete a schedule", async () => {
+      await page.getByRole("button", { name: /Go Back/i }).click();
+      await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
+      await page.locator('[data-testid="delete-schedule"]').click();
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
+      expect(toast).toBeTruthy();
+
+      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
+    });
+    await test.step("Cannot delete a schedule if a single schedule is present", async () => {
+      await page.locator('[data-testid="schedules"] > li').nth(0).getByTestId("schedule-more").click();
+      await page.locator('[data-testid="delete-schedule"]').click();
+      const toast = await page.waitForSelector('[data-testid="toast-error"]');
+      expect(toast).toBeTruthy();
+
+      await expect(page.locator('[data-testid="schedules"] > li').nth(0)).toHaveCount(1);
     });
   });
 });
