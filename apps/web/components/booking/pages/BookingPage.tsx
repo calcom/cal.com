@@ -667,7 +667,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="flex-shrink-0">
           <FiAlertTriangle className="h-5 w-5 text-blue-400" aria-hidden="true" />
         </div>
-        <div className="ltr:ml-3 rtl:mr-3">
+        <div className="ms-3">
           <p className="text-sm text-blue-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
             {error instanceof HttpError || error instanceof Error ? (

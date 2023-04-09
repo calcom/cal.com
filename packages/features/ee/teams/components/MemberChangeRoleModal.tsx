@@ -99,7 +99,7 @@ export default function MemberChangeRoleModal(props: {
               </p>
             )}
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <Button type="submit" color="primary" className="ltr:ml-2 ltr:mr-2 rtl:ml-2">
+              <Button type="submit" color="primary" className="ms-2 me-2">
                 {t("save")}
               </Button>
               <Button type="button" color="secondary" onClick={props.onExit}>

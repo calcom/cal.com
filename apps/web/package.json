@@ -170,7 +170,7 @@
     "module-alias": "^2.2.2",
     "msw": "^0.42.3",
     "postcss": "^8.4.18",
-    "tailwindcss": "^3.2.1",
+    "tailwindcss": "^3.3.1",
     "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"

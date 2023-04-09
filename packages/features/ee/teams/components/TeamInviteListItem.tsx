@@ -67,7 +67,7 @@ export default function TeamInviteListItem(props: Props) {
         alt="Team Logo"
         className=""
       />
-      <div className="inline-block ltr:ml-3 rtl:mr-3">
+      <div className="ms-3 inline-block">
         <span className="text-emphasis text-sm font-semibold">{team.name}</span>
         <span className="text-default block text-sm leading-5">
           {t("invited_by_team", { teamName: team.name, role: t(team.role.toLocaleLowerCase()) })}
@@ -89,7 +89,7 @@ export default function TeamInviteListItem(props: Props) {
             <div className="hidden sm:flex">
               <Button
                 type="button"
-                className="mr-3 border-empthasis"
+                className="border-empthasis mr-3"
                 variant="icon"
                 color="secondary"
                 onClick={declineInvite}
