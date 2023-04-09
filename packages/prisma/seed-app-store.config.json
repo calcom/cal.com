@@ -213,6 +213,13 @@
     "isTemplate": false
   },
   {
+    "dirName": "zoho-bigin",
+    "categories": ["other"],
+    "slug": "zoho-bigin",
+    "type": "zoho-bigin_other_calendar",
+    "isTemplate": false
+  },
+  {
     "dirName": "cron",
     "categories": ["calendar"],
     "slug": "cron",
