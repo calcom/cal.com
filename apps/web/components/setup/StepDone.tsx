@@ -23,8 +23,8 @@ const StepDone = (props: {
         router.replace(props.nextStepPath);
       }}>
       <div className="min-h-36 my-6 flex flex-col items-center justify-center">
-        <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
-          <FiCheck className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
+        <div className="dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600">
+          <FiCheck className="text-inverted dark:bg-default dark:text-default inline-block h-10 w-10" />
         </div>
         <div className="max-w-[420px] text-center">
           <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>

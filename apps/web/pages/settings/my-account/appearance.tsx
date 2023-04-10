@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Alert,
   Button,
   ColorPicker,
   Form,
@@ -23,7 +26,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} />
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -46,6 +49,7 @@ const AppearanceView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const [darkModeError, setDarkModeError] = useState(false);
 
   const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
@@ -93,8 +97,8 @@ const AppearanceView = () => {
       <Meta title={t("appearance")} description={t("appearance_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="font-semibold">{t("theme")}</p>
-          <p className="text-gray-600">{t("theme_applies_note")}</p>
+          <p className="text-default font-semibold">{t("theme")}</p>
+          <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
       <div className="flex flex-col justify-between sm:flex-row">
@@ -121,11 +125,11 @@ const AppearanceView = () => {
         />
       </div>
 
-      <hr className="my-8 border border-gray-200" />
+      <hr className="border-subtle my-8 border" />
       <div className="mb-6 flex items-center text-sm">
         <div>
-          <p className="font-semibold">{t("custom_brand_colors")}</p>
-          <p className="mt-0.5 leading-5 text-gray-600">{t("customize_your_brand_colors")}</p>
+          <p className="text-default font-semibold">{t("custom_brand_colors")}</p>
+          <p className="text-default mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
         </div>
       </div>
 
@@ -136,7 +140,7 @@ const AppearanceView = () => {
           defaultValue={user.brandColor}
           render={() => (
             <div>
-              <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
+              <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.brandColor}
                 onChange={(value) => formMethods.setValue("brandColor", value, { shouldDirty: true })}
@@ -150,15 +154,30 @@ const AppearanceView = () => {
           defaultValue={user.darkBrandColor}
           render={() => (
             <div className="mt-6 sm:mt-0">
-              <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
+              <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
               <ColorPicker
                 defaultValue={user.darkBrandColor}
-                onChange={(value) => formMethods.setValue("darkBrandColor", value, { shouldDirty: true })}
+                onChange={(value) => {
+                  if (!checkWCAGContrastColor("#101010", value)) {
+                    setDarkModeError(true);
+                  } else {
+                    setDarkModeError(false);
+                  }
+                  formMethods.setValue("darkBrandColor", value, { shouldDirty: true });
+                }}
               />
             </div>
           )}
         />
       </div>
+      {darkModeError ? (
+        <div className="mt-4">
+          <Alert
+            severity="warning"
+            message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
+          />
+        </div>
+      ) : null}
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
@@ -167,7 +186,7 @@ const AppearanceView = () => {
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-      <hr className="my-8 border border-gray-200" />
+      <hr className="border-subtle my-8 border" />
       <Controller
         name="hideBranding"
         control={formMethods.control}
@@ -177,12 +196,12 @@ const AppearanceView = () => {
             <div className="flex w-full text-sm">
               <div className="mr-1 flex-grow">
                 <div className="flex items-center">
-                  <p className="font-semibold ltr:mr-2 rtl:ml-2">
+                  <p className="text-default font-semibold ltr:mr-2 rtl:ml-2">
                     {t("disable_cal_branding", { appName: APP_NAME })}
                   </p>
                   <UpgradeTeamsBadge />
                 </div>
-                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
+                <p className="text-default  mt-0.5">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch

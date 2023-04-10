@@ -1614,8 +1614,6 @@
   "booking_confirmation_failed": "Échec de la confirmation de la réservation",
   "form_builder_field_already_exists": "Un champ avec ce nom existe déjà",
   "form_builder_field_add_subtitle": "Personnalisez les questions posées sur la page de réservation.",
-  "form_builder_system_field_cant_delete": "Ce champ système ne peut pas être supprimé.",
-  "form_builder_system_field_cant_toggle": "Ce champ système ne peut pas être activé.",
   "get_started_zapier_templates": "Démarrer avec les modèles Zapier",
   "team_member": "Membre d'équipe",
   "a_routing_form": "Un formulaire de routage",

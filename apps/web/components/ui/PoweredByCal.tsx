@@ -12,7 +12,7 @@ const PoweredByCal = () => {
       <Link
         href={POWERED_BY_URL}
         target="_blank"
-        className="text-bookinglight opacity-50 hover:opacity-100 dark:text-white">
+        className="text-bookinglight dark:text-inverted opacity-50 hover:opacity-100">
         {t("powered_by")}{" "}
         <img
           className="relative -mt-px inline h-[10px] w-auto dark:hidden"

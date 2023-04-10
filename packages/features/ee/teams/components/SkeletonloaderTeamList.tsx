@@ -3,7 +3,7 @@ import { SkeletonText } from "@calcom/ui";
 function SkeletonLoaderTeamList() {
   return (
     <>
-      <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+      <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-md border border-subtle bg-default sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
         <SkeletonItem />

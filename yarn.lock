@@ -4102,6 +4102,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/discord@workspace:packages/app-store/discord":
+  version: 0.0.0-use.local
+  resolution: "@calcom/discord@workspace:packages/app-store/discord"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/docs@workspace:apps/docs":
   version: 0.0.0-use.local
   resolution: "@calcom/docs@workspace:apps/docs"
@@ -8767,14 +8776,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/debug@npm:4.12.0":
-  version: 4.12.0
-  resolution: "@prisma/debug@npm:4.12.0"
+"@prisma/debug@npm:4.11.0":
+  version: 4.11.0
+  resolution: "@prisma/debug@npm:4.11.0"
   dependencies:
     "@types/debug": 4.1.7
     debug: 4.3.4
     strip-ansi: 6.0.1
-  checksum: 0ae182634f4a25231ff946768e1da1f694b5141d21c92cb2a142580de30d67ebd1595f8575a4c63356740e415d5d64829449a4710d8421e7147016ea0acb2643
+  checksum: 170adb225d6e8e0e0df26d441d550607c7fecb97969b47ca19264d65636564c774ba60b9cefab196bb86d358cdd06a289e2ad8d3f70201cb3becb79547343bf5
   languageName: node
   linkType: hard
 
@@ -8807,14 +8816,14 @@ __metadata:
   linkType: hard
 
 "@prisma/generator-helper@npm:^4.0.0":
-  version: 4.12.0
-  resolution: "@prisma/generator-helper@npm:4.12.0"
+  version: 4.11.0
+  resolution: "@prisma/generator-helper@npm:4.11.0"
   dependencies:
-    "@prisma/debug": 4.12.0
+    "@prisma/debug": 4.11.0
     "@types/cross-spawn": 6.0.2
     chalk: 4.1.2
     cross-spawn: 7.0.3
-  checksum: b844fcf736c922ce39e6aa1081b7c133b921ceb5d272f51296cf7afc3128ca6085ef1594ce63045ef47a462c56e5e37b9a1094a36d5dd484f77017d6f227641f
+  checksum: 4d8cb919893cc22a743e625c7d077e3cbd67e4541500025d253dfd6df2452d294d05bbd0a0599007c562796badba92d57191ecfb980e3c29c906ba0038d37faf
   languageName: node
   linkType: hard
 
@@ -23297,9 +23306,9 @@ __metadata:
   linkType: hard
 
 "github-buttons@npm:^2.22.0":
-  version: 2.26.0
-  resolution: "github-buttons@npm:2.26.0"
-  checksum: e06e8dd23195201250ba4455e3044f75306fbe76400a3978014a5d7490a24e5e360420f50912e3e00ee5a6fa2ad76afe24ec62f9144d529059bf3c1226498f2a
+  version: 2.24.0
+  resolution: "github-buttons@npm:2.24.0"
+  checksum: 3bf27f9078180e36cfc87e214e788898da603d606c871deedc40b7edef4abf3f659a6cff65bd6990c07f59f473468de92174a04a91c42ca95b868d5da1c4d287
   languageName: node
   linkType: hard
 
@@ -29930,32 +29939,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-auth@npm:^4.10.3":
-  version: 4.21.1
-  resolution: "next-auth@npm:4.21.1"
-  dependencies:
-    "@babel/runtime": ^7.20.13
-    "@panva/hkdf": ^1.0.2
-    cookie: ^0.5.0
-    jose: ^4.11.4
-    oauth: ^0.9.15
-    openid-client: ^5.4.0
-    preact: ^10.6.3
-    preact-render-to-string: ^5.1.19
-    uuid: ^8.3.2
-  peerDependencies:
-    next: ^12.2.5 || ^13
-    nodemailer: ^6.6.5
-    react: ^17.0.2 || ^18
-    react-dom: ^17.0.2 || ^18
-  peerDependenciesMeta:
-    nodemailer:
-      optional: true
-  checksum: d0000a5793fb3b7df271dc992af4aefe513a82f8b27d9d9f360c384cb84a4486be4bcaa5defabf1380437dd6f5a230a1be78c8920b3581de023d9f50d2539e2b
-  languageName: node
-  linkType: hard
-
-"next-auth@npm:^4.20.1":
+"next-auth@npm:^4.10.3, next-auth@npm:^4.20.1":
   version: 4.20.1
   resolution: "next-auth@npm:4.20.1"
   dependencies:
@@ -33546,11 +33530,11 @@ __metadata:
   linkType: hard
 
 "react-hook-form@npm:^7.34.2":
-  version: 7.43.9
-  resolution: "react-hook-form@npm:7.43.9"
+  version: 7.43.8
+  resolution: "react-hook-form@npm:7.43.8"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18
-  checksum: 65b94de625f2b7921c4e856bf0abbe142bfe06c052217bd1bcc3a842e2cc37fa3a3e03758119dc038bbcf5edb49e02c29206528b80b201f9a4d601471ef78153
+  checksum: 1042b68950e1756dd907e7eb904c6efdf04f126a48797b25e8793705d930f7bbff2cc07f0ec7ea4c52272e808a359ae157742c551defa3b3fd0952ff414bd3e3
   languageName: node
   linkType: hard
 
@@ -38863,16 +38847,16 @@ __metadata:
   linkType: hard
 
 "tzdata@npm:^1.0.30":
-  version: 1.0.38
-  resolution: "tzdata@npm:1.0.38"
-  checksum: 866abff1316bd1311057f5de9da702c78a27f3bba213aa6986e8e4d22d0d25b554dda2330e6d853e2c34566270bb327babe467ad9a5f069ad466f09571872800
+  version: 1.0.37
+  resolution: "tzdata@npm:1.0.37"
+  checksum: 5263d22e257639f292e314c15942d147e82211b370cbeccd5e16025b0fdb06371fdb989f247c386db60b580b2fe12b39601a3c21d35e09a037d60a92323cb3cd
   languageName: node
   linkType: hard
 
 "ua-parser-js@npm:^1.0.33":
-  version: 1.0.35
-  resolution: "ua-parser-js@npm:1.0.35"
-  checksum: 02370d38a0c8b586f2503d1c3bbba5cbc0b97d407282f9023201a99e4c03eae4357a2800fdf50cf80d73ec25c0b0cc5bfbaa03975b0add4043d6e4c86712c9c1
+  version: 1.0.34
+  resolution: "ua-parser-js@npm:1.0.34"
+  checksum: 78924548870c67b93b4bc6bd3d9736badfca8cc02ea01510fb0ed38e296a8c0713a6bec6226ed2383d5d521bab651a6fcaa75d421f04cafebca0f93250480fb3
   languageName: node
   linkType: hard
 

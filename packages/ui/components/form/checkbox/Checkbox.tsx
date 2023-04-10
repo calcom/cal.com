@@ -22,7 +22,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
             {React.createElement(
               descriptionAsLabel ? "div" : "label",
               {
-                className: classNames("flex text-sm font-medium text-gray-900"),
+                className: classNames("flex text-sm font-medium text-emphasis"),
                 ...(!descriptionAsLabel
                   ? {
                       htmlFor: rest.id,
@@ -40,7 +40,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               {
                 className: classNames(
                   "relative flex items-start",
-                  !error && descriptionAsLabel ? "text-gray-900" : "text-gray-900",
+                  !error && descriptionAsLabel ? "text-emphasis" : "text-emphasis",
                   error && "text-red-800"
                 ),
               },
@@ -52,10 +52,10 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     type="checkbox"
                     disabled={disabled}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2 ",
+                      "text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded ltr:mr-2 rtl:ml-2 ",
                       !error && disabled
                         ? "bg-gray-300 checked:bg-gray-300"
-                        : "checked:bg-gray-800 hover:bg-gray-100",
+                        : "hover:bg-subtle checked:bg-gray-800",
                       error && "border-red-800 checked:bg-red-800 hover:bg-red-400",
                       rest.className
                     )}

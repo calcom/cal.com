@@ -28,7 +28,7 @@ export const MostBookedTeamMembersTable = () => {
 
   return (
     <CardInsights className="shadow-none">
-      <Title>{t("most_booked_members")}</Title>
+      <Title className="text-emphasis">{t("most_booked_members")}</Title>
       <TotalBookingUsersTable data={data} />
     </CardInsights>
   );

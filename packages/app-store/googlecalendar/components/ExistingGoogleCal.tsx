@@ -8,7 +8,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
   const { t } = useLocale();
 
   return gCalInstalled ? (
-    <div className="rounded-md bg-gray-100 py-3 px-4">
+    <div className="bg-subtle rounded-md py-3 px-4">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
@@ -26,7 +26,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
       </div>
     </div>
   ) : (
-    <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
+    <div className="bg-info text-info rounded-md py-3 px-4">
       <div className="items-start space-x-2.5">
         <div className="flex items-start">
           <div>
@@ -39,7 +39,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
                 <>
                   <Link
                     href={`${CAL_URL}/apps/google-calendar`}
-                    className="flex items-center text-blue-900 underline">
+                    className="text-info flex items-center underline">
                     <span className="mr-1">{t("connect_google_calendar")}</span>
                     <FiArrowRight />
                   </Link>

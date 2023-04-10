@@ -7,7 +7,7 @@ import classNames from "@lib/classNames";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-gray-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+    <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -43,7 +43,7 @@ export const SelectSkeletonLoader = ({ className }: { className?: string }) => {
   return (
     <li
       className={classNames(
-        "group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3",
+        "border-subtle group flex w-full items-center justify-between rounded-sm border px-[10px] py-3",
         className
       )}>
       <div className="flex-grow truncate text-sm">
