@@ -43,6 +43,19 @@ class MyDocument extends Document<Props> {
           <meta name="msapplication-TileColor" content="#ff0000" />
           <meta name="theme-color" content="var(--cal-bg)" />
           <Script src="/embed-init-iframe.js" strategy="beforeInteractive" />
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `.light {
+                --cal-border-booker: red;
+                --cal-border-booker-width: 10px;
+              }
+              .dark {
+                --cal-border-booker: green;
+                --cal-border-booker-width: 40px;
+              }
+              `,
+            }}
+          />
         </Head>
 
         <body
