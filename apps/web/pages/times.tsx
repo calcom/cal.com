@@ -38,15 +38,19 @@ export const getServerSideProps = async function getServerSideProps(): Promise<a
     "@server/lib/constants": import("@server/lib/constants"),
     "@server/lib/ssr": import("@server/lib/ssr"),
   };
-  const times: Record<string, number> = {};
+  const times = [Date.now()];
   for (const dep in dependencies) {
-    const time = Date.now();
     await dependencies[dep as keyof typeof dependencies].then(() => {
-      times[dep] = Date.now() - time;
+      times.push(Date.now());
     });
   }
   const props = {
-    times,
+    times: times.map((time, index) => {
+      if (index === 0) {
+        return 0;
+      }
+      return time - times[index - 1];
+    }),
     hot: wasHot,
   };
   console.log("timing", props);
