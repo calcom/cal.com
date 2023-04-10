@@ -8,8 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 export function UpgradeTip({
   dark,
   title,
-  emptyTitle,
-  emptyDescription,
   description,
   background,
   features,
@@ -21,8 +19,6 @@ export function UpgradeTip({
   title: string;
   description: string;
   /* overwrite EmptyScreen text */
-  emptyTitle?: string;
-  emptyDescription?: string;
   background: string;
   features: Array<{ icon: JSX.Element; title: string; description: string }>;
   buttons?: JSX.Element;
@@ -37,12 +33,14 @@ export function UpgradeTip({
 
   if (isParentLoading || isLoading) return <>{isParentLoading}</>;
 
+  const isDark = document.querySelector("html").classList.contains("dark");
+
   return (
     <>
       <div className="relative flex min-h-[295px] w-full items-center justify-between overflow-hidden rounded-lg pb-10">
         <Image
           alt={title}
-          src={background}
+          src={isDark ? background + "-dark.jpg" : background + ".jpg"}
           className="absolute min-h-[295px] w-full rounded-lg object-cover"
           height={295}
           width={1118}
