@@ -131,6 +131,7 @@ export default function Login({
           "--cal-brand": "#111827",
           "--cal-brand-emphasis": "#101010",
           "--cal-brand-text": "white",
+          "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }>
       <AuthContainer
