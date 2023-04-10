@@ -548,7 +548,6 @@ export default abstract class BaseCalendarService implements Calendar {
       .map((promise) => promise.value)
       .flat()
       .filter((obj) => obj !== null);
-    console.log("Flat result:", flatResult);
     return flatResult as DAVObject[];
   }
 
