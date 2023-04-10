@@ -52,7 +52,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     className="text-primary-600 focus:ring-primary-500 border-default h-4 w-4 rounded"
                   />
                 </div>
-                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
+                <span className="ms-3 text-sm">{description}</span>
               </>
             )}
             {informationIconText && <InfoBadge content={informationIconText} />}

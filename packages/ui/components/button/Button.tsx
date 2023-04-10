@@ -238,7 +238,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 md:inline" />
+              <EndIcon className="ms-2 me-2 -mr-1 hidden h-5 w-5 md:inline" />
               <FiPlus className="inline h-6 w-6 md:hidden" />
             </>
           ) : (
