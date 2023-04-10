@@ -4,6 +4,7 @@ import BasePhoneInput from "react-phone-number-input";
 import type { Props, Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
+import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc/react";
 
 export type PhoneInputProps = Props<{
@@ -27,9 +28,12 @@ function PhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps
       onChange={onChange}
       countrySelectProps={{ className: "text-emphasis" }}
       numberInputProps={{
-        className: "border-0 text-sm focus:ring-0 dark:bg-muted text-default",
+        className: "border-0 text-sm focus:ring-0 bg-default text-default",
       }}
-      className={`${className} focus-within:border-brand-default border-default disabled:text-subtle disabled:dark:text-subtle  ring-emphasis block w-full rounded-md rounded-sm border border py-px pl-3 focus-within:ring-1 disabled:opacity-50 `}
+      className={classNames(
+        "hover:border-emphasis border-default bg-default rounded-md border py-px pl-3 focus-within:border-neutral-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1 disabled:cursor-not-allowed",
+        className
+      )}
     />
   );
 }
