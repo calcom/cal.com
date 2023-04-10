@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 import { z } from "zod";
@@ -194,7 +194,7 @@ export default function Bookings() {
   );
 }
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getServerSideProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
   const ssg = await ssgInit(ctx);
 
@@ -208,12 +208,12 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   };
 };
 
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: validStatuses.map((status) => ({
-      params: { status },
-      locale: "en",
-    })),
-    fallback: "blocking",
-  };
-};
+// export const getStaticPaths: GetStaticPaths = () => {
+//   return {
+//     paths: validStatuses.map((status) => ({
+//       params: { status },
+//       locale: "en",
+//     })),
+//     fallback: "blocking",
+//   };
+// };

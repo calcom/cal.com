@@ -8,7 +8,6 @@ import { createTRPCNext } from "../next";
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 import type { TRPCClientErrorLike } from "../react";
-import { httpBatchLink } from "../react";
 import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
 
@@ -47,7 +46,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
           // when condition is true, use normal request
           true: httpLink({ url }),
           // when condition is false, use batching
-          false: httpBatchLink({
+          false: httpLink({
             url,
             /** @link https://github.com/trpc/trpc/issues/2008 */
             // maxBatchSize: 7
